@@ -17767,31 +17767,22 @@
 							"services": {
 								"type": "object",
 								"properties": {
-									"gif_enabled": {"nullable": true, "type": "boolean"},
 									"youtube_enabled": {"nullable": true, "type": "boolean"},
 									"bluesky_enabled": {"nullable": true, "type": "boolean"}
 								},
-								"required": ["gif_enabled", "youtube_enabled", "bluesky_enabled"],
+								"required": ["youtube_enabled", "bluesky_enabled"],
 								"additionalProperties": false
 							},
 							"services_resolved": {
 								"type": "object",
-								"properties": {
-									"gif_enabled": {"type": "boolean"},
-									"youtube_enabled": {"type": "boolean"},
-									"bluesky_enabled": {"type": "boolean"}
-								},
-								"required": ["gif_enabled", "youtube_enabled", "bluesky_enabled"],
+								"properties": {"youtube_enabled": {"type": "boolean"}, "bluesky_enabled": {"type": "boolean"}},
+								"required": ["youtube_enabled", "bluesky_enabled"],
 								"additionalProperties": false
 							},
 							"services_available": {
 								"type": "object",
-								"properties": {
-									"gif": {"type": "boolean"},
-									"youtube": {"type": "boolean"},
-									"bluesky": {"type": "boolean"}
-								},
-								"required": ["gif", "youtube", "bluesky"],
+								"properties": {"youtube": {"type": "boolean"}, "bluesky": {"type": "boolean"}},
+								"required": ["youtube", "bluesky"],
 								"additionalProperties": false
 							}
 						},
@@ -17813,12 +17804,6 @@
 					"integrations": {
 						"type": "object",
 						"properties": {
-							"gif": {
-								"type": "object",
-								"properties": {"klipy_api_key_set": {"type": "boolean"}, "effective_available": {"type": "boolean"}},
-								"required": ["klipy_api_key_set", "effective_available"],
-								"additionalProperties": false
-							},
 							"youtube": {
 								"type": "object",
 								"properties": {"api_key_set": {"type": "boolean"}, "effective_available": {"type": "boolean"}},
@@ -17934,7 +17919,7 @@
 								"additionalProperties": false
 							}
 						},
-						"required": ["gif", "youtube", "email", "bluesky"],
+						"required": ["youtube", "email", "bluesky"],
 						"additionalProperties": false
 					},
 					"media": {
@@ -18409,11 +18394,6 @@
 						"nullable": true,
 						"type": "object",
 						"properties": {
-							"gif": {
-								"nullable": true,
-								"type": "object",
-								"properties": {"klipy_api_key": {"nullable": true, "type": "string", "maxLength": 4096}}
-							},
 							"youtube": {
 								"nullable": true,
 								"type": "object",
@@ -18565,7 +18545,6 @@
 								"nullable": true,
 								"type": "object",
 								"properties": {
-									"gif_enabled": {"nullable": true, "type": "boolean"},
 									"youtube_enabled": {"nullable": true, "type": "boolean"},
 									"bluesky_enabled": {"nullable": true, "type": "boolean"}
 								}

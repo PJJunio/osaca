@@ -10,11 +10,11 @@ import {failureCode} from '@app/features/platform/utils/ResponseInspection';
 import * as ModalCommands from '@app/features/ui/commands/ModalCommands';
 import {modal} from '@app/features/ui/commands/ModalCommands';
 import * as ToastCommands from '@app/features/ui/commands/ToastCommands';
-import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
-import {ME} from '@osaca/constants/src/AppConstants';
-import type {GifMediaFormat} from '@osaca/schema/src/domains/gif/GifSchemas';
 import type {I18n} from '@lingui/core';
 import {msg} from '@lingui/core/macro';
+import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
+import {ME} from '@osaca/constants/src/AppConstants';
+import type {GifMediaFormat} from '@osaca/schema/src/domains/meme/MemeSchemas';
 
 const ADDED_TO_SAVED_MEDIA_DESCRIPTOR = msg({
 	message: 'Added to saved media',

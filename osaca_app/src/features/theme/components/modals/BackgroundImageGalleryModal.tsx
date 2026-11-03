@@ -6,10 +6,7 @@ import * as Modal from '@app/features/app/components/dialogs/Modal';
 import {BACKGROUND_MEDIA_MAX_SIZE_BYTES} from '@app/features/app/config/I18nDisplayConstants';
 import {useAnimatedMediaVideoPlayback} from '@app/features/app/hooks/useAnimatedMediaPlayback';
 import {useShouldAnimate} from '@app/features/app/hooks/useShouldAnimate';
-import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
 import {LimitResolver} from '@app/features/app/utils/LimitResolverAdapter';
-import {GifPickerSelectModal} from '@app/features/expressions/components/modals/GifPickerSelectModal';
-import {downloadGifAsVideoOrImageFile} from '@app/features/expressions/utils/GifFileDownload';
 import {
 	GET_PREMIUM_DESCRIPTOR,
 	SOMETHING_WENT_WRONG_DESCRIPTOR,
@@ -45,7 +42,6 @@ import {
 	AtomIcon,
 	CheckIcon,
 	EyeSlashIcon,
-	GifIcon,
 	PlusIcon,
 	SparkleIcon,
 	TrashIcon,
@@ -152,19 +148,6 @@ const CUSTOM_BACKGROUNDS_DESCRIPTOR = msg({
 	comment:
 		'Label in the background image gallery modal. Preserve {backgroundCount}, {maxBackgroundImages}; they are inserted by code.',
 });
-const CHOOSE_A_GIF_DESCRIPTOR = msg({
-	message: 'Choose a GIF',
-	comment: 'Title of the GIF picker modal opened from the background image gallery. Keep it concise.',
-});
-const OR_PICK_A_GIF_FROM_PROVIDER_DESCRIPTOR = msg({
-	message: 'or pick a GIF from {gifProviderName}',
-	comment:
-		'Link-style button under the background upload placeholder. Preserve {gifProviderName}; it is inserted by code. Keep it concise.',
-});
-const REPLACE_WITH_A_GIF_DESCRIPTOR = msg({
-	message: 'Replace with a GIF',
-	comment: 'Button or menu action label in the background image gallery modal. Keep it concise.',
-});
 const logger = new Logger('BackgroundImageGalleryModal');
 const TILE_PRELOAD_ROOT_MARGIN = '200px';
 
@@ -176,7 +159,7 @@ interface BackgroundImage {
 
 interface BuiltInBackground {
 	id: string;
-	type: 'none' | 'blur' | 'upload' | 'gif';
+	type: 'none' | 'blur' | 'upload';
 	name: string;
 	icon: React.ComponentType<IconProps>;
 }
@@ -461,7 +444,6 @@ const BackgroundImageGalleryModal: React.FC = observer(() => {
 	const canAddMoreImages = backgroundImages.length < maxBackgroundImages;
 	const backgroundCount = backgroundImages.length;
 	const shouldShowReplace = maxBackgroundImages === 1 && backgroundImages.length >= 1;
-	const gifProviderName = RuntimeConfig.gifProviderDisplayName;
 	const builtInBackgrounds = useMemo(
 		(): ReadonlyArray<BuiltInBackground> => [
 			{
@@ -482,14 +464,8 @@ const BackgroundImageGalleryModal: React.FC = observer(() => {
 				name: shouldShowReplace ? i18n._(REPLACE_DESCRIPTOR) : i18n._(UPLOAD_DESCRIPTOR),
 				icon: PlusIcon,
 			},
-			{
-				id: 'gif-picker',
-				type: 'gif',
-				name: gifProviderName,
-				icon: GifIcon,
-			},
 		],
-		[gifProviderName, i18n.locale, shouldShowReplace],
+		[i18n.locale, shouldShowReplace],
 	);
 	const sortedImages = useMemo(
 		() => [...backgroundImages].sort((a, b) => b.createdAt - a.createdAt),
@@ -622,45 +598,11 @@ const BackgroundImageGalleryModal: React.FC = observer(() => {
 		},
 		[confirmReplaceThen, processFileUpload],
 	);
-	const handlePickGifClick = useCallback(
-		(showReplaceWarning: boolean = false) => {
-			confirmReplaceThen(showReplaceWarning, () => {
-				ModalCommands.push(
-					modal(() => (
-						<GifPickerSelectModal
-							title={i18n._(CHOOSE_A_GIF_DESCRIPTOR)}
-							onSelect={(gif) => {
-								void (async () => {
-									try {
-										const file = await downloadGifAsVideoOrImageFile(gif);
-										await processFileUpload(file);
-									} catch (error) {
-										logger.error('Failed to download GIF background:', error);
-										showGenericErrorModal({
-											title: () => i18n._(SOMETHING_WENT_WRONG_DESCRIPTOR),
-											message: () => i18n._(FAILED_TO_UPLOAD_BACKGROUND_IMAGE_PLEASE_TRY_AGAIN_DESCRIPTOR),
-											dataFlx: 'theme.background-image-gallery-modal.gif-download-error-modal',
-										});
-									}
-								})();
-							}}
-							data-flx="theme.background-image-gallery-modal.handle-pick-gif-click.gif-picker-select-modal"
-						/>
-					)),
-				);
-			});
-		},
-		[confirmReplaceThen, processFileUpload],
-	);
 	const handleBackgroundSelect = useCallback(
 		(background: BackgroundItemType) => {
 			if ('type' in background) {
 				if (background.type === 'upload') {
 					handleUploadClick(true);
-					return;
-				}
-				if (background.type === 'gif') {
-					handlePickGifClick(true);
 					return;
 				}
 				VoiceSettingsCommands.update({
@@ -673,7 +615,7 @@ const BackgroundImageGalleryModal: React.FC = observer(() => {
 			}
 			ModalCommands.pop();
 		},
-		[handlePickGifClick, handleUploadClick],
+		[handleUploadClick],
 	);
 	const handleRemoveImage = useCallback(
 		async (image: BackgroundImage) => {
@@ -839,30 +781,6 @@ const BackgroundImageGalleryModal: React.FC = observer(() => {
 												</FocusRing>
 											</Tooltip>
 											<Tooltip
-												text={i18n._(REPLACE_WITH_A_GIF_DESCRIPTOR)}
-												data-flx="theme.background-image-gallery-modal.tooltip--gif"
-											>
-												<FocusRing offset={-2} data-flx="theme.background-image-gallery-modal.focus-ring--gif-replace">
-													<button
-														type="button"
-														onClick={(e) => {
-															e.stopPropagation();
-															handlePickGifClick(true);
-														}}
-														className={styles.actionButton}
-														aria-label={i18n._(REPLACE_WITH_A_GIF_DESCRIPTOR)}
-														data-flx="theme.background-image-gallery-modal.action-button.pick-gif-click"
-													>
-														<GifIcon
-															size={remFromPx(16)}
-															weight="bold"
-															className={styles.actionButtonIcon}
-															data-flx="theme.background-image-gallery-modal.action-button-icon--gif"
-														/>
-													</button>
-												</FocusRing>
-											</Tooltip>
-											<Tooltip
 												text={i18n._(REMOVE_BACKGROUND_DESCRIPTOR)}
 												data-flx="theme.background-image-gallery-modal.tooltip--2"
 											>
@@ -923,28 +841,13 @@ const BackgroundImageGalleryModal: React.FC = observer(() => {
 												>
 													<Trans>Upload custom background</Trans>
 												</div>
-												<FocusRing offset={-2} data-flx="theme.background-image-gallery-modal.focus-ring--gif">
-													<button
-														type="button"
-														className={styles.gifLinkButton}
-														onClick={(e) => {
-															e.stopPropagation();
-															handlePickGifClick(false);
-														}}
-														data-flx="theme.background-image-gallery-modal.gif-link-button.pick-gif-click"
-													>
-														{i18n._(OR_PICK_A_GIF_FROM_PROVIDER_DESCRIPTOR, {
-															gifProviderName: RuntimeConfig.gifProviderDisplayName,
-														})}
-													</button>
-												</FocusRing>
 											</div>
 										</div>
 									</div>
 								)}
 								<div className={styles.builtInGrid} data-flx="theme.background-image-gallery-modal.built-in-grid">
 									{builtInBackgrounds
-										.filter((bg) => bg.type !== 'upload' && bg.type !== 'gif')
+										.filter((bg) => bg.type !== 'upload')
 										.map((background) => (
 											<BackgroundItem
 												key={background.id}

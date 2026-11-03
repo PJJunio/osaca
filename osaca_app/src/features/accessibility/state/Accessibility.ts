@@ -607,8 +607,6 @@ export interface AccessibilitySettings {
 	mobileStickerAnimationValue: number;
 	mobileGifAutoPlayValue: boolean;
 	mobileAnimateEmojiValue: boolean;
-	autoSendKlipyGifs: boolean;
-	showGifButton: boolean;
 	showMemesButton: boolean;
 	showStickersButton: boolean;
 	showEmojiButton: boolean;
@@ -712,8 +710,6 @@ class Accessibility {
 	mobileStickerAnimationValue: number = StickerAnimationOptions.ANIMATE_ON_INTERACTION;
 	mobileGifAutoPlayValue = false;
 	mobileAnimateEmojiValue = true;
-	autoSendKlipyGifs = true;
-	showGifButton = true;
 	showMemesButton = true;
 	showStickersButton = true;
 	showEmojiButton = true;
@@ -820,8 +816,6 @@ class Accessibility {
 				'mobileStickerAnimationValue',
 				'mobileGifAutoPlayValue',
 				'mobileAnimateEmojiValue',
-				'autoSendKlipyGifs',
-				'showGifButton',
 				'showMemesButton',
 				'showStickersButton',
 				'showEmojiButton',
@@ -879,8 +873,6 @@ class Accessibility {
 				mobileStickerAnimationValue: s.mobileStickerAnimationValue,
 				mobileGifAutoplayValue: s.mobileGifAutoPlayValue,
 				mobileAnimateEmojiValue: s.mobileAnimateEmojiValue,
-				autoSendKlipyGifs: s.autoSendKlipyGifs,
-				showGifButton: s.showGifButton,
 				showMemesButton: s.showMemesButton,
 				showStickersButton: s.showStickersButton,
 				showEmojiButton: s.showEmojiButton,
@@ -956,8 +948,6 @@ class Accessibility {
 				if (m.mobileStickerAnimationValue !== undefined) s.mobileStickerAnimationValue = m.mobileStickerAnimationValue;
 				if (m.mobileGifAutoplayValue !== undefined) s.mobileGifAutoPlayValue = m.mobileGifAutoplayValue;
 				if (m.mobileAnimateEmojiValue !== undefined) s.mobileAnimateEmojiValue = m.mobileAnimateEmojiValue;
-				s.autoSendKlipyGifs = m.autoSendKlipyGifs;
-				if (m.showGifButton !== undefined) s.showGifButton = m.showGifButton;
 				if (m.showMemesButton !== undefined) s.showMemesButton = m.showMemesButton;
 				if (m.showStickersButton !== undefined) s.showStickersButton = m.showStickersButton;
 				if (m.showEmojiButton !== undefined) s.showEmojiButton = m.showEmojiButton;
@@ -1274,8 +1264,6 @@ class Accessibility {
 		if (validated.mobileGifAutoPlayValue !== undefined) this.mobileGifAutoPlayValue = validated.mobileGifAutoPlayValue;
 		if (validated.mobileAnimateEmojiValue !== undefined)
 			this.mobileAnimateEmojiValue = validated.mobileAnimateEmojiValue;
-		if (validated.autoSendKlipyGifs !== undefined) this.autoSendKlipyGifs = validated.autoSendKlipyGifs;
-		if (validated.showGifButton !== undefined) this.showGifButton = validated.showGifButton;
 		if (validated.showMemesButton !== undefined) this.showMemesButton = validated.showMemesButton;
 		if (validated.showStickersButton !== undefined) this.showStickersButton = validated.showStickersButton;
 		if (validated.showEmojiButton !== undefined) this.showEmojiButton = validated.showEmojiButton;
@@ -1394,8 +1382,6 @@ class Accessibility {
 			mobileStickerAnimationValue: data.mobileStickerAnimationValue ?? this.mobileStickerAnimationValue,
 			mobileGifAutoPlayValue: data.mobileGifAutoPlayValue ?? this.mobileGifAutoPlayValue,
 			mobileAnimateEmojiValue: data.mobileAnimateEmojiValue ?? this.mobileAnimateEmojiValue,
-			autoSendKlipyGifs: data.autoSendKlipyGifs ?? this.autoSendKlipyGifs,
-			showGifButton: data.showGifButton ?? this.showGifButton,
 			showMemesButton: data.showMemesButton ?? this.showMemesButton,
 			showStickersButton: data.showStickersButton ?? this.showStickersButton,
 			showEmojiButton: data.showEmojiButton ?? this.showEmojiButton,

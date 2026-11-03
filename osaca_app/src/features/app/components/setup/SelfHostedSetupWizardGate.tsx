@@ -107,6 +107,9 @@ import {isMobileExperienceEnabled} from '@app/features/ui/utils/MobileExperience
 import * as RecoveryKitCommands from '@app/features/user/commands/RecoveryKitCommands';
 import RecoveryKitStatus from '@app/features/user/state/RecoveryKitStatus';
 import * as FormUtils from '@app/lib/forms';
+import type {MessageDescriptor} from '@lingui/core';
+import {msg} from '@lingui/core/macro';
+import {useLingui} from '@lingui/react/macro';
 import {RegistrationModes} from '@osaca/constants/src/AccountConfigConstants';
 import {
 	AccountIdentityLockReasons,
@@ -116,9 +119,6 @@ import {
 import {ThemeTypes} from '@osaca/constants/src/UserConstants';
 import {isRecord} from '@osaca/record_utils/src/RecordGuards';
 import type {InstanceConfigResponse} from '@osaca/schema/src/domains/admin/AdminSchemas';
-import type {MessageDescriptor} from '@lingui/core';
-import {msg} from '@lingui/core/macro';
-import {useLingui} from '@lingui/react/macro';
 import {clsx} from 'clsx';
 import {observer} from 'mobx-react-lite';
 import type React from 'react';
@@ -611,7 +611,7 @@ const SetupWizardController = observer(() => {
 			nameFormRef.current?.requestSubmit();
 			return;
 		}
-		if (step === 'gif_youtube') {
+		if (step === 'services') {
 			servicesFormRef.current?.requestSubmit();
 			return;
 		}
@@ -924,12 +924,11 @@ const SetupWizardController = observer(() => {
 				return (
 					<PushRelayStep data-flx="app.setup.self-hosted-setup-wizard-gate.render-step.push-relay-step.set-finish-draft" />
 				);
-			case 'gif_youtube':
+			case 'services':
 				return (
 					<ServicesStep
 						draftCache={serviceDraftCache}
 						formRef={servicesFormRef}
-						klipyStored={config?.integrations.gif.klipy_api_key_set ?? false}
 						youtubeStored={config?.integrations.youtube.api_key_set ?? false}
 						disabled={busy}
 						error={stepError}

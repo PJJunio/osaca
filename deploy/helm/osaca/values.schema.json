@@ -874,9 +874,6 @@
 		"svc": {
 			"type": "object",
 			"properties": {
-				"gifs": {
-					"$ref": "#/definitions/svc"
-				},
 				"messages": {
 					"$ref": "#/definitions/svc"
 				},

@@ -7994,322 +7994,6 @@
 				"description": "Retrieves gateway connection information and recommended shard count for establishing WebSocket connections."
 			}
 		},
-		"/gifs/featured": {
-			"get": {
-				"operationId": "get_featured_gifs",
-				"summary": "Get featured GIFs",
-				"tags": ["GIFs"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/GifFeaturedResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Retrieves currently featured GIFs and category tags from the active provider.",
-				"security": [{"sessionToken": []}],
-				"parameters": [
-					{
-						"name": "locale",
-						"in": "query",
-						"required": false,
-						"schema": {"default": "en-US", "$ref": "#/components/schemas/Locale"},
-						"description": "The locale code for the user interface language"
-					}
-				]
-			}
-		},
-		"/gifs/register-share": {
-			"post": {
-				"operationId": "register_gifs_share",
-				"summary": "Register a GIF share",
-				"tags": ["GIFs"],
-				"responses": {
-					"204": {"description": "No Content"},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Notifies the active GIF provider that the caller is sharing one of its GIFs.",
-				"security": [{"sessionToken": []}],
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/GifRegisterShareRequest"}}}
-				}
-			}
-		},
-		"/gifs/search": {
-			"get": {
-				"operationId": "search_gifs",
-				"summary": "Search GIFs",
-				"tags": ["GIFs"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/GifListResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Searches the active GIF provider for GIFs matching the given query. The provider name is returned in the X-OSACA-GIF-Provider response header so clients can adapt without refetching .well-known.",
-				"security": [{"sessionToken": []}],
-				"parameters": [
-					{
-						"name": "q",
-						"in": "query",
-						"required": true,
-						"schema": {"description": "The search query", "type": "string"},
-						"description": "The search query"
-					},
-					{
-						"name": "locale",
-						"in": "query",
-						"required": false,
-						"schema": {"default": "en-US", "$ref": "#/components/schemas/Locale"},
-						"description": "The locale code for the user interface language"
-					}
-				]
-			}
-		},
-		"/gifs/suggest": {
-			"get": {
-				"operationId": "get_gifs_search_suggestions",
-				"summary": "Get GIF search suggestions",
-				"tags": ["GIFs"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/GifSearchSuggestionsResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Returns search-term suggestions from the active GIF provider for the given partial query.",
-				"security": [{"sessionToken": []}],
-				"parameters": [
-					{
-						"name": "q",
-						"in": "query",
-						"required": true,
-						"schema": {"description": "The search query", "type": "string"},
-						"description": "The search query"
-					},
-					{
-						"name": "locale",
-						"in": "query",
-						"required": false,
-						"schema": {"default": "en-US", "$ref": "#/components/schemas/Locale"},
-						"description": "The locale code for the user interface language"
-					}
-				]
-			}
-		},
-		"/gifs/trending": {
-			"get": {
-				"operationId": "get_trending_gifs",
-				"summary": "Get trending GIFs",
-				"tags": ["GIFs"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/GifListResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Retrieves trending GIFs from the active provider.",
-				"security": [{"sessionToken": []}],
-				"parameters": [
-					{
-						"name": "locale",
-						"in": "query",
-						"required": false,
-						"schema": {"default": "en-US", "$ref": "#/components/schemas/Locale"},
-						"description": "The locale code for the user interface language"
-					}
-				]
-			}
-		},
 		"/gifts/{code}": {
 			"get": {
 				"operationId": "get_gift_code",
@@ -12198,322 +11882,6 @@
 					}
 				},
 				"description": "Resolves the approximate location of the requesting client from its IP address, together with the locations where age restricted content is gated or unavailable."
-			}
-		},
-		"/klipy/featured": {
-			"get": {
-				"operationId": "get_featured_klipy",
-				"summary": "Get featured GIFs (deprecated alias)",
-				"tags": ["GIFs (Deprecated)"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/GifFeaturedResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Use /gifs/* instead - these vendor-specific paths are deprecated and will be removed. Routes to the active provider; identical behaviour to /gifs/featured.",
-				"security": [{"sessionToken": []}],
-				"parameters": [
-					{
-						"name": "locale",
-						"in": "query",
-						"required": false,
-						"schema": {"default": "en-US", "$ref": "#/components/schemas/Locale"},
-						"description": "The locale code for the user interface language"
-					}
-				]
-			}
-		},
-		"/klipy/register-share": {
-			"post": {
-				"operationId": "register_klipy_share",
-				"summary": "Register a GIF share (deprecated alias)",
-				"tags": ["GIFs (Deprecated)"],
-				"responses": {
-					"204": {"description": "No Content"},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Use /gifs/* instead - these vendor-specific paths are deprecated and will be removed. Routes to the active provider; identical behaviour to /gifs/register-share.",
-				"security": [{"sessionToken": []}],
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/GifRegisterShareRequest"}}}
-				}
-			}
-		},
-		"/klipy/search": {
-			"get": {
-				"operationId": "search_klipy",
-				"summary": "Search GIFs (deprecated alias)",
-				"tags": ["GIFs (Deprecated)"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/GifListResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Use /gifs/* instead - these vendor-specific paths are deprecated and will be removed. Routes to the active provider; identical behaviour to /gifs/search.",
-				"security": [{"sessionToken": []}],
-				"parameters": [
-					{
-						"name": "q",
-						"in": "query",
-						"required": true,
-						"schema": {"description": "The search query", "type": "string"},
-						"description": "The search query"
-					},
-					{
-						"name": "locale",
-						"in": "query",
-						"required": false,
-						"schema": {"default": "en-US", "$ref": "#/components/schemas/Locale"},
-						"description": "The locale code for the user interface language"
-					}
-				]
-			}
-		},
-		"/klipy/suggest": {
-			"get": {
-				"operationId": "get_klipy_search_suggestions",
-				"summary": "Get GIF search suggestions (deprecated alias)",
-				"tags": ["GIFs (Deprecated)"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/GifSearchSuggestionsResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Use /gifs/* instead - these vendor-specific paths are deprecated and will be removed. Routes to the active provider; identical behaviour to /gifs/suggest.",
-				"security": [{"sessionToken": []}],
-				"parameters": [
-					{
-						"name": "q",
-						"in": "query",
-						"required": true,
-						"schema": {"description": "The search query", "type": "string"},
-						"description": "The search query"
-					},
-					{
-						"name": "locale",
-						"in": "query",
-						"required": false,
-						"schema": {"default": "en-US", "$ref": "#/components/schemas/Locale"},
-						"description": "The locale code for the user interface language"
-					}
-				]
-			}
-		},
-		"/klipy/trending-gifs": {
-			"get": {
-				"operationId": "get_trending_klipy",
-				"summary": "Get trending GIFs (deprecated alias)",
-				"tags": ["GIFs (Deprecated)"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/GifListResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Use /gifs/* instead - these vendor-specific paths are deprecated and will be removed. Routes to the active provider; identical behaviour to /gifs/trending.",
-				"security": [{"sessionToken": []}],
-				"parameters": [
-					{
-						"name": "locale",
-						"in": "query",
-						"required": false,
-						"schema": {"default": "en-US", "$ref": "#/components/schemas/Locale"},
-						"description": "The locale code for the user interface language"
-					}
-				]
 			}
 		},
 		"/oauth2/@me": {
@@ -17199,322 +16567,6 @@
 				"description": "Handles incoming Stripe webhook events for payment processing and subscription management."
 			}
 		},
-		"/tenor/featured": {
-			"get": {
-				"operationId": "get_featured_tenor",
-				"summary": "Get featured GIFs (deprecated alias)",
-				"tags": ["GIFs (Deprecated)"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/GifFeaturedResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Use /gifs/* instead - these vendor-specific paths are deprecated and will be removed. Routes to the active provider; identical behaviour to /gifs/featured.",
-				"security": [{"sessionToken": []}],
-				"parameters": [
-					{
-						"name": "locale",
-						"in": "query",
-						"required": false,
-						"schema": {"default": "en-US", "$ref": "#/components/schemas/Locale"},
-						"description": "The locale code for the user interface language"
-					}
-				]
-			}
-		},
-		"/tenor/register-share": {
-			"post": {
-				"operationId": "register_tenor_share",
-				"summary": "Register a GIF share (deprecated alias)",
-				"tags": ["GIFs (Deprecated)"],
-				"responses": {
-					"204": {"description": "No Content"},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Use /gifs/* instead - these vendor-specific paths are deprecated and will be removed. Routes to the active provider; identical behaviour to /gifs/register-share.",
-				"security": [{"sessionToken": []}],
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/GifRegisterShareRequest"}}}
-				}
-			}
-		},
-		"/tenor/search": {
-			"get": {
-				"operationId": "search_tenor",
-				"summary": "Search GIFs (deprecated alias)",
-				"tags": ["GIFs (Deprecated)"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/GifListResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Use /gifs/* instead - these vendor-specific paths are deprecated and will be removed. Routes to the active provider; identical behaviour to /gifs/search.",
-				"security": [{"sessionToken": []}],
-				"parameters": [
-					{
-						"name": "q",
-						"in": "query",
-						"required": true,
-						"schema": {"description": "The search query", "type": "string"},
-						"description": "The search query"
-					},
-					{
-						"name": "locale",
-						"in": "query",
-						"required": false,
-						"schema": {"default": "en-US", "$ref": "#/components/schemas/Locale"},
-						"description": "The locale code for the user interface language"
-					}
-				]
-			}
-		},
-		"/tenor/suggest": {
-			"get": {
-				"operationId": "get_tenor_search_suggestions",
-				"summary": "Get GIF search suggestions (deprecated alias)",
-				"tags": ["GIFs (Deprecated)"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/GifSearchSuggestionsResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Use /gifs/* instead - these vendor-specific paths are deprecated and will be removed. Routes to the active provider; identical behaviour to /gifs/suggest.",
-				"security": [{"sessionToken": []}],
-				"parameters": [
-					{
-						"name": "q",
-						"in": "query",
-						"required": true,
-						"schema": {"description": "The search query", "type": "string"},
-						"description": "The search query"
-					},
-					{
-						"name": "locale",
-						"in": "query",
-						"required": false,
-						"schema": {"default": "en-US", "$ref": "#/components/schemas/Locale"},
-						"description": "The locale code for the user interface language"
-					}
-				]
-			}
-		},
-		"/tenor/trending-gifs": {
-			"get": {
-				"operationId": "get_trending_tenor",
-				"summary": "Get trending GIFs (deprecated alias)",
-				"tags": ["GIFs (Deprecated)"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/GifListResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Use /gifs/* instead - these vendor-specific paths are deprecated and will be removed. Routes to the active provider; identical behaviour to /gifs/trending.",
-				"security": [{"sessionToken": []}],
-				"parameters": [
-					{
-						"name": "locale",
-						"in": "query",
-						"required": false,
-						"schema": {"default": "en-US", "$ref": "#/components/schemas/Locale"},
-						"description": "The locale code for the user interface language"
-					}
-				]
-			}
-		},
 		"/unfurl": {
 			"post": {
 				"operationId": "debug_unfurl",
@@ -19792,63 +18844,6 @@
 				"parameters": [
 					{"name": "sound_id", "in": "path", "required": true, "schema": {"$ref": "#/components/schemas/SnowflakeType"}}
 				]
-			}
-		},
-		"/users/@me/favorite-gifs/resolve": {
-			"post": {
-				"operationId": "resolve_gif_urls",
-				"summary": "Resolve GIF URLs to proxy entries",
-				"tags": ["Saved Media"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ResolveGifUrlsResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Resolves a batch of GIF URLs into entries containing signed media proxy URLs, suitable for storing as URL-only favorite GIFs.",
-				"security": [{"sessionToken": []}],
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ResolveGifUrlsBodySchema"}}}
-				}
 			}
 		},
 		"/users/@me/gifts": {
@@ -30094,25 +29089,6 @@
 						"format": "uri",
 						"description": "URL of the image or video to save as a favorite meme"
 					},
-					"gif_slug": {
-						"description": "Provider-issued slug or slug-id token for the GIF, when sourced from a provider",
-						"type": ["string", "null"]
-					},
-					"gif_provider": {
-						"description": "Stable name of the GIF provider that issued gif_slug. New provider GIFs are sourced from KLIPY.",
-						"type": ["string", "null"]
-					},
-					"media": {
-						"description": "Optional provider-issued format-name → media descriptor map captured by the client at favorite-time (mirrors GifResponse.media). Only persisted for gif-sourced memes; ignored otherwise.",
-						"anyOf": [
-							{
-								"type": "object",
-								"propertyNames": {"type": "string"},
-								"additionalProperties": {"$ref": "#/components/schemas/GifMediaFormatInput"}
-							},
-							{"type": "null"}
-						]
-					},
 					"name": {"description": "Display name for the meme", "type": ["string", "null"]}
 				},
 				"required": ["url"]
@@ -30780,31 +29756,6 @@
 			"GiftCodeMetadataListResponse": {
 				"type": "array",
 				"items": {"$ref": "#/components/schemas/GiftCodeMetadataResponse"}
-			},
-			"ResolveGifUrlsBodySchema": {
-				"type": "object",
-				"properties": {
-					"urls": {
-						"minItems": 1,
-						"maxItems": 200,
-						"type": "array",
-						"items": {"type": "string", "format": "uri"},
-						"description": "GIF URLs to resolve into entries with proxy metadata"
-					}
-				},
-				"required": ["urls"]
-			},
-			"ResolveGifUrlsResponse": {
-				"type": "object",
-				"properties": {
-					"entries": {
-						"type": "array",
-						"items": {"$ref": "#/components/schemas/ResolvedGifEntrySchema"},
-						"description": "Resolved GIF entries with proxy metadata"
-					}
-				},
-				"required": ["entries"],
-				"additionalProperties": false
 			},
 			"EntranceSoundRenameRequest": {
 				"type": "object",
@@ -31814,146 +30765,6 @@
 				"type": "array",
 				"items": {"$ref": "#/components/schemas/MessageEmbedResponse"},
 				"description": "The embeds resolved by the unfurler"
-			},
-			"Locale": {
-				"description": "The locale code for the user interface language",
-				"x-enumNames": [
-					"AR",
-					"BG",
-					"CS",
-					"DA",
-					"DE",
-					"EL",
-					"EN_GB",
-					"EN_US",
-					"ES_ES",
-					"ES_419",
-					"FI",
-					"FR",
-					"HE",
-					"HI",
-					"HR",
-					"HU",
-					"ID",
-					"IT",
-					"JA",
-					"KO",
-					"LT",
-					"NL",
-					"NO",
-					"PL",
-					"PT_BR",
-					"RO",
-					"RU",
-					"SV_SE",
-					"TH",
-					"TR",
-					"UK",
-					"VI",
-					"ZH_CN",
-					"ZH_TW"
-				],
-				"x-enumDescriptions": [
-					"Arabic",
-					"Bulgarian",
-					"Czech",
-					"Danish",
-					"German",
-					"Greek",
-					"English (United Kingdom)",
-					"English (United States)",
-					"Spanish (Spain)",
-					"Spanish (Latin America)",
-					"Finnish",
-					"French",
-					"Hebrew",
-					"Hindi",
-					"Croatian",
-					"Hungarian",
-					"Indonesian",
-					"Italian",
-					"Japanese",
-					"Korean",
-					"Lithuanian",
-					"Dutch",
-					"Norwegian",
-					"Polish",
-					"Portuguese (Brazil)",
-					"Romanian",
-					"Russian",
-					"Swedish",
-					"Thai",
-					"Turkish",
-					"Ukrainian",
-					"Vietnamese",
-					"Chinese (Simplified)",
-					"Chinese (Traditional)"
-				],
-				"enum": [
-					"ar",
-					"bg",
-					"cs",
-					"da",
-					"de",
-					"el",
-					"en-GB",
-					"en-US",
-					"es-ES",
-					"es-419",
-					"fi",
-					"fr",
-					"he",
-					"hi",
-					"hr",
-					"hu",
-					"id",
-					"it",
-					"ja",
-					"ko",
-					"lt",
-					"nl",
-					"no",
-					"pl",
-					"pt-BR",
-					"ro",
-					"ru",
-					"sv-SE",
-					"th",
-					"tr",
-					"uk",
-					"vi",
-					"zh-CN",
-					"zh-TW"
-				],
-				"type": "string"
-			},
-			"GifListResponse": {"type": "array", "items": {"$ref": "#/components/schemas/GifResponse"}},
-			"GifSearchSuggestionsResponse": {"type": "array", "items": {"type": "string"}},
-			"GifRegisterShareRequest": {
-				"type": "object",
-				"properties": {
-					"id": {"description": "Provider-issued share identifier (slug or slug-id token).", "type": "string"},
-					"q": {"description": "Optional search query that produced the GIF.", "type": ["string", "null"]},
-					"locale": {"default": "en-US", "$ref": "#/components/schemas/Locale"}
-				},
-				"required": ["id"]
-			},
-			"GifFeaturedResponse": {
-				"type": "object",
-				"properties": {
-					"gifs": {
-						"type": "array",
-						"items": {"$ref": "#/components/schemas/GifResponse"},
-						"description": "Array of featured GIFs."
-					},
-					"categories": {
-						"type": "array",
-						"items": {"$ref": "#/components/schemas/GifCategoryTagResponse"},
-						"description": "Array of GIF categories."
-					}
-				},
-				"required": ["gifs", "categories"],
-				"additionalProperties": false
 			},
 			"WebhookReceivedResponse": {
 				"type": "object",
@@ -38456,7 +37267,6 @@
 					"endpoints": {"$ref": "#/components/schemas/InstanceEndpointsSchema"},
 					"captcha": {"$ref": "#/components/schemas/InstanceCaptchaSchema"},
 					"features": {"$ref": "#/components/schemas/InstanceFeaturesSchema"},
-					"gif": {"$ref": "#/components/schemas/InstanceGifSchema"},
 					"sso": {"$ref": "#/components/schemas/InstanceSsoSchema"},
 					"registration": {"$ref": "#/components/schemas/InstanceRegistrationSchema"},
 					"community": {"$ref": "#/components/schemas/InstanceCommunitySchema"},
@@ -38596,7 +37406,6 @@
 					"endpoints",
 					"captcha",
 					"features",
-					"gif",
 					"sso",
 					"registration",
 					"community",
@@ -38897,7 +37706,6 @@
 			"InstanceServicesSchema": {
 				"type": "object",
 				"properties": {
-					"gif_enabled": {"type": "boolean", "description": "Whether the GIF picker is enabled for this instance"},
 					"youtube_enabled": {
 						"type": "boolean",
 						"description": "Whether YouTube link enrichment is enabled for this instance"
@@ -38907,7 +37715,7 @@
 						"description": "Whether Bluesky profile connections are enabled for this instance"
 					}
 				},
-				"required": ["gif_enabled", "youtube_enabled", "bluesky_enabled"],
+				"required": ["youtube_enabled", "bluesky_enabled"],
 				"additionalProperties": false,
 				"description": "Optional third-party service integrations enabled for this instance"
 			},
@@ -38984,20 +37792,6 @@
 				"required": ["enabled", "enforced", "username_from_provider", "display_name", "button_label", "redirect_uri"],
 				"additionalProperties": false,
 				"description": "Single sign-on configuration"
-			},
-			"InstanceGifSchema": {
-				"type": "object",
-				"properties": {
-					"provider": {"type": "string", "description": "Stable machine name of the active GIF provider."},
-					"display_name": {"type": "string", "description": "Human-readable provider name shown in the UI"},
-					"attribution_required": {
-						"type": "boolean",
-						"description": "Whether the client must show a \"Powered by …\" watermark for this provider"
-					}
-				},
-				"required": ["provider", "display_name", "attribution_required"],
-				"additionalProperties": false,
-				"description": "GIF provider configuration for clients"
 			},
 			"InstanceFeaturesSchema": {
 				"type": "object",
@@ -45065,86 +43859,6 @@
 				"type": "string"
 			},
 			"CheckoutPaymentMethodEnum": {"type": "string", "enum": ["card", "pix", "upi"]},
-			"GifCategoryTagResponse": {
-				"type": "object",
-				"properties": {
-					"name": {
-						"type": "string",
-						"description": "Category search term (locale-translated label suitable for display)."
-					},
-					"src": {
-						"type": "string",
-						"description": "Category preview image URL from the top GIF for this category search term."
-					},
-					"proxy_src": {
-						"type": "string",
-						"description": "Proxied category preview image URL from the top GIF for this category search term."
-					},
-					"gif": {
-						"anyOf": [{"$ref": "#/components/schemas/GifResponse"}, {"type": "null"}],
-						"description": "Enriched category preview GIF from the top search result for this category. Null only when no preview GIF was available."
-					}
-				},
-				"required": ["name", "src", "proxy_src", "gif"],
-				"additionalProperties": false
-			},
-			"GifResponse": {
-				"type": "object",
-				"properties": {
-					"id": {"type": "string", "description": "Provider-stable identifier for this GIF."},
-					"slug": {
-						"type": "string",
-						"description": "Canonical slug (or slug-id token) used to share / re-resolve this GIF."
-					},
-					"provider": {
-						"description": "Name of the provider that produced this GIF.",
-						"type": "string",
-						"minLength": 1,
-						"maxLength": 32
-					},
-					"title": {"type": "string", "description": "Title or description of the GIF."},
-					"url": {"type": "string", "description": "Provider page URL for the GIF."},
-					"src": {
-						"type": "string",
-						"description": "Direct URL to the GIF media file (best format chosen by the server)."
-					},
-					"proxy_src": {
-						"type": "string",
-						"description": "Proxied URL to the GIF media file (best format chosen by the server)."
-					},
-					"width": {
-						"description": "Width of the GIF in pixels (best format).",
-						"$ref": "#/components/schemas/Int32Type"
-					},
-					"height": {
-						"description": "Height of the GIF in pixels (best format).",
-						"$ref": "#/components/schemas/Int32Type"
-					},
-					"media": {
-						"type": "object",
-						"propertyNames": {"type": "string"},
-						"additionalProperties": {"$ref": "#/components/schemas/GifMediaFormat"},
-						"description": "Map of format-name → media descriptor. Keys are a size prefix (none for full size, \"medium\", \"tiny\", \"nano\") joined to a codec name (\"webm\", \"mp4\", \"webp\", \"gif\"), plus \"loopedmp4\". Video keys are \"webm\" / \"mp4\" / \"loopedmp4\" / \"mediumwebm\" / \"mediummp4\" / \"tinywebm\" / \"tinymp4\" / \"nanowebm\" / \"nanomp4\"; image keys are \"webp\" / \"gif\" / \"mediumwebp\" / \"mediumgif\" / \"tinywebp\" / \"tinygif\" / \"nanowebp\" / \"nanogif\". Every key is optional, so clients must walk a priority list rather than index a single key. Clients that cannot decode the video keys should prefer \"tinywebp\" / \"tinygif\" / \"mediumwebp\" / \"mediumgif\" / \"webp\" / \"gif\" / \"nanowebp\" / \"nanogif\" in that order."
-					},
-					"placeholder": {
-						"description": "Compact thumbhash placeholder produced by the media proxy. Clients render it as a low-res preview while the GIF loads, and persist it on favourites so the picker has a fallback if the source URL later disappears.",
-						"type": ["string", "null"]
-					}
-				},
-				"required": ["id", "slug", "provider", "title", "url", "src", "proxy_src", "width", "height", "media"],
-				"additionalProperties": false
-			},
-			"GifMediaFormat": {
-				"type": "object",
-				"properties": {
-					"src": {"type": "string", "description": "Direct URL to this format of the GIF media."},
-					"proxy_src": {"type": "string", "description": "Proxied URL to this format of the GIF media."},
-					"width": {"description": "Width of this format in pixels.", "$ref": "#/components/schemas/Int32Type"},
-					"height": {"description": "Height of this format in pixels.", "$ref": "#/components/schemas/Int32Type"}
-				},
-				"required": ["src", "proxy_src", "width", "height"],
-				"additionalProperties": false
-			},
 			"AccountVerificationNeedSchema": {
 				"description": "What the account still has to do before it can use everything",
 				"x-enumNames": ["ADD_EMAIL", "CONFIRM_EMAIL", "SET_PASSWORD"],
@@ -45257,43 +43971,6 @@
 						"description": "Allow members from mutual guilds to see this connection"
 					}
 				]
-			},
-			"ResolvedGifEntrySchema": {
-				"type": "object",
-				"properties": {
-					"url": {"type": "string", "description": "Original GIF URL"},
-					"proxy_url": {"type": "string", "description": "Signed media proxy URL for the GIF"},
-					"width": {
-						"type": "integer",
-						"minimum": -9007199254740991,
-						"maximum": 9007199254740991,
-						"description": "Width of the GIF in pixels (0 if unknown)"
-					},
-					"height": {
-						"type": "integer",
-						"minimum": -9007199254740991,
-						"maximum": 9007199254740991,
-						"description": "Height of the GIF in pixels (0 if unknown)"
-					},
-					"media": {
-						"default": {},
-						"description": "Provider-issued format-name → media descriptor map (mirrors GifResponse.media). Empty when the URL is not recognizable as belonging to any registered GIF provider.",
-						"type": "object",
-						"propertyNames": {"type": "string"},
-						"additionalProperties": {"$ref": "#/components/schemas/GifMediaFormat"}
-					},
-					"content_type": {
-						"default": "",
-						"description": "MIME type of the primary media (top-level url). Empty string means \"unknown / image/gif\" — clients should treat it as image/gif for backward compat.",
-						"type": "string"
-					},
-					"placeholder": {
-						"description": "Compact thumbhash placeholder produced by the media proxy. Persisted with the favorite so the picker can show a low-res preview while the GIF loads, and a fallback if the source URL later disappears.",
-						"type": ["string", "null"]
-					}
-				},
-				"required": ["url", "proxy_url", "width", "height", "media", "content_type"],
-				"additionalProperties": false
 			},
 			"GiftCodeMetadataResponse": {
 				"type": "object",
@@ -45455,15 +44132,16 @@
 				"enum": ["selected", "inaccessible_only"],
 				"type": "string"
 			},
-			"GifMediaFormatInput": {
+			"GifMediaFormat": {
 				"type": "object",
 				"properties": {
-					"src": {"type": "string", "description": "Direct URL to this format of the GIF media."},
-					"proxy_src": {"type": "string", "description": "Proxied URL to this format of the GIF media."},
+					"src": {"type": "string", "description": "Direct URL to this format of the media."},
+					"proxy_src": {"type": "string", "description": "Proxied URL to this format of the media."},
 					"width": {"description": "Width of this format in pixels.", "$ref": "#/components/schemas/Int32Type"},
 					"height": {"description": "Height of this format in pixels.", "$ref": "#/components/schemas/Int32Type"}
 				},
-				"required": ["src", "proxy_src", "width", "height"]
+				"required": ["src", "proxy_src", "width", "height"],
+				"additionalProperties": false
 			},
 			"WebAuthnCredentialResponse": {
 				"type": "object",
@@ -45924,6 +44602,118 @@
 					"Animate stickers on hover/interaction",
 					"Never animate stickers"
 				]
+			},
+			"Locale": {
+				"description": "The locale code for the user interface language",
+				"x-enumNames": [
+					"AR",
+					"BG",
+					"CS",
+					"DA",
+					"DE",
+					"EL",
+					"EN_GB",
+					"EN_US",
+					"ES_ES",
+					"ES_419",
+					"FI",
+					"FR",
+					"HE",
+					"HI",
+					"HR",
+					"HU",
+					"ID",
+					"IT",
+					"JA",
+					"KO",
+					"LT",
+					"NL",
+					"NO",
+					"PL",
+					"PT_BR",
+					"RO",
+					"RU",
+					"SV_SE",
+					"TH",
+					"TR",
+					"UK",
+					"VI",
+					"ZH_CN",
+					"ZH_TW"
+				],
+				"x-enumDescriptions": [
+					"Arabic",
+					"Bulgarian",
+					"Czech",
+					"Danish",
+					"German",
+					"Greek",
+					"English (United Kingdom)",
+					"English (United States)",
+					"Spanish (Spain)",
+					"Spanish (Latin America)",
+					"Finnish",
+					"French",
+					"Hebrew",
+					"Hindi",
+					"Croatian",
+					"Hungarian",
+					"Indonesian",
+					"Italian",
+					"Japanese",
+					"Korean",
+					"Lithuanian",
+					"Dutch",
+					"Norwegian",
+					"Polish",
+					"Portuguese (Brazil)",
+					"Romanian",
+					"Russian",
+					"Swedish",
+					"Thai",
+					"Turkish",
+					"Ukrainian",
+					"Vietnamese",
+					"Chinese (Simplified)",
+					"Chinese (Traditional)"
+				],
+				"enum": [
+					"ar",
+					"bg",
+					"cs",
+					"da",
+					"de",
+					"el",
+					"en-GB",
+					"en-US",
+					"es-ES",
+					"es-419",
+					"fi",
+					"fr",
+					"he",
+					"hi",
+					"hr",
+					"hu",
+					"id",
+					"it",
+					"ja",
+					"ko",
+					"lt",
+					"nl",
+					"no",
+					"pl",
+					"pt-BR",
+					"ro",
+					"ru",
+					"sv-SE",
+					"th",
+					"tr",
+					"uk",
+					"vi",
+					"zh-CN",
+					"zh-TW"
+				],
+				"type": "string"
 			},
 			"ProfilePrivacyLevelInput": {
 				"description": "Profile privacy visibility level",
@@ -46944,8 +45734,6 @@
 		{"name": "Donations"},
 		{"name": "Experiments"},
 		{"name": "Geolocation"},
-		{"name": "GIFs"},
-		{"name": "GIFs (Deprecated)"},
 		{"name": "Discovery"},
 		{"name": "Emojis"},
 		{"name": "Stickers"},

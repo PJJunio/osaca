@@ -13,7 +13,6 @@ import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
 import {GlobalLimits} from '@app/features/app/utils/GlobalLimits';
 import {LimitResolver} from '@app/features/app/utils/LimitResolverAdapter';
 import {isLimitToggleEnabled} from '@app/features/app/utils/LimitUtils';
-import type {Gif} from '@app/features/expressions/commands/GifCommands';
 import {AssetCropModal, AssetType} from '@app/features/expressions/components/modals/AssetCropModal';
 import {openAssetSourceModal} from '@app/features/expressions/components/modals/AssetSourceModal';
 import {showAnimatedAvifUnsupportedModal} from '@app/features/expressions/utils/AnimatedAvifModalUtils';
@@ -23,7 +22,6 @@ import {
 	formatImageUploadRecommendedHint,
 	formatImageUploadRecommendedHintWithNote,
 } from '@app/features/expressions/utils/AssetUploadHintCopy';
-import {downloadGifAsImageFile} from '@app/features/expressions/utils/GifFileDownload';
 import {isSvgFile, readImageFileAsUploadDataUrl} from '@app/features/expressions/utils/ImageUploadFileUtils';
 import {
 	CANCEL_DESCRIPTOR,
@@ -49,9 +47,9 @@ import {
 	USE_GLOBAL_PROFILE_DESCRIPTOR,
 } from '@app/features/user/utils/UserMessageDescriptors';
 import {canCropFile} from '@app/features/voice/utils/MediaCapabilities';
-import {getAcceptString} from '@osaca/constants/src/AssetFormatPolicy';
 import {msg} from '@lingui/core/macro';
 import {Trans, useLingui} from '@lingui/react/macro';
+import {getAcceptString} from '@osaca/constants/src/AssetFormatPolicy';
 import {clsx} from 'clsx';
 import {observer} from 'mobx-react-lite';
 import {useCallback} from 'react';
@@ -93,7 +91,7 @@ const COULDN_T_UPLOAD_AVATAR_DESCRIPTOR = msg({
 });
 const CHANGE_AVATAR_DESCRIPTOR = msg({
 	message: 'Change avatar',
-	comment: 'Title of the modal where the user picks an avatar source (file upload or GIF provider). Keep it concise.',
+	comment: 'Title of the modal where the user picks an avatar source. Keep it concise.',
 });
 const ANIMATED_AVATARS_REQUIRE_PREMIUM_NOTE_DESCRIPTOR = msg({
 	message: 'Animated avatars ({animatedAvatarFormats}) require {premiumProductName}.',
@@ -271,16 +269,6 @@ export function useChangeAvatarAction({
 			showAvatarUploadError();
 		}
 	}, [processAvatarFile, showAvatarUploadError]);
-	const handleSelectAvatarGif = useCallback(
-		async (gif: Gif) => {
-			try {
-				await processAvatarFile(await downloadGifAsImageFile(gif));
-			} catch {
-				showAvatarUploadError();
-			}
-		},
-		[processAvatarFile, showAvatarUploadError],
-	);
 	const handleAvatarUpload = useCallback(() => {
 		let uploadHint: string;
 		if (canUploadAnimatedAvatar) {
@@ -310,9 +298,8 @@ export function useChangeAvatarAction({
 			title: i18n._(CHANGE_AVATAR_DESCRIPTOR),
 			uploadHint,
 			onPickUpload: handlePickAvatarFile,
-			onSelectGif: (gif) => void handleSelectAvatarGif(gif),
 		});
-	}, [canUploadAnimatedAvatar, handlePickAvatarFile, handleSelectAvatarGif, i18n]);
+	}, [canUploadAnimatedAvatar, handlePickAvatarFile, i18n]);
 	return {canUploadAnimatedAvatar, openChangeAvatar: handleAvatarUpload};
 }
 

@@ -283,17 +283,6 @@ export const InstanceFeaturesSchema = z
 	.describe('Feature flags for this instance');
 export type InstanceFeatures = z.infer<typeof InstanceFeaturesSchema>;
 
-export const InstanceGifSchema = z
-	.object({
-		provider: z.string().describe('Stable machine name of the active GIF provider.'),
-		display_name: z.string().describe('Human-readable provider name shown in the UI'),
-		attribution_required: z
-			.boolean()
-			.describe('Whether the client must show a "Powered by …" watermark for this provider'),
-	})
-	.describe('GIF provider configuration for clients');
-export type InstanceGif = z.infer<typeof InstanceGifSchema>;
-
 export const InstanceSsoSchema = SsoStatusResponse.extend({
 	available: z.boolean().optional().describe('Whether an SSO provider is configured for this instance'),
 }).describe('Single sign-on configuration');
@@ -345,7 +334,6 @@ export type InstanceCommunity = z.infer<typeof InstanceCommunitySchema>;
 
 export const InstanceServicesSchema = z
 	.object({
-		gif_enabled: z.boolean().describe('Whether the GIF picker is enabled for this instance'),
 		youtube_enabled: z.boolean().describe('Whether YouTube link enrichment is enabled for this instance'),
 		bluesky_enabled: z.boolean().describe('Whether Bluesky profile connections are enabled for this instance'),
 	})
@@ -485,7 +473,6 @@ export const WellKnownOsacaResponse = z.object({
 	endpoints: InstanceEndpointsSchema,
 	captcha: InstanceCaptchaSchema,
 	features: InstanceFeaturesSchema,
-	gif: InstanceGifSchema,
 	sso: InstanceSsoSchema,
 	registration: InstanceRegistrationSchema,
 	community: InstanceCommunitySchema,

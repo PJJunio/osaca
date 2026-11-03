@@ -237,15 +237,12 @@ impl Default for InstancePolicyResponse {
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct InstanceServicesOverrides {
-    pub gif_enabled: Option<bool>,
     pub youtube_enabled: Option<bool>,
     pub bluesky_enabled: Option<bool>,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct InstanceServicesResolved {
-    #[serde(default)]
-    pub gif_enabled: bool,
     #[serde(default)]
     pub youtube_enabled: bool,
     #[serde(default)]
@@ -255,8 +252,6 @@ pub struct InstanceServicesResolved {
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct InstanceServicesAvailable {
     #[serde(default)]
-    pub gif: bool,
-    #[serde(default)]
     pub youtube: bool,
     #[serde(default)]
     pub bluesky: bool,
@@ -265,19 +260,10 @@ pub struct InstanceServicesAvailable {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct InstanceIntegrationsResponse {
     #[serde(default)]
-    pub gif: InstanceGifIntegrationResponse,
-    #[serde(default)]
     pub youtube: InstanceYoutubeIntegrationResponse,
     pub email: InstanceEmailIntegrationResponse,
     #[serde(default)]
     pub bluesky: InstanceBlueskyIntegrationResponse,
-}
-
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
-pub struct InstanceGifIntegrationResponse {
-    pub klipy_api_key_set: bool,
-    #[serde(default)]
-    pub effective_available: bool,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
@@ -1010,8 +996,6 @@ pub struct InstancePolicyUpdateRequest {
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct InstanceServicesUpdateRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub gif_enabled: Option<Option<bool>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub youtube_enabled: Option<Option<bool>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bluesky_enabled: Option<Option<bool>>,
@@ -1020,19 +1004,11 @@ pub struct InstanceServicesUpdateRequest {
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct InstanceIntegrationsUpdateRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub gif: Option<InstanceGifIntegrationUpdateRequest>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub youtube: Option<InstanceYoutubeIntegrationUpdateRequest>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<InstanceEmailIntegrationUpdateRequest>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bluesky: Option<InstanceBlueskyIntegrationUpdateRequest>,
-}
-
-#[derive(Clone, Debug, Default, Serialize)]
-pub struct InstanceGifIntegrationUpdateRequest {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub klipy_api_key: Option<String>,
 }
 
 #[derive(Clone, Debug, Default, Serialize)]

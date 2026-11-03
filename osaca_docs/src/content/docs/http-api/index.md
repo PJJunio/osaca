@@ -36,7 +36,6 @@ Limits such as attachment counts differ between instances, and [instance discove
 | [Data harvests](/http-api/users/data-harvest/) | Requesting and downloading your data |
 | [Read states](/http-api/read-states/) | Read acknowledgements and mention counts |
 | [Memes](/http-api/memes/) | Saved media and GIF URL resolution |
-| [GIFs](/http-api/gifs/) | GIF search, featured and trending listings, share registration |
 | [Themes](/http-api/themes/) | Shareable custom CSS themes |
 | [Channels](/http-api/channels/) | Channels, recipients, permission overwrites, slowmode |
 | [Threads](/http-api/threads/) | Starting, archiving and searching threads |

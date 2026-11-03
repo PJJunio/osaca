@@ -361,7 +361,7 @@ Community, direct message, premium and gating policy.
 | personal_notes_enabled<sup>2</sup> | boolean | Whether people can use personal notes. Off by default on self-hosted instances |
 | guild_create_access | boolean | Whether every account can create communities. If not, only admins and accounts with the `feature_guild_create` limit can |
 | premium_mode | string | [Premium mode](#premium-modes) |
-| services | object | Nullable `gif_enabled`, `youtube_enabled` and `bluesky_enabled` overrides |
+| services | object | Nullable `youtube_enabled` and `bluesky_enabled` overrides |
 | services_resolved | object | The same keys as booleans, using the override when set and `services_available` otherwise |
 | services_available | object | Whether `gif`, `youtube` and `bluesky` are set up, before overrides |
 
@@ -386,7 +386,6 @@ Each provider's saved settings, a `_set` boolean for each secret and whether it 
 
 | Field | Type | Description |
 | --- | --- | --- |
-| gif | object | `klipy_api_key_set` and `effective_available` |
 | youtube | object | `api_key_set` and `effective_available` |
 | email | [email integration](#email-integration-object) object | Outgoing email settings |
 | bluesky | [Bluesky integration](#bluesky-integration-object) object | Bluesky client settings |
@@ -661,7 +660,7 @@ Merges the body into the saved configuration and returns the [instance configura
 
 <sup>2</sup> `branding.product_name` is 1-80 characters, `branding.premium_product_name` 1-40, `branding.custom_css` up to 32,768 and `branding.upload_limit_message` up to 500. `branding.trusted_domains` holds up to 50 hostnames, each optionally starting with `*.`, and null clears it. URLs are up to 2048 characters and `branding.theme_color` is a hex color. Setting `setup.configured` to true finishes setup, and accounts that register after that don't get the wildcard Admin ACL
 
-<sup>3</sup> A secret such as `klipy_api_key`, `api_key` or the SMTP `password` is saved when sent and kept when left out. `email.smtp` takes `host`, `port`, `username`, `password` and `tls_mode`. `bluesky.keys` replaces the signing keys with up to 8 entries of `kid` and `private_key`
+<sup>3</sup> A secret such as `api_key` or the SMTP `password` is saved when sent and kept when left out. `email.smtp` takes `host`, `port`, `username`, `password` and `tls_mode`. `bluesky.keys` replaces the signing keys with up to 8 entries of `kid` and `private_key`
 
 <sup>4</sup> `prices`, `country_currencies` and `legacy_prices` replace the saved value, and an empty `prices` object goes back to the environment prices. Billing can't be on while the premium mode is `everyone`
 
@@ -692,7 +691,7 @@ It also refuses `sso.username_from_provider` set to true on an instance that isn
 | personal_notes_enabled? | boolean | Whether people can use personal notes |
 | guild_create_access? | boolean | Whether every account can create communities |
 | premium_mode? | string | [Premium mode](#premium-modes) |
-| services? | object | Nullable `gif_enabled`, `youtube_enabled` and `bluesky_enabled` overrides |
+| services? | object | Nullable `youtube_enabled` and `bluesky_enabled` overrides |
 
 <sup>1</sup> Turning it on uses the community set in `single_community_guild_id`, or creates one owned by you. After setup is complete, it fails with 400 `INSTANCE_POLICY_TRANSITION_NOT_ALLOWED` unless a community is already set or sent. Turning it off keeps the community
 

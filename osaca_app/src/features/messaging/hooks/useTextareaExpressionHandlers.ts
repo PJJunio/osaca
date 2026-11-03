@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import type {Gif} from '@app/features/expressions/commands/GifCommands';
 import type {FavoriteMeme} from '@app/features/expressions/models/FavoriteMeme';
 import type {GuildSticker} from '@app/features/expressions/models/GuildSticker';
-import * as GifSlugUtils from '@app/features/expressions/utils/GifSlugUtils';
 import {UploadingAttachment} from '@app/features/messaging/models/UploadingAttachment';
 import AttachmentUrlRefresher from '@app/features/messaging/state/AttachmentUrlRefresher';
-import {attachmentUrlMayNeedRefresh} from '@app/features/messaging/utils/AttachmentCdnUrl';
 import {TextareaSegmentManager} from '@app/features/messaging/utils/TextareaSegmentManager';
 import {ComponentBus} from '@app/features/platform/utils/ComponentBus';
 import ActiveComposer from '@app/features/threads/state/ActiveComposer';
@@ -55,29 +52,6 @@ export const useTextareaExpressionHandlers = ({
 		[enabled, channelId, previousValueRef, segmentManagerRef, setValue],
 	);
 	useEffect(() => {
-		const handleGifSelect = async (payload?: unknown) => {
-			if (!enabled || (channelId != null && !ActiveComposer.accepts(channelId))) return;
-			const {gif, autoSend} = (payload ?? {}) as {
-				gif?: Gif;
-				autoSend?: boolean;
-			};
-			if (!gif) return;
-			const shareUrl = GifSlugUtils.resolveShareUrl(gif.provider, {url: gif.url, slug: gif.slug});
-			const gifUrl = attachmentUrlMayNeedRefresh(shareUrl, Date.now())
-				? await AttachmentUrlRefresher.refresh(shareUrl)
-				: shareUrl;
-			if (channelId != null && !ActiveComposer.accepts(channelId)) return;
-			if (autoSend) {
-				sendOptimisticMessage({content: gifUrl}, {hasAttachments: false});
-			} else {
-				appendText(gifUrl);
-			}
-		};
-		return ComponentBus.subscribe('GIF_SELECT', (payload) => {
-			void handleGifSelect(payload);
-		});
-	}, [appendText, sendOptimisticMessage, enabled, channelId]);
-	useEffect(() => {
 		const handleStickerSelect = (payload?: unknown) => {
 			if (!enabled || (channelId != null && !ActiveComposer.accepts(channelId))) return;
 			const {sticker} = (payload ?? {}) as {
@@ -99,8 +73,7 @@ export const useTextareaExpressionHandlers = ({
 			const insertMemeUrl = async () => {
 				appendText(await AttachmentUrlRefresher.refresh(meme.url));
 			};
-			const providerShareUrl =
-				meme.gifProvider && meme.gifSlug ? GifSlugUtils.buildShareUrl(meme.gifProvider, meme.gifSlug) : null;
+			const providerShareUrl: string | null = null;
 			if (autoSend) {
 				if (providerShareUrl) {
 					sendOptimisticMessage({content: providerShareUrl}, {hasAttachments: false});

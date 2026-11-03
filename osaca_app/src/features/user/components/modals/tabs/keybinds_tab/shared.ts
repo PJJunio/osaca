@@ -76,7 +76,6 @@ const SECTION_DISPLAY_ORDER: Partial<Record<KeybindSection, ReadonlyArray<Keybin
 		'chat_focus_textarea',
 		'chat_upload',
 		'chat_toggle_emoji',
-		'chat_toggle_gif',
 		'chat_toggle_sticker',
 		'chat_toggle_saved_media',
 		'chat_send_voice_message',

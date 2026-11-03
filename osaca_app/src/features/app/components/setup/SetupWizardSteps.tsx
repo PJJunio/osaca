@@ -6,14 +6,14 @@ import {Button} from '@app/features/ui/button/Button';
 import FocusRing from '@app/features/ui/focus_ring/FocusRing';
 import {LanguageSelector} from '@app/features/user/components/modals/tabs/LanguageTab';
 import * as LocaleUtils from '@app/features/user/utils/LocaleUtils';
+import {msg} from '@lingui/core/macro';
+import {useLingui} from '@lingui/react/macro';
 import {
 	type AccountIdentityLockReason,
 	AccountIdentityLockReasons,
 	type AccountIdentityMode,
 	AccountIdentityModes,
 } from '@osaca/constants/src/AccountIdentityConstants';
-import {msg} from '@lingui/core/macro';
-import {useLingui} from '@lingui/react/macro';
 import {CheckCircleIcon} from '@phosphor-icons/react';
 import {observer} from 'mobx-react-lite';
 import type React from 'react';
@@ -350,7 +350,6 @@ export const SUMMARY_DESCRIPTORS = {
 	personalNotes: msg({message: 'Personal notes', comment: 'Review row label for personal notes.'}),
 	registration: msg({message: 'Who can create an account', comment: 'Review row label for the registration mode.'}),
 	push: msg({message: 'Phone notifications', comment: 'Review row label for the push relay.'}),
-	gif: msg({message: 'GIF search', comment: 'Review row label for GIF search.'}),
 	youtube: msg({message: 'YouTube previews', comment: 'Review row label for YouTube link previews.'}),
 	attachments: msg({message: 'Old attachments', comment: 'Review row label for automatic attachment expiry.'}),
 	usernames: msg({message: 'Usernames', comment: 'Review value when people sign in with a username.'}),

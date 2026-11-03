@@ -32,7 +32,6 @@ var Twins = map[string]string{
 	"OSACA_EMAIL_SMTP_SECURE":                    "integrations.email.smtp.tls_mode",
 	"OSACA_EMAIL_SMTP_TLS_MODE":                  "integrations.email.smtp.tls_mode",
 	"OSACA_EMAIL_SMTP_USERNAME":                  "integrations.email.smtp.username",
-	"OSACA_KLIPY_API_KEY":                        "integrations.gif.klipy_api_key",
 	"OSACA_STRIPE_ENABLED":                       "billing.enabled",
 	"OSACA_STRIPE_LEGACY_PRICES":                 "billing.legacy_prices",
 	"OSACA_STRIPE_PRICES":                        "billing.prices",

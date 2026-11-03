@@ -8,7 +8,6 @@ import type {
 	InstanceDiscoveryResponse,
 	InstanceEndpoints,
 	InstanceFeatures,
-	InstanceGif,
 	InstancePush,
 	InstanceRegistration,
 	InstanceServices,
@@ -21,7 +20,6 @@ export interface DiscoveryStaticInput {
 	endpoints: InstanceEndpoints;
 	captcha: InstanceCaptcha;
 	features: InstanceFeatures;
-	gif: InstanceGif;
 	push: InstancePush;
 	appPublic: InstanceAppPublic;
 	agePolicy: InstanceAgePolicy;
@@ -44,7 +42,6 @@ export function buildDiscoveryResponse(
 		endpoints: staticInput.endpoints,
 		captcha: staticInput.captcha,
 		features: staticInput.features,
-		gif: staticInput.gif,
 		sso: dynamicInput.sso,
 		registration: dynamicInput.registration,
 		community: dynamicInput.community,

@@ -9,11 +9,11 @@ import {StepHeader, SUMMARY_DESCRIPTORS, TextButton} from '@app/features/app/com
 import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
 import {int2hex} from '@app/features/theme/utils/ColorUtils';
 import Users from '@app/features/user/state/Users';
-import {AccountIdentityModes, TagStyles} from '@osaca/constants/src/AccountIdentityConstants';
-import type {InstanceConfigResponse} from '@osaca/schema/src/domains/admin/AdminSchemas';
 import type {I18n, MessageDescriptor} from '@lingui/core';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
+import {AccountIdentityModes, TagStyles} from '@osaca/constants/src/AccountIdentityConstants';
+import type {InstanceConfigResponse} from '@osaca/schema/src/domains/admin/AdminSchemas';
 import {observer} from 'mobx-react-lite';
 import type React from 'react';
 
@@ -180,16 +180,10 @@ function reviewRows(
 			onChange: () => onChange('push_relay'),
 		},
 		{
-			key: 'gif',
-			label: t(SUMMARY_DESCRIPTORS.gif),
-			value: t(config.integrations.gif.klipy_api_key_set ? SUMMARY_DESCRIPTORS.on : SUMMARY_DESCRIPTORS.skipped),
-			onChange: () => onChange('gif_youtube'),
-		},
-		{
 			key: 'youtube',
 			label: t(SUMMARY_DESCRIPTORS.youtube),
 			value: t(config.integrations.youtube.api_key_set ? SUMMARY_DESCRIPTORS.on : SUMMARY_DESCRIPTORS.skipped),
-			onChange: () => onChange('gif_youtube'),
+			onChange: () => onChange('services'),
 		},
 		{
 			key: 'attachments',

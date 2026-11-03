@@ -10,7 +10,6 @@ export type ComposerAutocompleteTriggerType =
 	| 'emojiReaction'
 	| 'command'
 	| 'meme'
-	| 'gif'
 	| 'sticker'
 	| 'commandArgMention'
 	| 'commandArg';

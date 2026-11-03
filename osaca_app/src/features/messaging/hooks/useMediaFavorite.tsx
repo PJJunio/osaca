@@ -1,11 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import * as FavoriteGifCommands from '@app/features/expressions/commands/FavoriteGifCommands';
 import * as FavoriteMemeCommands from '@app/features/expressions/commands/FavoriteMemeCommands';
 import {AddFavoriteMemeModal} from '@app/features/expressions/components/modals/AddFavoriteMemeModal';
-import FavoriteGif from '@app/features/expressions/state/FavoriteGif';
 import FavoriteMemes from '@app/features/expressions/state/FavoriteMemes';
-import * as FavoriteGifUtils from '@app/features/expressions/utils/FavoriteGifUtils';
 import * as FavoriteMemeUtils from '@app/features/expressions/utils/FavoriteMemeUtils';
 import * as ModalCommands from '@app/features/ui/commands/ModalCommands';
 import {modal} from '@app/features/ui/commands/ModalCommands';
@@ -44,13 +41,8 @@ export function useMediaFavorite({
 	defaultName,
 	defaultAltText,
 	contentHash,
-	isGifv,
 	gifSlug,
 	gifProvider,
-	embedURL,
-	proxyURL,
-	naturalWidth,
-	naturalHeight,
 }: UseMediaFavoriteParams): UseMediaFavoriteReturn {
 	const {i18n} = useLingui();
 	const memes = useSyncExternalStore(
@@ -60,54 +52,13 @@ export function useMediaFavorite({
 		},
 		() => FavoriteMemes.memes,
 	);
-	const gifFavoriteState = useSyncExternalStore(
-		(listener) => {
-			const dispose = autorun(listener);
-			return () => dispose();
-		},
-		() => {
-			if (!isGifv || !embedURL) return 'none';
-			const useSavedMedia = FavoriteGif.saveGifFavoritesAsSavedMedia;
-			const hasUrl = FavoriteGif.hasUrl(embedURL);
-			return `${useSavedMedia ? 'sm' : 'url'}:${hasUrl ? '1' : '0'}`;
-		},
-	);
-	const useSavedMediaForGifFavorites = gifFavoriteState.startsWith('sm:');
-	const hasUrlOnlyGifFavorite = gifFavoriteState.endsWith(':1');
-	const useUrlOnlyGifFlow = !!isGifv && !!embedURL && !useSavedMediaForGifFavorites;
 	const hasSavedMediaFavorite = FavoriteMemeUtils.isFavorited(memes, {contentHash, gifSlug, gifProvider});
-	const isFavorited =
-		isGifv && embedURL
-			? FavoriteGifUtils.isGifFavoriteActive({
-					hasUrlOnlyFavorite: hasUrlOnlyGifFavorite,
-					hasSavedMediaFavorite,
-					saveAsSavedMedia: useSavedMediaForGifFavorites,
-				})
-			: hasSavedMediaFavorite;
+	const isFavorited = hasSavedMediaFavorite;
 	const canFavorite = !!(channelId && messageId && (attachmentId || embedIndex !== undefined));
 	const toggleFavorite = useCallback(
 		async (e?: React.MouseEvent) => {
 			e?.stopPropagation();
 			if (!canFavorite) return;
-			const hasUrlOnlyGifFavoriteNow = !!isGifv && !!embedURL && FavoriteGif.hasUrl(embedURL);
-			if (useUrlOnlyGifFlow || hasUrlOnlyGifFavoriteNow) {
-				const performToggle = () => {
-					if (FavoriteGif.hasUrl(embedURL!)) {
-						FavoriteGifCommands.removeFavoriteGifByUrl(i18n, embedURL!);
-					} else {
-						FavoriteGifCommands.addFavoriteGifFromMedia(i18n, {
-							url: embedURL!,
-							proxyUrl: proxyURL,
-							width: naturalWidth ?? 0,
-							height: naturalHeight ?? 0,
-							media: {},
-							placeholder: null,
-						});
-					}
-				};
-				performToggle();
-				return;
-			}
 			if (isFavorited) {
 				const meme = FavoriteMemeUtils.findFavoritedMeme(memes, {contentHash, gifSlug, gifProvider});
 				if (!meme) return;
@@ -142,12 +93,6 @@ export function useMediaFavorite({
 			defaultName,
 			defaultAltText,
 			i18n,
-			isGifv,
-			useUrlOnlyGifFlow,
-			embedURL,
-			proxyURL,
-			naturalWidth,
-			naturalHeight,
 		],
 	);
 	return {

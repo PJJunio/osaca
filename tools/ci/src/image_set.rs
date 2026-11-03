@@ -57,10 +57,6 @@ const COMPONENTS: &[Component] = &[
         services: &["gateway"],
     },
     Component {
-        image: "osaca-gifs",
-        services: &["gifs"],
-    },
-    Component {
         image: "osaca-media-proxy",
         services: &["media-proxy"],
     },

@@ -12,21 +12,13 @@ import {observer} from 'mobx-react-lite';
 import {type RefObject, useState} from 'react';
 
 const SERVICES_TITLE_DESCRIPTOR = msg({
-	message: 'GIF search and YouTube previews',
-	comment: 'Setup wizard title for the GIF search and YouTube preview API keys.',
+	message: 'YouTube previews',
+	comment: 'Setup wizard title for the YouTube preview API key.',
 });
 const SERVICES_BODY_DESCRIPTOR = msg({
 	message:
 		'Each one needs an API key from its provider. Leave them empty to skip, and add them later in the admin panel.',
 	comment: 'Setup wizard body for the optional API keys.',
-});
-const KLIPY_KEY_LABEL_DESCRIPTOR = msg({
-	message: 'Klipy API key',
-	comment: 'Label for the Klipy API key field. Klipy is a product name and must not be translated.',
-});
-const KLIPY_KEY_HELP_DESCRIPTOR = msg({
-	message: 'Turns on GIF search.',
-	comment: 'Help under the Klipy API key field in the setup wizard.',
 });
 const YOUTUBE_KEY_LABEL_DESCRIPTOR = msg({
 	message: 'YouTube Data API key',
@@ -49,20 +41,16 @@ const KEY_REPLACE_DESCRIPTOR = msg({
 const KEY_REPLACE_LABEL_DESCRIPTOR = msg({
 	message: 'Replace the {key}',
 	comment:
-		'Accessible label of the button that replaces a stored API key. key is the field name, such as Klipy API key.',
+		'Accessible label of the button that replaces a stored API key. key is the field name, such as YouTube Data API key.',
 });
 
 const EMPTY_SERVICE_KEYS: ServiceKeyDraft = {
-	klipyApiKey: '',
 	youtubeApiKey: '',
-	replaceKlipy: false,
 	replaceYoutube: false,
 };
 
 export interface ServiceKeyDraft {
-	klipyApiKey: string;
 	youtubeApiKey: string;
-	replaceKlipy: boolean;
 	replaceYoutube: boolean;
 }
 
@@ -143,7 +131,6 @@ export const ServicesStep = observer(
 	({
 		draftCache,
 		formRef,
-		klipyStored,
 		youtubeStored,
 		disabled,
 		error,
@@ -153,7 +140,6 @@ export const ServicesStep = observer(
 	}: {
 		draftCache: RefObject<ServiceKeyDraft | null>;
 		formRef: RefObject<HTMLFormElement | null>;
-		klipyStored: boolean;
 		youtubeStored: boolean;
 		disabled: boolean;
 		error: string | null;
@@ -171,15 +157,13 @@ export const ServicesStep = observer(
 			updateDraft({...(draftCache.current ?? draft), ...patch});
 		};
 		const saveServices = async () => {
-			const klipy = draft.klipyApiKey.trim();
 			const youtube = draft.youtubeApiKey.trim();
-			if (!klipy && !youtube) {
+			if (!youtube) {
 				onAdvance();
 				return;
 			}
 			const saved = await onSave({
 				integrations: {
-					...(klipy ? {gif: {klipy_api_key: klipy}} : {}),
 					...(youtube ? {youtube: {api_key: youtube}} : {}),
 				},
 			});
@@ -203,18 +187,6 @@ export const ServicesStep = observer(
 					title={i18n._(SERVICES_TITLE_DESCRIPTOR)}
 					body={i18n._(SERVICES_BODY_DESCRIPTOR)}
 					data-flx="app.setup.setup-wizard-steps.services-step.step-header"
-				/>
-				<ServiceKeyField
-					label={i18n._(KLIPY_KEY_LABEL_DESCRIPTOR)}
-					help={i18n._(KLIPY_KEY_HELP_DESCRIPTOR)}
-					value={draft.klipyApiKey}
-					stored={klipyStored}
-					replacing={draft.replaceKlipy}
-					disabled={disabled}
-					onChange={(klipyApiKey) => onChange({klipyApiKey})}
-					onReplace={() => onChange({replaceKlipy: true})}
-					flx="klipy-key"
-					data-flx="app.setup.setup-wizard-steps.services-step.service-key-field.change"
 				/>
 				<ServiceKeyField
 					label={i18n._(YOUTUBE_KEY_LABEL_DESCRIPTOR)}

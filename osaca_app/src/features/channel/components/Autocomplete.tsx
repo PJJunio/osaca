@@ -7,7 +7,6 @@ import {AutocompleteCommand} from '@app/features/channel/components/Autocomplete
 import {AutocompleteCommandChoice} from '@app/features/channel/components/AutocompleteCommandChoice';
 import {AutocompleteCommandOptionalAdd} from '@app/features/channel/components/AutocompleteCommandOptionalAdd';
 import {AutocompleteEmoji} from '@app/features/channel/components/AutocompleteEmoji';
-import {AutocompleteGif} from '@app/features/channel/components/AutocompleteGif';
 import {AutocompleteMeme} from '@app/features/channel/components/AutocompleteMeme';
 import {AutocompleteMention} from '@app/features/channel/components/AutocompleteMention';
 import {AutocompleteSticker} from '@app/features/channel/components/AutocompleteSticker';
@@ -336,19 +335,15 @@ export const Autocomplete = observer(
 					aria-label={i18n._(SUGGESTIONS_DESCRIPTOR)}
 					data-flx="channel.autocomplete.container.key-down"
 				>
-					{type === 'gif' ? (
-						<AutocompleteList {...listProps} data-flx="channel.autocomplete.autocomplete-gif.select" />
-					) : (
-						<Scroller
-							ref={scrollerRef}
-							className={styles.scroller}
-							key="autocomplete-scroller"
-							data-flx="channel.autocomplete.scroller"
-						>
-							{renderAutocompleteHeading(heading)}
-							{<AutocompleteList {...listProps} data-flx="channel.autocomplete.autocomplete-list.select" />}
-						</Scroller>
-					)}
+					<Scroller
+						ref={scrollerRef}
+						className={styles.scroller}
+						key="autocomplete-scroller"
+						data-flx="channel.autocomplete.scroller"
+					>
+						{renderAutocompleteHeading(heading)}
+						{<AutocompleteList {...listProps} data-flx="channel.autocomplete.autocomplete-list.select" />}
+					</Scroller>
 				</div>
 			</FloatingPortal>
 		);
@@ -361,7 +356,6 @@ const LIST_BY_TYPE: Record<AutocompleteType, ComponentType<AutocompleteListProps
 	commandChoice: AutocompleteCommandChoice,
 	commandOptionalAdd: AutocompleteCommandOptionalAdd,
 	emoji: AutocompleteEmoji,
-	gif: AutocompleteGif,
 	meme: AutocompleteMeme,
 	mention: AutocompleteMention,
 	sticker: AutocompleteSticker,

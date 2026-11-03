@@ -182,10 +182,6 @@ export const TOGGLE_THE_EMOJI_PICKER_DESCRIPTOR = msg({
 	message: 'Toggle the emoji picker',
 	comment: 'Keyboard shortcut action label shown in the shortcuts list and keybind editor. Keep short, sentence case.',
 });
-export const TOGGLE_THE_GIF_PICKER_DESCRIPTOR = msg({
-	message: 'Toggle the GIF picker',
-	comment: 'Keyboard shortcut action label shown in the shortcuts list and keybind editor. Keep short, sentence case.',
-});
 export const TOGGLE_THE_STICKER_PICKER_DESCRIPTOR = msg({
 	message: 'Toggle the sticker picker',
 	comment: 'Keyboard shortcut action label shown in the shortcuts list and keybind editor. Keep short, sentence case.',

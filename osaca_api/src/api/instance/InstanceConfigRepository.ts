@@ -306,13 +306,8 @@ export interface InstancePolicyConfig {
 	personal_notes_enabled: boolean;
 	premium_mode: InstancePremiumMode;
 	guild_create_access: boolean;
-	gif_enabled: boolean | null;
 	youtube_enabled: boolean | null;
 	bluesky_enabled: boolean | null;
-}
-
-interface InstanceGifIntegrationConfig {
-	klipy_api_key: string | null;
 }
 
 interface InstanceYoutubeIntegrationConfig {
@@ -343,23 +338,12 @@ interface InstanceBlueskyIntegrationConfig {
 }
 
 interface InstanceIntegrationsConfig {
-	gif: InstanceGifIntegrationConfig;
 	youtube: InstanceYoutubeIntegrationConfig;
 	email: InstanceEmailIntegrationConfig;
 	bluesky: InstanceBlueskyIntegrationConfig;
 }
 
-interface InstanceGifEffectiveConfig {
-	klipy_api_key: string | null;
-	active_api_key: string | null;
-	available: boolean;
-}
-
 interface InstanceIntegrationsAdminConfig {
-	gif: {
-		klipy_api_key_set: boolean;
-		effective_available: boolean;
-	};
 	youtube: {
 		api_key_set: boolean;
 		effective_available: boolean;
@@ -432,7 +416,6 @@ interface InstanceMediaAdminConfig {
 }
 
 export interface InstanceIntegrationsConfigPatch {
-	gif?: Partial<InstanceGifIntegrationConfig>;
 	youtube?: Partial<InstanceYoutubeIntegrationConfig>;
 	email?: Partial<Omit<InstanceEmailIntegrationConfig, 'smtp'>> & {
 		enabled?: boolean | null;
@@ -1094,7 +1077,6 @@ const StoredInstancePolicySchema = z
 		personal_notes_enabled: z.boolean().nullable().default(null),
 		premium_mode: InstancePolicyUpdateSchema.shape.premium_mode.default('everyone'),
 		guild_create_access: InstancePolicyUpdateSchema.shape.guild_create_access.default(true),
-		gif_enabled: InstancePolicyServiceUpdateSchema.shape.gif_enabled.default(null),
 		youtube_enabled: InstancePolicyServiceUpdateSchema.shape.youtube_enabled.default(null),
 		bluesky_enabled: InstancePolicyServiceUpdateSchema.shape.bluesky_enabled.default(null),
 	})
@@ -1150,7 +1132,6 @@ const StoredBlueskyKeysSchema = z
 		return true;
 	});
 const StoredInstanceIntegrationsSchema = z.object({
-	gif: z.object({klipy_api_key: StoredIntegrationStringSchema}).prefault({}),
 	youtube: z.object({api_key: StoredIntegrationStringSchema}).prefault({}),
 	email: z
 		.object({
@@ -2732,10 +2713,6 @@ export class InstanceConfigRepository {
 		const {enabled, provider, ...email} = config.email ?? {};
 		const delivery = email.delivery ?? legacyEmailDeliveryPatch(current.email.delivery, enabled, provider);
 		const next = decodeInstanceIntegrationsConfig({
-			gif: {
-				...current.gif,
-				...(config.gif ?? {}),
-			},
 			youtube: {
 				...current.youtube,
 				...(config.youtube ?? {}),
@@ -2804,16 +2781,6 @@ export class InstanceConfigRepository {
 				...media.attachment_decay,
 				effective: attachmentDecay,
 			},
-		};
-	}
-
-	async getEffectiveGifConfig(): Promise<InstanceGifEffectiveConfig> {
-		const integrations = await this.getInstanceIntegrationsConfig();
-		const klipyApiKey = integrations.gif.klipy_api_key ?? normalizeOptionalString(Config.klipy.apiKey);
-		return {
-			klipy_api_key: klipyApiKey,
-			active_api_key: klipyApiKey,
-			available: Boolean(klipyApiKey),
 		};
 	}
 
@@ -2946,9 +2913,8 @@ export class InstanceConfigRepository {
 	}
 
 	async getInstanceIntegrationsAdminConfig(): Promise<InstanceIntegrationsAdminConfig> {
-		const [integrations, gif, youtubeApiKey, {email, state}, bluesky] = await Promise.all([
+		const [integrations, youtubeApiKey, {email, state}, bluesky] = await Promise.all([
 			this.getInstanceIntegrationsConfig(),
-			this.getEffectiveGifConfig(),
 			this.getEffectiveYoutubeApiKey(),
 			this.resolveEmailConfig(),
 			this.getEffectiveBlueskyConfig(),
@@ -2956,10 +2922,6 @@ export class InstanceConfigRepository {
 		const storedDelivery = integrations.email.delivery;
 		const smtpServer = email.smtp ?? resolveEffectiveSmtpConfig(integrations.email.smtp);
 		return {
-			gif: {
-				klipy_api_key_set: secretIsSet(integrations.gif.klipy_api_key) || secretIsSet(Config.klipy.apiKey),
-				effective_available: gif.available,
-			},
 			youtube: {
 				api_key_set: secretIsSet(integrations.youtube.api_key) || secretIsSet(Config.youtube.apiKey),
 				effective_available: Boolean(youtubeApiKey),
@@ -3107,14 +3069,12 @@ export class InstanceConfigRepository {
 	}
 
 	async getResolvedServicesConfig(): Promise<InstanceServices> {
-		const [policy, gif, youtubeApiKey, bluesky] = await Promise.all([
+		const [policy, youtubeApiKey, bluesky] = await Promise.all([
 			this.getInstancePolicyConfig(),
-			this.getEffectiveGifConfig(),
 			this.getEffectiveYoutubeApiKey(),
 			this.getEffectiveBlueskyConfig(),
 		]);
 		return {
-			gif_enabled: policy.gif_enabled ?? gif.available,
 			youtube_enabled: policy.youtube_enabled ?? Boolean(youtubeApiKey),
 			bluesky_enabled: policy.bluesky_enabled ?? bluesky.enabled,
 		};

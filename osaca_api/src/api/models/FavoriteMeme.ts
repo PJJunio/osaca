@@ -5,7 +5,7 @@ import {userIdToChannelId} from '@app/api/BrandedTypes';
 import type {FavoriteMemeRow} from '@app/api/database/types/UserTypes';
 import {Logger} from '@app/api/Logger';
 import {isJsonRecord, parseJsonWithGuard} from '@app/api/utils/JsonBoundaryUtils';
-import type {GifMediaFormat} from '@osaca/schema/src/domains/gif/GifSchemas';
+import type {GifMediaFormat} from '@osaca/schema/src/domains/meme/MemeSchemas';
 import {snowflakeToDate} from '@osaca/snowflake/src/Snowflake';
 
 export class FavoriteMeme {

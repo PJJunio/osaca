@@ -14,10 +14,7 @@ import {
 	SyncedPreferencesSchema,
 } from '@osaca/schema/src/domains/user/SyncedPreferencesCodec';
 import {AccessibilitySettingsSchema} from '@osaca/schema/src/gen/osaca/user/preferences/v1/accessibility_pb';
-import {
-	FavoriteGifSettingsSchema,
-	SoundSettingsSchema,
-} from '@osaca/schema/src/gen/osaca/user/preferences/v1/pickers_pb';
+import {SoundSettingsSchema} from '@osaca/schema/src/gen/osaca/user/preferences/v1/pickers_pb';
 import {
 	ChatInputSettingsSchema,
 	DoubleTapAction,
@@ -65,18 +62,13 @@ describe('SyncedPreferencesCodec', () => {
 		expect(decoded.sound?.disabledSounds).toEqual({ping: true, join: false});
 		expect(decoded.sound?.soundOverrides).toEqual({ping: 0.25});
 	});
-	it('round-trips a populated favorites/gif sub-message and top-level scalar', () => {
+	it('round-trips a top-level scalar', () => {
 		const original = create(SyncedPreferencesSchema, {
 			sanitizeUrls: true,
-			favoriteGifs: create(FavoriteGifSettingsSchema, {
-				saveAsSavedMedia: true,
-				seenFirstTimePrompt: true,
-			}),
 		});
 		const decoded = decodeSyncedPreferences(encodeSyncedPreferences(original));
 		expect(equals(SyncedPreferencesSchema, decoded, original)).toBe(true);
 		expect(decoded.sanitizeUrls).toBe(true);
-		expect(decoded.favoriteGifs?.saveAsSavedMedia).toBe(true);
 	});
 	it('round-trips chat input settings', () => {
 		const original = create(SyncedPreferencesSchema, {

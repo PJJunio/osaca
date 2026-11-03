@@ -32,11 +32,11 @@ import {Input} from '@app/features/ui/components/form/FormInput';
 import Users from '@app/features/user/state/Users';
 import {AccountGateSlate} from '@app/features/user/utils/AccountGatePresentation';
 import {canPerform} from '@app/features/user/utils/AccountGates';
-import {TierGatedActions} from '@osaca/constants/src/AccountTierConstants';
-import {getAcceptString} from '@osaca/constants/src/AssetFormatPolicy';
 import type {I18n, MessageDescriptor} from '@lingui/core';
 import {ph} from '@lingui/core/macro';
 import {Trans, useLingui} from '@lingui/react/macro';
+import {TierGatedActions} from '@osaca/constants/src/AccountTierConstants';
+import {getAcceptString} from '@osaca/constants/src/AssetFormatPolicy';
 import type React from 'react';
 import {useCallback, useState} from 'react';
 import type {UseFormReturn} from 'react-hook-form';
@@ -141,7 +141,6 @@ export function useGuildCreateIconField({
 				recommendedSize: AVATAR_RECOMMENDED_SIZE_LABEL,
 			}),
 			onPickUpload: handleIconUpload,
-			showGifOption: false,
 		});
 	}, [handleIconUpload, i18n, messages]);
 	return {previewIconUrl, iconName, handleOpenIconUpload, handleClearIcon};

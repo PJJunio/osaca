@@ -8,7 +8,7 @@ use crate::{
             EmailDeliveryMode, InstanceBlueskyIntegrationUpdateRequest,
             InstanceBlueskyKeyIntegrationUpdateRequest, InstanceConfigUpdateRequest,
             InstanceEmailIntegrationUpdateRequest, InstanceEmailSmtpIntegrationUpdateRequest,
-            InstanceEmailSmtpTestResponse, InstanceGifIntegrationUpdateRequest,
+            InstanceEmailSmtpTestResponse,
             InstanceIntegrationsUpdateRequest, InstanceYoutubeIntegrationUpdateRequest,
         },
     },
@@ -100,9 +100,6 @@ fn build_integrations_update(form: &MultiValueForm) -> Result<InstanceConfigUpda
     let delivery = parse_email_delivery(form)?;
     Ok(InstanceConfigUpdateRequest {
         integrations: Some(InstanceIntegrationsUpdateRequest {
-            gif: Some(InstanceGifIntegrationUpdateRequest {
-                klipy_api_key: clean("integration_klipy_api_key"),
-            }),
             youtube: Some(InstanceYoutubeIntegrationUpdateRequest {
                 api_key: clean("integration_youtube_api_key"),
             }),

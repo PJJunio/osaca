@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
 import {MobileEmojiPicker} from '@app/features/channel/components/MobileEmojiPicker';
 import {MobileMemesPicker} from '@app/features/channel/components/MobileMemesPicker';
 import {MobileStickersPicker} from '@app/features/channel/components/MobileStickersPicker';
-import {GifPicker} from '@app/features/channel/components/pickers/gif/GifPicker';
 
 import ExpressionPicker from '@app/features/emoji/state/ExpressionPicker';
 import type {FlatEmoji} from '@app/features/emoji/types/EmojiTypes';
@@ -18,7 +16,6 @@ import * as StickerSendUtils from '@app/features/expressions/utils/StickerSendUt
 import {
 	EMOJIS_DESCRIPTOR,
 	EXPRESSION_PICKER_CATEGORIES_DESCRIPTOR,
-	GIFS_DESCRIPTOR,
 	MEDIA_DESCRIPTOR,
 	STICKERS_DESCRIPTOR,
 } from '@app/features/i18n/utils/CommonMessageDescriptors';
@@ -45,18 +42,6 @@ interface ExpressionPickerCategoryDescriptor {
 }
 
 const EXPRESSION_PICKER_CATEGORY_DESCRIPTORS: Array<ExpressionPickerCategoryDescriptor> = [
-	{
-		type: 'gifs' as const,
-		label: GIFS_DESCRIPTOR,
-		renderComponent: ({onClose}) => (
-			<div
-				className={styles.pickerContent}
-				data-flx="expressions.expression-picker-sheet.render-component.picker-content"
-			>
-				<GifPicker onClose={onClose} data-flx="expressions.expression-picker-sheet.render-component.gif-picker" />
-			</div>
-		),
-	},
 	{
 		type: 'memes' as const,
 		label: MEDIA_DESCRIPTOR,
@@ -137,20 +122,20 @@ export const ExpressionPickerSheet = observer(
 		onClose,
 		channelId,
 		onEmojiSelect,
-		visibleTabs = ['gifs', 'memes', 'stickers', 'emojis'],
+		visibleTabs = ['memes', 'stickers', 'emojis'],
 		zIndex,
 	}: ExpressionPickerSheetProps) => {
 		const {i18n} = useLingui();
 		const categories = useMemo(
 			() =>
-				EXPRESSION_PICKER_CATEGORY_DESCRIPTORS.filter(
-					(category) => visibleTabs.includes(category.type) && (category.type !== 'gifs' || RuntimeConfig.gifEnabled),
-				).map((category) => ({
-					type: category.type,
-					label: i18n._(category.label),
-					renderComponent: category.renderComponent,
-				})),
-			[visibleTabs, i18n.locale, RuntimeConfig.gifEnabled],
+				EXPRESSION_PICKER_CATEGORY_DESCRIPTORS.filter((category) => visibleTabs.includes(category.type)).map(
+					(category) => ({
+						type: category.type,
+						label: i18n._(category.label),
+						renderComponent: category.renderComponent,
+					}),
+				),
+			[visibleTabs, i18n.locale],
 		);
 
 		const [emojiSearchTerm, setEmojiSearchTerm] = useState('');

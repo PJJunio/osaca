@@ -208,9 +208,6 @@ function defaultConfig(): MasterConfig {
 				port: 3310,
 				fail_open: false,
 			},
-			klipy: {
-				api_key: '',
-			},
 			youtube: {
 				api_key: '',
 			},

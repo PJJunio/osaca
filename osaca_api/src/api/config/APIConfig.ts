@@ -302,9 +302,6 @@ export interface APIConfig {
 		};
 		bluesky: BlueskyOAuthConfig;
 	};
-	klipy: {
-		apiKey?: string;
-	};
 	youtube: {
 		apiKey?: string;
 	};

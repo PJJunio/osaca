@@ -42,10 +42,6 @@ const CUSTOMIZE_DESCRIPTOR = msg({
 	message: 'Customize',
 	comment: 'Plus menu submenu label for visibility toggles on textarea adornment buttons.',
 });
-const SHOW_GIFS_BUTTON_DESCRIPTOR = msg({
-	message: 'Show GIFs button',
-	comment: 'Plus menu submenu toggle that shows the GIFs button next to the textarea.',
-});
 const SHOW_MEDIA_BUTTON_DESCRIPTOR = msg({
 	message: 'Show media button',
 	comment: 'Plus menu submenu toggle that shows the saved media (memes) button next to the textarea.',
@@ -84,7 +80,6 @@ export const TextareaPlusMenu = observer(
 		onCreateThread,
 	}: TextareaPlusMenuProps) => {
 		const {i18n} = useLingui();
-		const showGifButton = Accessibility.showGifButton;
 		const showMemesButton = Accessibility.showMemesButton;
 		const showStickersButton = Accessibility.showStickersButton;
 		const showEmojiButton = Accessibility.showEmojiButton;
@@ -166,14 +161,6 @@ export const TextareaPlusMenu = observer(
 					render={() => (
 						<>
 							<MenuGroup data-flx="channel.textarea.textarea-plus-menu.menu-group--2">
-								<CheckboxItem
-									checked={showGifButton}
-									onCheckedChange={(checked) => AccessibilityCommands.update({showGifButton: checked})}
-									closeOnChange={false}
-									data-flx="channel.textarea.textarea-plus-menu.checkbox-item"
-								>
-									{i18n._(SHOW_GIFS_BUTTON_DESCRIPTOR)}
-								</CheckboxItem>
 								<CheckboxItem
 									checked={showMemesButton}
 									onCheckedChange={(checked) => AccessibilityCommands.update({showMemesButton: checked})}

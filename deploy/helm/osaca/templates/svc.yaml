@@ -5,7 +5,7 @@
   "startup" (dict "httpGet" $healthz "periodSeconds" 10 "timeoutSeconds" 5 "failureThreshold" 12)
   "liveness" (dict "httpGet" $healthz "periodSeconds" 10 "timeoutSeconds" 5 "failureThreshold" 3)
   "readiness" (dict "httpGet" $health "periodSeconds" 10 "timeoutSeconds" 5 "failureThreshold" 3) }}
-{{- range $name := list "gifs" "messages" "snowflakes" "unfurl" "users" }}
+{{- range $name := list "messages" "snowflakes" "unfurl" "users" }}
 {{- $svc := get $.Values.svc $name | default dict }}
 {{- $router := $svc.router | default dict }}
 {{- $shard := $svc.shard | default dict }}

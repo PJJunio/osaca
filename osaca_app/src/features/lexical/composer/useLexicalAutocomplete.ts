@@ -10,7 +10,6 @@ import {
 	isCommandChoice,
 	isCommandOptionalAdd,
 	isEmoji,
-	isGif,
 	isMeme,
 	isMentionMember,
 	isMentionRole,
@@ -24,11 +23,9 @@ import type {Command} from '@app/features/devtools/hooks/useCommands';
 import {useCommands} from '@app/features/devtools/hooks/useCommands';
 import Sticker from '@app/features/emoji/state/EmojiSticker';
 import StickerPicker from '@app/features/emoji/state/StickerPicker';
-import type {Gif} from '@app/features/expressions/commands/GifCommands';
 import type {GuildSticker} from '@app/features/expressions/models/GuildSticker';
 import FavoriteMemes from '@app/features/expressions/state/FavoriteMemes';
 import {filterStickersForAutocomplete} from '@app/features/expressions/utils/ExpressionPermissionUtils';
-import * as KlipyUtils from '@app/features/expressions/utils/KlipyUtils';
 import Guilds from '@app/features/guild/state/Guilds';
 import {
 	createComposerCommandReplacement,
@@ -44,11 +41,6 @@ import {
 	createSpecialMentionPayload,
 	hasOpenCodeFence,
 } from '@app/features/lexical/composer/specialMentions';
-import {
-	type GifAutocompleteSearchState,
-	selectAutocompleteGifResults,
-	useAutocompleteGifSearch,
-} from '@app/features/lexical/composer/useAutocompleteGifSearch';
 import {
 	isMemberSearchTrigger,
 	useGuildMemberAutocompleteSearch,
@@ -95,9 +87,9 @@ import ThreadGuilds from '@app/features/threads/state/ThreadGuilds';
 import type {User} from '@app/features/user/models/User';
 import Users from '@app/features/user/state/Users';
 import {formatUserTagForStreamerMode} from '@app/features/user/utils/NicknameUtils';
+import type {I18n} from '@lingui/core';
 import {Permissions} from '@osaca/constants/src/ChannelConstants';
 import type {UserId} from '@osaca/schema/src/branded/WireIds';
-import type {I18n} from '@lingui/core';
 import {matchSorter} from 'match-sorter';
 import {
 	type RefObject,
@@ -195,16 +187,8 @@ export function useLexicalAutocomplete({
 	const commands = useCommands();
 	const [textUpToCursor, setTextUpToCursor] = useState('');
 	const [expressionDataVersion, setExpressionDataVersion] = useState(0);
-	const [gifState, setGifState] = useState<GifAutocompleteSearchState>({
-		status: 'idle',
-		query: '',
-		results: [],
-	});
 	const [memberSearchResults, setMemberSearchResults] = useState<Array<GuildMember>>([]);
 	const permissionVersion = useSyncExternalStore(Permission.subscribe.bind(Permission), () => Permission.version);
-	const gifCacheRef = useRef<Map<string, Array<Gif>>>(new Map());
-	const currentGifSearchRef = useRef<string | null>(null);
-	const gifDebounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	const [slotAutocompleteContext, setSlotAutocompleteContext] = useState<SlashSlotAutocompleteContext | null>(null);
 	const slotAutocompleteContextRef = useRef<SlashSlotAutocompleteContext | null>(null);
@@ -283,17 +267,6 @@ export function useLexicalAutocomplete({
 		guildId: channel == null ? undefined : channel.guildId,
 		query: isMemberSearchTrigger(autocompleteTriggerType) ? autocompleteTriggerMatchedText : null,
 		setResults: setMemberSearchResults,
-	});
-
-	const autocompleteTriggerGifQuery =
-		autocompleteTriggerType === 'gif' ? (autocompleteTrigger?.match[3]?.trim() ?? '') : '';
-	useAutocompleteGifSearch({
-		triggerType: autocompleteTriggerType,
-		query: autocompleteTriggerGifQuery,
-		cacheRef: gifCacheRef,
-		currentSearchRef: currentGifSearchRef,
-		debounceTimerRef: gifDebounceTimerRef,
-		setState: setGifState,
 	});
 
 	const canMentionEveryone =
@@ -492,20 +465,6 @@ export function useLexicalAutocomplete({
 				}));
 				break;
 			}
-			case 'gif': {
-				type = 'gif';
-				const searchQuery = (autocompleteTrigger.match[3] == null ? '' : autocompleteTrigger.match[3]).trim();
-				options = selectAutocompleteGifResults(gifState, searchQuery)
-					.slice(0, MENTION_RESULT_LIMIT)
-					.map((gif) => ({
-						type: 'gif' as const,
-						gif: {
-							...gif,
-							title: gif.title || KlipyUtils.parseTitleFromUrl(gif.url),
-						},
-					}));
-				break;
-			}
 			case 'sticker': {
 				type = 'sticker';
 				const searchQuery = (autocompleteTrigger.match[2] == null ? '' : autocompleteTrigger.match[2]).trim();
@@ -545,7 +504,6 @@ export function useLexicalAutocomplete({
 		channel,
 		commands,
 		expressionDataVersion,
-		gifState,
 		hasOpenCodeBlock,
 		i18n,
 		memberSearchRank,
@@ -689,11 +647,6 @@ export function useLexicalAutocomplete({
 				handle.clear();
 				return;
 			}
-			if (isGif(option)) {
-				ComponentBus.dispatch('GIF_SELECT', {gif: option.gif, autoSend: true});
-				handle.clear();
-				return;
-			}
 			if (isSticker(option)) {
 				ComponentBus.dispatch('STICKER_SELECT', {sticker: option.sticker});
 				handle.clear();
@@ -789,8 +742,6 @@ function getAutocompleteQuery(trigger: AutocompleteTrigger | null): string {
 		case 'meme':
 		case 'sticker':
 			return (trigger.match[2] == null ? '' : trigger.match[2]).trim();
-		case 'gif':
-			return (trigger.match[3] == null ? '' : trigger.match[3]).trim();
 		default:
 			return '';
 	}

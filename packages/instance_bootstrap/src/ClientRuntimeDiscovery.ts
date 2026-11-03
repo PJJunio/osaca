@@ -13,7 +13,6 @@ import type {
 	InstanceCommunity,
 	InstanceDomainMigration,
 	InstanceFeatures,
-	InstanceGif,
 	InstanceGuildBadge,
 	InstanceHiddenBuiltInGuildBadges,
 	InstanceNotice,
@@ -54,7 +53,6 @@ export interface ClientRuntimeDiscovery {
 	readonly apiCodeVersion: number;
 	readonly endpoints: ClientRuntimeDiscoveryEndpoints;
 	readonly features: InstanceFeatures;
-	readonly gif: InstanceGif;
 	readonly sso: InstanceSso | null;
 	readonly registration: InstanceRegistration;
 	readonly community: InstanceCommunity;
@@ -78,7 +76,6 @@ export function projectClientRuntimeDiscovery(document: InstanceDiscoveryDocumen
 		apiCodeVersion: requireValue(document.apiCodeVersion, 'api_code_version'),
 		endpoints: projectEndpoints(document),
 		features: projectFeatures(document.features),
-		gif: requireValue(document.gif, 'gif'),
 		sso: document.sso,
 		registration: requireValue(document.registration, 'registration'),
 		community: requireValue(document.community, 'community'),

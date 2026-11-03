@@ -17,7 +17,6 @@ import {createEmailProvider} from '@app/api/email/EmailProviderFactory';
 import {EnforcementDecisionRepository} from '@app/api/enforcement/EnforcementDecisionRepository';
 import {FavoriteMemeRepository} from '@app/api/favorite_meme/FavoriteMemeRepository';
 import {GatewayRequestService} from '@app/api/gateway/GatewayRequestService';
-import {createNatsGifProvider} from '@app/api/gif/NatsGifProvider';
 import {GuildAuditLogService} from '@app/api/guild/GuildAuditLogService';
 import {GuildDiscoveryRepository} from '@app/api/guild/repositories/GuildDiscoveryRepository';
 import {GuildRepository} from '@app/api/guild/repositories/GuildRepository';
@@ -358,7 +357,6 @@ const getDefaultUnfurlerService = singleton(() => {
 	return new NatsUnfurlerService(
 		manager,
 		async () => instanceConfigRepository.getEffectiveYoutubeApiKey(),
-		async () => (await instanceConfigRepository.getEffectiveGifConfig()).klipy_api_key,
 		activityPubKeyId(Config.endpoints.apiPublicDiscovery),
 	);
 });
@@ -378,10 +376,6 @@ export const getBotAuthService = singleton(() => new BotAuthService(getApplicati
 export const getBotMfaMirrorService = singleton(
 	() => new BotMfaMirrorService(getApplicationRepository(), getUserRepository(), getGatewayService()),
 );
-export const getGifService = singleton(() => {
-	const instanceConfigRepository = getInstanceConfigRepository();
-	return createNatsGifProvider(async () => (await instanceConfigRepository.getEffectiveGifConfig()).klipy_api_key);
-});
 export const getGuildAuditLogService = singleton(
 	() => new GuildAuditLogService(getGuildRepository(), getSnowflakeService(), getWorkerService(), getGatewayService()),
 );

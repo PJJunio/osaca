@@ -10,15 +10,8 @@ import {attachmentStorageChannelId, makeAttachmentCdnKey} from '@app/api/channel
 import type {ThreadViewer} from '@app/api/experiment/ChannelThreadsGate';
 import {mapFavoriteMemeToResponse} from '@app/api/favorite_meme/FavoriteMemeModel';
 import type {FavoriteMemeRepository} from '@app/api/favorite_meme/FavoriteMemeRepository';
-import {
-	isOptionalGifProviderError,
-	type ResolvedGifProviderSlug,
-	tryExtractGifProviderSlug,
-} from '@app/api/gif/GifProviderUtils';
-import type {NatsGifProvider} from '@app/api/gif/NatsGifProvider';
 import type {MediaProxyMetadataResponse} from '@app/api/infrastructure/IMediaService';
 import type {IStorageService} from '@app/api/infrastructure/IStorageService';
-import type {IUnfurlerService} from '@app/api/infrastructure/IUnfurlerService';
 import {Logger} from '@app/api/Logger';
 import type {LimitConfigService} from '@app/api/limits/LimitConfigService';
 import {resolveLimitSafe} from '@app/api/limits/LimitConfigUtils';
@@ -35,7 +28,6 @@ import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidati
 import {MaxFavoriteMemesError} from '@osaca/errors/src/domains/core/MaxFavoriteMemesError';
 import {MediaMetadataError} from '@osaca/errors/src/domains/core/MediaMetadataError';
 import {UnknownFavoriteMemeError} from '@osaca/errors/src/domains/core/UnknownFavoriteMemeError';
-import type {GifMediaFormat} from '@osaca/schema/src/domains/gif/GifSchemas';
 import {normalizeFilename} from '@osaca/schema/src/primitives/FileValidators';
 import {attachmentStorageKeyFromUrl} from '@pkgs/media_proxy_utils/src/AttachmentUrlSignature';
 import mime from 'mime';
@@ -99,9 +91,7 @@ export class FavoriteMemeService {
 		private readonly favoriteMemeRepository: FavoriteMemeRepository,
 		private readonly channelService: ChannelService,
 		private readonly storageService: IStorageService,
-		private readonly unfurlerService: IUnfurlerService,
 		private readonly limitConfigService: LimitConfigService,
-		private readonly gifService: NatsGifProvider,
 	) {}
 
 	async createFromMessage({
@@ -306,9 +296,6 @@ export class FavoriteMemeService {
 		altText,
 		tags,
 		isGifv = false,
-		gifSlug,
-		gifProvider,
-		media,
 	}: {
 		user: User;
 		url: string;
@@ -316,9 +303,6 @@ export class FavoriteMemeService {
 		altText?: string;
 		tags?: Array<string>;
 		isGifv?: boolean;
-		gifSlug?: string;
-		gifProvider?: string;
-		media?: Record<string, GifMediaFormat> | null;
 	}): Promise<FavoriteMeme> {
 		const count = await this.favoriteMemeRepository.count(user.id);
 		const fallbackLimit = MAX_FAVORITE_MEMES_NON_PREMIUM;
@@ -337,11 +321,7 @@ export class FavoriteMemeService {
 		if (!metadata) {
 			throw new MediaMetadataError('URL');
 		}
-		let contentHash = metadata.content_hash;
-		const resolvedGif = await this.resolveGifFromInputs({slug: gifSlug, providerName: gifProvider, url});
-		if (resolvedGif) {
-			contentHash = await this.resolveProviderGifContentHash(resolvedGif, contentHash);
-		}
+		const contentHash = metadata.content_hash;
 		const existingMemes = await this.favoriteMemeRepository.findByUserId(user.id);
 		const duplicate = existingMemes.find((meme) => meme.contentHash === contentHash);
 		if (duplicate) {
@@ -375,9 +355,9 @@ export class FavoriteMemeService {
 			height: metadata.height || null,
 			duration: metadata.duration && metadata.duration > 0 ? metadata.duration : null,
 			is_gifv: isGifv || metadata.animated === true,
-			gif_slug: resolvedGif?.slug ?? null,
-			gif_provider: resolvedGif?.provider.meta.name ?? null,
-			media_formats: resolvedGif && media && Object.keys(media).length > 0 ? media : null,
+			gif_slug: null,
+			gif_provider: null,
+			media_formats: null,
 			placeholder: metadata.placeholder ?? null,
 		});
 		const responseData = mapFavoriteMemeToResponse(favoriteMeme);
@@ -479,59 +459,6 @@ export class FavoriteMemeService {
 		} catch {
 			return `media.${extension}`;
 		}
-	}
-
-	private async resolveGifFromInputs({
-		slug,
-		providerName,
-		url,
-	}: {
-		slug?: string | null;
-		providerName?: string | null;
-		url: string;
-	}): Promise<ResolvedGifProviderSlug | null> {
-		if (slug && providerName) {
-			const provider = this.gifService.meta.name === providerName ? this.gifService : null;
-			const trimmed = slug.trim();
-			if (provider && trimmed) {
-				const normalized = (await tryExtractGifProviderSlug(provider, trimmed)) ?? trimmed;
-				return {provider, slug: normalized};
-			}
-		}
-		const provider = this.gifService;
-		const extracted = await tryExtractGifProviderSlug(provider, url);
-		return extracted ? {provider, slug: extracted} : null;
-	}
-
-	private async detectGifFromUrl(url: string): Promise<ResolvedGifProviderSlug | null> {
-		return this.resolveGifFromInputs({url});
-	}
-
-	private async resolveProviderGifContentHash(
-		resolvedGif: ResolvedGifProviderSlug,
-		fallbackContentHash: string,
-	): Promise<string> {
-		try {
-			const canonicalUrl = resolvedGif.provider.buildShareUrl(resolvedGif.slug);
-			const unfurled = await this.unfurlerService.unfurl(canonicalUrl, 'allow');
-			if (unfurled.length > 0 && unfurled[0].video?.content_hash) {
-				Logger.debug(
-					{
-						provider: resolvedGif.provider.meta.name,
-						gifSlug: resolvedGif.slug,
-						contentHash: unfurled[0].video.content_hash,
-					},
-					'Using unfurled video content_hash for provider GIF',
-				);
-				return unfurled[0].video.content_hash;
-			}
-		} catch (error) {
-			if (!isOptionalGifProviderError(error)) {
-				throw error;
-			}
-			Logger.debug({error, provider: resolvedGif.provider.meta.name}, 'Skipping unavailable GIF provider enrichment');
-		}
-		return fallbackContentHash;
 	}
 
 	private resolveFavoriteMemeName(name: string | undefined | null, fallbackFilename: string): string {
@@ -640,7 +567,6 @@ export class FavoriteMemeService {
 		const candidateKey = attachmentStorageKeyFromUrl(media.url, Config.endpoints.media);
 		const sourceKey = candidateKey !== null && isAttachmentKeyInChannel(candidateKey, channelId) ? candidateKey : null;
 		const isGifv = embed.type === 'gifv' || isAnimatedEmbedMedia(media.contentType, media.flags);
-		const detectedGif = embed.type === 'gifv' ? await this.detectGifFromUrl(media.url) : null;
 		return {
 			isExternal: sourceKey === null,
 			url: media.url,
@@ -655,8 +581,8 @@ export class FavoriteMemeService {
 			isGifv,
 			contentHash: media.contentHash ?? null,
 			placeholder: media.placeholder ?? null,
-			gifSlug: detectedGif?.slug ?? null,
-			gifProvider: detectedGif?.provider.meta.name ?? null,
+			gifSlug: null,
+			gifProvider: null,
 		};
 	}
 

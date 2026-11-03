@@ -21,7 +21,6 @@ The public description of one instance.
 | endpoints | [instance endpoints](#instance-endpoints-object) object | Public service URLs |
 | captcha | [captcha configuration](#captcha-configuration-object) object | CAPTCHA configuration |
 | features | [instance features](#instance-features-object) object | Instance-wide feature switches |
-| gif | [GIF provider](#gif-provider-object) object | The GIF provider and its attribution rule |
 | sso | [SSO status](/http-api/authentication/#sso-status-object) object | Single sign-on state |
 | registration | [registration policy](#registration-policy-object) object | Who can register |
 | community | [community policy](#community-policy-object) object | Community and direct message policy |
@@ -202,18 +201,6 @@ On a `username` instance, email routes return 400 `EMAIL_UNAVAILABLE_ON_INSTANCE
 | none | Usernames are unique and have no tag, and every account that isn't a bot has the discriminator `0000` |
 | random | Every account gets a random tag that can be changed |
 
-## GIF provider object
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| provider | string | The machine name of the GIF provider |
-| display_name | string | The provider name to show |
-| attribution_required | boolean | Whether you must show the provider's attribution next to GIF results |
-
-Check `services.gif_enabled` before you show a GIF picker.
-
 ## Registration policy object
 
 ### Structure
@@ -250,7 +237,6 @@ Check `services.gif_enabled` before you show a GIF picker.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| gif_enabled | boolean | Whether the GIF picker is available |
 | youtube_enabled | boolean | Whether YouTube link previews are available |
 | bluesky_enabled | boolean | Whether Bluesky [connections](/http-api/connections/) are available |
 

@@ -29,7 +29,6 @@ import {
 	type InstanceCommunity,
 	type InstanceDomainMigration,
 	type InstanceFeatures,
-	type InstanceGif,
 	type InstanceGuildBadge,
 	type InstanceHiddenBuiltInGuildBadges,
 	type InstanceLegal,
@@ -137,7 +136,6 @@ export interface InstanceDiscoveryDocument {
 	readonly apiCodeVersion: number | null;
 	readonly endpoints: InstanceDiscoveryEndpoints;
 	readonly features: Readonly<Partial<InstanceFeatures>>;
-	readonly gif: InstanceGif | null;
 	readonly sso: InstanceSso | null;
 	readonly registration: InstanceRegistration | null;
 	readonly community: InstanceCommunity | null;
@@ -304,7 +302,6 @@ export function parseInstanceDiscoveryDocument(payload: unknown): InstanceDiscov
 		apiCodeVersion,
 		endpoints: parseEndpoints(source.endpoints),
 		features: parseFeatures(source.features),
-		gif: parseGif(source.gif),
 		sso: parseSso(source.sso),
 		registration: parseRegistration(source.registration),
 		community: parseCommunity(source.community),
@@ -613,20 +610,6 @@ function parseFeatures(value: unknown): Readonly<Partial<InstanceFeatures>> {
 	return features;
 }
 
-function parseGif(value: unknown): InstanceGif | null {
-	const source = asRecord(value);
-	if (source == null) {
-		return null;
-	}
-	const provider = readNonEmptyString(source, 'provider');
-	const displayName = readNonEmptyString(source, 'display_name');
-	const attributionRequired = readBoolean(source, 'attribution_required');
-	if (provider == null || displayName == null || attributionRequired == null) {
-		return null;
-	}
-	return {provider, display_name: displayName, attribution_required: attributionRequired};
-}
-
 function parseSso(value: unknown): InstanceSso | null {
 	const source = asRecord(value);
 	if (source == null) {
@@ -760,13 +743,12 @@ function parseServices(value: unknown): InstanceServices | null {
 	if (source == null) {
 		return null;
 	}
-	const gifEnabled = readBoolean(source, 'gif_enabled');
 	const youtubeEnabled = readBoolean(source, 'youtube_enabled');
 	const blueskyEnabled = readBoolean(source, 'bluesky_enabled');
-	if (gifEnabled == null || youtubeEnabled == null || blueskyEnabled == null) {
+	if (youtubeEnabled == null || blueskyEnabled == null) {
 		return null;
 	}
-	return {gif_enabled: gifEnabled, youtube_enabled: youtubeEnabled, bluesky_enabled: blueskyEnabled};
+	return {youtube_enabled: youtubeEnabled, bluesky_enabled: blueskyEnabled};
 }
 
 function parseLimits(value: unknown): LimitConfigSnapshot | LimitConfigWireFormat | null {

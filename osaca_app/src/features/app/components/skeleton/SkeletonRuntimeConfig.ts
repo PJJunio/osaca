@@ -22,10 +22,6 @@ export function skeletonFriendsDisabled(): boolean {
 	return community?.friends_disabled ?? community?.direct_messages_disabled ?? false;
 }
 
-export function skeletonGifEnabled(): boolean {
-	return RuntimeConfig.getSnapshotOrNull()?.services.gif_enabled ?? true;
-}
-
 export function skeletonSelfHosted(): boolean {
 	return DeveloperOptions.selfHostedModeOverride || (RuntimeConfig.getSnapshotOrNull()?.features.self_hosted ?? false);
 }

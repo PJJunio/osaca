@@ -53,7 +53,7 @@ func migrateSvcConcurrency(settings map[string]string) {
 
 func migrateSvcCombined(settings map[string]string) {
 	const floorMiB = 256
-	for _, name := range []string{"SNOWFLAKES", "USERS", "GIFS", "MESSAGES", "UNFURL"} {
+	for _, name := range []string{"SNOWFLAKES", "USERS", "MESSAGES", "UNFURL"} {
 		limitKey, shardLimitKey := "OSACA_"+name+"_MEMORY_LIMIT", "OSACA_"+name+"_SHARD_MEMORY_LIMIT"
 		limit, hasLimit := settings[limitKey]
 		shardLimit, hasShardLimit := settings[shardLimitKey]

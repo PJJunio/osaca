@@ -4,7 +4,6 @@ members = [
 	"osaca_app_proxy",
 	"osaca_common",
 	"osaca_media_proxy",
-	"osaca_gifs",
 	"osaca_svc",
 	"osaca_messages",
 	"osaca_push",

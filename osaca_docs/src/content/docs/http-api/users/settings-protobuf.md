@@ -38,7 +38,6 @@ A field marked `?` is absent until a client sets it. Every other scalar field is
 | memes_picker? | [memes picker state](#memes-picker-state-object) object | Memes picker usage and favorites |
 | emoji? | [emoji state](#emoji-state-object) object | Emoji skin tone |
 | emoji_sticker_layout? | [emoji and sticker layout settings](#emoji-and-sticker-layout-settings-object) object | Emoji and sticker picker layout |
-| favorite_gifs? | [favorite GIF settings](#favorite-gif-settings-object) object | Favorite GIFs |
 | favorites? | [favorites state](#favorites-state-object) object | Favorite channels and their categories |
 | recent_mentions? | [recent mentions settings](#recent-mentions-settings-object) object | Recent mentions filters |
 | sidebar? | [sidebar preferences](#sidebar-preferences-object) object | Direct message sidebar state |
@@ -99,8 +98,6 @@ Display, motion, message, media, voice and interaction preferences.
 | mobile_sticker_animation_value? | int32 | Mobile [sticker animation setting](/http-api/users/#sticker-animation-settings) |
 | mobile_gif_autoplay_value? | bool | Mobile GIF autoplay |
 | mobile_animate_emoji_value? | bool | Mobile emoji animation |
-| auto_send_klipy_gifs | bool | Whether picking a GIF sends it immediately |
-| show_gif_button? | bool | Whether the composer shows the GIF button |
 | show_memes_button? | bool | Whether the composer shows the memes button |
 | show_stickers_button? | bool | Whether the composer shows the sticker button |
 | show_emoji_button? | bool | Whether the composer shows the emoji button |
@@ -269,47 +266,6 @@ Meme usage, favorites and collapsed categories. The memes are in the account's [
 | 0 | STICKER_PICKER_VIEW_MODE_UNSPECIFIED | No view mode is set |
 | 1 | STICKER_PICKER_VIEW_MODE_COZY | Roomy layout |
 | 2 | STICKER_PICKER_VIEW_MODE_COMPACT | Compact layout |
-
-## Favorite GIF settings object
-
-OSACA clients keep favorite GIFs here, or in the account's [memes](/http-api/memes/) when `save_as_saved_media` is true.
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| entries | array[[favorite GIF entry](#favorite-gif-entry-object) object] | Favorite GIFs in display order |
-| save_as_saved_media | bool | Whether favoriting a GIF saves it as a meme |
-| seen_first_time_prompt | bool | Whether the first-time favorite prompt was shown |
-
-## Favorite GIF entry object
-
-One favorite GIF, in the same format as a [resolved GIF entry](/http-api/memes/#resolved-gif-entry-object).
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| url | string | Source URL of the GIF |
-| proxy_url | string | [Media Proxy](/media-proxy/overview/) URL of the preview |
-| width | uint32 | Preview width in pixels, or 0 if unknown |
-| height | uint32 | Preview height in pixels, or 0 if unknown |
-| media | map[string, [favorite GIF media format](#favorite-gif-media-format-object) object] | Formats keyed by [format name](/http-api/memes/#gif-media-format-names) |
-| content_type | string | Media type of the preview, or empty for `image/gif` |
-| placeholder | string | Thumbhash placeholder, or empty |
-
-## Favorite GIF media format object
-
-One encoding of a favorite GIF, in the same format as a [GIF media format](/http-api/memes/#gif-media-format-object).
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| src | string | Direct URL of this format |
-| proxy_src | string | [Media Proxy](/media-proxy/overview/) URL of this format |
-| width | uint32 | Width in pixels |
-| height | uint32 | Height in pixels |
 
 ## Favorites state object
 

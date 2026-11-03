@@ -26,7 +26,6 @@ pub struct UnfurlShard {
     media_proxy: MediaProxyClient,
     self_hosted: bool,
     youtube_api_key: Option<String>,
-    klipy_api_key: Option<String>,
     activity_pub_key: Option<Arc<RsaKeyPair>>,
     activity_pub_host_key: Option<HostKey>,
 }
@@ -109,8 +108,6 @@ impl UnfurlShard {
             self_hosted,
             youtube_api_key: optional_env("OSACA_YOUTUBE_API_KEY")
                 .or_else(|| optional_env("YOUTUBE_API_KEY")),
-            klipy_api_key: optional_env("OSACA_KLIPY_API_KEY")
-                .or_else(|| optional_env("KLIPY_API_KEY")),
             activity_pub_key,
             activity_pub_host_key,
         }
@@ -121,7 +118,6 @@ impl UnfurlShard {
         url_str: &str,
         nsfw_mode: NsfwMode,
         youtube_api_key: Option<&str>,
-        klipy_api_key: Option<&str>,
         activity_pub_key_id: Option<&str>,
     ) -> anyhow::Result<UnfurlResult> {
         let parsed = Url::parse(url_str)?;
@@ -142,9 +138,6 @@ impl UnfurlShard {
             youtube_api_key: youtube_api_key
                 .map(str::to_owned)
                 .or_else(|| self.youtube_api_key.clone()),
-            klipy_api_key: klipy_api_key
-                .map(str::to_owned)
-                .or_else(|| self.klipy_api_key.clone()),
             activity_pub_signer: self.activity_pub_key.clone().zip(activity_pub_key_id).map(
                 |(key, key_id)| {
                     RequestSigner::new(key, key_id.to_owned(), self.activity_pub_host_key.clone())
@@ -284,14 +277,13 @@ impl ShardService for UnfurlShard {
                 bypass_cache,
                 cache_only,
                 ref youtube_api_key,
-                ref klipy_api_key,
                 ref activity_pub_key_id,
             } => {
                 let nsfw = nsfw_mode.unwrap_or_default();
                 let cache_key = unfurl_cache_key(
                     url,
                     nsfw,
-                    provider_capability(youtube_api_key.is_some(), klipy_api_key.is_some()),
+                    provider_capability(youtube_api_key.is_some()),
                 );
 
                 if !bypass_cache && let Some(cached) = self.cache.get(&cache_key).await {
@@ -309,7 +301,6 @@ impl ShardService for UnfurlShard {
                         url,
                         nsfw,
                         youtube_api_key.as_deref(),
-                        klipy_api_key.as_deref(),
                         activity_pub_key_id.as_deref(),
                     )
                     .await

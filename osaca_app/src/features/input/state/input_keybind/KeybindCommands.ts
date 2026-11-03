@@ -54,7 +54,6 @@ const KEYBIND_COMMAND_VALUES = [
 	'chat_mark_all_inbox_read',
 	'chat_toggle_member_list',
 	'chat_toggle_emoji',
-	'chat_toggle_gif',
 	'chat_toggle_sticker',
 	'chat_scroll_up',
 	'chat_scroll_down',

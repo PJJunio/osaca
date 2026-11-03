@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {showGenericErrorModal} from '@app/features/app/components/alerts/GenericErrorModalCommands';
-import * as FavoriteGifCommands from '@app/features/expressions/commands/FavoriteGifCommands';
 import * as FavoriteMemeCommands from '@app/features/expressions/commands/FavoriteMemeCommands';
 import {AddFavoriteMemeModal} from '@app/features/expressions/components/modals/AddFavoriteMemeModal';
-import FavoriteGif from '@app/features/expressions/state/FavoriteGif';
 import FavoriteMemes from '@app/features/expressions/state/FavoriteMemes';
-import * as FavoriteGifUtils from '@app/features/expressions/utils/FavoriteGifUtils';
 import * as FavoriteMemeUtils from '@app/features/expressions/utils/FavoriteMemeUtils';
 import {isMediaDownloadHidden} from '@app/features/forum/utils/MediaDownloadPolicy';
 import {
@@ -44,10 +41,10 @@ import type {MenuGroupType} from '@app/features/ui/menu_bottom_sheet/MenuBottomS
 import {getElectronAPI, openExternalUrl} from '@app/features/ui/utils/NativeUtils';
 import Users from '@app/features/user/state/Users';
 import type {ClipboardWriteFileMediaType} from '@app/types/electron.d';
-import {Permissions} from '@osaca/constants/src/ChannelConstants';
 import type {I18n, MessageDescriptor} from '@lingui/core';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
+import {Permissions} from '@osaca/constants/src/ChannelConstants';
 import {PencilSimpleIcon} from '@phosphor-icons/react';
 import {autorun} from 'mobx';
 import {useCallback, useMemo, useSyncExternalStore} from 'react';
@@ -171,22 +168,6 @@ const ATTACHMENT_ID_COPIED_TO_CLIPBOARD_DESCRIPTOR = msg({
 const EDIT_ALT_TEXT_DESCRIPTOR = msg({
 	message: 'Edit alt text',
 	comment: 'Action that opens the modal for editing an image or video accessibility description.',
-});
-const ADD_TO_URL_ONLY_GIF_FAVORITES_DESCRIPTOR = msg({
-	message: 'Add to URL-only GIF favorites',
-	comment: 'Media context menu action that saves a GIF favorite by URL without uploading it.',
-});
-const REMOVE_FROM_URL_ONLY_GIF_FAVORITES_DESCRIPTOR = msg({
-	message: 'Remove from URL-only GIF favorites',
-	comment: 'Media context menu action that removes a GIF favorite saved by URL.',
-});
-const ADD_TO_SAVED_MEDIA_DESCRIPTOR = msg({
-	message: 'Add to saved media',
-	comment: 'Action that adds the selected media to saved media.',
-});
-const REMOVE_FROM_SAVED_MEDIA_DESCRIPTOR = msg({
-	message: 'Remove from saved media',
-	comment: 'Action that removes the selected media from saved media.',
 });
 const logger = new Logger('MediaMenuData');
 
@@ -534,8 +515,6 @@ export function useMediaMenuData(props: MediaMenuDataProps, options: MediaMenuDa
 		embedIndex,
 		defaultName,
 		defaultAltText,
-		naturalWidth,
-		naturalHeight,
 		snapshotIndex,
 	} = props;
 	const snapshotAttachments =
@@ -547,28 +526,8 @@ export function useMediaMenuData(props: MediaMenuDataProps, options: MediaMenuDa
 		},
 		() => FavoriteMemes.memes,
 	);
-	const gifFavoriteState = useSyncExternalStore(
-		(listener) => {
-			const dispose = autorun(listener);
-			return () => dispose();
-		},
-		() => {
-			if (type !== 'gif' && type !== 'gifv') return 'none';
-			const useSavedMedia = FavoriteGif.saveGifFavoritesAsSavedMedia;
-			const hasUrl = FavoriteGif.hasUrl(originalSrc);
-			return `${useSavedMedia ? 'sm' : 'url'}:${hasUrl ? '1' : '0'}`;
-		},
-	);
-	const isGifFavoriteMedia = type === 'gif' || type === 'gifv';
-	const hasUrlOnlyGifFavorite = isGifFavoriteMedia && gifFavoriteState.endsWith(':1');
 	const hasSavedMediaFavorite = contentHash ? FavoriteMemeUtils.isFavorited(memes, {contentHash}) : false;
-	const isFavorited = isGifFavoriteMedia
-		? FavoriteGifUtils.isGifFavoriteActive({
-				hasUrlOnlyFavorite: hasUrlOnlyGifFavorite,
-				hasSavedMediaFavorite,
-				saveAsSavedMedia: gifFavoriteState.startsWith('sm:'),
-			})
-		: hasSavedMediaFavorite;
+	const isFavorited = hasSavedMediaFavorite;
 	const currentUserId = Users.currentUserId;
 	const canManageMessages = Permission.can(Permissions.MANAGE_MESSAGES, {channelId: message.channelId});
 	const canEditAltText = useMemo(() => {
@@ -605,23 +564,6 @@ export function useMediaMenuData(props: MediaMenuDataProps, options: MediaMenuDa
 			)),
 		);
 	}, [message, attachmentId, embedIndex, defaultName, defaultAltText, originalSrc, onClose, i18n]);
-	const handleAddToUrlOnlyGifFavorites = useCallback(() => {
-		if (!originalSrc) return;
-		FavoriteGifCommands.addFavoriteGifFromMedia(i18n, {
-			url: originalSrc,
-			proxyUrl: proxyURL ?? originalSrc,
-			width: naturalWidth ?? 0,
-			height: naturalHeight ?? 0,
-			media: {},
-			placeholder: null,
-		});
-		onClose();
-	}, [i18n, naturalHeight, naturalWidth, onClose, originalSrc, proxyURL]);
-	const handleRemoveFromUrlOnlyGifFavorites = useCallback(() => {
-		if (!originalSrc) return;
-		FavoriteGifCommands.removeFavoriteGifByUrl(i18n, originalSrc);
-		onClose();
-	}, [i18n, onClose, originalSrc]);
 	const handleRemoveFromFavorites = useCallback(async () => {
 		if (!contentHash) return;
 		const meme = memes.find((m) => m.contentHash === contentHash);
@@ -726,82 +668,25 @@ export function useMediaMenuData(props: MediaMenuDataProps, options: MediaMenuDa
 	);
 	const groups = useMemo(() => {
 		const result: Array<MenuGroupType> = [];
-		if (isGifFavoriteMedia) {
-			result.push({
-				items: [
-					hasUrlOnlyGifFavorite
-						? {
-								id: `${mediaMenuItemIds.favorite}-url`,
-								icon: (
-									<FavoriteIcon
-										filled
-										size={20}
-										data-flx="ui.action-menu.items.media-menu-data.groups.favorite-icon.url-remove"
-									/>
-								),
-								label: i18n._(REMOVE_FROM_URL_ONLY_GIF_FAVORITES_DESCRIPTOR),
-								onClick: handleRemoveFromUrlOnlyGifFavorites,
-							}
-						: {
-								id: `${mediaMenuItemIds.favorite}-url`,
-								icon: (
-									<FavoriteIcon
-										size={20}
-										data-flx="ui.action-menu.items.media-menu-data.groups.favorite-icon.url-add"
-									/>
-								),
-								label: i18n._(ADD_TO_URL_ONLY_GIF_FAVORITES_DESCRIPTOR),
-								onClick: handleAddToUrlOnlyGifFavorites,
-							},
-					hasSavedMediaFavorite
-						? {
-								id: `${mediaMenuItemIds.favorite}-saved-media`,
-								icon: (
-									<FavoriteIcon
-										filled
-										size={20}
-										data-flx="ui.action-menu.items.media-menu-data.groups.favorite-icon.saved-media-remove"
-									/>
-								),
-								label: i18n._(REMOVE_FROM_SAVED_MEDIA_DESCRIPTOR),
-								onClick: handleRemoveFromFavorites,
-							}
-						: {
-								id: `${mediaMenuItemIds.favorite}-saved-media`,
-								icon: (
-									<FavoriteIcon
-										size={20}
-										data-flx="ui.action-menu.items.media-menu-data.groups.favorite-icon.saved-media-add"
-									/>
-								),
-								label: i18n._(ADD_TO_SAVED_MEDIA_DESCRIPTOR),
-								onClick: handleAddToFavorites,
-							},
-				],
-			});
-		} else {
-			result.push({
-				items: [
-					isFavorited
-						? {
-								id: mediaMenuItemIds.favorite,
-								icon: (
-									<FavoriteIcon filled size={20} data-flx="ui.action-menu.items.media-menu-data.groups.favorite-icon" />
-								),
-								label: i18n._(REMOVE_FROM_FAVORITES_DESCRIPTOR),
-								onClick: handleRemoveFromFavorites,
-							}
-						: {
-								id: mediaMenuItemIds.favorite,
-								icon: (
-									<FavoriteIcon size={20} data-flx="ui.action-menu.items.media-menu-data.groups.favorite-icon--2" />
-								),
-								label: i18n._(ADD_TO_FAVORITES_DESCRIPTOR),
-								onClick: handleAddToFavorites,
-							},
-				],
-			});
-		}
+		result.push({
+			items: [
+				isFavorited
+					? {
+							id: mediaMenuItemIds.favorite,
+							icon: (
+								<FavoriteIcon filled size={20} data-flx="ui.action-menu.items.media-menu-data.groups.favorite-icon" />
+							),
+							label: i18n._(REMOVE_FROM_FAVORITES_DESCRIPTOR),
+							onClick: handleRemoveFromFavorites,
+						}
+					: {
+							id: mediaMenuItemIds.favorite,
+							icon: <FavoriteIcon size={20} data-flx="ui.action-menu.items.media-menu-data.groups.favorite-icon--2" />,
+							label: i18n._(ADD_TO_FAVORITES_DESCRIPTOR),
+							onClick: handleAddToFavorites,
+						},
+			],
+		});
 		if (canEditAltText) {
 			result.push({
 				items: [
@@ -865,12 +750,7 @@ export function useMediaMenuData(props: MediaMenuDataProps, options: MediaMenuDa
 		openLinkLabel,
 		type,
 		message,
-		isGifFavoriteMedia,
-		hasUrlOnlyGifFavorite,
-		hasSavedMediaFavorite,
 		handleAddToFavorites,
-		handleAddToUrlOnlyGifFavorites,
-		handleRemoveFromUrlOnlyGifFavorites,
 		handleRemoveFromFavorites,
 		handleEditAltText,
 		handleCopyMedia,

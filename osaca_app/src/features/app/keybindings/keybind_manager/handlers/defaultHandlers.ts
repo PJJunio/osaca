@@ -58,9 +58,9 @@ import {
 	VOICE_MUTED_BY_MODERATORS_DESCRIPTOR,
 	VOICE_UNDEAFEN_SELF_DESCRIPTOR,
 } from '@app/features/voice/utils/VoiceMessageDescriptors';
+import type {I18n} from '@lingui/core';
 import {ChannelTypes, Permissions} from '@osaca/constants/src/ChannelConstants';
 import {JumpTypes} from '@osaca/constants/src/JumpConstants';
-import type {I18n} from '@lingui/core';
 import React from 'react';
 
 function canOpenVoiceMessageComposerForChannel(channelId: string): boolean {
@@ -485,12 +485,6 @@ export function registerDefaultKeybindHandlers(host: HandlerHost, i18n: I18n): v
 			return;
 		}
 		ComponentBus.dispatch('EXPRESSION_PICKER_TAB_TOGGLE', {channelId, tab: 'emojis'});
-	});
-	host.register('chat_toggle_gif', ({type}) => {
-		if (type !== 'press') return;
-		const channelId = host.currentChannelId;
-		if (!channelId) return;
-		ComponentBus.dispatch('EXPRESSION_PICKER_TAB_TOGGLE', {channelId, tab: 'gifs'});
 	});
 	host.register('chat_toggle_sticker', ({type}) => {
 		if (type !== 'press') return;

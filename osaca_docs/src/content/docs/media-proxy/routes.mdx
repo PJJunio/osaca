@@ -62,7 +62,7 @@ Not every parameter starts a [transformation](/media-proxy/transformations/#when
 
 <RouteHeader method="GET" path="/external/{signature}/{target}" unauthenticated />
 
-Returns a third-party file through OSACA, optionally transformed. The HTTP API returns these URLs in `proxy_url` on [embed media](/http-api/messages/#embed-media-object), `proxy_icon_url` on [embed authors](/http-api/messages/#embed-author-object) and [footers](/http-api/messages/#embed-footer-object), and `proxy_url` and `proxy_src` on [GIF results](/http-api/memes/#resolved-gif-entry-object). Use each URL exactly as the API returns it, and don't build `/external/` paths yourself.
+Returns a third-party file through OSACA, optionally transformed. The HTTP API returns these URLs in `proxy_url` on [embed media](/http-api/messages/#embed-media-object), `proxy_icon_url` on [embed authors](/http-api/messages/#embed-author-object) and [footers](/http-api/messages/#embed-footer-object). Use each URL exactly as the API returns it, and don't build `/external/` paths yourself.
 
 The signature covers only the target and works until `OSACA_MEDIA_PROXY_SECRET_KEY` changes. OSACA fetches the target with the user agent `Mozilla/5.0 (compatible; Osacabot/1.0; +https://osaca.example)` and follows at most five redirects to public `http` or `https` addresses.
 

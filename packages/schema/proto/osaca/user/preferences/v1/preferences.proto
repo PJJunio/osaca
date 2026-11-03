@@ -17,7 +17,8 @@ message SyncedPreferences {
   MemesPickerState memes_picker = 22;
   EmojiState emoji = 23;
   EmojiStickerLayoutSettings emoji_sticker_layout = 24;
-  FavoriteGifSettings favorite_gifs = 25;
+  reserved 25;
+  reserved "favorite_gifs";
 
   FavoritesState favorites = 40;
   RecentMentionsSettings recent_mentions = 41;

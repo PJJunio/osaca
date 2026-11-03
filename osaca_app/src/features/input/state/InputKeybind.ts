@@ -101,7 +101,6 @@ import {
 	TOGGLE_QUICK_SWITCHER_DESCRIPTOR,
 	TOGGLE_SAVED_MEDIA_DESCRIPTOR,
 	TOGGLE_THE_EMOJI_PICKER_DESCRIPTOR,
-	TOGGLE_THE_GIF_PICKER_DESCRIPTOR,
 	TOGGLE_THE_INBOX_DESCRIPTOR,
 	TOGGLE_THE_MEMBER_LIST_OR_VOICE_CHAT_DESCRIPTOR,
 	TOGGLE_THE_SOUNDBOARD_DESCRIPTOR,
@@ -139,8 +138,8 @@ import {makeSyncedField} from '@app/features/user/state/SyncedField';
 import UserSettings from '@app/features/user/state/UserSettings';
 import {VOICE_TOGGLE_DEAFEN_DESCRIPTOR} from '@app/features/voice/utils/VoiceMessageDescriptors';
 import {create} from '@bufbuild/protobuf';
-import {KeybindSettingsSchema} from '@osaca/schema/src/gen/osaca/user/preferences/v1/preferences_pb';
 import type {I18n} from '@lingui/core';
+import {KeybindSettingsSchema} from '@osaca/schema/src/gen/osaca/user/preferences/v1/preferences_pb';
 import {computed, makeAutoObservable, runInAction} from 'mobx';
 
 const KEYBIND_STORE_NAME = 'Keybind';
@@ -622,12 +621,6 @@ const getDefaultKeybinds = (
 			action: 'chat_toggle_emoji',
 			label: i18n._(TOGGLE_THE_EMOJI_PICKER_DESCRIPTOR),
 			combo: {key: 'e', ctrlOrMeta: true},
-			section: 'chat',
-		},
-		{
-			action: 'chat_toggle_gif',
-			label: i18n._(TOGGLE_THE_GIF_PICKER_DESCRIPTOR),
-			combo: {key: 'g', ctrlOrMeta: true},
 			section: 'chat',
 		},
 		{

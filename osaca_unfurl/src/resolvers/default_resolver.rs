@@ -106,7 +106,6 @@ async fn resolve_html(ctx: &ResolveContext<'_>) -> anyhow::Result<ResolverResult
         media_proxy: ctx.media_proxy,
         self_hosted: ctx.self_hosted,
         youtube_api_key: ctx.youtube_api_key.clone(),
-        klipy_api_key: ctx.klipy_api_key.clone(),
         activity_pub_signer: ctx.activity_pub_signer.clone(),
     };
 

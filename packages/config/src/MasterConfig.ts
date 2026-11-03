@@ -257,9 +257,6 @@ export interface MasterConfig {
 			port: number;
 			fail_open: boolean;
 		};
-		klipy: {
-			api_key: string;
-		};
 		youtube: {
 			api_key: string;
 		};

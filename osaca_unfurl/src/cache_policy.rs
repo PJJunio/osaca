@@ -16,13 +16,8 @@ pub fn nsfw_scan_token(nsfw_mode: NsfwMode) -> &'static str {
     }
 }
 
-pub fn provider_capability(has_youtube_key: bool, has_klipy_key: bool) -> &'static str {
-    match (has_youtube_key, has_klipy_key) {
-        (true, true) => "youtube+klipy",
-        (true, false) => "youtube",
-        (false, true) => "klipy",
-        (false, false) => "none",
-    }
+pub fn provider_capability(has_youtube_key: bool) -> &'static str {
+    if has_youtube_key { "youtube" } else { "none" }
 }
 
 pub fn unfurl_cache_key(url: &str, nsfw_mode: NsfwMode, capability: &str) -> String {

@@ -81,7 +81,6 @@ import {
 	getErrorI18nService,
 	getFavoriteMemeRepository,
 	getGatewayRequestService,
-	getGifService,
 	getGuildAuditLogService,
 	getGuildDiscoveryRepository,
 	getGuildDiscoveryService,
@@ -419,10 +418,6 @@ class RequestServices implements RequestScopedServices {
 		return getGatewayRequestService();
 	}
 
-	get gifService() {
-		return getGifService();
-	}
-
 	get discoveryService() {
 		return getGuildDiscoveryService();
 	}
@@ -674,9 +669,7 @@ class RequestServices implements RequestScopedServices {
 			getFavoriteMemeRepository(),
 			this.channelService,
 			getStorageService(),
-			getUnfurlerService(),
 			getLimitConfigService(),
-			getGifService(),
 		);
 		return this.cachedFavoriteMemeService;
 	}

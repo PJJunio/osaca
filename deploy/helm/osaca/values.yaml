@@ -143,8 +143,6 @@ secrets:
     # OSACA_API_DONATION_PROXY_KEY: ""
     # Bearer token of the HTTP cache purge endpoint.
     # OSACA_CACHE_PURGE_HTTP_TOKEN: ""
-    # Klipy GIF API key.
-    # OSACA_KLIPY_API_KEY: ""
     # YouTube Data API key.
     # OSACA_YOUTUBE_API_KEY: ""
     # Bluesky OAuth signing keys.
@@ -604,19 +602,6 @@ staticProxy:
 # The internal services. Each runs a router Deployment and a shard StatefulSet.
 # router and shard take the workload keys above. shard.replicas sets the shard count.
 svc:
-  gifs:
-    router:
-      replicas: 1
-      terminationGracePeriodSeconds: 35
-      resources:
-        requests: {cpu: 10m, memory: 32Mi}
-        limits: {memory: 128Mi}
-    shard:
-      replicas: 1
-      terminationGracePeriodSeconds: 35
-      resources:
-        requests: {cpu: 20m, memory: 64Mi}
-        limits: {memory: 256Mi}
   messages:
     router:
       replicas: 1

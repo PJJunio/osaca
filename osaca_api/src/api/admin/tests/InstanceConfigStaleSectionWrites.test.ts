@@ -57,7 +57,7 @@ describe('instance config admin PATCH against state another node changed', () =>
 
 	it('refuses to disable direct messages when their lock lands between the read and the write', async () => {
 		const admin = await createAdmin();
-		await patchConfig(admin, {policy: {services: {gif_enabled: true}}}).execute();
+		await patchConfig(admin, {policy: {services: {youtube_enabled: true}}}).execute();
 		executor.watch(INSTANCE_POLICY_CONFIG_KEY);
 		let competed = false;
 		executor.competeBeforeEachWrite(async () => {
@@ -65,7 +65,7 @@ describe('instance config admin PATCH against state another node changed', () =>
 			competed = true;
 			await executor.writeDirectly(
 				INSTANCE_POLICY_CONFIG_KEY,
-				JSON.stringify({direct_messages_disabled: false, direct_messages_locked: true, gif_enabled: true}),
+				JSON.stringify({direct_messages_disabled: false, direct_messages_locked: true, youtube_enabled: true}),
 			);
 		});
 
@@ -74,7 +74,11 @@ describe('instance config admin PATCH against state another node changed', () =>
 			.execute();
 
 		const stored = JSON.parse((await executor.readDirectly(INSTANCE_POLICY_CONFIG_KEY)) ?? 'null');
-		expect(stored).toMatchObject({direct_messages_disabled: false, direct_messages_locked: true, gif_enabled: true});
+		expect(stored).toMatchObject({
+			direct_messages_disabled: false,
+			direct_messages_locked: true,
+			youtube_enabled: true,
+		});
 	});
 
 	it('applies the DM rule and a premium mode change from one request', async () => {

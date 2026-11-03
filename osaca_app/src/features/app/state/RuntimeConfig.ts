@@ -7,12 +7,6 @@ import DesktopRuntimeTransactions, {
 	requiresDesktopRuntimeTransaction,
 	runtimeTransportApiEndpoint,
 } from '@app/features/app/state/DesktopRuntimeTransaction';
-import {
-	type GifProvider,
-	type GifProviderInfo,
-	type GifProviderInfoInput,
-	normalizeGifProviderInfo,
-} from '@app/features/app/state/GifProviderConfig';
 import InstanceSnapshotStore, {
 	type InstanceSnapshotResolution,
 	type InstanceSnapshotResolveRequest,
@@ -123,11 +117,6 @@ export interface CommittedRuntimeConfig {
 	readonly publication: RuntimeConfigPublication;
 }
 
-interface GifProviderOverride {
-	readonly instanceKey: string;
-	readonly info: GifProviderInfo;
-}
-
 interface ActiveRuntime {
 	readonly snapshot: RuntimeConfigSnapshot;
 	readonly transportApiEndpoint: string;
@@ -197,19 +186,17 @@ class RuntimeConfig {
 	private lifecycleGeneration = 0;
 	private activeRuntime: ActiveRuntime | null = null;
 	private retainedSnapshot: RuntimeConfigSnapshot | null = null;
-	private gifProviderOverride: GifProviderOverride | null = null;
 
 	constructor() {
 		makeAutoObservable<
 			RuntimeConfig,
-			'activeRuntime' | 'gifProviderOverride' | 'isCurrentGeneration' | 'lifecycleGeneration' | 'retainedSnapshot'
+			'activeRuntime' | 'isCurrentGeneration' | 'lifecycleGeneration' | 'retainedSnapshot'
 		>(
 			this,
 			{
 				isCurrentGeneration: false,
 				activeRuntime: observableRef,
 				retainedSnapshot: observableRef,
-				gifProviderOverride: observableRef,
 				lifecycleGeneration: false,
 			},
 			{autoBind: true},
@@ -262,44 +249,6 @@ class RuntimeConfig {
 
 	get webAppEndpoint(): string {
 		return this.readableSnapshot().webAppEndpoint;
-	}
-
-	get gifProvider(): GifProvider {
-		return this.activeGifProviderOverride()?.name ?? this.readableSnapshot().gifProvider;
-	}
-
-	get gifProviderDisplayName(): string {
-		return this.activeGifProviderOverride()?.displayName ?? this.readableSnapshot().gifProviderDisplayName;
-	}
-
-	get gifAttributionRequired(): boolean {
-		return this.activeGifProviderOverride()?.attributionRequired ?? this.readableSnapshot().gifAttributionRequired;
-	}
-
-	private activeGifProviderOverride(): GifProviderInfo | null {
-		const override = this.gifProviderOverride;
-		const snapshot = this.activeRuntime?.snapshot;
-		if (override === null || snapshot === undefined || runtimeInstanceKey(snapshot) !== override.instanceKey) {
-			return null;
-		}
-		return override.info;
-	}
-
-	applyGifProviderHeaders(input: GifProviderInfoInput): void {
-		const snapshot = this.activeRuntime?.snapshot;
-		const instanceKey = snapshot === undefined ? null : runtimeInstanceKey(snapshot);
-		if (instanceKey === null) {
-			return;
-		}
-		const info = normalizeGifProviderInfo(input);
-		if (
-			this.gifProvider === info.name &&
-			this.gifProviderDisplayName === info.displayName &&
-			this.gifAttributionRequired === info.attributionRequired
-		) {
-			return;
-		}
-		this.gifProviderOverride = {instanceKey, info};
 	}
 
 	get apiCodeVersion(): number {
@@ -756,7 +705,6 @@ class RuntimeConfig {
 				guild_create_access: config.policy.guild_create_access,
 			},
 			services: {
-				gif_enabled: config.policy.services_resolved.gif_enabled,
 				youtube_enabled: config.policy.services_resolved.youtube_enabled,
 				bluesky_enabled: config.policy.services_resolved.bluesky_enabled,
 			},
@@ -942,10 +890,6 @@ class RuntimeConfig {
 
 	get hiddenBuiltInGuildBadges(): InstanceHiddenBuiltInGuildBadges {
 		return this.activeRuntime?.snapshot.hiddenBuiltInGuildBadges ?? [];
-	}
-
-	get gifEnabled(): boolean {
-		return this.services.gif_enabled;
 	}
 
 	get blueskyConnectionsEnabled(): boolean {

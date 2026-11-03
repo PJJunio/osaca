@@ -17,7 +17,6 @@ import {
 	SKELETON_UNMEASURED_WIDTH_PX,
 } from '@app/features/app/components/skeleton/SkeletonLayoutMemory';
 import {SkeletonLine} from '@app/features/app/components/skeleton/SkeletonLine';
-import {skeletonGifEnabled} from '@app/features/app/components/skeleton/SkeletonRuntimeConfig';
 import {SkeletonEmphasis, SkeletonRadius} from '@app/features/app/components/skeleton/SkeletonStyle';
 import {
 	type SkeletonInjectedToken,
@@ -162,8 +161,7 @@ export const ChatSkeleton = observer(function ChatSkeleton({presentation}: ChatS
 	const {channelKind, showMemberList, showTopic, rememberedMemberGroups} = presentation;
 	const [rememberedChatState] = useState(() =>
 		Object.freeze({
-			composerLayout:
-				getRememberedSkeletonComposerLayout() ?? resolveDefaultSkeletonComposerLayout(skeletonGifEnabled()),
+			composerLayout: getRememberedSkeletonComposerLayout() ?? resolveDefaultSkeletonComposerLayout(false),
 			messagePresentation: getRememberedSkeletonMessagePresentation() ?? resolveDefaultSkeletonMessagePresentation(),
 		}),
 	);

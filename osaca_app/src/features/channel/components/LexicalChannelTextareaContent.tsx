@@ -5,7 +5,6 @@ import {ConfirmModal} from '@app/features/app/components/dialogs/ConfirmModal';
 import {reportSkeletonComposerLayout} from '@app/features/app/components/skeleton/SkeletonLayoutMemory';
 import {useContextMenuHoverState} from '@app/features/app/hooks/useContextMenuHoverState';
 import {useSkeletonLayoutReport} from '@app/features/app/hooks/useSkeletonLayoutMemoryCapture';
-import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
 import {Limits} from '@app/features/app/utils/UserLimits';
 import {fetchSlowmodeState} from '@app/features/channel/commands/ChannelCommands';
 import {ChannelAttachmentArea} from '@app/features/channel/components/ChannelAttachmentArea';
@@ -149,7 +148,7 @@ export interface ChannelTextareaControls {
 	uploadFiles: () => void;
 	focus: () => void;
 }
-const NON_COMMAND_TRIGGERS: Array<TriggerType> = ['mention', 'channel', 'emoji', 'meme', 'gif', 'sticker'];
+const NON_COMMAND_TRIGGERS: Array<TriggerType> = ['mention', 'channel', 'emoji', 'meme', 'sticker'];
 
 export const LexicalChannelTextareaContent = observer(
 	({
@@ -277,13 +276,11 @@ export const LexicalChannelTextareaContent = observer(
 			setIsFocused(false);
 			setIsInputAreaFocused(false);
 		}, [inputSuppressed]);
-		const showGifButton = Accessibility.showGifButton && RuntimeConfig.gifEnabled;
 		const showMemesButton = Accessibility.showMemesButton;
 		const showStickersButton = Accessibility.showStickersButton;
 		const showEmojiButton = Accessibility.showEmojiButton;
 		const showMessageSendButton = Accessibility.showMessageSendButton;
 		const desktopComposerActionCount = [
-			showAllButtons && showGifButton,
 			showAllButtons && showMemesButton,
 			showAllButtons && showStickersButton,
 			showEmojiButton,
@@ -1439,7 +1436,6 @@ export const LexicalChannelTextareaContent = observer(
 								<TextareaButtons
 									disabled={textareaInputDisabled}
 									showAllButtons={showAllButtons}
-									showGifButton={showGifButton}
 									showMemesButton={showMemesButton}
 									showStickersButton={showStickersButton}
 									showEmojiButton={showEmojiButton}

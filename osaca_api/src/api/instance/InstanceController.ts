@@ -3,7 +3,6 @@
 import {createHash} from 'node:crypto';
 import {Config} from '@app/api/Config';
 import type {AgePolicyConfig} from '@app/api/config/APIConfig';
-import type {NatsGifProvider} from '@app/api/gif/NatsGifProvider';
 import {withAccountIdentitySetupLock} from '@app/api/instance/AccountIdentitySetupLock';
 import {type CustomBadge, compareBigInts} from '@app/api/instance/custom_badges/CustomBadgeRepository';
 import {
@@ -74,7 +73,6 @@ function toAgePolicyDiscovery(agePolicy: AgePolicyConfig): InstanceAgePolicy {
 }
 
 function buildDiscoveryStaticInput(
-	gifService: NatsGifProvider | undefined,
 	appPublic: InstanceAppPublic,
 	runtime: {
 		captcha: CaptchaConfig;
@@ -92,18 +90,6 @@ function buildDiscoveryStaticInput(
 	});
 	const apiClientEndpoint = Config.endpoints.apiClient;
 	const apiPublicEndpoint = Config.endpoints.apiPublicDiscovery;
-	let gifProvider: NatsGifProvider | undefined;
-	if (gifService !== undefined) {
-		gifProvider = gifService;
-	}
-	let gifProviderName = 'klipy';
-	let gifDisplayName = 'Klipy';
-	let gifAttributionRequired = false;
-	if (gifProvider !== undefined) {
-		gifProviderName = gifProvider.meta.name;
-		gifDisplayName = gifProvider.meta.displayName;
-		gifAttributionRequired = gifProvider.meta.attributionRequired;
-	}
 	return {
 		apiCodeVersion: API_CODE_VERSION,
 		endpoints: {
@@ -149,11 +135,6 @@ function buildDiscoveryStaticInput(
 				basis: runtime.accounts.verification_basis,
 				deliveryState: runtime.emailDeliveryState,
 			}),
-		},
-		gif: {
-			provider: gifProviderName,
-			display_name: gifDisplayName,
-			attribution_required: gifAttributionRequired,
 		},
 		push: {
 			public_vapid_key: Config.push.publicVapidKey ?? null,
@@ -261,7 +242,6 @@ export function InstanceController(app: Hono<HonoEnv>) {
 		}),
 		async (ctx) => {
 			ctx.header('Access-Control-Allow-Origin', '*');
-			const gifService = ctx.get('gifService') as NatsGifProvider | undefined;
 			const limits = ctx.get('limitConfigService').getConfigWireFormat();
 			const sso = await ctx.get('ssoService').getPublicStatus();
 			const instanceConfigRepository = ctx.get('instanceConfigRepository');
@@ -313,7 +293,6 @@ export function InstanceController(app: Hono<HonoEnv>) {
 						};
 			const discovery = buildDiscoveryResponse(
 				buildDiscoveryStaticInput(
-					gifService,
 					{
 						...appPublicConfig,
 						branding: {...appPublicConfig.branding, status_page_instatus: statusPageInstatus},

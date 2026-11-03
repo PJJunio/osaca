@@ -2820,24 +2820,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "osaca-gifs"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "futures",
- "moka",
- "osaca-svc",
- "osaca_common",
- "reqwest",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
- "url",
- "urlencoding",
-]
-
-[[package]]
 name = "osaca-media-proxy"
 version = "0.1.0"
 dependencies = [

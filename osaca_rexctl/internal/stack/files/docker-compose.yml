@@ -22,10 +22,10 @@ x-osaca-env: &osaca-env
   RUST_LOG: ${RUST_LOG:-}
   HTTP_PROXY: ${HTTP_PROXY:-}
   HTTPS_PROXY: ${HTTPS_PROXY:-}
-  NO_PROXY: localhost,127.0.0.1,::1,edge,postgres,valkey,nats,meilisearch,seaweedfs,livekit,api,worker,gateway,media-proxy,push,static-proxy,app-proxy,snowflakes,users,gifs,messages,unfurl,admin${NO_PROXY:+,${NO_PROXY:-}}
+  NO_PROXY: localhost,127.0.0.1,::1,edge,postgres,valkey,nats,meilisearch,seaweedfs,livekit,api,worker,gateway,media-proxy,push,static-proxy,app-proxy,snowflakes,users,messages,unfurl,admin${NO_PROXY:+,${NO_PROXY:-}}
   http_proxy: ${HTTP_PROXY:-}
   https_proxy: ${HTTPS_PROXY:-}
-  no_proxy: localhost,127.0.0.1,::1,edge,postgres,valkey,nats,meilisearch,seaweedfs,livekit,api,worker,gateway,media-proxy,push,static-proxy,app-proxy,snowflakes,users,gifs,messages,unfurl,admin${NO_PROXY:+,${NO_PROXY:-}}
+  no_proxy: localhost,127.0.0.1,::1,edge,postgres,valkey,nats,meilisearch,seaweedfs,livekit,api,worker,gateway,media-proxy,push,static-proxy,app-proxy,snowflakes,users,messages,unfurl,admin${NO_PROXY:+,${NO_PROXY:-}}
   OSACA_SELF_HOSTED: "true"
   OSACA_BASE_DOMAIN: ${OSACA_DOMAIN:-}
   OSACA_PUBLIC_SCHEME: ${OSACA_PUBLIC_SCHEME:-https}
@@ -124,7 +124,6 @@ x-osaca-env: &osaca-env
   OSACA_VOICE_JOIN_ALLOW_PRIVATE_ENDPOINTS: ${OSACA_VOICE_JOIN_ALLOW_PRIVATE_ENDPOINTS:-}
   OSACA_VOICE_HEALTH_INTERVAL_MS: ${OSACA_VOICE_HEALTH_INTERVAL_MS:-}
 
-  OSACA_KLIPY_API_KEY: ${OSACA_KLIPY_API_KEY:-}
   OSACA_YOUTUBE_API_KEY: ${OSACA_YOUTUBE_API_KEY:-}
   OSACA_API_UNFURL_IGNORED_HOSTS: ${OSACA_API_UNFURL_IGNORED_HOSTS:-}
 
@@ -550,7 +549,6 @@ services:
       nats: {condition: service_healthy}
       meilisearch: {condition: service_healthy}
       seaweedfs-init: {condition: service_completed_successfully}
-      gifs: {condition: service_healthy}
       snowflakes: {condition: service_healthy}
       messages: {condition: service_healthy}
       users: {condition: service_healthy}
@@ -815,23 +813,6 @@ services:
     depends_on:
       nats: {condition: service_healthy}
       postgres: {condition: service_healthy}
-
-  gifs:
-    <<: *osaca-service
-    stop_grace_period: 30s
-    image: ${OSACA_REGISTRY:-ghcr.io/${OSACA_REGISTRY_OWNER:-pjjunio}}/osaca-gifs:${OSACA_IMAGE_TAG:-v1}
-    deploy:
-      resources:
-        limits:
-          memory: ${OSACA_GIFS_MEMORY_LIMIT:-256mb}
-    environment:
-      <<: *osaca-rust-env
-      OSACA_SVC_NAME: gifs
-      OSACA_SVC_MODE: combined
-      OSACA_GIFS_SHARD_CACHE_MAX_BYTES: ${OSACA_GIFS_SHARD_CACHE_MAX_BYTES:-134217728}
-    healthcheck: *osaca-svc-healthcheck
-    depends_on:
-      nats: {condition: service_healthy}
 
   messages:
     <<: *osaca-service

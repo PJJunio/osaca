@@ -560,13 +560,6 @@
     "nullable": true
   },
   {
-    "key": "integrations.gif.klipy_api_key",
-    "type": "secret",
-    "help": "GIF klipy API key",
-    "secret_set": "integrations.gif.klipy_api_key_set",
-    "nullable": true
-  },
-  {
     "key": "integrations.youtube.api_key",
     "type": "secret",
     "help": "Youtube API key",
@@ -671,12 +664,6 @@
     "key": "policy.services.bluesky_enabled",
     "type": "boolean",
     "help": "Services bluesky enabled",
-    "nullable": true
-  },
-  {
-    "key": "policy.services.gif_enabled",
-    "type": "boolean",
-    "help": "Services GIF enabled",
     "nullable": true
   },
   {

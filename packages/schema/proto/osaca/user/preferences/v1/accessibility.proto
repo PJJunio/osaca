@@ -27,8 +27,8 @@ message AccessibilitySettings {
   optional bool mobile_gif_autoplay_value = 18;
   optional bool mobile_animate_emoji_value = 19;
 
-  bool auto_send_klipy_gifs = 20;
-  optional bool show_gif_button = 21;
+  reserved 20, 21;
+  reserved "auto_send_klipy_gifs", "show_gif_button";
   optional bool show_memes_button = 22;
   optional bool show_stickers_button = 23;
   optional bool show_emoji_button = 24;

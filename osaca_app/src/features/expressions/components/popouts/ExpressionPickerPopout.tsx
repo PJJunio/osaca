@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
 import {EmojiPicker} from '@app/features/channel/components/EmojiPicker';
 import {
 	EMOJI_GRID_SCROLLER_PADDING_WIDTH,
 	EMOJI_GRID_TRACK_WIDTH,
 } from '@app/features/channel/components/emoji_picker/EmojiPickerConstants';
-import {GifPicker} from '@app/features/channel/components/pickers/gif/GifPicker';
 import {MemesPicker} from '@app/features/channel/components/pickers/memes/MemesPicker';
 import {StickersPicker} from '@app/features/channel/components/StickersPicker';
 
@@ -18,7 +16,6 @@ import * as StickerSendUtils from '@app/features/expressions/utils/StickerSendUt
 import {
 	EMOJIS_DESCRIPTOR,
 	EXPRESSION_PICKER_CATEGORIES_DESCRIPTOR,
-	GIFS_DESCRIPTOR,
 	MEDIA_DESCRIPTOR,
 	STICKERS_DESCRIPTOR,
 } from '@app/features/i18n/utils/CommonMessageDescriptors';
@@ -105,7 +102,7 @@ export const ExpressionPickerHeaderPortal = ({children}: {children: React.ReactN
 	return ReactDOM.createPortal(children, context.headerPortalElement);
 };
 
-export type ExpressionPickerTabType = 'gifs' | 'memes' | 'stickers' | 'emojis';
+export type ExpressionPickerTabType = 'memes' | 'stickers' | 'emojis';
 
 interface ExpressionPickerCategory {
 	type: ExpressionPickerTabType;
@@ -119,13 +116,6 @@ interface ExpressionPickerCategory {
 }
 
 const createAllCategories = (i18n: I18n): Array<ExpressionPickerCategory> => [
-	{
-		type: 'gifs' as const,
-		label: i18n._(GIFS_DESCRIPTOR),
-		renderComponent: ({onClose}) => (
-			<GifPicker onClose={onClose} data-flx="expressions.expression-picker-popout.render-component.gif-picker" />
-		),
-	},
 	{
 		type: 'memes' as const,
 		label: i18n._(MEDIA_DESCRIPTOR),
@@ -197,15 +187,13 @@ export const ExpressionPickerPopout = observer(
 		roleIconGuildId,
 		onEmojiSelect,
 		onClose,
-		visibleTabs = ['gifs', 'memes', 'stickers', 'emojis'],
+		visibleTabs = ['memes', 'stickers', 'emojis'],
 	}: ExpressionPickerPopoutProps) => {
 		const {i18n} = useLingui();
 		const categories = useMemo(() => {
 			const all = createAllCategories(i18n);
-			return all.filter(
-				(category) => visibleTabs.includes(category.type) && (category.type !== 'gifs' || RuntimeConfig.gifEnabled),
-			);
-		}, [i18n.locale, visibleTabs, RuntimeConfig.gifEnabled]);
+			return all.filter((category) => visibleTabs.includes(category.type));
+		}, [i18n.locale, visibleTabs]);
 
 		const selectedTab = ExpressionPicker.selectedTab;
 		const setSelectedTab = useCallback(

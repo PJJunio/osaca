@@ -18,7 +18,6 @@ import {
 	WindowsOsacaSansControl,
 } from '@app/features/user/components/modals/tabs/advanced_settings_tab/AdvancedAppearanceControls';
 import {
-	AutoSendGifsControl,
 	ConvertEmoticonsAdvancedControl,
 	DoubleClickMessageActionsControl,
 	ExpressionAutocompleteControl,
@@ -29,7 +28,6 @@ import {
 	MessageActionBarControl,
 	PreuploadMessageAttachmentsControl,
 	ReverseImageSearchControl,
-	SaveGifFavoritesControl,
 	ScrollToBottomOnSendControl,
 	SearchEnginesControl,
 	SequentialFileSendControl,
@@ -77,8 +75,6 @@ export const DIRECT_CONTROL_ITEM_IDS = new Set([
 	'appearance-enable-favorites',
 	'appearance-show-help-center-button',
 	'appearance-show-download-button',
-	'chat-settings-auto-send-gifs',
-	'chat-settings-save-gif-favorites',
 	'chat-settings-message-action-bar',
 	'chat-settings-media-buttons',
 	'chat-settings-strip-tracking',
@@ -131,8 +127,6 @@ export const COMPACT_SWITCH_CONTROL_ITEM_IDS = new Set([
 	'appearance-enable-favorites',
 	'appearance-show-help-center-button',
 	'appearance-show-download-button',
-	'chat-settings-auto-send-gifs',
-	'chat-settings-save-gif-favorites',
 	'chat-settings-strip-tracking',
 	'chat-settings-trust-domains',
 	'chat-settings-convert-emoticons',
@@ -207,14 +201,6 @@ export const AdvancedSettingControl = observer(({item}: {item: SearchableSetting
 		case 'appearance-show-download-button':
 			return (
 				<DownloadButtonControl data-flx="user.advanced-setting-direct-controls.advanced-setting-control.download-button-control" />
-			);
-		case 'chat-settings-auto-send-gifs':
-			return (
-				<AutoSendGifsControl data-flx="user.advanced-setting-direct-controls.advanced-setting-control.auto-send-gifs-control" />
-			);
-		case 'chat-settings-save-gif-favorites':
-			return (
-				<SaveGifFavoritesControl data-flx="user.advanced-setting-direct-controls.advanced-setting-control.save-gif-favorites-control" />
 			);
 		case 'chat-settings-message-action-bar':
 			return (

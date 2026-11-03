@@ -255,7 +255,6 @@ const NAMED_OSACA_ENV_OVERRIDES: Record<string, NamedEnvOverride> = {
 	OSACA_CLAMAV_HOST: {path: ['integrations', 'clamav', 'host']},
 	OSACA_CLAMAV_PORT: {path: ['integrations', 'clamav', 'port'], parse: parseInteger},
 	OSACA_CLAMAV_FAIL_OPEN: {path: ['integrations', 'clamav', 'fail_open'], parse: parseBoolean},
-	OSACA_KLIPY_API_KEY: {path: ['integrations', 'klipy', 'api_key']},
 	OSACA_YOUTUBE_API_KEY: {path: ['integrations', 'youtube', 'api_key']},
 	OSACA_CACHE_PURGE_ADAPTER: {path: ['integrations', 'cache_purge', 'adapter']},
 	OSACA_CACHE_PURGE_HTTP_ENDPOINT: {path: ['integrations', 'cache_purge', 'http', 'endpoint']},

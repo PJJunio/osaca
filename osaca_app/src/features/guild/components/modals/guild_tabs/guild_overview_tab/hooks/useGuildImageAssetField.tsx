@@ -2,12 +2,10 @@
 
 import {showGenericErrorModal} from '@app/features/app/components/alerts/GenericErrorModalCommands';
 import {GlobalLimits} from '@app/features/app/utils/GlobalLimits';
-import type {Gif} from '@app/features/expressions/commands/GifCommands';
 import {AssetCropModal, type AssetType} from '@app/features/expressions/components/modals/AssetCropModal';
 import {openAssetSourceModal} from '@app/features/expressions/components/modals/AssetSourceModal';
 import {showAnimatedAvifUnsupportedModal} from '@app/features/expressions/utils/AnimatedAvifModalUtils';
 import {inspectImageFile} from '@app/features/expressions/utils/AnimatedImageUtils';
-import {downloadGifAsImageFile} from '@app/features/expressions/utils/GifFileDownload';
 import {isSvgFile, readImageFileAsUploadDataUrl} from '@app/features/expressions/utils/ImageUploadFileUtils';
 import {revokeObjectUrl} from '@app/features/guild/components/modals/guild_tabs/guild_overview_tab/utils/ImageAsset';
 import type {FormInputs} from '@app/features/guild/utils/guild_tabs/GuildOverviewTabUtils';
@@ -272,21 +270,8 @@ export function useGuildImageAssetField({
 		const [file] = await openFilePicker({accept: filePickerAccept});
 		await handleFile(file ?? null);
 	}, [canManage, filePickerAccept, handleFile]);
-	const handleSelectedGif = useCallback(
-		async (selectedGif: Gif) => {
-			try {
-				const file = await downloadGifAsImageFile(selectedGif);
-				await handleFile(file);
-			} catch {
-				showErrorModal(i18n._(INVALID_IMAGE_TRY_ANOTHER_DESCRIPTOR));
-			}
-		},
-		[handleFile, i18n, showErrorModal],
-	);
 	const openSourcePicker = useCallback(() => {
 		if (!canManage) return;
-		const gifMode = gif?.mode ?? 'disallow';
-		const gifAllowed = gifMode === 'allow' || (gifMode === 'require-feature' && (gif?.isAllowed?.() ?? false));
 		if (sourceModalTitle == null) {
 			void pickFile();
 			return;
@@ -295,10 +280,8 @@ export function useGuildImageAssetField({
 			title: sourceModalTitle,
 			uploadHint,
 			onPickUpload: pickFile,
-			onSelectGif: (selectedGif) => void handleSelectedGif(selectedGif),
-			showGifOption: gifAllowed,
 		});
-	}, [canManage, gif, handleSelectedGif, pickFile, sourceModalTitle, uploadHint]);
+	}, [canManage, pickFile, sourceModalTitle, uploadHint]);
 	const clear = useCallback(() => {
 		requestIdRef.current += 1;
 		setFieldValue(null);

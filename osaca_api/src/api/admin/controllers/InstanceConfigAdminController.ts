@@ -322,13 +322,11 @@ async function buildInstanceConfigResponse(warnings: Array<string> = []): Promis
 			guild_create_access: policy.guild_create_access,
 			premium_mode: policy.premium_mode,
 			services: {
-				gif_enabled: policy.gif_enabled,
 				youtube_enabled: policy.youtube_enabled,
 				bluesky_enabled: policy.bluesky_enabled,
 			},
 			services_resolved: resolvedServices,
 			services_available: {
-				gif: integrations.gif.effective_available,
 				youtube: integrations.youtube.effective_available,
 				bluesky: integrations.bluesky.effective_enabled,
 			},
@@ -556,11 +554,6 @@ function toIntegrationsPatch(
 ): InstanceIntegrationsConfigPatch | null {
 	if (!integrations) return null;
 	const patch: InstanceIntegrationsConfigPatch = {
-		gif: integrations.gif
-			? omitUndefinedFields({
-					klipy_api_key: readOptionalField(integrations.gif, 'klipy_api_key'),
-				})
-			: undefined,
 		youtube: integrations.youtube
 			? omitUndefinedFields({
 					api_key: readOptionalField(integrations.youtube, 'api_key'),
@@ -1349,7 +1342,7 @@ function planInstancePolicyPatch(
 	updateChangedPolicyField(patch, current, 'guild_create_access', policy.guild_create_access);
 	updateChangedPolicyField(patch, current, 'personal_notes_enabled', policy.personal_notes_enabled);
 
-	for (const field of ['gif_enabled', 'youtube_enabled', 'bluesky_enabled'] as const) {
+	for (const field of ['youtube_enabled', 'bluesky_enabled'] as const) {
 		const value = policy.services?.[field];
 		if (value !== undefined) patch[field] = value ?? null;
 	}

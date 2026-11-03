@@ -704,17 +704,14 @@ const InstancePolicyResponse = z.object({
 	guild_create_access: z.boolean(),
 	premium_mode: z.enum(['mirror', 'everyone']),
 	services: z.object({
-		gif_enabled: z.boolean().nullable(),
 		youtube_enabled: z.boolean().nullable(),
 		bluesky_enabled: z.boolean().nullable(),
 	}),
 	services_resolved: z.object({
-		gif_enabled: z.boolean(),
 		youtube_enabled: z.boolean(),
 		bluesky_enabled: z.boolean(),
 	}),
 	services_available: z.object({
-		gif: z.boolean(),
 		youtube: z.boolean(),
 		bluesky: z.boolean(),
 	}),
@@ -760,10 +757,6 @@ const InstanceMediaResponse = z.object({
 });
 
 const InstanceIntegrationsResponse = z.object({
-	gif: z.object({
-		klipy_api_key_set: z.boolean(),
-		effective_available: z.boolean(),
-	}),
 	youtube: z.object({
 		api_key_set: z.boolean(),
 		effective_available: z.boolean(),
@@ -867,7 +860,6 @@ const InstancePolicyUpdateSchema = z.object({
 	guild_create_access: z.boolean().optional(),
 	services: z
 		.object({
-			gif_enabled: z.boolean().nullish(),
 			youtube_enabled: z.boolean().nullish(),
 			bluesky_enabled: z.boolean().nullish(),
 		})
@@ -933,11 +925,6 @@ export const InstanceConfigUpdateRequest = z.object({
 	app_public: AppPublicConfigUpdateRequest.nullish(),
 	integrations: z
 		.object({
-			gif: z
-				.object({
-					klipy_api_key: z.string().trim().max(4096).nullish(),
-				})
-				.nullish(),
 			youtube: z
 				.object({
 					api_key: z.string().trim().max(4096).nullish(),

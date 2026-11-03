@@ -104,7 +104,6 @@ func Sizing(hw Hardware, memory bool, fixed map[string]string) map[string]string
 	media := share("OSACA_MEDIA_PROXY_MEMORY_LIMIT", 8, 320, 1024)
 	setBytes(out, "OSACA_MEDIA_PROXY_TRANSFORM_CACHE_BYTES", media/8)
 	setBytes(out, "OSACA_MEDIA_PROXY_UPLOAD_RELAY_BUFFERED_RETRY_TOTAL_BYTES", media/4)
-	setBytes(out, "OSACA_GIFS_SHARD_CACHE_MAX_BYTES", min(clamp(m/64, 64, 128), size("OSACA_GIFS_MEMORY_LIMIT", 256)/2))
 
 	out["OSACA_LIVEKIT_GOMEMLIMIT"] = strconv.Itoa(share("OSACA_LIVEKIT_MEMORY_LIMIT", 6, 320, 2048)*85/100) + "MiB"
 	out["OSACA_NATS_GOMEMLIMIT"] = strconv.Itoa(share("OSACA_NATS_MEMORY_LIMIT", 3, 192, 1024)*4/5) + "MiB"

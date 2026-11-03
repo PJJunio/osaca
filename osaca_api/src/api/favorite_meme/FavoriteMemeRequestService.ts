@@ -63,9 +63,6 @@ export class FavoriteMemeRequestService {
 			name: data.name,
 			altText: data.alt_text ?? undefined,
 			tags: data.tags ?? undefined,
-			gifSlug: data.gif_slug ?? undefined,
-			gifProvider: data.gif_provider ?? undefined,
-			media: data.media ?? undefined,
 		});
 		return mapFavoriteMemeToResponse(meme);
 	}

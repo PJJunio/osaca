@@ -41,7 +41,7 @@ import {
 	resolveSkeletonRailProjection,
 	type SkeletonRailProjection,
 } from '@app/features/app/components/skeleton/SkeletonRailProjection';
-import {skeletonGifEnabled, skeletonSelfHosted} from '@app/features/app/components/skeleton/SkeletonRuntimeConfig';
+import {skeletonSelfHosted} from '@app/features/app/components/skeleton/SkeletonRuntimeConfig';
 import {AppStorageKey} from '@app/features/platform/state/AppStorageKeys';
 import {
 	GATEWAY_PREBOOT_SESSION_STORAGE_KEY,
@@ -258,8 +258,7 @@ export function writeShellHint(): void {
 		const guildChannelList = guildId == null ? null : getRememberedSkeletonGuildChannelList(guildId);
 		const isChat = shell.content.kind === 'chat';
 		const chat = resolveChatSkeletonPresentation(pathname, !mobile && viewportWidth >= MEMBER_LIST_FIT_MIN_WIDTH_PX);
-		const composer =
-			getRememberedSkeletonComposerLayout() ?? resolveDefaultSkeletonComposerLayout(skeletonGifEnabled());
+		const composer = getRememberedSkeletonComposerLayout() ?? resolveDefaultSkeletonComposerLayout(false);
 		const message = getRememberedSkeletonMessagePresentation() ?? resolveDefaultSkeletonMessagePresentation();
 		const voice = getRememberedSkeletonVoicePresence() ?? SKELETON_DEFAULT_VOICE_PRESENCE;
 		const showMemberList = isChat && chat.showMemberList;

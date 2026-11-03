@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import type {GifMediaFormat} from '@osaca/schema/src/domains/gif/GifSchemas';
+import type {GifMediaFormat} from '@osaca/schema/src/domains/meme/MemeSchemas';
 
 export type FavoriteMemeWire = Readonly<{
 	id: string;

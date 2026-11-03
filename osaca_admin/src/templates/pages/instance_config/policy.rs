@@ -265,7 +265,7 @@ fn services_form(
     policy: &InstancePolicyResponse,
 ) -> Markup {
     let available = &policy.services_available;
-    if !available.gif && !available.youtube && !available.bluesky {
+    if !available.youtube && !available.bluesky {
         return html! {
             div class="space-y-4 border-t border-neutral-200 pt-6" {
                 h3 class="text-sm font-semibold text-neutral-900" { "Optional services" }
@@ -285,15 +285,7 @@ fn services_form(
             form method="post" action={(base) "/instance-config?action=update_policy"} {
                 (config_form.fields())
                 div class="space-y-4" {
-                    div class="grid grid-cols-1 gap-4 sm:grid-cols-3" {
-                        @if available.gif {
-                            (service_select(
-                                "policy_service_gif",
-                                "GIF picker",
-                                policy.services.gif_enabled,
-                                policy.services_resolved.gif_enabled,
-                            ))
-                        }
+                    div class="grid grid-cols-1 gap-4 sm:grid-cols-2" {
                         @if available.youtube {
                             (service_select(
                                 "policy_service_youtube",

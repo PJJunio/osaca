@@ -20,4 +20,3 @@ pub mod public_ip;
 
 pub mod metrics;
 
-pub mod klipy;

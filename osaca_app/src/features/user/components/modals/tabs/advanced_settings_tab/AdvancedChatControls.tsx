@@ -4,7 +4,6 @@ import * as AccessibilityCommands from '@app/features/accessibility/commands/Acc
 import Accessibility from '@app/features/accessibility/state/Accessibility';
 import {ConfirmModal} from '@app/features/app/components/dialogs/ConfirmModal';
 import * as Modal from '@app/features/app/components/dialogs/Modal';
-import FavoriteGif from '@app/features/expressions/state/FavoriteGif';
 import Guilds from '@app/features/guild/state/Guilds';
 import Inbox from '@app/features/inbox/state/Inbox';
 import {remFromPx} from '@app/features/theme/layout/RemFromPx';
@@ -33,10 +32,8 @@ import {SHOW_DOWNLOAD_BUTTON_DESCRIPTOR} from '@app/features/user/components/set
 import PrivacyPreferences from '@app/features/user/state/PrivacyPreferences';
 import UserSettings from '@app/features/user/state/UserSettings';
 import {
-	AUTOMATICALLY_SEND_GIFS_WHEN_SELECTED_DESCRIPTOR,
 	CONFIGURE_DESCRIPTOR,
 	HIDE_MUTED_CHANNELS_BY_DEFAULT_DESCRIPTOR,
-	SAVE_GIF_FAVORITES_AS_SAVED_MEDIA_DESCRIPTOR,
 	SCROLL_TO_BOTTOM_WHEN_SENDING_A_MESSAGE_DESCRIPTOR,
 	SEQUENTIAL_FILE_SEND_DESCRIPTOR as SEND_FILES_IN_SEQUENTIAL_ORDER_DESCRIPTOR,
 	SKIP_MARK_ALL_AS_READ_CONFIRMATION_DESCRIPTOR,
@@ -100,10 +97,6 @@ const SHOW_SAVED_MEDIA_IN_EXPRESSION_AUTOCOMPLETE_DESCRIPTOR = msg({
 	message: 'Show saved media in expression autocomplete',
 	comment: 'Short label for an advanced message input preference.',
 });
-const SHOW_GIFS_BUTTON_DESCRIPTOR = msg({
-	message: 'Show GIFs button',
-	comment: 'Short label for an advanced message input preference.',
-});
 const SHOW_MEDIA_BUTTON_DESCRIPTOR = msg({
 	message: 'Show media button',
 	comment: 'Short label for an advanced message input preference.',
@@ -147,32 +140,6 @@ const STOP_HIDING_MUTED_CHANNELS_BY_DEFAULT_DESCRIPTOR = msg({
 const SHOW_IN_ALL_COMMUNITIES_DESCRIPTOR = msg({
 	message: 'Show in all communities',
 	comment: 'Short confirmation button label in advanced settings.',
-});
-
-export const AutoSendGifsControl = observer(() => {
-	const {i18n} = useLingui();
-	return (
-		<Switch
-			ariaLabel={i18n._(AUTOMATICALLY_SEND_GIFS_WHEN_SELECTED_DESCRIPTOR)}
-			value={Accessibility.autoSendKlipyGifs}
-			onChange={(value) => AccessibilityCommands.update({autoSendKlipyGifs: value})}
-			compact
-			data-flx="user.advanced-settings-tab.switch.auto-send-gifs"
-		/>
-	);
-});
-
-export const SaveGifFavoritesControl = observer(() => {
-	const {i18n} = useLingui();
-	return (
-		<Switch
-			ariaLabel={i18n._(SAVE_GIF_FAVORITES_AS_SAVED_MEDIA_DESCRIPTOR)}
-			value={FavoriteGif.saveGifFavoritesAsSavedMedia}
-			onChange={(value) => FavoriteGif.setSaveGifFavoritesAsSavedMedia(value)}
-			compact
-			data-flx="user.advanced-settings-tab.switch.save-gif-favorites"
-		/>
-	);
 });
 
 const MessageActionBarContent = observer(() => {
@@ -416,12 +383,6 @@ const InputButtonsContent = observer(() => {
 	const {i18n} = useLingui();
 	return (
 		<SwitchGroup data-flx="user.advanced-settings-tab.switch-group.input-buttons">
-			<SwitchGroupItem
-				label={i18n._(SHOW_GIFS_BUTTON_DESCRIPTOR)}
-				value={Accessibility.showGifButton}
-				onChange={(value) => AccessibilityCommands.update({showGifButton: value})}
-				data-flx="user.advanced-settings-tab.switch-group-item.gif-button"
-			/>
 			<SwitchGroupItem
 				label={i18n._(SHOW_MEDIA_BUTTON_DESCRIPTOR)}
 				value={Accessibility.showMemesButton}

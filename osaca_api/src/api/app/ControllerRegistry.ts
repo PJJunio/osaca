@@ -16,11 +16,9 @@ import {ConnectionController} from '@app/api/connection/ConnectionController';
 import {DonationController} from '@app/api/donation/DonationController';
 import {DownloadController} from '@app/api/download/DownloadController';
 import {ExperimentController} from '@app/api/experiment/ExperimentController';
-import {FavoriteGifController} from '@app/api/favorite_gif/FavoriteGifController';
 import {FavoriteMemeController} from '@app/api/favorite_meme/FavoriteMemeController';
 import {GatewayController} from '@app/api/gateway/GatewayController';
 import {GeolocationController} from '@app/api/geolocation/GeolocationController';
-import {GifController} from '@app/api/gif/GifController';
 import {GuildController} from '@app/api/guild/controllers/index';
 import {InstanceController} from '@app/api/instance/InstanceController';
 import {InviteController} from '@app/api/invite/InviteController';
@@ -65,14 +63,12 @@ export function registerControllers(routes: HonoApp, config: APIConfig): void {
 	OpenAPIController(routes);
 	DownloadController(routes);
 	ExperimentController(routes);
-	FavoriteGifController(routes);
 	FavoriteMemeController(routes);
 	InviteController(routes);
 	ReadStateController(routes);
 	ReportController(routes);
 	GuildController(routes);
 	SearchController(routes);
-	GifController(routes);
 	ThemeController(routes);
 	UnfurlController(routes);
 	if (config.dev.testModeEnabled || config.nodeEnv === 'development') {

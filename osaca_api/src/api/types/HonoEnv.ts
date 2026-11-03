@@ -22,7 +22,6 @@ import type {NetworkBlock} from '@app/api/enforcement/NetworkBlockError';
 import type {FavoriteMemeRequestService} from '@app/api/favorite_meme/FavoriteMemeRequestService';
 import type {FavoriteMemeService} from '@app/api/favorite_meme/FavoriteMemeService';
 import type {GatewayRequestService} from '@app/api/gateway/GatewayRequestService';
-import type {NatsGifProvider} from '@app/api/gif/NatsGifProvider';
 import type {GuildDiscoveryService} from '@app/api/guild/services/GuildDiscoveryService';
 import type {GuildService} from '@app/api/guild/services/GuildService';
 import type {GuildVisitService} from '@app/api/guild/visits/GuildVisitService';
@@ -154,7 +153,6 @@ export interface HonoEnv {
 		searchService: SearchService;
 		snowflakeService: ISnowflakeService;
 		storageService: IStorageService;
-		gifService: NatsGifProvider;
 		themeService: ThemeService;
 		userCacheService: UserCacheService;
 		userRepository: UserRepository;

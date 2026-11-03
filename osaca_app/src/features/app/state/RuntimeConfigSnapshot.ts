@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import type {GifProvider} from '@app/features/app/state/GifProviderConfig';
 import {
 	EmailDeliveryStates,
 	GuildJoinGates,
@@ -64,9 +63,6 @@ export interface RuntimeConfigSnapshot extends RuntimeConfigIdentity {
 	readonly giftEndpoint: string;
 	readonly webAppEndpoint: string;
 	readonly uploadRelayEndpoint: string | null;
-	readonly gifProvider: GifProvider;
-	readonly gifProviderDisplayName: string;
-	readonly gifAttributionRequired: boolean;
 	readonly apiCodeVersion: number;
 	readonly features: InstanceFeatures;
 	readonly sso: InstanceSso | null;
@@ -388,7 +384,6 @@ function readCommunity(value: unknown): InstanceCommunity {
 function readServices(value: unknown): InstanceServices {
 	const source = readRecord(value, 'services');
 	return {
-		gif_enabled: readBoolean(source, 'gif_enabled', 'services.gif_enabled'),
 		youtube_enabled: readBoolean(source, 'youtube_enabled', 'services.youtube_enabled'),
 		bluesky_enabled: readBoolean(source, 'bluesky_enabled', 'services.bluesky_enabled'),
 	};
@@ -632,9 +627,6 @@ export function requireRuntimeConfigSnapshot(value: unknown): RuntimeConfigSnaps
 		giftEndpoint: readEndpoint(source, 'giftEndpoint', 'giftEndpoint', InstanceEndpointKind.SERVICE),
 		webAppEndpoint: readEndpoint(source, 'webAppEndpoint', 'webAppEndpoint', InstanceEndpointKind.WEBAPP),
 		uploadRelayEndpoint: readNullableEndpoint(source, 'uploadRelayEndpoint', 'uploadRelayEndpoint'),
-		gifProvider: readNonEmptyString(source, 'gifProvider', 'gifProvider'),
-		gifProviderDisplayName: readNonEmptyString(source, 'gifProviderDisplayName', 'gifProviderDisplayName'),
-		gifAttributionRequired: readBoolean(source, 'gifAttributionRequired', 'gifAttributionRequired'),
 		apiCodeVersion: readPositiveInteger(source, 'apiCodeVersion', 'apiCodeVersion'),
 		features: readFeatures(source.features),
 		sso: readSso(source.sso),

@@ -53,7 +53,7 @@ var logParts = []logPart{
 	{"storage", []string{"seaweedfs", "seaweedfs-init"}},
 	{"cache", []string{"valkey"}},
 	{"queue", []string{"nats"}},
-	{"internal", []string{"snowflakes", "users", "gifs", "messages", "unfurl"}},
+	{"internal", []string{"snowflakes", "users", "messages", "unfurl"}},
 }
 
 func logServiceNames() []string {

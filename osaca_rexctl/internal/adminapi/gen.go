@@ -2329,10 +2329,6 @@ type InstanceConfigResponse struct {
 				Username *string                                             `json:"username"`
 			} `json:"smtp"`
 		} `json:"email"`
-		Gif struct {
-			EffectiveAvailable bool `json:"effective_available"`
-			KlipyApiKeySet     bool `json:"klipy_api_key_set"`
-		} `json:"gif"`
 		Youtube struct {
 			ApiKeySet          bool `json:"api_key_set"`
 			EffectiveAvailable bool `json:"effective_available"`
@@ -2378,17 +2374,14 @@ type InstanceConfigResponse struct {
 		PremiumMode          InstanceConfigResponsePolicyPremiumMode `json:"premium_mode"`
 		Services             struct {
 			BlueskyEnabled *bool `json:"bluesky_enabled"`
-			GifEnabled     *bool `json:"gif_enabled"`
 			YoutubeEnabled *bool `json:"youtube_enabled"`
 		} `json:"services"`
 		ServicesAvailable struct {
 			Bluesky bool `json:"bluesky"`
-			Gif     bool `json:"gif"`
 			Youtube bool `json:"youtube"`
 		} `json:"services_available"`
 		ServicesResolved struct {
 			BlueskyEnabled bool `json:"bluesky_enabled"`
-			GifEnabled     bool `json:"gif_enabled"`
 			YoutubeEnabled bool `json:"youtube_enabled"`
 		} `json:"services_resolved"`
 		SingleCommunityEnabled bool    `json:"single_community_enabled"`
@@ -2552,9 +2545,6 @@ type InstanceConfigUpdateRequest struct {
 				Username *string                                                  `json:"username,omitempty"`
 			} `json:"smtp,omitempty"`
 		} `json:"email,omitempty"`
-		Gif *struct {
-			KlipyApiKey *string `json:"klipy_api_key,omitempty"`
-		} `json:"gif,omitempty"`
 		Youtube *struct {
 			ApiKey *string `json:"api_key,omitempty"`
 		} `json:"youtube,omitempty"`
@@ -2600,7 +2590,6 @@ type InstanceConfigUpdateRequest struct {
 		PremiumMode          *InstanceConfigUpdateRequestPolicyPremiumMode `json:"premium_mode,omitempty"`
 		Services             *struct {
 			BlueskyEnabled *bool `json:"bluesky_enabled,omitempty"`
-			GifEnabled     *bool `json:"gif_enabled,omitempty"`
 			YoutubeEnabled *bool `json:"youtube_enabled,omitempty"`
 		} `json:"services,omitempty"`
 

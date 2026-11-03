@@ -4,11 +4,11 @@ import type {AutocompleteOption} from '@app/features/channel/components/Autocomp
 import type {TriggerType} from '@app/features/messaging/utils/AutocompleteTriggerPolicy';
 
 export function isAutocompleteMediaOption(option: AutocompleteOption): boolean {
-	return option.type === 'meme' || option.type === 'gif' || option.type === 'sticker';
+	return option.type === 'meme' || option.type === 'sticker';
 }
 
 export function isAutocompleteMediaTrigger(triggerType: TriggerType): boolean {
-	return triggerType === 'meme' || triggerType === 'gif' || triggerType === 'sticker';
+	return triggerType === 'meme' || triggerType === 'sticker';
 }
 
 export function filterAutocompleteMediaOptions(

@@ -227,7 +227,6 @@ export default defineConfig({
 						'http-api/forums',
 						'http-api/read-states',
 						'http-api/memes',
-						'http-api/gifs',
 						'http-api/webhooks',
 					],
 				},

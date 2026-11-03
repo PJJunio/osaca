@@ -1,13 +1,22 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {GifMediaFormat} from '@osaca/schema/src/domains/gif/GifSchemas';
 import {
 	createStringType,
+	Int32Type,
 	NonNegativeSafeIntegerType,
 	SnowflakeStringType,
 	SnowflakeType,
 } from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
+
+export const GifMediaFormat = z.object({
+	src: z.string().describe('Direct URL to this format of the media.'),
+	proxy_src: z.string().describe('Proxied URL to this format of the media.'),
+	width: Int32Type.describe('Width of this format in pixels.'),
+	height: Int32Type.describe('Height of this format in pixels.'),
+});
+
+export type GifMediaFormat = z.infer<typeof GifMediaFormat>;
 
 const FavoriteMemeBase = z.object({
 	name: createStringType(1, 100).describe('Display name for the meme'),
@@ -31,18 +40,6 @@ export type CreateFavoriteMemeBodySchema = z.infer<typeof CreateFavoriteMemeBody
 
 export const CreateFavoriteMemeFromUrlBodySchema = FavoriteMemeBase.extend({
 	url: z.url().describe('URL of the image or video to save as a favorite meme'),
-	gif_slug: createStringType(1, 300)
-		.nullish()
-		.describe('Provider-issued slug or slug-id token for the GIF, when sourced from a provider'),
-	gif_provider: createStringType(1, 32)
-		.nullish()
-		.describe('Stable name of the GIF provider that issued gif_slug. New provider GIFs are sourced from KLIPY.'),
-	media: z
-		.record(z.string(), GifMediaFormat)
-		.nullish()
-		.describe(
-			'Optional provider-issued format-name → media descriptor map captured by the client at favorite-time (mirrors GifResponse.media). Only persisted for gif-sourced memes; ignored otherwise.',
-		),
 })
 	.omit({name: true})
 	.extend({

@@ -9,14 +9,13 @@ import VoiceMessageRecorder from '@app/features/channel/components/VoiceMessageR
 import type {ExpressionPickerTabType} from '@app/features/expressions/components/popouts/ExpressionPickerPopout';
 import {
 	EMOJIS_DESCRIPTOR,
-	GIFS_DESCRIPTOR,
 	MEDIA_DESCRIPTOR,
 	STICKERS_DESCRIPTOR,
 } from '@app/features/i18n/utils/CommonMessageDescriptors';
 import {getReducedMotionProps, type MotionAnimation} from '@app/features/ui/utils/ReducedMotionAnimation';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
-import {GifIcon, ImageSquareIcon, PaperPlaneRightIcon, SmileyIcon, StickerIcon} from '@phosphor-icons/react';
+import {ImageSquareIcon, PaperPlaneRightIcon, SmileyIcon, StickerIcon} from '@phosphor-icons/react';
 import {clsx} from 'clsx';
 import {AnimatePresence, motion} from 'framer-motion';
 import React, {useMemo} from 'react';
@@ -39,7 +38,6 @@ const MOBILE_BUTTON_SWAP_MOTION: MotionAnimation = {
 interface TextareaButtonsProps {
 	disabled: boolean;
 	showAllButtons: boolean;
-	showGifButton: boolean;
 	showMemesButton: boolean;
 	showStickersButton: boolean;
 	showEmojiButton: boolean;
@@ -67,7 +65,6 @@ export const TextareaButtons = React.forwardRef<HTMLDivElement, TextareaButtonsP
 		{
 			disabled,
 			showAllButtons,
-			showGifButton,
 			showMemesButton,
 			showStickersButton,
 			showEmojiButton,
@@ -132,17 +129,6 @@ export const TextareaButtons = React.forwardRef<HTMLDivElement, TextareaButtonsP
 			>
 				{!isMobile && showAllButtons && (
 					<>
-						{showGifButton && (
-							<TextareaButton
-								icon={GifIcon}
-								label={i18n._(GIFS_DESCRIPTOR)}
-								isSelected={expressionPickerOpen && selectedTab === 'gifs'}
-								onClick={() => onExpressionPickerToggle('gifs')}
-								data-expression-picker-tab="gifs"
-								keybindAction="chat_toggle_gif"
-								data-flx="channel.textarea.textarea-buttons.textarea-button.expression-picker-toggle"
-							/>
-						)}
 						{showMemesButton && (
 							<TextareaButton
 								icon={ImageSquareIcon}

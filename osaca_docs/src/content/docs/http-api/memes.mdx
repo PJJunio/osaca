@@ -35,16 +35,14 @@ A meme object is one saved file. You can change only `name`, `alt_text` and `tag
 | duration | ?number | The duration of the media in seconds |
 | url<sup>1</sup> | string | The signed attachment URL of the stored copy |
 | is_gifv | boolean | Whether the media is animated or a video converted from a GIF |
-| gif_slug<sup>2</sup> | ?string | The provider slug the meme came from |
-| gif_provider<sup>2</sup> | ?string | The name of the GIF provider that issued `gif_slug` |
-| media<sup>3</sup> | ?map[string, [GIF media format](#gif-media-format-object) object] | The provider formats for a GIF-sourced meme |
+| gif_slug<sup>2</sup> | ?string | Always null. Kept for response compatibility |
+| gif_provider<sup>2</sup> | ?string | Always null. Kept for response compatibility |
+| media<sup>2</sup> | ?map[string, [GIF media format](#gif-media-format-object) object] | Always null. Kept for response compatibility |
 | placeholder | ?string | The thumbhash placeholder recorded at save time |
 
 <sup>1</sup> A new [signed attachment URL](/http-api/messages/#signed-attachment-urls) on every read
 
-<sup>2</sup> Both are set or both are null. The value is `klipy` or `tenor`
-
-<sup>3</sup> Set only by [Save meme from URL](#save-meme-from-url)
+<sup>2</sup> OSACA has no GIF provider integration, so these fields are never set
 
 ### Example
 
@@ -65,15 +63,15 @@ A meme object is one saved file. You can change only `name`, `alt_text` and `tag
   "height": 240,
   "duration": null,
   "is_gifv": true,
-  "gif_slug": "party-parrot-1234",
-  "gif_provider": "klipy",
+  "gif_slug": null,
+  "gif_provider": null,
   "placeholder": "3PcNNYYONWQPFxrsUeUcRh4"
 }
 ```
 
 ## GIF media format object
 
-A GIF media format object is one size and file type of a provider GIF.
+A GIF media format object is one size and file type of a media item. OSACA never sets it today.
 
 ### Structure
 
@@ -83,54 +81,6 @@ A GIF media format object is one size and file type of a provider GIF.
 | proxy_src | string | The [Media Proxy](/media-proxy/overview/) URL of this format |
 | width | integer | The width in pixels |
 | height | integer | The height in pixels |
-
-## GIF media format names
-
-| Value | Description |
-| --- | --- |
-| webm | Full-size WebM video |
-| mp4 | Full-size MP4 video |
-| webp | Full-size WebP image |
-| gif | Full-size GIF image |
-| mediumwebm | Medium WebM video |
-| mediummp4 | Medium MP4 video |
-| mediumwebp | Medium WebP image |
-| mediumgif | Medium GIF image |
-| tinywebm | Small WebM video |
-| tinymp4 | Small MP4 video |
-| tinywebp | Small WebP image |
-| tinygif | Small GIF image |
-| nanowebm | Smallest WebM video |
-| nanomp4 | Smallest MP4 video |
-| nanowebp | Smallest WebP image |
-| nanogif | Smallest GIF image |
-| loopedmp4 | Looping MP4 video |
-
-A map has only the formats the provider returned. Use the first format from your own order of preference that the map has.
-
-## Resolved GIF entry object
-
-One entry for one URL submitted to [Resolve GIF URLs](#resolve-gif-urls).
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| url<sup>1</sup> | string | The source GIF URL |
-| proxy_url | string | The signed [Media Proxy](/media-proxy/overview/) URL for the preview format |
-| width<sup>2</sup> | integer | The width of the preview format in pixels |
-| height<sup>2</sup> | integer | The height of the preview format in pixels |
-| media<sup>3</sup> | map[string, [GIF media format](#gif-media-format-object) object] | The formats for the URL, keyed by [format name](#gif-media-format-names) |
-| content_type<sup>4</sup> | string | The MIME type of the media at `proxy_url` |
-| placeholder | ?string | The thumbhash placeholder |
-
-<sup>1</sup> The provider's canonical URL when the provider recognizes the URL, and the submitted URL otherwise
-
-<sup>2</sup> Zero when unknown
-
-<sup>3</sup> Empty when OSACA can't find the GIF
-
-<sup>4</sup> Empty when unknown. Treat an empty value as `image/gif`
 
 ## List memes
 
@@ -160,15 +110,8 @@ Fetches a media URL, stores a copy and returns the new meme. Sends [Favorite Mem
 | name?<sup>1</sup> | ?string | The display name of the meme (1-100 characters) |
 | alt_text? | ?string | The accessibility description of the media (0-500 characters) |
 | tags? | ?array[string] | The search tags to store, each 1-30 characters |
-| gif_slug?<sup>2</sup> | ?string | The provider slug or slug-id token for the GIF (1-300 characters) |
-| gif_provider?<sup>2</sup> | ?string | The name of the provider that issued `gif_slug` (1-32 characters) |
-| media?<sup>3</sup> | ?map[string, [GIF media format](#gif-media-format-object) object] | The provider formats captured at save time |
 
 <sup>1</sup> Defaults to the stored `filename`, truncated to 100 characters
-
-<sup>2</sup> Used only when both are set and `gif_provider` matches the provider configured on the instance. Otherwise OSACA reads the slug from `url`
-
-<sup>3</sup> Stored only when the URL resolved to a provider GIF and the map is not empty
 
 ### Response
 
@@ -280,34 +223,3 @@ You can't restore it.
 
 The rate limit is 30 requests per 10 seconds, on the `favorite_meme:delete` bucket.
 
-## Resolve GIF URLs
-
-<RouteHeader method="POST" path="/v1/users/@me/favorite-gifs/resolve" />
-
-Looks up GIF URLs and returns a [resolved GIF entry](#resolved-gif-entry-object) for each one without saving anything. A URL OSACA can't find still gets an entry, with an empty `media` map.
-
-### Request headers
-
-| Field | Type | Description |
-| --- | --- | --- |
-| Accept-Language? | string | The preferred locale for the GIF provider lookup |
-
-### JSON body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| urls | array[string] | The absolute GIF URLs to resolve (1-200) |
-
-### Response body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| entries | array[[resolved GIF entry](#resolved-gif-entry-object) object] | One entry for each submitted URL, in the same order |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | response body | An entry was returned for each URL |
-
-The rate limit is 30 requests per minute, on the `favorite_gif:resolve` bucket.

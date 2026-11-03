@@ -5,7 +5,6 @@ pub(crate) mod default_helpers;
 pub mod default_resolver;
 pub mod fxtwitter;
 pub mod hacker_news;
-pub mod klipy;
 pub mod media;
 pub mod tenor;
 pub mod wikipedia;
@@ -28,7 +27,6 @@ pub struct ResolveContext<'mp> {
     pub media_proxy: &'mp MediaProxyClient,
     pub self_hosted: bool,
     pub youtube_api_key: Option<String>,
-    pub klipy_api_key: Option<String>,
     pub activity_pub_signer: Option<RequestSigner>,
 }
 
@@ -61,7 +59,6 @@ pub trait Resolver: Send + Sync {
 pub fn build_resolver_chain() -> Vec<Box<dyn Resolver>> {
     vec![
         Box::new(hacker_news::HackerNewsResolver),
-        Box::new(klipy::KlipyResolver),
         Box::new(tenor::TenorResolver),
         Box::new(xkcd::XkcdResolver),
         Box::new(youtube::YouTubeResolver),

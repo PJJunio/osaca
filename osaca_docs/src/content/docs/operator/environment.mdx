@@ -76,7 +76,7 @@ The shared secret for Erlang distribution in the gateway. Anyone who can connect
 
 ### `OSACA_MEDIA_PROXY_SECRET_KEY`
 
-The key that signs media proxy URLs. The api, worker, media-proxy, gifs and unfurl services must have the same value. Keep it secret.
+The key that signs media proxy URLs. The api, worker, media-proxy and unfurl services must have the same value. Keep it secret.
 
 ### `OSACA_ADMIN_SECRET_KEY_BASE`
 
@@ -166,7 +166,7 @@ The public address of the media proxy. When it's empty, OSACA uses the public or
 
 ### `OSACA_MEDIA_PROXY_PUBLIC_ENDPOINT`
 
-The public media proxy address that the gifs, unfurl and media-proxy services use when they build media links. When it's empty, they use `OSACA_MEDIA_ENDPOINT`, or the public origin followed by `/media`. With rexctl, use `rexctl config set OSACA_MEDIA_PROXY_PUBLIC_ENDPOINT`.
+The public media proxy address that the unfurl and media-proxy services use when they build media links. When it's empty, they use `OSACA_MEDIA_ENDPOINT`, or the public origin followed by `/media`. With rexctl, use `rexctl config set OSACA_MEDIA_PROXY_PUBLIC_ENDPOINT`.
 
 ### `OSACA_STATIC_CDN_ENDPOINT`
 
@@ -563,18 +563,6 @@ The most entries each internal service process keeps in its cache. When it's emp
 ### `OSACA_SVC_CACHE_TTL_MS`
 
 How long the internal services keep cached entries, in milliseconds. When it's empty, they use `30000`. With rexctl, use `rexctl config set OSACA_SVC_CACHE_TTL_MS`.
-
-### `OSACA_GIF_SERVICE_NATS_CLIENT_NAME`
-
-The client name the API gives its NATS connection to the gifs service, which shows in NATS monitoring. When it's empty, the API uses `osaca-api-gifs`. With rexctl, use `rexctl config set OSACA_GIF_SERVICE_NATS_CLIENT_NAME`.
-
-### `OSACA_GIF_SERVICE_TIMEOUT_MS`
-
-How long the API waits for gifs service requests such as searches, in milliseconds. When it's empty, the API uses `12000`. Recording a share uses `OSACA_GIF_SERVICE_REGISTER_SHARE_TIMEOUT_MS`. With rexctl, use `rexctl config set OSACA_GIF_SERVICE_TIMEOUT_MS`.
-
-### `OSACA_GIF_SERVICE_REGISTER_SHARE_TIMEOUT_MS`
-
-How long the API waits for the gifs service to record that someone shared a GIF, in milliseconds. When it's empty, the API uses `3000`. With rexctl, use `rexctl config set OSACA_GIF_SERVICE_REGISTER_SHARE_TIMEOUT_MS`.
 
 ### `OSACA_USERS_SERVICE_NATS_CLIENT_NAME`
 
@@ -1320,10 +1308,6 @@ Whether the worker downloads the URLhaus and PhishTank link lists every six hour
 
 Where the api and worker load the MaxMind GeoIP database from, as a file path or an `s3://bucket/key` URL. An s3 URL needs a `download_path` query parameter with an absolute path. With rexctl, use `rexctl config set OSACA_GEOIP_DB_PATH`.
 
-### `OSACA_KLIPY_API_KEY`
-
-The Klipy API key for GIF search and Klipy link previews. A key saved in the admin panel is used first. GIF search is off when neither is set. Keep it secret. With rexctl, use `rexctl config set integrations.gif.klipy_api_key`.
-
 ### `OSACA_YOUTUBE_API_KEY`
 
 The YouTube Data API key OSACA uses for YouTube link previews. A key saved in the admin panel is used first. The unfurl service calls the API from your server. The key needs YouTube Data API v3 enabled, a daily quota above 0, and an application restriction of None or IP addresses. A key restricted to websites (HTTP referrers) always fails. When Google rejects the key, the unfurl logs show the reason it gives, such as `quotaExceeded` or `API_KEY_HTTP_REFERRER_BLOCKED`. Keep it secret. With rexctl, use `rexctl config set integrations.youtube.api_key`.
@@ -1366,11 +1350,11 @@ rexctl sets some of these from the machine's memory and CPU on every start. A va
 
 ### `OSACA_TOKIO_WORKER_THREADS`
 
-How many worker threads the async runtime uses in the app-proxy, push, admin, snowflakes, users, gifs, messages and unfurl containers, set as their `TOKIO_WORKER_THREADS`. The default is `2`. rexctl sizes this. With rexctl, use `rexctl config set OSACA_TOKIO_WORKER_THREADS`.
+How many worker threads the async runtime uses in the app-proxy, push, admin, snowflakes, users, messages and unfurl containers, set as their `TOKIO_WORKER_THREADS`. The default is `2`. rexctl sizes this. With rexctl, use `rexctl config set OSACA_TOKIO_WORKER_THREADS`.
 
 ### `OSACA_MALLOC_ARENA_MAX`
 
-How many memory arenas the glibc allocator may create in the push, admin, snowflakes, users, gifs, messages and unfurl containers, set as their `MALLOC_ARENA_MAX`. Lower values use less memory. The default is `2`. rexctl sizes this. With rexctl, use `rexctl config set OSACA_MALLOC_ARENA_MAX`.
+How many memory arenas the glibc allocator may create in the push, admin, snowflakes, users, messages and unfurl containers, set as their `MALLOC_ARENA_MAX`. Lower values use less memory. The default is `2`. rexctl sizes this. With rexctl, use `rexctl config set OSACA_MALLOC_ARENA_MAX`.
 
 ### `OSACA_CADDY_MEMORY_LIMIT`
 
@@ -1680,14 +1664,6 @@ The memory limit for the users container. The default is `256mb`. With rexctl, u
 
 The size of the Postgres connection pool of the users container. The default is `20`. rexctl sizes this. With rexctl, use `rexctl config set OSACA_USERS_POSTGRES_MAX_CONNECTIONS`.
 
-### `OSACA_GIFS_MEMORY_LIMIT`
-
-The memory limit for the gifs container. The default is `256mb`. With rexctl, use `rexctl config set OSACA_GIFS_MEMORY_LIMIT`.
-
-### `OSACA_GIFS_SHARD_CACHE_MAX_BYTES`
-
-How many bytes the gifs service may use for its cache, at least `16777216`, which is 16 MiB. Keep it below `OSACA_GIFS_MEMORY_LIMIT`. The default is `134217728`, which is 128 MiB. rexctl sizes this. With rexctl, use `rexctl config set OSACA_GIFS_SHARD_CACHE_MAX_BYTES`.
-
 ### `OSACA_MESSAGES_MEMORY_LIMIT`
 
 The memory limit for the messages container. The default is `256mb`. With rexctl, use `rexctl config set OSACA_MESSAGES_MEMORY_LIMIT`.
@@ -1736,7 +1712,7 @@ How much the api and worker log. Use `trace`, `debug`, `info`, `warn`, `error` o
 
 ### `RUST_LOG`
 
-The log filter of media-proxy, app-proxy, admin, push, snowflakes, users, gifs, messages and unfurl, in tracing EnvFilter format such as `debug` or `off`. An empty or invalid filter gives `info`. With rexctl, use `rexctl config set RUST_LOG`.
+The log filter of media-proxy, app-proxy, admin, push, snowflakes, users, messages and unfurl, in tracing EnvFilter format such as `debug` or `off`. An empty or invalid filter gives `info`. With rexctl, use `rexctl config set RUST_LOG`.
 
 ### `OSACA_GATEWAY_LOGGER_LEVEL`
 
@@ -1796,7 +1772,7 @@ How often Docker runs each health check while a service is still in its start pe
 
 ### `OSACA_APP_HEALTHCHECK_RETRIES`
 
-How many failed health checks in a row mark the api, gateway, push, admin, snowflakes, users, gifs, messages and unfurl containers as unhealthy. The default is `30`. With rexctl, use `rexctl config set OSACA_APP_HEALTHCHECK_RETRIES`.
+How many failed health checks in a row mark the api, gateway, push, admin, snowflakes, users, messages and unfurl containers as unhealthy. The default is `30`. With rexctl, use `rexctl config set OSACA_APP_HEALTHCHECK_RETRIES`.
 
 ### `OSACA_APP_HEALTHCHECK_START_PERIOD`
 
@@ -1804,7 +1780,7 @@ How long the api, worker and gateway containers get to start before failed healt
 
 ### `OSACA_SVC_HEALTHCHECK_START_PERIOD`
 
-How long the push, admin, snowflakes, users, gifs, messages and unfurl containers get to start before failed health checks count. The default is `60s`. With rexctl, use `rexctl config set OSACA_SVC_HEALTHCHECK_START_PERIOD`.
+How long the push, admin, snowflakes, users, messages and unfurl containers get to start before failed health checks count. The default is `60s`. With rexctl, use `rexctl config set OSACA_SVC_HEALTHCHECK_START_PERIOD`.
 
 ### `OSACA_SEAWEEDFS_HEALTHCHECK_RETRIES`
 
@@ -2043,7 +2019,7 @@ Whether the services run as a self-hosted instance. Docker Compose sets it to `t
 
 ### `OSACA_SVC_MODE`
 
-How the snowflakes, users, gifs, messages and unfurl services run. Docker Compose sets it to `combined`.
+How the snowflakes, users, messages and unfurl services run. Docker Compose sets it to `combined`.
 
 ### `OSACA_SVC_NAME`
 
@@ -2067,7 +2043,7 @@ The LiveKit API key and secret pair, set from `LIVEKIT_API_KEY` and `LIVEKIT_API
 
 ### `MALLOC_ARENA_MAX`
 
-The glibc memory arena limit of the push, admin, snowflakes, users, gifs, messages and unfurl services, set from `OSACA_MALLOC_ARENA_MAX`.
+The glibc memory arena limit of the push, admin, snowflakes, users, messages and unfurl services, set from `OSACA_MALLOC_ARENA_MAX`.
 
 ### `MEILI_ENV`
 
@@ -2173,10 +2149,6 @@ The URL the gateway sends API RPC requests to. When it's empty, the gateway uses
 
 Whether the gateway responds to RPC requests over NATS. The gateway responds to the API only over NATS RPC and must keep it turned on.
 
-### `OSACA_GIF_SERVICE_SUBJECT`
-
-The NATS subject the API sends gifs service requests to. The gifs service always listens on `svc.gifs`, and any other value breaks GIF search.
-
 ### `OSACA_MEDIA_PROXY_HOST`
 
 The address the media proxy listens on. When it's empty, it listens on `0.0.0.0`.
@@ -2236,10 +2208,6 @@ The GLib log domains whose debug messages libvips prints in the media proxy, or 
 ### `HOSTNAME`
 
 The hostname of the container. Docker sets it.
-
-### `KLIPY_API_KEY`
-
-The older name for `OSACA_KLIPY_API_KEY`, used only by the unfurl service. Docker Compose passes `OSACA_KLIPY_API_KEY`.
 
 ### `LD_PRELOAD`
 

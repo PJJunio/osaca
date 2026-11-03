@@ -10,13 +10,11 @@ import {
 import {GlobalLimits} from '@app/features/app/utils/GlobalLimits';
 import {LimitResolver} from '@app/features/app/utils/LimitResolverAdapter';
 import {isLimitToggleEnabled} from '@app/features/app/utils/LimitUtils';
-import type {Gif} from '@app/features/expressions/commands/GifCommands';
 import {AssetCropModal, AssetType} from '@app/features/expressions/components/modals/AssetCropModal';
 import {openAssetSourceModal} from '@app/features/expressions/components/modals/AssetSourceModal';
 import {showAnimatedAvifUnsupportedModal} from '@app/features/expressions/utils/AnimatedAvifModalUtils';
 import {inspectImageFile} from '@app/features/expressions/utils/AnimatedImageUtils';
 import {formatImageUploadMinimumHint} from '@app/features/expressions/utils/AssetUploadHintCopy';
-import {downloadGifAsImageFile} from '@app/features/expressions/utils/GifFileDownload';
 import {isSvgFile, readImageFileAsUploadDataUrl} from '@app/features/expressions/utils/ImageUploadFileUtils';
 import {
 	CANCEL_DESCRIPTOR,
@@ -41,9 +39,9 @@ import {
 	USE_CUSTOM_IMAGE_DESCRIPTOR,
 	USE_GLOBAL_PROFILE_DESCRIPTOR,
 } from '@app/features/user/utils/UserMessageDescriptors';
-import {getAcceptString} from '@osaca/constants/src/AssetFormatPolicy';
 import {msg} from '@lingui/core/macro';
 import {Trans, useLingui} from '@lingui/react/macro';
+import {getAcceptString} from '@osaca/constants/src/AssetFormatPolicy';
 import {clsx} from 'clsx';
 import {observer} from 'mobx-react-lite';
 import {useCallback} from 'react';
@@ -90,7 +88,7 @@ const COULDN_T_UPLOAD_BANNER_DESCRIPTOR = msg({
 });
 const CHANGE_BANNER_DESCRIPTOR = msg({
 	message: 'Change banner',
-	comment: 'Title of the modal where the user picks a banner source (file upload or GIF provider). Keep it concise.',
+	comment: 'Title of the modal where the user picks a banner source. Keep it concise.',
 });
 
 export type BannerMode = ProfileAssetMode;
@@ -245,16 +243,6 @@ export const BannerUploader = observer(
 				showBannerUploadError();
 			}
 		}, [processBannerFile, showBannerUploadError]);
-		const handleSelectBannerGif = useCallback(
-			async (gif: Gif) => {
-				try {
-					await processBannerFile(await downloadGifAsImageFile(gif));
-				} catch {
-					showBannerUploadError();
-				}
-			},
-			[processBannerFile, showBannerUploadError],
-		);
 		const handleBannerUpload = useCallback(() => {
 			if (!canUploadBanner) {
 				showBannerPremiumUpsell();
@@ -269,9 +257,8 @@ export const BannerUploader = observer(
 					aspectRatio: BANNER_ASPECT_RATIO_LABEL,
 				}),
 				onPickUpload: handlePickBannerFile,
-				onSelectGif: (gif) => void handleSelectBannerGif(gif),
 			});
-		}, [canUploadBanner, handlePickBannerFile, handleSelectBannerGif, i18n, showBannerPremiumUpsell]);
+		}, [canUploadBanner, handlePickBannerFile, i18n, showBannerPremiumUpsell]);
 		const handleModeChange = useCallback(
 			(mode: BannerMode) => {
 				if (mode === 'custom') {

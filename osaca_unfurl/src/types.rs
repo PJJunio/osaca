@@ -17,8 +17,6 @@ pub enum UnfurlRequest {
         #[serde(default)]
         youtube_api_key: Option<String>,
         #[serde(default)]
-        klipy_api_key: Option<String>,
-        #[serde(default)]
         activity_pub_key_id: Option<String>,
     },
     VerifyDomain {
@@ -218,7 +216,6 @@ mod tests {
                 bypass_cache,
                 cache_only,
                 youtube_api_key,
-                klipy_api_key,
                 activity_pub_key_id,
             } => {
                 assert_eq!(url, "https://fxtwitter.com/example/status/1");
@@ -226,7 +223,6 @@ mod tests {
                 assert!(!bypass_cache);
                 assert!(!cache_only);
                 assert!(youtube_api_key.is_none());
-                assert!(klipy_api_key.is_none());
                 assert!(activity_pub_key_id.is_none());
             }
             _ => panic!("expected an unfurl request"),

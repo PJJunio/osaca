@@ -6,8 +6,6 @@ import {
 } from '@app/features/i18n/utils/CommonMessageDescriptors';
 import type {SearchableSettingDescriptor} from '@app/features/user/components/settings_utils/search_index/SearchIndexTypes';
 import {
-	ANIMATION_DESCRIPTOR,
-	ANIMATIONS_DESCRIPTOR,
 	COLON_AUTOCOMPLETE_DESCRIPTOR,
 	COMPOSER_BUTTONS_DESCRIPTOR,
 	DOUBLE_CLICK_DESCRIPTOR,
@@ -23,11 +21,9 @@ import {
 	TEXT_REPLACEMENT_DESCRIPTOR,
 } from '@app/features/user/components/settings_utils/section_registry/SharedDescriptors';
 import {
-	AUTOMATICALLY_SEND_GIFS_WHEN_SELECTED_DESCRIPTOR,
 	CONVERT_EMOTICONS_TO_EMOJI_DESCRIPTOR,
 	HIDE_MUTED_CHANNELS_BY_DEFAULT_DESCRIPTOR,
 	KEEP_ATTACHMENTS_WHEN_CLEARING_AN_EDIT_DESCRIPTOR,
-	SAVE_GIF_FAVORITES_AS_SAVED_MEDIA_DESCRIPTOR,
 	SCROLL_TO_BOTTOM_WHEN_SENDING_A_MESSAGE_DESCRIPTOR,
 	SEQUENTIAL_FILE_SEND_DESCRIPTOR,
 	SKIP_MARK_ALL_AS_READ_CONFIRMATION_DESCRIPTOR,
@@ -38,62 +34,9 @@ import {
 } from '@app/features/user/utils/UserMessageDescriptors';
 import {msg} from '@lingui/core/macro';
 
-const AUTOMATICALLY_SEND_ANIMATION_DESCRIPTOR = msg({
-	message: 'Automatically send animation',
-	comment: 'Settings search synonym. Used to match this term when the user types it in the settings search bar.',
-});
-const AUTOMATICALLY_SEND_ANIMATIONS_DESCRIPTOR = msg({
-	message: 'Automatically send animations',
-	comment: 'Settings search synonym. Used to match this term when the user types it in the settings search bar.',
-});
-const ANIMATION_PICKER_DESCRIPTOR = msg({
-	message: 'Animation picker',
-	comment: 'Settings search synonym. Used to match this term when the user types it in the settings search bar.',
-});
-const ANIMATION_BEHAVIOR_DESCRIPTOR = msg({
-	message: 'Animation behavior',
-	comment: 'Settings search synonym. Used to match this term when the user types it in the settings search bar.',
-});
-const SEND_ANIMATION_DESCRIPTOR = msg({
-	message: 'Send animation',
-	comment: 'Settings search synonym. Used to match this term when the user types it in the settings search bar.',
-});
-const AUTOMATICALLY_SEND_GIFS_FROM_THE_PICKER_WITHOUT_CONFIRMATION_DESCRIPTOR = msg({
-	message: 'Automatically send GIFs from the picker without confirmation',
-	comment: 'Settings search entry description. One-line summary of what the settings search entry controls.',
-});
-
-const FAVORITE_ANIMATION_DESCRIPTOR = msg({
-	message: 'Favorite animation',
-	comment: 'Settings search synonym. Used to match this term when the user types it in the settings search bar.',
-});
-const FAVORITE_ANIMATIONS_DESCRIPTOR = msg({
-	message: 'Favorite animations',
-	comment: 'Settings search synonym. Used to match this term when the user types it in the settings search bar.',
-});
-const ANIMATION_FAVORITES_DESCRIPTOR = msg({
-	message: 'Animation favorites',
-	comment: 'Settings search synonym. Used to match this term when the user types it in the settings search bar.',
-});
 const SAVED_MEDIA_DESCRIPTOR = msg({
 	message: 'Saved media',
 	comment: 'Settings search synonym. Used to match this term when the user types it in the settings search bar.',
-});
-const STAR_ANIMATION_DESCRIPTOR = msg({
-	message: 'Star animation',
-	comment: 'Settings search synonym. Used to match this term when the user types it in the settings search bar.',
-});
-const ANIMATION_SAVING_DESCRIPTOR = msg({
-	message: 'Animation saving',
-	comment: 'Settings search synonym. Used to match this term when the user types it in the settings search bar.',
-});
-const SAVE_ANIMATION_DESCRIPTOR = msg({
-	message: 'Save animation',
-	comment: 'Settings search synonym. Used to match this term when the user types it in the settings search bar.',
-});
-const CHOOSE_HOW_STARRED_GIF_FAVORITES_ARE_STORED_DESCRIPTOR = msg({
-	message: 'Choose how starred GIF favorites are stored',
-	comment: 'Settings search entry description. One-line summary of what the settings search entry controls.',
 });
 const MEDIA_BUTTONS_DESCRIPTOR = msg({
 	message: 'Media buttons',
@@ -466,43 +409,6 @@ const HIDE_CHANNELS_YOU_VE_MUTED_FROM_COMMUNITY_SIDEBARS_DESCRIPTOR = msg({
 	comment: 'Settings search entry description. One-line summary of what the settings search entry controls.',
 });
 export const chatSettingsIndex: Array<SearchableSettingDescriptor> = [
-	{
-		id: 'chat-settings-auto-send-gifs',
-		tabType: 'chat_settings',
-		label: AUTOMATICALLY_SEND_GIFS_WHEN_SELECTED_DESCRIPTOR,
-		keywords: [
-			ANIMATION_DESCRIPTOR,
-			ANIMATIONS_DESCRIPTOR,
-			AUTOMATICALLY_SEND_ANIMATION_DESCRIPTOR,
-			AUTOMATICALLY_SEND_ANIMATIONS_DESCRIPTOR,
-			ANIMATION_PICKER_DESCRIPTOR,
-			ANIMATION_BEHAVIOR_DESCRIPTOR,
-			SEND_ANIMATION_DESCRIPTOR,
-		],
-		description: AUTOMATICALLY_SEND_GIFS_FROM_THE_PICKER_WITHOUT_CONFIRMATION_DESCRIPTOR,
-		audience: 'advanced',
-		tags: ['chat', 'media'],
-	},
-	{
-		id: 'chat-settings-save-gif-favorites',
-		tabType: 'chat_settings',
-		label: SAVE_GIF_FAVORITES_AS_SAVED_MEDIA_DESCRIPTOR,
-		keywords: [
-			ANIMATION_DESCRIPTOR,
-			ANIMATIONS_DESCRIPTOR,
-			FAVORITE_ANIMATION_DESCRIPTOR,
-			FAVORITE_ANIMATIONS_DESCRIPTOR,
-			ANIMATION_FAVORITES_DESCRIPTOR,
-			SAVED_MEDIA_DESCRIPTOR,
-			STAR_ANIMATION_DESCRIPTOR,
-			ANIMATION_BEHAVIOR_DESCRIPTOR,
-			ANIMATION_SAVING_DESCRIPTOR,
-			SAVE_ANIMATION_DESCRIPTOR,
-		],
-		description: CHOOSE_HOW_STARRED_GIF_FAVORITES_ARE_STORED_DESCRIPTOR,
-		audience: 'advanced',
-		tags: ['chat', 'media'],
-	},
 	{
 		id: 'chat-settings-media-buttons',
 		tabType: 'chat_settings',

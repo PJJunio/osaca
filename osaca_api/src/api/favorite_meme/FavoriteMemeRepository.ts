@@ -6,7 +6,7 @@ import {Db} from '@app/api/database/CassandraTypes';
 import type {FavoriteMemeRow} from '@app/api/database/types/UserTypes';
 import {FavoriteMeme} from '@app/api/models/FavoriteMeme';
 import {FavoriteMemes, FavoriteMemesByMemeId} from '@app/api/Tables';
-import type {GifMediaFormat} from '@osaca/schema/src/domains/gif/GifSchemas';
+import type {GifMediaFormat} from '@osaca/schema/src/domains/meme/MemeSchemas';
 
 export interface CreateFavoriteMemeParams {
 	user_id: UserID;

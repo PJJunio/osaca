@@ -12,12 +12,12 @@ import {
 import {requestSvcJson} from '@app/api/infrastructure/SvcErrorReply';
 import {Logger} from '@app/api/Logger';
 import {isJsonRecord} from '@app/api/utils/JsonBoundaryUtils';
+import {RequestError, TimeoutError} from '@nats-io/transport-node';
 import {BadGatewayError} from '@osaca/errors/src/domains/core/BadGatewayError';
 import {GatewayTimeoutError} from '@osaca/errors/src/domains/core/GatewayTimeoutError';
 import {ServiceUnavailableError} from '@osaca/errors/src/domains/core/ServiceUnavailableError';
 import {OsacaError} from '@osaca/errors/src/OsacaError';
 import type {MessageEmbedResponse} from '@osaca/schema/src/domains/message/EmbedSchemas';
-import {RequestError, TimeoutError} from '@nats-io/transport-node';
 import type {INatsConnectionManager} from '@pkgs/nats/src/INatsConnectionManager';
 
 const NATS_UNFURL_SUBJECT = 'svc.unfurl';
@@ -36,7 +36,6 @@ interface NatsUnfurlRequest {
 	bypass_cache: boolean;
 	cache_only: boolean;
 	youtube_api_key: string | null;
-	klipy_api_key: string | null;
 	activity_pub_key_id: string | null;
 }
 
@@ -158,7 +157,6 @@ export class NatsUnfurlerService extends IUnfurlerService {
 	constructor(
 		connectionManager: INatsConnectionManager,
 		private readonly resolveYoutubeApiKey: (() => Promise<string | null>) | null = null,
-		private readonly resolveKlipyApiKey: (() => Promise<string | null>) | null = null,
 		private readonly activityPubKeyId: string | null = null,
 	) {
 		super();
@@ -178,7 +176,6 @@ export class NatsUnfurlerService extends IUnfurlerService {
 				bypass_cache: options.bypassCache === true,
 				cache_only: options.cacheOnly === true,
 				youtube_api_key: this.resolveYoutubeApiKey ? await this.resolveYoutubeApiKey() : null,
-				klipy_api_key: this.resolveKlipyApiKey ? await this.resolveKlipyApiKey() : null,
 				activity_pub_key_id: this.activityPubKeyId,
 			};
 			const response = await requestSvcJson(this.connectionManager, NATS_UNFURL_SUBJECT, request, {

@@ -48,29 +48,6 @@ enum StickerPickerViewMode {
   STICKER_PICKER_VIEW_MODE_COMPACT = 2;
 }
 
-message FavoriteGifSettings {
-  repeated FavoriteGifEntry entries = 1;
-  bool save_as_saved_media = 2;
-  bool seen_first_time_prompt = 3;
-}
-
-message FavoriteGifMediaFormat {
-  string src = 1;
-  string proxy_src = 2;
-  uint32 width = 3;
-  uint32 height = 4;
-}
-
-message FavoriteGifEntry {
-  string url = 1;
-  string proxy_url = 2;
-  uint32 width = 3;
-  uint32 height = 4;
-  map<string, FavoriteGifMediaFormat> media = 5;
-  string content_type = 6;
-  string placeholder = 7;
-}
-
 message SoundSettings {
   bool all_sounds_disabled = 1;
   optional double master_volume = 2;

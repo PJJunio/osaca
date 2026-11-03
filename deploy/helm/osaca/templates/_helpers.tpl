@@ -367,7 +367,7 @@ initContainers:
 {{- $out = append $out "valkey:6379" }}
 {{- end }}
 {{- if .usesSvc }}
-{{- range $name := list "gifs" "messages" "snowflakes" "unfurl" "users" }}
+{{- range $name := list "messages" "snowflakes" "unfurl" "users" }}
 {{- $svc := get $.root.Values.svc $name | default dict }}
 {{- if gt (int (include "osaca.replicas" (dict "w" ($svc.router | default dict)))) 0 }}
 {{- $out = append $out (printf "%s:8090" $name) }}

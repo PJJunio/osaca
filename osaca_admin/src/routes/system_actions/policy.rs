@@ -37,14 +37,12 @@ pub(super) fn build_policy_update(form: &MultiValueForm) -> InstanceConfigUpdate
         _ => None,
     };
     let services = {
-        let gif_enabled = parse_tristate(form, "policy_service_gif");
         let youtube_enabled = parse_tristate(form, "policy_service_youtube");
         let bluesky_enabled = parse_tristate(form, "policy_service_bluesky");
-        if gif_enabled.is_none() && youtube_enabled.is_none() && bluesky_enabled.is_none() {
+        if youtube_enabled.is_none() && bluesky_enabled.is_none() {
             None
         } else {
             Some(InstanceServicesUpdateRequest {
-                gif_enabled,
                 youtube_enabled,
                 bluesky_enabled,
             })

@@ -27,9 +27,9 @@ import * as AvatarUtils from '@app/features/user/utils/AvatarUtils';
 import {canCropFile} from '@app/features/voice/utils/MediaCapabilities';
 import {useRemoteFormReset} from '@app/lib/forms/RemoteFormReset';
 import {assignTransientUploadFieldMutation} from '@app/lib/forms/TransientUploadFields';
-import {getAcceptString} from '@osaca/constants/src/AssetFormatPolicy';
 import type {MessageDescriptor} from '@lingui/core';
 import {Trans, useLingui} from '@lingui/react/macro';
+import {getAcceptString} from '@osaca/constants/src/AssetFormatPolicy';
 import {useCallback, useMemo, useState} from 'react';
 import {useForm} from 'react-hook-form';
 
@@ -168,7 +168,6 @@ export function useEditGroupForm({
 				recommendedSize: AVATAR_RECOMMENDED_SIZE_LABEL,
 			}),
 			onPickUpload: handleIconUploadClick,
-			showGifOption: false,
 		});
 	}, [handleIconUploadClick, i18n, messages]);
 	const handleClearIcon = useCallback(() => {

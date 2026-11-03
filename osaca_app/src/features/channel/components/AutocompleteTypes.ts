@@ -3,7 +3,6 @@
 import type {Channel} from '@app/features/channel/models/Channel';
 import type {Command} from '@app/features/devtools/hooks/useCommands';
 import type {FlatEmoji} from '@app/features/emoji/types/EmojiTypes';
-import type {Gif} from '@app/features/expressions/commands/GifCommands';
 import type {FavoriteMeme} from '@app/features/expressions/models/FavoriteMeme';
 import type {GuildSticker} from '@app/features/expressions/models/GuildSticker';
 import type {GuildRole} from '@app/features/guild/models/GuildRole';
@@ -43,7 +42,6 @@ export type AutocompleteOption =
 	| {type: 'emoji'; emoji: FlatEmoji}
 	| {type: 'command'; command: Command}
 	| {type: 'meme'; meme: FavoriteMeme}
-	| {type: 'gif'; gif: Gif}
 	| {type: 'sticker'; sticker: GuildSticker}
 	| {type: 'commandChoice'; choice: {name: string; value: string}; description: string}
 	| {type: 'commandOptionalAdd'; name: string; description: string};
@@ -54,7 +52,6 @@ export type AutocompleteType =
 	| 'emoji'
 	| 'command'
 	| 'meme'
-	| 'gif'
 	| 'sticker'
 	| 'commandChoice'
 	| 'commandOptionalAdd';
@@ -75,7 +72,6 @@ export const isChannel = (o: AutocompleteOption): o is {type: 'channel'; channel
 export const isEmoji = (o: AutocompleteOption): o is {type: 'emoji'; emoji: FlatEmoji} => o.type === 'emoji';
 export const isCommand = (o: AutocompleteOption): o is {type: 'command'; command: Command} => o.type === 'command';
 export const isMeme = (o: AutocompleteOption): o is {type: 'meme'; meme: FavoriteMeme} => o.type === 'meme';
-export const isGif = (o: AutocompleteOption): o is {type: 'gif'; gif: Gif} => o.type === 'gif';
 export const isSticker = (o: AutocompleteOption): o is {type: 'sticker'; sticker: GuildSticker} => o.type === 'sticker';
 export const isCommandChoice = (
 	o: AutocompleteOption,

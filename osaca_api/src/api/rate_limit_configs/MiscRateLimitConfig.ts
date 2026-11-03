@@ -84,10 +84,6 @@ export const MiscRateLimitConfigs = {
 		bucket: 'favorite_meme:delete',
 		config: {limit: 30, windowMs: ms('10 seconds')},
 	} as RouteRateLimitConfig,
-	FAVORITE_GIF_RESOLVE: {
-		bucket: 'favorite_gif:resolve',
-		config: {limit: 30, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
 	UNFURL_DEBUG: {
 		bucket: 'unfurl:debug',
 		config: {limit: 10, windowMs: ms('1 minute')},

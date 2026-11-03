@@ -106,16 +106,6 @@ pub(super) fn integrations_config_section(
                 div class="space-y-8" {
                     div class="space-y-4" {
                         div class="flex flex-wrap items-center gap-2" {
-                            h3 class="text-sm font-semibold text-neutral-900" { "GIF provider" }
-                            (secret_badge("KLIPY key", integrations.gif.klipy_api_key_set))
-                        }
-                        div class="grid grid-cols-1 gap-4" {
-                            (password_input("integration_klipy_api_key", "KLIPY API key", Some("Leave blank to keep the current key.")))
-                        }
-                    }
-
-                    div class="space-y-4 border-t border-neutral-200 pt-6" {
-                        div class="flex flex-wrap items-center gap-2" {
                             h3 class="text-sm font-semibold text-neutral-900" { "YouTube Data API" }
                             (secret_badge("API key", integrations.youtube.api_key_set))
                         }

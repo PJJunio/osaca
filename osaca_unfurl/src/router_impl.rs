@@ -58,7 +58,6 @@ impl RouterService for UnfurlRouter {
                 bypass_cache,
                 cache_only,
                 youtube_api_key,
-                klipy_api_key,
                 ..
             } => {
                 if *bypass_cache {
@@ -70,7 +69,7 @@ impl RouterService for UnfurlRouter {
                     unfurl_cache_key(
                         url,
                         nsfw_mode.unwrap_or_default(),
-                        provider_capability(youtube_api_key.is_some(), klipy_api_key.is_some())
+                        provider_capability(youtube_api_key.is_some())
                     )
                 ))
             }
@@ -88,7 +87,6 @@ impl RouterService for UnfurlRouter {
                 nsfw_mode,
                 bypass_cache,
                 youtube_api_key,
-                klipy_api_key,
                 ..
             } => {
                 if *bypass_cache {
@@ -97,7 +95,7 @@ impl RouterService for UnfurlRouter {
                     let key = unfurl_cache_key(
                         url,
                         nsfw_mode.unwrap_or_default(),
-                        provider_capability(youtube_api_key.is_some(), klipy_api_key.is_some()),
+                        provider_capability(youtube_api_key.is_some()),
                     );
                     self.l1.get(&key)
                 }
@@ -116,7 +114,6 @@ impl RouterService for UnfurlRouter {
                 nsfw_mode,
                 cache_only,
                 youtube_api_key,
-                klipy_api_key,
                 ..
             } => {
                 if let UnfurlResponse::Resolved(result) = resp
@@ -126,7 +123,7 @@ impl RouterService for UnfurlRouter {
                         unfurl_cache_key(
                             url,
                             nsfw_mode.unwrap_or_default(),
-                            provider_capability(youtube_api_key.is_some(), klipy_api_key.is_some()),
+                            provider_capability(youtube_api_key.is_some()),
                         ),
                         resp.clone(),
                     );

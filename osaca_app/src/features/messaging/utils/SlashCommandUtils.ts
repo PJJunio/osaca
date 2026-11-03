@@ -8,7 +8,6 @@ const EMOJI_REGEX = /(^|\s):([a-z0-9_+~-]{2,})$/i;
 const EMOJI_REACTION_REGEX = /^\s*\+:([a-z0-9_+~-]*):?$/i;
 const COMMAND_REGEX = /(^\s*)\/(\S*)$/;
 const MEME_SEARCH_REGEX = /(^\s*)\/saved\s*(.*)$/;
-const GIF_SEARCH_REGEX = /(^\s*)\/(gif|klipy)\s*(.*)$/;
 const STICKER_SEARCH_REGEX = /(^\s*)\/sticker\s*(.*)$/;
 const COMMAND_ARG_MENTION_REGEX = /(^\s*)\/(kick|ban|msg|saved)\s+@(\S*)$/;
 const COMMAND_ARG_REGEX = /(^\s*)\/(kick|ban|msg)\s+(\S*)$/;
@@ -21,7 +20,6 @@ export interface AutocompleteTrigger {
 		| 'emojiReaction'
 		| 'command'
 		| 'meme'
-		| 'gif'
 		| 'sticker'
 		| 'commandArgMention'
 		| 'commandArg';
@@ -90,14 +88,6 @@ export function detectAutocompleteTrigger(textUpToCursor: string): AutocompleteT
 			type: 'meme',
 			match: memeSearchMatch,
 			matchedText: memeSearchMatch[2],
-		};
-	}
-	const gifSearchMatch = textUpToCursor.match(GIF_SEARCH_REGEX);
-	if (gifSearchMatch) {
-		return {
-			type: 'gif',
-			match: gifSearchMatch,
-			matchedText: gifSearchMatch[3],
 		};
 	}
 	const stickerSearchMatch = textUpToCursor.match(STICKER_SEARCH_REGEX);

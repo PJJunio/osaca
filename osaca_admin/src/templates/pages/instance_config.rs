@@ -8,7 +8,7 @@ use crate::{
         GUILD_VISITS_DEFAULT_SALT, GatewayRolloutConfigResponse, GuildJoinGate,
         GuildVisitsConfigResponse, IdentifierFirstMode, InstanceConfigResponse,
         InstanceNoticeResponse, InteractionTierMode, LastSessionCleanupMode, LimitConfigResponse,
-        PushRelayConfigResponse, VerificationBasis,
+        VerificationBasis,
     },
     config::AdminConfig,
     middleware::auth::AuthContext,
@@ -244,11 +244,6 @@ pub fn instance_config_page(
                             instance_config.account_identity.mode,
                             &instance_config.app_public.branding.product_name,
                         ),
-                ))
-                (config_group(
-                    "Push notifications",
-                    "Consent for the relay that delivers official mobile app notifications.",
-                    push_relay_section(base, config_form, &instance_config.push_relay),
                 ))
                 (config_group(
                     "Media & retention",
@@ -532,76 +527,6 @@ fn gateway_rollout_section(
 
                     (form_actions(html! {
                         (submit_button("Save Gateway Rollout Configuration"))
-                    }))
-                }
-            }
-        },
-    )
-}
-
-fn push_relay_section(
-    base: &str,
-    config_form: ConfigForm<'_>,
-    push_relay: &PushRelayConfigResponse,
-) -> Markup {
-    let status = if push_relay.relay_consent_accepted {
-        ("Accepted", BadgeVariant::Success)
-    } else {
-        ("Not accepted", BadgeVariant::Default)
-    };
-    let accepted_at =
-        format_optional_admin_timestamp(push_relay.relay_consent_accepted_at.as_deref(), "Never");
-    let accepted_by = push_relay
-        .relay_consent_accepted_by
-        .as_deref()
-        .unwrap_or("Nobody");
-    section_card_with_description(
-        "Push Relay",
-        "Official mobile app notifications travel through OSACA's relay to Apple and Google. \
-         The relay delivers them only after an operator accepts its privacy notice.",
-        html! {
-            form method="post" action={(base) "/instance-config?action=update_push_relay"} {
-                (config_form.fields())
-                div class="space-y-6" {
-                    div class="flex flex-wrap items-center gap-2" {
-                        h3 class="text-sm font-semibold text-neutral-900" { "Relay consent" }
-                        (badge(status.0, status.1))
-                    }
-                    (Checkbox {
-                        name: "push_relay_consent_accepted",
-                        value: "true",
-                        label: "Accept the push relay supplemental privacy notice",
-                        checked: push_relay.relay_consent_accepted,
-                        enabled: true,
-                    }.render())
-                    p class="text-xs text-neutral-500" {
-                        "Until this is accepted official mobile app notifications are dropped. \
-                         Self-hosted UnifiedPush and ntfy endpoints never reach the relay and are \
-                         unaffected. "
-                        a href="https://osaca.example/push-relay" target="_blank" rel="noreferrer"
-                            class="text-neutral-900 underline decoration-neutral-300 hover:text-neutral-600 hover:decoration-neutral-500" {
-                            "Read the notice"
-                        }
-                    }
-                    div class="grid grid-cols-1 gap-4 sm:grid-cols-2" {
-                        (form_field_group("Accepted at", "push_relay_consent_accepted_at", false, None, None,
-                            html! {
-                                input type="text" id="push_relay_consent_accepted_at"
-                                    value=(accepted_at)
-                                    disabled class=(FORM_INPUT_CLASS);
-                            },
-                        ))
-                        (form_field_group("Accepted by user ID", "push_relay_consent_accepted_by", false, None, None,
-                            html! {
-                                input type="text" id="push_relay_consent_accepted_by"
-                                    value=(accepted_by)
-                                    disabled class=(FORM_INPUT_CLASS);
-                            },
-                        ))
-                    }
-
-                    (form_actions(html! {
-                        (submit_button("Save Push Relay Settings"))
                     }))
                 }
             }

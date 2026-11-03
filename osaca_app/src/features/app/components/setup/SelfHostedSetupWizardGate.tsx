@@ -39,7 +39,6 @@ import {
 	DirectMessagesStep,
 	type FinishDraft,
 	PersonalNotesStep,
-	PushRelayStep,
 	RegistrationStep,
 	SetupPolicyDraftProvider,
 	useSetupPolicyDraft,
@@ -223,7 +222,6 @@ function finishDraftFromConfig(config: InstanceConfigResponse, stored: unknown):
 		singleCommunityName: config.app_public.branding.product_name,
 		directMessagesDisabled: config.policy.direct_messages_disabled,
 		personalNotesEnabled: config.policy.personal_notes_enabled,
-		pushRelayConsentAccepted: config.push_relay.relay_consent_accepted,
 	};
 	if (!isRecord(stored)) return draft;
 	if (
@@ -244,9 +242,6 @@ function finishDraftFromConfig(config: InstanceConfigResponse, stored: unknown):
 	}
 	if (typeof stored.personalNotesEnabled === 'boolean') {
 		draft.personalNotesEnabled = stored.personalNotesEnabled;
-	}
-	if (typeof stored.pushRelayConsentAccepted === 'boolean') {
-		draft.pushRelayConsentAccepted = stored.pushRelayConsentAccepted;
 	}
 	return draft;
 }
@@ -551,9 +546,6 @@ const SetupWizardController = observer(() => {
 						? {}
 						: {personal_notes_enabled: finishDraft.personalNotesEnabled}),
 				},
-				...(finishDraft.pushRelayConsentAccepted === config.push_relay.relay_consent_accepted
-					? {}
-					: {push_relay: {relay_consent_accepted: finishDraft.pushRelayConsentAccepted}}),
 				app_public: {setup: {configured: true}},
 			});
 			setConfig(next);
@@ -919,10 +911,6 @@ const SetupWizardController = observer(() => {
 			case 'registration':
 				return (
 					<RegistrationStep data-flx="app.setup.self-hosted-setup-wizard-gate.render-step.registration-step.set-finish-draft" />
-				);
-			case 'push_relay':
-				return (
-					<PushRelayStep data-flx="app.setup.self-hosted-setup-wizard-gate.render-step.push-relay-step.set-finish-draft" />
 				);
 			case 'services':
 				return (

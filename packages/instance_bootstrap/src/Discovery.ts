@@ -856,12 +856,6 @@ function parsePush(value: unknown): Readonly<Partial<InstancePush>> {
 	if (eventResolutionPath != null) {
 		push.event_resolution_path = eventResolutionPath;
 	}
-	if (Object.hasOwn(source, 'external_relay_url')) {
-		push.external_relay_url = readAbsoluteHTTPURL(source, 'external_relay_url');
-	}
-	if (Object.hasOwn(source, 'relay_signing_key_hashes')) {
-		push.relay_signing_key_hashes = readStringArray(source, 'relay_signing_key_hashes');
-	}
 	return push;
 }
 

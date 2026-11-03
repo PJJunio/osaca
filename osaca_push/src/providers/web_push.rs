@@ -2,8 +2,7 @@
 
 use crate::crypto;
 use crate::payload::{self, RecordKind};
-use crate::providers::{SendOutcome, own_relay};
-use crate::relay;
+use crate::providers::SendOutcome;
 use crate::resolver;
 use crate::server::AppState;
 use crate::subscription::Subscription;
@@ -39,8 +38,6 @@ const AES128GCM: &str = "aes128gcm";
 const NOT_FOUND: u16 = 404;
 const GONE: u16 = 410;
 const INSUFFICIENT_STORAGE: u16 = 507;
-const TOO_MANY_REQUESTS: u16 = 429;
-const RELAY_RATE_LIMITED: &str = "relay_rate_limited";
 const MAX_HOSTNAME_BYTES: usize = 253;
 const MAX_LABEL_BYTES: usize = 63;
 
@@ -59,25 +56,7 @@ pub async fn send(state: &AppState, sub: &Subscription, envelope: &Value) -> Sen
         Err(error) => return SendOutcome::permanent(format!("vapid_token: {error}")),
     };
     let authorization = format!("vapid t={token}, k={}", vapid.public_key);
-    deliver(state, sub, &record, &Hop::Network(&authorization)).await
-}
-
-pub async fn send_to_own_fcm_relay(
-    state: &AppState,
-    sub: &Subscription,
-    envelope: &Value,
-    target: relay::FcmTarget<'_>,
-) -> SendOutcome {
-    let record = match seal(state, sub, envelope) {
-        Ok(record) => record,
-        Err(outcome) => return outcome,
-    };
-    deliver(state, sub, &record, &Hop::OwnFcmRelay(target)).await
-}
-
-enum Hop<'a> {
-    Network(&'a str),
-    OwnFcmRelay(relay::FcmTarget<'a>),
+    deliver(state, sub, &record, &authorization).await
 }
 
 struct Record {
@@ -118,11 +97,11 @@ async fn deliver(
     state: &AppState,
     sub: &Subscription,
     record: &Record,
-    hop: &Hop<'_>,
+    authorization: &str,
 ) -> SendOutcome {
     let mut attempt: u32 = 0;
     loop {
-        let status = match post(state, sub, record, hop).await {
+        let status = match post(state, sub, record, authorization).await {
             Ok(status) => status,
             Err(unreachable) => {
                 if unreachable.is_permanent() {
@@ -136,9 +115,6 @@ async fn deliver(
                 continue;
             }
         };
-        if is_relay_quota_refusal(status, &sub.endpoint, &state.cfg.managed_relay_hosts) {
-            return SendOutcome::permanent(RELAY_RATE_LIMITED);
-        }
         if should_retry(status, attempt) {
             tokio::time::sleep(retry_delay(attempt)).await;
             attempt += 1;
@@ -152,23 +128,8 @@ async fn post(
     state: &AppState,
     sub: &Subscription,
     record: &Record,
-    hop: &Hop<'_>,
+    authorization: &str,
 ) -> Result<u16, Unreachable> {
-    let authorization = match hop {
-        Hop::Network(authorization) => authorization,
-        Hop::OwnFcmRelay(target) => {
-            return Ok(relay::forward_fcm(
-                &state.http,
-                &state.tokens,
-                &state.metrics,
-                target,
-                &record.body,
-                record.urgency,
-                record.ttl_seconds,
-            )
-            .await);
-        }
-    };
     let response = state
         .web_push_http
         .post(&sub.endpoint)
@@ -176,7 +137,7 @@ async fn post(
         .header(URGENCY_HEADER, record.urgency)
         .header(CONTENT_TYPE, OCTET_STREAM)
         .header(CONTENT_ENCODING, AES128GCM)
-        .header(AUTHORIZATION, *authorization)
+        .header(AUTHORIZATION, authorization)
         .body(record.body.clone())
         .send()
         .await;
@@ -200,10 +161,6 @@ fn delivery_headers(envelope: &Value) -> (&'static str, &'static str) {
         RecordKind::Clear => (CLEAR_TTL_SECONDS, CLEAR_URGENCY),
         RecordKind::Ring => (RING_TTL_SECONDS, ALERT_URGENCY),
     }
-}
-
-fn is_relay_quota_refusal(status: u16, endpoint: &str, managed_relay_hosts: &[String]) -> bool {
-    status == TOO_MANY_REQUESTS && own_relay::is_managed(endpoint, managed_relay_hosts)
 }
 
 fn should_retry(status: u16, attempt: u32) -> bool {

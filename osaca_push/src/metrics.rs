@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use crate::relay::reject::{REASON_COUNT, Reason};
-use crate::relay_consent::ConsentUpdate;
 use osaca_common::metrics::{Histogram, now_ms, render_counter, render_gauge};
 use std::fmt::{self, Write as _};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -109,46 +107,6 @@ impl SendResult {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[repr(usize)]
-pub enum RelayLeg {
-    Apns,
-    Fcm,
-    ApnsVoip,
-}
-
-impl RelayLeg {
-    pub const ALL: [Self; 3] = [Self::Apns, Self::Fcm, Self::ApnsVoip];
-
-    pub fn label(self) -> &'static str {
-        match self {
-            Self::Apns => "apns",
-            Self::Fcm => "fcm",
-            Self::ApnsVoip => "apns_voip",
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[repr(usize)]
-pub enum RelayResult {
-    Accepted,
-    Rejected,
-    Failed,
-}
-
-impl RelayResult {
-    pub const ALL: [Self; 3] = [Self::Accepted, Self::Rejected, Self::Failed];
-
-    pub fn label(self) -> &'static str {
-        match self {
-            Self::Accepted => "accepted",
-            Self::Rejected => "rejected",
-            Self::Failed => "failed",
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[repr(usize)]
 pub enum AuthProvider {
     Vapid,
     Apns,
@@ -173,15 +131,13 @@ pub enum RpcMethod {
     GetPushSubscriptions,
     GetBadgeCounts,
     DeletePushSubscriptions,
-    GetPushServiceDeliveryConfig,
 }
 
 impl RpcMethod {
-    pub const ALL: [Self; 4] = [
+    pub const ALL: [Self; 3] = [
         Self::GetPushSubscriptions,
         Self::GetBadgeCounts,
         Self::DeletePushSubscriptions,
-        Self::GetPushServiceDeliveryConfig,
     ];
 
     pub fn label(self) -> &'static str {
@@ -189,7 +145,6 @@ impl RpcMethod {
             Self::GetPushSubscriptions => "get_push_subscriptions",
             Self::GetBadgeCounts => "get_badge_counts",
             Self::DeletePushSubscriptions => "delete_push_subscriptions",
-            Self::GetPushServiceDeliveryConfig => "get_push_service_delivery_config",
         }
     }
 }
@@ -210,26 +165,6 @@ impl DeliveryRoute {
             Self::WebPush => "web_push",
             Self::LegacyApns => "legacy_apns",
             Self::LegacyFcm => "legacy_fcm",
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[repr(usize)]
-pub enum BucketKey {
-    DeviceToken,
-    BackgroundDeviceToken,
-    Source,
-}
-
-impl BucketKey {
-    pub const ALL: [Self; 3] = [Self::DeviceToken, Self::BackgroundDeviceToken, Self::Source];
-
-    pub fn label(self) -> &'static str {
-        match self {
-            Self::DeviceToken => "device_token",
-            Self::BackgroundDeviceToken => "background_device_token",
-            Self::Source => "source",
         }
     }
 }
@@ -279,14 +214,10 @@ const JOB_REJECTION_COUNT: usize = JobRejection::ALL.len();
 const PROVIDER_COUNT: usize = Provider::ALL.len();
 const SEND_RESULT_COUNT: usize = SendResult::ALL.len();
 const AUTH_PROVIDER_COUNT: usize = AuthProvider::ALL.len();
-const RELAY_LEG_COUNT: usize = RelayLeg::ALL.len();
-const RELAY_RESULT_COUNT: usize = RelayResult::ALL.len();
 const RPC_METHOD_COUNT: usize = RpcMethod::ALL.len();
-const BUCKET_KEY_COUNT: usize = BucketKey::ALL.len();
 const PAYLOAD_SHRINK_COUNT: usize = PayloadShrink::ALL.len();
 const DELIVERY_ROUTE_COUNT: usize = DeliveryRoute::ALL.len();
 const RPC_OUTCOME_COUNT: usize = RpcOutcome::ALL.len();
-const CONSENT_UPDATE_COUNT: usize = ConsentUpdate::ALL.len();
 
 pub struct Metrics {
     jobs_received: [AtomicU64; JOB_KIND_COUNT],
@@ -297,21 +228,14 @@ pub struct Metrics {
     sends: [[AtomicU64; SEND_RESULT_COUNT]; PROVIDER_COUNT],
     token_deletions: [AtomicU64; PROVIDER_COUNT],
     payload_shrinks: [AtomicU64; PAYLOAD_SHRINK_COUNT],
-    own_relay_shortcuts: [AtomicU64; RELAY_LEG_COUNT],
     auth_tokens_minted: [AtomicU64; AUTH_PROVIDER_COUNT],
     rpc_requests: [[AtomicU64; RPC_OUTCOME_COUNT]; RPC_METHOD_COUNT],
-    relay_consent_updates: [AtomicU64; CONSENT_UPDATE_COUNT],
     delivery_routes: [[AtomicU64; SEND_RESULT_COUNT]; DELIVERY_ROUTE_COUNT],
-    relay_served: [[AtomicU64; RELAY_RESULT_COUNT]; RELAY_LEG_COUNT],
-    relay_vendor_requests: [[AtomicU64; RELAY_RESULT_COUNT]; RELAY_LEG_COUNT],
-    relay_rejected: [AtomicU64; REASON_COUNT],
-    relay_bucket_drops: [AtomicU64; BUCKET_KEY_COUNT],
     rings_suppressed: AtomicU64,
     job_duration: [Histogram; JOB_KIND_COUNT],
     rpc_duration: [Histogram; RPC_METHOD_COUNT],
     send_duration: [Histogram; PROVIDER_COUNT],
     queue_depth: AtomicU64,
-    relay_consent_accepted: AtomicU64,
     start_ms: i64,
 }
 
@@ -326,25 +250,16 @@ impl Metrics {
             sends: [const { [const { AtomicU64::new(0) }; SEND_RESULT_COUNT] }; PROVIDER_COUNT],
             token_deletions: [const { AtomicU64::new(0) }; PROVIDER_COUNT],
             payload_shrinks: [const { AtomicU64::new(0) }; PAYLOAD_SHRINK_COUNT],
-            own_relay_shortcuts: [const { AtomicU64::new(0) }; RELAY_LEG_COUNT],
             auth_tokens_minted: [const { AtomicU64::new(0) }; AUTH_PROVIDER_COUNT],
             rpc_requests: [const { [const { AtomicU64::new(0) }; RPC_OUTCOME_COUNT] };
                 RPC_METHOD_COUNT],
-            relay_consent_updates: [const { AtomicU64::new(0) }; CONSENT_UPDATE_COUNT],
             delivery_routes: [const { [const { AtomicU64::new(0) }; SEND_RESULT_COUNT] };
                 DELIVERY_ROUTE_COUNT],
-            relay_served: [const { [const { AtomicU64::new(0) }; RELAY_RESULT_COUNT] };
-                RELAY_LEG_COUNT],
-            relay_vendor_requests: [const { [const { AtomicU64::new(0) }; RELAY_RESULT_COUNT] };
-                RELAY_LEG_COUNT],
-            relay_rejected: [const { AtomicU64::new(0) }; REASON_COUNT],
-            relay_bucket_drops: [const { AtomicU64::new(0) }; BUCKET_KEY_COUNT],
             rings_suppressed: AtomicU64::new(0),
             job_duration: [const { Histogram::new() }; JOB_KIND_COUNT],
             rpc_duration: [const { Histogram::new() }; RPC_METHOD_COUNT],
             send_duration: [const { Histogram::new() }; PROVIDER_COUNT],
             queue_depth: AtomicU64::new(0),
-            relay_consent_accepted: AtomicU64::new(0),
             start_ms: now_ms(),
         }
     }
@@ -379,10 +294,6 @@ impl Metrics {
         self.token_deletions[provider as usize].fetch_add(1, ORDERING);
     }
 
-    pub fn record_own_relay_shortcut(&self, leg: RelayLeg) {
-        self.own_relay_shortcuts[leg as usize].fetch_add(1, ORDERING);
-    }
-
     pub fn record_payload_shrink(&self, step: PayloadShrink) {
         self.payload_shrinks[step as usize].fetch_add(1, ORDERING);
     }
@@ -396,33 +307,8 @@ impl Metrics {
         self.rpc_duration[method as usize].observe(duration_ms);
     }
 
-    pub fn record_relay_consent_update(&self, outcome: ConsentUpdate) {
-        self.relay_consent_updates[outcome as usize].fetch_add(1, ORDERING);
-    }
-
-    pub fn record_relay_consent_accepted(&self, accepted: bool) {
-        self.relay_consent_accepted
-            .store(u64::from(accepted), ORDERING);
-    }
-
     pub fn record_delivery_route(&self, route: DeliveryRoute, result: SendResult) {
         self.delivery_routes[route as usize][result as usize].fetch_add(1, ORDERING);
-    }
-
-    pub fn record_relay_served(&self, leg: RelayLeg, result: RelayResult) {
-        self.relay_served[leg as usize][result as usize].fetch_add(1, ORDERING);
-    }
-
-    pub fn record_relay_vendor_request(&self, leg: RelayLeg, result: RelayResult) {
-        self.relay_vendor_requests[leg as usize][result as usize].fetch_add(1, ORDERING);
-    }
-
-    pub fn record_relay_rejected(&self, reason: Reason) {
-        self.relay_rejected[reason as usize].fetch_add(1, ORDERING);
-    }
-
-    pub fn record_bucket_drop(&self, key: BucketKey) {
-        self.relay_bucket_drops[key as usize].fetch_add(1, ORDERING);
     }
 
     pub fn record_ring_suppressed(&self) {
@@ -482,13 +368,6 @@ impl Metrics {
         )?;
         render_labelled_counter(
             out,
-            "osaca_push_own_relay_shortcuts_total",
-            "leg",
-            RelayLeg::ALL.map(RelayLeg::label),
-            &self.own_relay_shortcuts,
-        )?;
-        render_labelled_counter(
-            out,
             "osaca_push_payload_shrinks_total",
             "step",
             PayloadShrink::ALL.map(PayloadShrink::label),
@@ -510,13 +389,6 @@ impl Metrics {
             &self.rpc_requests,
         )?;
 
-        render_labelled_counter(
-            out,
-            "osaca_push_relay_consent_updates_total",
-            "result",
-            ConsentUpdate::ALL.map(ConsentUpdate::label),
-            &self.relay_consent_updates,
-        )?;
         render_labelled_histogram(
             out,
             "osaca_push_job_duration_ms",
@@ -545,45 +417,12 @@ impl Metrics {
             ("result", SendResult::ALL.map(SendResult::label)),
             &self.delivery_routes,
         )?;
-        render_labelled_grid(
-            out,
-            "osaca_push_relay_served_total",
-            ("leg", RelayLeg::ALL.map(RelayLeg::label)),
-            ("result", RelayResult::ALL.map(RelayResult::label)),
-            &self.relay_served,
-        )?;
-        render_labelled_grid(
-            out,
-            "osaca_push_relay_vendor_requests_total",
-            ("leg", RelayLeg::ALL.map(RelayLeg::label)),
-            ("result", RelayResult::ALL.map(RelayResult::label)),
-            &self.relay_vendor_requests,
-        )?;
-        render_labelled_counter(
-            out,
-            "osaca_push_relay_rejected_total",
-            "reason",
-            Reason::ALL.map(Reason::label),
-            &self.relay_rejected,
-        )?;
-        render_labelled_counter(
-            out,
-            "osaca_push_relay_token_bucket_drops_total",
-            "key",
-            BucketKey::ALL.map(BucketKey::label),
-            &self.relay_bucket_drops,
-        )?;
         render_counter(
             out,
             "osaca_push_rings_suppressed_total",
             &self.rings_suppressed,
         )?;
         render_gauge(out, "osaca_push_queue_depth", &self.queue_depth)?;
-        render_gauge(
-            out,
-            "osaca_push_relay_consent_accepted",
-            &self.relay_consent_accepted,
-        )?;
 
         writeln!(out, "# TYPE osaca_push_uptime_seconds gauge")?;
         writeln!(

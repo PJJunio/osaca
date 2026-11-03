@@ -340,7 +340,7 @@ export const InstanceServicesSchema = z
 	.describe('Optional third-party service integrations enabled for this instance');
 export type InstanceServices = z.infer<typeof InstanceServicesSchema>;
 
-export const InstancePushDeliveryModeSchema = z.enum(['direct', 'external_relay', 'hybrid']);
+export const InstancePushDeliveryModeSchema = z.enum(['direct']);
 export type InstancePushDeliveryMode = z.infer<typeof InstancePushDeliveryModeSchema>;
 
 export const InstancePushSchema = z
@@ -351,12 +351,6 @@ export const InstancePushSchema = z
 			.string()
 			.optional()
 			.describe('API path clients call to resolve the payload of a push event'),
-		external_relay_url: z.string().nullable().optional().describe('URL of the external push relay, if any'),
-		relay_signing_key_hashes: z
-			.array(z.string())
-			.nullable()
-			.optional()
-			.describe('Hashes of the keys the external push relay signs with'),
 	})
 	.describe('Push notification configuration');
 export type InstancePush = z.infer<typeof InstancePushSchema>;

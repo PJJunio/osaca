@@ -15,12 +15,12 @@ import {AdminACLs} from '@osaca/constants/src/AdminACLs';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import type {InstanceConfigResponse} from '@osaca/schema/src/domains/admin/AdminSchemas';
 import {
-	type LegacyPushServiceDeliveryWire,
-	toLegacyPushServiceDeliveryWire,
-} from '@osaca/schema/src/domains/admin/PushRelaySchemas';
+	type DomainMigrationConfig,
+	DomainMigrationConfigSchema,
+} from '@osaca/schema/src/domains/admin/DomainMigrationSchemas';
 import {afterAll, beforeAll, beforeEach, describe, expect, it} from 'vitest';
 
-const PUSH_RELAY_CONFIG_KEY = 'push_service_delivery_config';
+const DOMAIN_MIGRATION_CONFIG_KEY = 'domain_migration_config';
 
 describe('instance config admin PATCH under concurrent writes', () => {
 	let harness: ApiTestHarness;
@@ -50,11 +50,14 @@ describe('instance config admin PATCH under concurrent writes', () => {
 	const patchConfig = (admin: TestAccount, body: Record<string, unknown>) =>
 		createBuilder<InstanceConfigResponse>(harness, admin.token).patch('/admin/instance/config').body(body);
 
-	async function readStoredPushRelay(): Promise<LegacyPushServiceDeliveryWire> {
-		const raw = await executor.readDirectly(PUSH_RELAY_CONFIG_KEY);
-		if (raw === null) throw new Error('push relay config was never stored');
-		return JSON.parse(raw) as LegacyPushServiceDeliveryWire;
+	async function readStoredDomainMigration(): Promise<DomainMigrationConfig> {
+		const raw = await executor.readDirectly(DOMAIN_MIGRATION_CONFIG_KEY);
+		if (raw === null) throw new Error('domain migration config was never stored');
+		return JSON.parse(raw) as DomainMigrationConfig;
 	}
+
+	const domainMigrationAt = (configVersion: number): DomainMigrationConfig =>
+		DomainMigrationConfigSchema.parse({config_version: configVersion});
 
 	async function listConfigUpdateAudits(): Promise<Array<AdminAuditLog>> {
 		const logs = await getAdminRepository().listAllAuditLogsPaginated(100000);
@@ -77,30 +80,25 @@ describe('instance config admin PATCH under concurrent writes', () => {
 
 	it('answers with a conflict and neither writes, publishes nor audits once every attempt has lost the race', async () => {
 		const admin = await createAdmin();
-		const unaccepted = {
-			relay_consent_accepted: false,
-			relay_consent_accepted_at: null,
-			relay_consent_accepted_by: null,
-		};
-		await executor.writeDirectly(PUSH_RELAY_CONFIG_KEY, JSON.stringify(toLegacyPushServiceDeliveryWire(unaccepted, 1)));
+		await executor.writeDirectly(DOMAIN_MIGRATION_CONFIG_KEY, JSON.stringify(domainMigrationAt(1)));
 		getInstanceConfigRepository().clearCacheForTesting();
 		const auditsBefore = await listConfigUpdateAudits();
-		executor.watch(PUSH_RELAY_CONFIG_KEY);
+		executor.watch(DOMAIN_MIGRATION_CONFIG_KEY);
 		let competingWrites = 0;
 		executor.competeBeforeEachWrite(async () => {
 			competingWrites++;
 			await executor.writeDirectly(
-				PUSH_RELAY_CONFIG_KEY,
-				JSON.stringify(toLegacyPushServiceDeliveryWire(unaccepted, 100 + competingWrites)),
+				DOMAIN_MIGRATION_CONFIG_KEY,
+				JSON.stringify(domainMigrationAt(100 + competingWrites)),
 			);
 		});
 
-		await patchConfig(admin, {push_relay: {relay_consent_accepted: true}})
+		await patchConfig(admin, {domain_migration: {enabled: true}})
 			.expect(HTTP_STATUS.CONFLICT, APIErrorCodes.CONFLICT)
 			.execute();
 
 		expect(executor.events).not.toContain('write');
-		expect(await readStoredPushRelay()).toEqual(toLegacyPushServiceDeliveryWire(unaccepted, 100 + competingWrites));
+		expect(await readStoredDomainMigration()).toEqual(domainMigrationAt(100 + competingWrites));
 		expect(await listConfigUpdateAudits()).toHaveLength(auditsBefore.length);
 	});
 });

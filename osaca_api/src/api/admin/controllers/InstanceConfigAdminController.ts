@@ -88,7 +88,6 @@ import {
 } from '@osaca/schema/src/domains/admin/CaptchaSchemas';
 import {DomainMigrationConfigSchema} from '@osaca/schema/src/domains/admin/DomainMigrationSchemas';
 import {GatewayRolloutConfigSchema} from '@osaca/schema/src/domains/admin/GatewayRolloutSchemas';
-import type {PushRelayConfig, PushRelayConfigUpdateRequest} from '@osaca/schema/src/domains/admin/PushRelaySchemas';
 import {VoiceP2pConfigSchema} from '@osaca/schema/src/domains/admin/VoiceP2pSchemas';
 import {UserIdParam} from '@osaca/schema/src/domains/common/CommonParamSchemas';
 import {ExperimentDeliveryConfigSchema} from '@osaca/schema/src/domains/experiment/ExperimentSchemas';
@@ -223,7 +222,6 @@ async function buildInstanceConfigResponse(warnings: Array<string> = []): Promis
 	const [
 		ssoConfig,
 		gatewayRollout,
-		pushRelay,
 		domainMigration,
 		voiceP2p,
 		captcha,
@@ -236,7 +234,6 @@ async function buildInstanceConfigResponse(warnings: Array<string> = []): Promis
 	] = await Promise.all([
 		instanceConfigRepository.getSsoConfig(),
 		instanceConfigRepository.getGatewayRolloutConfig(),
-		instanceConfigRepository.getPushRelayConfig(),
 		instanceConfigRepository.getDomainMigrationConfig(),
 		instanceConfigRepository.getVoiceP2pConfig(),
 		instanceConfigRepository.getCaptchaConfig(),
@@ -292,7 +289,6 @@ async function buildInstanceConfigResponse(warnings: Array<string> = []): Promis
 			group_role_mappings: ssoConfig.groupRoleMappings.map(({group, roleId}) => ({group, role_id: roleId})),
 		},
 		gateway_rollout: gatewayRollout,
-		push_relay: pushRelay,
 		domain_migration: domainMigration,
 		voice_p2p: voiceP2p,
 		captcha: {...captcha, enabled: isCaptchaActive(captcha)},
@@ -342,20 +338,6 @@ async function buildInstanceConfigResponse(warnings: Array<string> = []): Promis
 function buildAdminIssuedRegistrationUrl(code: string): string {
 	const baseUrl = Config.endpoints.webApp.replace(/\/$/, '');
 	return `${baseUrl}/register?registration_url=${encodeURIComponent(code)}`;
-}
-
-function relayConsentStamp(
-	current: PushRelayConfig,
-	patch: PushRelayConfigUpdateRequest,
-	adminUserId: string,
-): Partial<PushRelayConfig> {
-	const accepted = patch.relay_consent_accepted;
-	if (accepted === undefined || accepted === current.relay_consent_accepted) {
-		return {};
-	}
-	return accepted
-		? {relay_consent_accepted_at: new Date().toISOString(), relay_consent_accepted_by: adminUserId}
-		: {relay_consent_accepted_at: null, relay_consent_accepted_by: null};
 }
 
 function assertSelfHostedBillingSections(data: InstanceConfigUpdateRequest): void {
@@ -633,18 +615,6 @@ const INSTANCE_CONFIG_SECTION_APPLIERS = {
 				GatewayRolloutConfigSchema.parse({...current, ...patch}),
 			);
 			await getNatsConfigPublisher().publish('config.gateway.rollout', 'gateway_rollout_config', landed);
-		},
-	),
-	push_relay: createInstanceConfigSectionApplier(
-		({data}) => nonEmptyPatch(data.push_relay),
-		async (patch, {ctx, instanceConfigRepository}) => {
-			const adminUserId = ctx.get('adminUserId').toString();
-			const landed = await instanceConfigRepository.updatePushRelayConfig((current) => ({
-				...current,
-				...patch,
-				...relayConsentStamp(current, patch, adminUserId),
-			}));
-			await getNatsConfigPublisher().publish('config.push.delivery', 'push_service_delivery_config', landed);
 		},
 	),
 	domain_migration: createInstanceConfigSectionApplier(

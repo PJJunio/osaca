@@ -8,7 +8,7 @@ use crate::{
             GatewayRolloutConfigUpdateRequest, GatewayRolloutMode,
             InstanceAttachmentDecayUpdateRequest, InstanceConfigUpdateRequest,
             InstanceMediaUpdateRequest, InstanceRegistrationConfigUpdateRequest,
-            PushRelayConfigUpdateRequest, RegistrationMode, VoiceE2eeScope,
+            RegistrationMode, VoiceE2eeScope,
         },
     },
     config::AdminConfig,
@@ -217,7 +217,6 @@ pub async fn instance_config_post(
             "update_billing" => {
                 super::billing_actions::build_billing_update(&form).map_err(FlashData::error)
             }
-            "update_push_relay" => Ok(build_push_relay_update(&form)),
             "update_domain_migration" => {
                 experiments::build_domain_migration_update(&form).map_err(FlashData::error)
             }
@@ -427,15 +426,6 @@ where
         return Err(invalid());
     }
     Ok(Some(value))
-}
-
-fn build_push_relay_update(form: &MultiValueForm) -> InstanceConfigUpdateRequest {
-    InstanceConfigUpdateRequest {
-        push_relay: Some(PushRelayConfigUpdateRequest {
-            relay_consent_accepted: Some(form.bool_value("push_relay_consent_accepted")),
-        }),
-        ..Default::default()
-    }
 }
 
 fn build_captcha_update(form: &MultiValueForm) -> Result<InstanceConfigUpdateRequest, String> {

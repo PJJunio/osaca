@@ -2387,7 +2387,6 @@ type InstanceConfigResponse struct {
 		SingleCommunityEnabled bool    `json:"single_community_enabled"`
 		SingleCommunityGuildId *string `json:"single_community_guild_id"`
 	} `json:"policy"`
-	PushRelay    PushRelayConfigResponse `json:"push_relay"`
 	Registration struct {
 		AdminRegistrationUrlsEnabled bool `json:"admin_registration_urls_enabled"`
 
@@ -2601,7 +2600,6 @@ type InstanceConfigUpdateRequest struct {
 		SingleCommunityGuildId *SnowflakeStringType `json:"single_community_guild_id,omitempty"`
 		SingleCommunityName    *string              `json:"single_community_name,omitempty"`
 	} `json:"policy,omitempty"`
-	PushRelay    *PushRelayConfigUpdateRequest `json:"push_relay,omitempty"`
 	Registration *struct {
 		AdminRegistrationUrlsEnabled *bool                           `json:"admin_registration_urls_enabled,omitempty"`
 		AllowedEmailDomains          *[]string                       `json:"allowed_email_domains,omitempty"`
@@ -2896,18 +2894,6 @@ type PremiumCurrency = string
 
 // PremiumFlags User premium-related flags (32-bit)
 type PremiumFlags = int32
-
-// PushRelayConfigResponse defines model for PushRelayConfigResponse.
-type PushRelayConfigResponse struct {
-	RelayConsentAccepted   bool       `json:"relay_consent_accepted"`
-	RelayConsentAcceptedAt *time.Time `json:"relay_consent_accepted_at"`
-	RelayConsentAcceptedBy *string    `json:"relay_consent_accepted_by"`
-}
-
-// PushRelayConfigUpdateRequest defines model for PushRelayConfigUpdateRequest.
-type PushRelayConfigUpdateRequest struct {
-	RelayConsentAccepted *bool `json:"relay_consent_accepted,omitempty"`
-}
 
 // SearchUsersResponse defines model for SearchUsersResponse.
 type SearchUsersResponse struct {

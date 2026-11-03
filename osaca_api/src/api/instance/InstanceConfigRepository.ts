@@ -153,12 +153,6 @@ import {
 	type StoredBillingConfig,
 	StoredBillingConfigSchema,
 } from '@osaca/schema/src/domains/admin/InstanceBillingSchemas';
-import {
-	type LegacyPushServiceDeliveryWire,
-	type PushRelayConfig,
-	PushRelayConfigSchema,
-	toLegacyPushServiceDeliveryWire,
-} from '@osaca/schema/src/domains/admin/PushRelaySchemas';
 import {type VoiceP2pConfig, VoiceP2pConfigSchema} from '@osaca/schema/src/domains/admin/VoiceP2pSchemas';
 import {
 	type ExperimentDeliveryConfig,
@@ -181,7 +175,6 @@ import type {IKVProvider} from '@pkgs/kv_client/src/IKVProvider';
 import {z} from 'zod';
 
 const GATEWAY_ROLLOUT_CONFIG_KEY = 'gateway_rollout_config';
-const PUSH_RELAY_CONFIG_KEY = 'push_service_delivery_config';
 const DOMAIN_MIGRATION_CONFIG_KEY = 'domain_migration_config';
 const VOICE_P2P_CONFIG_KEY = 'voice_p2p_config';
 const CAPTCHA_CONFIG_KEY = 'captcha_config';
@@ -537,7 +530,6 @@ function getDefaultAppPublicConfig(): InstanceAppPublicConfig {
 type StoredConfigSection =
 	| 'app public'
 	| 'gateway rollout'
-	| 'push relay'
 	| 'domain migration'
 	| 'voice p2p'
 	| 'captcha'
@@ -741,27 +733,6 @@ function decodeGatewayRolloutConfig(value: unknown): GatewayRolloutConfig {
 
 function parseStoredGatewayRolloutConfig(raw: string | null): GatewayRolloutConfig {
 	return decodeGatewayRolloutConfig(parseStoredConfigValue(raw, 'gateway rollout'));
-}
-
-const StoredPushRelayConfigSchema = PushRelayConfigSchema.extend({
-	config_version: z.number().int().min(0).default(0),
-});
-
-function parseStoredPushRelayConfig(raw: string | null): LegacyPushServiceDeliveryWire {
-	const {config_version, ...config} = salvageStoredConfig(
-		StoredPushRelayConfigSchema,
-		readStoredConfigValue(raw, 'push relay'),
-		'push relay',
-	);
-	return toLegacyPushServiceDeliveryWire(config, config_version);
-}
-
-function toPushRelayConfig(wire: LegacyPushServiceDeliveryWire): PushRelayConfig {
-	return {
-		relay_consent_accepted: wire.relay_consent_accepted,
-		relay_consent_accepted_at: wire.relay_consent_accepted_at,
-		relay_consent_accepted_by: wire.relay_consent_accepted_by,
-	};
 }
 
 function parseStoredDomainMigrationConfig(raw: string | null): DomainMigrationConfig {
@@ -1799,7 +1770,6 @@ export class InstanceConfigRepository {
 		checkStoredConfig('gateway rollout', () =>
 			parseStoredGatewayRolloutConfig(snapshot.get(GATEWAY_ROLLOUT_CONFIG_KEY) ?? null),
 		);
-		parseStoredPushRelayConfig(snapshot.get(PUSH_RELAY_CONFIG_KEY) ?? null);
 		parseStoredDomainMigrationConfig(snapshot.get(DOMAIN_MIGRATION_CONFIG_KEY) ?? null);
 		parseStoredVoiceP2pConfig(snapshot.get(VOICE_P2P_CONFIG_KEY) ?? null);
 		parseStoredCaptchaConfig(snapshot.get(CAPTCHA_CONFIG_KEY) ?? null);
@@ -2128,23 +2098,6 @@ export class InstanceConfigRepository {
 		return this.updateStoredConfig(GATEWAY_ROLLOUT_CONFIG_KEY, (raw) =>
 			decodeGatewayRolloutConfig(update(parseStoredGatewayRolloutConfig(raw))),
 		);
-	}
-
-	async getLegacyPushServiceDeliveryWire(): Promise<LegacyPushServiceDeliveryWire> {
-		const raw = await this.getConfig(PUSH_RELAY_CONFIG_KEY);
-		return parseStoredPushRelayConfig(raw);
-	}
-
-	async getPushRelayConfig(): Promise<PushRelayConfig> {
-		return toPushRelayConfig(await this.getLegacyPushServiceDeliveryWire());
-	}
-
-	updatePushRelayConfig(update: (current: PushRelayConfig) => PushRelayConfig): Promise<LegacyPushServiceDeliveryWire> {
-		return this.updateStoredConfig(PUSH_RELAY_CONFIG_KEY, (raw) => {
-			const current = parseStoredPushRelayConfig(raw);
-			const next = validateStoredConfig(PushRelayConfigSchema, update(toPushRelayConfig(current)), 'push relay');
-			return toLegacyPushServiceDeliveryWire(next, current.config_version + 1);
-		});
 	}
 
 	async getDomainMigrationConfig(): Promise<DomainMigrationConfig> {

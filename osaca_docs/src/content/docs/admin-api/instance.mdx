@@ -20,7 +20,6 @@ The full runtime configuration. A setting that was never saved uses the default 
 | --- | --- | --- |
 | sso | [SSO configuration](#sso-configuration-object) object | Single sign-on settings |
 | gateway_rollout | [Gateway rollout configuration](#gateway-rollout-configuration-object) object | Gateway admission and dispatch tuning |
-| push_relay | [push relay configuration](#push-relay-configuration-object) object | Consent to the OSACA-run push relay |
 | voice_p2p | [peer-to-peer voice configuration](#peer-to-peer-voice-configuration-object) object | Peer-to-peer voice rollout |
 | captcha | [captcha configuration](#captcha-configuration-object) object | ALTCHA proof-of-work settings |
 | experiment_delivery | [experiment delivery configuration](#experiment-delivery-configuration-object) object | How often clients poll for experiments |
@@ -110,18 +109,6 @@ Admission and dispatch tuning for the Gateway cluster.
 | gateway_dispatch_relay_shards | integer | Dispatch relay shard count (1-10000, default 32) |
 | gateway_dispatch_relay_max_queue | integer | Dispatch relay queue limit (0-1000000, default 50000) |
 | voice_e2ee_scope | string | Which voice channels encrypt call media with a room key that the server issues, `guild_feature_only` or `platform_wide` (default `guild_feature_only`). This isn't end-to-end encryption |
-
-## Push relay configuration object
-
-Your consent to the privacy notice of the OSACA-run push relay, which sends notifications to the official mobile apps through Apple and Google. A UnifiedPush or ntfy distributor doesn't need it.
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| relay_consent_accepted | boolean | Whether an admin accepted the notice (default false) |
-| relay_consent_accepted_at | ?string | ISO 8601 time of the acceptance, or null |
-| relay_consent_accepted_by | ?snowflake | Account that accepted the notice, or null |
 
 ## Peer-to-peer voice configuration object
 
@@ -641,7 +628,6 @@ Merges the body into the saved configuration and returns the [instance configura
 | --- | --- | --- |
 | sso?<sup>1</sup> | object | [SSO configuration](#sso-configuration-object) fields except `client_secret_set` and `redirect_uri`, plus `client_secret` and `migrate_identities` |
 | gateway_rollout? | object | Any [Gateway rollout configuration](#gateway-rollout-configuration-object) fields |
-| push_relay? | object | `relay_consent_accepted` from the [push relay configuration](#push-relay-configuration-object) |
 | voice_p2p? | object | Any [peer-to-peer voice](#peer-to-peer-voice-configuration-object) fields |
 | captcha? | object | Any [captcha configuration](#captcha-configuration-object) fields |
 | experiment_delivery? | object | Any [experiment delivery](#experiment-delivery-configuration-object) fields |

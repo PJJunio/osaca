@@ -13,39 +13,25 @@ pub const DEFAULT_APP_ID: &str = "stable";
 const RPC_PATH: &str = "/internal/rpc";
 const DEFAULT_HOST: &str = "0.0.0.0";
 const DEFAULT_DELIVERY_PORT: u16 = 8126;
-const DEFAULT_RELAY_PORT: u16 = 8127;
 const DEFAULT_NATS_URL: &str = "nats://127.0.0.1:4222";
 const DEFAULT_QUEUE_CAPACITY: usize = 10_000;
 const DEFAULT_SEND_CONCURRENCY: usize = 256;
-const DEFAULT_RELAY_MAX_CONCURRENT: usize = 1_024;
-const DEFAULT_RELAY_MAX_BODY_BYTES: usize = 2_816;
-const DEFAULT_TRUSTED_PROXY_HOPS: usize = 1;
-const DEFAULT_DEVICE_TOKEN_BUCKET_ENTRIES: usize = 1_000_000;
-const DEFAULT_DEVICE_TOKEN_BUCKET_PER_MINUTE: u32 = 60;
-const DEFAULT_DEVICE_TOKEN_BUCKET_BURST: u32 = 20;
-const DEFAULT_SOURCE_BUCKET_ENTRIES: usize = 100_000;
-const DEFAULT_SOURCE_BUCKET_PER_MINUTE: u32 = 600;
-const DEFAULT_SOURCE_BUCKET_BURST: u32 = 200;
 const DEFAULT_FCM_TOKEN_URI: &str = "https://oauth2.googleapis.com/token";
 const DEFAULT_FCM_BASE_URL: &str = "https://fcm.googleapis.com";
-const DEFAULT_CLIENT_IP_HEADER_NAME: &str = "x-forwarded-for";
 const APNS_PRODUCTION_BASE_URL: &str = "https://api.push.apple.com";
 const APNS_DEVELOPMENT_BASE_URL: &str = "https://api.sandbox.push.apple.com";
-const DEFAULT_MANAGED_RELAY_HOST: &str = "push.osaca.example";
 const VOIP_TOPIC_SUFFIX: &str = ".voip";
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, clap::ValueEnum)]
 pub enum Mode {
     #[default]
     Delivery,
-    Relay,
 }
 
 impl Mode {
     pub fn default_port(self) -> u16 {
         match self {
             Self::Delivery => DEFAULT_DELIVERY_PORT,
-            Self::Relay => DEFAULT_RELAY_PORT,
         }
     }
 }
@@ -186,37 +172,12 @@ pub struct DeliveryConfig {
     pub vapid: VapidConfig,
     pub apns: Option<ApnsConfig>,
     pub fcm: Option<FcmConfig>,
-    pub own_relay_hosts: Vec<String>,
     pub private_hosts: Vec<String>,
-    pub managed_relay_hosts: Vec<String>,
-    pub relay_consent_accepted: bool,
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct BucketConfig {
-    pub entries: usize,
-    pub per_minute: u32,
-    pub burst: u32,
-}
-
-#[derive(Debug)]
-pub struct RelayConfig {
-    pub bind_addr: SocketAddr,
-    pub max_concurrent: usize,
-    pub max_body_bytes: usize,
-    pub trust_client_ip_header: bool,
-    pub client_ip_header_name: String,
-    pub trusted_proxy_hops: usize,
-    pub device_token_bucket: BucketConfig,
-    pub source_bucket: Option<BucketConfig>,
-    pub apns: Option<ApnsConfig>,
-    pub fcm: Option<FcmConfig>,
 }
 
 #[derive(Debug)]
 pub enum Config {
     Delivery(Box<DeliveryConfig>),
-    Relay(Box<RelayConfig>),
 }
 
 impl Config {
@@ -228,14 +189,12 @@ impl Config {
     {
         Ok(match mode {
             Mode::Delivery => Self::Delivery(Box::new(DeliveryConfig::load_from_iter(vars)?)),
-            Mode::Relay => Self::Relay(Box::new(RelayConfig::load_from_iter(vars)?)),
         })
     }
 
     pub fn bind_addr_mut(&mut self) -> &mut SocketAddr {
         match self {
             Self::Delivery(cfg) => &mut cfg.bind_addr,
-            Self::Relay(cfg) => &mut cfg.bind_addr,
         }
     }
 }
@@ -269,14 +228,7 @@ impl DeliveryConfig {
             vapid: vapid_config(&env)?,
             apns: apns_config(&env)?,
             fcm: fcm_config(&env)?,
-            own_relay_hosts: host_list(&env, "OSACA_PUSH_SERVICE_OWN_RELAY_HOSTS"),
             private_hosts: host_list(&env, "OSACA_PUSH_SERVICE_PRIVATE_HOSTS"),
-            managed_relay_hosts: managed_relay_hosts(&env),
-            relay_consent_accepted: parse_bool(
-                "OSACA_PUSH_SERVICE_RELAY_CONSENT_ACCEPTED",
-                env.get("OSACA_PUSH_SERVICE_RELAY_CONSENT_ACCEPTED"),
-            )?
-            .unwrap_or(false),
         })
     }
 }
@@ -288,88 +240,6 @@ fn host_list(env: &Env, key: &str) -> Vec<String> {
         .map(|host| host.trim().to_ascii_lowercase())
         .filter(|host| !host.is_empty())
         .collect()
-}
-
-fn managed_relay_hosts(env: &Env) -> Vec<String> {
-    let Some(raw) = env.get("OSACA_PUSH_SERVICE_MANAGED_RELAY_HOSTS") else {
-        return vec![DEFAULT_MANAGED_RELAY_HOST.to_owned()];
-    };
-    raw.split(',')
-        .map(|host| host.trim().to_ascii_lowercase())
-        .filter(|host| !host.is_empty())
-        .collect()
-}
-
-impl RelayConfig {
-    pub fn load_from_iter<I, K, V>(vars: I) -> anyhow::Result<Self>
-    where
-        I: IntoIterator<Item = (K, V)>,
-        K: Into<String>,
-        V: Into<String>,
-    {
-        let env = Env::from_iter(vars);
-        let cfg = Self {
-            bind_addr: bind_addr(&env, Mode::Relay)?,
-            max_concurrent: parse_number(
-                "OSACA_PUSH_RELAY_MAX_CONCURRENT",
-                env.get("OSACA_PUSH_RELAY_MAX_CONCURRENT"),
-                DEFAULT_RELAY_MAX_CONCURRENT,
-                1,
-                1_000_000,
-            )?,
-            max_body_bytes: parse_number(
-                "OSACA_PUSH_RELAY_MAX_BODY_BYTES",
-                env.get("OSACA_PUSH_RELAY_MAX_BODY_BYTES"),
-                DEFAULT_RELAY_MAX_BODY_BYTES,
-                1,
-                1_048_576,
-            )?,
-            trust_client_ip_header: parse_bool(
-                "OSACA_TRUST_CLIENT_IP_HEADER",
-                env.get("OSACA_TRUST_CLIENT_IP_HEADER"),
-            )?
-            .unwrap_or(false),
-            client_ip_header_name: env
-                .get("OSACA_CLIENT_IP_HEADER_NAME")
-                .unwrap_or(DEFAULT_CLIENT_IP_HEADER_NAME)
-                .to_ascii_lowercase(),
-            trusted_proxy_hops: parse_number(
-                "OSACA_PUSH_RELAY_TRUSTED_PROXY_HOPS",
-                env.get("OSACA_PUSH_RELAY_TRUSTED_PROXY_HOPS"),
-                DEFAULT_TRUSTED_PROXY_HOPS,
-                0,
-                8,
-            )?,
-            device_token_bucket: bucket_config(
-                &env,
-                "OSACA_PUSH_RELAY_TOKEN_BUCKET",
-                BucketConfig {
-                    entries: DEFAULT_DEVICE_TOKEN_BUCKET_ENTRIES,
-                    per_minute: DEFAULT_DEVICE_TOKEN_BUCKET_PER_MINUTE,
-                    burst: DEFAULT_DEVICE_TOKEN_BUCKET_BURST,
-                },
-            )?,
-            source_bucket: source_bucket_config(&env)?,
-            apns: apns_config(&env)?,
-            fcm: fcm_config(&env)?,
-        };
-        for (var_name, apps) in [
-            (
-                "OSACA_PUSH_APNS_APPS",
-                cfg.apns.as_ref().map(|apns| &apns.apps),
-            ),
-            (
-                "OSACA_PUSH_FCM_APPS",
-                cfg.fcm.as_ref().map(|fcm| &fcm.apps),
-            ),
-        ] {
-            anyhow::ensure!(
-                apps.is_none_or(|apps| !apps.is_empty()),
-                "{var_name} must list at least one app"
-            );
-        }
-        Ok(cfg)
-    }
 }
 
 fn bind_addr(env: &Env, mode: Mode) -> anyhow::Result<SocketAddr> {
@@ -420,56 +290,6 @@ fn vapid_config(env: &Env) -> anyhow::Result<VapidConfig> {
         public_key: env.require("OSACA_VAPID_PUBLIC_KEY")?.to_owned(),
         private_key: SecretString::new(env.require("OSACA_VAPID_PRIVATE_KEY")?.to_owned()),
     })
-}
-
-fn bucket_config(env: &Env, prefix: &str, defaults: BucketConfig) -> anyhow::Result<BucketConfig> {
-    let entries_var = format!("{prefix}_ENTRIES");
-    let per_minute_var = format!("{prefix}_PER_MINUTE");
-    let burst_var = format!("{prefix}_BURST");
-    Ok(BucketConfig {
-        entries: parse_number(
-            &entries_var,
-            env.get(&entries_var),
-            defaults.entries,
-            1,
-            100_000_000,
-        )?,
-        per_minute: parse_number(
-            &per_minute_var,
-            env.get(&per_minute_var),
-            defaults.per_minute,
-            1,
-            1_000_000,
-        )?,
-        burst: parse_number(
-            &burst_var,
-            env.get(&burst_var),
-            defaults.burst,
-            1,
-            1_000_000,
-        )?,
-    })
-}
-
-fn source_bucket_config(env: &Env) -> anyhow::Result<Option<BucketConfig>> {
-    if !parse_bool(
-        "OSACA_PUSH_RELAY_SOURCE_BUCKET_ENABLED",
-        env.get("OSACA_PUSH_RELAY_SOURCE_BUCKET_ENABLED"),
-    )?
-    .unwrap_or(false)
-    {
-        return Ok(None);
-    }
-    bucket_config(
-        env,
-        "OSACA_PUSH_RELAY_SOURCE_BUCKET",
-        BucketConfig {
-            entries: DEFAULT_SOURCE_BUCKET_ENTRIES,
-            per_minute: DEFAULT_SOURCE_BUCKET_PER_MINUTE,
-            burst: DEFAULT_SOURCE_BUCKET_BURST,
-        },
-    )
-    .map(Some)
 }
 
 fn apns_config(env: &Env) -> anyhow::Result<Option<ApnsConfig>> {

@@ -40,8 +40,6 @@ pub struct InstanceConfigResponse {
     #[serde(default)]
     pub media: InstanceMediaResponse,
     #[serde(default)]
-    pub push_relay: PushRelayConfigResponse,
-    #[serde(default)]
     pub domain_migration: DomainMigrationConfigResponse,
     #[serde(default)]
     pub voice_p2p: VoiceP2pConfigResponse,
@@ -589,20 +587,6 @@ pub const VOICE_P2P_MAX_PARTICIPANTS_RANGE: std::ops::RangeInclusive<u32> = 2..=
 pub const CAPTCHA_COST_RANGE: std::ops::RangeInclusive<u32> = 1_000..=20_000;
 pub const CAPTCHA_MAX_COUNTER_RANGE: std::ops::RangeInclusive<u32> = 100..=20_000;
 
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[serde(default)]
-pub struct PushRelayConfigResponse {
-    pub relay_consent_accepted: bool,
-    pub relay_consent_accepted_at: Option<String>,
-    pub relay_consent_accepted_by: Option<String>,
-}
-
-#[derive(Clone, Debug, Default, Serialize)]
-pub struct PushRelayConfigUpdateRequest {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub relay_consent_accepted: Option<bool>,
-}
-
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(default)]
 pub struct DomainMigrationConfigResponse {
@@ -945,8 +929,6 @@ pub struct InstanceConfigUpdateRequest {
     pub integrations: Option<InstanceIntegrationsUpdateRequest>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub media: Option<InstanceMediaUpdateRequest>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub push_relay: Option<PushRelayConfigUpdateRequest>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub domain_migration: Option<DomainMigrationConfigUpdateRequest>,
     #[serde(skip_serializing_if = "Option::is_none")]

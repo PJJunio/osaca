@@ -247,10 +247,8 @@ On a `username` instance, email routes return 400 `EMAIL_UNAVAILABLE_ON_INSTANCE
 | Field | Type | Description |
 | --- | --- | --- |
 | public_vapid_key | ?string | The Web Push VAPID public key, or null when Web Push isn't set up |
-| delivery_mode? | string | How push notifications get to devices, `direct`, `external_relay` or `hybrid` |
+| delivery_mode? | string | How push notifications get to devices. Always `direct` |
 | event_resolution_path? | string | The API path to call to get the payload of a push event |
-| external_relay_url? | ?string | The URL of the external push relay, or null |
-| relay_signing_key_hashes? | ?array[string] | Hashes of the keys the external push relay signs with, or null |
 
 ## Limit configuration object
 

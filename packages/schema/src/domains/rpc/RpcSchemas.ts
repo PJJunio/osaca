@@ -9,7 +9,6 @@ import {FORUM_UNREAD_COUNT_CAP, FORUM_UNREADS_MAX_THREADS} from '@osaca/constant
 import {AccountTierSchema} from '@osaca/schema/src/domains/account/AccountTierSchemas';
 import {ChannelThreadsConfigResponse} from '@osaca/schema/src/domains/admin/ChannelThreadsSchemas';
 import {GatewayRolloutConfigResponse} from '@osaca/schema/src/domains/admin/GatewayRolloutSchemas';
-import {LegacyPushServiceDeliveryWire} from '@osaca/schema/src/domains/admin/PushRelaySchemas';
 import {WebAuthnCredentialResponse} from '@osaca/schema/src/domains/auth/AuthSchemas';
 import {ChannelResponse, RtcRegionResponse} from '@osaca/schema/src/domains/channel/ChannelSchemas';
 import {
@@ -219,11 +218,6 @@ export const RpcRequest = z.discriminatedUnion('type', [
 	}),
 	z.object({
 		type: z.literal('get_gateway_rollout_config').describe('Request type for fetching gateway rollout configuration'),
-	}),
-	z.object({
-		type: z
-			.literal('get_push_service_delivery_config')
-			.describe('Request type for fetching push service delivery configuration'),
 	}),
 	z.object({
 		type: z.literal('get_channel_threads_config').describe('Request type for fetching channel threads configuration'),
@@ -564,16 +558,6 @@ export const RpcResponse = z.discriminatedUnion('type', [
 				config: GatewayRolloutConfigResponse.describe('Gateway rollout configuration'),
 			})
 			.describe('Gateway rollout config result'),
-	}),
-	z.object({
-		type: z
-			.literal('get_push_service_delivery_config')
-			.describe('Response type for push service delivery configuration'),
-		data: z
-			.object({
-				config: LegacyPushServiceDeliveryWire.describe('Push service delivery configuration'),
-			})
-			.describe('Push service delivery config result'),
 	}),
 	z.object({
 		type: z.literal('get_channel_threads_config').describe('Response type for channel threads configuration'),

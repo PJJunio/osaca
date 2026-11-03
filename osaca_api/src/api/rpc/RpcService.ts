@@ -549,13 +549,6 @@ export class RpcService {
 					data: {config: rolloutConfig},
 				};
 			}
-			case 'get_push_service_delivery_config': {
-				const config = await this.instanceConfigRepository.getLegacyPushServiceDeliveryWire();
-				return {
-					type: 'get_push_service_delivery_config',
-					data: {config},
-				};
-			}
 			case 'get_channel_threads_config': {
 				const config = await this.instanceConfigRepository.getChannelThreadsConfig();
 				return {

@@ -62,16 +62,6 @@ impl RpcClient {
         }
     }
 
-    pub async fn push_service_delivery_config(&self) -> Result<Value, RpcError> {
-        let data: PushServiceDeliveryConfigData = self
-            .call(
-                RpcMethod::GetPushServiceDeliveryConfig,
-                &json!({"type": "get_push_service_delivery_config"}),
-            )
-            .await?;
-        Ok(data.config)
-    }
-
     pub async fn badge_counts(
         &self,
         user_ids: &[String],
@@ -192,11 +182,6 @@ impl RpcClient {
         let data = envelope.remove("data").unwrap_or_else(|| json!({}));
         Ok(serde_json::from_value(data)?)
     }
-}
-
-#[derive(Deserialize)]
-struct PushServiceDeliveryConfigData {
-    config: Value,
 }
 
 #[derive(Deserialize)]

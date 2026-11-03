@@ -20,7 +20,6 @@ export type WizardStep =
 	| 'direct_messages'
 	| 'personal_notes'
 	| 'registration'
-	| 'push_relay'
 	| 'services'
 	| 'attachments'
 	| 'review'
@@ -107,7 +106,6 @@ const STEP_DEFINITIONS: ReadonlyArray<StepDefinition> = [
 	{id: 'direct_messages', shown: afterAccount, counted: true, beforeAccount: false},
 	{id: 'personal_notes', shown: afterAccount, counted: true, beforeAccount: false},
 	{id: 'registration', shown: afterAccount, counted: true, beforeAccount: false},
-	{id: 'push_relay', shown: afterAccount, counted: true, beforeAccount: false},
 	{id: 'services', shown: afterAccount, counted: true, beforeAccount: false},
 	{id: 'attachments', shown: afterAccount, counted: true, beforeAccount: false},
 	{id: 'review', shown: afterAccount, counted: true, beforeAccount: false},

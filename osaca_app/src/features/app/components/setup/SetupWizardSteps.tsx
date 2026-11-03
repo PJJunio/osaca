@@ -86,16 +86,6 @@ export const REGISTRATION_OPEN_NAME_DESCRIPTOR = msg({
 	comment: 'Registration mode option where anyone can sign up.',
 });
 
-export const PUSH_YES_NAME_DESCRIPTOR = msg({
-	message: 'Yes, use the push relay',
-	comment: 'Setup wizard option that accepts the push relay privacy notice.',
-});
-
-export const PUSH_NO_NAME_DESCRIPTOR = msg({
-	message: 'Not now',
-	comment: 'Setup wizard option that leaves the push relay off.',
-});
-
 const DONE_TITLE_DESCRIPTOR = msg({
 	message: '{name} is ready',
 	comment: 'Title of the last setup wizard screen. name is the instance name.',
@@ -349,7 +339,6 @@ export const SUMMARY_DESCRIPTORS = {
 	directMessages: msg({message: 'Direct messages', comment: 'Review row label for direct messages.'}),
 	personalNotes: msg({message: 'Personal notes', comment: 'Review row label for personal notes.'}),
 	registration: msg({message: 'Who can create an account', comment: 'Review row label for the registration mode.'}),
-	push: msg({message: 'Phone notifications', comment: 'Review row label for the push relay.'}),
 	youtube: msg({message: 'YouTube previews', comment: 'Review row label for YouTube link previews.'}),
 	attachments: msg({message: 'Old attachments', comment: 'Review row label for automatic attachment expiry.'}),
 	usernames: msg({message: 'Usernames', comment: 'Review value when people sign in with a username.'}),
@@ -382,6 +371,4 @@ export const SUMMARY_DESCRIPTORS = {
 	registrationClosed: REGISTRATION_CLOSED_NAME_DESCRIPTOR,
 	registrationApproval: REGISTRATION_APPROVAL_NAME_DESCRIPTOR,
 	registrationOpen: REGISTRATION_OPEN_NAME_DESCRIPTOR,
-	pushOn: PUSH_YES_NAME_DESCRIPTOR,
-	pushOff: PUSH_NO_NAME_DESCRIPTOR,
 };

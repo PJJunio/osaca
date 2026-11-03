@@ -3,8 +3,6 @@
 use crate::config::{Config, DeliveryConfig};
 use crate::delivery;
 use crate::metrics::Metrics;
-use crate::relay;
-use crate::relay_consent::{self, RelayConsentStore};
 use crate::rpc::RpcClient;
 use crate::tokens::TokenCache;
 use crate::vendor;
@@ -84,7 +82,6 @@ pub struct AppState {
     pub(crate) cfg: DeliveryConfig,
     pub(crate) metrics: Arc<Metrics>,
     pub(crate) sidecar: Arc<Sidecar>,
-    pub(crate) relay_consent: RelayConsentStore,
     pub(crate) rpc: RpcClient,
     pub(crate) http: reqwest::Client,
     pub(crate) web_push_http: reqwest::Client,
@@ -96,12 +93,9 @@ pub struct AppState {
 impl AppState {
     pub(crate) fn try_new(cfg: DeliveryConfig) -> anyhow::Result<Self> {
         let metrics = Arc::new(Metrics::new());
-        let relay_consent = RelayConsentStore::new(cfg.relay_consent_accepted);
-        metrics.record_relay_consent_accepted(relay_consent.accepted());
         let http = vendor::http_client()?;
         Ok(Self {
             rpc: RpcClient::new(&cfg.rpc, http.clone(), Arc::clone(&metrics)),
-            relay_consent,
             sidecar: Arc::new(Sidecar::new(Arc::clone(&metrics))),
             web_push_http: vendor::web_push_http_client(&cfg.private_hosts)?,
             apns_http: vendor::apns_http_client()?,
@@ -117,7 +111,6 @@ impl AppState {
 pub async fn run(cfg: Config) -> anyhow::Result<()> {
     match cfg {
         Config::Delivery(cfg) => run_delivery(*cfg).await,
-        Config::Relay(cfg) => relay::run(*cfg).await,
     }
 }
 
@@ -135,25 +128,10 @@ async fn run_delivery(cfg: DeliveryConfig) -> anyhow::Result<()> {
 
     state.sidecar.set_serving(true);
 
-    let subscriber = tokio::spawn({
-        let transport = transport.clone();
-        let state = Arc::clone(&state);
-        async move {
-            relay_consent::run_subscriber(
-                transport,
-                &state.rpc,
-                &state.relay_consent,
-                &state.metrics,
-                relay_consent::RECONCILE_INTERVAL,
-            )
-            .await
-        }
-    });
     let jobs = tokio::spawn(delivery::run_job_subscribers(transport, Arc::clone(&state)));
 
     wait_for_shutdown().await;
     state.sidecar.set_serving(false);
-    subscriber.abort();
     drain_jobs(&state, jobs, JOB_DRAIN_TIMEOUT).await;
     serving.stop().await;
     Ok(())

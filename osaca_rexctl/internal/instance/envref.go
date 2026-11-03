@@ -85,7 +85,6 @@ var envInternalGroups = []envSection{
 	{"hosted", "Hosted service only", "Only OSACA's hosted service uses these.", ""},
 	{"prices", "Stripe price IDs", "Set prices with OSACA_STRIPE_PRICES or in the admin panel.", ""},
 	{"cluster", "Gateway clustering", "The stack runs the gateway as one node.", ""},
-	{"relay", "Push relay", "Only the push relay OSACA runs for the mobile apps uses these.", ""},
 	{"cassandra", "Cassandra", "The stack runs Postgres only.", ""},
 	{"docs", "Docs site", "The docs site isn't part of the compose stack.", ""},
 	{"dev", "Tests and development", "Only tests and development use these.", ""},

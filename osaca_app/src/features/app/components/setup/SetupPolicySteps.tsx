@@ -3,8 +3,6 @@
 import styles from '@app/features/app/components/setup/SelfHostedSetupWizardGate.module.css';
 import {
 	Note,
-	PUSH_NO_NAME_DESCRIPTOR,
-	PUSH_YES_NAME_DESCRIPTOR,
 	REGISTRATION_APPROVAL_NAME_DESCRIPTOR,
 	REGISTRATION_CLOSED_NAME_DESCRIPTOR,
 	REGISTRATION_OPEN_NAME_DESCRIPTOR,
@@ -12,7 +10,6 @@ import {
 	StepHeader,
 } from '@app/features/app/components/setup/SetupWizardSteps';
 import {Input} from '@app/features/ui/components/form/FormInput';
-import FocusRing from '@app/features/ui/focus_ring/FocusRing';
 import {RadioGroup, type RadioOption} from '@app/features/ui/radio_group/RadioGroup';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
@@ -30,7 +27,6 @@ import {
 	useState,
 } from 'react';
 
-const PUSH_RELAY_NOTICE_URL = 'https://osaca.example/push-relay';
 const MIN_COMMUNITY_NAME_LENGTH = 1;
 const MAX_COMMUNITY_NAME_LENGTH = 100;
 
@@ -130,32 +126,12 @@ const REGISTRATION_OPEN_NOTE_DESCRIPTOR = msg({
 	comment: 'Note shown when open registration is chosen in the setup wizard.',
 });
 
-const PUSH_TITLE_DESCRIPTOR = msg({
-	message: 'Send notifications to the OSACA mobile apps?',
-	comment: 'Setup wizard title for the push relay consent.',
-});
-const PUSH_BODY_DESCRIPTOR = msg({
-	message:
-		'The OSACA apps for iOS and Android get notifications through a push relay that OSACA runs, which passes them to Apple and Google. To use it, you accept the push relay privacy notice.',
-	comment: 'Setup wizard body explaining the push relay.',
-});
-const PUSH_NOTICE_LINK_DESCRIPTOR = msg({
-	message: 'Read the push relay privacy notice',
-	comment: 'Link to the push relay privacy notice in the setup wizard.',
-});
-const PUSH_NO_DESC_DESCRIPTOR = msg({
-	message:
-		"People using the OSACA mobile apps won't get notifications from your instance. You can turn this on later in the admin panel.",
-	comment: 'Description of leaving the push relay off in the setup wizard.',
-});
-
 export interface FinishDraft {
 	registrationMode: RegistrationMode;
 	singleCommunityEnabled: boolean;
 	singleCommunityName: string;
 	directMessagesDisabled: boolean;
 	personalNotesEnabled: boolean;
-	pushRelayConsentAccepted: boolean;
 }
 
 interface PolicyDraftState {
@@ -173,7 +149,6 @@ export function SetupPolicyDraftProvider({children}: {children: ReactNode}) {
 		singleCommunityName: '',
 		directMessagesDisabled: false,
 		personalNotesEnabled: false,
-		pushRelayConsentAccepted: false,
 	});
 	const updateDraft = useCallback((patch: Partial<FinishDraft>) => {
 		setDraft((current) => ({...current, ...patch}));
@@ -373,45 +348,6 @@ export const RegistrationStep = observer(() => {
 					{i18n._(REGISTRATION_OPEN_NOTE_DESCRIPTOR)}
 				</Note>
 			)}
-		</section>
-	);
-});
-
-export const PushRelayStep = observer(() => {
-	const {i18n} = useLingui();
-	const {
-		draft: {pushRelayConsentAccepted: accepted},
-		updateDraft,
-	} = useSetupPolicyDraft();
-	const options: ReadonlyArray<RadioOption<'yes' | 'no'>> = [
-		{value: 'yes', name: i18n._(PUSH_YES_NAME_DESCRIPTOR)},
-		{value: 'no', name: i18n._(PUSH_NO_NAME_DESCRIPTOR), desc: i18n._(PUSH_NO_DESC_DESCRIPTOR)},
-	];
-	return (
-		<section className={styles.step} data-flx="app.self-hosted-setup-wizard-gate.push-relay-step">
-			<StepHeader
-				title={i18n._(PUSH_TITLE_DESCRIPTOR)}
-				body={i18n._(PUSH_BODY_DESCRIPTOR)}
-				data-flx="app.setup.setup-wizard-steps.push-relay-step.step-header"
-			/>
-			<FocusRing data-flx="app.self-hosted-setup-wizard-gate.push-relay-notice-focus-ring">
-				<a
-					className={styles.link}
-					href={PUSH_RELAY_NOTICE_URL}
-					target="_blank"
-					rel="noreferrer"
-					data-flx="app.self-hosted-setup-wizard-gate.push-relay-notice-link"
-				>
-					{i18n._(PUSH_NOTICE_LINK_DESCRIPTOR)}
-				</a>
-			</FocusRing>
-			<RadioGroup
-				options={options}
-				value={accepted ? 'yes' : 'no'}
-				onChange={(value) => updateDraft({pushRelayConsentAccepted: value === 'yes'})}
-				aria-label={i18n._(PUSH_TITLE_DESCRIPTOR)}
-				data-flx="app.self-hosted-setup-wizard-gate.push-relay-radio-group"
-			/>
 		</section>
 	);
 });

@@ -17544,7 +17544,6 @@
 						"additionalProperties": false
 					},
 					"gateway_rollout": {"$ref": "#/components/schemas/GatewayRolloutConfigResponse"},
-					"push_relay": {"$ref": "#/components/schemas/PushRelayConfigResponse"},
 					"domain_migration": {"$ref": "#/components/schemas/DomainMigrationConfigResponse"},
 					"voice_p2p": {"$ref": "#/components/schemas/VoiceP2pConfigResponse"},
 					"captcha": {"$ref": "#/components/schemas/CaptchaConfigResponse"},
@@ -18041,7 +18040,6 @@
 				"required": [
 					"sso",
 					"gateway_rollout",
-					"push_relay",
 					"domain_migration",
 					"voice_p2p",
 					"captcha",
@@ -18247,7 +18245,6 @@
 						"nullable": true,
 						"allOf": [{"$ref": "#/components/schemas/GatewayRolloutConfigUpdateRequest"}]
 					},
-					"push_relay": {"nullable": true, "allOf": [{"$ref": "#/components/schemas/PushRelayConfigUpdateRequest"}]},
 					"domain_migration": {
 						"nullable": true,
 						"allOf": [{"$ref": "#/components/schemas/DomainMigrationConfigUpdateRequest"}]
@@ -24078,7 +24075,6 @@
 					"standalone_forwarding": {"type": "boolean"}
 				}
 			},
-			"PushRelayConfigUpdateRequest": {"type": "object", "properties": {"relay_consent_accepted": {"type": "boolean"}}},
 			"GatewayRolloutConfigUpdateRequest": {
 				"type": "object",
 				"properties": {
@@ -24618,22 +24614,6 @@
 					"anonymous_rollout_basis_points",
 					"standalone_forwarding"
 				],
-				"additionalProperties": false
-			},
-			"PushRelayConfigResponse": {
-				"type": "object",
-				"properties": {
-					"relay_consent_accepted": {"default": false, "type": "boolean"},
-					"relay_consent_accepted_at": {
-						"default": null,
-						"nullable": true,
-						"type": "string",
-						"format": "date-time",
-						"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
-					},
-					"relay_consent_accepted_by": {"default": null, "nullable": true, "type": "string", "pattern": "^\\d{1,20}$"}
-				},
-				"required": ["relay_consent_accepted", "relay_consent_accepted_at", "relay_consent_accepted_by"],
 				"additionalProperties": false
 			},
 			"GatewayRolloutConfigResponse": {

@@ -766,7 +766,7 @@ The path to your APNs signing key file inside the push container. With rexctl, u
 
 ### `OSACA_PUSH_APNS_APPS`
 
-The apps the push service sends to through APNs, as a JSON array of objects. Each object has an `app_id` and a `topic` with the app's bundle ID, and can have an `environment` of `production` or `development`. APNs sends fail for an app that isn't listed or has no topic. A push relay with APNs on doesn't start until this lists at least one app. With rexctl, use `rexctl config set OSACA_PUSH_APNS_APPS`.
+The apps the push service sends to through APNs, as a JSON array of objects. Each object has an `app_id` and a `topic` with the app's bundle ID, and can have an `environment` of `production` or `development`. APNs sends fail for an app that isn't listed or has no topic. With rexctl, use `rexctl config set OSACA_PUSH_APNS_APPS`.
 
 ### `OSACA_PUSH_APNS_DEFAULT_ENVIRONMENT`
 
@@ -802,7 +802,7 @@ The OAuth token URL the push service uses for FCM. When it's empty, it uses `htt
 
 ### `OSACA_PUSH_FCM_APPS`
 
-The apps the push service sends to through FCM, as a JSON array of objects that each have an `app_id` and can have a `project_id`. An app with no entry or no `project_id` uses `OSACA_PUSH_FCM_PROJECT_ID`. A push relay with FCM on doesn't start until this lists at least one app. With rexctl, use `rexctl config set OSACA_PUSH_FCM_APPS`.
+The apps the push service sends to through FCM, as a JSON array of objects that each have an `app_id` and can have a `project_id`. An app with no entry or no `project_id` uses `OSACA_PUSH_FCM_PROJECT_ID`. With rexctl, use `rexctl config set OSACA_PUSH_FCM_APPS`.
 
 ### `OSACA_VAPID_EMAIL`
 
@@ -824,21 +824,9 @@ A URL that replaces the APNs host in both environments, for a test double only. 
 
 The FCM host the push service sends to. When it's empty, it uses `https://fcm.googleapis.com`. Change it only for a proxy or a test double. With rexctl, use `rexctl config set OSACA_PUSH_SERVICE_FCM_BASE_URL`.
 
-### `OSACA_PUSH_SERVICE_MANAGED_RELAY_HOSTS`
-
-Hostnames, separated by commas, of the push relay that OSACA runs. When it's empty, the push service uses `push.osaca.example`. It sends to these hosts only once relay consent is accepted. With rexctl, use `rexctl config set OSACA_PUSH_SERVICE_MANAGED_RELAY_HOSTS`.
-
-### `OSACA_PUSH_SERVICE_OWN_RELAY_HOSTS`
-
-Hostnames, separated by commas, of a push relay your instance runs itself. The push service sends mobile app notifications addressed to these hosts directly to APNs or FCM with its own credentials. With rexctl, use `rexctl config set OSACA_PUSH_SERVICE_OWN_RELAY_HOSTS`.
-
 ### `OSACA_PUSH_SERVICE_PRIVATE_HOSTS`
 
 Hostnames, separated by commas, that push endpoints may use even when they resolve to private or loopback addresses, such as a ntfy service on your own network. The push service refuses every other such endpoint. With rexctl, use `rexctl config set OSACA_PUSH_SERVICE_PRIVATE_HOSTS`.
-
-### `OSACA_PUSH_SERVICE_RELAY_CONSENT_ACCEPTED`
-
-Whether this push service accepts the push relay privacy notice, which lets it send through the relay OSACA runs. Use `true`, `1` or `yes` to accept. With `false`, `0`, `no` or an empty value, the push relay setting of the instance decides. With rexctl, use `rexctl config set OSACA_PUSH_SERVICE_RELAY_CONSENT_ACCEPTED`.
 
 ## Media
 
@@ -1142,11 +1130,11 @@ How many requests the API handles at once before it responds to new ones with 50
 
 ### `OSACA_TRUST_CLIENT_IP_HEADER`
 
-Whether OSACA trusts the client address in the `OSACA_CLIENT_IP_HEADER_NAME` header. Use `true` or `false`. The api, worker, admin and gateway services and the push relay use it. With `false`, they use the address of the connection, which behind the edge is the edge itself. Outside Docker Compose, the services use `false` when it's empty. The default is `true`. With rexctl, use `rexctl config set OSACA_TRUST_CLIENT_IP_HEADER`.
+Whether OSACA trusts the client address in the `OSACA_CLIENT_IP_HEADER_NAME` header. Use `true` or `false`. The api, worker, admin and gateway services use it. With `false`, they use the address of the connection, which behind the edge is the edge itself. Outside Docker Compose, the services use `false` when it's empty. The default is `true`. With rexctl, use `rexctl config set OSACA_TRUST_CLIENT_IP_HEADER`.
 
 ### `OSACA_CLIENT_IP_HEADER_NAME`
 
-The request header that has the client's IP address. When it's empty, the api, worker, admin and gateway services and the push relay use `x-forwarded-for`, the header the edge sets. With rexctl, use `rexctl config set OSACA_CLIENT_IP_HEADER_NAME`.
+The request header that has the client's IP address. When it's empty, the api, worker, admin and gateway services use `x-forwarded-for`, the header the edge sets. With rexctl, use `rexctl config set OSACA_CLIENT_IP_HEADER_NAME`.
 
 ### `OSACA_API_IP_BAN_EXEMPT_IPS`
 
@@ -2167,7 +2155,7 @@ The address the push service listens on. When it's empty, it listens on `0.0.0.0
 
 ### `OSACA_PUSH_SERVICE_PORT`
 
-The port the push service listens on. When it's empty, it uses `8126`, or `8127` for the push relay.
+The port the push service listens on. When it's empty, it uses `8126`.
 
 ### `OSACA_S3_BUCKET_STATIC`
 
@@ -2588,50 +2576,6 @@ The communities the gateway pins to particular nodes.
 #### `OSACA_GATEWAY_ROLE`
 
 The role of a gateway node in a cluster.
-
-### Push relay
-
-Only the push relay OSACA runs for the mobile apps uses these.
-
-#### `OSACA_PUSH_RELAY_MAX_BODY_BYTES`
-
-The largest request the push relay accepts, in bytes.
-
-#### `OSACA_PUSH_RELAY_MAX_CONCURRENT`
-
-How many requests the push relay handles at once.
-
-#### `OSACA_PUSH_RELAY_SOURCE_BUCKET_BURST`
-
-How many requests the push relay allows from one client address in a burst.
-
-#### `OSACA_PUSH_RELAY_SOURCE_BUCKET_ENABLED`
-
-Whether the push relay rate limits each client address itself.
-
-#### `OSACA_PUSH_RELAY_SOURCE_BUCKET_ENTRIES`
-
-How many client addresses the push relay rate limit tracks.
-
-#### `OSACA_PUSH_RELAY_SOURCE_BUCKET_PER_MINUTE`
-
-How many requests a minute the push relay allows from one client address.
-
-#### `OSACA_PUSH_RELAY_TOKEN_BUCKET_BURST`
-
-How many requests the push relay allows for one device token in a burst.
-
-#### `OSACA_PUSH_RELAY_TOKEN_BUCKET_ENTRIES`
-
-How many device tokens the push relay rate limit tracks.
-
-#### `OSACA_PUSH_RELAY_TOKEN_BUCKET_PER_MINUTE`
-
-How many requests a minute the push relay allows for one device token.
-
-#### `OSACA_PUSH_RELAY_TRUSTED_PROXY_HOPS`
-
-How many proxies in front of the push relay it trusts.
 
 ### Cassandra
 

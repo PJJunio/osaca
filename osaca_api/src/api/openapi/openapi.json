@@ -37692,11 +37692,6 @@
 					"event_resolution_path": {
 						"description": "API path clients call to resolve the payload of a push event",
 						"type": "string"
-					},
-					"external_relay_url": {"description": "URL of the external push relay, if any", "type": ["string", "null"]},
-					"relay_signing_key_hashes": {
-						"description": "Hashes of the keys the external push relay signs with",
-						"anyOf": [{"type": "array", "items": {"type": "string"}}, {"type": "null"}]
 					}
 				},
 				"required": ["public_vapid_key"],
@@ -38031,7 +38026,7 @@
 				"enum": ["open", "approval", "closed"],
 				"type": "string"
 			},
-			"InstancePushDeliveryModeSchema": {"type": "string", "enum": ["direct", "external_relay", "hybrid"]},
+			"InstancePushDeliveryModeSchema": {"type": "string", "enum": ["direct"]},
 			"AccountIdentityLockReasonSchema": {
 				"description": "Why the sign-in method can no longer change",
 				"x-enumNames": ["SETUP_CONFIGURED", "EXISTING_INSTANCE", "ADMIN_EXISTS", "ACCOUNTS_EXIST"],

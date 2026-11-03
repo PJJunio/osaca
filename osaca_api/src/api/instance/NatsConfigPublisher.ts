@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type {GatewayRolloutConfig} from '@osaca/schema/src/domains/admin/GatewayRolloutSchemas';
-import type {LegacyPushServiceDeliveryWire} from '@osaca/schema/src/domains/admin/PushRelaySchemas';
 import type {INatsConnectionManager} from '@pkgs/nats/src/INatsConnectionManager';
 
 const textEncoder = new TextEncoder();
-type ConfigMessage =
-	| [subject: 'config.gateway.rollout', type: 'gateway_rollout_config', config: GatewayRolloutConfig]
-	| [subject: 'config.push.delivery', type: 'push_service_delivery_config', config: LegacyPushServiceDeliveryWire];
+type ConfigMessage = [subject: 'config.gateway.rollout', type: 'gateway_rollout_config', config: GatewayRolloutConfig];
 export class NatsConfigPublisher {
 	constructor(private readonly connectionManager: INatsConnectionManager) {}
 	async publish(...[subject, type, config]: ConfigMessage): Promise<void> {

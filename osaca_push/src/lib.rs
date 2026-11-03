@@ -9,8 +9,6 @@ mod job;
 mod metrics;
 mod payload;
 mod providers;
-mod relay;
-mod relay_consent;
 mod resolver;
 mod retry;
 mod rpc;

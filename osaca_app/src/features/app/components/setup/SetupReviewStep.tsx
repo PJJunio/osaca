@@ -174,12 +174,6 @@ function reviewRows(
 			onChange: () => onChange('registration'),
 		},
 		{
-			key: 'push',
-			label: t(SUMMARY_DESCRIPTORS.push),
-			value: t(finishDraft.pushRelayConsentAccepted ? SUMMARY_DESCRIPTORS.pushOn : SUMMARY_DESCRIPTORS.pushOff),
-			onChange: () => onChange('push_relay'),
-		},
-		{
 			key: 'youtube',
 			label: t(SUMMARY_DESCRIPTORS.youtube),
 			value: t(config.integrations.youtube.api_key_set ? SUMMARY_DESCRIPTORS.on : SUMMARY_DESCRIPTORS.skipped),

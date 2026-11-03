@@ -693,11 +693,6 @@
     "help": "Policy single community name"
   },
   {
-    "key": "push_relay.relay_consent_accepted",
-    "type": "boolean",
-    "help": "Push relay relay consent accepted"
-  },
-  {
     "key": "registration.admin_registration_urls_enabled",
     "type": "boolean",
     "help": "Registration admin registration URLs enabled"

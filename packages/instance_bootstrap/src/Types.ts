@@ -45,11 +45,7 @@ export const REGISTRATION_MODES = Object.freeze(['open', 'approval', 'closed'] a
 	InstanceRegistration['mode']
 >;
 
-export const PUSH_DELIVERY_MODES = Object.freeze([
-	'direct',
-	'external_relay',
-	'hybrid',
-] as const) satisfies ReadonlyArray<InstancePushDeliveryMode>;
+export const PUSH_DELIVERY_MODES = Object.freeze(['direct'] as const) satisfies ReadonlyArray<InstancePushDeliveryMode>;
 
 export const AGE_POLICY_ACTIONS = Object.freeze([
 	'restrict',

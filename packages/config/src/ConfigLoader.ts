@@ -132,7 +132,6 @@ function defaultConfig(): MasterConfig {
 					secret_base64: '',
 					max_body_bytes: 524_288_000,
 					token_ttl_secs: 900,
-					keep_direct_countries: [],
 				},
 				attachment_urls: {
 					secrets_base64: [],
@@ -263,9 +262,6 @@ function defaultConfig(): MasterConfig {
 			relax_registration_rate_limits: false,
 			disable_rate_limits: false,
 			test_mode_enabled: false,
-		},
-		geoip: {
-			maxmind_db_path: '',
 		},
 		proxy: {
 			trust_client_ip_header: false,

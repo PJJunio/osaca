@@ -31,7 +31,6 @@ import type {User} from '@app/api/models/User';
 import {tierContextFromRequest} from '@app/api/user/AccountTier';
 import {findPersonByLoginHandle, type ParsedLoginHandle, parseLoginHandle} from '@app/api/user/UniqueUsernames';
 import {BELOW_MINIMUM_AGE_TRAIT} from '@app/api/user/UserTraits';
-import {lookupGeoip} from '@app/api/utils/IpUtils';
 import {verifyPassword} from '@app/api/utils/PasswordUtils';
 import * as RandomUtils from '@app/api/utils/RandomUtils';
 import {createRateLimitError} from '@app/api/utils/RateLimitUtils';
@@ -50,7 +49,6 @@ import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidati
 import {getSameIpDecisionKey} from '@osaca/ip_utils/src/IpAddress';
 import type {LoginRequest} from '@osaca/schema/src/domains/auth/AuthSchemas';
 import {EmailType} from '@osaca/schema/src/primitives/UserValidators';
-import {formatGeoipLocation} from '@pkgs/geoip/src/GeoipLookup';
 import type {AuthenticationResponseJSON} from '@simplewebauthn/server';
 import {ms, seconds} from 'itty-time';
 
@@ -339,10 +337,7 @@ export async function login(
 			} else {
 				const ticket = createIpAuthorizationTicket(await RandomUtils.randomString(64));
 				const authToken = createIpAuthorizationToken(await RandomUtils.randomString(64));
-				const geoipResult = await lookupGeoip(clientIp);
-				const clientLocation =
-					formatGeoipLocation(geoipResult, currentUser.locale) ??
-					getContentMessage('auth.unknown_location', currentUser.locale);
+				const clientLocation = getContentMessage('auth.unknown_location', currentUser.locale);
 				const cachePayload: IpAuthorizationTicketCache = {
 					userId: currentUser.id.toString(),
 					email: currentUser.email!,

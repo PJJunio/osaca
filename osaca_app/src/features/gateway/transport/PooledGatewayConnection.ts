@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import GeoIP from '@app/features/app/state/GeoIP';
 import Initialization from '@app/features/app/state/Initialization';
 import InstanceSnapshotStore, {runtimeInstanceKey} from '@app/features/app/state/InstanceSnapshotStore';
 import {ResettableStates} from '@app/features/app/state/ResettableStates';
@@ -347,7 +346,6 @@ export class PooledGatewayConnection {
 		if (longitude !== null) {
 			this.gatewayLongitude = longitude;
 		}
-		GeoIP.applyConnectionFallbackGeo({countryCode, regionCode: null, latitude, longitude});
 	}
 
 	private cleanupSocket(): void {
@@ -486,7 +484,7 @@ export class PooledGatewayConnection {
 			identifyFlags,
 			initialGuildId,
 			isMobileLayout: () => MobileLayout.isMobileLayout(),
-			geo: () => ({latitude: GeoIP.latitude, longitude: GeoIP.longitude}),
+			geo: () => ({latitude: null, longitude: null}),
 			logName: gatewayLogName(accountKey),
 		});
 		this.installSocketWiring(socket, generation, accountKey);
@@ -672,10 +670,7 @@ export class PooledGatewayConnection {
 			}
 			let properties: GatewaySocketProperties;
 			try {
-				properties = await getGatewayClientProperties({
-					latitude: GeoIP.latitude,
-					longitude: GeoIP.longitude,
-				});
+				properties = await getGatewayClientProperties();
 			} catch (err) {
 				logger.error('Failed to gather client metadata for gateway identification', err);
 				return this.failForegroundSession(accountKey, generation, err);

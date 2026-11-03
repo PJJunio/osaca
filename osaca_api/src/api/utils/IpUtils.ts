@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import dns from 'node:dns';
-import {Config} from '@app/api/Config';
-import {extractConfiguredClientIp} from '@app/api/utils/RequestClientIp';
 import type {ICacheService} from '@pkgs/cache/src/ICacheService';
-import type {GeoipResult} from '@pkgs/geoip/src/GeoipLookup';
-import {formatGeoipLocation, lookupGeoipByIp} from '@pkgs/geoip/src/GeoipLookup';
 import {seconds} from 'itty-time';
 
 const REVERSE_DNS_CACHE_TTL_SECONDS = seconds('1 day');
@@ -14,16 +10,6 @@ const REVERSE_DNS_CACHE_PREFIX = 'reverse-dns:';
 interface GetIpAddressReverseOptions {
 	timeoutMs?: number;
 	cacheTtlSeconds?: number;
-}
-
-export async function lookupGeoip(req: Request): Promise<GeoipResult>;
-export async function lookupGeoip(ip: string): Promise<GeoipResult>;
-export async function lookupGeoip(input: string | Request): Promise<GeoipResult> {
-	const ip = typeof input === 'string' ? input : extractConfiguredClientIp(input);
-	if (!ip) {
-		return {countryCode: null, normalizedIp: null, city: null, region: null, countryName: null};
-	}
-	return lookupGeoipByIp(ip, Config.geoip.maxmindDbPath);
 }
 
 export async function getIpAddressReverse(
@@ -60,9 +46,4 @@ export async function getIpAddressReverse(
 		await cacheService.set(cacheKey, result ?? '', options.cacheTtlSeconds ?? REVERSE_DNS_CACHE_TTL_SECONDS);
 	}
 	return result;
-}
-
-export async function getLocationLabelFromIp(ip: string): Promise<string | null> {
-	const result = await lookupGeoipByIp(ip, Config.geoip.maxmindDbPath);
-	return formatGeoipLocation(result);
 }

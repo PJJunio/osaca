@@ -8,7 +8,6 @@ import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
 import {RateLimitConfigs} from '@app/api/RateLimitConfig';
 import type {HonoApp} from '@app/api/types/HonoEnv';
 import {entityTagMatches} from '@app/api/utils/EntityTag';
-import {lookupGeoip} from '@app/api/utils/IpUtils';
 import {Headers as HttpHeaders} from '@osaca/constants/src/Headers';
 import {resolveDomainMigrationAssignment} from '@osaca/schema/src/domains/admin/DomainMigrationSchemas';
 import {guildVisitsUserActive} from '@osaca/schema/src/domains/admin/GuildVisitsSchemas';
@@ -32,21 +31,17 @@ export function ExperimentController(app: HonoApp) {
 		}),
 		async (ctx) => {
 			const instanceConfigRepository = ctx.get('instanceConfigRepository');
-			const [delivery, domainMigrationConfig, channelThreadsConfig, voiceP2pConfig, geoip, guildVisitsConfig] =
+			const [delivery, domainMigrationConfig, channelThreadsConfig, voiceP2pConfig, guildVisitsConfig] =
 				await Promise.all([
 					instanceConfigRepository.getExperimentDeliveryConfig(),
 					instanceConfigRepository.getDomainMigrationConfig(),
 					instanceConfigRepository.getChannelThreadsConfig(),
 					instanceConfigRepository.getVoiceP2pConfig(),
-					lookupGeoip(ctx.req.raw),
 					instanceConfigRepository.getGuildVisitsConfig(),
 				]);
 			const user = ctx.get('user');
 			const userId = user.id.toString();
-			const targeting = await resolveExperimentTargeting(user, geoip.countryCode, [
-				domainMigrationConfig,
-				voiceP2pConfig,
-			]);
+			const targeting = await resolveExperimentTargeting(user, null, [domainMigrationConfig, voiceP2pConfig]);
 			const body: ExperimentAssignmentsResponse = {
 				poll_interval_seconds: delivery.poll_interval_seconds,
 				poll_jitter_percent: delivery.poll_jitter_percent,

@@ -17,7 +17,6 @@ import {
 	findHoldingFeatureLimit,
 } from '@app/api/enforcement/FeatureLimitState';
 import {emitAdminAction} from '@app/api/infrastructure/activity/AccountChangeEvents';
-import {Logger} from '@app/api/Logger';
 import {requireGrantedAdminACLs} from '@app/api/middleware/AdminMiddleware';
 import {getEnforcementDecisionRepository, getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
 import type {AuthSession} from '@app/api/models/AuthSession';
@@ -30,17 +29,15 @@ import {
 } from '@app/api/user/services/PartialUserChangePropagation';
 import {mapWebAuthnCredentialToResponse} from '@app/api/user/UserMappers';
 import {resolveAssignedTraits} from '@app/api/user/UserTraits';
-import {getIpAddressReverse, getLocationLabelFromIp} from '@app/api/utils/IpUtils';
+import {getIpAddressReverse} from '@app/api/utils/IpUtils';
 import * as RandomUtils from '@app/api/utils/RandomUtils';
 import {resolveSessionClientInfo} from '@app/api/utils/SessionClientIdentity';
 import {AdminACLs} from '@osaca/constants/src/AdminACLs';
-import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import type {EnforcementLimit} from '@osaca/constants/src/EnforcementReasons';
 import {PremiumFlags, UserFlags} from '@osaca/constants/src/UserConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {AccessDeniedError} from '@osaca/errors/src/domains/core/AccessDeniedError';
 import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
-import {ServiceUnavailableError} from '@osaca/errors/src/domains/core/ServiceUnavailableError';
 import {EnforcementDecisionOwnsStateError} from '@osaca/errors/src/domains/moderation/EnforcementDecisionOwnsStateError';
 import {UnknownUserError} from '@osaca/errors/src/domains/user/UnknownUserError';
 import type {
@@ -661,22 +658,9 @@ export class AdminUserSecurityService {
 				}),
 			};
 		}
-		const locationResults = await Promise.allSettled(entries.map((entry) => getLocationLabelFromIp(entry.clientIp)));
 		const reverseDnsResults = await Promise.allSettled(
 			entries.map((entry) => getIpAddressReverse(entry.clientIp, cacheService)),
 		);
-		let failedCount = 0;
-		for (const result of locationResults) {
-			if (result.status === 'rejected') {
-				failedCount++;
-				Logger.warn({error: result.reason, userId: userId.toString()}, 'IP geolocation lookup failed');
-			}
-		}
-		if (locationResults.length > 0 && failedCount === locationResults.length) {
-			throw new ServiceUnavailableError({
-				code: APIErrorCodes.SERVICE_UNAVAILABLE,
-			});
-		}
 		await auditService.createAuditLog({
 			adminUserId,
 			targetType: 'user',
@@ -687,8 +671,6 @@ export class AdminUserSecurityService {
 		});
 		return {
 			sessions: entries.map((entry, index) => {
-				const locationResult = locationResults[index];
-				const clientLocation = locationResult.status === 'fulfilled' ? locationResult.value : null;
 				const reverseDnsResult = reverseDnsResults[index];
 				const clientIpReverse = reverseDnsResult?.status === 'fulfilled' ? reverseDnsResult.value : null;
 				const clientInfo = resolveSessionClientInfo({
@@ -704,7 +686,7 @@ export class AdminUserSecurityService {
 					client_ip_reverse: clientIpReverse,
 					client_os: clientInfo.os,
 					client_platform: clientInfo.platform,
-					client_location: clientLocation,
+					client_location: null,
 					...entry.app,
 					deleted_at: entry.deletedAt?.toISOString() ?? null,
 				};

@@ -467,23 +467,6 @@ What a client needs before anyone signs in.
 | region_code | ?string | The ISO 3166-2 subdivision code, or null for the whole country |
 | action | string | `restrict` to need an age check, or `block` to refuse access |
 
-## Geolocation object
-
-The approximate location of the request, and the places where mature content needs an age check or isn't available.
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| countryCode | ?string | The upper-case ISO 3166-1 alpha-2 country code, or null |
-| regionCode | ?string | The upper-case ISO 3166-2 subdivision code, or null |
-| latitude | ?string | The approximate latitude as a decimal string, or null |
-| longitude | ?string | The approximate longitude as a decimal string, or null |
-| ageRestrictedGeos | array[[geo entry](#geo-entry-object) object] | Places where mature content needs an age check |
-| ageBlockedGeos | array[[geo entry](#geo-entry-object) object] | Places where mature content isn't available |
-
-When the location is unknown, all four location fields are null. Match `countryCode` and `regionCode` against the geo lists yourself.
-
 ## Geo entry object
 
 ### Structure
@@ -558,20 +541,6 @@ The response has an `ETag` header, and a request with a matching `If-None-Match`
 | 400 | [error response](/http-api/#error-response) | `INVALID_FORM_BODY` for a bad parameter, a cursor from another list, or `ids` sent with `after` |
 
 The rate limit is 60 requests per minute, on the `instance:badges` bucket. A request with a valid token counts against the account, and a request without one counts against the IP address.
-
-## Get client geolocation
-
-<RouteHeader method="GET" path="/v1/ip" unauthenticated />
-
-Returns the [geolocation object](#geolocation-object) for your IP address.
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | [geolocation](#geolocation-object) object | The lookup ran, even if it found no location |
-
-The rate limit is 30 requests per minute, on the `ip:geo_lookup` bucket.
 
 ## Check the setup token
 

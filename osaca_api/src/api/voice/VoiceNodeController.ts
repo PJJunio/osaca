@@ -71,7 +71,7 @@ export function VoiceNodeController(app: HonoApp) {
 		async (ctx) => {
 			const service = nodeService(ctx);
 			const row = await service.authenticateJoin(ctx.req.header('Authorization'));
-			return ctx.json(await service.preview(row, ctx.req.valid('json'), getRequestClientIp(ctx)));
+			return ctx.json(await service.preview(row, ctx.req.valid('json')));
 		},
 	);
 	app.post(

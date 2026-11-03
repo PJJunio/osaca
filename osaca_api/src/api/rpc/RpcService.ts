@@ -102,7 +102,6 @@ import {canUserAccessNsfwContent} from '@app/api/utils/AgeUtils';
 import {deriveDominantAvatarColor} from '@app/api/utils/AvatarColorUtils';
 import {allSettledWithConcurrency} from '@app/api/utils/ConcurrencyUtils';
 import {calculateDistance, parseCoordinate} from '@app/api/utils/GeoUtils';
-import {lookupGeoip} from '@app/api/utils/IpUtils';
 import type {VoiceAccessContext, VoiceAvailabilityService} from '@app/api/voice/VoiceAvailabilityService';
 import type {VoiceService} from '@app/api/voice/VoiceService';
 import type {WebhookRepository} from '@app/api/webhook/WebhookRepository';
@@ -193,13 +192,6 @@ const PREMIUM_RECONCILE_ENQUEUE_COOLDOWN_SECONDS = 10 * 60;
 const PREMIUM_RECONCILE_ENQUEUE_COOLDOWN_KEY_PREFIX = 'rpc:premium:reconcile:enqueue:';
 const PAYMENT_RECONCILE_ENQUEUE_COOLDOWN_SECONDS = 30 * 60;
 const PAYMENT_RECONCILE_ENQUEUE_COOLDOWN_KEY_PREFIX = 'rpc:payment:reconcile:enqueue:';
-
-function serializeCoordinate(value: number | null | undefined): string | undefined {
-	if (value === null || value === undefined || !Number.isFinite(value)) {
-		return undefined;
-	}
-	return value.toString();
-}
 
 const THREAD_MEMBERS_RPC_DEFAULT_LIMIT = 1000;
 
@@ -986,23 +978,8 @@ export class RpcService {
 		timings.timeSync('sync_repaired_user_data', () => {
 			userData.user = user;
 		});
-		let countryCode = 'US';
-		let geoipCountryIso: string | null = null;
-		let geoipLatitude: string | undefined;
-		let geoipLongitude: string | undefined;
-		if (ip) {
-			const geoip = await timings.time('lookup_geoip', async () => lookupGeoip(ip));
-			timings.timeSync('map_geoip_result', () => {
-				geoipCountryIso = geoip.countryCode ?? null;
-				countryCode = geoip.countryCode ?? countryCode;
-				geoipLatitude = serializeCoordinate(geoip.latitude);
-				geoipLongitude = serializeCoordinate(geoip.longitude);
-			});
-		} else {
-			timings.timeSync('log_missing_geoip_ip', () => {
-				Logger.warn({context: 'rpc_geoip', reason: 'ip_missing'}, 'RPC session request missing IP for GeoIP');
-			});
-		}
+		const countryCode = 'US';
+		const geoipCountryIso: string | null = null;
 		const sessionStartStartedAtNs = startRpcTiming();
 		const sessionStartResult = await this.sessionStartService.processSessionStart({
 			userData,
@@ -1162,8 +1139,6 @@ export class RpcService {
 			pinned_dms: timeRpcStepSync(responseBuildSteps, 'map_pinned_dms', () => userData.pinnedDMs?.map(String) ?? []),
 			country_code: countryCode,
 			geoip_country_code: geoipCountryIso,
-			latitude: geoipLatitude,
-			longitude: geoipLongitude,
 			rtc_regions: rtcRegions,
 			webauthn_credentials: timeRpcStepSync(responseBuildSteps, 'map_webauthn_credentials', () =>
 				visibleWebAuthnCredentials(userData.webAuthnCredentials).map((cred) =>

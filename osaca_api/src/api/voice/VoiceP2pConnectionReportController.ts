@@ -8,9 +8,10 @@ import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
 import {getVoiceP2pConnectionReportRepository} from '@app/api/middleware/ServiceSingletons';
 import {RateLimitConfigs} from '@app/api/RateLimitConfig';
 import type {HonoApp} from '@app/api/types/HonoEnv';
-import {lookupGeoip} from '@app/api/utils/IpUtils';
+import {extractConfiguredClientIp} from '@app/api/utils/RequestClientIp';
 import {resolveSessionClientInfo} from '@app/api/utils/SessionClientIdentity';
 import {Validator} from '@app/api/Validator';
+import {normalizeIpString} from '@osaca/ip_utils/src/IpAddress';
 import {VoiceP2pConnectionReportsRequest} from '@osaca/schema/src/domains/voice/VoiceP2pConnectionReportSchemas';
 
 export function VoiceP2pConnectionReportController(app: HonoApp) {
@@ -37,7 +38,8 @@ export function VoiceP2pConnectionReportController(app: HonoApp) {
 				return ctx.body(null, 204);
 			}
 			const authSession = ctx.get('authSession');
-			const {countryCode, normalizedIp} = await lookupGeoip(ctx.req.raw);
+			const clientIp = extractConfiguredClientIp(ctx.req.raw);
+			const normalizedIp = clientIp ? normalizeIpString(clientIp) : null;
 			const clientInfo = resolveSessionClientInfo({
 				userAgent: authSession?.clientUserAgent ?? null,
 				reportedOs: authSession?.clientOs ?? null,
@@ -61,7 +63,7 @@ export function VoiceP2pConnectionReportController(app: HonoApp) {
 					protocol: report.protocol,
 					setup_ms: report.setup_ms,
 					ice_restarted: report.ice_restarted,
-					country: countryCode,
+					country: null,
 					ip: normalizedIp,
 					client_platform: clientInfo.platform,
 					client_os: clientInfo.os,

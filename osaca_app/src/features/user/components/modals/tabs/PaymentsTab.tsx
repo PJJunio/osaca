@@ -6,7 +6,6 @@ import {InvoiceList} from '@app/features/app/components/dialogs/components/pluto
 import {RefundsSection} from '@app/features/app/components/dialogs/components/plutonium/RefundsSection';
 import {SettingsSection} from '@app/features/app/components/dialogs/shared/SettingsSection';
 import {SettingsTabContainer} from '@app/features/app/components/dialogs/shared/SettingsTabLayout';
-import GeoIP from '@app/features/app/state/GeoIP';
 import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
 import * as PremiumCommands from '@app/features/premium/commands/PremiumCommands';
 import PremiumState from '@app/features/premium/state/PremiumState';
@@ -26,7 +25,7 @@ const PaymentsTab = observer(function PaymentsTab() {
 	const {i18n} = useLingui();
 	const currentUser = Users.currentUser;
 	const premiumState = loadedPremiumStateFor(PremiumState, currentUser);
-	const countryCode = GeoIP.countryCode;
+	const countryCode: string | null = null;
 	const {loadingPortal, handleOpenCustomerPortal} = useSubscriptionActions(countryCode);
 	const refreshPremiumState = useCallback(
 		() => PremiumCommands.refreshPremiumState(countryCode ?? undefined),

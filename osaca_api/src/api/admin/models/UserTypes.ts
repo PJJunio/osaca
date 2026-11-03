@@ -15,7 +15,7 @@ import {isProfileHidden} from '@app/api/user/ProfileVisibility';
 import {buildOperatorProfileBadges} from '@app/api/user/profile_badges/ProfileBadgeBuilder';
 import {loadProfileBadgeEnvironment} from '@app/api/user/profile_badges/ProfileBadgeEnvironment';
 import type {UserRepository} from '@app/api/user/repositories/UserRepository';
-import {getIpAddressReverse, lookupGeoip} from '@app/api/utils/IpUtils';
+import {getIpAddressReverse} from '@app/api/utils/IpUtils';
 import {AccountTiers} from '@osaca/constants/src/AccountTierConstants';
 import {AdminACLs, filterKnownAdminACLs} from '@osaca/constants/src/AdminACLs';
 import {DeletionReasons} from '@osaca/constants/src/Core';
@@ -23,7 +23,6 @@ import type {ValueOf} from '@osaca/constants/src/ValueOf';
 import type {AdminResolvedUser, UserAdminResponse} from '@osaca/schema/src/domains/admin/AdminUserSchemas';
 import type {AdminProfileBadgeResponse} from '@osaca/schema/src/domains/user/ProfileBadgeSchemas';
 import type {ICacheService} from '@pkgs/cache/src/ICacheService';
-import {formatGeoipLocation} from '@pkgs/geoip/src/GeoipLookup';
 
 const DELETION_REASON_CODES: ReadonlySet<number> = new Set(Object.values(DeletionReasons));
 
@@ -64,16 +63,7 @@ export async function mapUserToAdminResponse(
 		canViewIp && user.lastActiveIp ? getIpAddressReverse(user.lastActiveIp, cacheService) : null,
 		buildAdminProfileBadges(user, locale),
 	]);
-	let lastActiveLocation: string | null = null;
-	if (canViewIp && user.lastActiveIp) {
-		try {
-			const geoip = await lookupGeoip(user.lastActiveIp);
-			const formattedLocation = formatGeoipLocation(geoip);
-			lastActiveLocation = formattedLocation;
-		} catch {
-			lastActiveLocation = null;
-		}
-	}
+	const lastActiveLocation: string | null = null;
 	const accountTier = getAccountTier(user);
 	return {
 		id: user.id.toString(),

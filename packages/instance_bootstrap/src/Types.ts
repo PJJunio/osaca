@@ -3,10 +3,6 @@
 import type {LimitConfigSnapshot, LimitConfigWireFormat} from '@osaca/limits/src/LimitTypes';
 import type {DomainMigrationDiscoveryResponse} from '@osaca/schema/src/domains/admin/DomainMigrationSchemas';
 import type {
-	GeoEntry,
-	GeolocationResponse as GeolocationWireResponse,
-} from '@osaca/schema/src/domains/geolocation/GeolocationSchemas';
-import type {
 	InstanceAgePolicyAction,
 	InstanceAppPublic,
 	InstancePushDeliveryMode,
@@ -54,9 +50,4 @@ export const AGE_POLICY_ACTIONS = Object.freeze([
 
 export interface InstanceDiscoveryResponse extends Omit<WellKnownOsacaResponse, 'limits'> {
 	limits: LimitConfigSnapshot | LimitConfigWireFormat;
-}
-
-export interface GeolocationResponse extends Omit<GeolocationWireResponse, 'ageRestrictedGeos' | 'ageBlockedGeos'> {
-	ageRestrictedGeos: ReadonlyArray<GeoEntry>;
-	ageBlockedGeos: ReadonlyArray<GeoEntry>;
 }

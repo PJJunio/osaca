@@ -67,20 +67,6 @@ export interface APICachePurgeConfig {
 	controller: APICachePurgeTarget;
 }
 
-interface APIGeoipFilesystemConfig {
-	mode: 'filesystem';
-	maxmindDbPath?: string;
-}
-
-interface APIGeoipS3Config {
-	mode: 's3';
-	maxmindDbPath: string;
-	s3Bucket: string;
-	s3Key: string;
-}
-
-type APIGeoipConfig = APIGeoipFilesystemConfig | APIGeoipS3Config;
-
 export interface APIConfig {
 	nodeEnv: 'development' | 'production';
 	port: number;
@@ -144,13 +130,11 @@ export interface APIConfig {
 			relaySecretBase64: string;
 			maxBodyBytes: number;
 			tokenTtlSecs: number;
-			keepDirectCountries: Array<string>;
 		};
 		attachmentUrls: {
 			secretsBase64: Array<string>;
 		};
 	};
-	geoip: APIGeoipConfig;
 	proxy: {
 		trust_client_ip_header: boolean;
 		client_ip_header: string;

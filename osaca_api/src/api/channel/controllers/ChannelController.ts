@@ -11,7 +11,6 @@ import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
 import {SudoModeMiddleware} from '@app/api/middleware/SudoModeMiddleware';
 import {RateLimitConfigs} from '@app/api/RateLimitConfig';
 import type {HonoApp, HonoEnv} from '@app/api/types/HonoEnv';
-import {lookupGeoip} from '@app/api/utils/IpUtils';
 import {Validator} from '@app/api/Validator';
 import {ANNOUNCEMENT_CONVERTIBLE_CHANNEL_TYPES} from '@osaca/constants/src/ChannelConstants';
 import {TEXT_THREAD_PARENT_CHANNEL_TYPES, THREAD_ONLY_CHANNEL_TYPES} from '@osaca/constants/src/ThreadConstants';
@@ -190,7 +189,6 @@ export function ChannelController(app: HonoApp) {
 			const requestCache = ctx.get('requestCache');
 			const auditLogReason = ctx.get('auditLogReason') ?? null;
 			const channelRequestService = ctx.get('channelRequestService');
-			const {countryCode} = await lookupGeoip(ctx.req.raw);
 			return ctx.json(
 				await channelRequestService.updateChannel({
 					viewer: viewerFromCtx(ctx),
@@ -201,7 +199,7 @@ export function ChannelController(app: HonoApp) {
 					requestCache,
 					auditLogReason,
 					typeConversion,
-					countryCode,
+					countryCode: null,
 				}),
 			);
 		},

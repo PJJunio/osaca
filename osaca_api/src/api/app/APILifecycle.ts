@@ -50,7 +50,6 @@ import {WorkerService} from '@app/api/worker/WorkerService';
 import {registerMetricsSection} from '@osaca/hono/src/middleware/Metrics';
 import type {LoggerInterface} from '@osaca/logger/src/LoggerInterface';
 import {getClient, initCassandra, shutdownCassandra} from '@pkgs/cassandra/src/Client';
-import {ensureGeoipDatabaseOnStartup} from '@pkgs/geoip/src/GeoipStartup';
 import {JetStreamConnectionManager} from '@pkgs/nats/src/JetStreamConnectionManager';
 import {getDefaultPostgresClient, initPostgres, shutdownPostgres} from '@pkgs/postgres/src/Client';
 
@@ -188,26 +187,6 @@ export function createInitializer(
 	return async (): Promise<void> => {
 		try {
 			logger.info('Initializing API service...');
-			const geoipStartupResult = await ensureGeoipDatabaseOnStartup({
-				geoip: config.geoip,
-				s3Config: {
-					endpoint: config.s3.endpoint,
-					region: config.s3.region,
-					accessKeyId: config.s3.accessKeyId,
-					secretAccessKey: config.s3.secretAccessKey,
-				},
-			});
-			if (geoipStartupResult.mode === 's3') {
-				logger.info(
-					{
-						maxmind_db_path: geoipStartupResult.maxmindDbPath,
-						city: geoipStartupResult.city,
-						s3_bucket: geoipStartupResult.bucket,
-						s3_key: geoipStartupResult.key,
-					},
-					'GeoIP database downloaded from S3',
-				);
-			}
 			if (config.database.backend === 'postgres' && !hasDatabaseQueryExecutor()) {
 				await initPostgres(config.postgres, (diagnostic) => logger.error(diagnostic, 'Postgres connection error'));
 				const postgres = getDefaultPostgresClient();

@@ -32,7 +32,6 @@ import {
 import {RateLimitConfigs} from '@app/api/RateLimitConfig';
 import {OperatorPassRateLimitConfigs} from '@app/api/rate_limit_configs/OperatorPassRateLimitConfig';
 import type {HonoApp, HonoEnv} from '@app/api/types/HonoEnv';
-import {lookupGeoip} from '@app/api/utils/IpUtils';
 import {getRequestClientIp} from '@app/api/utils/RequestClientIp';
 import {Validator} from '@app/api/Validator';
 import {OperatorPassNotHeldError} from '@osaca/errors/src/domains/operator_pass/OperatorPassNotHeldError';
@@ -124,10 +123,9 @@ export function OperatorPassController(app: HonoApp) {
 			const {country_code: countryCode} = ctx.req.valid('query');
 			const sessionUser = ctx.get('authTokenType') === 'session' ? (ctx.get('user') ?? null) : null;
 			const user = sessionUser && !sessionUser.isBot ? sessionUser : null;
-			const geoipCountryCode = user || !countryCode ? ((await lookupGeoip(ctx.req.raw)).countryCode ?? null) : null;
 			const state = await requireOperatorPassCheckoutService(ctx).getState({
 				user,
-				countryCode: user ? (geoipCountryCode ?? countryCode ?? null) : (countryCode ?? geoipCountryCode),
+				countryCode: countryCode ?? null,
 			});
 			ctx.header('Cache-Control', 'private, no-store');
 			return ctx.json(state);
@@ -153,7 +151,7 @@ export function OperatorPassController(app: HonoApp) {
 			const {url, sessionId, expiresAt} = await requireOperatorPassCheckoutService(ctx).createCheckoutSession({
 				user: ctx.get('user'),
 				request: ctx.req.valid('json'),
-				geoipCountryCode: (await lookupGeoip(ctx.req.raw)).countryCode ?? null,
+				geoipCountryCode: null,
 				clientIp: getRequestClientIp(ctx),
 				userAgent: ctx.req.header('user-agent') ?? null,
 			});

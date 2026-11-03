@@ -15,7 +15,6 @@ import {
 import {mapGiftCodeToMetadataResponse, mapGiftCodeToResponse} from '@app/api/stripe/StripeModel';
 import type {HonoApp} from '@app/api/types/HonoEnv';
 import {assertTierAllows, NO_TIER_CONTEXT, tierContextFrom} from '@app/api/user/AccountTier';
-import {lookupGeoip} from '@app/api/utils/IpUtils';
 import {Validator} from '@app/api/Validator';
 import {TierGatedActions} from '@osaca/constants/src/AccountTierConstants';
 import {StripeWebhookNotAvailableError} from '@osaca/errors/src/domains/payment/StripeWebhookNotAvailableError';
@@ -42,9 +41,8 @@ import {
 	WebhookReceivedResponse,
 } from '@osaca/schema/src/domains/premium/PremiumSchemas';
 
-async function getPurchaseGeoipCountryCode(request: Request): Promise<string | null> {
-	const geoip = await lookupGeoip(request);
-	return geoip.countryCode ?? null;
+async function getPurchaseGeoipCountryCode(_request: Request): Promise<string | null> {
+	return null;
 }
 
 function isStripeWebhookAvailable(): boolean {

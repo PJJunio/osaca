@@ -6,7 +6,6 @@ import {usePremiumData} from '@app/features/app/components/dialogs/components/pl
 import {useSubscriptionActions} from '@app/features/app/components/dialogs/components/plutonium/hooks/useSubscriptionActions';
 import {SubscriptionCard} from '@app/features/app/components/dialogs/components/plutonium/SubscriptionCard';
 import {SettingsTabContainer} from '@app/features/app/components/dialogs/shared/SettingsTabLayout';
-import GeoIP from '@app/features/app/state/GeoIP';
 import Guilds from '@app/features/guild/state/Guilds';
 import {ComponentBus} from '@app/features/platform/utils/ComponentBus';
 import * as PlutoniumPageCommands from '@app/features/premium/commands/PlutoniumPageCommands';
@@ -24,8 +23,8 @@ import * as ModalCommands from '@app/features/ui/commands/ModalCommands';
 import {modal} from '@app/features/ui/commands/ModalCommands';
 import Users from '@app/features/user/state/Users';
 import * as LocaleUtils from '@app/features/user/utils/LocaleUtils';
-import {GuildFeatures} from '@osaca/constants/src/GuildConstants';
 import {Trans, useLingui} from '@lingui/react/macro';
+import {GuildFeatures} from '@osaca/constants/src/GuildConstants';
 import {observer} from 'mobx-react-lite';
 import {useCallback, useEffect, useMemo} from 'react';
 
@@ -33,7 +32,7 @@ const SubscriptionsTab = observer(function SubscriptionsTab() {
 	const {i18n} = useLingui();
 	const currentUser = Users.currentUser;
 	const premiumState = loadedPremiumStateFor(PremiumState, currentUser);
-	const countryCode = GeoIP.countryCode;
+	const countryCode: string | null = null;
 	const locale = LocaleUtils.getCurrentLocale();
 	const guilds = Guilds.getGuilds();
 	const visionaryGuild = useMemo(() => guilds.find((guild) => guild.features.has(GuildFeatures.VISIONARY)), [guilds]);

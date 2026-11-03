@@ -4,7 +4,6 @@ import {PurchaseDisclaimer} from '@app/features/app/components/dialogs/component
 import {useCheckoutActions} from '@app/features/app/components/dialogs/components/plutonium/hooks/useCheckoutActions';
 import {usePremiumData} from '@app/features/app/components/dialogs/components/plutonium/hooks/usePremiumData';
 import * as Modal from '@app/features/app/components/dialogs/Modal';
-import GeoIP from '@app/features/app/state/GeoIP';
 import {
 	CANCEL_DESCRIPTOR,
 	ONE_MONTH_DURATION_DESCRIPTOR as ONE_MONTH_DESCRIPTOR,
@@ -31,10 +30,10 @@ import * as ModalCommands from '@app/features/ui/commands/ModalCommands';
 import {RadioGroup, type RadioOption} from '@app/features/ui/radio_group/RadioGroup';
 import MobileLayout from '@app/features/ui/state/MobileLayout';
 import Users from '@app/features/user/state/Users';
-import {type PurchaseBlockedReason, PurchaseBlockedReasons} from '@osaca/constants/src/AccountTierConstants';
 import type {MessageDescriptor} from '@lingui/core';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
+import {type PurchaseBlockedReason, PurchaseBlockedReasons} from '@osaca/constants/src/AccountTierConstants';
 import {observer} from 'mobx-react-lite';
 import {useEffect, useMemo, useState} from 'react';
 
@@ -76,14 +75,14 @@ export const GiftPlutoniumModal = observer(() => {
 	const {i18n} = useLingui();
 	const currentUser = Users.currentUser;
 	const premiumState = PremiumState.loadedForUserId === currentUser?.id ? PremiumState.state : null;
-	const countryCode = GeoIP.countryCode;
+	const countryCode: string | null = null;
 	const {priceIds, giftMonthlyPrice, giftYearlyPrice} = usePremiumData({premiumState});
 	const {loadingCheckout, handleSelectPlan} = useCheckoutActions(priceIds, countryCode, MobileLayout.enabled);
 	const [plan, setPlan] = useState<GiftPlan>('gift_1_year');
 	const [isBusiness, setIsBusiness] = useState(false);
 	const [cnpj, setCnpj] = useState('');
 	const [cnpjError, setCnpjError] = useState<string | null>(null);
-	const brazil = countryCode?.toUpperCase() === 'BR' || priceIds?.currency === 'BRL';
+	const brazil = priceIds?.currency === 'BRL';
 	useEffect(() => {
 		if (!currentUser?.id) return;
 		void PremiumCommands.refreshPremiumState(countryCode ?? undefined);

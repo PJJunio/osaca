@@ -18,7 +18,6 @@ import {DownloadController} from '@app/api/download/DownloadController';
 import {ExperimentController} from '@app/api/experiment/ExperimentController';
 import {FavoriteMemeController} from '@app/api/favorite_meme/FavoriteMemeController';
 import {GatewayController} from '@app/api/gateway/GatewayController';
-import {GeolocationController} from '@app/api/geolocation/GeolocationController';
 import {GuildController} from '@app/api/guild/controllers/index';
 import {InstanceController} from '@app/api/instance/InstanceController';
 import {InviteController} from '@app/api/invite/InviteController';
@@ -47,7 +46,6 @@ export function registerControllers(routes: HonoApp, config: APIConfig): void {
 	InternalRpcController(routes);
 	OperatorPassInternalController(routes);
 	GatewayController(routes);
-	GeolocationController(routes);
 	registerAdminControllers(routes);
 	AdminDownloadController(routes);
 	AuthController(routes);

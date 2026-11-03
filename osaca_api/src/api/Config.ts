@@ -26,7 +26,6 @@ import {smtpTlsModeFromSecure} from '@osaca/constants/src/SmtpConstants';
 import {parseIpAddress} from '@osaca/ip_utils/src/IpAddress';
 import type {GeoEntry} from '@osaca/schema/src/domains/geolocation/GeolocationSchemas';
 import {normalizeString} from '@osaca/schema/src/primitives/SchemaPrimitives';
-import {parseGeoipSourceConfig, resolveGeoipRuntimeSourceConfig} from '@pkgs/geoip/src/GeoipStartup';
 
 function extractHostname(url: string): string {
 	try {
@@ -330,9 +329,6 @@ export function buildAPIConfigFromMaster(master: MasterConfig): APIConfig {
 	const postgresSource = master.database.postgres;
 	const apiWorkerConfig = master.services.api?.worker;
 	const s3Config = master.s3;
-	const geoipSourceConfig = resolveGeoipRuntimeSourceConfig(parseGeoipSourceConfig(master.geoip.maxmind_db_path), {
-		serviceName: 'api',
-	});
 	const uploadRelayConfig = master.services.media_proxy.upload_relay;
 	const uploadRelaySecretBase64 = uploadRelayConfig.secret_base64;
 	if (uploadRelaySecretBase64.length === 0) {
@@ -422,13 +418,11 @@ export function buildAPIConfigFromMaster(master: MasterConfig): APIConfig {
 				relaySecretBase64: uploadRelaySecretBase64,
 				maxBodyBytes: uploadRelayConfig.max_body_bytes,
 				tokenTtlSecs: uploadRelayConfig.token_ttl_secs,
-				keepDirectCountries: uploadRelayConfig.keep_direct_countries,
 			},
 			attachmentUrls: {
 				secretsBase64: master.services.media_proxy.attachment_urls.secrets_base64,
 			},
 		},
-		geoip: geoipSourceConfig,
 		proxy: {
 			trust_client_ip_header: resolveTrustClientIpHeader(master.proxy),
 			client_ip_header: (Reflect.get(master.proxy, 'client_ip_header') as string | undefined) ?? 'x-forwarded-for',

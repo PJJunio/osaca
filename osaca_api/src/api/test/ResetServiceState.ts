@@ -15,7 +15,6 @@ import {resetServiceSingletonsForTesting} from '@app/api/middleware/ServiceSingl
 import {urlBlocklistCache} from '@app/api/middleware/UrlBlocklistCache';
 import {resetAdminSecretHashForTesting} from '@app/api/oauth/repositories/ApplicationRepository';
 import {setThemeCssMaxBytesForTesting} from '@app/api/theme/ThemeService';
-import {resetGeoipReadersForTesting} from '@pkgs/geoip/src/GeoipLookup';
 
 export async function resetServiceStateForTesting(): Promise<void> {
 	resetServiceRegistryForTesting();
@@ -30,7 +29,6 @@ export async function resetServiceStateForTesting(): Promise<void> {
 	await ipBanCache.shutdown();
 	ipBanCache.resetCaches();
 	urlBlocklistCache.resetForTesting();
-	resetGeoipReadersForTesting();
 	fileShaCache.resetForTesting();
 	phraseBlocklistCache.resetForTesting();
 	bannedAvatarHashCache.resetForTesting();

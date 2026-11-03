@@ -124,10 +124,6 @@ const NAMED_OSACA_ENV_OVERRIDES: Record<string, NamedEnvOverride> = {
 		path: ['services', 'media_proxy', 'upload_relay', 'token_ttl_secs'],
 		parse: parseInteger,
 	},
-	OSACA_MEDIA_PROXY_UPLOAD_RELAY_KEEP_DIRECT_COUNTRIES: {
-		path: ['services', 'media_proxy', 'upload_relay', 'keep_direct_countries'],
-		parse: parseCsv,
-	},
 	OSACA_MEDIA_PROXY_ATTACHMENT_URL_SECRETS_BASE64: {
 		path: ['services', 'media_proxy', 'attachment_urls', 'secrets_base64'],
 		parse: parseCsv,
@@ -410,7 +406,6 @@ const NAMED_OSACA_ENV_OVERRIDES: Record<string, NamedEnvOverride> = {
 	OSACA_TEST_MODE_ENABLED: {path: ['dev', 'test_mode_enabled'], parse: parseBoolean},
 	OSACA_TEST_HARNESS_TOKEN: {path: ['dev', 'test_harness_token']},
 	OSACA_VALIDATE_RESPONSES: {path: ['dev', 'validate_responses'], parse: parseBoolean},
-	OSACA_GEOIP_DB_PATH: {path: ['geoip', 'maxmind_db_path']},
 };
 
 function isContainer(value: unknown): value is ConfigContainer {

@@ -14,7 +14,6 @@ import {getKVAccountDeletionQueue} from '@app/api/middleware/ServiceSingletons';
 import type {AuthSession} from '@app/api/models/AuthSession';
 import type {User} from '@app/api/models/User';
 import {BELOW_MINIMUM_AGE_TRAIT} from '@app/api/user/UserTraits';
-import {lookupGeoip} from '@app/api/utils/IpUtils';
 import {requireConfiguredClientIp} from '@app/api/utils/RequestClientIp';
 import {
 	isOsacaNativeUserAgent,
@@ -93,13 +92,6 @@ export async function createAuthSession(
 	user = await AuthUtility.reactivateOnSignIn(ctx, user, getKVAccountDeletionQueue());
 	const now = new Date();
 	const token = await AuthUtility.generateAuthToken();
-	let clientCountry: string | null = null;
-	try {
-		const geoip = await lookupGeoip(origin.ip);
-		clientCountry = geoip.countryCode ? geoip.countryCode.toUpperCase() : null;
-	} catch (error) {
-		Logger.warn({userId: user.id.toString(), error}, 'GeoIP lookup failed at session creation');
-	}
 	const authSession = await users.createAuthSession({
 		user_id: user.id,
 		session_id_hash: Buffer.from(AuthUtility.getTokenIdHash(ctx, token)),
@@ -108,7 +100,7 @@ export async function createAuthSession(
 		client_ip: origin.ip,
 		client_user_agent: origin.userAgent,
 		client_os: origin.clientOs,
-		client_country: clientCountry,
+		client_country: null,
 		app_platform: null,
 		app_version: null,
 		app_release_channel: null,

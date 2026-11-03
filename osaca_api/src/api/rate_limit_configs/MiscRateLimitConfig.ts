@@ -32,10 +32,6 @@ export const MiscRateLimitConfigs = {
 		bucket: 'instance:setup:token_check',
 		config: {limit: 10, windowMs: ms('1 minute')},
 	} as RouteRateLimitConfig,
-	IP_GEO_LOOKUP: {
-		bucket: 'ip:geo_lookup',
-		config: {limit: 30, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
 	READ_STATE_ACK_BULK: {
 		bucket: 'read_state:ack_bulk',
 		config: {limit: 20, windowMs: ms('10 seconds')},

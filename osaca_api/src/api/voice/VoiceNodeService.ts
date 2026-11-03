@@ -40,7 +40,6 @@ import type {
 	VoiceNodeResponse,
 	VoiceTurnServer,
 } from '@osaca/schema/src/domains/voice/VoiceNodeSchemas';
-import {lookupGeoipByIp} from '@pkgs/geoip/src/GeoipLookup';
 
 export const VOICE_JOIN_TOKEN_PREFIX = 'fvj_';
 
@@ -199,9 +198,8 @@ export class VoiceNodeService {
 		return row;
 	}
 
-	async preview(row: VoiceJoinTokenRow, body: VoiceJoinPreviewRequest, clientIp: string | null) {
-		const point = await this.locate(body.public_ipv4 ?? body.public_ipv6 ?? clientIp);
-		const region = await this.chooseRegion(row, body.region_id, point);
+	async preview(row: VoiceJoinTokenRow, body: VoiceJoinPreviewRequest) {
+		const region = await this.chooseRegion(row, body.region_id, null);
 		const servers = await this.deps.voiceRepository.listAllServers();
 		const response: VoiceJoinPreviewResponse = {
 			server_id: row.server_id ?? this.suggestServerId(region.id, servers),
@@ -213,8 +211,8 @@ export class VoiceNodeService {
 				new: region.isNew,
 				source: region.source,
 			},
-			latitude: point ? round(point.latitude) : null,
-			longitude: point ? round(point.longitude) : null,
+			latitude: null,
+			longitude: null,
 			hostname: row.hostname,
 			suggested_hostname: `voice-${region.id}.${Config.instance.baseDomain}`,
 			soft_connection_limit: row.soft_connection_limit,
@@ -241,7 +239,7 @@ export class VoiceNodeService {
 			const point =
 				body.latitude !== undefined && body.longitude !== undefined
 					? {latitude: body.latitude, longitude: body.longitude}
-					: await this.locate(body.public_ipv4 ?? body.public_ipv6 ?? clientIp);
+					: null;
 			const region = await this.chooseRegion(row, body.region_id, point);
 			const servers = await voiceRepository.listAllServers();
 			const serverId = row.server_id ?? body.server_id ?? this.suggestServerId(region.id, servers);
@@ -437,13 +435,6 @@ export class VoiceNodeService {
 		} catch (error) {
 			throw asApiError(error);
 		}
-	}
-
-	private async locate(ip: string | null): Promise<{latitude: number; longitude: number} | null> {
-		if (!ip || !Config.geoip.maxmindDbPath) return null;
-		const result = await lookupGeoipByIp(ip, Config.geoip.maxmindDbPath).catch(() => null);
-		if (result?.latitude == null || result.longitude == null) return null;
-		return {latitude: result.latitude, longitude: result.longitude};
 	}
 
 	private async chooseRegion(

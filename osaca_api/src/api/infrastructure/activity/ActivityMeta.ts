@@ -2,9 +2,7 @@
 
 import {AsyncLocalStorage} from 'node:async_hooks';
 import type {ChangeSource, Channel, Meta} from '@app/api/infrastructure/activity/Contract.generated';
-import {Logger} from '@app/api/Logger';
 import type {HonoEnv} from '@app/api/types/HonoEnv';
-import {lookupGeoip} from '@app/api/utils/IpUtils';
 import {getRequestClientIp} from '@app/api/utils/RequestClientIp';
 import {stripApiPrefix} from '@app/api/utils/RequestPathUtils';
 import {parseAcceptLanguage} from '@osaca/i18n/src/locale/resolution/AcceptLanguageNegotiation';
@@ -70,15 +68,6 @@ export function workerMeta(): Meta {
 	return {ip: null, country: null, ua: null, locale: null, channel: 'worker', request_id: null};
 }
 
-async function countryOf(ip: string): Promise<string | null> {
-	try {
-		return (await lookupGeoip(ip)).countryCode;
-	} catch (error) {
-		Logger.debug({error}, 'Activity meta country lookup failed');
-		return null;
-	}
-}
-
 export async function currentActivityMeta(): Promise<Meta> {
 	const context = requestContext.getStore();
 	if (!context) {
@@ -86,7 +75,7 @@ export async function currentActivityMeta(): Promise<Meta> {
 	}
 	return {
 		ip: context.ip,
-		country: context.ip ? await countryOf(context.ip) : null,
+		country: null,
 		ua: context.ua,
 		locale: context.locale,
 		channel: context.channel,

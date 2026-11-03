@@ -16,7 +16,7 @@ Limits such as attachment counts differ between instances, and [instance discove
 | [Deployment availability](/http-api/deployment-availability/) | Routes served only while premium or billing is on |
 | [Authentication operations](/http-api/authentication/) | Registration, login, MFA, WebAuthn, SSO, recovery, sessions |
 | [Gateway](/http-api/gateway/) | Gateway endpoint discovery and the session start budget |
-| [Instance](/http-api/instance/) | Instance discovery, geolocation, limit keys, the OpenAPI document |
+| [Instance](/http-api/instance/) | Instance discovery, limit keys, the OpenAPI document |
 | [Experiments](/http-api/experiments/) | Experiment assignments and how to poll for them |
 | [OAuth2](/http-api/oauth2/) | Authorization, consent, tokens, introspection, revocation |
 | [Applications](/http-api/applications/) | Applications, bot accounts, client secrets, bot tokens |
@@ -129,7 +129,7 @@ A self-hosted instance serves some routes only while its premium mode or billing
 
 Only the instance's web app and marketing origins are allowed. A request from one of them gets `Access-Control-Allow-Origin` set to that origin and `Vary: Origin`. Browsers don't send cookies cross-origin, and you send your token in `Authorization`.
 
-[Get instance discovery](/http-api/instance/#get-instance-discovery), [Get OpenAPI document](/http-api/instance/#get-openapi-document) and [Get client geolocation](/http-api/instance/#get-client-geolocation) allow any origin with `*`. The webhook execution routes also allow any origin, with the exceptions under [Origin refusal](/http-api/webhooks/#origin-refusal).
+[Get instance discovery](/http-api/instance/#get-instance-discovery) and [Get OpenAPI document](/http-api/instance/#get-openapi-document) allow any origin with `*`. The webhook execution routes also allow any origin, with the exceptions under [Origin refusal](/http-api/webhooks/#origin-refusal).
 
 Browser scripts can read only the `X-OSACA-Version` and `ETag` response headers. Cross-origin requests can send the headers in [Standard request headers](#standard-request-headers) plus `X-Requested-With`, `If-None-Match`, `X-Captcha-ID` and the `X-OSACA-*` client headers.
 

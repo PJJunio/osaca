@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import GeoIP from '@app/features/app/state/GeoIP';
 import Channels from '@app/features/channel/state/Channels';
 import DeveloperOptions from '@app/features/devtools/state/DeveloperOptions';
 import Guilds from '@app/features/guild/state/Guilds';
@@ -272,7 +271,7 @@ class GuildMatureContentAgree {
 		if (resolved.effectiveMatureContent) {
 			const currentUser = Users.getCurrentUser();
 			const {countryCode, regionCode} = getEffectiveMatureContentGeoContext();
-			const matureContentCheckGeos = GeoIP.ageRestrictedGeos;
+			const matureContentCheckGeos: ReadonlyArray<{countryCode: string; regionCode: string | null}> = [];
 			if (countryCode) {
 				const requiresMatureContentCheck = matureContentCheckGeos.some((geo) => {
 					if (geo.countryCode !== countryCode) return false;

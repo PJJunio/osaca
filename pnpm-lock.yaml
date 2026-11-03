@@ -273,9 +273,6 @@ catalogs:
     match-sorter:
       specifier: 8.3.0
       version: 8.3.0
-    maxmind:
-      specifier: 5.0.7
-      version: 5.0.7
     mdast-util-to-hast:
       specifier: 13.2.1
       version: 13.2.1
@@ -527,6 +524,21 @@ importers:
       '@elastic/elasticsearch':
         specifier: 'catalog:'
         version: 9.5.1(supports-color@7.2.0)
+      '@hono/node-server':
+        specifier: 'catalog:'
+        version: 2.1.5(hono@4.13.14)
+      '@messageformat/core':
+        specifier: 'catalog:'
+        version: 3.4.1
+      '@messageformat/parser':
+        specifier: 'catalog:'
+        version: 5.2.0
+      '@nats-io/jetstream':
+        specifier: 'catalog:'
+        version: 3.4.0
+      '@nats-io/transport-node':
+        specifier: 'catalog:'
+        version: 3.4.0
       '@osaca/config':
         specifier: workspace:*
         version: link:../packages/config
@@ -569,21 +581,6 @@ importers:
       '@osaca/snowflake':
         specifier: workspace:*
         version: link:../packages/snowflake
-      '@hono/node-server':
-        specifier: 'catalog:'
-        version: 2.1.5(hono@4.13.14)
-      '@messageformat/core':
-        specifier: 'catalog:'
-        version: 3.4.1
-      '@messageformat/parser':
-        specifier: 'catalog:'
-        version: 5.2.0
-      '@nats-io/jetstream':
-        specifier: 'catalog:'
-        version: 3.4.0
-      '@nats-io/transport-node':
-        specifier: 'catalog:'
-        version: 3.4.0
       '@pdf-lib/fontkit':
         specifier: 'catalog:'
         version: 1.1.1
@@ -602,9 +599,6 @@ importers:
       '@pkgs/email':
         specifier: workspace:*
         version: link:pkgs/email
-      '@pkgs/geoip':
-        specifier: workspace:*
-        version: link:pkgs/geoip
       '@pkgs/http_client':
         specifier: workspace:*
         version: link:pkgs/http_client
@@ -686,9 +680,6 @@ importers:
       livekit-server-sdk:
         specifier: 'catalog:'
         version: 2.19.2
-      maxmind:
-        specifier: 'catalog:'
-        version: 5.0.7
       mime:
         specifier: 'catalog:'
         version: 4.1.2
@@ -875,31 +866,6 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@26.6.6)(happy-dom@20.14.6)(msw@3.0.3(@types/node@26.6.6)(graphql@16.14.2)(supports-color@7.2.0)(typescript@7.0.2)(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
-
-  osaca_api/pkgs/geoip:
-    dependencies:
-      '@aws-sdk/client-s3':
-        specifier: 'catalog:'
-        version: 3.1159.0
-      '@osaca/geo_utils':
-        specifier: workspace:*
-        version: link:../../../packages/geo_utils
-      '@osaca/instance_bootstrap':
-        specifier: workspace:*
-        version: link:../../../packages/instance_bootstrap
-      '@osaca/ip_utils':
-        specifier: workspace:*
-        version: link:../../../packages/ip_utils
-      maxmind:
-        specifier: 'catalog:'
-        version: 5.0.7
-    devDependencies:
-      '@types/node':
-        specifier: 'catalog:'
-        version: 26.6.6
-      typescript:
-        specifier: catalog:ts7
-        version: 7.0.2
 
   osaca_api/pkgs/http_client:
     dependencies:
@@ -1397,6 +1363,27 @@ importers:
       '@floating-ui/react-dom':
         specifier: 'catalog:'
         version: 2.1.9(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@lexical/history':
+        specifier: 'catalog:'
+        version: 0.53.0(typescript@7.0.2)
+      '@lexical/react':
+        specifier: 'catalog:'
+        version: 0.53.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@7.0.2)(yjs@13.6.32)
+      '@lexical/utils':
+        specifier: 'catalog:'
+        version: 0.53.0(typescript@7.0.2)
+      '@lezer/highlight':
+        specifier: ^1.2.5
+        version: 1.2.5
+      '@lingui/core':
+        specifier: 'catalog:'
+        version: 6.11.0(@babel/core@7.29.7(supports-color@7.2.0))
+      '@lingui/react':
+        specifier: 'catalog:'
+        version: 6.11.0(@babel/core@7.29.7(supports-color@7.2.0))(react@19.3.1)
+      '@livekit/components-react':
+        specifier: 'catalog:'
+        version: 2.9.24(livekit-client@osaca_app+pkgs+livekit-client)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tslib@2.8.1)
       '@osaca/constants':
         specifier: workspace:*
         version: link:../packages/constants
@@ -1430,27 +1417,6 @@ importers:
       '@osaca/voice_engine_v2':
         specifier: workspace:*
         version: link:../packages/voice_engine_v2
-      '@lexical/history':
-        specifier: 'catalog:'
-        version: 0.53.0(typescript@7.0.2)
-      '@lexical/react':
-        specifier: 'catalog:'
-        version: 0.53.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@7.0.2)(yjs@13.6.32)
-      '@lexical/utils':
-        specifier: 'catalog:'
-        version: 0.53.0(typescript@7.0.2)
-      '@lezer/highlight':
-        specifier: ^1.2.5
-        version: 1.2.5
-      '@lingui/core':
-        specifier: 'catalog:'
-        version: 6.11.0(@babel/core@7.29.7(supports-color@7.2.0))
-      '@lingui/react':
-        specifier: 'catalog:'
-        version: 6.11.0(@babel/core@7.29.7(supports-color@7.2.0))(react@19.3.1)
-      '@livekit/components-react':
-        specifier: 'catalog:'
-        version: 2.9.24(livekit-client@osaca_app+pkgs+livekit-client)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tslib@2.8.1)
       '@phosphor-icons/react':
         specifier: 'catalog:'
         version: 2.1.10(patch_hash=9b0b481de857aa7a7525f023baea9da72be4574ff72825e39d959e6979d78eea)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -2006,6 +1972,9 @@ importers:
 
   packages/hono:
     dependencies:
+      '@hono/node-server':
+        specifier: 'catalog:'
+        version: 2.1.5(hono@4.13.14)
       '@osaca/constants':
         specifier: workspace:*
         version: link:../constants
@@ -2015,9 +1984,6 @@ importers:
       '@osaca/ip_utils':
         specifier: workspace:*
         version: link:../ip_utils
-      '@hono/node-server':
-        specifier: 'catalog:'
-        version: 2.1.5(hono@4.13.14)
       hono:
         specifier: 'catalog:'
         version: 4.13.14
@@ -2034,18 +2000,18 @@ importers:
 
   packages/i18n:
     dependencies:
-      '@osaca/constants':
-        specifier: workspace:*
-        version: link:../constants
-      '@osaca/record_utils':
-        specifier: workspace:*
-        version: link:../record_utils
       '@messageformat/core':
         specifier: 'catalog:'
         version: 3.4.1
       '@messageformat/parser':
         specifier: 'catalog:'
         version: 5.2.0
+      '@osaca/constants':
+        specifier: workspace:*
+        version: link:../constants
+      '@osaca/record_utils':
+        specifier: workspace:*
+        version: link:../record_utils
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -4517,111 +4483,6 @@ packages:
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
 
-  '@osaca/app-store@file:osaca_desktop/native/app-store':
-    resolution: {directory: osaca_desktop/native/app-store, type: directory}
-    cpu: [x64, arm64]
-
-  '@osaca/gateway-socket@file:osaca_desktop/native/gateway-socket':
-    resolution: {directory: osaca_desktop/native/gateway-socket, type: directory}
-    cpu: [x64, arm64]
-
-  '@osaca/hardware-encoder@file:osaca_desktop/native/hardware-encoder':
-    resolution: {directory: osaca_desktop/native/hardware-encoder, type: directory}
-    cpu: [x64, arm64]
-
-  '@osaca/linux-audio-capture@file:osaca_desktop/native/linux-audio-capture':
-    resolution: {directory: osaca_desktop/native/linux-audio-capture, type: directory}
-    cpu: [x64, arm64]
-    os: [linux]
-
-  '@osaca/linux-evdev@file:osaca_desktop/native/linux-evdev':
-    resolution: {directory: osaca_desktop/native/linux-evdev, type: directory}
-    cpu: [x64, arm64]
-    os: [linux]
-
-  '@osaca/linux-input-hook@file:osaca_desktop/native/linux-input-hook':
-    resolution: {directory: osaca_desktop/native/linux-input-hook, type: directory}
-    cpu: [x64, arm64]
-    os: [linux]
-
-  '@osaca/linux-notifications@file:osaca_desktop/native/linux-notifications':
-    resolution: {directory: osaca_desktop/native/linux-notifications, type: directory}
-    cpu: [x64, arm64]
-    os: [linux]
-
-  '@osaca/linux-portals@file:osaca_desktop/native/linux-portals':
-    resolution: {directory: osaca_desktop/native/linux-portals, type: directory}
-    cpu: [x64, arm64]
-    os: [linux]
-
-  '@osaca/mac-app-audio@file:osaca_desktop/native/mac-app-audio':
-    resolution: {directory: osaca_desktop/native/mac-app-audio, type: directory}
-    cpu: [x64, arm64]
-    os: [darwin]
-
-  '@osaca/mac-clipboard@file:osaca_desktop/native/mac-clipboard':
-    resolution: {directory: osaca_desktop/native/mac-clipboard, type: directory}
-    cpu: [x64, arm64]
-    os: [darwin]
-
-  '@osaca/mac-screen-capture@file:osaca_desktop/native/mac-screen-capture':
-    resolution: {directory: osaca_desktop/native/mac-screen-capture, type: directory}
-    cpu: [x64, arm64]
-    os: [darwin]
-
-  '@osaca/mac-sysctl@file:osaca_desktop/native/mac-sysctl':
-    resolution: {directory: osaca_desktop/native/mac-sysctl, type: directory}
-    cpu: [x64, arm64]
-    os: [darwin]
-
-  '@osaca/mac-tcc@file:osaca_desktop/native/mac-tcc':
-    resolution: {directory: osaca_desktop/native/mac-tcc, type: directory}
-    cpu: [x64, arm64]
-    os: [darwin]
-
-  '@osaca/macos-input-hook@file:osaca_desktop/native/macos-input-hook':
-    resolution: {directory: osaca_desktop/native/macos-input-hook, type: directory}
-    cpu: [x64, arm64]
-    os: [darwin]
-
-  '@osaca/platform-info@file:osaca_desktop/native/platform-info':
-    resolution: {directory: osaca_desktop/native/platform-info, type: directory}
-    cpu: [x64, arm64]
-
-  '@osaca/system-hunspell@file:osaca_desktop/native/system-hunspell':
-    resolution: {directory: osaca_desktop/native/system-hunspell, type: directory}
-    cpu: [x64, arm64]
-    os: [linux]
-
-  '@osaca/webauthn@file:osaca_desktop/native/webauthn':
-    resolution: {directory: osaca_desktop/native/webauthn, type: directory}
-    cpu: [x64, arm64]
-
-  '@osaca/win-clipboard@file:osaca_desktop/native/win-clipboard':
-    resolution: {directory: osaca_desktop/native/win-clipboard, type: directory}
-    cpu: [x64, arm64]
-    os: [win32]
-
-  '@osaca/win-game-capture@file:osaca_desktop/native/win-game-capture':
-    resolution: {directory: osaca_desktop/native/win-game-capture, type: directory}
-    cpu: [x64, arm64]
-    os: [win32]
-
-  '@osaca/win-process-loopback@file:osaca_desktop/native/win-process-loopback':
-    resolution: {directory: osaca_desktop/native/win-process-loopback, type: directory}
-    cpu: [x64, arm64]
-    os: [win32]
-
-  '@osaca/win-shell@file:osaca_desktop/native/win-shell':
-    resolution: {directory: osaca_desktop/native/win-shell, type: directory}
-    cpu: [x64, arm64]
-    os: [win32]
-
-  '@osaca/windows-input-hook@file:osaca_desktop/native/windows-input-hook':
-    resolution: {directory: osaca_desktop/native/windows-input-hook, type: directory}
-    cpu: [x64, arm64]
-    os: [win32]
-
   '@hexagon/base64@1.1.28':
     resolution: {integrity: sha512-lhqDEAvWixy3bZ+UOYbPwUbBkwBq5C1LAJ/xPC8Oi+lL54oyakv/npbA0aU2hgCsx/1NUd4IBvV03+aUBWxerw==}
 
@@ -5382,6 +5243,111 @@ packages:
   '@opentelemetry/semantic-conventions@1.44.0':
     resolution: {integrity: sha512-E3JkOlMBi3N8OGGkbl7tFyqk2MAS6/lySRZBK3Mu7AzjF1fT8oIChH9ChE48SUWzDn9Kdwta+G/p5LJ4xW4CLQ==}
     engines: {node: '>=14'}
+
+  '@osaca/app-store@file:osaca_desktop/native/app-store':
+    resolution: {directory: osaca_desktop/native/app-store, type: directory}
+    cpu: [x64, arm64]
+
+  '@osaca/gateway-socket@file:osaca_desktop/native/gateway-socket':
+    resolution: {directory: osaca_desktop/native/gateway-socket, type: directory}
+    cpu: [x64, arm64]
+
+  '@osaca/hardware-encoder@file:osaca_desktop/native/hardware-encoder':
+    resolution: {directory: osaca_desktop/native/hardware-encoder, type: directory}
+    cpu: [x64, arm64]
+
+  '@osaca/linux-audio-capture@file:osaca_desktop/native/linux-audio-capture':
+    resolution: {directory: osaca_desktop/native/linux-audio-capture, type: directory}
+    cpu: [x64, arm64]
+    os: [linux]
+
+  '@osaca/linux-evdev@file:osaca_desktop/native/linux-evdev':
+    resolution: {directory: osaca_desktop/native/linux-evdev, type: directory}
+    cpu: [x64, arm64]
+    os: [linux]
+
+  '@osaca/linux-input-hook@file:osaca_desktop/native/linux-input-hook':
+    resolution: {directory: osaca_desktop/native/linux-input-hook, type: directory}
+    cpu: [x64, arm64]
+    os: [linux]
+
+  '@osaca/linux-notifications@file:osaca_desktop/native/linux-notifications':
+    resolution: {directory: osaca_desktop/native/linux-notifications, type: directory}
+    cpu: [x64, arm64]
+    os: [linux]
+
+  '@osaca/linux-portals@file:osaca_desktop/native/linux-portals':
+    resolution: {directory: osaca_desktop/native/linux-portals, type: directory}
+    cpu: [x64, arm64]
+    os: [linux]
+
+  '@osaca/mac-app-audio@file:osaca_desktop/native/mac-app-audio':
+    resolution: {directory: osaca_desktop/native/mac-app-audio, type: directory}
+    cpu: [x64, arm64]
+    os: [darwin]
+
+  '@osaca/mac-clipboard@file:osaca_desktop/native/mac-clipboard':
+    resolution: {directory: osaca_desktop/native/mac-clipboard, type: directory}
+    cpu: [x64, arm64]
+    os: [darwin]
+
+  '@osaca/mac-screen-capture@file:osaca_desktop/native/mac-screen-capture':
+    resolution: {directory: osaca_desktop/native/mac-screen-capture, type: directory}
+    cpu: [x64, arm64]
+    os: [darwin]
+
+  '@osaca/mac-sysctl@file:osaca_desktop/native/mac-sysctl':
+    resolution: {directory: osaca_desktop/native/mac-sysctl, type: directory}
+    cpu: [x64, arm64]
+    os: [darwin]
+
+  '@osaca/mac-tcc@file:osaca_desktop/native/mac-tcc':
+    resolution: {directory: osaca_desktop/native/mac-tcc, type: directory}
+    cpu: [x64, arm64]
+    os: [darwin]
+
+  '@osaca/macos-input-hook@file:osaca_desktop/native/macos-input-hook':
+    resolution: {directory: osaca_desktop/native/macos-input-hook, type: directory}
+    cpu: [x64, arm64]
+    os: [darwin]
+
+  '@osaca/platform-info@file:osaca_desktop/native/platform-info':
+    resolution: {directory: osaca_desktop/native/platform-info, type: directory}
+    cpu: [x64, arm64]
+
+  '@osaca/system-hunspell@file:osaca_desktop/native/system-hunspell':
+    resolution: {directory: osaca_desktop/native/system-hunspell, type: directory}
+    cpu: [x64, arm64]
+    os: [linux]
+
+  '@osaca/webauthn@file:osaca_desktop/native/webauthn':
+    resolution: {directory: osaca_desktop/native/webauthn, type: directory}
+    cpu: [x64, arm64]
+
+  '@osaca/win-clipboard@file:osaca_desktop/native/win-clipboard':
+    resolution: {directory: osaca_desktop/native/win-clipboard, type: directory}
+    cpu: [x64, arm64]
+    os: [win32]
+
+  '@osaca/win-game-capture@file:osaca_desktop/native/win-game-capture':
+    resolution: {directory: osaca_desktop/native/win-game-capture, type: directory}
+    cpu: [x64, arm64]
+    os: [win32]
+
+  '@osaca/win-process-loopback@file:osaca_desktop/native/win-process-loopback':
+    resolution: {directory: osaca_desktop/native/win-process-loopback, type: directory}
+    cpu: [x64, arm64]
+    os: [win32]
+
+  '@osaca/win-shell@file:osaca_desktop/native/win-shell':
+    resolution: {directory: osaca_desktop/native/win-shell, type: directory}
+    cpu: [x64, arm64]
+    os: [win32]
+
+  '@osaca/windows-input-hook@file:osaca_desktop/native/windows-input-hook':
+    resolution: {directory: osaca_desktop/native/windows-input-hook, type: directory}
+    cpu: [x64, arm64]
+    os: [win32]
 
   '@oslojs/encoding@1.1.0':
     resolution: {integrity: sha512-70wQhgYmndg4GCPxPPxPGevRKqTIJ2Nh4OkiMWmDAVYsTQ+Ta7Sq+rPevXyXGdzr30/qZBnyOalCszoMxlyldQ==}
@@ -6353,6 +6319,7 @@ packages:
   '@smithy/core@3.37.0':
     resolution: {integrity: sha512-97imTcCyiPd8k0e9+ts/Sp0W65Dn9Ti357J7M09Ov4tI8Q1JDJVFSoAJtjEVKqfHEr3Pdo2jfolqKCaaiszH0g==}
     engines: {node: '>=18.0.0'}
+    deprecated: Deprecated due to a bug in custom logger data redaction. See https://github.com/aws/aws-sdk-js-v3/issues/8393.
 
   '@smithy/credential-provider-imds@4.5.2':
     resolution: {integrity: sha512-A9uSdn72ozbRUSit0eib0TW7nXuNPlaeM0zcGkJ+nE6tFcSDbnmtwoxbTCFBukVQcszDAyvsd7+rTduPTXpygg==}
@@ -9139,10 +9106,6 @@ packages:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
     engines: {node: '>= 0.4'}
 
-  maxmind@5.0.7:
-    resolution: {integrity: sha512-+w637dwfv01MKjkrp4sKDBTEKHLPvWLYb647QTjiz3wG/teSemqudIKNShaS6eqZ7ffxC9oZlQQgIqY0rGojog==}
-    engines: {node: '>=12', npm: '>=6'}
-
   mdast-util-definitions@6.0.0:
     resolution: {integrity: sha512-scTllyX6pnYNZH/AIp/0ePz6s4cZtARxImwoPJ7kS42n+MnVsI4XbnG6d4ibehRIldYMWM2LD7ImQblVhUejVQ==}
 
@@ -9477,10 +9440,6 @@ packages:
     resolution: {integrity: sha512-+NsyUUAZDmo6YVHzL/stxSu3t9YS1iljliy3BSDrXJ/dkn1KYdmtZODGGjLcc9XLgVVpH4KshHB8XmZgMhaBXg==}
     engines: {node: '>=10'}
     hasBin: true
-
-  mmdb-lib@3.0.3:
-    resolution: {integrity: sha512-xQPoBXcNjjHiOvOraFBKtA++uNWF6aCVHL9dRKFXEov8eI3QJwtgiw3qApsonFT5SpoqsEVISUTg3HIDs2DiXw==}
-    engines: {node: '>=10', npm: '>=6'}
 
   mobx-persist-store@1.1.8:
     resolution: {integrity: sha512-7SiLvang0POfGvfP69fzmppBKv36e0TNndKJT1UokZuLXt13CqF3PAxIcRacHqjTBe4ktmzDsh3DK+fbM6epNg==}
@@ -10981,10 +10940,6 @@ packages:
 
   tiny-invariant@1.3.3:
     resolution: {integrity: sha512-+FbBPE1o9QAYvviau/qC5SE3caw21q3xkvWKBtja5vgqOWIHHJ3ioaq1VPfn/Szqctz2bU/oYeKd9/z5BL+PVg==}
-
-  tiny-lru@13.0.0:
-    resolution: {integrity: sha512-xDHxKKS1FdF0Tv2P+QT7IeSEg74K/8cEDzbv3Tv6UyHHUgBOjOiQiBp818MGj66dhurQus/IBcoAbwIKtSGc6Q==}
-    engines: {node: '>=14'}
 
   tinybench@6.2.2:
     resolution: {integrity: sha512-nIZ2N2dFpjBsg2hgitKu7mA+FvsIJuGJOwysRngmVRRmWgR/UyPjwJj8c/fT/dhm8EkHnF5EOogRf+0Z2qrimA==}
@@ -14216,72 +14171,6 @@ snapshots:
 
   '@floating-ui/utils@0.2.12': {}
 
-  '@osaca/app-store@file:osaca_desktop/native/app-store':
-    optional: true
-
-  '@osaca/gateway-socket@file:osaca_desktop/native/gateway-socket':
-    optional: true
-
-  '@osaca/hardware-encoder@file:osaca_desktop/native/hardware-encoder':
-    optional: true
-
-  '@osaca/linux-audio-capture@file:osaca_desktop/native/linux-audio-capture':
-    optional: true
-
-  '@osaca/linux-evdev@file:osaca_desktop/native/linux-evdev':
-    optional: true
-
-  '@osaca/linux-input-hook@file:osaca_desktop/native/linux-input-hook':
-    optional: true
-
-  '@osaca/linux-notifications@file:osaca_desktop/native/linux-notifications':
-    optional: true
-
-  '@osaca/linux-portals@file:osaca_desktop/native/linux-portals':
-    optional: true
-
-  '@osaca/mac-app-audio@file:osaca_desktop/native/mac-app-audio':
-    optional: true
-
-  '@osaca/mac-clipboard@file:osaca_desktop/native/mac-clipboard':
-    optional: true
-
-  '@osaca/mac-screen-capture@file:osaca_desktop/native/mac-screen-capture':
-    optional: true
-
-  '@osaca/mac-sysctl@file:osaca_desktop/native/mac-sysctl':
-    optional: true
-
-  '@osaca/mac-tcc@file:osaca_desktop/native/mac-tcc':
-    optional: true
-
-  '@osaca/macos-input-hook@file:osaca_desktop/native/macos-input-hook':
-    optional: true
-
-  '@osaca/platform-info@file:osaca_desktop/native/platform-info':
-    optional: true
-
-  '@osaca/system-hunspell@file:osaca_desktop/native/system-hunspell':
-    optional: true
-
-  '@osaca/webauthn@file:osaca_desktop/native/webauthn':
-    optional: true
-
-  '@osaca/win-clipboard@file:osaca_desktop/native/win-clipboard':
-    optional: true
-
-  '@osaca/win-game-capture@file:osaca_desktop/native/win-game-capture':
-    optional: true
-
-  '@osaca/win-process-loopback@file:osaca_desktop/native/win-process-loopback':
-    optional: true
-
-  '@osaca/win-shell@file:osaca_desktop/native/win-shell':
-    optional: true
-
-  '@osaca/windows-input-hook@file:osaca_desktop/native/windows-input-hook':
-    optional: true
-
   '@hexagon/base64@1.1.28': {}
 
   '@hono/node-server@2.1.5(hono@4.13.14)':
@@ -15079,6 +14968,72 @@ snapshots:
       '@opentelemetry/semantic-conventions': 1.44.0
 
   '@opentelemetry/semantic-conventions@1.44.0': {}
+
+  '@osaca/app-store@file:osaca_desktop/native/app-store':
+    optional: true
+
+  '@osaca/gateway-socket@file:osaca_desktop/native/gateway-socket':
+    optional: true
+
+  '@osaca/hardware-encoder@file:osaca_desktop/native/hardware-encoder':
+    optional: true
+
+  '@osaca/linux-audio-capture@file:osaca_desktop/native/linux-audio-capture':
+    optional: true
+
+  '@osaca/linux-evdev@file:osaca_desktop/native/linux-evdev':
+    optional: true
+
+  '@osaca/linux-input-hook@file:osaca_desktop/native/linux-input-hook':
+    optional: true
+
+  '@osaca/linux-notifications@file:osaca_desktop/native/linux-notifications':
+    optional: true
+
+  '@osaca/linux-portals@file:osaca_desktop/native/linux-portals':
+    optional: true
+
+  '@osaca/mac-app-audio@file:osaca_desktop/native/mac-app-audio':
+    optional: true
+
+  '@osaca/mac-clipboard@file:osaca_desktop/native/mac-clipboard':
+    optional: true
+
+  '@osaca/mac-screen-capture@file:osaca_desktop/native/mac-screen-capture':
+    optional: true
+
+  '@osaca/mac-sysctl@file:osaca_desktop/native/mac-sysctl':
+    optional: true
+
+  '@osaca/mac-tcc@file:osaca_desktop/native/mac-tcc':
+    optional: true
+
+  '@osaca/macos-input-hook@file:osaca_desktop/native/macos-input-hook':
+    optional: true
+
+  '@osaca/platform-info@file:osaca_desktop/native/platform-info':
+    optional: true
+
+  '@osaca/system-hunspell@file:osaca_desktop/native/system-hunspell':
+    optional: true
+
+  '@osaca/webauthn@file:osaca_desktop/native/webauthn':
+    optional: true
+
+  '@osaca/win-clipboard@file:osaca_desktop/native/win-clipboard':
+    optional: true
+
+  '@osaca/win-game-capture@file:osaca_desktop/native/win-game-capture':
+    optional: true
+
+  '@osaca/win-process-loopback@file:osaca_desktop/native/win-process-loopback':
+    optional: true
+
+  '@osaca/win-shell@file:osaca_desktop/native/win-shell':
+    optional: true
+
+  '@osaca/windows-input-hook@file:osaca_desktop/native/windows-input-hook':
+    optional: true
 
   '@oslojs/encoding@1.1.0': {}
 
@@ -18841,11 +18796,6 @@ snapshots:
 
   math-intrinsics@1.1.0: {}
 
-  maxmind@5.0.7:
-    dependencies:
-      mmdb-lib: 3.0.3
-      tiny-lru: 13.0.0
-
   mdast-util-definitions@6.0.0:
     dependencies:
       '@types/mdast': 4.0.4
@@ -19794,8 +19744,6 @@ snapshots:
       minimist: 1.2.8
 
   mkdirp@3.0.1: {}
-
-  mmdb-lib@3.0.3: {}
 
   mobx-persist-store@1.1.8(mobx@7.1.3):
     dependencies:
@@ -21574,8 +21522,6 @@ snapshots:
   tiny-inflate@1.0.3: {}
 
   tiny-invariant@1.3.3: {}
-
-  tiny-lru@13.0.0: {}
 
   tinybench@6.2.2: {}
 

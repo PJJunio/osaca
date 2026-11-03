@@ -157,7 +157,6 @@ export interface MasterConfig {
 				secret_base64: string;
 				max_body_bytes: number;
 				token_ttl_secs: number;
-				keep_direct_countries: Array<string>;
 			};
 			attachment_urls: {
 				secrets_base64: Array<string>;
@@ -351,9 +350,6 @@ export interface MasterConfig {
 		test_mode_enabled: boolean;
 		test_harness_token?: string;
 		validate_responses?: boolean;
-	};
-	geoip: {
-		maxmind_db_path: string;
 	};
 	proxy: {
 		trust_client_ip_header: boolean;

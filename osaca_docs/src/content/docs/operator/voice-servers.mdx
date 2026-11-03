@@ -268,16 +268,16 @@ voice.example.com {
 
 ## Regions and placement
 
-On another machine, the server goes to the region in the token. Without one, it goes to the existing region nearest to the machine, when your instance has a GeoIP database, and to the default region otherwise. The summary shows the region and the distance. Pass `--region` to pick another existing region. OSACA never creates a region by itself, because GeoIP data for cloud addresses is often wrong. Create a region with a token for it, or with `rexctl voice add` on the OSACA machine. Give the region's location, because placement sends people to the nearest region.
+On another machine, the server goes to the region in the token, and to the default region otherwise. Pass `--region` to pick another existing region. OSACA never looks up where a machine or a person is, and never creates a region by itself. Create a region with a token for it, or with `rexctl voice add` on the OSACA machine. Give the region's location, because placement sends people to the nearest region.
 
 ```sh
 rexctl voice token --new-region fra --region-name Frankfurt --lat 50.1 --long 8.7
 rexctl voice add --new-region fra --region-name Frankfurt --lat 50.1 --long 8.7
 ```
 
-A token without `--lat` and `--long` puts the new region where your instance's GeoIP database places the voice machine, or at the place you pass to `rexctl voice join` with `--lat` and `--long`. Without either, the region gets latitude 0 and longitude 0. Fix that in the admin panel.
+A token without `--lat` and `--long` puts the new region at the place you pass to `rexctl voice join` with `--lat` and `--long`. Without either, the region gets latitude 0 and longitude 0. Fix that in the admin panel.
 
-A channel with a region set in its settings uses that region. Other calls go to the nearest region of the person who starts them. Within a region, OSACA takes turns between the servers and prefers servers below their soft limit. Restrictions on a server or region in the admin panel apply to new calls on it.
+A channel with a region set in its settings uses that region. Other calls go to the default region. Within a region, OSACA takes turns between the servers and prefers servers below their soft limit. Restrictions on a server or region in the admin panel apply to new calls on it.
 
 Every API node checks every active server every 15 seconds. A server that fails two checks in a row gets no new calls, and calls that reconnect move to another server. When every server in a region is down or draining, new calls for that region go to a server in another region. When every server is down, OSACA places calls as before.
 

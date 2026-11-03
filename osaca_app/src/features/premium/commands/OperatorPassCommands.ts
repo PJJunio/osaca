@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {Endpoints} from '@app/features/app/constants/Endpoints';
-import GeoIP from '@app/features/app/state/GeoIP';
 import {http} from '@app/features/platform/transport/RestTransport';
 import {Logger} from '@app/features/platform/utils/AppLogger';
 import OperatorPassHoldings from '@app/features/premium/state/OperatorPassHoldings';
@@ -27,7 +26,7 @@ import type {
 const logger = new Logger('OperatorPass');
 
 export function getCountryCode(): string | undefined {
-	return GeoIP.countryCode?.toUpperCase() ?? undefined;
+	return undefined;
 }
 
 function applyHolderToCurrentUser(state: OperatorPassStateResponse): void {

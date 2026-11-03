@@ -2,7 +2,6 @@
 
 import {showPremiumActionErrorModal} from '@app/features/app/components/dialogs/components/plutonium/utils/PremiumActionErrorModal';
 import {Endpoints} from '@app/features/app/constants/Endpoints';
-import GeoIP from '@app/features/app/state/GeoIP';
 import {whenDateOfBirthStepClosed} from '@app/features/auth/state/DateOfBirthStep';
 import {http} from '@app/features/platform/transport/RestTransport';
 import {Logger} from '@app/features/platform/utils/AppLogger';
@@ -42,8 +41,7 @@ async function resolvePremiumStateCountryCode(countryCode?: string): Promise<str
 	if (explicitCountry) {
 		return explicitCountry;
 	}
-	await GeoIP.ready();
-	return normalizedCountryCode(GeoIP.countryCode ?? undefined);
+	return normalizedCountryCode(undefined);
 }
 
 function checkoutEndpoint(isGift: boolean): string {

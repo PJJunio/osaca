@@ -27,7 +27,6 @@ import {
 } from '@app/api/user/services/WebPushOriginReplacement';
 import {isUsernameTaken} from '@app/api/user/UniqueUsernames';
 import {mapUserToPartialResponse} from '@app/api/user/UserMappers';
-import {lookupGeoip} from '@app/api/utils/IpUtils';
 import {parseJsonRecord} from '@app/api/utils/JsonBoundaryUtils';
 import {resolveSessionClientInfo} from '@app/api/utils/SessionClientIdentity';
 import {generateUsernameSuggestions} from '@app/api/utils/UsernameSuggestionUtils';
@@ -423,7 +422,6 @@ export class AuthRequestService {
 		if (info.status === 'expired' || !info.origin) {
 			return {status: info.status, client_info: null};
 		}
-		const geo = await lookupGeoip(info.origin.ip);
 		const {branding} = await getInstanceConfigRepository().getAppPublicConfig();
 		const resolved = resolveSessionClientInfo({
 			userAgent: info.origin.userAgent,
@@ -436,11 +434,7 @@ export class AuthRequestService {
 				platform: resolved.platform,
 				os: resolved.os,
 				device: resolved.device,
-				location: {
-					city: geo.city,
-					region: geo.region,
-					country: geo.countryName,
-				},
+				location: {city: null, region: null, country: null},
 			},
 			return_method: info.returnMethod,
 		};

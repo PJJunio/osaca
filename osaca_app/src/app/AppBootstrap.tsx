@@ -27,8 +27,8 @@ import {
 import {loadLazyModule} from '@app/features/platform/utils/LazyModuleLoader';
 import {scheduleNonLatinScriptFaces} from '@app/features/theme/fonts/ScriptFontLoader';
 import {installVoiceSubscriptionDebugApi} from '@app/features/voice/diagnostics/VoiceSubscriptionDebugApi';
-import {PASSKEY_BRIDGE_PATH} from '@osaca/constants/src/PasskeyConstants';
 import {i18n} from '@lingui/core';
+import {PASSKEY_BRIDGE_PATH} from '@osaca/constants/src/PasskeyConstants';
 import {type ReactNode, startTransition} from 'react';
 import ReactDOM from 'react-dom/client';
 
@@ -178,7 +178,6 @@ async function bootstrapApp(storageBootstrap: AppStorageBootstrapHandle): Promis
 		{default: Accounts},
 		{default: ChannelDisplayName},
 		_channelFrecency,
-		_geoIp,
 		{default: Keybind},
 		{default: NewDeviceMonitoring},
 		{default: Notification},
@@ -196,7 +195,6 @@ async function bootstrapApp(storageBootstrap: AppStorageBootstrapHandle): Promis
 		loadLazyModule(() => import('@app/features/auth/state/Accounts')),
 		loadLazyModule(() => import('@app/features/channel/state/ChannelDisplayName')),
 		loadLazyModule(() => import('@app/features/channel/state/ChannelFrecency')),
-		loadLazyModule(() => import('@app/features/app/state/GeoIP')),
 		loadLazyModule(() => import('@app/features/input/state/InputKeybind')),
 		loadLazyModule(() => import('@app/features/auth/state/NewDeviceMonitoring')),
 		loadLazyModule(() => import('@app/features/ui/state/Notification')),

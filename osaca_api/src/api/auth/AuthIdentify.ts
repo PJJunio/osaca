@@ -59,7 +59,6 @@ import type {User} from '@app/api/models/User';
 import type {TierContext} from '@app/api/user/AccountTier';
 import {BELOW_MINIMUM_AGE_TRAIT} from '@app/api/user/UserTraits';
 import {extractEmailDomain} from '@app/api/utils/EmailDomainUtils';
-import {lookupGeoip} from '@app/api/utils/IpUtils';
 import {resolveSessionClientInfo} from '@app/api/utils/SessionClientIdentity';
 import {UserAuthenticatorTypes} from '@osaca/constants/src/UserConstants';
 import {AccountBelowMinimumAgeError} from '@osaca/errors/src/domains/auth/AccountBelowMinimumAgeError';
@@ -76,7 +75,6 @@ import {parseAcceptLanguage} from '@osaca/i18n/src/locale/resolution/AcceptLangu
 import {getSubnet} from '@osaca/ip_utils/src/IpAddress';
 import {isCaptchaActive} from '@osaca/schema/src/domains/admin/CaptchaSchemas';
 import type {IdentifyResponse} from '@osaca/schema/src/domains/auth/AuthSchemas';
-import {formatGeoipLocation} from '@pkgs/geoip/src/GeoipLookup';
 import {seconds} from 'itty-time';
 
 const TICKET_TTL_SECONDS = seconds('15 minutes');
@@ -292,8 +290,7 @@ export async function sendEmailCode(
 			ttlSeconds: CODE_TTL_SECONDS,
 		});
 		const locale = owner?.locale ?? parseAcceptLanguage(params.request.headers.get('accept-language'));
-		const geoip = await lookupGeoip(params.clientIp);
-		const requesterInfo = describeRequester(params.request, formatGeoipLocation(geoip, locale), locale);
+		const requesterInfo = describeRequester(params.request, null, locale);
 		if (purpose === 'sign_in') {
 			await ctx.services.email.send(
 				'sign_in_code',

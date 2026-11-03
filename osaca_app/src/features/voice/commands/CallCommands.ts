@@ -2,7 +2,6 @@
 
 import {showDmActionErrorModal} from '@app/features/app/components/alerts/DmActionErrorModal';
 import {Endpoints} from '@app/features/app/constants/Endpoints';
-import GeoIP from '@app/features/app/state/GeoIP';
 import Channels from '@app/features/channel/state/Channels';
 import {http} from '@app/features/platform/transport/RestTransport';
 import {Logger} from '@app/features/platform/utils/AppLogger';
@@ -14,7 +13,6 @@ import CallInitiator from '@app/features/voice/state/CallInitiator';
 import CallState from '@app/features/voice/state/CallState';
 import RtcRegions from '@app/features/voice/state/RtcRegions';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
-import {AUTOMATIC_VOICE_REGION_ID} from '@osaca/constants/src/ChannelConstants';
 import type {RtcRegionResponse} from '@osaca/schema/src/domains/channel/ChannelSchemas';
 import {reaction} from 'mobx';
 
@@ -44,16 +42,9 @@ const logger = new Logger('CallCommands');
 
 let pendingRing: PendingRing | null = null;
 
-function currentGeoCoordinates(): Pick<CallRingRequest, 'latitude' | 'longitude'> {
-	const latitude = GeoIP.latitude;
-	const longitude = GeoIP.longitude;
-	return latitude && longitude ? {latitude, longitude} : {};
-}
-
 function callRingRequest(recipients?: Array<string>): CallRingRequest {
 	return {
 		...(recipients ? {recipients} : {}),
-		...currentGeoCoordinates(),
 	};
 }
 
@@ -76,7 +67,6 @@ function initiatedRingingRecipients(channelId: string): Array<string> {
 function callRegionPatch(region: string): CallRegionPatch {
 	return {
 		region,
-		...(region === AUTOMATIC_VOICE_REGION_ID ? currentGeoCoordinates() : {}),
 	};
 }
 

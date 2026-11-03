@@ -55,7 +55,6 @@ import {USERNAME_MODE_DISCRIMINATOR} from '@app/api/user/UserTag';
 import {DOB_DEFERRED_TRAIT} from '@app/api/user/UserTraits';
 import * as AgeUtils from '@app/api/utils/AgeUtils';
 import {assertEmailDomainAllowed, extractEmailDomain} from '@app/api/utils/EmailDomainUtils';
-import {lookupGeoip} from '@app/api/utils/IpUtils';
 import {hashPassword} from '@app/api/utils/PasswordUtils';
 import {createRateLimitError} from '@app/api/utils/RateLimitUtils';
 import {requireConfiguredClientIp} from '@app/api/utils/RequestClientIp';
@@ -327,11 +326,10 @@ async function createAccountUnlocked(
 		}
 		assertInstantAccountAvailable(await instanceConfigRepository.getInstantAccountAvailability(approvalOverride));
 	}
-	const geoipResult = await lookupGeoip(clientIp);
 	const dateOfBirthResult = resolveRegistrationDateOfBirth({
 		collect: appPublicConfig.registration.collect_date_of_birth,
 		dateOfBirth: input.dateOfBirth,
-		countryCode: geoipResult.countryCode,
+		countryCode: null,
 	});
 	if (input.password && (await AuthPassword.isPasswordPwned(ctx, input.password))) {
 		throw InputValidationError.fromCode('password', ValidationErrorCodes.PASSWORD_IS_TOO_COMMON);

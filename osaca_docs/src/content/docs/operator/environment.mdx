@@ -862,10 +862,6 @@ The largest upload the relay accepts, in bytes from 1 to 5 GiB. It can't be more
 
 How long an upload relay token stays valid, in seconds. When it's empty, the API uses `900`. With rexctl, use `rexctl config set OSACA_MEDIA_PROXY_UPLOAD_RELAY_TOKEN_TTL_SECS`.
 
-### `OSACA_MEDIA_PROXY_UPLOAD_RELAY_KEEP_DIRECT_COUNTRIES`
-
-Two-letter country codes, separated by commas, whose clients upload to the object store directly and skip the relay. It needs the GeoIP database in `OSACA_GEOIP_DB_PATH`, and browsers can only upload directly when `OSACA_S3_PUBLIC_ENDPOINT` is set. When it's empty or there's no GeoIP database, every client uses the relay and browsers never see the internal store address. With rexctl, use `rexctl config set OSACA_MEDIA_PROXY_UPLOAD_RELAY_KEEP_DIRECT_COUNTRIES`.
-
 ### `OSACA_MEDIA_PROXY_CORS_MODE`
 
 Whether the media proxy checks the Origin of media requests. Use `off`, `report` or `enforce`. When it's empty, it's off. With `report`, the media proxy logs requests it would refuse, and with `enforce` it refuses them. A request with no Origin header is always served. With rexctl, use `rexctl config set OSACA_MEDIA_PROXY_CORS_MODE`.
@@ -1291,10 +1287,6 @@ Whether OSACA rejects passwords found in known data breaches, by sending the fir
 ### `OSACA_BLOCKLIST_FEEDS_ENABLED`
 
 Whether the worker downloads the URLhaus and PhishTank link lists every six hours and the MalwareBazaar file hashes every twelve hours, and checks posted links and uploads against them. Use `true` or `false`. When it's empty, this is off on a self-hosted instance. With rexctl, use `rexctl config set OSACA_BLOCKLIST_FEEDS_ENABLED`.
-
-### `OSACA_GEOIP_DB_PATH`
-
-Where the api and worker load the MaxMind GeoIP database from, as a file path or an `s3://bucket/key` URL. An s3 URL needs a `download_path` query parameter with an absolute path. With rexctl, use `rexctl config set OSACA_GEOIP_DB_PATH`.
 
 ### `OSACA_YOUTUBE_API_KEY`
 

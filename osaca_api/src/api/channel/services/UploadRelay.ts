@@ -2,10 +2,7 @@
 
 import {createHmac} from 'node:crypto';
 import {Config} from '@app/api/Config';
-import {lookupGeoip} from '@app/api/utils/IpUtils';
-import {Logger} from '@osaca/logger/src/Logger';
 
-const logger = new Logger('UploadRelay');
 const RELAY_PATH_PREFIX = '/v1/relay';
 
 interface RelayTokenPayload {
@@ -24,7 +21,6 @@ interface UploadRelayConfig {
 	relaySecretBase64: string;
 	tokenTtlSecs: number;
 	maxBodyBytes: number;
-	keepDirectCountries: Array<string>;
 }
 
 type UploadRelayDecision = UploadRelayConfig | null;
@@ -95,18 +91,6 @@ export async function resolveUploadRelayDecision(clientIp: string | undefined | 
 	const relayConfig = Config.mediaProxy.uploadRelay;
 	if (!clientIp) {
 		return relayConfig;
-	}
-	let countryCode: string | null = null;
-	try {
-		const geo = await lookupGeoip(clientIp);
-		countryCode = geo.countryCode;
-	} catch (error) {
-		logger.warn({clientIp, error}, 'geoip lookup failed for upload relay decision; using upload relay');
-		return relayConfig;
-	}
-	const keepDirectCountries = new Set(relayConfig.keepDirectCountries.map((code) => code.toUpperCase()));
-	if (countryCode && keepDirectCountries.has(countryCode.toUpperCase())) {
-		return null;
 	}
 	return relayConfig;
 }

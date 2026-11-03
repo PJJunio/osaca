@@ -156,11 +156,6 @@ services:
         volume:
           nocopy: true
       - type: volume
-        source: osaca-api-geoip-node-modules
-        target: /workspaces/osaca/osaca_api/pkgs/geoip/node_modules
-        volume:
-          nocopy: true
-      - type: volume
         source: osaca-api-http-client-node-modules
         target: /workspaces/osaca/osaca_api/pkgs/http_client/node_modules
         volume:
@@ -353,7 +348,6 @@ volumes:
   osaca-api-cassandra-node-modules:
   osaca-api-elasticsearch-search-node-modules:
   osaca-api-email-node-modules:
-  osaca-api-geoip-node-modules:
   osaca-api-http-client-node-modules:
   osaca-api-kv-client-node-modules:
   osaca-api-media-proxy-utils-node-modules:

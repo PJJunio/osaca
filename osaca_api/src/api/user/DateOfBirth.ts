@@ -18,7 +18,6 @@ import {mapUserSettingsToResponse, mapUserToPrivateResponse} from '@app/api/user
 import {USERNAME_MODE_DISCRIMINATOR} from '@app/api/user/UserTag';
 import {BELOW_MINIMUM_AGE_TRAIT, DOB_DEFERRED_TRAIT} from '@app/api/user/UserTraits';
 import {calculateAge, parseDateOfBirth} from '@app/api/utils/AgeUtils';
-import {lookupGeoip} from '@app/api/utils/IpUtils';
 import {generateRandomUsername} from '@app/api/utils/UsernameGenerator';
 import {DateOfBirthPolicies} from '@osaca/constants/src/AccountConfigConstants';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
@@ -148,9 +147,8 @@ export async function setDateOfBirth(
 	}
 	if (user.dateOfBirth !== null) throw new DateOfBirthAlreadySetError();
 	const dateOfBirth = parseDateOfBirth(params.dateOfBirth);
-	const geoip = await lookupGeoip(params.clientIp);
 	const age = calculateAge(params.dateOfBirth);
-	if (age < getRegionalMinimumAge(geoip.countryCode)) {
+	if (age < getRegionalMinimumAge(null)) {
 		return await handleUnderage(ctx, user);
 	}
 	const traits = user.traits;

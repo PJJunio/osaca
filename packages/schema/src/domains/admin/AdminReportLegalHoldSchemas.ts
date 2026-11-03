@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {IsoTimestampStringType} from '@fluxer/schema/src/primitives/DateValidators';
-import {createStringType, SnowflakeStringType} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+import {IsoTimestampStringType} from '@osaca/schema/src/primitives/DateValidators';
+import {createStringType, SnowflakeStringType} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 export const ReportLegalHoldRequest = z.object({

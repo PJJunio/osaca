@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import type {GuildSplashCardAlignmentValue} from '@fluxer/constants/src/GuildConstants';
+import type {GuildSplashCardAlignmentValue} from '@osaca/constants/src/GuildConstants';
 import {
 	GuildFeatures,
 	GuildOperations,
 	GuildOperationsDescriptions,
 	SystemChannelFlags,
 	SystemChannelFlagsDescriptions,
-} from '@fluxer/constants/src/GuildConstants';
-import {CustomBadgeIdListResponse} from '@fluxer/schema/src/domains/admin/AdminBadgeSchemas';
-import {ChannelResponse} from '@fluxer/schema/src/domains/channel/ChannelSchemas';
-import {GuildEmojiResponse, GuildStickerResponse} from '@fluxer/schema/src/domains/guild/GuildEmojiSchemas';
-import {GuildRoleResponse} from '@fluxer/schema/src/domains/guild/GuildRoleSchemas';
+} from '@osaca/constants/src/GuildConstants';
+import {CustomBadgeIdListResponse} from '@osaca/schema/src/domains/admin/AdminBadgeSchemas';
+import {ChannelResponse} from '@osaca/schema/src/domains/channel/ChannelSchemas';
+import {GuildEmojiResponse, GuildStickerResponse} from '@osaca/schema/src/domains/guild/GuildEmojiSchemas';
+import {GuildRoleResponse} from '@osaca/schema/src/domains/guild/GuildRoleSchemas';
 import {
 	ContentWarningLevelSchema,
 	DefaultMessageNotificationsSchema,
@@ -20,8 +20,8 @@ import {
 	GuildVerificationLevelSchema,
 	NSFWLevelSchema,
 	SplashCardAlignmentSchema,
-} from '@fluxer/schema/src/primitives/GuildValidators';
-import {PermissionStringType} from '@fluxer/schema/src/primitives/PermissionValidators';
+} from '@osaca/schema/src/primitives/GuildValidators';
+import {PermissionStringType} from '@osaca/schema/src/primitives/PermissionValidators';
 import {
 	coerceNumberFromString,
 	createBitflagInt32Type,
@@ -30,8 +30,8 @@ import {
 	SnowflakeStringType,
 	withFieldDescription,
 	withOpenApiType,
-} from '@fluxer/schema/src/primitives/SchemaPrimitives';
-import {withSchemaMetadata} from '@fluxer/schema/src/SchemaMetadata';
+} from '@osaca/schema/src/primitives/SchemaPrimitives';
+import {withSchemaMetadata} from '@osaca/schema/src/SchemaMetadata';
 import {z} from 'zod';
 
 function normalizeGuildFeatures(features: Array<string>): Array<string> {

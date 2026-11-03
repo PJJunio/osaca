@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {EXPERIMENT_BUCKET_RESOLUTION, experimentBucket} from '@fluxer/schema/src/domains/experiment/ExperimentBucket';
+import {EXPERIMENT_BUCKET_RESOLUTION, experimentBucket} from '@osaca/schema/src/domains/experiment/ExperimentBucket';
 import {z} from 'zod';
 
 const GUILD_VISITS_MAX_TARGETED_IDS = 1000;

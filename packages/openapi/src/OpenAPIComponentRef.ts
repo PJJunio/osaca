@@ -1,4 +1,4 @@
-import type {OpenAPIRef} from '@fluxer/openapi/src/OpenAPITypes';
+import type {OpenAPIRef} from '@osaca/openapi/src/OpenAPITypes';
 
 export function validateOpenAPIComponentName(name: string): void {
 	if (!/^[A-Za-z0-9._-]+$/.test(name)) {

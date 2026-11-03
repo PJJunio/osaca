@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {PurchaseBlockedReasons} from '@fluxer/constants/src/AccountTierConstants';
-import type {ValueOf} from '@fluxer/constants/src/ValueOf';
-import {CnpjSchema} from '@fluxer/schema/src/domains/premium/Cnpj';
+import {PurchaseBlockedReasons} from '@osaca/constants/src/AccountTierConstants';
+import type {ValueOf} from '@osaca/constants/src/ValueOf';
+import {CnpjSchema} from '@osaca/schema/src/domains/premium/Cnpj';
 import {
 	createNamedStringLiteralUnion,
 	createStringType,
 	SnowflakeStringType,
 	SnowflakeType,
-} from '@fluxer/schema/src/primitives/SchemaPrimitives';
-import {DiscriminatorType, UsernameType} from '@fluxer/schema/src/primitives/UserValidators';
+} from '@osaca/schema/src/primitives/SchemaPrimitives';
+import {DiscriminatorType, UsernameType} from '@osaca/schema/src/primitives/UserValidators';
 import {z} from 'zod';
 
 export const OPERATOR_PASS_PHASES = ['early_bird', 'standard'] as const;
@@ -155,7 +155,7 @@ export const OperatorPassWallDeclineReasonSchema = createNamedStringLiteralUnion
 		['guidelines', 'GUIDELINES', 'It breaks the community guidelines'],
 		['impersonation', 'IMPERSONATION', 'It pretends to be someone else'],
 		['rights', 'RIGHTS', 'It uses a name or image the holder has no right to use'],
-		['age_suitability', 'AGE_SUITABILITY', 'It is not suitable for the youngest people allowed to use Fluxer'],
+		['age_suitability', 'AGE_SUITABILITY', 'It is not suitable for the youngest people allowed to use OSACA'],
 	],
 	"Why staff took a name or avatar off the Operators' wall or hid a listing, under section 3.1 of the Operator Pass terms",
 );
@@ -213,7 +213,7 @@ export const OperatorPassStateResponse = z.object({
 	max_quantity: z
 		.number()
 		.int()
-		.describe('Most passes one checkout can buy, FLUXER_OPERATOR_PASS_MAX_QUANTITY, 25 by default'),
+		.describe('Most passes one checkout can buy, OSACA_OPERATOR_PASS_MAX_QUANTITY, 25 by default'),
 	withdrawal_rule: OperatorPassWithdrawalRuleResponse.nullable().describe(
 		'A country rule that keeps the right of withdrawal after delivery, null when the right ends once the certificate is delivered',
 	),
@@ -262,7 +262,7 @@ export const OperatorPassCheckoutRequest = z.object({
 		.boolean()
 		.optional()
 		.describe(
-			'Whether the system user welcomes the buyer by name in #operators in Fluxer Labs once the certificate is delivered. Left out, the choice the account made before stays, and a new account is welcomed',
+			'Whether the system user welcomes the buyer by name in #operators in OSACA Labs once the certificate is delivered. Left out, the choice the account made before stays, and a new account is welcomed',
 		),
 	consent_locale: z
 		.string()
@@ -615,7 +615,7 @@ export const OperatorPassVisionaryResponse = z.object({
 		.describe(
 			'The private link of the certificate page on the marketing site once the pass is on, null before, after it ends or when the page has no link',
 		),
-	labs_member: z.boolean().describe('Whether the account is in Fluxer Labs, where the pass gives the Operator role'),
+	labs_member: z.boolean().describe('Whether the account is in OSACA Labs, where the pass gives the Operator role'),
 	terms_version: z
 		.string()
 		.describe('The Operator Pass terms version to send back when turning the pass on, or the one accepted once on'),
@@ -641,7 +641,7 @@ export const OperatorPassVisionaryTurnOnRequest = z.object({
 		.boolean()
 		.optional()
 		.describe(
-			'Whether the system user welcomes the account by name in #operators in Fluxer Labs once the pass is on. Left out, the choice the account made before stays, and a new account is welcomed',
+			'Whether the system user welcomes the account by name in #operators in OSACA Labs once the pass is on. Left out, the choice the account made before stays, and a new account is welcomed',
 		),
 	terms_accepted: z
 		.boolean()
@@ -666,16 +666,16 @@ export const OperatorPassLabsResponse = z.object({
 	greeting: z
 		.boolean()
 		.describe(
-			'Whether the system user welcomes the account by name in #operators in Fluxer Labs when a pass is delivered. On unless the account turned it off',
+			'Whether the system user welcomes the account by name in #operators in OSACA Labs when a pass is delivered. On unless the account turned it off',
 		),
 	greeted: z.boolean().describe('Whether the account was already welcomed in #operators. Nobody is welcomed twice'),
 	left: z
 		.boolean()
-		.describe('Whether the account left Fluxer Labs or was removed from it, so passes no longer add it to Labs'),
-	member: z.boolean().describe('Whether the account is in Fluxer Labs now'),
-	guild_id: SnowflakeStringType.nullable().describe('ID of the Fluxer Labs community, null when it is not set up'),
+		.describe('Whether the account left OSACA Labs or was removed from it, so passes no longer add it to Labs'),
+	member: z.boolean().describe('Whether the account is in OSACA Labs now'),
+	guild_id: SnowflakeStringType.nullable().describe('ID of the OSACA Labs community, null when it is not set up'),
 	operators_channel_id: SnowflakeStringType.nullable().describe(
-		'ID of the #operators channel in Fluxer Labs, null when it is not set up',
+		'ID of the #operators channel in OSACA Labs, null when it is not set up',
 	),
 });
 
@@ -685,11 +685,11 @@ export const OperatorPassLabsJoinResponse = z.object({
 	status: z
 		.enum(['joined', 'left', 'banned', 'unavailable'])
 		.describe(
-			'joined: the account is in Fluxer Labs with the Operator role. left: the account left Fluxer Labs or was removed from it before, so it is not added again and can join with the invite. banned: the account is banned from Fluxer Labs. unavailable: the account cannot be added right now',
+			'joined: the account is in OSACA Labs with the Operator role. left: the account left OSACA Labs or was removed from it before, so it is not added again and can join with the invite. banned: the account is banned from OSACA Labs. unavailable: the account cannot be added right now',
 		),
-	guild_id: SnowflakeStringType.nullable().describe('ID of the Fluxer Labs community, null when it is not set up'),
+	guild_id: SnowflakeStringType.nullable().describe('ID of the OSACA Labs community, null when it is not set up'),
 	operators_channel_id: SnowflakeStringType.nullable().describe(
-		'ID of the #operators channel in Fluxer Labs, null when it is not set up',
+		'ID of the #operators channel in OSACA Labs, null when it is not set up',
 	),
 });
 
@@ -699,7 +699,7 @@ export const OperatorPassLabsGreetingRequest = z.object({
 	greeting: z
 		.boolean()
 		.describe(
-			'Whether the system user welcomes the account by name in #operators in Fluxer Labs when a pass is delivered',
+			'Whether the system user welcomes the account by name in #operators in OSACA Labs when a pass is delivered',
 		),
 });
 
@@ -723,7 +723,7 @@ export const OperatorPassPassesResponse = z.object({
 	visionary: OperatorPassVisionaryResponse.optional().describe(
 		'The Operator Pass that comes with Visionary. Left out when the account never had Visionary',
 	),
-	labs: OperatorPassLabsResponse.describe('The place in Fluxer Labs that comes with the pass'),
+	labs: OperatorPassLabsResponse.describe('The place in OSACA Labs that comes with the pass'),
 });
 
 export type OperatorPassPassesResponse = z.infer<typeof OperatorPassPassesResponse>;
@@ -770,7 +770,7 @@ export const OperatorPassOfferAcceptRequest = z.object({
 		.boolean()
 		.optional()
 		.describe(
-			'Whether the system user welcomes the recipient by name in #operators in Fluxer Labs once the pass reaches them. Left out, the choice the account made before stays, and a new account is welcomed',
+			'Whether the system user welcomes the recipient by name in #operators in OSACA Labs once the pass reaches them. Left out, the choice the account made before stays, and a new account is welcomed',
 		),
 });
 
@@ -845,7 +845,7 @@ export const OperatorPassWallOperatorResponse = z.object({
 		.number()
 		.int()
 		.describe(
-			'Size tier on the wall from the number of passes held, 1 for the smallest. The thresholds come from FLUXER_OPERATOR_PASS_WALL_TIERS, by default 1, 2 to 4, 5 to 9 and 10 or more',
+			'Size tier on the wall from the number of passes held, 1 for the smallest. The thresholds come from OSACA_OPERATOR_PASS_WALL_TIERS, by default 1, 2 to 4, 5 to 9 and 10 or more',
 		),
 	business: z
 		.literal(true)
@@ -868,7 +868,7 @@ export type OperatorPassWallResponse = z.infer<typeof OperatorPassWallResponse>;
 
 export const OperatorPassReleaseResponse = z.object({
 	year: z.number().int().describe('The year of the list, as in The Operators of 2026'),
-	tag: z.string().describe('The tag of the Fluxer release the list shipped in'),
+	tag: z.string().describe('The tag of the OSACA release the list shipped in'),
 	released_at: z.iso.datetime().describe('When the release shipped'),
 	names: z.array(z.string()).describe('Names in the list, sorted'),
 });

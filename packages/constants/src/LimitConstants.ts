@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {ASSET_FORMAT_POLICY} from '@fluxer/constants/src/AssetFormatPolicy';
+import {ASSET_FORMAT_POLICY} from '@osaca/constants/src/AssetFormatPolicy';
 
 export const MAX_GUILDS_PREMIUM = 200;
 export const MAX_GUILD_CHANNELS = 500;

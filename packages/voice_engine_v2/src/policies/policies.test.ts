@@ -1,34 +1,34 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import cameraShareEncodingPlanFixtures from '@fluxer/voice_engine_v2/fixtures/policies/camera_share_encoding_plan.json';
-import hardwareEncoderCapabilityFixtures from '@fluxer/voice_engine_v2/fixtures/policies/hardware_encoder_capabilities.json';
-import microphoneFailureFixtures from '@fluxer/voice_engine_v2/fixtures/policies/microphone_failure_action.json';
-import screenShareEncodingPlanFixtures from '@fluxer/voice_engine_v2/fixtures/policies/screen_share_encoding_plan.json';
+import cameraShareEncodingPlanFixtures from '@osaca/voice_engine_v2/fixtures/policies/camera_share_encoding_plan.json';
+import hardwareEncoderCapabilityFixtures from '@osaca/voice_engine_v2/fixtures/policies/hardware_encoder_capabilities.json';
+import microphoneFailureFixtures from '@osaca/voice_engine_v2/fixtures/policies/microphone_failure_action.json';
+import screenShareEncodingPlanFixtures from '@osaca/voice_engine_v2/fixtures/policies/screen_share_encoding_plan.json';
 
-import voiceStatsSummaryFixtures from '@fluxer/voice_engine_v2/fixtures/policies/voice_stats_summary.json';
-import voiceTrackClassificationFixtures from '@fluxer/voice_engine_v2/fixtures/policies/voice_track_classification.json';
-import {planVoiceEngineV2CameraEncodingChange} from '@fluxer/voice_engine_v2/src/policies/cameraShare';
-import {normalizeVoiceEngineV2HardwareEncoderCapabilities} from '@fluxer/voice_engine_v2/src/policies/hardwareEncoderCapabilities';
+import voiceStatsSummaryFixtures from '@osaca/voice_engine_v2/fixtures/policies/voice_stats_summary.json';
+import voiceTrackClassificationFixtures from '@osaca/voice_engine_v2/fixtures/policies/voice_track_classification.json';
+import {planVoiceEngineV2CameraEncodingChange} from '@osaca/voice_engine_v2/src/policies/cameraShare';
+import {normalizeVoiceEngineV2HardwareEncoderCapabilities} from '@osaca/voice_engine_v2/src/policies/hardwareEncoderCapabilities';
 import {
 	getVoiceEngineV2MicrophoneOperationFailureAction,
 	type VoiceEngineV2MicrophoneFailureContext,
 	type VoiceEngineV2OperationResultLike,
-} from '@fluxer/voice_engine_v2/src/policies/microphoneFailureAction';
-import {planVoiceEngineV2ScreenEncodingChange} from '@fluxer/voice_engine_v2/src/policies/screenShare';
+} from '@osaca/voice_engine_v2/src/policies/microphoneFailureAction';
+import {planVoiceEngineV2ScreenEncodingChange} from '@osaca/voice_engine_v2/src/policies/screenShare';
 import {
 	classifyVoiceEngineV2TrackStats,
 	summarizeVoiceEngineV2Stats,
 	type VoiceEngineV2StatsSummary,
 	type VoiceEngineV2StatsTrackClassificationInput,
 	type VoiceEngineV2StatsTrackRoleSelection,
-} from '@fluxer/voice_engine_v2/src/policies/voiceStats';
+} from '@osaca/voice_engine_v2/src/policies/voiceStats';
 import type {
 	VoiceEngineV2CameraEncodingOptions,
 	VoiceEngineV2CameraOptions,
 	VoiceEngineV2ScreenEncodingOptions,
 	VoiceEngineV2ScreenOptions,
 	VoiceEngineV2Stats,
-} from '@fluxer/voice_engine_v2/src/protocol/types';
+} from '@osaca/voice_engine_v2/src/protocol/types';
 import {describe, expect, it} from 'vitest';
 
 interface MicrophoneFailureFixture {

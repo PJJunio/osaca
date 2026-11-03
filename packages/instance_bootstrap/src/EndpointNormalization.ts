@@ -5,7 +5,7 @@ import {
 	HTTP_NETWORK_PROTOCOLS,
 	normalizeCanonicalNetworkEndpoint,
 	WEBSOCKET_NETWORK_PROTOCOLS,
-} from '@fluxer/instance_bootstrap/src/NetworkOrigin';
+} from '@osaca/instance_bootstrap/src/NetworkOrigin';
 
 export const InstanceEndpointKind = Object.freeze({
 	API: 'api',

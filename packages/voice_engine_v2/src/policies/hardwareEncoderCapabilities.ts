@@ -3,7 +3,7 @@
 import type {
 	VoiceEngineV2HardwareEncoderCapabilities,
 	VoiceEngineV2VideoCodec,
-} from '@fluxer/voice_engine_v2/src/protocol/types';
+} from '@osaca/voice_engine_v2/src/protocol/types';
 
 const ZERO_COPY_NATIVE_INPUTS = new Set(['dmabuf', 'd3d11Texture', 'd3d11-texture', 'cvPixelBuffer', 'sharedTexture']);
 

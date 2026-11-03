@@ -7,8 +7,8 @@ import {
 	VOICE_CHANNEL_BITRATE_MAX_384_KBPS,
 	VOICE_CHANNEL_BITRATE_MAX_STANDARD,
 	VOICE_CHANNEL_BITRATE_MIN,
-} from '@fluxer/constants/src/LimitConstants';
-import type {ValueOf} from '@fluxer/constants/src/ValueOf';
+} from '@osaca/constants/src/LimitConstants';
+import type {ValueOf} from '@osaca/constants/src/ValueOf';
 
 export const GuildVerificationLevel = {
 	NONE: 0,

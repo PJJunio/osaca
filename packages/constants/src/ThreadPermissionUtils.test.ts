@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {ALL_PERMISSIONS, ChannelTypes, Permissions} from '@fluxer/constants/src/ChannelConstants';
-import cases from '@fluxer/constants/src/ThreadPermissionCases.json' with {type: 'json'};
+import {ALL_PERMISSIONS, ChannelTypes, Permissions} from '@osaca/constants/src/ChannelConstants';
+import cases from '@osaca/constants/src/ThreadPermissionCases.json' with {type: 'json'};
 import {
 	canAddThreadMember,
 	canCreateThread,
@@ -26,7 +26,7 @@ import {
 	threadViewPermissions,
 	threadWriteBlock,
 	withImplicitThreadBits,
-} from '@fluxer/constants/src/ThreadPermissionUtils';
+} from '@osaca/constants/src/ThreadPermissionUtils';
 import {describe, expect, it} from 'vitest';
 
 interface CaseRow {

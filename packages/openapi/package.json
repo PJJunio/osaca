@@ -1,5 +1,5 @@
 {
-	"name": "@fluxer/openapi",
+	"name": "@osaca/openapi",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -12,8 +12,8 @@
 		"validate": "tsx src/scripts/GenerateSpec.ts --validate-only"
 	},
 	"dependencies": {
-		"@fluxer/errors": "workspace:*",
-		"@fluxer/schema": "workspace:*",
+		"@osaca/errors": "workspace:*",
+		"@osaca/schema": "workspace:*",
 		"@redocly/openapi-core": "catalog:",
 		"ts-morph": "catalog:",
 		"zod": "catalog:"

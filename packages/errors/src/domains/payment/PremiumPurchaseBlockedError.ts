@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {APIErrorCodes} from '@fluxer/constants/src/ApiErrorCodes';
-import {ForbiddenError} from '@fluxer/errors/src/domains/core/ForbiddenError';
-import type {FluxerErrorData} from '@fluxer/errors/src/FluxerError';
+import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
+import {ForbiddenError} from '@osaca/errors/src/domains/core/ForbiddenError';
+import type {OsacaErrorData} from '@osaca/errors/src/OsacaError';
 
 type PremiumPurchaseBlockedReason = 'lifetime' | 'existing_subscription' | 'purchase_disabled' | 'payment_dispute_open';
 
 type PremiumPurchaseBlockingProvider = 'stripe' | 'app_store' | 'google_play';
 
-interface PremiumPurchaseBlockedData extends FluxerErrorData {
+interface PremiumPurchaseBlockedData extends OsacaErrorData {
 	provider?: PremiumPurchaseBlockingProvider;
 }
 

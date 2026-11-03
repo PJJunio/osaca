@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {type LocaleCode, Locales} from '@fluxer/constants/src/Locales';
-import {DEFAULT_NUMBER_LOCALE} from '@fluxer/number_utils/src/NumberConstants';
-import {getNumberFormatter} from '@fluxer/number_utils/src/NumberFormatterCache';
+import {type LocaleCode, Locales} from '@osaca/constants/src/Locales';
+import {DEFAULT_NUMBER_LOCALE} from '@osaca/number_utils/src/NumberConstants';
+import {getNumberFormatter} from '@osaca/number_utils/src/NumberFormatterCache';
 
 const SIGN_SYMBOLS: Readonly<Record<string, string>> = {
 	BRL: 'R$',

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {MAX_APPLICATION_REDIRECT_URIS} from '@fluxer/constants/src/LimitConstants';
-import {UserAuthenticatorTypes} from '@fluxer/constants/src/UserConstants';
+import {MAX_APPLICATION_REDIRECT_URIS} from '@osaca/constants/src/LimitConstants';
+import {UserAuthenticatorTypes} from '@osaca/constants/src/UserConstants';
 import {
 	ApplicationCreateRequest,
 	ApplicationResponse,
@@ -10,7 +10,7 @@ import {
 	AuthorizeRequest,
 	IntrospectRequestForm,
 	RevokeRequestForm,
-} from '@fluxer/schema/src/domains/oauth/OAuthSchemas';
+} from '@osaca/schema/src/domains/oauth/OAuthSchemas';
 import {describe, expect, it} from 'vitest';
 
 const buildRedirectURIs = (count: number) =>

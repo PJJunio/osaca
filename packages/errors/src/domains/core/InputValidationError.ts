@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {APIErrorCodes} from '@fluxer/constants/src/ApiErrorCodes';
-import type {ValidationErrorCode} from '@fluxer/constants/src/ValidationErrorCodes';
-import {BadRequestError} from '@fluxer/errors/src/domains/core/BadRequestError';
-import type {ValidationError} from '@fluxer/errors/src/domains/core/ValidationError';
+import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
+import type {ValidationErrorCode} from '@osaca/constants/src/ValidationErrorCodes';
+import {BadRequestError} from '@osaca/errors/src/domains/core/BadRequestError';
+import type {ValidationError} from '@osaca/errors/src/domains/core/ValidationError';
 
 export interface LocalizedValidationError {
 	path: string;

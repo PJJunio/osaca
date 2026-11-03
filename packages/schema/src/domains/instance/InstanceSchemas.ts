@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {RegistrationModes} from '@fluxer/constants/src/AccountConfigConstants';
+import {RegistrationModes} from '@osaca/constants/src/AccountConfigConstants';
 import {
 	AccountIdentityLockReasons,
 	AccountIdentityModes,
 	TagStyles,
-} from '@fluxer/constants/src/AccountIdentityConstants';
+} from '@osaca/constants/src/AccountIdentityConstants';
 import {
 	BUILT_IN_GUILD_BADGE_KINDS,
 	CUSTOM_BADGE_LOOKUP_IDS_MAX,
 	CUSTOM_BADGE_PAGE_LIMIT_DEFAULT,
 	CUSTOM_BADGE_PAGE_LIMIT_MAX,
 	DISCOVERY_GUILD_BADGE_LIMIT,
-} from '@fluxer/constants/src/BadgeConstants';
+} from '@osaca/constants/src/BadgeConstants';
 import {
 	CaptchaProviderSchema,
 	EffectiveVerificationBasisSchema,
@@ -20,16 +20,16 @@ import {
 	GuildJoinGateSchema,
 	InstantAccountAvailabilitySchema,
 	InteractionTierModeSchema,
-} from '@fluxer/schema/src/domains/account/AccountTierSchemas';
-import {CustomBadgeCursorType, CustomBadgePositionType} from '@fluxer/schema/src/domains/admin/AdminBadgeSchemas';
-import {DomainMigrationDiscoveryResponse} from '@fluxer/schema/src/domains/admin/DomainMigrationSchemas';
-import {SsoStatusResponse} from '@fluxer/schema/src/domains/auth/AuthSchemas';
-import {createQueryIntegerType} from '@fluxer/schema/src/primitives/QueryValidators';
+} from '@osaca/schema/src/domains/account/AccountTierSchemas';
+import {CustomBadgeCursorType, CustomBadgePositionType} from '@osaca/schema/src/domains/admin/AdminBadgeSchemas';
+import {DomainMigrationDiscoveryResponse} from '@osaca/schema/src/domains/admin/DomainMigrationSchemas';
+import {SsoStatusResponse} from '@osaca/schema/src/domains/auth/AuthSchemas';
+import {createQueryIntegerType} from '@osaca/schema/src/primitives/QueryValidators';
 import {
 	createNamedStringLiteralUnion,
 	createStringType,
 	SnowflakeStringType,
-} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 const LimitFilterResponse = z.object({
@@ -479,7 +479,7 @@ export const InstanceHiddenBuiltInGuildBadgesSchema = z
 
 export type InstanceHiddenBuiltInGuildBadges = z.infer<typeof InstanceHiddenBuiltInGuildBadgesSchema>;
 
-export const WellKnownFluxerResponse = z.object({
+export const WellKnownOsacaResponse = z.object({
 	codename: z.string().optional().describe('Protocol generation spoken by this instance'),
 	api_code_version: z.number().int().describe('Version of the API server code'),
 	endpoints: InstanceEndpointsSchema,
@@ -525,7 +525,7 @@ export const WellKnownFluxerResponse = z.object({
 		),
 });
 
-export type WellKnownFluxerResponse = z.infer<typeof WellKnownFluxerResponse>;
+export type WellKnownOsacaResponse = z.infer<typeof WellKnownOsacaResponse>;
 
 export const InstanceAccountIdentityUpdateRequest = z.object({
 	mode: AccountIdentityModeSchema.describe('Sign-in method for the new instance'),

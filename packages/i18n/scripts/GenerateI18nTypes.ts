@@ -8,9 +8,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 const GENERATED_HEADER = '// SPDX-License-Identifier: AGPL-3.0-or-later\n\n';
-const EMAIL_MESSAGES_MODULE = path.join(REPO_ROOT, 'fluxer_api/pkgs/email/src/email_i18n/EmailI18nMessages.ts');
+const EMAIL_MESSAGES_MODULE = path.join(REPO_ROOT, 'osaca_api/pkgs/email/src/email_i18n/EmailI18nMessages.ts');
 const EMAIL_MESSAGES_EXPORT = 'EMAIL_I18N_MESSAGES';
-const EMAIL_TYPES_OUTPUT = path.join(REPO_ROOT, 'fluxer_api/pkgs/email/src/email_i18n/EmailI18nTypes.generated.ts');
+const EMAIL_TYPES_OUTPUT = path.join(REPO_ROOT, 'osaca_api/pkgs/email/src/email_i18n/EmailI18nTypes.generated.ts');
 
 async function extractKeysFromStaticMessages(filePath: string, exportName: string): Promise<Array<string>> {
 	const module = await import(pathToFileURL(filePath).href);

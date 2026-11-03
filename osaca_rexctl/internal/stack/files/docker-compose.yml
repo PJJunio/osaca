@@ -1,0 +1,905 @@
+name: osaca
+
+x-osaca-settings: ${OSACA_SETTINGS_LOADED:?rexctl manages this instance. Run rexctl commands here, or run rexctl eject to use docker compose}
+
+x-osaca-postgres-env: &osaca-postgres-env
+  OSACA_DATABASE_BACKEND: postgres
+  OSACA_POSTGRES_HOST: ${OSACA_POSTGRES_HOST:-postgres}
+  OSACA_POSTGRES_PORT: ${OSACA_POSTGRES_PORT:-}
+  OSACA_POSTGRES_DATABASE: ${OSACA_POSTGRES_DATABASE:-}
+  OSACA_POSTGRES_USERNAME: ${OSACA_POSTGRES_USERNAME:-}
+  OSACA_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
+  OSACA_POSTGRES_URL: ${OSACA_POSTGRES_URL:-}
+  OSACA_POSTGRES_SSL: ${OSACA_POSTGRES_SSL:-}
+  OSACA_POSTGRES_SSL_CA: ${OSACA_POSTGRES_SSL_CA:-}
+  OSACA_POSTGRES_PREPARED_STATEMENTS: ${OSACA_POSTGRES_PREPARED_STATEMENTS:-}
+  OSACA_POSTGRES_KV_TABLE: ${OSACA_POSTGRES_KV_TABLE:-}
+
+x-osaca-env: &osaca-env
+  <<: *osaca-postgres-env
+  OSACA_ENV: production
+  LOG_LEVEL: ${LOG_LEVEL:-}
+  RUST_LOG: ${RUST_LOG:-}
+  HTTP_PROXY: ${HTTP_PROXY:-}
+  HTTPS_PROXY: ${HTTPS_PROXY:-}
+  NO_PROXY: localhost,127.0.0.1,::1,edge,postgres,valkey,nats,meilisearch,seaweedfs,livekit,api,worker,gateway,media-proxy,push,static-proxy,app-proxy,snowflakes,users,gifs,messages,unfurl,admin${NO_PROXY:+,${NO_PROXY:-}}
+  http_proxy: ${HTTP_PROXY:-}
+  https_proxy: ${HTTPS_PROXY:-}
+  no_proxy: localhost,127.0.0.1,::1,edge,postgres,valkey,nats,meilisearch,seaweedfs,livekit,api,worker,gateway,media-proxy,push,static-proxy,app-proxy,snowflakes,users,gifs,messages,unfurl,admin${NO_PROXY:+,${NO_PROXY:-}}
+  OSACA_SELF_HOSTED: "true"
+  OSACA_BASE_DOMAIN: ${OSACA_DOMAIN:-}
+  OSACA_PUBLIC_SCHEME: ${OSACA_PUBLIC_SCHEME:-https}
+  OSACA_PUBLIC_PORT: ${OSACA_PUBLIC_PORT:-443}
+  OSACA_PUBLIC_ORIGIN: ${OSACA_PUBLIC_ORIGIN:-}
+  OSACA_TRUST_CLIENT_IP_HEADER: "${OSACA_TRUST_CLIENT_IP_HEADER:-true}"
+  OSACA_CLIENT_IP_HEADER_NAME: ${OSACA_CLIENT_IP_HEADER_NAME:-}
+  OSACA_API_HEADERS_TIMEOUT_MS: ${OSACA_API_HEADERS_TIMEOUT_MS:-}
+  OSACA_API_REQUEST_TIMEOUT_MS: ${OSACA_API_REQUEST_TIMEOUT_MS:-}
+  OSACA_API_MAX_INFLIGHT_REQUESTS: ${OSACA_API_MAX_INFLIGHT_REQUESTS:-}
+  OSACA_API_IP_BAN_EXEMPT_IPS: ${OSACA_API_IP_BAN_EXEMPT_IPS:-}
+  OSACA_IP_BAN_REFRESH_INTERVAL_MS: ${OSACA_IP_BAN_REFRESH_INTERVAL_MS:-}
+  OSACA_APP_ORIGIN_ALIASES: ${OSACA_APP_ORIGIN_ALIASES:-}
+  OSACA_BREACHED_PASSWORD_CHECK_ENABLED: ${OSACA_BREACHED_PASSWORD_CHECK_ENABLED:-}
+  OSACA_BLOCKLIST_FEEDS_ENABLED: ${OSACA_BLOCKLIST_FEEDS_ENABLED:-}
+  OSACA_GEOIP_DB_PATH: ${OSACA_GEOIP_DB_PATH:-}
+  OSACA_AGE_POLICY_ENABLED: ${OSACA_AGE_POLICY_ENABLED:-}
+  OSACA_AGE_POLICY_RESTRICTED_REGIONS: ${OSACA_AGE_POLICY_RESTRICTED_REGIONS:-}
+
+  OSACA_API_ENDPOINT: ${OSACA_API_ENDPOINT:-}
+  OSACA_API_CLIENT_ENDPOINT: ${OSACA_API_CLIENT_ENDPOINT:-}
+  OSACA_API_DISCOVERY_PUBLIC_ENDPOINT: ${OSACA_API_DISCOVERY_PUBLIC_ENDPOINT:-}
+  OSACA_APP_ENDPOINT: ${OSACA_APP_ENDPOINT:-${OSACA_PUBLIC_ORIGIN:-${OSACA_PUBLIC_SCHEME:-https}://${OSACA_DOMAIN:-}}}
+  OSACA_GATEWAY_ENDPOINT: ${OSACA_GATEWAY_ENDPOINT:-}
+  OSACA_MEDIA_ENDPOINT: ${OSACA_MEDIA_ENDPOINT:-${OSACA_PUBLIC_ORIGIN:-${OSACA_PUBLIC_SCHEME:-https}://${OSACA_DOMAIN:-}}/media}
+  OSACA_MEDIA_PROXY_PUBLIC_ENDPOINT: ${OSACA_MEDIA_PROXY_PUBLIC_ENDPOINT:-${OSACA_MEDIA_ENDPOINT:-${OSACA_PUBLIC_ORIGIN:-${OSACA_PUBLIC_SCHEME:-https}://${OSACA_DOMAIN:-}}/media}}
+  OSACA_STATIC_CDN_ENDPOINT: ${OSACA_STATIC_CDN_ENDPOINT:-}
+  OSACA_ADMIN_ENDPOINT: ${OSACA_ADMIN_ENDPOINT:-${OSACA_PUBLIC_ORIGIN:-${OSACA_PUBLIC_SCHEME:-https}://${OSACA_DOMAIN:-}}${OSACA_ADMIN_BASE_PATH:-/admin}}
+  OSACA_MARKETING_ENDPOINT: ${OSACA_MARKETING_ENDPOINT:-${OSACA_PUBLIC_ORIGIN:-${OSACA_PUBLIC_SCHEME:-https}://${OSACA_DOMAIN:-}}}
+  OSACA_INVITE_ENDPOINT: ${OSACA_INVITE_ENDPOINT:-}
+  OSACA_GIFT_ENDPOINT: ${OSACA_GIFT_ENDPOINT:-}
+  OSACA_STATIC_CDN_DOMAIN: ${OSACA_STATIC_CDN_DOMAIN:-}
+  OSACA_INVITE_DOMAIN: ${OSACA_INVITE_DOMAIN:-}
+  OSACA_GIFT_DOMAIN: ${OSACA_GIFT_DOMAIN:-}
+
+  OSACA_KV_URL: ${OSACA_KV_URL:-redis://valkey:6379/0}
+  OSACA_KV_MODE: ${OSACA_KV_MODE:-}
+  OSACA_NATS_URL: ${OSACA_NATS_URL:-nats://nats:4222}
+  OSACA_NATS_JETSTREAM_URL: ${OSACA_NATS_JETSTREAM_URL:-${OSACA_NATS_URL:-nats://nats:4222}}
+  OSACA_NATS_AUTH_TOKEN: ${OSACA_NATS_AUTH_TOKEN:-}
+  OSACA_SVC_NATS_URL: ${OSACA_SVC_NATS_URL:-${OSACA_NATS_URL:-nats://nats:4222}}
+  OSACA_SVC_SHARD_COUNT: "1"
+  OSACA_SVC_MAX_CONCURRENT_REQUESTS: ${OSACA_SVC_MAX_CONCURRENT_REQUESTS:-}
+  OSACA_SVC_CACHE_MAX_ENTRIES: ${OSACA_SVC_CACHE_MAX_ENTRIES:-}
+  OSACA_SVC_CACHE_TTL_MS: ${OSACA_SVC_CACHE_TTL_MS:-}
+  OSACA_GIF_SERVICE_NATS_CLIENT_NAME: ${OSACA_GIF_SERVICE_NATS_CLIENT_NAME:-}
+  OSACA_GIF_SERVICE_TIMEOUT_MS: ${OSACA_GIF_SERVICE_TIMEOUT_MS:-}
+  OSACA_GIF_SERVICE_REGISTER_SHARE_TIMEOUT_MS: ${OSACA_GIF_SERVICE_REGISTER_SHARE_TIMEOUT_MS:-}
+  OSACA_USERS_SERVICE_NATS_CLIENT_NAME: ${OSACA_USERS_SERVICE_NATS_CLIENT_NAME:-}
+  OSACA_USERS_SERVICE_TIMEOUT_MS: ${OSACA_USERS_SERVICE_TIMEOUT_MS:-}
+  OSACA_USERS_SERVICE_INFLIGHT_MAX_ENTRIES: ${OSACA_USERS_SERVICE_INFLIGHT_MAX_ENTRIES:-}
+  OSACA_SNOWFLAKE_SERVICE_NATS_CLIENT_NAME: ${OSACA_SNOWFLAKE_SERVICE_NATS_CLIENT_NAME:-}
+  OSACA_SNOWFLAKE_SERVICE_BATCH_SIZE: ${OSACA_SNOWFLAKE_SERVICE_BATCH_SIZE:-}
+  OSACA_SNOWFLAKE_SERVICE_LOW_WATERMARK: ${OSACA_SNOWFLAKE_SERVICE_LOW_WATERMARK:-}
+  OSACA_SNOWFLAKE_SERVICE_MAX_BUFFER_AGE_MS: ${OSACA_SNOWFLAKE_SERVICE_MAX_BUFFER_AGE_MS:-}
+  OSACA_SNOWFLAKE_SERVICE_REQUEST_TIMEOUT_MS: ${OSACA_SNOWFLAKE_SERVICE_REQUEST_TIMEOUT_MS:-}
+
+  OSACA_SEARCH_ENGINE: ${OSACA_SEARCH_ENGINE:-meilisearch}
+  OSACA_SEARCH_URL: ${OSACA_SEARCH_URL:-http://meilisearch:7700}
+  OSACA_SEARCH_API_KEY: ${MEILI_MASTER_KEY:-}
+  OSACA_SEARCH_USERNAME: ${OSACA_SEARCH_USERNAME:-}
+  OSACA_SEARCH_PASSWORD: ${OSACA_SEARCH_PASSWORD:-}
+  OSACA_SEARCH_TLS_REJECT_UNAUTHORIZED: ${OSACA_SEARCH_TLS_REJECT_UNAUTHORIZED:-}
+
+  OSACA_S3_ENDPOINT: ${OSACA_S3_ENDPOINT:-http://seaweedfs:8333}
+  OSACA_S3_PUBLIC_ENDPOINT: ${OSACA_S3_PUBLIC_ENDPOINT:-${OSACA_S3_ENDPOINT:-http://seaweedfs:8333}}
+  OSACA_S3_REGION: ${OSACA_S3_REGION:-us-east-1}
+  OSACA_S3_ACCESS_KEY_ID: ${OSACA_S3_ACCESS_KEY:-}
+  OSACA_S3_SECRET_ACCESS_KEY: ${OSACA_S3_SECRET_KEY:-}
+  OSACA_S3_FORCE_PATH_STYLE: "${OSACA_S3_FORCE_PATH_STYLE:-true}"
+  OSACA_S3_BUCKET_CDN: ${OSACA_S3_BUCKET_CDN:-osaca}
+  OSACA_S3_BUCKET_UPLOADS: ${OSACA_S3_BUCKET_UPLOADS:-osaca-uploads}
+  OSACA_S3_BUCKET_REPORTS: ${OSACA_S3_BUCKET_REPORTS:-osaca-reports}
+  OSACA_S3_BUCKET_HARVESTS: ${OSACA_S3_BUCKET_HARVESTS:-osaca-harvests}
+  OSACA_API_PRESIGNED_HARVEST_DOWNLOADS_ENABLED: "${OSACA_API_PRESIGNED_HARVEST_DOWNLOADS_ENABLED:-false}"
+  OSACA_API_STORAGE_CHANGE_FEED_ENABLED: ${OSACA_API_STORAGE_CHANGE_FEED_ENABLED:-}
+  OSACA_API_STORAGE_CHANGE_FEED_STREAM: ${OSACA_API_STORAGE_CHANGE_FEED_STREAM:-}
+  OSACA_API_STORAGE_CHANGE_FEED_SKIP_BUCKETS: ${OSACA_API_STORAGE_CHANGE_FEED_SKIP_BUCKETS:-}
+  OSACA_CACHE_PURGE_ADAPTER: ${OSACA_CACHE_PURGE_ADAPTER:-}
+  OSACA_CACHE_PURGE_HTTP_ENDPOINT: ${OSACA_CACHE_PURGE_HTTP_ENDPOINT:-}
+  OSACA_CACHE_PURGE_HTTP_TOKEN: ${OSACA_CACHE_PURGE_HTTP_TOKEN:-}
+  OSACA_CACHE_PURGE_HTTP_TIMEOUT_MS: ${OSACA_CACHE_PURGE_HTTP_TIMEOUT_MS:-}
+  OSACA_CACHE_PURGE_CONTROLLER_ENDPOINT: ${OSACA_CACHE_PURGE_CONTROLLER_ENDPOINT:-}
+  OSACA_CACHE_PURGE_CONTROLLER_TOKEN: ${OSACA_CACHE_PURGE_CONTROLLER_TOKEN:-}
+  OSACA_CACHE_PURGE_CONTROLLER_TIMEOUT_MS: ${OSACA_CACHE_PURGE_CONTROLLER_TIMEOUT_MS:-}
+
+  OSACA_LIVEKIT_ENABLED: "${OSACA_LIVEKIT_ENABLED:-true}"
+  OSACA_LIVEKIT_API_KEY: ${LIVEKIT_API_KEY:-}
+  OSACA_LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET:-}
+  OSACA_LIVEKIT_INTERNAL_URL: ${OSACA_LIVEKIT_INTERNAL_URL:-http://livekit:7880}
+  OSACA_LIVEKIT_BUNDLED: "${OSACA_LIVEKIT_BUNDLED:-true}"
+  OSACA_LIVEKIT_DEFAULT_REGION: '${OSACA_LIVEKIT_DEFAULT_REGION:-{"id":"default","name":"Default","emoji":"🌍","latitude":0,"longitude":0}}'
+  OSACA_LIVEKIT_URL: ${OSACA_LIVEKIT_URL:-${OSACA_PUBLIC_ORIGIN:-${OSACA_PUBLIC_SCHEME:-https}://${OSACA_DOMAIN:-}:${OSACA_PUBLIC_PORT:-443}}/livekit}
+  OSACA_VOICE_P2P_STUN_URLS: ${OSACA_VOICE_P2P_STUN_URLS:-}
+  OSACA_LIVEKIT_TURN_SERVERS: ${OSACA_LIVEKIT_TURN_SERVERS:-[]}
+  OSACA_VOICE_JOIN_ALLOW_PRIVATE_ENDPOINTS: ${OSACA_VOICE_JOIN_ALLOW_PRIVATE_ENDPOINTS:-}
+  OSACA_VOICE_HEALTH_INTERVAL_MS: ${OSACA_VOICE_HEALTH_INTERVAL_MS:-}
+
+  OSACA_KLIPY_API_KEY: ${OSACA_KLIPY_API_KEY:-}
+  OSACA_YOUTUBE_API_KEY: ${OSACA_YOUTUBE_API_KEY:-}
+  OSACA_API_UNFURL_IGNORED_HOSTS: ${OSACA_API_UNFURL_IGNORED_HOSTS:-}
+
+  OSACA_EMAIL_ENABLED: ${OSACA_EMAIL_ENABLED:-}
+  OSACA_EMAIL_PROVIDER: ${OSACA_EMAIL_PROVIDER:-}
+  OSACA_EMAIL_DELIVERY: ${OSACA_EMAIL_DELIVERY:-}
+  OSACA_EMAIL_FROM_EMAIL: ${OSACA_EMAIL_FROM_EMAIL:-noreply@${OSACA_DOMAIN:-}}
+  OSACA_EMAIL_FROM_NAME: ${OSACA_EMAIL_FROM_NAME:-}
+  OSACA_EMAIL_REPLY_TO_EMAIL: ${OSACA_EMAIL_REPLY_TO_EMAIL:-}
+  OSACA_EMAIL_APP_BASE_URL: ${OSACA_EMAIL_APP_BASE_URL:-}
+  OSACA_EMAIL_WEBHOOK_SECRET: ${OSACA_EMAIL_WEBHOOK_SECRET:-}
+  OSACA_EMAIL_SMTP_HOST: ${OSACA_EMAIL_SMTP_HOST:-}
+  OSACA_EMAIL_SMTP_PORT: ${OSACA_EMAIL_SMTP_PORT:-}
+  OSACA_EMAIL_SMTP_USERNAME: ${OSACA_EMAIL_SMTP_USERNAME:-}
+  OSACA_EMAIL_SMTP_PASSWORD: ${OSACA_EMAIL_SMTP_PASSWORD:-}
+  OSACA_EMAIL_SMTP_TLS_MODE: ${OSACA_EMAIL_SMTP_TLS_MODE:-}
+  OSACA_EMAIL_SMTP_SECURE: ${OSACA_EMAIL_SMTP_SECURE:-}
+  OSACA_EMAIL_FALLBACK_DOMAINS: ${OSACA_EMAIL_FALLBACK_DOMAINS:-}
+  OSACA_EMAIL_FALLBACK_SMTP_HOST: ${OSACA_EMAIL_FALLBACK_SMTP_HOST:-}
+  OSACA_EMAIL_FALLBACK_SMTP_PORT: ${OSACA_EMAIL_FALLBACK_SMTP_PORT:-}
+  OSACA_EMAIL_FALLBACK_SMTP_USERNAME: ${OSACA_EMAIL_FALLBACK_SMTP_USERNAME:-}
+  OSACA_EMAIL_FALLBACK_SMTP_PASSWORD: ${OSACA_EMAIL_FALLBACK_SMTP_PASSWORD:-}
+  OSACA_EMAIL_FALLBACK_SMTP_TLS_MODE: ${OSACA_EMAIL_FALLBACK_SMTP_TLS_MODE:-}
+  OSACA_EMAIL_FALLBACK_SMTP_HEADERS: ${OSACA_EMAIL_FALLBACK_SMTP_HEADERS:-}
+
+  OSACA_STRIPE_ENABLED: ${OSACA_STRIPE_ENABLED:-}
+  OSACA_STRIPE_SECRET_KEY: ${OSACA_STRIPE_SECRET_KEY:-}
+  OSACA_STRIPE_WEBHOOK_SECRET: ${OSACA_STRIPE_WEBHOOK_SECRET:-}
+  OSACA_STRIPE_PRICES: ${OSACA_STRIPE_PRICES:-}
+  OSACA_STRIPE_LEGACY_PRICES: ${OSACA_STRIPE_LEGACY_PRICES:-}
+  OSACA_API_DONATION_PROXY_KEY: ${OSACA_API_DONATION_PROXY_KEY:-}
+  OSACA_API_TRUSTED_CALLERS: ${OSACA_API_TRUSTED_CALLERS:-}
+  OSACA_VISIONARIES_GUILD_ID: ${OSACA_VISIONARIES_GUILD_ID:-}
+  OSACA_VISIONARIES_GUILD_VISIONARY_ROLE_ID: ${OSACA_VISIONARIES_GUILD_VISIONARY_ROLE_ID:-}
+
+  OSACA_CLAMAV_ENABLED: ${OSACA_CLAMAV_ENABLED:-}
+  OSACA_CLAMAV_HOST: ${OSACA_CLAMAV_HOST:-}
+  OSACA_CLAMAV_PORT: ${OSACA_CLAMAV_PORT:-}
+  OSACA_CLAMAV_FAIL_OPEN: ${OSACA_CLAMAV_FAIL_OPEN:-}
+
+  OSACA_APP_PRODUCT_NAME: ${OSACA_APP_PRODUCT_NAME:-}
+  OSACA_APP_ICON_URL: ${OSACA_APP_ICON_URL:-}
+  OSACA_APP_SYMBOL_URL: ${OSACA_APP_SYMBOL_URL:-}
+  OSACA_APP_LOGO_URL: ${OSACA_APP_LOGO_URL:-}
+  OSACA_APP_WORDMARK_URL: ${OSACA_APP_WORDMARK_URL:-}
+  OSACA_APP_FAVICON_URL: ${OSACA_APP_FAVICON_URL:-}
+  OSACA_APP_FAVICON_DARK_URL: ${OSACA_APP_FAVICON_DARK_URL:-}
+  OSACA_APP_SIGN_IN_BACKDROP_URL: ${OSACA_APP_SIGN_IN_BACKDROP_URL:-}
+  OSACA_APP_THEME_COLOR: ${OSACA_APP_THEME_COLOR:-}
+  OSACA_APP_STATUS_PAGE_URL: ${OSACA_APP_STATUS_PAGE_URL:-}
+  OSACA_APP_STATUS_PAGE_INCIDENT_HISTORY_URL: ${OSACA_APP_STATUS_PAGE_INCIDENT_HISTORY_URL:-}
+  OSACA_INSTANCE_SETUP_CONFIGURED: ${OSACA_INSTANCE_SETUP_CONFIGURED:-}
+  OSACA_ACCOUNT_IDENTITY: ${OSACA_ACCOUNT_IDENTITY:-}
+  OSACA_TAG_STYLE: ${OSACA_TAG_STYLE:-}
+  OSACA_AUTO_JOIN_INVITE_CODE: ${OSACA_AUTO_JOIN_INVITE_CODE:-}
+  OSACA_DISCOVERY_ENABLED: ${OSACA_DISCOVERY_ENABLED:-}
+  OSACA_DISCOVERY_MIN_MEMBER_COUNT: ${OSACA_DISCOVERY_MIN_MEMBER_COUNT:-}
+  OSACA_DELETION_GRACE_PERIOD_HOURS: ${OSACA_DELETION_GRACE_PERIOD_HOURS:-}
+  OSACA_REPORT_RETENTION_DAYS: ${OSACA_REPORT_RETENTION_DAYS:-}
+  OSACA_REPORT_RETENTION_DRY_RUN: ${OSACA_REPORT_RETENTION_DRY_RUN:-}
+  OSACA_API_WORKER_LANE_CONCURRENCY_OVERRIDES: ${OSACA_API_WORKER_LANE_CONCURRENCY_OVERRIDES:-}
+
+  OSACA_AUTH_BLUESKY_ENABLED: ${OSACA_AUTH_BLUESKY_ENABLED:-}
+  OSACA_AUTH_BLUESKY_CLIENT_NAME: ${OSACA_AUTH_BLUESKY_CLIENT_NAME:-}
+  OSACA_AUTH_BLUESKY_CLIENT_URI: ${OSACA_AUTH_BLUESKY_CLIENT_URI:-}
+  OSACA_AUTH_BLUESKY_LOGO_URI: ${OSACA_AUTH_BLUESKY_LOGO_URI:-}
+  OSACA_AUTH_BLUESKY_TOS_URI: ${OSACA_AUTH_BLUESKY_TOS_URI:-}
+  OSACA_AUTH_BLUESKY_POLICY_URI: ${OSACA_AUTH_BLUESKY_POLICY_URI:-}
+  OSACA_AUTH_BLUESKY_KEYS: ${OSACA_AUTH_BLUESKY_KEYS:-}
+
+  OSACA_PUSH_APNS_ENABLED: ${OSACA_PUSH_APNS_ENABLED:-}
+  OSACA_PUSH_APNS_TEAM_ID: ${OSACA_PUSH_APNS_TEAM_ID:-}
+  OSACA_PUSH_APNS_KEY_ID: ${OSACA_PUSH_APNS_KEY_ID:-}
+  OSACA_PUSH_APNS_PRIVATE_KEY: ${OSACA_PUSH_APNS_PRIVATE_KEY:-}
+  OSACA_PUSH_APNS_PRIVATE_KEY_PATH: ${OSACA_PUSH_APNS_PRIVATE_KEY_PATH:-}
+  OSACA_PUSH_APNS_APPS: ${OSACA_PUSH_APNS_APPS:-}
+
+  OSACA_SUDO_MODE_SECRET: ${OSACA_SUDO_MODE_SECRET:-}
+  OSACA_CONNECTION_INITIATION_SECRET: ${OSACA_CONNECTION_INITIATION_SECRET:-}
+  OSACA_PROFILE_PSEUDONYM_SECRET: ${OSACA_PROFILE_PSEUDONYM_SECRET:-}
+  OSACA_SSO_ALLOW_PRIVATE_ADDRESSES: ${OSACA_SSO_ALLOW_PRIVATE_ADDRESSES:-}
+  OSACA_VAPID_PUBLIC_KEY: ${OSACA_VAPID_PUBLIC_KEY:-}
+  OSACA_VAPID_PRIVATE_KEY: ${OSACA_VAPID_PRIVATE_KEY:-}
+  OSACA_VAPID_EMAIL: ${OSACA_VAPID_EMAIL:-admin@${OSACA_DOMAIN:-}}
+  OSACA_PASSKEY_RP_ID: ${OSACA_PASSKEY_RP_ID:-${OSACA_DOMAIN:-}}
+  OSACA_PASSKEY_RP_NAME: ${OSACA_PASSKEY_RP_NAME:-}
+  OSACA_PASSKEY_ADDITIONAL_ALLOWED_ORIGINS: ${OSACA_PASSKEY_ADDITIONAL_ALLOWED_ORIGINS:-${OSACA_PUBLIC_ORIGIN:-${OSACA_PUBLIC_SCHEME:-https}://${OSACA_DOMAIN:-}}}
+  OSACA_GATEWAY_RPC_AUTH_TOKEN: ${OSACA_GATEWAY_RPC_AUTH_TOKEN:-}
+  OSACA_MEDIA_PROXY_SECRET_KEY: ${OSACA_MEDIA_PROXY_SECRET_KEY:-}
+  OSACA_MEDIA_PROXY_UPLOAD_RELAY_SECRET_BASE64: ${OSACA_MEDIA_PROXY_UPLOAD_RELAY_SECRET_BASE64:-}
+  OSACA_MEDIA_PROXY_ATTACHMENT_URL_SECRETS_BASE64: ${OSACA_MEDIA_PROXY_ATTACHMENT_URL_SECRETS_BASE64:-}
+  OSACA_ADMIN_SECRET_KEY_BASE: ${OSACA_ADMIN_SECRET_KEY_BASE:-}
+  OSACA_ADMIN_OAUTH_CLIENT_SECRET: ${OSACA_ADMIN_OAUTH_CLIENT_SECRET:-}
+
+  OSACA_INTERNAL_API_ENDPOINT: http://api:8080
+  OSACA_INTERNAL_MEDIA_PROXY_ENDPOINT: http://media-proxy:8080
+  OSACA_MEDIA_PROXY_UPLOAD_RELAY_ENDPOINT: ${OSACA_MEDIA_PROXY_UPLOAD_RELAY_ENDPOINT:-${OSACA_PUBLIC_ORIGIN:-${OSACA_PUBLIC_SCHEME:-https}://${OSACA_DOMAIN:-}}/media}
+  OSACA_MEDIA_PROXY_UPLOAD_RELAY_MAX_BODY_BYTES: ${OSACA_MEDIA_PROXY_UPLOAD_RELAY_MAX_BODY_BYTES:-}
+  OSACA_MEDIA_PROXY_UPLOAD_RELAY_TOKEN_TTL_SECS: ${OSACA_MEDIA_PROXY_UPLOAD_RELAY_TOKEN_TTL_SECS:-}
+  OSACA_MEDIA_PROXY_UPLOAD_RELAY_KEEP_DIRECT_COUNTRIES: ${OSACA_MEDIA_PROXY_UPLOAD_RELAY_KEEP_DIRECT_COUNTRIES:-}
+
+x-osaca-rust-env: &osaca-rust-env
+  <<: *osaca-env
+  TOKIO_WORKER_THREADS: ${OSACA_TOKIO_WORKER_THREADS:-2}
+  MALLOC_ARENA_MAX: ${OSACA_MALLOC_ARENA_MAX:-2}
+
+x-osaca-logging: &osaca-logging
+  driver: json-file
+  options:
+    max-size: ${OSACA_LOG_MAX_SIZE:-10m}
+    max-file: "${OSACA_LOG_MAX_FILE:-3}"
+
+x-osaca-service: &osaca-service
+  restart: ${OSACA_RESTART_POLICY:-unless-stopped}
+  networks: [osaca]
+  logging: *osaca-logging
+
+x-osaca-healthcheck: &osaca-healthcheck
+  interval: ${OSACA_HEALTHCHECK_INTERVAL:-10s}
+  timeout: ${OSACA_HEALTHCHECK_TIMEOUT:-5s}
+  retries: ${OSACA_HEALTHCHECK_RETRIES:-10}
+  start_period: ${OSACA_HEALTHCHECK_START_PERIOD:-60s}
+  start_interval: ${OSACA_HEALTHCHECK_START_INTERVAL:-1s}
+
+x-osaca-app-healthcheck: &osaca-app-healthcheck
+  interval: ${OSACA_HEALTHCHECK_INTERVAL:-10s}
+  timeout: ${OSACA_HEALTHCHECK_TIMEOUT:-5s}
+  retries: ${OSACA_APP_HEALTHCHECK_RETRIES:-30}
+  start_period: ${OSACA_APP_HEALTHCHECK_START_PERIOD:-90s}
+  start_interval: ${OSACA_HEALTHCHECK_START_INTERVAL:-1s}
+
+x-osaca-svc-healthcheck: &osaca-svc-healthcheck
+  <<: *osaca-app-healthcheck
+  start_period: ${OSACA_SVC_HEALTHCHECK_START_PERIOD:-60s}
+  test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8090 && printf \"GET /_health HTTP/1.0\\r\\n\\r\\n\" >&3 && head -n 1 <&3 | grep -q \" 200 \"'"]
+
+services:
+  edge:
+    <<: *osaca-service
+    image: ${OSACA_CADDY_IMAGE:-caddy:2.11-alpine}
+    deploy:
+      resources:
+        limits:
+          memory: ${OSACA_CADDY_MEMORY_LIMIT:-384mb}
+    ports:
+      - "${OSACA_HTTP_PORT:-80}:80"
+      - "${OSACA_HTTPS_PORT:-443}:443"
+      - "${OSACA_HTTPS_PORT:-443}:443/udp"
+    environment:
+      OSACA_EDGE_SITE_ADDRESS: ${OSACA_EDGE_SITE_ADDRESS:-${OSACA_CADDY_SITE_ADDRESS:-${OSACA_PUBLIC_SCHEME:-https}://${OSACA_DOMAIN:-}}}
+      OSACA_EDGE_TRUSTED_PROXIES: ${OSACA_EDGE_TRUSTED_PROXIES:-127.0.0.1/32}
+      OSACA_EDGE_ENCODE: ${OSACA_EDGE_ENCODE:-zstd gzip}
+      OSACA_EDGE_PROTOCOLS: ${OSACA_EDGE_PROTOCOLS:-h1 h2 h3}
+      OSACA_EDGE_GLOBAL_OPTIONS: ${OSACA_EDGE_GLOBAL_OPTIONS:-}
+      OSACA_EDGE_TLS_DIRECTIVE: ${OSACA_EDGE_TLS:+tls ${OSACA_EDGE_TLS:-}}
+      OSACA_ADMIN_BASE_PATH: ${OSACA_ADMIN_BASE_PATH:-/admin}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./certs:/certs:ro
+      - ./caddy.d:/etc/caddy/conf.d:ro
+      - edge-data:/data
+      - edge-config:/config
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:2019/config/"]
+      <<: *osaca-healthcheck
+    depends_on:
+      api: {condition: service_healthy}
+      gateway: {condition: service_healthy}
+
+  postgres:
+    <<: *osaca-service
+    image: ${OSACA_POSTGRES_IMAGE:-postgres:16-alpine}
+    deploy:
+      resources:
+        limits:
+          memory: ${OSACA_POSTGRES_MEMORY_LIMIT:-5gb}
+        reservations:
+          memory: ${OSACA_POSTGRES_MEMORY_RESERVATION:-3gb}
+    command: >
+      postgres
+      -c max_connections=${OSACA_POSTGRES_SERVER_MAX_CONNECTIONS:-150}
+      -c shared_buffers=${OSACA_POSTGRES_SHARED_BUFFERS:-512MB}
+      -c effective_cache_size=${OSACA_POSTGRES_EFFECTIVE_CACHE_SIZE:-2GB}
+      -c work_mem=${OSACA_POSTGRES_WORK_MEM:-8MB}
+      -c maintenance_work_mem=${OSACA_POSTGRES_MAINTENANCE_WORK_MEM:-256MB}
+      -c autovacuum_work_mem=${OSACA_POSTGRES_AUTOVACUUM_WORK_MEM:-128MB}
+      -c random_page_cost=${OSACA_POSTGRES_RANDOM_PAGE_COST:-1.1}
+      -c effective_io_concurrency=${OSACA_POSTGRES_EFFECTIVE_IO_CONCURRENCY:-200}
+      -c default_statistics_target=${OSACA_POSTGRES_DEFAULT_STATISTICS_TARGET:-200}
+      -c jit=${OSACA_POSTGRES_JIT:-off}
+      -c min_wal_size=${OSACA_POSTGRES_MIN_WAL_SIZE:-80MB}
+      -c max_wal_size=${OSACA_POSTGRES_MAX_WAL_SIZE:-2GB}
+      -c checkpoint_completion_target=${OSACA_POSTGRES_CHECKPOINT_COMPLETION_TARGET:-0.9}
+      -c wal_buffers=${OSACA_POSTGRES_WAL_BUFFERS:-16MB}
+      -c wal_compression=${OSACA_POSTGRES_WAL_COMPRESSION:-zstd}
+      -c bgwriter_delay=${OSACA_POSTGRES_BGWRITER_DELAY:-50ms}
+      -c bgwriter_lru_maxpages=${OSACA_POSTGRES_BGWRITER_LRU_MAXPAGES:-1000}
+      -c autovacuum_vacuum_scale_factor=${OSACA_POSTGRES_AUTOVACUUM_VACUUM_SCALE_FACTOR:-0.05}
+      -c autovacuum_analyze_scale_factor=${OSACA_POSTGRES_AUTOVACUUM_ANALYZE_SCALE_FACTOR:-0.02}
+      -c autovacuum_vacuum_cost_limit=${OSACA_POSTGRES_AUTOVACUUM_VACUUM_COST_LIMIT:-2000}
+      -c autovacuum_max_workers=${OSACA_POSTGRES_AUTOVACUUM_MAX_WORKERS:-3}
+      -c max_parallel_workers_per_gather=${OSACA_POSTGRES_MAX_PARALLEL_WORKERS_PER_GATHER:-2}
+      -c max_parallel_workers=${OSACA_POSTGRES_MAX_PARALLEL_WORKERS:-8}
+      -c track_io_timing=${OSACA_POSTGRES_TRACK_IO_TIMING:-on}
+      -c shared_preload_libraries=${OSACA_POSTGRES_SHARED_PRELOAD_LIBRARIES:-pg_stat_statements}
+    shm_size: ${OSACA_POSTGRES_SHM_SIZE:-1gb}
+    environment:
+      POSTGRES_DB: ${OSACA_POSTGRES_DATABASE:-osaca}
+      POSTGRES_USER: ${OSACA_POSTGRES_USERNAME:-osaca}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      <<: *osaca-healthcheck
+
+  valkey:
+    <<: *osaca-service
+    image: ${OSACA_VALKEY_IMAGE:-valkey/valkey:9.1-alpine}
+    deploy:
+      resources:
+        limits:
+          memory: ${OSACA_VALKEY_MEMORY_LIMIT:-256mb}
+    command: ["valkey-server", "--appendonly", "yes", "--appendfsync", "${OSACA_VALKEY_APPENDFSYNC:-everysec}", "--dir", "/data",
+              "--save", "${OSACA_VALKEY_SAVE:-}",
+              "--maxmemory", "${OSACA_VALKEY_MAXMEMORY:-192mb}",
+              "--maxmemory-policy", "${OSACA_VALKEY_MAXMEMORY_POLICY:-noeviction}"]
+    volumes:
+      - valkey-data:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      <<: *osaca-healthcheck
+
+  nats:
+    <<: *osaca-service
+    image: ${OSACA_NATS_IMAGE:-nats:2.14-alpine}
+    deploy:
+      resources:
+        limits:
+          memory: ${OSACA_NATS_MEMORY_LIMIT:-256mb}
+    environment:
+      GOMEMLIMIT: ${OSACA_NATS_GOMEMLIMIT:-200MiB}
+      OSACA_NATS_MAX_MEMORY_STORE: ${OSACA_NATS_MAX_MEMORY_STORE:-64MB}
+      OSACA_NATS_MAX_FILE_STORE: ${OSACA_NATS_MAX_FILE_STORE:-10GB}
+    command:
+      - sh
+      - -c
+      - >
+        printf 'http_port: 8222\njetstream {\n  store_dir: /data\n  max_memory_store: %s\n  max_file_store: %s\n}\n'
+        "$$OSACA_NATS_MAX_MEMORY_STORE" "$$OSACA_NATS_MAX_FILE_STORE" > /tmp/nats.conf
+        && exec nats-server -c /tmp/nats.conf
+    volumes:
+      - nats-data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8222/healthz"]
+      <<: *osaca-healthcheck
+
+  meilisearch:
+    <<: *osaca-service
+    image: ${OSACA_MEILISEARCH_IMAGE:-getmeili/meilisearch:v1.53}
+    deploy:
+      resources:
+        limits:
+          memory: ${OSACA_MEILISEARCH_MEMORY_LIMIT:-1536mb}
+    environment:
+      MEILI_ENV: ${OSACA_MEILISEARCH_ENV:-production}
+      MEILI_NO_ANALYTICS: "${OSACA_MEILISEARCH_NO_ANALYTICS:-true}"
+      MEILI_UPGRADE_DB: "true"
+      MEILI_MAX_INDEXING_MEMORY: ${OSACA_MEILISEARCH_MAX_INDEXING_MEMORY:-256mb}
+      MEILI_MAX_INDEXING_THREADS: ${OSACA_MEILISEARCH_MAX_INDEXING_THREADS:-2}
+      MEILI_LOG_LEVEL: ${OSACA_MEILISEARCH_LOG_LEVEL:-WARN}
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-}
+    volumes:
+      - meilisearch-data:/meili_data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:7700/health"]
+      <<: *osaca-healthcheck
+
+  seaweedfs:
+    <<: *osaca-service
+    image: ${OSACA_SEAWEEDFS_IMAGE:-chrislusf/seaweedfs:4.47}
+    deploy:
+      resources:
+        limits:
+          memory: ${OSACA_SEAWEEDFS_MEMORY_LIMIT:-2gb}
+    environment:
+      GOMEMLIMIT: ${OSACA_SEAWEEDFS_GOMEMLIMIT:-1536MiB}
+      WEED_MASTER_VOLUME_GROWTH_COPY_1: ${OSACA_SEAWEEDFS_VOLUME_GROWTH:-1}
+    command: ["server", "-s3", "-s3.iam=false", "-dir=/data", "-master.telemetry=${OSACA_SEAWEEDFS_TELEMETRY:-false}", "-master.volumeSizeLimitMB=${OSACA_SEAWEEDFS_VOLUME_SIZE_LIMIT_MB:-1024}", "-master.garbageThreshold=${OSACA_SEAWEEDFS_GARBAGE_THRESHOLD:-0.1}", "-volume.max=${OSACA_SEAWEEDFS_VOLUME_MAX:-10000}", "-s3.concurrentFileUploadLimit=${OSACA_SEAWEEDFS_S3_CONCURRENT_UPLOADS:-5}"]
+    volumes:
+      - seaweedfs-data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8333/healthz"]
+      <<: *osaca-healthcheck
+      retries: ${OSACA_SEAWEEDFS_HEALTHCHECK_RETRIES:-20}
+      start_period: ${OSACA_SEAWEEDFS_HEALTHCHECK_START_PERIOD:-60s}
+
+  seaweedfs-init:
+    image: ${OSACA_SEAWEEDFS_IMAGE:-chrislusf/seaweedfs:4.47}
+    deploy:
+      resources:
+        limits:
+          memory: ${OSACA_SEAWEEDFS_INIT_MEMORY_LIMIT:-128mb}
+    networks: [osaca]
+    logging: *osaca-logging
+    depends_on:
+      seaweedfs: {condition: service_healthy, restart: true}
+    restart: "no"
+    environment:
+      OSACA_S3_ACCESS_KEY: ${OSACA_S3_ACCESS_KEY:-}
+      OSACA_S3_SECRET_KEY: ${OSACA_S3_SECRET_KEY:-}
+      OSACA_S3_BUCKET_CDN: ${OSACA_S3_BUCKET_CDN:-osaca}
+      OSACA_S3_BUCKET_UPLOADS: ${OSACA_S3_BUCKET_UPLOADS:-osaca-uploads}
+      OSACA_S3_BUCKET_REPORTS: ${OSACA_S3_BUCKET_REPORTS:-osaca-reports}
+      OSACA_S3_BUCKET_HARVESTS: ${OSACA_S3_BUCKET_HARVESTS:-osaca-harvests}
+      OSACA_SEAWEEDFS_INIT_ATTEMPTS: ${OSACA_SEAWEEDFS_INIT_ATTEMPTS:-60}
+      OSACA_SEAWEEDFS_UPLOADS_TTL: ${OSACA_SEAWEEDFS_UPLOADS_TTL:-1d}
+    entrypoint:
+      - /bin/sh
+      - -c
+      - >
+        buckets="$$OSACA_S3_BUCKET_CDN $$OSACA_S3_BUCKET_UPLOADS $$OSACA_S3_BUCKET_REPORTS $$OSACA_S3_BUCKET_HARVESTS";
+        missing="$$buckets";
+        for attempt in $$(seq 1 $$OSACA_SEAWEEDFS_INIT_ATTEMPTS); do
+          if ! nc -z seaweedfs 9333 2>/dev/null; then
+            sleep 2;
+            continue;
+          fi;
+          listed=$$(echo "s3.bucket.list" | timeout 10 weed shell -master=seaweedfs:9333 2>&1);
+          missing="";
+          failure="";
+          for b in $$buckets; do
+            echo "$$listed" | grep -q "^[[:space:]]*$$b[[:space:]]" || missing="$${missing:+$$missing }$$b";
+          done;
+          if [ -z "$$missing" ]; then
+            if [ "$$OSACA_SEAWEEDFS_UPLOADS_TTL" = off ]; then
+              ttl_rule="fs.configure -locationPrefix=/buckets/$$OSACA_S3_BUCKET_UPLOADS/ -delete -apply";
+            else
+              ttl_rule="fs.configure -locationPrefix=/buckets/$$OSACA_S3_BUCKET_UPLOADS/ -ttl=$$OSACA_SEAWEEDFS_UPLOADS_TTL -apply";
+            fi;
+            failure="could not configure the S3 identity";
+            if echo "s3.configure -user=osaca -access_key=$$OSACA_S3_ACCESS_KEY -secret_key=$$OSACA_S3_SECRET_KEY -actions=Admin,Read,Write,List,Tagging -apply" | timeout 10 weed shell -master=seaweedfs:9333 >/dev/null 2>&1; then
+              failure="could not set the expiry of $$OSACA_S3_BUCKET_UPLOADS";
+              if echo "$$ttl_rule" | timeout 10 weed shell -master=seaweedfs:9333 >/dev/null 2>&1; then
+                echo "buckets ready";
+                exit 0;
+              fi;
+            fi;
+            sleep 2;
+            continue;
+          fi;
+          for b in $$missing; do
+            echo "s3.bucket.create -name $$b" | timeout 10 weed shell -master=seaweedfs:9333 >/dev/null 2>&1;
+          done;
+          sleep 2;
+        done;
+        if [ -n "$$failure" ]; then
+          echo "seaweedfs-init $$failure" >&2;
+        else
+          echo "seaweedfs-init could not verify buckets: $$missing" >&2;
+        fi;
+        exit 1;
+
+  livekit:
+    <<: *osaca-service
+    image: ${OSACA_LIVEKIT_IMAGE:-livekit/livekit-server:v1.12.0}
+    deploy:
+      resources:
+        limits:
+          memory: ${OSACA_LIVEKIT_MEMORY_LIMIT:-512mb}
+    environment:
+      GOMEMLIMIT: ${OSACA_LIVEKIT_GOMEMLIMIT:-435MiB}
+      LIVEKIT_KEYS: "${LIVEKIT_API_KEY:-}: ${LIVEKIT_API_SECRET:-}"
+      LIVEKIT_CONFIG: |
+        port: 7880
+        log_level: ${OSACA_LIVEKIT_LOG_LEVEL:-info}
+        rtc:
+          tcp_port: ${OSACA_LIVEKIT_TCP_PORT:-7881}
+          udp_port: ${OSACA_LIVEKIT_UDP_PORT:-7882}
+          use_external_ip: ${OSACA_LIVEKIT_USE_EXTERNAL_IP:-true}
+          node_ip: "${OSACA_LIVEKIT_NODE_IP:-}"
+          stun_servers:
+            - ${OSACA_LIVEKIT_STUN_PRIMARY:-stun.l.google.com:19302}
+            - ${OSACA_LIVEKIT_STUN_SECONDARY:-stun1.l.google.com:19302}
+          turn_servers: ${OSACA_LIVEKIT_TURN_SERVERS:-[]}
+        webhook:
+          api_key: ${LIVEKIT_API_KEY:-}
+          urls:
+            - http://api:8080/webhooks/livekit
+    ports:
+      - "${OSACA_LIVEKIT_TCP_PORT:-7881}:${OSACA_LIVEKIT_TCP_PORT:-7881}"
+      - "${OSACA_LIVEKIT_UDP_PORT:-7882}:${OSACA_LIVEKIT_UDP_PORT:-7882}/udp"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:7880/"]
+      <<: *osaca-healthcheck
+
+  api:
+    <<: *osaca-service
+    image: ${OSACA_REGISTRY:-ghcr.io/${OSACA_REGISTRY_OWNER:-pjjunio}}/osaca-api:${OSACA_IMAGE_TAG:-v1}
+    deploy:
+      resources:
+        limits:
+          memory: ${OSACA_API_MEMORY_LIMIT:-2560mb}
+        reservations:
+          memory: ${OSACA_API_MEMORY_RESERVATION:-1gb}
+    environment:
+      <<: *osaca-env
+      OSACA_API_PORT: "8080"
+      OSACA_SETUP_TOKEN: ${OSACA_SETUP_TOKEN:-}
+      NODE_OPTIONS: --max-old-space-size${OSACA_API_NODE_HEAP_MB:+=}${OSACA_API_NODE_HEAP_MB:--percentage=60}${OSACA_API_NODE_OPTIONS:+ ${OSACA_API_NODE_OPTIONS:-}}
+      NODE_EXTRA_CA_CERTS: ${OSACA_NODE_EXTRA_CA_CERTS:-/etc/ssl/certs/ca-certificates.crt}
+      OSACA_POSTGRES_MAX_CONNECTIONS: "${OSACA_API_POSTGRES_MAX_CONNECTIONS:-25}"
+      OSACA_API_PRESIGNED_ATTACHMENT_UPLOADS_ENABLED: "${OSACA_API_PRESIGNED_ATTACHMENT_UPLOADS_ENABLED:-true}"
+      OSACA_API_EMBEDDED_WORKER: "${OSACA_API_EMBEDDED_WORKER:-false}"
+    volumes:
+      - ./ca:/etc/osaca/ca:ro
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080 && printf \"GET /_health HTTP/1.0\\r\\nHost: 127.0.0.1\\r\\n\\r\\n\" >&3 && head -n 1 <&3 | grep -q \" 200 \"'"]
+      <<: *osaca-app-healthcheck
+    depends_on:
+      postgres: {condition: service_healthy}
+      valkey: {condition: service_healthy}
+      nats: {condition: service_healthy}
+      meilisearch: {condition: service_healthy}
+      seaweedfs-init: {condition: service_completed_successfully}
+      gifs: {condition: service_healthy}
+      snowflakes: {condition: service_healthy}
+      messages: {condition: service_healthy}
+      users: {condition: service_healthy}
+
+  worker:
+    <<: *osaca-service
+    image: ${OSACA_REGISTRY:-ghcr.io/${OSACA_REGISTRY_OWNER:-pjjunio}}/osaca-api:${OSACA_IMAGE_TAG:-v1}
+    deploy:
+      replicas: ${OSACA_WORKER_REPLICAS:-1}
+      resources:
+        limits:
+          memory: ${OSACA_WORKER_MEMORY_LIMIT:-2560mb}
+        reservations:
+          memory: ${OSACA_WORKER_MEMORY_RESERVATION:-1gb}
+    command: ["node", "dist/WorkerEntrypoint.js"]
+    environment:
+      <<: *osaca-env
+      NODE_OPTIONS: --max-old-space-size${OSACA_WORKER_NODE_HEAP_MB:+=}${OSACA_WORKER_NODE_HEAP_MB:--percentage=55}${OSACA_WORKER_NODE_OPTIONS:+ ${OSACA_WORKER_NODE_OPTIONS:-}}
+      NODE_EXTRA_CA_CERTS: ${OSACA_NODE_EXTRA_CA_CERTS:-/etc/ssl/certs/ca-certificates.crt}
+      OSACA_API_WORKER_MODE: all_lanes
+      OSACA_API_WORKER_ENABLE_CRON_SCHEDULER: "true"
+      OSACA_POSTGRES_MAX_CONNECTIONS: "${OSACA_WORKER_POSTGRES_MAX_CONNECTIONS:-25}"
+      OSACA_WORKER_POSTGRES_SYNCHRONOUS_COMMIT: "${OSACA_WORKER_POSTGRES_SYNCHRONOUS_COMMIT:-}"
+    volumes:
+      - ./ca:/etc/osaca/ca:ro
+    healthcheck:
+      test: ["CMD-SHELL", "find /tmp/osaca-worker-heartbeat -newermt '-30 seconds' | grep -q ."]
+      <<: *osaca-app-healthcheck
+      retries: ${OSACA_WORKER_HEALTHCHECK_RETRIES:-3}
+    depends_on:
+      postgres: {condition: service_healthy}
+      valkey: {condition: service_healthy}
+      nats: {condition: service_healthy}
+      seaweedfs-init: {condition: service_completed_successfully}
+      snowflakes: {condition: service_healthy}
+      messages: {condition: service_healthy}
+      users: {condition: service_healthy}
+
+  gateway:
+    <<: *osaca-service
+    image: ${OSACA_REGISTRY:-ghcr.io/${OSACA_REGISTRY_OWNER:-pjjunio}}/osaca-gateway:${OSACA_IMAGE_TAG:-v1}
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    deploy:
+      resources:
+        limits:
+          memory: ${OSACA_GATEWAY_MEMORY_LIMIT:-1gb}
+        reservations:
+          memory: ${OSACA_GATEWAY_MEMORY_RESERVATION:-384mb}
+    environment:
+      <<: *osaca-env
+      OSACA_GATEWAY_PORT: "8080"
+      OSACA_GATEWAY_MEDIA_PROXY_ENDPOINT: ${OSACA_GATEWAY_MEDIA_PROXY_ENDPOINT:-${OSACA_MEDIA_ENDPOINT:-${OSACA_PUBLIC_ORIGIN:-${OSACA_PUBLIC_SCHEME:-https}://${OSACA_DOMAIN:-}}/media}}
+      OSACA_GATEWAY_STATIC_CDN_ENDPOINT: ${OSACA_GATEWAY_STATIC_CDN_ENDPOINT:-${OSACA_STATIC_CDN_ENDPOINT:-${OSACA_PUBLIC_ORIGIN:-${OSACA_PUBLIC_SCHEME:-https}://${OSACA_DOMAIN:-}}}}
+      OSACA_GATEWAY_LOGGER_LEVEL: ${OSACA_GATEWAY_LOGGER_LEVEL:-}
+      LOGGER_LEVEL: ${LOGGER_LEVEL:-}
+      OSACA_GATEWAY_PUSH_ENABLED: ${OSACA_GATEWAY_PUSH_ENABLED:-}
+      OSACA_GATEWAY_PUSH_ENROLLED_CLEAR_NOTIFICATIONS_ENABLED: ${OSACA_GATEWAY_PUSH_ENROLLED_CLEAR_NOTIFICATIONS_ENABLED:-}
+      OSACA_GATEWAY_PUSH_OUTBOX_REQUEST_TIMEOUT_MS: ${OSACA_GATEWAY_PUSH_OUTBOX_REQUEST_TIMEOUT_MS:-}
+      OSACA_GATEWAY_PRESENCE_PUSH_BUFFER_MAX_ENTRIES: ${OSACA_GATEWAY_PRESENCE_PUSH_BUFFER_MAX_ENTRIES:-}
+      OSACA_GATEWAY_PRESENCE_PUSH_BUFFER_MAX_BYTES: ${OSACA_GATEWAY_PRESENCE_PUSH_BUFFER_MAX_BYTES:-}
+      OSACA_GATEWAY_HTTP_RPC_MAX_CONCURRENCY: ${OSACA_GATEWAY_HTTP_RPC_MAX_CONCURRENCY:-}
+      OSACA_GATEWAY_NATS_RPC_MAX_HANDLERS: ${OSACA_GATEWAY_NATS_RPC_MAX_HANDLERS:-}
+      OSACA_GATEWAY_ZSTD_WINDOW_LOG: ${OSACA_GATEWAY_ZSTD_WINDOW_LOG:-}
+      OSACA_GATEWAY_HTTP_FAILURE_THRESHOLD: ${OSACA_GATEWAY_HTTP_FAILURE_THRESHOLD:-}
+      OSACA_GATEWAY_HTTP_RECOVERY_TIMEOUT_MS: ${OSACA_GATEWAY_HTTP_RECOVERY_TIMEOUT_MS:-}
+      OSACA_GATEWAY_GUILD_VISITOR_SESSIONS_MAX: ${OSACA_GATEWAY_GUILD_VISITOR_SESSIONS_MAX:-}
+      OSACA_GATEWAY_GUILD_VISITOR_SESSIONS_FLOOR: ${OSACA_GATEWAY_GUILD_VISITOR_SESSIONS_FLOOR:-}
+      OSACA_GATEWAY_GUILD_VISITOR_SESSIONS_PER_MEMBER: ${OSACA_GATEWAY_GUILD_VISITOR_SESSIONS_PER_MEMBER:-}
+      OSACA_GATEWAY_GUILD_VISITOR_SESSIONS_PER_USER: ${OSACA_GATEWAY_GUILD_VISITOR_SESSIONS_PER_USER:-}
+      OSACA_GATEWAY_GUILD_VISITOR_SESSIONS_PER_IP: ${OSACA_GATEWAY_GUILD_VISITOR_SESSIONS_PER_IP:-}
+      OSACA_ERLANG_COOKIE: ${OSACA_ERLANG_COOKIE:-}
+      OSACA_ERLANG_SCHEDULERS: ${OSACA_ERLANG_SCHEDULERS:-}
+      OSACA_ERLANG_SCHEDULERS_MIN: ${OSACA_ERLANG_SCHEDULERS_MIN:-}
+      OSACA_ERLANG_SCHEDULERS_MAX: ${OSACA_ERLANG_SCHEDULERS_MAX:-}
+      OSACA_ERLANG_DIRTY_CPU_SCHEDULERS: ${OSACA_ERLANG_DIRTY_CPU_SCHEDULERS:-}
+      OSACA_ERLANG_DIRTY_IO_SCHEDULERS: ${OSACA_ERLANG_DIRTY_IO_SCHEDULERS:-}
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080 && printf \"GET /_health/ready HTTP/1.0\\r\\nHost: 127.0.0.1\\r\\n\\r\\n\" >&3 && head -n 1 <&3 | grep -q \" 200 \"'"]
+      <<: *osaca-app-healthcheck
+    depends_on:
+      nats: {condition: service_healthy}
+      valkey: {condition: service_healthy}
+
+  media-proxy:
+    <<: *osaca-service
+    image: ${OSACA_REGISTRY:-ghcr.io/${OSACA_REGISTRY_OWNER:-pjjunio}}/osaca-media-proxy:${OSACA_IMAGE_TAG:-v1}
+    deploy:
+      resources:
+        limits:
+          memory: ${OSACA_MEDIA_PROXY_MEMORY_LIMIT:-1gb}
+    environment:
+      <<: *osaca-env
+      OSACA_MEDIA_PROXY_PORT: "8080"
+      TOKIO_WORKER_THREADS: ${OSACA_MEDIA_PROXY_TOKIO_WORKER_THREADS:-4}
+      OSACA_MEDIA_PROXY_MODE: upload
+      OSACA_MEDIA_PROXY_STORAGE_BACKEND: s3
+      OSACA_MEDIA_PROXY_CORS_MODE: ${OSACA_MEDIA_PROXY_CORS_MODE:-}
+      OSACA_MEDIA_PROXY_CORS_ALLOWED_ORIGINS: ${OSACA_MEDIA_PROXY_CORS_ALLOWED_ORIGINS:-${OSACA_PUBLIC_ORIGIN:-${OSACA_PUBLIC_SCHEME:-https}://${OSACA_DOMAIN:-}:${OSACA_PUBLIC_PORT:-443}}}
+      OSACA_MEDIA_PROXY_ATTACHMENT_SIGNATURE_MODE: ${OSACA_MEDIA_PROXY_ATTACHMENT_SIGNATURE_MODE:-}
+      OSACA_MEDIA_PROXY_READ_ONLY: ${OSACA_MEDIA_PROXY_READ_ONLY:-}
+      OSACA_MEDIA_PROXY_NSFW_THRESHOLD: ${OSACA_MEDIA_PROXY_NSFW_THRESHOLD:-}
+      OSACA_NSFW_SERVICE_ENDPOINT: ${OSACA_NSFW_SERVICE_ENDPOINT:-}
+      OSACA_MEDIA_PROXY_MAX_NATIVE_TRANSFORMS: ${OSACA_MEDIA_PROXY_MAX_NATIVE_TRANSFORMS:-}
+      OSACA_MEDIA_PROXY_WORKER_QUEUE_CAPACITY: ${OSACA_MEDIA_PROXY_WORKER_QUEUE_CAPACITY:-}
+      OSACA_MEDIA_PROXY_MAX_ENCODE_DURATION_MS: ${OSACA_MEDIA_PROXY_MAX_ENCODE_DURATION_MS:-}
+      OSACA_MEDIA_PROXY_MAX_ENCODE_FRAMES: ${OSACA_MEDIA_PROXY_MAX_ENCODE_FRAMES:-}
+      OSACA_MEDIA_PROXY_TRANSFORM_TIMEOUT_MS: ${OSACA_MEDIA_PROXY_TRANSFORM_TIMEOUT_MS:-}
+      OSACA_MEDIA_PROXY_TRANSFORM_CACHE_BYTES: ${OSACA_MEDIA_PROXY_TRANSFORM_CACHE_BYTES:-}
+      OSACA_MEDIA_PROXY_TRANSFORM_CACHE_MAX_ENTRY_BYTES: ${OSACA_MEDIA_PROXY_TRANSFORM_CACHE_MAX_ENTRY_BYTES:-}
+      OSACA_MEDIA_PROXY_TRANSFORM_CACHE_TTL_MS: ${OSACA_MEDIA_PROXY_TRANSFORM_CACHE_TTL_MS:-}
+      OSACA_MEDIA_PROXY_SOCKET_IO_TIMEOUT_MS: ${OSACA_MEDIA_PROXY_SOCKET_IO_TIMEOUT_MS:-}
+      OSACA_MEDIA_PROXY_SHUTDOWN_GRACE_MS: ${OSACA_MEDIA_PROXY_SHUTDOWN_GRACE_MS:-}
+      OSACA_MEDIA_PROXY_UPLOAD_RELAY_S3_TIMEOUT_MS: ${OSACA_MEDIA_PROXY_UPLOAD_RELAY_S3_TIMEOUT_MS:-}
+      OSACA_MEDIA_PROXY_UPLOAD_RELAY_BUFFERED_RETRY_BYTES: ${OSACA_MEDIA_PROXY_UPLOAD_RELAY_BUFFERED_RETRY_BYTES:-}
+      OSACA_MEDIA_PROXY_UPLOAD_RELAY_BUFFERED_RETRY_TOTAL_BYTES: ${OSACA_MEDIA_PROXY_UPLOAD_RELAY_BUFFERED_RETRY_TOTAL_BYTES:-}
+      OSACA_MEDIA_PROXY_UPLOAD_RELAY_SPOOL_DIR: ${OSACA_MEDIA_PROXY_UPLOAD_RELAY_SPOOL_DIR:-}
+      OSACA_MEDIA_PROXY_UPLOAD_RELAY_SPOOL_CHUNK_BYTES: ${OSACA_MEDIA_PROXY_UPLOAD_RELAY_SPOOL_CHUNK_BYTES:-}
+      OSACA_MEDIA_PROXY_UPLOAD_RELAY_SPOOL_MAX_TOTAL_BYTES: ${OSACA_MEDIA_PROXY_UPLOAD_RELAY_SPOOL_MAX_TOTAL_BYTES:-2147483648}
+      OSACA_S3_SESSION_TOKEN: ${OSACA_S3_SESSION_TOKEN:-}
+      OSACA_S3_READ_ENDPOINT: ${OSACA_S3_READ_ENDPOINT:-}
+      OSACA_S3_READ_BUCKET: ${OSACA_S3_READ_BUCKET:-}
+      OSACA_S3_READ_BUCKET_STYLE: ${OSACA_S3_READ_BUCKET_STYLE:-}
+      OSACA_S3_READ_SIGNED: "${OSACA_S3_READ_SIGNED:-true}"
+    volumes:
+      - media-proxy-tmp:/tmp
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/osaca-media-proxy", "healthcheck"]
+      <<: *osaca-healthcheck
+      interval: ${OSACA_MEDIA_PROXY_HEALTHCHECK_INTERVAL:-30s}
+    depends_on:
+      seaweedfs-init: {condition: service_completed_successfully}
+      nats: {condition: service_healthy}
+
+  push:
+    <<: *osaca-service
+    image: ${OSACA_REGISTRY:-ghcr.io/${OSACA_REGISTRY_OWNER:-pjjunio}}/osaca-push:${OSACA_IMAGE_TAG:-v1}
+    deploy:
+      resources:
+        limits:
+          memory: ${OSACA_PUSH_MEMORY_LIMIT:-256mb}
+    environment:
+      <<: *osaca-rust-env
+      OSACA_PUSH_SERVICE_QUEUE_CAPACITY: ${OSACA_PUSH_SERVICE_QUEUE_CAPACITY:-}
+      OSACA_PUSH_SERVICE_SEND_CONCURRENCY: ${OSACA_PUSH_SERVICE_SEND_CONCURRENCY:-}
+      OSACA_PUSH_SERVICE_APNS_BASE_URL: ${OSACA_PUSH_SERVICE_APNS_BASE_URL:-}
+      OSACA_PUSH_SERVICE_FCM_BASE_URL: ${OSACA_PUSH_SERVICE_FCM_BASE_URL:-}
+      OSACA_PUSH_SERVICE_MANAGED_RELAY_HOSTS: ${OSACA_PUSH_SERVICE_MANAGED_RELAY_HOSTS:-}
+      OSACA_PUSH_SERVICE_OWN_RELAY_HOSTS: ${OSACA_PUSH_SERVICE_OWN_RELAY_HOSTS:-}
+      OSACA_PUSH_SERVICE_PRIVATE_HOSTS: ${OSACA_PUSH_SERVICE_PRIVATE_HOSTS:-}
+      OSACA_PUSH_SERVICE_RELAY_CONSENT_ACCEPTED: ${OSACA_PUSH_SERVICE_RELAY_CONSENT_ACCEPTED:-}
+      OSACA_PUSH_APNS_DEFAULT_ENVIRONMENT: ${OSACA_PUSH_APNS_DEFAULT_ENVIRONMENT:-}
+      OSACA_PUSH_FCM_ENABLED: ${OSACA_PUSH_FCM_ENABLED:-}
+      OSACA_PUSH_FCM_PROJECT_ID: ${OSACA_PUSH_FCM_PROJECT_ID:-}
+      OSACA_PUSH_FCM_CLIENT_EMAIL: ${OSACA_PUSH_FCM_CLIENT_EMAIL:-}
+      OSACA_PUSH_FCM_PRIVATE_KEY: ${OSACA_PUSH_FCM_PRIVATE_KEY:-}
+      OSACA_PUSH_FCM_PRIVATE_KEY_PATH: ${OSACA_PUSH_FCM_PRIVATE_KEY_PATH:-}
+      OSACA_PUSH_FCM_SERVICE_ACCOUNT_JSON_PATH: ${OSACA_PUSH_FCM_SERVICE_ACCOUNT_JSON_PATH:-}
+      OSACA_PUSH_FCM_TOKEN_URI: ${OSACA_PUSH_FCM_TOKEN_URI:-}
+      OSACA_PUSH_FCM_APPS: ${OSACA_PUSH_FCM_APPS:-}
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/osaca-push", "healthcheck"]
+      <<: *osaca-app-healthcheck
+      start_period: ${OSACA_SVC_HEALTHCHECK_START_PERIOD:-60s}
+    depends_on:
+      nats: {condition: service_healthy}
+      api: {condition: service_healthy}
+
+  static-proxy:
+    <<: *osaca-service
+    image: ${OSACA_REGISTRY:-ghcr.io/${OSACA_REGISTRY_OWNER:-pjjunio}}/osaca-static:${OSACA_IMAGE_TAG:-v1}
+    deploy:
+      resources:
+        limits:
+          memory: ${OSACA_STATIC_PROXY_MEMORY_LIMIT:-256mb}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/avatars/0.png"]
+      <<: *osaca-healthcheck
+
+  app-proxy:
+    <<: *osaca-service
+    image: ${OSACA_REGISTRY:-ghcr.io/${OSACA_REGISTRY_OWNER:-pjjunio}}/osaca-app-proxy-self-hosted:${OSACA_IMAGE_TAG:-v1}
+    deploy:
+      resources:
+        limits:
+          memory: ${OSACA_APP_PROXY_MEMORY_LIMIT:-256mb}
+    environment:
+      RUST_LOG: ${RUST_LOG:-}
+      TOKIO_WORKER_THREADS: ${OSACA_TOKIO_WORKER_THREADS:-2}
+      OSACA_APP_PROXY_PORT: "8080"
+      OSACA_S3_PUBLIC_ENDPOINT: ${OSACA_S3_PUBLIC_ENDPOINT:-}
+      OSACA_S3_BUCKET_UPLOADS: ${OSACA_S3_BUCKET_UPLOADS:-osaca-uploads}
+      OSACA_STATIC_CDN_ENDPOINT: ${OSACA_STATIC_CDN_ENDPOINT:-}
+      OSACA_MEDIA_ENDPOINT: ${OSACA_MEDIA_ENDPOINT:-}
+      OSACA_APP_PRODUCT_NAME: ${OSACA_APP_PRODUCT_NAME:-}
+      OSACA_APP_ICON_URL: ${OSACA_APP_ICON_URL:-}
+      OSACA_APP_SYMBOL_URL: ${OSACA_APP_SYMBOL_URL:-}
+      OSACA_APP_LOGO_URL: ${OSACA_APP_LOGO_URL:-}
+      OSACA_APP_WORDMARK_URL: ${OSACA_APP_WORDMARK_URL:-}
+      OSACA_APP_FAVICON_URL: ${OSACA_APP_FAVICON_URL:-}
+      OSACA_APP_FAVICON_DARK_URL: ${OSACA_APP_FAVICON_DARK_URL:-}
+      OSACA_APP_SIGN_IN_BACKDROP_URL: ${OSACA_APP_SIGN_IN_BACKDROP_URL:-}
+      OSACA_APP_THEME_COLOR: ${OSACA_APP_THEME_COLOR:-}
+      OSACA_APP_STATUS_PAGE_URL: ${OSACA_APP_STATUS_PAGE_URL:-}
+      DISCOVERY_UPSTREAM_URL: http://edge:8088/.well-known/osaca
+      DISCOVERY_REFRESH_INTERVAL_MS: ${DISCOVERY_REFRESH_INTERVAL_MS:-5000}
+      OSACA_APP_PROXY_INDEX_UPSTREAM_URL: ${OSACA_APP_PROXY_INDEX_UPSTREAM_URL:-}
+      OSACA_APP_PROXY_SAME_ORIGIN_HOSTS: ${OSACA_APP_PROXY_SAME_ORIGIN_HOSTS:-}
+      OSACA_APP_PROXY_MANIFEST_SCOPE_EXTENSIONS: ${OSACA_APP_PROXY_MANIFEST_SCOPE_EXTENSIONS:-}
+      OSACA_LIVEKIT_URL: ${OSACA_LIVEKIT_URL:-}
+      OSACA_CSP_EXTRA_DEFAULT_SRC: ${OSACA_CSP_EXTRA_DEFAULT_SRC:-}
+      OSACA_CSP_EXTRA_CONNECT_SRC: ${OSACA_CSP_EXTRA_CONNECT_SRC:-}
+      OSACA_CSP_EXTRA_IMG_SRC: ${OSACA_CSP_EXTRA_IMG_SRC:-}
+      OSACA_CSP_EXTRA_MEDIA_SRC: ${OSACA_CSP_EXTRA_MEDIA_SRC:-}
+      OSACA_CSP_EXTRA_FONT_SRC: ${OSACA_CSP_EXTRA_FONT_SRC:-}
+      OSACA_CSP_EXTRA_SCRIPT_SRC: ${OSACA_CSP_EXTRA_SCRIPT_SRC:-}
+      OSACA_CSP_EXTRA_STYLE_SRC: ${OSACA_CSP_EXTRA_STYLE_SRC:-}
+      OSACA_CSP_EXTRA_FRAME_SRC: ${OSACA_CSP_EXTRA_FRAME_SRC:-}
+      OSACA_CSP_EXTRA_WORKER_SRC: ${OSACA_CSP_EXTRA_WORKER_SRC:-}
+      OSACA_CSP_EXTRA_MANIFEST_SRC: ${OSACA_CSP_EXTRA_MANIFEST_SRC:-}
+      OSACA_CSP_REPORT_URI: ${OSACA_CSP_REPORT_URI:-}
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:8080/_ready"]
+      <<: *osaca-healthcheck
+      interval: ${OSACA_APP_PROXY_HEALTHCHECK_INTERVAL:-30s}
+    depends_on:
+      api: {condition: service_healthy}
+      edge: {condition: service_healthy}
+
+  snowflakes:
+    <<: *osaca-service
+    stop_grace_period: 30s
+    image: ${OSACA_REGISTRY:-ghcr.io/${OSACA_REGISTRY_OWNER:-pjjunio}}/osaca-snowflakes:${OSACA_IMAGE_TAG:-v1}
+    deploy:
+      resources:
+        limits:
+          memory: ${OSACA_SNOWFLAKES_MEMORY_LIMIT:-256mb}
+    environment:
+      <<: *osaca-rust-env
+      OSACA_SVC_NAME: snowflakes
+      OSACA_SVC_MODE: combined
+    healthcheck: *osaca-svc-healthcheck
+    depends_on:
+      nats: {condition: service_healthy}
+
+  users:
+    <<: *osaca-service
+    stop_grace_period: 30s
+    image: ${OSACA_REGISTRY:-ghcr.io/${OSACA_REGISTRY_OWNER:-pjjunio}}/osaca-users:${OSACA_IMAGE_TAG:-v1}
+    deploy:
+      resources:
+        limits:
+          memory: ${OSACA_USERS_MEMORY_LIMIT:-256mb}
+    environment:
+      <<: *osaca-rust-env
+      OSACA_SVC_NAME: users
+      OSACA_SVC_MODE: combined
+      OSACA_POSTGRES_MAX_CONNECTIONS: "${OSACA_USERS_POSTGRES_MAX_CONNECTIONS:-20}"
+    healthcheck: *osaca-svc-healthcheck
+    depends_on:
+      nats: {condition: service_healthy}
+      postgres: {condition: service_healthy}
+
+  gifs:
+    <<: *osaca-service
+    stop_grace_period: 30s
+    image: ${OSACA_REGISTRY:-ghcr.io/${OSACA_REGISTRY_OWNER:-pjjunio}}/osaca-gifs:${OSACA_IMAGE_TAG:-v1}
+    deploy:
+      resources:
+        limits:
+          memory: ${OSACA_GIFS_MEMORY_LIMIT:-256mb}
+    environment:
+      <<: *osaca-rust-env
+      OSACA_SVC_NAME: gifs
+      OSACA_SVC_MODE: combined
+      OSACA_GIFS_SHARD_CACHE_MAX_BYTES: ${OSACA_GIFS_SHARD_CACHE_MAX_BYTES:-134217728}
+    healthcheck: *osaca-svc-healthcheck
+    depends_on:
+      nats: {condition: service_healthy}
+
+  messages:
+    <<: *osaca-service
+    stop_grace_period: 30s
+    image: ${OSACA_REGISTRY:-ghcr.io/${OSACA_REGISTRY_OWNER:-pjjunio}}/osaca-messages:${OSACA_IMAGE_TAG:-v1}
+    deploy:
+      resources:
+        limits:
+          memory: ${OSACA_MESSAGES_MEMORY_LIMIT:-256mb}
+    environment:
+      <<: *osaca-rust-env
+      OSACA_SVC_NAME: messages
+      OSACA_SVC_MODE: combined
+      OSACA_POSTGRES_MAX_CONNECTIONS: "${OSACA_MESSAGES_POSTGRES_MAX_CONNECTIONS:-20}"
+    healthcheck: *osaca-svc-healthcheck
+    depends_on:
+      nats: {condition: service_healthy}
+      postgres: {condition: service_healthy}
+
+  unfurl:
+    <<: *osaca-service
+    stop_grace_period: 30s
+    image: ${OSACA_REGISTRY:-ghcr.io/${OSACA_REGISTRY_OWNER:-pjjunio}}/osaca-unfurl:${OSACA_IMAGE_TAG:-v1}
+    deploy:
+      resources:
+        limits:
+          memory: ${OSACA_UNFURL_MEMORY_LIMIT:-256mb}
+    environment:
+      <<: *osaca-rust-env
+      OSACA_SVC_NAME: unfurl
+      OSACA_SVC_MODE: combined
+      OSACA_MEDIA_PROXY_ENDPOINT: http://media-proxy:8080
+      OSACA_ACTIVITYPUB_SIGNING_KEY_BASE64: ${OSACA_ACTIVITYPUB_SIGNING_KEY_BASE64:-}
+    healthcheck: *osaca-svc-healthcheck
+    depends_on:
+      nats: {condition: service_healthy}
+
+  admin:
+    <<: *osaca-service
+    image: ${OSACA_REGISTRY:-ghcr.io/${OSACA_REGISTRY_OWNER:-pjjunio}}/osaca-admin:${OSACA_IMAGE_TAG:-v1}
+    deploy:
+      resources:
+        limits:
+          memory: ${OSACA_ADMIN_MEMORY_LIMIT:-256mb}
+    environment:
+      <<: *osaca-rust-env
+      OSACA_ADMIN_PORT: "8080"
+      OSACA_ADMIN_BASE_PATH: ${OSACA_ADMIN_BASE_PATH:-/admin}
+      OSACA_API_ENDPOINT: http://api:8080
+      OSACA_API_PUBLIC_ENDPOINT: ${OSACA_API_ENDPOINT:-}
+      OSACA_STATIC_CDN_ENDPOINT: ${OSACA_STATIC_CDN_ENDPOINT:-${OSACA_PUBLIC_ORIGIN:-${OSACA_PUBLIC_SCHEME:-https}://${OSACA_DOMAIN:-}}}
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080 && printf \"GET /_health HTTP/1.0\\r\\n\\r\\n\" >&3 && head -n 1 <&3 | grep -q \" 200 \"'"]
+      <<: *osaca-app-healthcheck
+      start_period: ${OSACA_SVC_HEALTHCHECK_START_PERIOD:-60s}
+    depends_on:
+      api: {condition: service_healthy}
+
+networks:
+  osaca:
+    driver: bridge
+
+volumes:
+  edge-data:
+  edge-config:
+  postgres-data:
+  valkey-data:
+  nats-data:
+  meilisearch-data:
+  seaweedfs-data:
+  media-proxy-tmp:

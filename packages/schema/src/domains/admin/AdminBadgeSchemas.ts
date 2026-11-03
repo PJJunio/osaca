@@ -12,17 +12,17 @@ import {
 	CUSTOM_BADGES_PER_USER_CEILING,
 	CustomBadgeTypes,
 	HIDEABLE_BUILT_IN_BADGE_KINDS,
-} from '@fluxer/constants/src/BadgeConstants';
-import {ValidationErrorCodes} from '@fluxer/constants/src/ValidationErrorCodes';
-import {createQueryIntegerType} from '@fluxer/schema/src/primitives/QueryValidators';
+} from '@osaca/constants/src/BadgeConstants';
+import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
+import {createQueryIntegerType} from '@osaca/schema/src/primitives/QueryValidators';
 import {
 	createNamedStringLiteralUnion,
 	createStringType,
 	SnowflakeStringType,
 	SnowflakeType,
 	withOpenApiType,
-} from '@fluxer/schema/src/primitives/SchemaPrimitives';
-import {URLType} from '@fluxer/schema/src/primitives/UrlValidators';
+} from '@osaca/schema/src/primitives/SchemaPrimitives';
+import {URLType} from '@osaca/schema/src/primitives/UrlValidators';
 import {z} from 'zod';
 
 export const CustomBadgeTypeSchema = withOpenApiType(

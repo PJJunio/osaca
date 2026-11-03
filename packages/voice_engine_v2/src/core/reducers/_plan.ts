@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import assert from 'node:assert/strict';
-import {allocateOperation, appendTransition} from '@fluxer/voice_engine_v2/src/core/reducers/_helpers';
-import {beginCameraPublish} from '@fluxer/voice_engine_v2/src/core/reducers/camera';
-import {beginMicrophonePublish} from '@fluxer/voice_engine_v2/src/core/reducers/microphone';
-import {beginScreenPublish} from '@fluxer/voice_engine_v2/src/core/reducers/screen';
-import {beginScreenAudioPublish} from '@fluxer/voice_engine_v2/src/core/reducers/screenAudio';
-import type {VoiceEngineV2Snapshot, VoiceEngineV2Transition} from '@fluxer/voice_engine_v2/src/core/state';
-import type {VoiceEngineV2Command} from '@fluxer/voice_engine_v2/src/protocol/commands';
+import {allocateOperation, appendTransition} from '@osaca/voice_engine_v2/src/core/reducers/_helpers';
+import {beginCameraPublish} from '@osaca/voice_engine_v2/src/core/reducers/camera';
+import {beginMicrophonePublish} from '@osaca/voice_engine_v2/src/core/reducers/microphone';
+import {beginScreenPublish} from '@osaca/voice_engine_v2/src/core/reducers/screen';
+import {beginScreenAudioPublish} from '@osaca/voice_engine_v2/src/core/reducers/screenAudio';
+import type {VoiceEngineV2Snapshot, VoiceEngineV2Transition} from '@osaca/voice_engine_v2/src/core/state';
+import type {VoiceEngineV2Command} from '@osaca/voice_engine_v2/src/protocol/commands';
 
 function planDesiredLocalMedia(snapshot: VoiceEngineV2Snapshot): VoiceEngineV2Transition {
 	assert.ok(snapshot != null, 'planDesiredLocalMedia snapshot must not be null');

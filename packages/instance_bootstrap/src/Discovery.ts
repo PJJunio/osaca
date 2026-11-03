@@ -6,18 +6,18 @@ import {
 	InstantAccountAvailability,
 	InteractionTierModes,
 	VerificationBases,
-} from '@fluxer/constants/src/AccountConfigConstants';
+} from '@osaca/constants/src/AccountConfigConstants';
 import {
 	AccountIdentityLockReasons,
 	AccountIdentityModes,
 	TagStyles,
-} from '@fluxer/constants/src/AccountIdentityConstants';
-import {BUILT_IN_GUILD_BADGE_KINDS} from '@fluxer/constants/src/BadgeConstants';
-import {Headers as HttpHeader} from '@fluxer/constants/src/Headers';
-import {HttpStatus, MimeType} from '@fluxer/constants/src/HttpConstants';
-import type {LimitKey} from '@fluxer/constants/src/LimitConfigMetadata';
-import {InstanceEndpointKind, normalizeInstanceEndpoint} from '@fluxer/instance_bootstrap/src/EndpointNormalization';
-import {CanonicalNetworkProtocol} from '@fluxer/instance_bootstrap/src/NetworkOrigin';
+} from '@osaca/constants/src/AccountIdentityConstants';
+import {BUILT_IN_GUILD_BADGE_KINDS} from '@osaca/constants/src/BadgeConstants';
+import {Headers as HttpHeader} from '@osaca/constants/src/Headers';
+import {HttpStatus, MimeType} from '@osaca/constants/src/HttpConstants';
+import type {LimitKey} from '@osaca/constants/src/LimitConfigMetadata';
+import {InstanceEndpointKind, normalizeInstanceEndpoint} from '@osaca/instance_bootstrap/src/EndpointNormalization';
+import {CanonicalNetworkProtocol} from '@osaca/instance_bootstrap/src/NetworkOrigin';
 import {
 	AGE_POLICY_ACTIONS,
 	CURRENT_INSTANCE_CODENAME,
@@ -41,11 +41,11 @@ import {
 	type InstanceSso,
 	PUSH_DELIVERY_MODES,
 	REGISTRATION_MODES,
-} from '@fluxer/instance_bootstrap/src/Types';
-import type {LimitConfigSnapshot, LimitConfigWireFormat, LimitFilter, LimitRule} from '@fluxer/limits/src/LimitTypes';
-import {EXPERIMENT_BUCKET_RESOLUTION} from '@fluxer/schema/src/domains/experiment/ExperimentBucket';
+} from '@osaca/instance_bootstrap/src/Types';
+import type {LimitConfigSnapshot, LimitConfigWireFormat, LimitFilter, LimitRule} from '@osaca/limits/src/LimitTypes';
+import {EXPERIMENT_BUCKET_RESOLUTION} from '@osaca/schema/src/domains/experiment/ExperimentBucket';
 
-export const INSTANCE_DISCOVERY_PATH = '/.well-known/fluxer';
+export const INSTANCE_DISCOVERY_PATH = '/.well-known/osaca';
 const INSTANCE_DISCOVERY_CONVENTIONAL_ENDPOINT_PATH = '/api';
 export const INSTANCE_DISCOVERY_MAX_BYTES = 1024 * 1024;
 export const INSTANCE_DISCOVERY_MAX_CHUNKS = 1024;

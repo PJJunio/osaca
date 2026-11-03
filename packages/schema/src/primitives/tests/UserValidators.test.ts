@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {ValidationErrorCodes} from '@fluxer/constants/src/ValidationErrorCodes';
-import {GlobalNameType, PasswordType, UsernameType} from '@fluxer/schema/src/primitives/UserValidators';
+import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
+import {GlobalNameType, PasswordType, UsernameType} from '@osaca/schema/src/primitives/UserValidators';
 import {describe, expect, it} from 'vitest';
 
 describe('UsernameType', () => {
@@ -19,8 +19,8 @@ describe('UsernameType', () => {
 			expect(result.error.issues[0].message).toBe(ValidationErrorCodes.USERNAME_RESERVED_VALUE);
 		}
 	});
-	it('rejects usernames containing "fluxer"', () => {
-		const result = UsernameType.safeParse('fluxeruser');
+	it('rejects usernames containing "osaca"', () => {
+		const result = UsernameType.safeParse('osacauser');
 		expect(result.success).toBe(false);
 		if (!result.success) {
 			expect(result.error.issues[0].message).toBe(ValidationErrorCodes.USERNAME_CANNOT_CONTAIN_RESERVED_TERMS);

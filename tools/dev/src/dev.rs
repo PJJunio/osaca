@@ -263,7 +263,7 @@ async fn monitor_object_store_dependency() -> Result<()> {
             .await
     {
         bail!(
-            "Dev object store is unreachable and automatic repair failed: {error}\nRun `fluxer-dev media-proxy doctor --repair` inside the devcontainer, then restart `fluxer-dev dev`."
+            "Dev object store is unreachable and automatic repair failed: {error}\nRun `osaca-dev media-proxy doctor --repair` inside the devcontainer, then restart `osaca-dev dev`."
         );
     }
     println!("Dev object store recovered.");
@@ -325,13 +325,13 @@ fn normalize_selected_tasks(mut selected: Vec<String>, cloudflare_tunnel: bool) 
 
 pub fn task_table() -> Result<BTreeMap<&'static str, DevTask>> {
     let self_tool = self_tool_command()?;
-    let api_dir = ROOT.join("fluxer_api");
+    let api_dir = ROOT.join("osaca_api");
     let api_tsx = api_dir.join("node_modules/.bin/tsx");
-    let app_dir = ROOT.join("fluxer_app");
+    let app_dir = ROOT.join("osaca_app");
     let app_dev_server = ROOT.join("tools/ci/run.sh");
     let public_url = public_url();
     let admin_endpoint =
-        std::env::var("FLUXER_ADMIN_ENDPOINT").unwrap_or_else(|_| format!("{public_url}/admin"));
+        std::env::var("OSACA_ADMIN_ENDPOINT").unwrap_or_else(|_| format!("{public_url}/admin"));
     let mut tasks = BTreeMap::new();
     let mut insert = |task: DevTask| {
         tasks.insert(task.name, task);
@@ -359,22 +359,22 @@ pub fn task_table() -> Result<BTreeMap<&'static str, DevTask>> {
         cwd: api_dir.clone(),
         env: vec![
             (
-                "FLUXER_S3_PUBLIC_ENDPOINT".to_owned(),
+                "OSACA_S3_PUBLIC_ENDPOINT".to_owned(),
                 Some(public_url.clone()),
             ),
             (
-                "FLUXER_S3_FORCE_PATH_STYLE".to_owned(),
+                "OSACA_S3_FORCE_PATH_STYLE".to_owned(),
                 Some(
-                    std::env::var("FLUXER_S3_FORCE_PATH_STYLE")
+                    std::env::var("OSACA_S3_FORCE_PATH_STYLE")
                         .unwrap_or_else(|_| "true".to_owned()),
                 ),
             ),
             (
-                "FLUXER_DISABLE_RATE_LIMITS".to_owned(),
+                "OSACA_DISABLE_RATE_LIMITS".to_owned(),
                 Some("true".to_owned()),
             ),
             (
-                "FLUXER_RELAX_REGISTRATION_RATE_LIMITS".to_owned(),
+                "OSACA_RELAX_REGISTRATION_RATE_LIMITS".to_owned(),
                 Some("true".to_owned()),
             ),
         ],
@@ -400,9 +400,9 @@ pub fn task_table() -> Result<BTreeMap<&'static str, DevTask>> {
         env: vec![
             ("TOKIO_WORKER_THREADS".to_owned(), Some("4".to_owned())),
             ("RAYON_NUM_THREADS".to_owned(), Some("4".to_owned())),
-            ("FLUXER_APP_DEV_PORT".to_owned(), Some(APP_PORT.to_string())),
+            ("OSACA_APP_DEV_PORT".to_owned(), Some(APP_PORT.to_string())),
             (
-                "FLUXER_STATIC_CDN_ENDPOINT".to_owned(),
+                "OSACA_STATIC_CDN_ENDPOINT".to_owned(),
                 Some(public_url.clone()),
             ),
             (
@@ -413,24 +413,24 @@ pub fn task_table() -> Result<BTreeMap<&'static str, DevTask>> {
     });
     insert(DevTask {
         name: "app-proxy",
-        args: strings(&["cargo", "run", "-p", "fluxer_app_proxy"]),
+        args: strings(&["cargo", "run", "-p", "osaca_app_proxy"]),
         cwd: ROOT.clone(),
         env: vec![
             (
-                "FLUXER_APP_PROXY_INDEX_UPSTREAM_URL".to_owned(),
+                "OSACA_APP_PROXY_INDEX_UPSTREAM_URL".to_owned(),
                 Some(format!("http://{LOOPBACK_HOST}:{APP_PORT}/")),
             ),
             (
-                "FLUXER_APP_PROXY_PORT".to_owned(),
+                "OSACA_APP_PROXY_PORT".to_owned(),
                 Some(APP_PROXY_PORT.to_string()),
             ),
             (
-                "FLUXER_STATIC_CDN_ENDPOINT".to_owned(),
+                "OSACA_STATIC_CDN_ENDPOINT".to_owned(),
                 Some(public_url.clone()),
             ),
             (
-                "FLUXER_STATIC_DIR".to_owned(),
-                Some("fluxer_static".to_owned()),
+                "OSACA_STATIC_DIR".to_owned(),
+                Some("osaca_static".to_owned()),
             ),
             ("RELEASE_CHANNEL".to_owned(), Some("canary".to_owned())),
         ],
@@ -441,9 +441,9 @@ pub fn task_table() -> Result<BTreeMap<&'static str, DevTask>> {
             "cargo",
             "run",
             "-p",
-            "fluxer-media-proxy",
+            "osaca-media-proxy",
             "--bin",
-            "fluxer-media-proxy",
+            "osaca-media-proxy",
             "--",
             "--bind-host",
             ANY_HOST,
@@ -463,9 +463,9 @@ pub fn task_table() -> Result<BTreeMap<&'static str, DevTask>> {
             "cargo",
             "run",
             "-p",
-            "fluxer-push",
+            "osaca-push",
             "--bin",
-            "fluxer-push",
+            "osaca-push",
             "--",
             "--bind-host",
             ANY_HOST,
@@ -486,7 +486,7 @@ pub fn task_table() -> Result<BTreeMap<&'static str, DevTask>> {
         args: tool_args(&self_tool, &["gateway"]),
         cwd: ROOT.clone(),
         env: vec![(
-            "FLUXER_DISABLE_RATE_LIMITS".to_owned(),
+            "OSACA_DISABLE_RATE_LIMITS".to_owned(),
             Some("true".to_owned()),
         )],
     });
@@ -495,7 +495,7 @@ pub fn task_table() -> Result<BTreeMap<&'static str, DevTask>> {
         args: tool_args(&self_tool, &["gateway", "single"]),
         cwd: ROOT.clone(),
         env: vec![(
-            "FLUXER_DISABLE_RATE_LIMITS".to_owned(),
+            "OSACA_DISABLE_RATE_LIMITS".to_owned(),
             Some("true".to_owned()),
         )],
     });
@@ -506,36 +506,36 @@ pub fn task_table() -> Result<BTreeMap<&'static str, DevTask>> {
             "watch",
             "--no-dot-ignores",
             "-w",
-            "fluxer_admin/src",
+            "osaca_admin/src",
             "-w",
-            "fluxer_admin/Cargo.toml",
+            "osaca_admin/Cargo.toml",
             "-w",
-            "fluxer_admin/build.rs",
+            "osaca_admin/build.rs",
             "-w",
-            "fluxer_admin/openapi-admin.json",
+            "osaca_admin/openapi-admin.json",
             "-w",
-            "fluxer_admin/static",
+            "osaca_admin/static",
             "-x",
-            "run -p fluxer_admin",
+            "run -p osaca_admin",
         ]),
         cwd: ROOT.clone(),
         env: vec![
             (
-                "FLUXER_ADMIN_BASE_PATH".to_owned(),
+                "OSACA_ADMIN_BASE_PATH".to_owned(),
                 Some("/admin".to_owned()),
             ),
-            ("FLUXER_ADMIN_ENDPOINT".to_owned(), Some(admin_endpoint)),
-            ("FLUXER_ADMIN_PORT".to_owned(), Some(ADMIN_PORT.to_string())),
+            ("OSACA_ADMIN_ENDPOINT".to_owned(), Some(admin_endpoint)),
+            ("OSACA_ADMIN_PORT".to_owned(), Some(ADMIN_PORT.to_string())),
             (
-                "FLUXER_API_ENDPOINT".to_owned(),
+                "OSACA_API_ENDPOINT".to_owned(),
                 Some(format!("{public_url}/api")),
             ),
-            ("FLUXER_APP_ENDPOINT".to_owned(), Some(public_url.clone())),
+            ("OSACA_APP_ENDPOINT".to_owned(), Some(public_url.clone())),
             (
-                "FLUXER_MEDIA_ENDPOINT".to_owned(),
+                "OSACA_MEDIA_ENDPOINT".to_owned(),
                 Some(format!("{public_url}/media")),
             ),
-            ("FLUXER_STATIC_CDN_ENDPOINT".to_owned(), Some(public_url)),
+            ("OSACA_STATIC_CDN_ENDPOINT".to_owned(), Some(public_url)),
         ],
     });
     insert(DevTask {
@@ -557,9 +557,9 @@ async fn wait_for_search_backend_if_needed(selected: &[String]) -> Result<()> {
     let env = merged_env(None, true)?;
     let backend = SearchBackend::from_env(&env)?;
     let search_url = env
-        .get("FLUXER_SEARCH_URL")
+        .get("OSACA_SEARCH_URL")
         .filter(|url| !url.trim().is_empty())
-        .context("Missing FLUXER_SEARCH_URL for the selected search backend")?;
+        .context("Missing OSACA_SEARCH_URL for the selected search backend")?;
     wait_http(backend.label(), search_url, 120).await
 }
 
@@ -571,14 +571,14 @@ enum SearchBackend {
 
 impl SearchBackend {
     fn from_env(env: &BTreeMap<String, String>) -> Result<Self> {
-        match env.get("FLUXER_SEARCH_ENGINE").map(String::as_str) {
+        match env.get("OSACA_SEARCH_ENGINE").map(String::as_str) {
             Some("elasticsearch") => Ok(Self::Elasticsearch),
             Some("meilisearch") => Ok(Self::Meilisearch),
             Some(engine) => bail!(
-                "Unsupported FLUXER_SEARCH_ENGINE value {engine:?}; expected `meilisearch` or `elasticsearch`"
+                "Unsupported OSACA_SEARCH_ENGINE value {engine:?}; expected `meilisearch` or `elasticsearch`"
             ),
             None => {
-                bail!("Missing FLUXER_SEARCH_ENGINE; expected `meilisearch` or `elasticsearch`")
+                bail!("Missing OSACA_SEARCH_ENGINE; expected `meilisearch` or `elasticsearch`")
             }
         }
     }
@@ -606,7 +606,7 @@ fn strings(args: &[&str]) -> Vec<String> {
 }
 
 fn public_url() -> String {
-    std::env::var("FLUXER_PUBLIC_URL")
+    std::env::var("OSACA_PUBLIC_URL")
         .unwrap_or_else(|_| format!("http://localhost:{DEV_PROXY_PORT}"))
 }
 
@@ -648,7 +648,7 @@ fn selected_needs_object_store(selected: &[String]) -> bool {
 }
 
 fn object_store_monitor_interval() -> Duration {
-    let seconds = std::env::var("FLUXER_DEV_OBJECT_STORE_MONITOR_INTERVAL_SECS")
+    let seconds = std::env::var("OSACA_DEV_OBJECT_STORE_MONITOR_INTERVAL_SECS")
         .ok()
         .and_then(|value| value.parse::<u64>().ok())
         .filter(|value| *value > 0)
@@ -681,7 +681,7 @@ fn start_task(task: &DevTask) -> Result<Child> {
 }
 
 async fn wait_for_rust_services(processes: &mut [Child]) -> Result<()> {
-    let timeout = std::env::var("FLUXER_DEV_RUST_SERVICE_READY_TIMEOUT")
+    let timeout = std::env::var("OSACA_DEV_RUST_SERVICE_READY_TIMEOUT")
         .ok()
         .and_then(|value| value.parse().ok())
         .unwrap_or(240);
@@ -707,7 +707,7 @@ async fn wait_for_rust_services(processes: &mut [Child]) -> Result<()> {
 }
 
 async fn wait_for_gateway(processes: &mut [Child], port: u16) -> Result<()> {
-    let timeout = std::env::var("FLUXER_DEV_GATEWAY_READY_TIMEOUT")
+    let timeout = std::env::var("OSACA_DEV_GATEWAY_READY_TIMEOUT")
         .ok()
         .and_then(|value| value.parse().ok())
         .unwrap_or(180);
@@ -726,7 +726,7 @@ async fn wait_for_gateway(processes: &mut [Child], port: u16) -> Result<()> {
 }
 
 async fn wait_for_api(processes: &mut [Child]) -> Result<()> {
-    let timeout = std::env::var("FLUXER_DEV_API_READY_TIMEOUT")
+    let timeout = std::env::var("OSACA_DEV_API_READY_TIMEOUT")
         .ok()
         .and_then(|value| value.parse().ok())
         .unwrap_or(180);
@@ -748,7 +748,7 @@ async fn wait_for_cloudflare_tunnel_routes(
     processes: &mut [Child],
     selected: &[String],
 ) -> Result<()> {
-    let timeout = std::env::var("FLUXER_CLOUDFLARE_TUNNEL_ROUTE_READY_TIMEOUT")
+    let timeout = std::env::var("OSACA_CLOUDFLARE_TUNNEL_ROUTE_READY_TIMEOUT")
         .ok()
         .and_then(|value| value.parse().ok())
         .unwrap_or(300);

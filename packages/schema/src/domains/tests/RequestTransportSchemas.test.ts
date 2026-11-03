@@ -2,7 +2,7 @@ import {
 	BulkDeleteSelfMessagesFilter,
 	BulkDeleteSelfMessagesRequest,
 	HarvestSelfDataRequest,
-} from '@fluxer/schema/src/domains/user/UserRequestSchemas';
+} from '@osaca/schema/src/domains/user/UserRequestSchemas';
 import {describe, expect, it} from 'vitest';
 
 const bulkDeleteDefaults = {

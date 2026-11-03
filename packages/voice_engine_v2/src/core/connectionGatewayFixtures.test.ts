@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import gatewayConnectionFixtureJson from '@fluxer/voice_engine_v2/fixtures/event_logs/gateway_connection.json';
-import reconnectChannelMoveFixtureJson from '@fluxer/voice_engine_v2/fixtures/event_logs/reconnect_channel_move.json';
-import resumePreservesMediaFixtureJson from '@fluxer/voice_engine_v2/fixtures/event_logs/resume_preserves_media.json';
-import staleConnectionFixtureJson from '@fluxer/voice_engine_v2/fixtures/event_logs/stale_connection.json';
-import teardownRendererWindowFixtureJson from '@fluxer/voice_engine_v2/fixtures/event_logs/teardown_renderer_window.json';
-import {transitionVoiceEngineV2} from '@fluxer/voice_engine_v2/src/core/reducer';
+import gatewayConnectionFixtureJson from '@osaca/voice_engine_v2/fixtures/event_logs/gateway_connection.json';
+import reconnectChannelMoveFixtureJson from '@osaca/voice_engine_v2/fixtures/event_logs/reconnect_channel_move.json';
+import resumePreservesMediaFixtureJson from '@osaca/voice_engine_v2/fixtures/event_logs/resume_preserves_media.json';
+import staleConnectionFixtureJson from '@osaca/voice_engine_v2/fixtures/event_logs/stale_connection.json';
+import teardownRendererWindowFixtureJson from '@osaca/voice_engine_v2/fixtures/event_logs/teardown_renderer_window.json';
+import {transitionVoiceEngineV2} from '@osaca/voice_engine_v2/src/core/reducer';
 import {
 	availableVoiceEngineV2Capabilities,
 	createVoiceEngineV2InitialSnapshot,
 	type VoiceEngineV2OperationStatus,
 	type VoiceEngineV2Snapshot,
-} from '@fluxer/voice_engine_v2/src/core/state';
-import type {VoiceEngineV2Command} from '@fluxer/voice_engine_v2/src/protocol/commands';
-import type {VoiceEngineV2Event} from '@fluxer/voice_engine_v2/src/protocol/events';
+} from '@osaca/voice_engine_v2/src/core/state';
+import type {VoiceEngineV2Command} from '@osaca/voice_engine_v2/src/protocol/commands';
+import type {VoiceEngineV2Event} from '@osaca/voice_engine_v2/src/protocol/events';
 import {describe, expect, it} from 'vitest';
 
 interface VoiceEngineV2ConnectionGatewayFixtureStep {

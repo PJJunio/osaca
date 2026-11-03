@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {DsaReportFlowRequest, DsaReportRequest} from '@fluxer/schema/src/domains/report/ReportSchemas';
+import {DsaReportFlowRequest, DsaReportRequest} from '@osaca/schema/src/domains/report/ReportSchemas';
 import {describe, expect, it} from 'vitest';
 
 const legacyBodies: Array<Record<string, unknown>> = [
@@ -8,11 +8,11 @@ const legacyBodies: Array<Record<string, unknown>> = [
 		ticket: 'ticket-message',
 		report_type: 'message',
 		category: 'harassment',
-		message_link: 'https://web.fluxer.app/channels/1/2/3',
+		message_link: 'https://web.osaca.example/channels/1/2/3',
 		reported_user_tag: 'target#0001',
 		reporter_full_legal_name: 'John Doe',
 		reporter_country_of_residence: 'DE',
-		reporter_fluxer_tag: 'reporter#1234',
+		reporter_osaca_tag: 'reporter#1234',
 		additional_info: 'DSA report for harassment',
 	},
 	{
@@ -55,7 +55,7 @@ const flowBodies: Array<Record<string, unknown>> = [
 		...flowFields,
 		ticket: 'ticket-message',
 		report_type: 'message',
-		message_link: 'https://web.fluxer.app/channels/1/2/3',
+		message_link: 'https://web.osaca.example/channels/1/2/3',
 		reporter_full_legal_name: 'John Doe',
 		steps: [
 			{screen_id: 'root_message', option_id: 'abuse'},
@@ -136,12 +136,12 @@ describe('DsaReportRequest', () => {
 		expect(DsaReportRequest.safeParse({...flowBodies[0], good_faith_confirmed: false}).success).toBe(false);
 	});
 
-	it('accepts a body that still sends reporter_fluxer_tag and drops the field', () => {
+	it('accepts a body that still sends reporter_osaca_tag and drops the field', () => {
 		const parsed = DsaReportRequest.parse(legacyBodies[0]);
-		expect(legacyBodies[0]).toHaveProperty('reporter_fluxer_tag');
-		expect(parsed).not.toHaveProperty('reporter_fluxer_tag');
-		const flowParsed = DsaReportRequest.parse({...flowBodies[0], reporter_fluxer_tag: 'reporter#1234'});
-		expect(flowParsed).not.toHaveProperty('reporter_fluxer_tag');
+		expect(legacyBodies[0]).toHaveProperty('reporter_osaca_tag');
+		expect(parsed).not.toHaveProperty('reporter_osaca_tag');
+		const flowParsed = DsaReportRequest.parse({...flowBodies[0], reporter_osaca_tag: 'reporter#1234'});
+		expect(flowParsed).not.toHaveProperty('reporter_osaca_tag');
 	});
 
 	it('accepts a flow body without a legal name or with a category alongside', () => {
@@ -166,9 +166,9 @@ describe('DsaReportFlowRequest', () => {
 		}
 	});
 
-	it('drops reporter_fluxer_tag from flow bodies', () => {
-		const parsed = DsaReportFlowRequest.parse({...flowBodies[1], reporter_fluxer_tag: 'reporter#1234'});
-		expect(parsed).not.toHaveProperty('reporter_fluxer_tag');
+	it('drops reporter_osaca_tag from flow bodies', () => {
+		const parsed = DsaReportFlowRequest.parse({...flowBodies[1], reporter_osaca_tag: 'reporter#1234'});
+		expect(parsed).not.toHaveProperty('reporter_osaca_tag');
 	});
 
 	it('has no category field', () => {

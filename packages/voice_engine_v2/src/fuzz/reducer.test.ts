@@ -5,7 +5,7 @@ import {
 	FUZZ_REDUCER_NEGATIVE_ITERATIONS,
 	FUZZ_REDUCER_POSITIVE_ITERATIONS,
 	ReducerFuzzer,
-} from '@fluxer/voice_engine_v2/src/fuzz/ReducerFuzzer';
+} from '@osaca/voice_engine_v2/src/fuzz/ReducerFuzzer';
 import {describe, expect, it} from 'vitest';
 
 const SEEDS: ReadonlyArray<number> = [1, 2, 7, 13];

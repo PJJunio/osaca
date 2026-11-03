@@ -3,7 +3,7 @@
 
 /.claude/
 /.direnv/
-/.fluxer/
+/.osaca/
 /.git/
 **/.git
 **/.git/**
@@ -26,23 +26,23 @@
 **/node_modules/
 **/target/
 **/test-results.json
-/fluxer_docs/dist/
-/fluxer_docs/.astro/
-/fluxer_app/.devserver-cache.json
-/fluxer_app/pkgs/libfluxcore/
-/fluxer_app/pkgs/libfluxwebp/
-/fluxer_app/src/features/i18n/locales/*/messages.mjs
-/fluxer_app/src/features/messaging/utils/markdown/parser/MarkdownParserWasmBytes.ts
-/fluxer_app/src/features/theme/styles/generated/
-/fluxer_app/src/features/ui/components/SVGMasks.tsx
-/fluxer_app/src/features/ui/constants/AvatarStatusGeometry.ts
-/fluxer_static/desktop/spellcheck/dictionaries/*/*
-!/fluxer_static/desktop/spellcheck/dictionaries/dictionary-et@2.0.0/LICENSE
-!/fluxer_static/desktop/spellcheck/dictionaries/dictionary-eu@4.0.0/LICENSE
-/fluxer_gateway/priv/
+/osaca_docs/dist/
+/osaca_docs/.astro/
+/osaca_app/.devserver-cache.json
+/osaca_app/pkgs/libfluxcore/
+/osaca_app/pkgs/libfluxwebp/
+/osaca_app/src/features/i18n/locales/*/messages.mjs
+/osaca_app/src/features/messaging/utils/markdown/parser/MarkdownParserWasmBytes.ts
+/osaca_app/src/features/theme/styles/generated/
+/osaca_app/src/features/ui/components/SVGMasks.tsx
+/osaca_app/src/features/ui/constants/AvatarStatusGeometry.ts
+/osaca_static/desktop/spellcheck/dictionaries/*/*
+!/osaca_static/desktop/spellcheck/dictionaries/dictionary-et@2.0.0/LICENSE
+!/osaca_static/desktop/spellcheck/dictionaries/dictionary-eu@4.0.0/LICENSE
+/osaca_gateway/priv/
 
-/fluxer_media_proxy/fuzz/artifacts/
-/fluxer_media_proxy/fuzz/corpus/
+/osaca_media_proxy/fuzz/artifacts/
+/osaca_media_proxy/fuzz/corpus/
 /packages/markdown_parser/rust/fuzz/artifacts/
 /packages/markdown_parser/rust/fuzz/corpus/
 
@@ -53,7 +53,7 @@
 /upload_staging/
 
 
-/fluxer_desktop/
+/osaca_desktop/
 
 **/.idea/
 **/*.iml

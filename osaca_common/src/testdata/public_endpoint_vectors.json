@@ -1,0 +1,440 @@
+[
+	{
+		"url": "https://osaca.example",
+		"base_domain": "osaca.example",
+		"public_port": 443,
+		"normalized": "https://osaca.example"
+	},
+	{
+		"url": "https://osaca.example/media",
+		"base_domain": "osaca.example",
+		"public_port": 443,
+		"normalized": "https://osaca.example/media"
+	},
+	{
+		"url": "https://osaca.example/admin",
+		"base_domain": "osaca.example",
+		"public_port": 443,
+		"normalized": "https://osaca.example/admin"
+	},
+	{
+		"url": "https://osaca.example/admin/oauth2_callback",
+		"base_domain": "osaca.example",
+		"public_port": 443,
+		"normalized": "https://osaca.example/admin/oauth2_callback"
+	},
+	{
+		"url": "wss://osaca.example/gateway",
+		"base_domain": "osaca.example",
+		"public_port": 443,
+		"normalized": "wss://osaca.example/gateway"
+	},
+	{
+		"url": "http://osaca.example",
+		"base_domain": "osaca.example",
+		"public_port": 80,
+		"normalized": "http://osaca.example"
+	},
+	{
+		"url": "http://osaca.example/media",
+		"base_domain": "osaca.example",
+		"public_port": 80,
+		"normalized": "http://osaca.example/media"
+	},
+	{
+		"url": "ws://osaca.example/gateway",
+		"base_domain": "osaca.example",
+		"public_port": 80,
+		"normalized": "ws://osaca.example/gateway"
+	},
+	{
+		"url": "http://osaca.example",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "http://osaca.example:19080"
+	},
+	{
+		"url": "http://osaca.example/",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "http://osaca.example:19080/"
+	},
+	{
+		"url": "http://osaca.example/media",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "http://osaca.example:19080/media"
+	},
+	{
+		"url": "http://osaca.example/api",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "http://osaca.example:19080/api"
+	},
+	{
+		"url": "http://osaca.example/admin",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "http://osaca.example:19080/admin"
+	},
+	{
+		"url": "http://osaca.example/admin/oauth2_callback",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "http://osaca.example:19080/admin/oauth2_callback"
+	},
+	{
+		"url": "ws://osaca.example/gateway",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "ws://osaca.example:19080/gateway"
+	},
+	{
+		"url": "https://osaca.example/admin/oauth2_callback",
+		"base_domain": "osaca.example",
+		"public_port": 8443,
+		"normalized": "https://osaca.example:8443/admin/oauth2_callback"
+	},
+	{
+		"url": "wss://osaca.example/gateway",
+		"base_domain": "osaca.example",
+		"public_port": 8443,
+		"normalized": "wss://osaca.example:8443/gateway"
+	},
+	{
+		"url": "https://osaca.example",
+		"base_domain": "osaca.example",
+		"public_port": 8443,
+		"normalized": "https://osaca.example:8443"
+	},
+	{
+		"url": "http://osaca.example/media",
+		"base_domain": "osaca.example",
+		"public_port": 443,
+		"normalized": "http://osaca.example:443/media"
+	},
+	{
+		"url": "https://osaca.example/media",
+		"base_domain": "osaca.example",
+		"public_port": 80,
+		"normalized": "https://osaca.example:80/media"
+	},
+	{
+		"url": "ws://osaca.example/gateway",
+		"base_domain": "osaca.example",
+		"public_port": 443,
+		"normalized": "ws://osaca.example:443/gateway"
+	},
+	{
+		"url": "wss://osaca.example/gateway",
+		"base_domain": "osaca.example",
+		"public_port": 80,
+		"normalized": "wss://osaca.example:80/gateway"
+	},
+	{
+		"url": "http://osaca.example/media",
+		"base_domain": "osaca.example",
+		"public_port": null,
+		"normalized": "http://osaca.example/media"
+	},
+	{
+		"url": "http://osaca.example/media",
+		"base_domain": "osaca.example",
+		"public_port": 0,
+		"normalized": "http://osaca.example/media"
+	},
+	{
+		"url": "http://osaca.example/media",
+		"base_domain": "",
+		"public_port": 19080,
+		"normalized": "http://osaca.example/media"
+	},
+	{
+		"url": "http://osaca.example/media",
+		"base_domain": "   ",
+		"public_port": 19080,
+		"normalized": "http://osaca.example/media"
+	},
+	{
+		"url": "http://osaca.example:19080/media",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "http://osaca.example:19080/media"
+	},
+	{
+		"url": "http://osaca.example:8080/media",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "http://osaca.example:8080/media"
+	},
+	{
+		"url": "https://osaca.example:443/media",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "https://osaca.example:443/media"
+	},
+	{
+		"url": "http://osaca.example:80/media",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "http://osaca.example:80/media"
+	},
+	{
+		"url": "https://osaca.example:8443/admin/oauth2_callback",
+		"base_domain": "osaca.example",
+		"public_port": 8443,
+		"normalized": "https://osaca.example:8443/admin/oauth2_callback"
+	},
+	{
+		"url": "ws://osaca.example:19080/gateway",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "ws://osaca.example:19080/gateway"
+	},
+	{
+		"url": "http://osaca.example:8080?a=1",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "http://osaca.example:8080?a=1"
+	},
+	{
+		"url": "https://cdn.example.net/assets",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "https://cdn.example.net/assets"
+	},
+	{
+		"url": "https://media.example.net",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "https://media.example.net"
+	},
+	{
+		"url": "https://sub.osaca.example/media",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "https://sub.osaca.example/media"
+	},
+	{
+		"url": "https://osaca.example/media",
+		"base_domain": "example",
+		"public_port": 19080,
+		"normalized": "https://osaca.example/media"
+	},
+	{
+		"url": "https://osaca.example.evil.net/media",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "https://osaca.example.evil.net/media"
+	},
+	{
+		"url": "http://api:8080",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "http://api:8080"
+	},
+	{
+		"url": "http://media-proxy:8080",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "http://media-proxy:8080"
+	},
+	{
+		"url": "http://OSACA.example/Media",
+		"base_domain": "OSACA.Example",
+		"public_port": 19080,
+		"normalized": "http://OSACA.example:19080/Media"
+	},
+	{
+		"url": "HTTPS://osaca.example/media",
+		"base_domain": "osaca.example",
+		"public_port": 8443,
+		"normalized": "HTTPS://osaca.example:8443/media"
+	},
+	{
+		"url": "http://osaca.example./media",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "http://osaca.example.:19080/media"
+	},
+	{
+		"url": "http://osaca.example/media",
+		"base_domain": "osaca.example.",
+		"public_port": 19080,
+		"normalized": "http://osaca.example:19080/media"
+	},
+	{
+		"url": "http://osaca.example./media",
+		"base_domain": "osaca.example.",
+		"public_port": 19080,
+		"normalized": "http://osaca.example.:19080/media"
+	},
+	{
+		"url": "http://osaca.example?a=1",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "http://osaca.example:19080?a=1"
+	},
+	{
+		"url": "http://osaca.example#top",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "http://osaca.example:19080#top"
+	},
+	{
+		"url": "http://osaca.example/media/x.png?v=1#frag",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "http://osaca.example:19080/media/x.png?v=1#frag"
+	},
+	{
+		"url": "http://osaca.example/media/",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "http://osaca.example:19080/media/"
+	},
+	{
+		"url": "http://osaca.example/a%20b",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "http://osaca.example:19080/a%20b"
+	},
+	{
+		"url": "http://osaca.example#/media",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "http://osaca.example:19080#/media"
+	},
+	{
+		"url": "http://user:pass@osaca.example/media",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "http://user:pass@osaca.example:19080/media"
+	},
+	{
+		"url": "http://user:pass@osaca.example:19080/media",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "http://user:pass@osaca.example:19080/media"
+	},
+	{
+		"url": "http://user:p@ss@osaca.example/media",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "http://user:p@ss@osaca.example:19080/media"
+	},
+	{
+		"url": "http://[::1]/media",
+		"base_domain": "[::1]",
+		"public_port": 19080,
+		"normalized": "http://[::1]:19080/media"
+	},
+	{
+		"url": "http://[::1]:8080/media",
+		"base_domain": "[::1]",
+		"public_port": 19080,
+		"normalized": "http://[::1]:8080/media"
+	},
+	{
+		"url": "http://127.0.0.1/media",
+		"base_domain": "127.0.0.1",
+		"public_port": 19080,
+		"normalized": "http://127.0.0.1:19080/media"
+	},
+	{
+		"url": "http://[2001:db8::1]/media",
+		"base_domain": "[2001:db8::1]",
+		"public_port": 19080,
+		"normalized": "http://[2001:db8::1]:19080/media"
+	},
+	{
+		"url": "http://[2001:DB8::1]/media",
+		"base_domain": "[2001:db8::1]",
+		"public_port": 19080,
+		"normalized": "http://[2001:DB8::1]:19080/media"
+	},
+	{
+		"url": "",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": ""
+	},
+	{
+		"url": "/api",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "/api"
+	},
+	{
+		"url": "osaca.example/media",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "osaca.example/media"
+	},
+	{
+		"url": "not a url",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "not a url"
+	},
+	{
+		"url": "://x",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "://x"
+	},
+	{
+		"url": "file:///x",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "file:///x"
+	},
+	{
+		"url": "mailto:a@osaca.example",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "mailto:a@osaca.example"
+	},
+	{
+		"url": "http://osaca.example\\evil",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "http://osaca.example:19080\\evil"
+	},
+	{
+		"url": "https://osaca.example:/media",
+		"base_domain": "osaca.example",
+		"public_port": 8443,
+		"normalized": "https://osaca.example:/media"
+	},
+	{
+		"url": "//osaca.example/media",
+		"base_domain": "osaca.example",
+		"public_port": 19080,
+		"normalized": "//osaca.example/media"
+	},
+	{
+		"url": "https:osaca.example/media",
+		"base_domain": "osaca.example",
+		"public_port": 8443,
+		"normalized": "https:osaca.example/media"
+	},
+	{
+		"url": "https:/osaca.example/media",
+		"base_domain": "osaca.example",
+		"public_port": 8443,
+		"normalized": "https:/osaca.example/media"
+	},
+	{
+		"url": "https:////osaca.example/media",
+		"base_domain": "osaca.example",
+		"public_port": 8443,
+		"normalized": "https:////osaca.example/media"
+	},
+	{
+		"url": "android:apk-key-hash:9NrCFDLVR8_ObZC-EWzaRA",
+		"base_domain": "osaca.example",
+		"public_port": 8443,
+		"normalized": "android:apk-key-hash:9NrCFDLVR8_ObZC-EWzaRA"
+	}
+]

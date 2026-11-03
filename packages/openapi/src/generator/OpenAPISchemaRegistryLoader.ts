@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import {OpenAPIGeneratorCatalog} from '@fluxer/openapi/src/generator/OpenAPIGeneratorCatalog';
-import {loadSchemas} from '@fluxer/openapi/src/registry/SchemaLoader';
-import type {SchemaRegistry} from '@fluxer/openapi/src/registry/SchemaRegistry';
+import {OpenAPIGeneratorCatalog} from '@osaca/openapi/src/generator/OpenAPIGeneratorCatalog';
+import {loadSchemas} from '@osaca/openapi/src/registry/SchemaLoader';
+import type {SchemaRegistry} from '@osaca/openapi/src/registry/SchemaRegistry';
 
 export async function loadSchemasIntoRegistry(basePath: string, schemaRegistry: SchemaRegistry): Promise<void> {
 	for (const [name, schema] of OpenAPIGeneratorCatalog.builtInSchemas) {

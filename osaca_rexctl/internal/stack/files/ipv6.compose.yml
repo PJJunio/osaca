@@ -1,0 +1,3 @@
+networks:
+  osaca:
+    enable_ipv6: true

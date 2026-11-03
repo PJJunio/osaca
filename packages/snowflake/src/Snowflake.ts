@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {FLUXER_EPOCH as FLUXER_EPOCH_NUMBER} from '@fluxer/constants/src/Core';
+import {OSACA_EPOCH as OSACA_EPOCH_NUMBER} from '@osaca/constants/src/Core';
 
-export const FLUXER_EPOCH = BigInt(FLUXER_EPOCH_NUMBER);
+export const OSACA_EPOCH = BigInt(OSACA_EPOCH_NUMBER);
 export const WORKER_ID_BITS = 10n;
 export const SEQUENCE_BITS = 12n;
 const WORKER_ID_SHIFT = SEQUENCE_BITS;
@@ -78,19 +78,19 @@ function assertValidSequence(sequence: number): bigint {
 
 function assertValidRelativeTimestamp(relativeTimestamp: bigint): void {
 	if (relativeTimestamp < 0n) {
-		throw new Error('Timestamp must be on or after the Fluxer epoch');
+		throw new Error('Timestamp must be on or after the OSACA epoch');
 	}
 }
 
 function toRelativeTimestamp(timestamp: number | bigint): bigint {
 	const timestampBigInt = BigInt(timestamp);
-	const relativeTimestamp = timestampBigInt - FLUXER_EPOCH;
+	const relativeTimestamp = timestampBigInt - OSACA_EPOCH;
 	assertValidRelativeTimestamp(relativeTimestamp);
 	return relativeTimestamp;
 }
 
 function toEpochTimestamp(relativeTimestamp: bigint): bigint {
-	return relativeTimestamp + FLUXER_EPOCH;
+	return relativeTimestamp + OSACA_EPOCH;
 }
 
 function createSnowflakeBigInt(relativeTimestamp: bigint, workerId: bigint, sequence: bigint): bigint {
@@ -98,7 +98,7 @@ function createSnowflakeBigInt(relativeTimestamp: bigint, workerId: bigint, sequ
 }
 
 function getTimestampFromNow(now: () => number): bigint {
-	return BigInt(now()) - FLUXER_EPOCH;
+	return BigInt(now()) - OSACA_EPOCH;
 }
 
 export class SnowflakeGenerator {

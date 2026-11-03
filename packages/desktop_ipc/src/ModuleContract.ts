@@ -15,15 +15,15 @@ export const DESKTOP_UPDATE_EVENTS = Object.freeze({
 } as const);
 
 const DESKTOP_MODULE_NAME_PATTERN = /^[a-z][a-z0-9_]{0,63}$/u;
-export const DESKTOP_RENDERER_MODULE_NAME = 'fluxer_renderer';
-export const DESKTOP_CAMERA_EFFECTS_MODULE_NAME = 'fluxer_camera_effects';
-export const DESKTOP_SOURCEMAP_MODULE_NAME = 'fluxer_sourcemaps';
+export const DESKTOP_RENDERER_MODULE_NAME = 'osaca_renderer';
+export const DESKTOP_CAMERA_EFFECTS_MODULE_NAME = 'osaca_camera_effects';
+export const DESKTOP_SOURCEMAP_MODULE_NAME = 'osaca_sourcemaps';
 
 export const DESKTOP_FONT_MODULE_NAMES = Object.freeze({
-	sc: 'fluxer_fonts_sc',
-	tc: 'fluxer_fonts_tc',
-	jp: 'fluxer_fonts_jp',
-	kr: 'fluxer_fonts_kr',
+	sc: 'osaca_fonts_sc',
+	tc: 'osaca_fonts_tc',
+	jp: 'osaca_fonts_jp',
+	kr: 'osaca_fonts_kr',
 } as const);
 
 export type DesktopFontScript = keyof typeof DESKTOP_FONT_MODULE_NAMES;

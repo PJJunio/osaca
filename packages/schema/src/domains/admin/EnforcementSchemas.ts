@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {DeletionReasons} from '@fluxer/constants/src/Core';
-import {isEnforcementReasonCode} from '@fluxer/constants/src/EnforcementReasons';
-import {EnforcementKindType, EnforcementNotice} from '@fluxer/schema/src/domains/auth/EnforcementNoticeSchemas';
-import {createQueryIntegerType, QueryBooleanType} from '@fluxer/schema/src/primitives/QueryValidators';
+import {DeletionReasons} from '@osaca/constants/src/Core';
+import {isEnforcementReasonCode} from '@osaca/constants/src/EnforcementReasons';
+import {EnforcementKindType, EnforcementNotice} from '@osaca/schema/src/domains/auth/EnforcementNoticeSchemas';
+import {createQueryIntegerType, QueryBooleanType} from '@osaca/schema/src/primitives/QueryValidators';
 import {
 	createInt32EnumType,
 	createStringType,
 	Int32Type,
 	SnowflakeStringType,
 	SnowflakeType,
-} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 export const EnforcementReasonCodeType = createInt32EnumType(
@@ -281,7 +281,7 @@ const EnforcementDecisionSummary = z.object({
 	end_outcome: z
 		.enum(['lifted', 'reversed', 'expired'])
 		.nullable()
-		.describe('Expired is recorded by Fluxer when a temporary suspension runs out'),
+		.describe('Expired is recorded by OSACA when a temporary suspension runs out'),
 	ended_at: z.string().nullable(),
 	ended_by: SnowflakeStringType.nullable(),
 	end_statement: z.string().nullable(),

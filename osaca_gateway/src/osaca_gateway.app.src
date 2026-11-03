@@ -1,0 +1,23 @@
+% SPDX-License-Identifier: AGPL-3.0-or-later
+{application, osaca_gateway, [
+    {description, "OSACA Gateway"},
+    {vsn, "0.0.0"},
+    {registered, []},
+    {mod, {osaca_gateway_app, []}},
+    {applications, [
+        kernel,
+        stdlib,
+        crypto,
+        public_key,
+        ssl,
+        inets,
+        ranch,
+        cowboy,
+        ezstd,
+        enats
+    ]},
+    {env, []},
+    {modules, []},
+    {licenses, ["AGPL-3.0-or-later"]},
+    {links, []}
+]}.

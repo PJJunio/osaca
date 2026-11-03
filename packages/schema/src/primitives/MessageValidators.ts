@@ -6,8 +6,8 @@ import {
 	MessageReferenceTypes,
 	MessageReferenceTypesDescriptions,
 	MessageTypes,
-} from '@fluxer/constants/src/ChannelConstants';
-import {createInt32EnumType, createNamedStringLiteralUnion} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+} from '@osaca/constants/src/ChannelConstants';
+import {createInt32EnumType, createNamedStringLiteralUnion} from '@osaca/schema/src/primitives/SchemaPrimitives';
 
 export const MessageTypeSchema = createInt32EnumType(
 	[

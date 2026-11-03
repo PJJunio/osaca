@@ -3,8 +3,8 @@
 import {
 	computeGuildVisitorChannelPermissions,
 	type GuildVisitorChannelInput,
-} from '@fluxer/constants/src/GuildVisitConstants';
-import cases from '@fluxer/constants/src/GuildVisitorPermissionCases.json' with {type: 'json'};
+} from '@osaca/constants/src/GuildVisitConstants';
+import cases from '@osaca/constants/src/GuildVisitorPermissionCases.json' with {type: 'json'};
 import {describe, expect, it} from 'vitest';
 
 interface PermissionCase {

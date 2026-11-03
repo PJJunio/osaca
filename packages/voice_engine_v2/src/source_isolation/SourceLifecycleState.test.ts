@@ -3,7 +3,7 @@
 import {
 	MAX_TRACKED_SOURCES,
 	SourceLifecycleRegistry,
-} from '@fluxer/voice_engine_v2/src/source_isolation/SourceLifecycleRegistry';
+} from '@osaca/voice_engine_v2/src/source_isolation/SourceLifecycleRegistry';
 import {
 	createInitialActiveState,
 	MAX_RECONNECT_ATTEMPTS,
@@ -11,7 +11,7 @@ import {
 	type SourceLifecycleEvent,
 	type SourceLifecycleState,
 	transitionSourceLifecycle,
-} from '@fluxer/voice_engine_v2/src/source_isolation/SourceLifecycleState';
+} from '@osaca/voice_engine_v2/src/source_isolation/SourceLifecycleState';
 import {describe, expect, it} from 'vitest';
 
 function makeClock(startNs: bigint = 1_000n, stepNs: bigint = 1_000n): SourceLifecycleClock {

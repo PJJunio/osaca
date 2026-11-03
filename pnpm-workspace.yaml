@@ -2,15 +2,15 @@
 
 packages:
   - packages/*
-  - fluxer_api
-  - fluxer_app
-  - fluxer_api/pkgs/*
-  - fluxer_app/pkgs/*
-  - '!fluxer_app/pkgs/libfluxcore'
-  - '!fluxer_app/pkgs/libfluxwebp'
-  - fluxer_desktop
-  - fluxer_admin
-  - fluxer_docs
+  - osaca_api
+  - osaca_app
+  - osaca_api/pkgs/*
+  - osaca_app/pkgs/*
+  - '!osaca_app/pkgs/libfluxcore'
+  - '!osaca_app/pkgs/libfluxwebp'
+  - osaca_desktop
+  - osaca_admin
+  - osaca_docs
 
 allowBuilds:
   '@bufbuild/buf': true

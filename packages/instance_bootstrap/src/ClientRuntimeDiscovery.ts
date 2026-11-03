@@ -4,8 +4,8 @@ import {
 	type InstanceDiscoveryDocument,
 	type InstanceGeneration,
 	InvalidInstanceDiscoveryDocumentError,
-} from '@fluxer/instance_bootstrap/src/Discovery';
-import {officialClientApiTransportEndpoint} from '@fluxer/instance_bootstrap/src/OfficialInstance';
+} from '@osaca/instance_bootstrap/src/Discovery';
+import {officialClientApiTransportEndpoint} from '@osaca/instance_bootstrap/src/OfficialInstance';
 import type {
 	InstanceAgePolicy,
 	InstanceAppPublic,
@@ -21,8 +21,8 @@ import type {
 	InstanceRegistration,
 	InstanceServices,
 	InstanceSso,
-} from '@fluxer/instance_bootstrap/src/Types';
-import type {LimitConfigSnapshot, LimitConfigWireFormat} from '@fluxer/limits/src/LimitTypes';
+} from '@osaca/instance_bootstrap/src/Types';
+import type {LimitConfigSnapshot, LimitConfigWireFormat} from '@osaca/limits/src/LimitTypes';
 
 const DEFAULT_PREMIUM_PRODUCT_NAME = 'Plutonium';
 

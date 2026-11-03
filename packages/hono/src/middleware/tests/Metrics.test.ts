@@ -4,7 +4,7 @@ import {
 	createMetricsMiddleware,
 	createRegisteredMetricsHandler,
 	registerCounter,
-} from '@fluxer/hono/src/middleware/Metrics';
+} from '@osaca/hono/src/middleware/Metrics';
 import {Hono} from 'hono';
 import {describe, expect, test} from 'vitest';
 
@@ -84,14 +84,14 @@ describe('Metrics Middleware', () => {
 
 	describe('registered metrics', () => {
 		test('serves only registered metrics from the standalone handler', async () => {
-			registerCounter('fluxer_test_standalone_total', 'Standalone counter').inc();
+			registerCounter('osaca_test_standalone_total', 'Standalone counter').inc();
 			const app = new Hono();
 			app.get('/_metrics', createRegisteredMetricsHandler());
 			const res = await requestMetrics(app);
 			const body = await res.text();
 			expect(res.status).toBe(200);
 			expect(res.headers.get('Content-Type')).toBe('text/plain; version=0.0.4; charset=utf-8');
-			expect(body).toContain('fluxer_test_standalone_total 1');
+			expect(body).toContain('osaca_test_standalone_total 1');
 			expect(body).not.toContain('_http_requests_total');
 			expect((await requestMetrics(app, '8.8.8.8')).status).toBe(403);
 		});

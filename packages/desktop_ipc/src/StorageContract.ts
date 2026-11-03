@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import type {DesktopStoreMarker, DesktopStoreSkippedRecord} from '@fluxer/desktop_ipc/src/AccountContract';
+import type {DesktopStoreMarker, DesktopStoreSkippedRecord} from '@osaca/desktop_ipc/src/AccountContract';
 
 export const DESKTOP_STORAGE_CHANNELS = Object.freeze({
 	getStatus: 'desktop-storage:get-status',
@@ -16,10 +16,10 @@ export const DESKTOP_STORAGE_CHANNELS = Object.freeze({
 	setMarker: 'desktop-storage:set-marker',
 } as const);
 
-export const ZOOM_PREBOOT_MIRROR_STORAGE_KEY = 'fluxer:accessibility:zoom-preboot';
-export const GATEWAY_PREBOOT_SESSION_STORAGE_KEY = 'fluxer:gateway:preboot:session';
+export const ZOOM_PREBOOT_MIRROR_STORAGE_KEY = 'osaca:accessibility:zoom-preboot';
+export const GATEWAY_PREBOOT_SESSION_STORAGE_KEY = 'osaca:gateway:preboot:session';
 export const GATEWAY_PREBOOT_SESSION_PRESENT = '1';
-export const SHELL_HINT_STORAGE_KEY = 'fluxer:ui:shell-hint';
+export const SHELL_HINT_STORAGE_KEY = 'osaca:ui:shell-hint';
 
 export const DESKTOP_LEGACY_IMPORT_MARKER_KEY = 'legacy_import.v1';
 export const DESKTOP_LEGACY_IMPORT_FAILURE_MARKER_KEY = 'legacy_import.failures';

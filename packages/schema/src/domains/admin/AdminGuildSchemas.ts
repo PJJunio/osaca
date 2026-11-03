@@ -4,14 +4,14 @@ import {
 	CONTENT_WARNING_TEXT_MAX_LENGTH,
 	GuildOperations,
 	GuildOperationsDescriptions,
-} from '@fluxer/constants/src/GuildConstants';
-import {CustomBadgeIdsType} from '@fluxer/schema/src/domains/admin/AdminBadgeSchemas';
-import {CommunityRemovalBasis} from '@fluxer/schema/src/domains/admin/EnforcementSchemas';
-import {GuildAuditLogListResponse} from '@fluxer/schema/src/domains/guild/GuildAuditLogSchemas';
-import {GuildBanCreateRequest} from '@fluxer/schema/src/domains/guild/GuildRequestSchemas';
-import {GuildFeatureSchema} from '@fluxer/schema/src/domains/guild/GuildResponseSchemas';
-import {AuditLogActionTypeSchema} from '@fluxer/schema/src/primitives/AuditLogValidators';
-import {VanityURLCodeType} from '@fluxer/schema/src/primitives/ChannelValidators';
+} from '@osaca/constants/src/GuildConstants';
+import {CustomBadgeIdsType} from '@osaca/schema/src/domains/admin/AdminBadgeSchemas';
+import {CommunityRemovalBasis} from '@osaca/schema/src/domains/admin/EnforcementSchemas';
+import {GuildAuditLogListResponse} from '@osaca/schema/src/domains/guild/GuildAuditLogSchemas';
+import {GuildBanCreateRequest} from '@osaca/schema/src/domains/guild/GuildRequestSchemas';
+import {GuildFeatureSchema} from '@osaca/schema/src/domains/guild/GuildResponseSchemas';
+import {AuditLogActionTypeSchema} from '@osaca/schema/src/primitives/AuditLogValidators';
+import {VanityURLCodeType} from '@osaca/schema/src/primitives/ChannelValidators';
 import {
 	ContentWarningLevelSchema,
 	DefaultMessageNotificationsSchema,
@@ -19,8 +19,8 @@ import {
 	GuildMFALevelSchema,
 	GuildVerificationLevelInputSchema,
 	NSFWLevelSchema,
-} from '@fluxer/schema/src/primitives/GuildValidators';
-import {createQueryIntegerType} from '@fluxer/schema/src/primitives/QueryValidators';
+} from '@osaca/schema/src/primitives/GuildValidators';
+import {createQueryIntegerType} from '@osaca/schema/src/primitives/QueryValidators';
 import {
 	createBitflagInt32Type,
 	createNamedStringLiteralUnion,
@@ -29,7 +29,7 @@ import {
 	SnowflakeStringType,
 	SnowflakeType,
 	withFieldDescription,
-} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 export const GuildAdminResponse = z.object({

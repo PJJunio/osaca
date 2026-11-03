@@ -1,4 +1,4 @@
-# cargo-deny configuration for the Fluxer workspace.
+# cargo-deny configuration for the OSACA workspace.
 #
 # Applies to the root workspace (Cargo.toml at the repo root).
 
@@ -75,8 +75,8 @@ external-default-features = "allow"
 # Keep workspace artifacts away from the obsolete libfuse2 stack.
 # AppImage packaging must use the static electron-builder runtime instead.
 deny = [
-    { crate = "fuse", reason = "libfuse2-based Rust wrapper; use a maintained FUSE3-native crate only if Fluxer ever needs FUSE directly" },
-    { crate = "fuse-sys", reason = "libfuse2 FFI crate; Fluxer AppImages must not reintroduce libfuse2 through native Rust dependencies" },
+    { crate = "fuse", reason = "libfuse2-based Rust wrapper; use a maintained FUSE3-native crate only if OSACA ever needs FUSE directly" },
+    { crate = "fuse-sys", reason = "libfuse2 FFI crate; OSACA AppImages must not reintroduce libfuse2 through native Rust dependencies" },
 ]
 skip = [
     { crate = "base64@0.22.1", reason = "transitive dependency requires the older release line" },
@@ -103,7 +103,7 @@ skip = [
     { crate = "sha1@0.10.7", reason = "transitive dependency requires the older digest API" },
     { crate = "sha2@0.10.9", reason = "transitive dependency requires the older digest API" },
     { crate = "signature@2.2.0", reason = "transitive dependency requires the older signature API" },
-    { crate = "spin@0.9.9", reason = "multer, which axum multipart uses in fluxer_admin, requires the older release line" },
+    { crate = "spin@0.9.9", reason = "multer, which axum multipart uses in osaca_admin, requires the older release line" },
     { crate = "spki@0.7.3", reason = "transitive dependency requires the older SPKI API" },
     { crate = "syn@2.0.119", reason = "transitive dependency requires the older release line" },
     { crate = "tower-http@0.6.11", reason = "transitive dependency requires the older release line" },

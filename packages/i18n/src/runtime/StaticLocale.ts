@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import type {StaticI18nConfig} from '@fluxer/i18n/src/runtime/CreateStaticI18n';
+import type {StaticI18nConfig} from '@osaca/i18n/src/runtime/CreateStaticI18n';
 
 function hasStaticLocale<TKey extends string, TValue, TVariables>(
 	config: StaticI18nConfig<TKey, TValue, TVariables>,

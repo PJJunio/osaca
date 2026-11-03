@@ -7,11 +7,11 @@ import {
 	dispatchPlatformEvent,
 	dispatchRuntimeEvent,
 	dispatchSessionEvent,
-} from '@fluxer/voice_engine_v2/src/core/reducers/_dispatch';
-import type {VoiceEngineV2Snapshot, VoiceEngineV2Transition} from '@fluxer/voice_engine_v2/src/core/state';
-import type {VoiceEngineV2Event} from '@fluxer/voice_engine_v2/src/protocol/events';
+} from '@osaca/voice_engine_v2/src/core/reducers/_dispatch';
+import type {VoiceEngineV2Snapshot, VoiceEngineV2Transition} from '@osaca/voice_engine_v2/src/core/state';
+import type {VoiceEngineV2Event} from '@osaca/voice_engine_v2/src/protocol/events';
 
-export {isVoiceEngineV2CommandCompletionStale} from '@fluxer/voice_engine_v2/src/core/commandCompletion';
+export {isVoiceEngineV2CommandCompletionStale} from '@osaca/voice_engine_v2/src/core/commandCompletion';
 
 export function transitionVoiceEngineV2(
 	snapshot: VoiceEngineV2Snapshot,

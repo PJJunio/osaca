@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {QueryBooleanType} from '@fluxer/schema/src/primitives/QueryValidators';
-import {createStringType, SnowflakeStringType, SnowflakeType} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+import {QueryBooleanType} from '@osaca/schema/src/primitives/QueryValidators';
+import {createStringType, SnowflakeStringType, SnowflakeType} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 function areServerCoordinatesPaired(

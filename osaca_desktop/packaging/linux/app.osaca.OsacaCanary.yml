@@ -1,0 +1,54 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+id: app.osaca.OsacaCanary
+runtime: org.freedesktop.Platform
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+base: org.electronjs.Electron2.BaseApp
+base-version: '25.08'
+branch: stable
+command: app.osaca.OsacaCanary
+separate-locales: false
+finish-args:
+  - --share=ipc
+  - --share=network
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --socket=pulseaudio
+  - --socket=pcsc
+  - --device=all
+  - --filesystem=xdg-download
+  - --filesystem=xdg-run/pipewire-0:ro
+  - --filesystem=xdg-run/speech-dispatcher:ro
+  - --talk-name=org.freedesktop.Notifications
+  - --talk-name=org.kde.StatusNotifierWatcher
+  - --talk-name=org.ayatana.indicator.application
+  - --talk-name=com.canonical.indicator.application
+  - --talk-name=org.gnome.Mutter.IdleMonitor
+  - --env=XCURSOR_PATH=/run/host/user-share/icons:/run/host/share/icons
+build-options:
+  strip: false
+  no-debuginfo: true
+cleanup-commands:
+  - rm -f /app/osaca/chrome-sandbox
+modules:
+  - name: osaca
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 app.osaca.OsacaCanary.sh ${FLATPAK_DEST}/bin/${FLATPAK_ID}
+      - install -d ${FLATPAK_DEST}/share/osaca
+      - printf '%s\n' https://pkgs.osaca.example/flatpak/ > ${FLATPAK_DEST}/share/osaca/flatpak-repository
+      - mkdir -p ${FLATPAK_DEST}/osaca
+      - cp -a app/. ${FLATPAK_DEST}/osaca/
+      - patch-electron-desktop-filename ${FLATPAK_DEST}/osaca/resources/app.asar
+      - install -Dm644 app.osaca.OsacaCanary.desktop ${FLATPAK_DEST}/share/applications/${FLATPAK_ID}.desktop
+      - install -Dm644 app.osaca.OsacaCanary.metainfo.xml ${FLATPAK_DEST}/share/metainfo/${FLATPAK_ID}.metainfo.xml
+      - install -Dm644 app.osaca.OsacaCanary.svg ${FLATPAK_DEST}/share/icons/hicolor/scalable/apps/${FLATPAK_ID}.svg
+    sources:
+      - type: file
+        path: app.osaca.OsacaCanary.sh
+      - type: file
+        path: app.osaca.OsacaCanary.desktop
+      - type: file
+        path: app.osaca.OsacaCanary.metainfo.xml
+      - type: file
+        path: app.osaca.OsacaCanary.svg

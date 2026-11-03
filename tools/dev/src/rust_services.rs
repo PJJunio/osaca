@@ -189,7 +189,7 @@ async fn build_services(
     let env = if env::var_os("CARGO_BUILD_JOBS").is_none() {
         vec![(
             "CARGO_BUILD_JOBS".to_owned(),
-            Some(env::var("FLUXER_DEV_CARGO_JOBS").unwrap_or_else(|_| "2".to_owned())),
+            Some(env::var("OSACA_DEV_CARGO_JOBS").unwrap_or_else(|_| "2".to_owned())),
         )]
     } else {
         Vec::new()
@@ -231,7 +231,7 @@ fn start_service(spec: &RustServiceSpec, mode: &str, port: u16) -> Result<Child>
 }
 
 pub fn service_command(spec: &RustServiceSpec) -> Vec<String> {
-    if env::var("FLUXER_DEV_RUST_HOT_RELOAD")
+    if env::var("OSACA_DEV_RUST_HOT_RELOAD")
         .map(|value| matches!(value.to_ascii_lowercase().as_str(), "1" | "true" | "yes"))
         .unwrap_or(false)
     {
@@ -244,9 +244,9 @@ pub fn service_command(spec: &RustServiceSpec) -> Vec<String> {
             "-w".to_owned(),
             rel.join("Cargo.toml").display().to_string(),
             "-w".to_owned(),
-            "fluxer_svc/src".to_owned(),
+            "osaca_svc/src".to_owned(),
             "-w".to_owned(),
-            "fluxer_svc/Cargo.toml".to_owned(),
+            "osaca_svc/Cargo.toml".to_owned(),
             "-x".to_owned(),
             format!("run -p {}", spec.package),
         ];
@@ -270,48 +270,48 @@ pub fn service_command(spec: &RustServiceSpec) -> Vec<String> {
 
 pub fn service_env(spec: &RustServiceSpec, mode: &str, port: u16) -> Vec<(String, Option<String>)> {
     let mut envs = vec![
-        ("FLUXER_SVC_NAME".to_owned(), Some(spec.name.to_owned())),
-        ("FLUXER_SVC_MODE".to_owned(), Some(mode.to_owned())),
-        ("FLUXER_SVC_PORT".to_owned(), Some(port.to_string())),
+        ("OSACA_SVC_NAME".to_owned(), Some(spec.name.to_owned())),
+        ("OSACA_SVC_MODE".to_owned(), Some(mode.to_owned())),
+        ("OSACA_SVC_PORT".to_owned(), Some(port.to_string())),
         (
-            "FLUXER_SVC_LISTEN_HOST".to_owned(),
+            "OSACA_SVC_LISTEN_HOST".to_owned(),
             Some("0.0.0.0".to_owned()),
         ),
-        ("FLUXER_SVC_SHARD_COUNT".to_owned(), Some("1".to_owned())),
+        ("OSACA_SVC_SHARD_COUNT".to_owned(), Some("1".to_owned())),
         (
-            "FLUXER_SVC_NATS_URL".to_owned(),
+            "OSACA_SVC_NATS_URL".to_owned(),
             Some(
-                env::var("FLUXER_SVC_NATS_URL")
-                    .or_else(|_| env::var("FLUXER_NATS_URL"))
+                env::var("OSACA_SVC_NATS_URL")
+                    .or_else(|_| env::var("OSACA_NATS_URL"))
                     .unwrap_or_else(|_| "nats://nats:4222".to_owned()),
             ),
         ),
     ];
     if mode == "shard" {
-        envs.push(("FLUXER_SVC_SHARD_ID".to_owned(), Some("0".to_owned())));
+        envs.push(("OSACA_SVC_SHARD_ID".to_owned(), Some("0".to_owned())));
     }
     if spec.name == "unfurl" {
         envs.extend([
             (
-                "FLUXER_MEDIA_PROXY_ENDPOINT".to_owned(),
+                "OSACA_MEDIA_PROXY_ENDPOINT".to_owned(),
                 Some(
-                    env::var("FLUXER_MEDIA_PROXY_ENDPOINT")
+                    env::var("OSACA_MEDIA_PROXY_ENDPOINT")
                         .unwrap_or_else(|_| format!("http://127.0.0.1:{MEDIA_PROXY_PORT}")),
                 ),
             ),
             (
-                "FLUXER_MEDIA_PROXY_PUBLIC_ENDPOINT".to_owned(),
+                "OSACA_MEDIA_PROXY_PUBLIC_ENDPOINT".to_owned(),
                 Some(
-                    env::var("FLUXER_MEDIA_PROXY_PUBLIC_ENDPOINT")
-                        .or_else(|_| env::var("FLUXER_MEDIA_ENDPOINT"))
+                    env::var("OSACA_MEDIA_PROXY_PUBLIC_ENDPOINT")
+                        .or_else(|_| env::var("OSACA_MEDIA_ENDPOINT"))
                         .unwrap_or_else(|_| format!("http://localhost:{DEV_PROXY_PORT}/media")),
                 ),
             ),
             (
-                "FLUXER_STATIC_CDN_ENDPOINT".to_owned(),
+                "OSACA_STATIC_CDN_ENDPOINT".to_owned(),
                 Some(
-                    env::var("FLUXER_STATIC_CDN_ENDPOINT")
-                        .or_else(|_| env::var("FLUXER_PUBLIC_URL"))
+                    env::var("OSACA_STATIC_CDN_ENDPOINT")
+                        .or_else(|_| env::var("OSACA_PUBLIC_URL"))
                         .unwrap_or_else(|_| format!("http://localhost:{DEV_PROXY_PORT}")),
                 ),
             ),
@@ -382,19 +382,19 @@ fn proc_has_managed_service_environment(pid: i32, services: &[RustServiceSpec]) 
             ))
         })
         .collect::<std::collections::HashMap<_, _>>();
-    let Some(name) = environment.get("FLUXER_SVC_NAME") else {
+    let Some(name) = environment.get("OSACA_SVC_NAME") else {
         return false;
     };
-    let Some(mode) = environment.get("FLUXER_SVC_MODE") else {
+    let Some(mode) = environment.get("OSACA_SVC_MODE") else {
         return false;
     };
     let Some(port) = environment
-        .get("FLUXER_SVC_PORT")
+        .get("OSACA_SVC_PORT")
         .and_then(|port| port.parse::<u16>().ok())
     else {
         return false;
     };
-    if environment.get("FLUXER_SVC_LISTEN_HOST") != Some(&"0.0.0.0") {
+    if environment.get("OSACA_SVC_LISTEN_HOST") != Some(&"0.0.0.0") {
         return false;
     }
     services.iter().any(|service| {

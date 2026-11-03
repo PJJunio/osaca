@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {EmbedMediaFlags, EmbedMediaFlagsDescriptions} from '@fluxer/constants/src/ChannelConstants';
-import {createBitflagInt32Type, Int32Type} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+import {EmbedMediaFlags, EmbedMediaFlagsDescriptions} from '@osaca/constants/src/ChannelConstants';
+import {createBitflagInt32Type, Int32Type} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 export const EmbedAuthorResponse = z.object({

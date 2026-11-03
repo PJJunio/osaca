@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {CONTENT_WARNING_TEXT_MAX_LENGTH} from '@fluxer/constants/src/GuildConstants';
-import {MAX_GROUP_DM_OTHER_RECIPIENTS, MAX_GROUP_DM_RECIPIENTS} from '@fluxer/constants/src/LimitConstants';
-import {ThreadChannelFields, ThreadParentChannelFields} from '@fluxer/schema/src/domains/channel/ThreadSchemas';
-import {type UserPartial, UserPartialResponse} from '@fluxer/schema/src/domains/user/UserResponseSchemas';
-import {ChannelOverwriteTypeSchema, ChannelTypeSchema} from '@fluxer/schema/src/primitives/ChannelValidators';
-import {ContentWarningLevelSchema} from '@fluxer/schema/src/primitives/GuildValidators';
-import {PermissionStringType} from '@fluxer/schema/src/primitives/PermissionValidators';
-import {createStringType, Int32Type, SnowflakeStringType} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+import {CONTENT_WARNING_TEXT_MAX_LENGTH} from '@osaca/constants/src/GuildConstants';
+import {MAX_GROUP_DM_OTHER_RECIPIENTS, MAX_GROUP_DM_RECIPIENTS} from '@osaca/constants/src/LimitConstants';
+import {ThreadChannelFields, ThreadParentChannelFields} from '@osaca/schema/src/domains/channel/ThreadSchemas';
+import {type UserPartial, UserPartialResponse} from '@osaca/schema/src/domains/user/UserResponseSchemas';
+import {ChannelOverwriteTypeSchema, ChannelTypeSchema} from '@osaca/schema/src/primitives/ChannelValidators';
+import {ContentWarningLevelSchema} from '@osaca/schema/src/primitives/GuildValidators';
+import {PermissionStringType} from '@osaca/schema/src/primitives/PermissionValidators';
+import {createStringType, Int32Type, SnowflakeStringType} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 export const ChannelOverwriteResponse = z.object({

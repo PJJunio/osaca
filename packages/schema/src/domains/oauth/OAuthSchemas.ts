@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {ApplicationFlags, BotFlags, BotFlagsDescriptions} from '@fluxer/constants/src/BotConstants';
-import {MAX_APPLICATION_REDIRECT_URIS} from '@fluxer/constants/src/LimitConstants';
-import {PublicUserFlags, PublicUserFlagsDescriptions} from '@fluxer/constants/src/UserConstants';
-import {UserPartialResponse} from '@fluxer/schema/src/domains/user/UserResponseSchemas';
-import {createBase64ImageType} from '@fluxer/schema/src/primitives/FileValidators';
+import {ApplicationFlags, BotFlags, BotFlagsDescriptions} from '@osaca/constants/src/BotConstants';
+import {MAX_APPLICATION_REDIRECT_URIS} from '@osaca/constants/src/LimitConstants';
+import {PublicUserFlags, PublicUserFlagsDescriptions} from '@osaca/constants/src/UserConstants';
+import {UserPartialResponse} from '@osaca/schema/src/domains/user/UserResponseSchemas';
+import {createBase64ImageType} from '@osaca/schema/src/primitives/FileValidators';
 import {
 	createBitflagInt32Type,
 	createNamedObject,
@@ -14,9 +14,9 @@ import {
 	SnowflakeStringType,
 	SnowflakeType,
 	withOpenApiType,
-} from '@fluxer/schema/src/primitives/SchemaPrimitives';
-import {UserAuthenticatorTypesSchema} from '@fluxer/schema/src/primitives/UserSettingsValidators';
-import {DiscriminatorType, UsernameType} from '@fluxer/schema/src/primitives/UserValidators';
+} from '@osaca/schema/src/primitives/SchemaPrimitives';
+import {UserAuthenticatorTypesSchema} from '@osaca/schema/src/primitives/UserSettingsValidators';
+import {DiscriminatorType, UsernameType} from '@osaca/schema/src/primitives/UserValidators';
 import {z} from 'zod';
 
 const RedirectURIString = createStringType(1).refine((value) => {

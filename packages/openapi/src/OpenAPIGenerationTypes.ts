@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type {OpenAPIDocument} from '@fluxer/openapi/src/OpenAPITypes';
+import type {OpenAPIDocument} from '@osaca/openapi/src/OpenAPITypes';
 export type OpenAPIRouteScope = 'all' | 'admin' | 'public';
 export type OpenAPISchemaTarget = 'draft-2020-12' | 'openapi-3.0';
 export interface OpenAPIGeneratorOptions {

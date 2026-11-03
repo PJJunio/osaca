@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import deviceInventoryFixtureJson from '@fluxer/voice_engine_v2/fixtures/event_logs/device_inventory.json';
+import deviceInventoryFixtureJson from '@osaca/voice_engine_v2/fixtures/event_logs/device_inventory.json';
 
-import e2eeLifecycleFixtureJson from '@fluxer/voice_engine_v2/fixtures/event_logs/e2ee_lifecycle.json';
+import e2eeLifecycleFixtureJson from '@osaca/voice_engine_v2/fixtures/event_logs/e2ee_lifecycle.json';
 
-import {transitionVoiceEngineV2} from '@fluxer/voice_engine_v2/src/core/reducer';
+import {transitionVoiceEngineV2} from '@osaca/voice_engine_v2/src/core/reducer';
 import {
 	selectVoiceEngineV2DeviceProjection,
 	selectVoiceEngineV2E2eeProjection,
-} from '@fluxer/voice_engine_v2/src/core/selectors';
+} from '@osaca/voice_engine_v2/src/core/selectors';
 import {
 	availableVoiceEngineV2Capabilities,
 	createVoiceEngineV2InitialSnapshot,
 	type VoiceEngineV2Snapshot,
-} from '@fluxer/voice_engine_v2/src/core/state';
-import type {VoiceEngineV2Command} from '@fluxer/voice_engine_v2/src/protocol/commands';
-import type {VoiceEngineV2Event} from '@fluxer/voice_engine_v2/src/protocol/events';
+} from '@osaca/voice_engine_v2/src/core/state';
+import type {VoiceEngineV2Command} from '@osaca/voice_engine_v2/src/protocol/commands';
+import type {VoiceEngineV2Event} from '@osaca/voice_engine_v2/src/protocol/events';
 import {describe, expect, it} from 'vitest';
 
 interface VoiceEngineV2EventLogFixture<Expected> {

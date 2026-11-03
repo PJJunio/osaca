@@ -4,7 +4,7 @@ import type {
 	VoiceEngineV2InboundStats,
 	VoiceEngineV2OutboundStats,
 	VoiceEngineV2Stats,
-} from '@fluxer/voice_engine_v2/src/protocol/types';
+} from '@osaca/voice_engine_v2/src/protocol/types';
 
 export const VoiceEngineV2StatsTrackSource = Object.freeze({
 	Microphone: 'microphone',

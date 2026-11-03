@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {sanitizeRetryAfterSeconds} from '@fluxer/errors/src/domains/core/RetryAfterSeconds';
-import {FluxerError, type FluxerErrorData} from '@fluxer/errors/src/FluxerError';
+import {sanitizeRetryAfterSeconds} from '@osaca/errors/src/domains/core/RetryAfterSeconds';
+import {OsacaError, type OsacaErrorData} from '@osaca/errors/src/OsacaError';
 
-export class ThrottledError extends FluxerError {
+export class ThrottledError extends OsacaError {
 	constructor({
 		code,
 		message,
@@ -15,7 +15,7 @@ export class ThrottledError extends FluxerError {
 		code: string;
 		message?: string;
 		retryAfterSeconds: number;
-		data?: FluxerErrorData;
+		data?: OsacaErrorData;
 		headers?: Record<string, string>;
 		messageVariables?: Record<string, unknown>;
 	}) {

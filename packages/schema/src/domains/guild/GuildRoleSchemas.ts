@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {PermissionStringType} from '@fluxer/schema/src/primitives/PermissionValidators';
-import {Int32Type, SnowflakeStringType} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+import {PermissionStringType} from '@osaca/schema/src/primitives/PermissionValidators';
+import {Int32Type, SnowflakeStringType} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 export const GuildRoleResponse = z.object({

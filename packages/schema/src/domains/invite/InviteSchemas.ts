@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {InviteTypes} from '@fluxer/constants/src/ChannelConstants';
-import {MAX_INVITE_AGE_SECONDS, MAX_INVITE_USES} from '@fluxer/constants/src/LimitConstants';
-import {type Channel, ChannelPartialResponse} from '@fluxer/schema/src/domains/channel/ChannelSchemas';
-import {type Guild, GuildPartialResponse} from '@fluxer/schema/src/domains/guild/GuildResponseSchemas';
-import {UserPartialResponse} from '@fluxer/schema/src/domains/user/UserResponseSchemas';
-import {Int32Type} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+import {InviteTypes} from '@osaca/constants/src/ChannelConstants';
+import {MAX_INVITE_AGE_SECONDS, MAX_INVITE_USES} from '@osaca/constants/src/LimitConstants';
+import {type Channel, ChannelPartialResponse} from '@osaca/schema/src/domains/channel/ChannelSchemas';
+import {type Guild, GuildPartialResponse} from '@osaca/schema/src/domains/guild/GuildResponseSchemas';
+import {UserPartialResponse} from '@osaca/schema/src/domains/user/UserResponseSchemas';
+import {Int32Type} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 export const ChannelInviteCreateRequest = z.object({

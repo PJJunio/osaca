@@ -3,17 +3,17 @@
 import type {
 	VoiceEngineV2CommandResult,
 	VoiceEngineV2Implementation,
-} from '@fluxer/voice_engine_v2/src/implementations/VoiceEngineV2ImplementationBase';
-import type {VoiceEngineV2Command} from '@fluxer/voice_engine_v2/src/protocol/commands';
-import {createVoiceEngineV2MemoryEventLogSpillSink} from '@fluxer/voice_engine_v2/src/runtime/eventLogRing';
+} from '@osaca/voice_engine_v2/src/implementations/VoiceEngineV2ImplementationBase';
+import type {VoiceEngineV2Command} from '@osaca/voice_engine_v2/src/protocol/commands';
+import {createVoiceEngineV2MemoryEventLogSpillSink} from '@osaca/voice_engine_v2/src/runtime/eventLogRing';
 import {
 	assertEventLogInvariants,
 	VoiceEngineV2Runtime,
 	type VoiceEngineV2RuntimeDiagnostic,
-} from '@fluxer/voice_engine_v2/src/runtime/VoiceEngineV2Runtime';
-import {waitForRuntime} from '@fluxer/voice_engine_v2/src/testing/conformance';
-import {FakeVoiceEngineV2Driver} from '@fluxer/voice_engine_v2/src/testing/FakeVoiceEngineV2Driver';
-import {VoiceEngineV2TestImplementation} from '@fluxer/voice_engine_v2/src/testing/VoiceEngineV2TestImplementation';
+} from '@osaca/voice_engine_v2/src/runtime/VoiceEngineV2Runtime';
+import {waitForRuntime} from '@osaca/voice_engine_v2/src/testing/conformance';
+import {FakeVoiceEngineV2Driver} from '@osaca/voice_engine_v2/src/testing/FakeVoiceEngineV2Driver';
+import {VoiceEngineV2TestImplementation} from '@osaca/voice_engine_v2/src/testing/VoiceEngineV2TestImplementation';
 import {describe, expect, it} from 'vitest';
 
 class DeferredAllResolveImplementation implements VoiceEngineV2Implementation {

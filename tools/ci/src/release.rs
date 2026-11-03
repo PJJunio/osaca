@@ -17,8 +17,8 @@ use std::path::{Path, PathBuf};
 use std::thread;
 use std::time::Duration;
 
-pub(crate) const RELEASE_REPOSITORY: &str = "fluxerapp/fluxer";
-const RELEASE_COMPARE_URL: &str = "https://github.com/fluxerapp/fluxer/compare";
+pub(crate) const RELEASE_REPOSITORY: &str = "PJJunio/osaca";
+const RELEASE_COMPARE_URL: &str = "https://github.com/PJJunio/osaca/compare";
 pub(crate) const DESKTOP_RELEASE_DESCRIPTOR_SCHEMA_VERSION: u8 = 2;
 const DESKTOP_RELEASE_ARCHES: [&str; 2] = ["x64", "arm64"];
 
@@ -270,8 +270,8 @@ pub(crate) fn desktop_module_package_release_asset_name(
 
 pub(crate) fn desktop_release_product(channel: &str) -> Result<&'static str> {
     match channel {
-        "stable" => Ok("Fluxer"),
-        "canary" => Ok("Fluxer-Canary"),
+        "stable" => Ok("OSACA"),
+        "canary" => Ok("OSACA-Canary"),
         other => bail!("Unsupported desktop release channel {other:?}"),
     }
 }
@@ -332,7 +332,7 @@ pub(crate) fn validate_desktop_release_descriptor(
         descriptor.version
     );
     ensure!(
-        descriptor.release_tag == format!("fluxer-desktop-{channel}@{version}"),
+        descriptor.release_tag == format!("osaca-desktop-{channel}@{version}"),
         "Desktop release descriptor tag {:?} is invalid",
         descriptor.release_tag
     );
@@ -967,7 +967,7 @@ fn desktop_releases_from(
     summaries: &[ReleaseSummary],
     channel: &str,
 ) -> Result<Vec<DesktopPublishedRelease>> {
-    let prefix = format!("fluxer-desktop-{channel}@");
+    let prefix = format!("osaca-desktop-{channel}@");
     let mut releases = Vec::new();
     for release in summaries.iter().filter(|release| !release.is_draft) {
         let Some(version) = release.tag_name.strip_prefix(&prefix) else {
@@ -1011,7 +1011,7 @@ pub(crate) fn download_desktop_release_asset(tag: &str, name: &str) -> Result<Ve
 }
 
 pub(crate) fn desktop_release_kind(channel: &str, version: &str) -> Result<DesktopReleaseKind> {
-    let tag = format!("fluxer-desktop-{channel}@{version}");
+    let tag = format!("osaca-desktop-{channel}@{version}");
     let pattern = desktop_release_descriptor_filename(channel, version)?;
     let descriptor: DesktopReleaseDescriptor =
         serde_json::from_slice(&download_desktop_release_asset(&tag, &pattern)?)
@@ -1496,7 +1496,7 @@ fn release_body(previous_sha: &str, source_sha: &str) -> String {
 }
 
 fn desktop_channel(component: &str) -> Option<&str> {
-    component.strip_prefix("fluxer-desktop-")
+    component.strip_prefix("osaca-desktop-")
 }
 
 #[cfg(test)]
@@ -1587,14 +1587,14 @@ mod tests {
             kind: DesktopReleaseKind::Full,
             channel: SAMPLE_CHANNEL.to_string(),
             version: SAMPLE_VERSION.to_string(),
-            release_tag: format!("fluxer-desktop-{SAMPLE_CHANNEL}@{SAMPLE_VERSION}"),
+            release_tag: format!("osaca-desktop-{SAMPLE_CHANNEL}@{SAMPLE_VERSION}"),
             source_sha: SAMPLE_SOURCE_SHA.to_string(),
             assets,
             modules,
         }
     }
 
-    const SAMPLE_MODULES: [&str; 2] = ["fluxer_renderer", "fluxer_sourcemaps"];
+    const SAMPLE_MODULES: [&str; 2] = ["osaca_renderer", "osaca_sourcemaps"];
 
     fn sample_package_entry(module: &str, sha256: &str, size: u64) -> DesktopReleaseAsset {
         DesktopReleaseAsset {
@@ -1702,7 +1702,7 @@ mod tests {
         let mut descriptor = sample_modules_only_descriptor();
         descriptor
             .modules
-            .retain(|entry| !entry.storage_key.contains("/fluxer_renderer/"));
+            .retain(|entry| !entry.storage_key.contains("/osaca_renderer/"));
         assert!(validate_sample(&descriptor).is_err());
         let mut descriptor = sample_modules_only_descriptor();
         descriptor
@@ -1762,8 +1762,8 @@ mod tests {
             asset_for("darwin/x64/releases.json")
         );
         assert_eq!(
-            asset_for("darwin/x64/Fluxer-Canary-2026.913.210037-mac-universal.dmg"),
-            asset_for("darwin/arm64/Fluxer-Canary-2026.913.210037-mac-universal.dmg")
+            asset_for("darwin/x64/OSACA-Canary-2026.913.210037-mac-universal.dmg"),
+            asset_for("darwin/arm64/OSACA-Canary-2026.913.210037-mac-universal.dmg")
         );
         assert_ne!(
             asset_for("darwin/x64/RELEASES.json"),
@@ -1801,12 +1801,12 @@ mod tests {
         assert_eq!(
             desktop_module_manifest_release_asset_name("canary", SAMPLE_VERSION, "win32", "x64")
                 .unwrap(),
-            "Fluxer-Canary-2026.913.210037-win-x64-modules.json"
+            "OSACA-Canary-2026.913.210037-win-x64-modules.json"
         );
         assert_eq!(
             desktop_module_manifest_release_asset_name("stable", SAMPLE_VERSION, "darwin", "arm64")
                 .unwrap(),
-            "Fluxer-2026.913.210037-mac-arm64-modules.json"
+            "OSACA-2026.913.210037-mac-arm64-modules.json"
         );
         assert_eq!(
             desktop_module_manifest_storage_key("canary", "linux", "arm64"),
@@ -1816,15 +1816,15 @@ mod tests {
             desktop_module_package_release_asset_name(
                 "canary",
                 SAMPLE_VERSION,
-                "fluxer_renderer",
+                "osaca_renderer",
                 &sha256
             )
             .unwrap(),
-            format!("Fluxer-Canary-2026.913.210037-module-fluxer_renderer-{sha256}.br")
+            format!("OSACA-Canary-2026.913.210037-module-osaca_renderer-{sha256}.br")
         );
         assert_eq!(
-            desktop_module_package_storage_key("stable", "fluxer_renderer", &sha256),
-            format!("desktop/stable/modules/fluxer_renderer/{sha256}/package.br")
+            desktop_module_package_storage_key("stable", "osaca_renderer", &sha256),
+            format!("desktop/stable/modules/osaca_renderer/{sha256}/package.br")
         );
         assert!(
             desktop_module_package_release_asset_name("canary", SAMPLE_VERSION, "Bad", &sha256)
@@ -1834,7 +1834,7 @@ mod tests {
             desktop_module_package_release_asset_name(
                 "canary",
                 SAMPLE_VERSION,
-                "fluxer_renderer",
+                "osaca_renderer",
                 "ABCD"
             )
             .is_err()
@@ -1880,10 +1880,10 @@ mod tests {
         let mut descriptor = sample_descriptor();
         descriptor
             .modules
-            .retain(|entry| !entry.storage_key.contains("/fluxer_renderer/"));
+            .retain(|entry| !entry.storage_key.contains("/osaca_renderer/"));
         assert_eq!(
             validate_sample(&descriptor).unwrap_err().to_string(),
-            "Desktop release descriptor carries no fluxer_renderer package"
+            "Desktop release descriptor carries no osaca_renderer package"
         );
     }
 
@@ -1930,7 +1930,7 @@ mod tests {
         );
 
         let mut descriptor = sample_descriptor();
-        descriptor.modules[0].release_asset = "Fluxer-Canary-2026.913.210037-modules.json".into();
+        descriptor.modules[0].release_asset = "OSACA-Canary-2026.913.210037-modules.json".into();
         assert!(
             validate_sample(&descriptor)
                 .unwrap_err()
@@ -1944,13 +1944,13 @@ mod tests {
         descriptor.modules.push(DesktopReleaseAsset {
             storage_key: desktop_module_package_storage_key(
                 SAMPLE_CHANNEL,
-                "fluxer_sourcemaps",
+                "osaca_sourcemaps",
                 &sha256,
             ),
             release_asset: desktop_module_package_release_asset_name(
                 SAMPLE_CHANNEL,
                 SAMPLE_VERSION,
-                "fluxer_sourcemaps",
+                "osaca_sourcemaps",
                 &sha256,
             )
             .unwrap(),
@@ -1959,7 +1959,7 @@ mod tests {
         });
         assert_eq!(
             validate_sample(&descriptor).unwrap_err().to_string(),
-            "Desktop release descriptor carries more than one package for module \"fluxer_sourcemaps\""
+            "Desktop release descriptor carries more than one package for module \"osaca_sourcemaps\""
         );
     }
 
@@ -1999,7 +1999,7 @@ mod tests {
     #[test]
     fn a_manifest_that_omits_a_shipped_package_is_refused() {
         let temp = tempfile::tempdir().unwrap();
-        let descriptor = write_sample_module_release(temp.path(), &["fluxer_renderer"]);
+        let descriptor = write_sample_module_release(temp.path(), &["osaca_renderer"]);
         validate_sample(&descriptor).unwrap();
         let error = validate_desktop_release_module_files(&descriptor, temp.path())
             .unwrap_err()
@@ -2016,7 +2016,7 @@ mod tests {
         let mut descriptor = write_sample_module_release(temp.path(), &SAMPLE_MODULES);
         descriptor
             .modules
-            .retain(|entry| !entry.storage_key.contains("/fluxer_sourcemaps/"));
+            .retain(|entry| !entry.storage_key.contains("/osaca_sourcemaps/"));
         validate_sample(&descriptor).unwrap();
         assert!(
             validate_desktop_release_module_files(&descriptor, temp.path())
@@ -2067,7 +2067,7 @@ mod tests {
         let temp = tempfile::tempdir().unwrap();
         let descriptor = write_sample_release_dir(temp.path());
         let uploaded = local_release_assets(
-            "fluxer-desktop-canary",
+            "osaca-desktop-canary",
             SAMPLE_VERSION,
             SAMPLE_SOURCE_SHA,
             Some(temp.path()),
@@ -2097,7 +2097,7 @@ mod tests {
         fs::remove_file(temp.path().join(&package.release_asset)).unwrap();
         assert!(
             local_release_assets(
-                "fluxer-desktop-canary",
+                "osaca-desktop-canary",
                 SAMPLE_VERSION,
                 SAMPLE_SOURCE_SHA,
                 Some(temp.path()),

@@ -1,0 +1,83 @@
+{{- include "osaca.validate" . }}
+{{- if .Values.networkPolicy.enabled }}
+{{- $v := .Values }}
+{{- $release := dict "app.kubernetes.io/instance" .Release.Name }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: osaca
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "osaca.labels" (dict "root" . "name" "osaca" "component" "network") | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- toYaml $release | nindent 6 }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              {{- toYaml $release | nindent 14 }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: osaca-edge
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "osaca.labels" (dict "root" . "name" "osaca-edge" "component" "network") | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "osaca.selectorLabels" (dict "root" . "name" "edge") | nindent 6 }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - ports:
+        - port: 8080
+          protocol: TCP
+      {{- with $v.networkPolicy.ingressNamespaceSelector }}
+      from:
+        - namespaceSelector:
+            {{- toYaml . | nindent 12 }}
+        {{- if and $v.livekit.enabled (eq $v.livekit.expose "hostNetwork") }}
+        {{- range $v.livekit.nodeCIDRs }}
+        - ipBlock:
+            cidr: {{ . }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- if eq $v.edge.expose "loadBalancer" }}
+    - ports:
+        - port: 80
+          protocol: TCP
+        - port: 443
+          protocol: TCP
+        - port: 443
+          protocol: UDP
+    {{- end }}
+{{- if and $v.livekit.enabled (ne $v.livekit.expose "hostNetwork") }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: osaca-livekit
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "osaca.labels" (dict "root" . "name" "osaca-livekit" "component" "network") | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "osaca.selectorLabels" (dict "root" . "name" "livekit") | nindent 6 }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - ports:
+        - port: {{ ternary $v.livekit.nodePorts.tcp $v.livekit.tcpPort (eq $v.livekit.expose "nodePort") }}
+          protocol: TCP
+        - port: {{ ternary $v.livekit.nodePorts.udp $v.livekit.udpPort (eq $v.livekit.expose "nodePort") }}
+          protocol: UDP
+{{- end }}
+{{- end }}

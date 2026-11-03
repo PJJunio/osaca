@@ -495,7 +495,7 @@ importers:
         specifier: 'catalog:'
         version: 8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
 
-  fluxer_admin:
+  osaca_admin:
     devDependencies:
       '@tailwindcss/cli':
         specifier: 'catalog:'
@@ -504,7 +504,7 @@ importers:
         specifier: 'catalog:'
         version: 4.3.3
 
-  fluxer_api:
+  osaca_api:
     dependencies:
       '@atproto/jwk-jose':
         specifier: 'catalog:'
@@ -527,46 +527,46 @@ importers:
       '@elastic/elasticsearch':
         specifier: 'catalog:'
         version: 9.5.1(supports-color@7.2.0)
-      '@fluxer/config':
+      '@osaca/config':
         specifier: workspace:*
         version: link:../packages/config
-      '@fluxer/constants':
+      '@osaca/constants':
         specifier: workspace:*
         version: link:../packages/constants
-      '@fluxer/date_utils':
+      '@osaca/date_utils':
         specifier: workspace:*
         version: link:../packages/date_utils
-      '@fluxer/errors':
+      '@osaca/errors':
         specifier: workspace:*
         version: link:../packages/errors
-      '@fluxer/hono':
+      '@osaca/hono':
         specifier: workspace:*
         version: link:../packages/hono
-      '@fluxer/i18n':
+      '@osaca/i18n':
         specifier: workspace:*
         version: link:../packages/i18n
-      '@fluxer/instance_bootstrap':
+      '@osaca/instance_bootstrap':
         specifier: workspace:*
         version: link:../packages/instance_bootstrap
-      '@fluxer/ip_utils':
+      '@osaca/ip_utils':
         specifier: workspace:*
         version: link:../packages/ip_utils
-      '@fluxer/limits':
+      '@osaca/limits':
         specifier: workspace:*
         version: link:../packages/limits
-      '@fluxer/logger':
+      '@osaca/logger':
         specifier: workspace:*
         version: link:../packages/logger
-      '@fluxer/number_utils':
+      '@osaca/number_utils':
         specifier: workspace:*
         version: link:../packages/number_utils
-      '@fluxer/record_utils':
+      '@osaca/record_utils':
         specifier: workspace:*
         version: link:../packages/record_utils
-      '@fluxer/schema':
+      '@osaca/schema':
         specifier: workspace:*
         version: link:../packages/schema
-      '@fluxer/snowflake':
+      '@osaca/snowflake':
         specifier: workspace:*
         version: link:../packages/snowflake
       '@hono/node-server':
@@ -754,7 +754,7 @@ importers:
         specifier: 'catalog:'
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@26.6.6)(happy-dom@20.14.6)(msw@2.15.0(@types/node@26.6.6)(typescript@7.0.2))(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
-  fluxer_api/pkgs/cache:
+  osaca_api/pkgs/cache:
     dependencies:
       '@pkgs/kv_client':
         specifier: workspace:*
@@ -770,9 +770,9 @@ importers:
         specifier: 'catalog:'
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@26.6.6)(happy-dom@20.14.6)(msw@3.0.3(@types/node@26.6.6)(graphql@16.14.2)(supports-color@7.2.0)(typescript@7.0.2)(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
-  fluxer_api/pkgs/captcha:
+  osaca_api/pkgs/captcha:
     dependencies:
-      '@fluxer/logger':
+      '@osaca/logger':
         specifier: workspace:*
         version: link:../../../packages/logger
       altcha-lib:
@@ -792,7 +792,7 @@ importers:
         specifier: catalog:ts7
         version: 7.0.2
 
-  fluxer_api/pkgs/cassandra:
+  osaca_api/pkgs/cassandra:
     dependencies:
       cassandra-driver:
         specifier: 'catalog:'
@@ -805,12 +805,12 @@ importers:
         specifier: catalog:ts7
         version: 7.0.2
 
-  fluxer_api/pkgs/elasticsearch_search:
+  osaca_api/pkgs/elasticsearch_search:
     dependencies:
       '@elastic/elasticsearch':
         specifier: 'catalog:'
         version: 9.5.1(supports-color@7.2.0)
-      '@fluxer/schema':
+      '@osaca/schema':
         specifier: workspace:*
         version: link:../../../packages/schema
     devDependencies:
@@ -821,18 +821,18 @@ importers:
         specifier: catalog:ts7
         version: 7.0.2
 
-  fluxer_api/pkgs/email:
+  osaca_api/pkgs/email:
     dependencies:
-      '@fluxer/constants':
+      '@osaca/constants':
         specifier: workspace:*
         version: link:../../../packages/constants
-      '@fluxer/i18n':
+      '@osaca/i18n':
         specifier: workspace:*
         version: link:../../../packages/i18n
-      '@fluxer/logger':
+      '@osaca/logger':
         specifier: workspace:*
         version: link:../../../packages/logger
-      '@fluxer/number_utils':
+      '@osaca/number_utils':
         specifier: workspace:*
         version: link:../../../packages/number_utils
       '@pdf-lib/fontkit':
@@ -876,18 +876,18 @@ importers:
         specifier: 'catalog:'
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@26.6.6)(happy-dom@20.14.6)(msw@3.0.3(@types/node@26.6.6)(graphql@16.14.2)(supports-color@7.2.0)(typescript@7.0.2)(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
-  fluxer_api/pkgs/geoip:
+  osaca_api/pkgs/geoip:
     dependencies:
       '@aws-sdk/client-s3':
         specifier: 'catalog:'
         version: 3.1159.0
-      '@fluxer/geo_utils':
+      '@osaca/geo_utils':
         specifier: workspace:*
         version: link:../../../packages/geo_utils
-      '@fluxer/instance_bootstrap':
+      '@osaca/instance_bootstrap':
         specifier: workspace:*
         version: link:../../../packages/instance_bootstrap
-      '@fluxer/ip_utils':
+      '@osaca/ip_utils':
         specifier: workspace:*
         version: link:../../../packages/ip_utils
       maxmind:
@@ -901,15 +901,15 @@ importers:
         specifier: catalog:ts7
         version: 7.0.2
 
-  fluxer_api/pkgs/http_client:
+  osaca_api/pkgs/http_client:
     dependencies:
-      '@fluxer/constants':
+      '@osaca/constants':
         specifier: workspace:*
         version: link:../../../packages/constants
-      '@fluxer/ip_utils':
+      '@osaca/ip_utils':
         specifier: workspace:*
         version: link:../../../packages/ip_utils
-      '@fluxer/schema':
+      '@osaca/schema':
         specifier: workspace:*
         version: link:../../../packages/schema
       undici:
@@ -926,12 +926,12 @@ importers:
         specifier: 'catalog:'
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@26.6.6)(happy-dom@20.14.6)(msw@3.0.3(@types/node@26.6.6)(graphql@16.14.2)(supports-color@7.2.0)(typescript@7.0.2)(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
-  fluxer_api/pkgs/kv_client:
+  osaca_api/pkgs/kv_client:
     dependencies:
-      '@fluxer/constants':
+      '@osaca/constants':
         specifier: workspace:*
         version: link:../../../packages/constants
-      '@fluxer/errors':
+      '@osaca/errors':
         specifier: workspace:*
         version: link:../../../packages/errors
       ioredis:
@@ -948,7 +948,7 @@ importers:
         specifier: 'catalog:'
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@26.6.6)(happy-dom@20.14.6)(msw@3.0.3(@types/node@26.6.6)(graphql@16.14.2)(supports-color@7.2.0)(typescript@7.0.2)(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
-  fluxer_api/pkgs/media_proxy_utils:
+  osaca_api/pkgs/media_proxy_utils:
     dependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -961,7 +961,7 @@ importers:
         specifier: 'catalog:'
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@26.6.6)(happy-dom@20.14.6)(msw@3.0.3(@types/node@26.6.6)(graphql@16.14.2)(supports-color@7.2.0)(typescript@7.0.2)(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
-  fluxer_api/pkgs/mime_utils:
+  osaca_api/pkgs/mime_utils:
     dependencies:
       mime:
         specifier: 'catalog:'
@@ -974,7 +974,7 @@ importers:
         specifier: catalog:ts7
         version: 7.0.2
 
-  fluxer_api/pkgs/nats:
+  osaca_api/pkgs/nats:
     dependencies:
       '@nats-io/jetstream':
         specifier: 'catalog:'
@@ -990,7 +990,7 @@ importers:
         specifier: catalog:ts7
         version: 7.0.2
 
-  fluxer_api/pkgs/postgres:
+  osaca_api/pkgs/postgres:
     dependencies:
       pg:
         specifier: 'catalog:'
@@ -1006,7 +1006,7 @@ importers:
         specifier: catalog:ts7
         version: 7.0.2
 
-  fluxer_api/pkgs/rate_limit:
+  osaca_api/pkgs/rate_limit:
     dependencies:
       '@pkgs/kv_client':
         specifier: workspace:*
@@ -1022,7 +1022,7 @@ importers:
         specifier: 'catalog:'
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@26.6.6)(happy-dom@20.14.6)(msw@3.0.3(@types/node@26.6.6)(graphql@16.14.2)(supports-color@7.2.0)(typescript@7.0.2)(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
-  fluxer_api/pkgs/virus_scan:
+  osaca_api/pkgs/virus_scan:
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -1031,9 +1031,9 @@ importers:
         specifier: catalog:ts7
         version: 7.0.2
 
-  fluxer_api/pkgs/worker:
+  osaca_api/pkgs/worker:
     dependencies:
-      '@fluxer/logger':
+      '@osaca/logger':
         specifier: workspace:*
         version: link:../../../packages/logger
     devDependencies:
@@ -1044,7 +1044,7 @@ importers:
         specifier: catalog:ts7
         version: 7.0.2
 
-  fluxer_app:
+  osaca_app:
     dependencies:
       '@arborium/ada':
         specifier: 2.18.2
@@ -1397,37 +1397,37 @@ importers:
       '@floating-ui/react-dom':
         specifier: 'catalog:'
         version: 2.1.9(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      '@fluxer/constants':
+      '@osaca/constants':
         specifier: workspace:*
         version: link:../packages/constants
-      '@fluxer/date_utils':
+      '@osaca/date_utils':
         specifier: workspace:*
         version: link:../packages/date_utils
-      '@fluxer/desktop_ipc':
+      '@osaca/desktop_ipc':
         specifier: workspace:*
         version: link:../packages/desktop_ipc
-      '@fluxer/geo_utils':
+      '@osaca/geo_utils':
         specifier: workspace:*
         version: link:../packages/geo_utils
-      '@fluxer/instance_bootstrap':
+      '@osaca/instance_bootstrap':
         specifier: workspace:*
         version: link:../packages/instance_bootstrap
-      '@fluxer/limits':
+      '@osaca/limits':
         specifier: workspace:*
         version: link:../packages/limits
-      '@fluxer/number_utils':
+      '@osaca/number_utils':
         specifier: workspace:*
         version: link:../packages/number_utils
-      '@fluxer/record_utils':
+      '@osaca/record_utils':
         specifier: workspace:*
         version: link:../packages/record_utils
-      '@fluxer/schema':
+      '@osaca/schema':
         specifier: workspace:*
         version: link:../packages/schema
-      '@fluxer/snowflake':
+      '@osaca/snowflake':
         specifier: workspace:*
         version: link:../packages/snowflake
-      '@fluxer/voice_engine_v2':
+      '@osaca/voice_engine_v2':
         specifier: workspace:*
         version: link:../packages/voice_engine_v2
       '@lexical/history':
@@ -1450,7 +1450,7 @@ importers:
         version: 6.11.0(@babel/core@7.29.7(supports-color@7.2.0))(react@19.3.1)
       '@livekit/components-react':
         specifier: 'catalog:'
-        version: 2.9.24(livekit-client@fluxer_app+pkgs+livekit-client)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tslib@2.8.1)
+        version: 2.9.24(livekit-client@osaca_app+pkgs+livekit-client)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tslib@2.8.1)
       '@phosphor-icons/react':
         specifier: 'catalog:'
         version: 2.1.10(patch_hash=9b0b481de857aa7a7525f023baea9da72be4574ff72825e39d959e6979d78eea)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -1693,7 +1693,7 @@ importers:
         specifier: catalog:ts7
         version: 7.0.2
 
-  fluxer_app/pkgs/livekit-client:
+  osaca_app/pkgs/livekit-client:
     dependencies:
       '@livekit/mutex':
         specifier: 1.1.1
@@ -1730,24 +1730,24 @@ importers:
         specifier: ^3.0.0
         version: 3.0.0
 
-  fluxer_desktop:
+  osaca_desktop:
     dependencies:
-      '@fluxer/constants':
+      '@osaca/constants':
         specifier: workspace:*
         version: link:../packages/constants
-      '@fluxer/desktop_ipc':
+      '@osaca/desktop_ipc':
         specifier: workspace:*
         version: link:../packages/desktop_ipc
-      '@fluxer/instance_bootstrap':
+      '@osaca/instance_bootstrap':
         specifier: workspace:*
         version: link:../packages/instance_bootstrap
-      '@fluxer/ip_utils':
+      '@osaca/ip_utils':
         specifier: workspace:*
         version: link:../packages/ip_utils
-      '@fluxer/record_utils':
+      '@osaca/record_utils':
         specifier: workspace:*
         version: link:../packages/record_utils
-      '@fluxer/voice_engine_v2':
+      '@osaca/voice_engine_v2':
         specifier: workspace:*
         version: link:../packages/voice_engine_v2
       '@simplewebauthn/browser':
@@ -1782,77 +1782,77 @@ importers:
         specifier: catalog:ts7
         version: 7.0.2
     optionalDependencies:
-      '@fluxer/app-store':
+      '@osaca/app-store':
         specifier: file:./native/app-store
-        version: file:fluxer_desktop/native/app-store
-      '@fluxer/gateway-socket':
+        version: file:osaca_desktop/native/app-store
+      '@osaca/gateway-socket':
         specifier: file:./native/gateway-socket
-        version: file:fluxer_desktop/native/gateway-socket
-      '@fluxer/hardware-encoder':
+        version: file:osaca_desktop/native/gateway-socket
+      '@osaca/hardware-encoder':
         specifier: file:./native/hardware-encoder
-        version: file:fluxer_desktop/native/hardware-encoder
-      '@fluxer/linux-audio-capture':
+        version: file:osaca_desktop/native/hardware-encoder
+      '@osaca/linux-audio-capture':
         specifier: file:./native/linux-audio-capture
-        version: file:fluxer_desktop/native/linux-audio-capture
-      '@fluxer/linux-evdev':
+        version: file:osaca_desktop/native/linux-audio-capture
+      '@osaca/linux-evdev':
         specifier: file:./native/linux-evdev
-        version: file:fluxer_desktop/native/linux-evdev
-      '@fluxer/linux-input-hook':
+        version: file:osaca_desktop/native/linux-evdev
+      '@osaca/linux-input-hook':
         specifier: file:./native/linux-input-hook
-        version: file:fluxer_desktop/native/linux-input-hook
-      '@fluxer/linux-notifications':
+        version: file:osaca_desktop/native/linux-input-hook
+      '@osaca/linux-notifications':
         specifier: file:./native/linux-notifications
-        version: file:fluxer_desktop/native/linux-notifications
-      '@fluxer/linux-portals':
+        version: file:osaca_desktop/native/linux-notifications
+      '@osaca/linux-portals':
         specifier: file:./native/linux-portals
-        version: file:fluxer_desktop/native/linux-portals
-      '@fluxer/mac-app-audio':
+        version: file:osaca_desktop/native/linux-portals
+      '@osaca/mac-app-audio':
         specifier: file:./native/mac-app-audio
-        version: file:fluxer_desktop/native/mac-app-audio
-      '@fluxer/mac-clipboard':
+        version: file:osaca_desktop/native/mac-app-audio
+      '@osaca/mac-clipboard':
         specifier: file:./native/mac-clipboard
-        version: file:fluxer_desktop/native/mac-clipboard
-      '@fluxer/mac-screen-capture':
+        version: file:osaca_desktop/native/mac-clipboard
+      '@osaca/mac-screen-capture':
         specifier: file:./native/mac-screen-capture
-        version: file:fluxer_desktop/native/mac-screen-capture
-      '@fluxer/mac-sysctl':
+        version: file:osaca_desktop/native/mac-screen-capture
+      '@osaca/mac-sysctl':
         specifier: file:./native/mac-sysctl
-        version: file:fluxer_desktop/native/mac-sysctl
-      '@fluxer/mac-tcc':
+        version: file:osaca_desktop/native/mac-sysctl
+      '@osaca/mac-tcc':
         specifier: file:./native/mac-tcc
-        version: file:fluxer_desktop/native/mac-tcc
-      '@fluxer/macos-input-hook':
+        version: file:osaca_desktop/native/mac-tcc
+      '@osaca/macos-input-hook':
         specifier: file:./native/macos-input-hook
-        version: file:fluxer_desktop/native/macos-input-hook
-      '@fluxer/platform-info':
+        version: file:osaca_desktop/native/macos-input-hook
+      '@osaca/platform-info':
         specifier: file:./native/platform-info
-        version: file:fluxer_desktop/native/platform-info
-      '@fluxer/system-hunspell':
+        version: file:osaca_desktop/native/platform-info
+      '@osaca/system-hunspell':
         specifier: file:./native/system-hunspell
-        version: file:fluxer_desktop/native/system-hunspell
-      '@fluxer/webauthn':
+        version: file:osaca_desktop/native/system-hunspell
+      '@osaca/webauthn':
         specifier: file:./native/webauthn
-        version: file:fluxer_desktop/native/webauthn
-      '@fluxer/win-clipboard':
+        version: file:osaca_desktop/native/webauthn
+      '@osaca/win-clipboard':
         specifier: file:./native/win-clipboard
-        version: file:fluxer_desktop/native/win-clipboard
-      '@fluxer/win-game-capture':
+        version: file:osaca_desktop/native/win-clipboard
+      '@osaca/win-game-capture':
         specifier: file:./native/win-game-capture
-        version: file:fluxer_desktop/native/win-game-capture
-      '@fluxer/win-process-loopback':
+        version: file:osaca_desktop/native/win-game-capture
+      '@osaca/win-process-loopback':
         specifier: file:./native/win-process-loopback
-        version: file:fluxer_desktop/native/win-process-loopback
-      '@fluxer/win-shell':
+        version: file:osaca_desktop/native/win-process-loopback
+      '@osaca/win-shell':
         specifier: file:./native/win-shell
-        version: file:fluxer_desktop/native/win-shell
-      '@fluxer/windows-input-hook':
+        version: file:osaca_desktop/native/win-shell
+      '@osaca/windows-input-hook':
         specifier: file:./native/windows-input-hook
-        version: file:fluxer_desktop/native/windows-input-hook
+        version: file:osaca_desktop/native/windows-input-hook
       electron-log:
         specifier: 5.4.4
         version: 5.4.4
 
-  fluxer_docs:
+  osaca_docs:
     dependencies:
       '@astrojs/markdown-remark':
         specifier: 'catalog:'
@@ -1866,10 +1866,10 @@ importers:
       '@astrojs/starlight':
         specifier: 'catalog:'
         version: 0.42.7(@astrojs/markdown-remark@7.3.5(supports-color@7.2.0))(astro@7.4.4(@astrojs/markdown-remark@7.3.5(supports-color@7.2.0))(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(supports-color@7.2.0)(typescript@6.0.3)
-      '@fluxer/config':
+      '@osaca/config':
         specifier: workspace:*
         version: link:../packages/config
-      '@fluxer/constants':
+      '@osaca/constants':
         specifier: workspace:*
         version: link:../packages/constants
       astro:
@@ -1933,7 +1933,7 @@ importers:
 
   packages/date_utils:
     dependencies:
-      '@fluxer/constants':
+      '@osaca/constants':
         specifier: workspace:*
         version: link:../constants
       '@vvo/tzdb':
@@ -1949,7 +1949,7 @@ importers:
 
   packages/desktop_ipc:
     dependencies:
-      '@fluxer/record_utils':
+      '@osaca/record_utils':
         specifier: workspace:*
         version: link:../record_utils
     devDependencies:
@@ -1962,19 +1962,19 @@ importers:
 
   packages/errors:
     dependencies:
-      '@fluxer/constants':
+      '@osaca/constants':
         specifier: workspace:*
         version: link:../constants
-      '@fluxer/i18n':
+      '@osaca/i18n':
         specifier: workspace:*
         version: link:../i18n
-      '@fluxer/logger':
+      '@osaca/logger':
         specifier: workspace:*
         version: link:../logger
-      '@fluxer/record_utils':
+      '@osaca/record_utils':
         specifier: workspace:*
         version: link:../record_utils
-      '@fluxer/schema':
+      '@osaca/schema':
         specifier: workspace:*
         version: link:../schema
       hono:
@@ -1993,7 +1993,7 @@ importers:
 
   packages/geo_utils:
     dependencies:
-      '@fluxer/constants':
+      '@osaca/constants':
         specifier: workspace:*
         version: link:../constants
     devDependencies:
@@ -2006,13 +2006,13 @@ importers:
 
   packages/hono:
     dependencies:
-      '@fluxer/constants':
+      '@osaca/constants':
         specifier: workspace:*
         version: link:../constants
-      '@fluxer/errors':
+      '@osaca/errors':
         specifier: workspace:*
         version: link:../errors
-      '@fluxer/ip_utils':
+      '@osaca/ip_utils':
         specifier: workspace:*
         version: link:../ip_utils
       '@hono/node-server':
@@ -2034,10 +2034,10 @@ importers:
 
   packages/i18n:
     dependencies:
-      '@fluxer/constants':
+      '@osaca/constants':
         specifier: workspace:*
         version: link:../constants
-      '@fluxer/record_utils':
+      '@osaca/record_utils':
         specifier: workspace:*
         version: link:../record_utils
       '@messageformat/core':
@@ -2062,13 +2062,13 @@ importers:
 
   packages/instance_bootstrap:
     dependencies:
-      '@fluxer/constants':
+      '@osaca/constants':
         specifier: workspace:*
         version: link:../constants
-      '@fluxer/limits':
+      '@osaca/limits':
         specifier: workspace:*
         version: link:../limits
-      '@fluxer/schema':
+      '@osaca/schema':
         specifier: workspace:*
         version: link:../schema
     devDependencies:
@@ -2093,7 +2093,7 @@ importers:
 
   packages/limits:
     dependencies:
-      '@fluxer/constants':
+      '@osaca/constants':
         specifier: workspace:*
         version: link:../constants
     devDependencies:
@@ -2122,7 +2122,7 @@ importers:
 
   packages/number_utils:
     dependencies:
-      '@fluxer/constants':
+      '@osaca/constants':
         specifier: workspace:*
         version: link:../constants
     devDependencies:
@@ -2138,10 +2138,10 @@ importers:
 
   packages/openapi:
     dependencies:
-      '@fluxer/errors':
+      '@osaca/errors':
         specifier: workspace:*
         version: link:../errors
-      '@fluxer/schema':
+      '@osaca/schema':
         specifier: workspace:*
         version: link:../schema
       '@redocly/openapi-core':
@@ -2181,7 +2181,7 @@ importers:
       '@bufbuild/protobuf':
         specifier: ^2.16.0
         version: 2.16.0
-      '@fluxer/constants':
+      '@osaca/constants':
         specifier: workspace:*
         version: link:../constants
       '@simplewebauthn/server':
@@ -2221,7 +2221,7 @@ importers:
 
   packages/snowflake:
     dependencies:
-      '@fluxer/constants':
+      '@osaca/constants':
         specifier: workspace:*
         version: link:../constants
       itty-time:
@@ -4517,108 +4517,108 @@ packages:
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
 
-  '@fluxer/app-store@file:fluxer_desktop/native/app-store':
-    resolution: {directory: fluxer_desktop/native/app-store, type: directory}
+  '@osaca/app-store@file:osaca_desktop/native/app-store':
+    resolution: {directory: osaca_desktop/native/app-store, type: directory}
     cpu: [x64, arm64]
 
-  '@fluxer/gateway-socket@file:fluxer_desktop/native/gateway-socket':
-    resolution: {directory: fluxer_desktop/native/gateway-socket, type: directory}
+  '@osaca/gateway-socket@file:osaca_desktop/native/gateway-socket':
+    resolution: {directory: osaca_desktop/native/gateway-socket, type: directory}
     cpu: [x64, arm64]
 
-  '@fluxer/hardware-encoder@file:fluxer_desktop/native/hardware-encoder':
-    resolution: {directory: fluxer_desktop/native/hardware-encoder, type: directory}
+  '@osaca/hardware-encoder@file:osaca_desktop/native/hardware-encoder':
+    resolution: {directory: osaca_desktop/native/hardware-encoder, type: directory}
     cpu: [x64, arm64]
 
-  '@fluxer/linux-audio-capture@file:fluxer_desktop/native/linux-audio-capture':
-    resolution: {directory: fluxer_desktop/native/linux-audio-capture, type: directory}
-    cpu: [x64, arm64]
-    os: [linux]
-
-  '@fluxer/linux-evdev@file:fluxer_desktop/native/linux-evdev':
-    resolution: {directory: fluxer_desktop/native/linux-evdev, type: directory}
+  '@osaca/linux-audio-capture@file:osaca_desktop/native/linux-audio-capture':
+    resolution: {directory: osaca_desktop/native/linux-audio-capture, type: directory}
     cpu: [x64, arm64]
     os: [linux]
 
-  '@fluxer/linux-input-hook@file:fluxer_desktop/native/linux-input-hook':
-    resolution: {directory: fluxer_desktop/native/linux-input-hook, type: directory}
+  '@osaca/linux-evdev@file:osaca_desktop/native/linux-evdev':
+    resolution: {directory: osaca_desktop/native/linux-evdev, type: directory}
     cpu: [x64, arm64]
     os: [linux]
 
-  '@fluxer/linux-notifications@file:fluxer_desktop/native/linux-notifications':
-    resolution: {directory: fluxer_desktop/native/linux-notifications, type: directory}
+  '@osaca/linux-input-hook@file:osaca_desktop/native/linux-input-hook':
+    resolution: {directory: osaca_desktop/native/linux-input-hook, type: directory}
     cpu: [x64, arm64]
     os: [linux]
 
-  '@fluxer/linux-portals@file:fluxer_desktop/native/linux-portals':
-    resolution: {directory: fluxer_desktop/native/linux-portals, type: directory}
+  '@osaca/linux-notifications@file:osaca_desktop/native/linux-notifications':
+    resolution: {directory: osaca_desktop/native/linux-notifications, type: directory}
     cpu: [x64, arm64]
     os: [linux]
 
-  '@fluxer/mac-app-audio@file:fluxer_desktop/native/mac-app-audio':
-    resolution: {directory: fluxer_desktop/native/mac-app-audio, type: directory}
-    cpu: [x64, arm64]
-    os: [darwin]
-
-  '@fluxer/mac-clipboard@file:fluxer_desktop/native/mac-clipboard':
-    resolution: {directory: fluxer_desktop/native/mac-clipboard, type: directory}
-    cpu: [x64, arm64]
-    os: [darwin]
-
-  '@fluxer/mac-screen-capture@file:fluxer_desktop/native/mac-screen-capture':
-    resolution: {directory: fluxer_desktop/native/mac-screen-capture, type: directory}
-    cpu: [x64, arm64]
-    os: [darwin]
-
-  '@fluxer/mac-sysctl@file:fluxer_desktop/native/mac-sysctl':
-    resolution: {directory: fluxer_desktop/native/mac-sysctl, type: directory}
-    cpu: [x64, arm64]
-    os: [darwin]
-
-  '@fluxer/mac-tcc@file:fluxer_desktop/native/mac-tcc':
-    resolution: {directory: fluxer_desktop/native/mac-tcc, type: directory}
-    cpu: [x64, arm64]
-    os: [darwin]
-
-  '@fluxer/macos-input-hook@file:fluxer_desktop/native/macos-input-hook':
-    resolution: {directory: fluxer_desktop/native/macos-input-hook, type: directory}
-    cpu: [x64, arm64]
-    os: [darwin]
-
-  '@fluxer/platform-info@file:fluxer_desktop/native/platform-info':
-    resolution: {directory: fluxer_desktop/native/platform-info, type: directory}
-    cpu: [x64, arm64]
-
-  '@fluxer/system-hunspell@file:fluxer_desktop/native/system-hunspell':
-    resolution: {directory: fluxer_desktop/native/system-hunspell, type: directory}
+  '@osaca/linux-portals@file:osaca_desktop/native/linux-portals':
+    resolution: {directory: osaca_desktop/native/linux-portals, type: directory}
     cpu: [x64, arm64]
     os: [linux]
 
-  '@fluxer/webauthn@file:fluxer_desktop/native/webauthn':
-    resolution: {directory: fluxer_desktop/native/webauthn, type: directory}
+  '@osaca/mac-app-audio@file:osaca_desktop/native/mac-app-audio':
+    resolution: {directory: osaca_desktop/native/mac-app-audio, type: directory}
+    cpu: [x64, arm64]
+    os: [darwin]
+
+  '@osaca/mac-clipboard@file:osaca_desktop/native/mac-clipboard':
+    resolution: {directory: osaca_desktop/native/mac-clipboard, type: directory}
+    cpu: [x64, arm64]
+    os: [darwin]
+
+  '@osaca/mac-screen-capture@file:osaca_desktop/native/mac-screen-capture':
+    resolution: {directory: osaca_desktop/native/mac-screen-capture, type: directory}
+    cpu: [x64, arm64]
+    os: [darwin]
+
+  '@osaca/mac-sysctl@file:osaca_desktop/native/mac-sysctl':
+    resolution: {directory: osaca_desktop/native/mac-sysctl, type: directory}
+    cpu: [x64, arm64]
+    os: [darwin]
+
+  '@osaca/mac-tcc@file:osaca_desktop/native/mac-tcc':
+    resolution: {directory: osaca_desktop/native/mac-tcc, type: directory}
+    cpu: [x64, arm64]
+    os: [darwin]
+
+  '@osaca/macos-input-hook@file:osaca_desktop/native/macos-input-hook':
+    resolution: {directory: osaca_desktop/native/macos-input-hook, type: directory}
+    cpu: [x64, arm64]
+    os: [darwin]
+
+  '@osaca/platform-info@file:osaca_desktop/native/platform-info':
+    resolution: {directory: osaca_desktop/native/platform-info, type: directory}
     cpu: [x64, arm64]
 
-  '@fluxer/win-clipboard@file:fluxer_desktop/native/win-clipboard':
-    resolution: {directory: fluxer_desktop/native/win-clipboard, type: directory}
+  '@osaca/system-hunspell@file:osaca_desktop/native/system-hunspell':
+    resolution: {directory: osaca_desktop/native/system-hunspell, type: directory}
+    cpu: [x64, arm64]
+    os: [linux]
+
+  '@osaca/webauthn@file:osaca_desktop/native/webauthn':
+    resolution: {directory: osaca_desktop/native/webauthn, type: directory}
+    cpu: [x64, arm64]
+
+  '@osaca/win-clipboard@file:osaca_desktop/native/win-clipboard':
+    resolution: {directory: osaca_desktop/native/win-clipboard, type: directory}
     cpu: [x64, arm64]
     os: [win32]
 
-  '@fluxer/win-game-capture@file:fluxer_desktop/native/win-game-capture':
-    resolution: {directory: fluxer_desktop/native/win-game-capture, type: directory}
+  '@osaca/win-game-capture@file:osaca_desktop/native/win-game-capture':
+    resolution: {directory: osaca_desktop/native/win-game-capture, type: directory}
     cpu: [x64, arm64]
     os: [win32]
 
-  '@fluxer/win-process-loopback@file:fluxer_desktop/native/win-process-loopback':
-    resolution: {directory: fluxer_desktop/native/win-process-loopback, type: directory}
+  '@osaca/win-process-loopback@file:osaca_desktop/native/win-process-loopback':
+    resolution: {directory: osaca_desktop/native/win-process-loopback, type: directory}
     cpu: [x64, arm64]
     os: [win32]
 
-  '@fluxer/win-shell@file:fluxer_desktop/native/win-shell':
-    resolution: {directory: fluxer_desktop/native/win-shell, type: directory}
+  '@osaca/win-shell@file:osaca_desktop/native/win-shell':
+    resolution: {directory: osaca_desktop/native/win-shell, type: directory}
     cpu: [x64, arm64]
     os: [win32]
 
-  '@fluxer/windows-input-hook@file:fluxer_desktop/native/windows-input-hook':
-    resolution: {directory: fluxer_desktop/native/windows-input-hook, type: directory}
+  '@osaca/windows-input-hook@file:osaca_desktop/native/windows-input-hook':
+    resolution: {directory: osaca_desktop/native/windows-input-hook, type: directory}
     cpu: [x64, arm64]
     os: [win32]
 
@@ -14216,70 +14216,70 @@ snapshots:
 
   '@floating-ui/utils@0.2.12': {}
 
-  '@fluxer/app-store@file:fluxer_desktop/native/app-store':
+  '@osaca/app-store@file:osaca_desktop/native/app-store':
     optional: true
 
-  '@fluxer/gateway-socket@file:fluxer_desktop/native/gateway-socket':
+  '@osaca/gateway-socket@file:osaca_desktop/native/gateway-socket':
     optional: true
 
-  '@fluxer/hardware-encoder@file:fluxer_desktop/native/hardware-encoder':
+  '@osaca/hardware-encoder@file:osaca_desktop/native/hardware-encoder':
     optional: true
 
-  '@fluxer/linux-audio-capture@file:fluxer_desktop/native/linux-audio-capture':
+  '@osaca/linux-audio-capture@file:osaca_desktop/native/linux-audio-capture':
     optional: true
 
-  '@fluxer/linux-evdev@file:fluxer_desktop/native/linux-evdev':
+  '@osaca/linux-evdev@file:osaca_desktop/native/linux-evdev':
     optional: true
 
-  '@fluxer/linux-input-hook@file:fluxer_desktop/native/linux-input-hook':
+  '@osaca/linux-input-hook@file:osaca_desktop/native/linux-input-hook':
     optional: true
 
-  '@fluxer/linux-notifications@file:fluxer_desktop/native/linux-notifications':
+  '@osaca/linux-notifications@file:osaca_desktop/native/linux-notifications':
     optional: true
 
-  '@fluxer/linux-portals@file:fluxer_desktop/native/linux-portals':
+  '@osaca/linux-portals@file:osaca_desktop/native/linux-portals':
     optional: true
 
-  '@fluxer/mac-app-audio@file:fluxer_desktop/native/mac-app-audio':
+  '@osaca/mac-app-audio@file:osaca_desktop/native/mac-app-audio':
     optional: true
 
-  '@fluxer/mac-clipboard@file:fluxer_desktop/native/mac-clipboard':
+  '@osaca/mac-clipboard@file:osaca_desktop/native/mac-clipboard':
     optional: true
 
-  '@fluxer/mac-screen-capture@file:fluxer_desktop/native/mac-screen-capture':
+  '@osaca/mac-screen-capture@file:osaca_desktop/native/mac-screen-capture':
     optional: true
 
-  '@fluxer/mac-sysctl@file:fluxer_desktop/native/mac-sysctl':
+  '@osaca/mac-sysctl@file:osaca_desktop/native/mac-sysctl':
     optional: true
 
-  '@fluxer/mac-tcc@file:fluxer_desktop/native/mac-tcc':
+  '@osaca/mac-tcc@file:osaca_desktop/native/mac-tcc':
     optional: true
 
-  '@fluxer/macos-input-hook@file:fluxer_desktop/native/macos-input-hook':
+  '@osaca/macos-input-hook@file:osaca_desktop/native/macos-input-hook':
     optional: true
 
-  '@fluxer/platform-info@file:fluxer_desktop/native/platform-info':
+  '@osaca/platform-info@file:osaca_desktop/native/platform-info':
     optional: true
 
-  '@fluxer/system-hunspell@file:fluxer_desktop/native/system-hunspell':
+  '@osaca/system-hunspell@file:osaca_desktop/native/system-hunspell':
     optional: true
 
-  '@fluxer/webauthn@file:fluxer_desktop/native/webauthn':
+  '@osaca/webauthn@file:osaca_desktop/native/webauthn':
     optional: true
 
-  '@fluxer/win-clipboard@file:fluxer_desktop/native/win-clipboard':
+  '@osaca/win-clipboard@file:osaca_desktop/native/win-clipboard':
     optional: true
 
-  '@fluxer/win-game-capture@file:fluxer_desktop/native/win-game-capture':
+  '@osaca/win-game-capture@file:osaca_desktop/native/win-game-capture':
     optional: true
 
-  '@fluxer/win-process-loopback@file:fluxer_desktop/native/win-process-loopback':
+  '@osaca/win-process-loopback@file:osaca_desktop/native/win-process-loopback':
     optional: true
 
-  '@fluxer/win-shell@file:fluxer_desktop/native/win-shell':
+  '@osaca/win-shell@file:osaca_desktop/native/win-shell':
     optional: true
 
-  '@fluxer/windows-input-hook@file:fluxer_desktop/native/windows-input-hook':
+  '@osaca/windows-input-hook@file:osaca_desktop/native/windows-input-hook':
     optional: true
 
   '@hexagon/base64@1.1.28': {}
@@ -14872,21 +14872,21 @@ snapshots:
       '@lingui/conf': 6.11.0
       '@lingui/core': 6.11.0(@babel/core@7.29.7(supports-color@7.2.0))
 
-  '@livekit/components-core@0.12.15(livekit-client@fluxer_app+pkgs+livekit-client)(tslib@2.8.1)':
+  '@livekit/components-core@0.12.15(livekit-client@osaca_app+pkgs+livekit-client)(tslib@2.8.1)':
     dependencies:
       '@floating-ui/dom': 1.8.0
-      livekit-client: link:fluxer_app/pkgs/livekit-client
+      livekit-client: link:osaca_app/pkgs/livekit-client
       loglevel: 1.9.1
       rxjs: 7.8.2
       tslib: 2.8.1
 
-  '@livekit/components-react@2.9.24(livekit-client@fluxer_app+pkgs+livekit-client)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tslib@2.8.1)':
+  '@livekit/components-react@2.9.24(livekit-client@osaca_app+pkgs+livekit-client)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tslib@2.8.1)':
     dependencies:
-      '@livekit/components-core': 0.12.15(livekit-client@fluxer_app+pkgs+livekit-client)(tslib@2.8.1)
+      '@livekit/components-core': 0.12.15(livekit-client@osaca_app+pkgs+livekit-client)(tslib@2.8.1)
       clsx: 2.1.1
       events: 3.3.0
       jose: 6.2.14
-      livekit-client: link:fluxer_app/pkgs/livekit-client
+      livekit-client: link:osaca_app/pkgs/livekit-client
       react: 19.3.1
       react-dom: 19.3.1(react@19.3.1)
       tslib: 2.8.1

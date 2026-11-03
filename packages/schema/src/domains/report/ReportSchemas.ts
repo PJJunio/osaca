@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {ReportFlowAnswerFields} from '@fluxer/schema/src/domains/report/ReportFlowSchemas';
+import {ReportFlowAnswerFields} from '@osaca/schema/src/domains/report/ReportFlowSchemas';
 import {
 	createNamedStringLiteralUnion,
 	createStringType,
@@ -8,8 +8,8 @@ import {
 	SnowflakeType,
 	withFieldDescription,
 	withOpenApiType,
-} from '@fluxer/schema/src/primitives/SchemaPrimitives';
-import {EmailType} from '@fluxer/schema/src/primitives/UserValidators';
+} from '@osaca/schema/src/primitives/SchemaPrimitives';
+import {EmailType} from '@osaca/schema/src/primitives/UserValidators';
 import {z} from 'zod';
 
 const MessageReportCategoryEnum = withOpenApiType(
@@ -84,13 +84,13 @@ export const TicketResponse = z.object({
 
 export type TicketResponse = z.infer<typeof TicketResponse>;
 
-const FLUXER_TAG_REGEX = /^([^#]{1,32})(#[0-9]{4})?$/;
-const FLUXER_TAG_TYPE = z
+const OSACA_TAG_REGEX = /^([^#]{1,32})(#[0-9]{4})?$/;
+const OSACA_TAG_TYPE = z
 	.string()
 	.min(1)
 	.max(37)
-	.refine((value) => FLUXER_TAG_REGEX.test(value), 'Fluxer tag must be in the format username#1234 or username')
-	.describe('A Fluxer username tag in the format username#1234, or a bare username on an instance without user tags');
+	.refine((value) => OSACA_TAG_REGEX.test(value), 'OSACA tag must be in the format username#1234 or username')
+	.describe('A OSACA username tag in the format username#1234, or a bare username on an instance without user tags');
 const EuCountryCodeEnum = withOpenApiType(
 	createNamedStringLiteralUnion(
 		[
@@ -259,12 +259,12 @@ const DsaReportFlowBase = z.object({
 const DsaReportMessageTarget = {
 	report_type: z.literal('message').describe('Type of report'),
 	message_link: createStringType(1, 2048).describe('Link to the message being reported'),
-	reported_user_tag: z.optional(FLUXER_TAG_TYPE).describe('Fluxer tag of the user who sent the message'),
+	reported_user_tag: z.optional(OSACA_TAG_TYPE).describe('OSACA tag of the user who sent the message'),
 };
 const DsaReportUserTarget = {
 	report_type: z.literal('user').describe('Type of report'),
 	user_id: SnowflakeType.optional().describe('ID of the user being reported'),
-	user_tag: z.optional(FLUXER_TAG_TYPE).describe('Fluxer tag of the user being reported'),
+	user_tag: z.optional(OSACA_TAG_TYPE).describe('OSACA tag of the user being reported'),
 };
 const DsaReportGuildTarget = {
 	report_type: z.literal('guild').describe('Type of report'),

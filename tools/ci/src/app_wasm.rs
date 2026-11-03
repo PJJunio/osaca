@@ -154,7 +154,7 @@ fn build_markdown_parser_wasm(app_dir: &Path) -> Result<()> {
             .current_dir(&rust_source_dir),
     )?)?;
 
-    let wasm_path = target_dir.join("wasm32-unknown-unknown/release/fluxer_markdown_parser.wasm");
+    let wasm_path = target_dir.join("wasm32-unknown-unknown/release/osaca_markdown_parser.wasm");
     let wasm =
         fs::read(&wasm_path).with_context(|| format!("Failed to read {}", wasm_path.display()))?;
     let content = markdown_wasm_bytes_content(&wasm);
@@ -602,14 +602,14 @@ pub(crate) fn resolve_app_dir(explicit: Option<PathBuf>) -> Result<PathBuf> {
             .with_context(|| format!("Failed to resolve app directory {}", app_dir.display()));
     }
     let cwd = env::current_dir().context("Failed to resolve current directory")?;
-    if cwd.file_name().and_then(|value| value.to_str()) == Some("fluxer_app") {
+    if cwd.file_name().and_then(|value| value.to_str()) == Some("osaca_app") {
         return Ok(cwd);
     }
-    if cwd.join("fluxer_app").is_dir() {
-        return Ok(cwd.join("fluxer_app"));
+    if cwd.join("osaca_app").is_dir() {
+        return Ok(cwd.join("osaca_app"));
     }
     Err(anyhow!(
-        "Could not resolve fluxer_app directory from {}",
+        "Could not resolve osaca_app directory from {}",
         cwd.display()
     ))
 }
@@ -688,7 +688,7 @@ fn libfluxcore_package_json_content() -> String {
 fn libfluxcore_readme_content() -> &'static str {
     "<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->\n\
 # libfluxcore\n\n\
-Rust WebAssembly helpers for Fluxer media processing.\n"
+Rust WebAssembly helpers for OSACA media processing.\n"
 }
 
 fn markdown_wasm_bytes_content(wasm: &[u8]) -> String {
@@ -736,7 +736,7 @@ mod tests {
 
     #[test]
     fn libfluxcore_build_keeps_its_output_in_the_crate_target_dir() {
-        let package_dir = Path::new("/repo/fluxer_app/rust/libfluxcore");
+        let package_dir = Path::new("/repo/osaca_app/rust/libfluxcore");
         let target_dir = package_dir.join("target");
         let command = libfluxcore_build_command(package_dir, &target_dir);
 
@@ -744,20 +744,20 @@ mod tests {
             command.env,
             vec![(
                 OsString::from("CARGO_TARGET_DIR"),
-                OsString::from("/repo/fluxer_app/rust/libfluxcore/target"),
+                OsString::from("/repo/osaca_app/rust/libfluxcore/target"),
             )]
         );
         assert_eq!(command.cwd.as_deref(), Some(package_dir));
         assert_eq!(
             command.args.last(),
             Some(&OsString::from(
-                "/repo/fluxer_app/rust/libfluxcore/Cargo.toml"
+                "/repo/osaca_app/rust/libfluxcore/Cargo.toml"
             ))
         );
         assert_eq!(
             libfluxcore_wasm_path(&target_dir),
             Path::new(
-                "/repo/fluxer_app/rust/libfluxcore/target/wasm32-unknown-unknown/release/libfluxcore.wasm"
+                "/repo/osaca_app/rust/libfluxcore/target/wasm32-unknown-unknown/release/libfluxcore.wasm"
             )
         );
     }
@@ -869,16 +869,16 @@ mod tests {
 
     #[test]
     fn libfluxwebp_cflags_select_sse2_for_simd_and_oz_for_scalar() {
-        let crate_dir = Path::new("/repo/fluxer_app/rust/libfluxwebp");
+        let crate_dir = Path::new("/repo/osaca_app/rust/libfluxwebp");
         assert_eq!(
             LibfluxwebpVariant::Simd.cflags(crate_dir),
-            "-isystem /repo/fluxer_app/rust/libfluxwebp/shim -isystem \
-             /repo/fluxer_app/rust/libfluxwebp/simd -msimd128 -DEMSCRIPTEN -D__SSE__ -D__SSE2__ \
+            "-isystem /repo/osaca_app/rust/libfluxwebp/shim -isystem \
+             /repo/osaca_app/rust/libfluxwebp/simd -msimd128 -DEMSCRIPTEN -D__SSE__ -D__SSE2__ \
              -DWEBP_HAVE_SSE2 -DNDEBUG -O3"
         );
         assert_eq!(
             LibfluxwebpVariant::Scalar.cflags(crate_dir),
-            "-isystem /repo/fluxer_app/rust/libfluxwebp/shim -DNDEBUG -Oz"
+            "-isystem /repo/osaca_app/rust/libfluxwebp/shim -DNDEBUG -Oz"
         );
     }
 

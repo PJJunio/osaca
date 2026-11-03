@@ -13,8 +13,8 @@ import type {
 	InstanceRegistration,
 	InstanceServices,
 	InstanceSso,
-} from '@fluxer/instance_bootstrap/src/Types';
-import type {LimitConfigSnapshot, LimitConfigWireFormat} from '@fluxer/limits/src/LimitTypes';
+} from '@osaca/instance_bootstrap/src/Types';
+import type {LimitConfigSnapshot, LimitConfigWireFormat} from '@osaca/limits/src/LimitTypes';
 
 export interface DiscoveryStaticInput {
 	apiCodeVersion: number;

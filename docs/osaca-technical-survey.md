@@ -38,7 +38,7 @@ Today a Fluxer Operator sees, by design:
 
 ## 2. Fluxer baseline
 
-Surveyed from the code on 2026-11-03. File paths are as inherited (pre-rename).
+Surveyed from the code on 2026-11-03. File paths below are as inherited, before the rename; replace `fluxer_` with `osaca_` to find them today ([[0001-hard-fork-as-osaca]]).
 
 ### 2.1 Architecture
 
@@ -213,6 +213,8 @@ These branches were not covered in the design session and need their own decisio
 - [ ] **Presence and typing indicators (F1).** These are metadata. Encrypt them, minimise them, or make them opt-in?
 - [ ] **Rate limiting without IPs (F0).** The concrete token / proof-of-work design ([[0009-metadata-minimisation-and-anonymous-accounts]]).
 - [ ] **Data export (F1).** Today the server builds a user's data archive. Under E2EE the export has to be built by the client.
+- [ ] **Artwork (F0).** Logos, wordmarks and tray icons were renamed to `osaca-*` but still show Fluxer's art, whose marks are not licensed to OSACA. Replace them before any public release.
+- [ ] **Placeholder domains (F0).** Fluxer domains became `*.osaca.example`. Every hard-coded default has to become operator configuration or be removed.
 
 ## Decision log
 

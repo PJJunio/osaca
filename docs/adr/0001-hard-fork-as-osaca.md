@@ -18,7 +18,9 @@ Fluxer has no encryption and is hard to contribute to upstream. E2EE changes the
 - OSACA is a **hard fork**. Upstream fixes are cherry-picked by hand when useful, and there is no attempt to stay mergeable.
 - The license stays **AGPL-3.0-or-later**. Fluxer is credited in the README and NOTICE.
 - One early **mechanical rename** commit changes `fluxer_*` to `osaca_*` across directories, crates, packages, strings and domains, before the codebases diverge.
-- Fluxer artwork is replaced. Until then it is used under CC BY-SA 4.0 with attribution.
+- Fluxer-owned domains (`fluxer.com`, `fluxer.app`, `fluxer.gg`, `fluxer.dev`, `fluxer.media` and subdomains) become the reserved placeholder **`osaca.example`** (RFC 2606), so no OSACA build ever connects to Fluxer's servers.
+- Copyright and attribution notices ("Fluxer Platform AB", "Fluxer contributors") and license files stay verbatim.
+- Fluxer artwork is replaced. Until then the files are renamed to `osaca-*` and used under CC BY-SA 4.0 with attribution.
 - **Code, commits, technical docs and ADRs are written in English.** The README is in English and Portuguese.
 
 ## Consequences

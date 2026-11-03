@@ -1,5 +1,5 @@
 {
-	"name": "@fluxer/snowflake",
+	"name": "@osaca/snowflake",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -16,7 +16,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@fluxer/constants": "workspace:*",
+		"@osaca/constants": "workspace:*",
 		"itty-time": "catalog:"
 	},
 	"devDependencies": {

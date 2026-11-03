@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import type {VoiceEngineV2ExternalEventListener} from '@fluxer/voice_engine_v2/src/implementations/VoiceEngineV2ImplementationBase';
+import type {VoiceEngineV2ExternalEventListener} from '@osaca/voice_engine_v2/src/implementations/VoiceEngineV2ImplementationBase';
 import {
 	type VoiceEngineV2Driver,
 	VoiceEngineV2ImplementationBase,
-} from '@fluxer/voice_engine_v2/src/implementations/VoiceEngineV2ImplementationBase';
+} from '@osaca/voice_engine_v2/src/implementations/VoiceEngineV2ImplementationBase';
 import type {
 	DevicePort,
 	DiagnosticsPort,
@@ -19,8 +19,8 @@ import type {
 	VoiceEngineV2EventSourcePort,
 	VoiceEngineV2HostPorts,
 	VoiceStateIngestionPort,
-} from '@fluxer/voice_engine_v2/src/ports';
-import {unsupportedPortError} from '@fluxer/voice_engine_v2/src/ports';
+} from '@osaca/voice_engine_v2/src/ports';
+import {unsupportedPortError} from '@osaca/voice_engine_v2/src/ports';
 import type {
 	VoiceEngineV2CameraEncodingOptions,
 	VoiceEngineV2CameraOptions,
@@ -42,7 +42,7 @@ import type {
 	VoiceEngineV2ScreenEncodingOptions,
 	VoiceEngineV2ScreenOptions,
 	VoiceEngineV2Stats,
-} from '@fluxer/voice_engine_v2/src/protocol/types';
+} from '@osaca/voice_engine_v2/src/protocol/types';
 
 export class VoiceEngineV2HostPortImplementation extends VoiceEngineV2ImplementationBase {
 	readonly kind = 'native' as const;

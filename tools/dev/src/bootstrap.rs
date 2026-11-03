@@ -22,13 +22,13 @@ pub async fn bootstrap(skip_install: bool) -> Result<()> {
         )?;
     }
     run_command(
-        &["sh", "fluxer_static/fetch-spellcheck-dictionaries.sh"],
+        &["sh", "osaca_static/fetch-spellcheck-dictionaries.sh"],
         RunOptions::default(),
     )?;
     setup_gateway_config()?;
     wait_core_infra().await?;
     bootstrap_schema().await?;
-    println!("Fluxer dev bootstrap complete.");
+    println!("OSACA dev bootstrap complete.");
     Ok(())
 }
 

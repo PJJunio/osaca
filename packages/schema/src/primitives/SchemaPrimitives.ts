@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {ValidationErrorCodes} from '@fluxer/constants/src/ValidationErrorCodes';
-import {type BitflagEntry, type EnumEntry, schemaMetadata, withSchemaMetadata} from '@fluxer/schema/src/SchemaMetadata';
+import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
+import {type BitflagEntry, type EnumEntry, schemaMetadata, withSchemaMetadata} from '@osaca/schema/src/SchemaMetadata';
 import {z} from 'zod';
 
 export function withOpenApiType<T extends z.ZodType>(schema: T, typeName: string): T {

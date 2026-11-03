@@ -1,0 +1,56 @@
+services:
+  livekit:
+    image: ${OSACA_LIVEKIT_IMAGE:-livekit/livekit-server:v1.12.0}
+    restart: unless-stopped
+    stop_grace_period: ${OSACA_VOICE_STOP_GRACE:-15m}
+    deploy:
+      resources:
+        limits:
+          memory: ${OSACA_VOICE_MEMORY_LIMIT:-2g}
+    logging:
+      driver: json-file
+      options:
+        max-size: ${OSACA_LOG_MAX_SIZE:-10m}
+        max-file: "${OSACA_LOG_MAX_FILE:-3}"
+    environment:
+      GOMEMLIMIT: ${OSACA_VOICE_GOMEMLIMIT:-1700MiB}
+      LIVEKIT_KEYS: "${OSACA_VOICE_API_KEY:?Set OSACA_VOICE_API_KEY}: ${OSACA_VOICE_API_SECRET:?Set OSACA_VOICE_API_SECRET}"
+      LIVEKIT_CONFIG: |
+        port: 7880
+        log_level: ${OSACA_LIVEKIT_LOG_LEVEL:-info}
+        rtc:
+          tcp_port: ${OSACA_VOICE_TCP_PORT:-7881}
+          udp_port: ${OSACA_VOICE_UDP_PORT:-7882}
+          use_external_ip: ${OSACA_VOICE_USE_EXTERNAL_IP:-true}
+          node_ip: "${OSACA_VOICE_NODE_IP:-}"
+          ips:
+            includes: ${OSACA_VOICE_ICE_IPS:-[]}
+          stun_servers:
+            - ${OSACA_LIVEKIT_STUN_PRIMARY:-stun.l.google.com:19302}
+            - ${OSACA_LIVEKIT_STUN_SECONDARY:-stun1.l.google.com:19302}
+          turn_servers: ${OSACA_LIVEKIT_TURN_SERVERS:-[]}
+        turn:
+          enabled: false
+        webhook:
+          api_key: ${OSACA_VOICE_API_KEY:?Set OSACA_VOICE_API_KEY}
+          urls:
+            - ${OSACA_VOICE_WEBHOOK_URL:?Set OSACA_VOICE_WEBHOOK_URL}
+    ports:
+      - "${OSACA_VOICE_BIND_IP:+${OSACA_VOICE_BIND_IP}:}${OSACA_VOICE_TCP_PORT:-7881}:${OSACA_VOICE_TCP_PORT:-7881}/tcp"
+      - "${OSACA_VOICE_BIND_IP:+${OSACA_VOICE_BIND_IP}:}${OSACA_VOICE_UDP_PORT:-7882}:${OSACA_VOICE_UDP_PORT:-7882}/udp"
+    networks:
+      voice:
+        aliases:
+          - voice-${OSACA_VOICE_ID:?Set OSACA_VOICE_ID}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:7880/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+      start_interval: 1s
+
+networks:
+  voice:
+    external: true
+    name: ${OSACA_VOICE_NETWORK:-osaca-voice}

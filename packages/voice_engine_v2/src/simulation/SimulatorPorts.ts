@@ -4,8 +4,8 @@ import assert from 'node:assert/strict';
 import type {
 	VoiceEngineV2Driver,
 	VoiceEngineV2ExternalEventListener,
-} from '@fluxer/voice_engine_v2/src/implementations/VoiceEngineV2ImplementationBase';
-import type {VoiceEngineV2Event} from '@fluxer/voice_engine_v2/src/protocol/events';
+} from '@osaca/voice_engine_v2/src/implementations/VoiceEngineV2ImplementationBase';
+import type {VoiceEngineV2Event} from '@osaca/voice_engine_v2/src/protocol/events';
 import type {
 	VoiceEngineV2CameraEncodingOptions,
 	VoiceEngineV2CameraOptions,
@@ -28,7 +28,7 @@ import type {
 	VoiceEngineV2ScreenEncodingOptions,
 	VoiceEngineV2ScreenOptions,
 	VoiceEngineV2Stats,
-} from '@fluxer/voice_engine_v2/src/protocol/types';
+} from '@osaca/voice_engine_v2/src/protocol/types';
 
 export interface SimulatorDriverFaultPolicy {
 	shouldDropConnect(): boolean;

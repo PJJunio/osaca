@@ -1,4 +1,4 @@
-import type {OpenAPISchema} from '@fluxer/openapi/src/OpenAPITypes';
+import type {OpenAPISchema} from '@osaca/openapi/src/OpenAPITypes';
 
 const DATA_KEYWORDS = new Set(['const', 'default', 'enum', 'example', 'examples']);
 const OBJECT_MAP_KEYWORDS = new Set([

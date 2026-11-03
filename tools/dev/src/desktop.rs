@@ -12,14 +12,14 @@ use std::process::{Command, Stdio};
 use std::thread::sleep;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-pub const DEVELOPMENT_APP_NAME: &str = "Fluxer Development";
+pub const DEVELOPMENT_APP_NAME: &str = "OSACA Development";
 pub const DEFAULT_INSTALL_DIR: &str = "/Applications";
 const DEVELOPMENT_CHANNEL: &str = "development";
-const DEVELOPMENT_BUNDLE_ID: &str = "app.fluxer.development";
-const DEVELOPMENT_PROTOCOL_SCHEME: &str = "fluxer-development";
-const PRODUCTION_PROTOCOL_SCHEME: &str = "fluxer";
+const DEVELOPMENT_BUNDLE_ID: &str = "app.osaca.development";
+const DEVELOPMENT_PROTOCOL_SCHEME: &str = "osaca-development";
+const PRODUCTION_PROTOCOL_SCHEME: &str = "osaca";
 const RENDERER_BUILD_VERSION: &str = "dev";
-const RENDERER_SOURCE_PATHS: &[&str] = &["fluxer_app", "packages", "pnpm-lock.yaml"];
+const RENDERER_SOURCE_PATHS: &[&str] = &["osaca_app", "packages", "pnpm-lock.yaml"];
 const RENDERER_FORBIDDEN_ENTRIES: &[&str] = &["sw.js", "sw.js.map"];
 const DEVELOPER_ID_PREFIX: &str = "Developer ID Application: ";
 const APP_QUIT_TIMEOUT: Duration = Duration::from_secs(15);
@@ -27,23 +27,23 @@ const LSREGISTER: &str = "/System/Library/Frameworks/CoreServices.framework/Fram
 const MACOS_DEV_ELECTRON_USAGE_DESCRIPTIONS: &[(&str, &str)] = &[
     (
         "NSMicrophoneUsageDescription",
-        "Fluxer needs access to your microphone to enable voice chat features.",
+        "OSACA needs access to your microphone to enable voice chat features.",
     ),
     (
         "NSCameraUsageDescription",
-        "Fluxer needs access to your camera to enable video chat features.",
+        "OSACA needs access to your camera to enable video chat features.",
     ),
     (
         "NSAppleEventsUsageDescription",
-        "Fluxer needs access to Apple Events for automation features.",
+        "OSACA needs access to Apple Events for automation features.",
     ),
     (
         "NSAudioCaptureUsageDescription",
-        "Fluxer captures audio from the screen or window you choose to share.",
+        "OSACA captures audio from the screen or window you choose to share.",
     ),
     (
         "NSScreenCaptureUsageDescription",
-        "Fluxer captures the screen or window you choose to share.",
+        "OSACA captures the screen or window you choose to share.",
     ),
 ];
 
@@ -266,7 +266,7 @@ fn ensure_renderer(rebuild: bool) -> Result<(PathBuf, String)> {
     }
     println!("Building the renderer for the development app...");
     run_command(
-        &["pnpm", "--filter", "fluxer_app", "build:desktop"],
+        &["pnpm", "--filter", "osaca_app", "build:desktop"],
         RunOptions {
             cwd: ROOT.as_path(),
             env: vec![
@@ -284,7 +284,7 @@ fn ensure_renderer(rebuild: bool) -> Result<(PathBuf, String)> {
             ..RunOptions::default()
         },
     )?;
-    let app_dist = ROOT.join("fluxer_app/dist");
+    let app_dist = ROOT.join("osaca_app/dist");
     verify_renderer_tree(&app_dist)?;
     remove_path(&stamp_path)?;
     remove_path(&cache)?;
@@ -439,20 +439,20 @@ pub fn build_desktop(
                         Some(DEVELOPMENT_CHANNEL.to_owned()),
                     ),
                     (
-                        "FLUXER_OFFLINE".to_owned(),
+                        "OSACA_OFFLINE".to_owned(),
                         (delivery == RendererDelivery::Offline).then(|| "1".to_owned()),
                     ),
                     (
-                        "FLUXER_MODULES".to_owned(),
+                        "OSACA_MODULES".to_owned(),
                         (delivery == RendererDelivery::Modules).then(|| "1".to_owned()),
                     ),
                     (
-                        "FLUXER_SKIP_NATIVE".to_owned(),
+                        "OSACA_SKIP_NATIVE".to_owned(),
                         skip_native.then(|| "true".to_owned()),
                     ),
                     ("NODE_ENV".to_owned(), Some("production".to_owned())),
                     (
-                        "FLUXER_DESKTOP_PRODUCTION".to_owned(),
+                        "OSACA_DESKTOP_PRODUCTION".to_owned(),
                         Some("true".to_owned()),
                     ),
                     ("BUILD_VERSION".to_owned(), Some(version.clone())),
@@ -863,7 +863,7 @@ pub fn electron_args(args: &[String]) -> Vec<String> {
     let mut runtime_args = Vec::new();
     if cfg!(target_os = "linux")
         && Path::new("/.dockerenv").exists()
-        && env::var("FLUXER_ELECTRON_NO_SANDBOX").as_deref() != Ok("0")
+        && env::var("OSACA_ELECTRON_NO_SANDBOX").as_deref() != Ok("0")
     {
         runtime_args.push("--no-sandbox".to_owned());
     }
@@ -941,7 +941,7 @@ pub fn run_desktop(
         ensure_desktop_dependencies()?;
     }
     patch_macos_dev_electron_info_plist()?;
-    let mut args = vec!["--fluxer-log-renderer-console".to_owned()];
+    let mut args = vec!["--osaca-log-renderer-console".to_owned()];
     args.extend(extra_args.iter().cloned());
     let command = electron_command(&args);
     let refs: Vec<_> = command.iter().map(String::as_str).collect();

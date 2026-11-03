@@ -5,19 +5,19 @@ import {
 	MessageAttachmentFlagsDescriptions,
 	MessageFlags,
 	MessageFlagsDescriptions,
-} from '@fluxer/constants/src/ChannelConstants';
-import {ChannelResponse, ThreadChannelResponse} from '@fluxer/schema/src/domains/channel/ChannelSchemas';
-import {ThreadMemberResponse} from '@fluxer/schema/src/domains/channel/ThreadSchemas';
-import type {GuildMemberData} from '@fluxer/schema/src/domains/guild/GuildMemberSchemas';
-import {type MessageEmbed, MessageEmbedResponse} from '@fluxer/schema/src/domains/message/EmbedSchemas';
-import {type UserPartial, UserPartialResponse} from '@fluxer/schema/src/domains/user/UserResponseSchemas';
-import {MessageReferenceTypeSchema, MessageTypeSchema} from '@fluxer/schema/src/primitives/MessageValidators';
+} from '@osaca/constants/src/ChannelConstants';
+import {ChannelResponse, ThreadChannelResponse} from '@osaca/schema/src/domains/channel/ChannelSchemas';
+import {ThreadMemberResponse} from '@osaca/schema/src/domains/channel/ThreadSchemas';
+import type {GuildMemberData} from '@osaca/schema/src/domains/guild/GuildMemberSchemas';
+import {type MessageEmbed, MessageEmbedResponse} from '@osaca/schema/src/domains/message/EmbedSchemas';
+import {type UserPartial, UserPartialResponse} from '@osaca/schema/src/domains/user/UserResponseSchemas';
+import {MessageReferenceTypeSchema, MessageTypeSchema} from '@osaca/schema/src/primitives/MessageValidators';
 import {
 	createBitflagInt32Type,
 	Int32Type,
 	NonNegativeSafeIntegerType,
 	SnowflakeStringType,
-} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 export const MessageAttachmentResponse = z.object({

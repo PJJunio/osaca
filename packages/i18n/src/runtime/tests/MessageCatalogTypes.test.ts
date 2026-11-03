@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import type {MessageArgsForTemplate, MessageVariablesForTemplate} from '@fluxer/i18n/src/runtime/MessageCatalogTypes';
+import type {MessageArgsForTemplate, MessageVariablesForTemplate} from '@osaca/i18n/src/runtime/MessageCatalogTypes';
 import {
 	extractMessageTemplatePlaceholders,
 	extractMessageTemplateVariables,
 	validateMessageTemplateVariables,
-} from '@fluxer/i18n/src/runtime/MessageCatalogTypes';
+} from '@osaca/i18n/src/runtime/MessageCatalogTypes';
 import {describe, expect, expectTypeOf, it} from 'vitest';
 
 describe('message catalog type helpers', () => {

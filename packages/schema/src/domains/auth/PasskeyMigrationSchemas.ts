@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {WebAuthnRegistrationResponse} from '@fluxer/schema/src/domains/auth/WebAuthnSchemas';
-import {createStringType} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+import {WebAuthnRegistrationResponse} from '@osaca/schema/src/domains/auth/WebAuthnSchemas';
+import {createStringType} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 export const PasskeyMigrationResponse = z.object({

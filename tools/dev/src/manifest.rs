@@ -7,7 +7,7 @@ pub const LOOPBACK_HOST: &str = "127.0.0.1";
 pub const ANY_HOST: &str = "0.0.0.0";
 
 pub const DEV_PROXY_PORT: u16 = 8088;
-pub const DEV_PROXY_GATEWAY_PORTS_ENV: &str = "FLUXER_DEV_PROXY_GATEWAY_PORTS";
+pub const DEV_PROXY_GATEWAY_PORTS_ENV: &str = "OSACA_DEV_PROXY_GATEWAY_PORTS";
 pub const APP_PORT: u16 = 3000;
 pub const APP_PROXY_PORT: u16 = 8773;
 pub const ADMIN_PORT: u16 = 3020;
@@ -52,7 +52,7 @@ pub const PROXY_ROUTES: &[ProxyRoute] = &[
         alternate_ports: &[],
     },
     ProxyRoute {
-        prefix: "/fluxer-uploads",
+        prefix: "/osaca-uploads",
         host: LOOPBACK_HOST,
         port: 8333,
         strip_prefix: false,
@@ -156,32 +156,32 @@ pub fn rust_services() -> Vec<RustServiceSpec> {
     vec![
         RustServiceSpec {
             name: "gifs",
-            package: "fluxer-gifs",
-            path: ROOT.join("fluxer_gifs"),
+            package: "osaca-gifs",
+            path: ROOT.join("osaca_gifs"),
             port_base: 8110,
         },
         RustServiceSpec {
             name: "messages",
-            package: "fluxer-messages",
-            path: ROOT.join("fluxer_messages"),
+            package: "osaca-messages",
+            path: ROOT.join("osaca_messages"),
             port_base: 8112,
         },
         RustServiceSpec {
             name: "snowflakes",
-            package: "fluxer-snowflakes",
-            path: ROOT.join("fluxer_snowflakes"),
+            package: "osaca-snowflakes",
+            path: ROOT.join("osaca_snowflakes"),
             port_base: 8120,
         },
         RustServiceSpec {
             name: "unfurl",
-            package: "fluxer-unfurl",
-            path: ROOT.join("fluxer_unfurl"),
+            package: "osaca-unfurl",
+            path: ROOT.join("osaca_unfurl"),
             port_base: 8122,
         },
         RustServiceSpec {
             name: "users",
-            package: "fluxer-users",
-            path: ROOT.join("fluxer_users"),
+            package: "osaca-users",
+            path: ROOT.join("osaca_users"),
             port_base: 8124,
         },
     ]

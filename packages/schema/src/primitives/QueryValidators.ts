@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {ValidationErrorCodes} from '@fluxer/constants/src/ValidationErrorCodes';
-import {IsoTimestampStringType} from '@fluxer/schema/src/primitives/DateValidators';
+import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
+import {IsoTimestampStringType} from '@osaca/schema/src/primitives/DateValidators';
 import {z} from 'zod';
 
 const TRUE_VALUES = ['true', 'True', '1'];

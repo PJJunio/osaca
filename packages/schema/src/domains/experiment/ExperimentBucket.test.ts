@@ -5,8 +5,8 @@ import {
 	type ExperimentTargeting,
 	experimentBucket,
 	experimentRolloutCountryIncludes,
-} from '@fluxer/schema/src/domains/experiment/ExperimentBucket';
-import vectors from '@fluxer/schema/src/domains/experiment/ExperimentBucketVectors.json' with {type: 'json'};
+} from '@osaca/schema/src/domains/experiment/ExperimentBucket';
+import vectors from '@osaca/schema/src/domains/experiment/ExperimentBucketVectors.json' with {type: 'json'};
 import {describe, expect, test} from 'vitest';
 
 describe('ExperimentRolloutCountryCodesSchema', () => {

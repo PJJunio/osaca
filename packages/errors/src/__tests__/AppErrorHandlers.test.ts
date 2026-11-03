@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {APIErrorCodes} from '@fluxer/constants/src/ApiErrorCodes';
-import {Locales} from '@fluxer/constants/src/Locales';
-import {AppErrorHandler, type BaseHonoEnv} from '@fluxer/errors/src/domains/core/ErrorHandlers';
+import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
+import {Locales} from '@osaca/constants/src/Locales';
+import {AppErrorHandler, type BaseHonoEnv} from '@osaca/errors/src/domains/core/ErrorHandlers';
 import {Hono} from 'hono';
 import {describe, expect, it} from 'vitest';
 

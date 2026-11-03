@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {createECDH} from 'node:crypto';
-import {isConfigObject} from '@fluxer/config/src/config_loader/ConfigObject';
-import {buildNamedFluxerEnvOverrides, readEnvValue} from '@fluxer/config/src/config_loader/EnvironmentOverrides';
+import {isConfigObject} from '@osaca/config/src/config_loader/ConfigObject';
+import {buildNamedOsacaEnvOverrides, readEnvValue} from '@osaca/config/src/config_loader/EnvironmentOverrides';
 import {
 	buildUrl,
 	type DerivedEndpoints,
@@ -10,25 +10,25 @@ import {
 	normalizePublicEndpoint,
 	parsePublicOrigin,
 	parseWebOrigin,
-} from '@fluxer/config/src/EndpointDerivation';
+} from '@osaca/config/src/EndpointDerivation';
 import {
 	ACCOUNT_IDENTITY_MODE_NAMES,
 	CACHE_PURGE_ADAPTER_NAMES,
 	type MasterConfig,
 	STORE_PRODUCT_SLOT_NAMES,
 	TAG_STYLE_NAMES,
-} from '@fluxer/config/src/MasterConfig';
+} from '@osaca/config/src/MasterConfig';
 
 let cachedConfig: MasterConfig | null = null;
 
 const MAX_REPORT_RETENTION_DAYS = 36_500;
 
 const DEFAULT_PASSKEY_ORIGINS = [
-	'https://fluxer.app',
-	'https://web.fluxer.app',
-	'https://web.canary.fluxer.app',
-	'https://fluxer.com',
-	'https://canary.fluxer.com',
+	'https://osaca.example',
+	'https://web.osaca.example',
+	'https://web.canary.osaca.example',
+	'https://osaca.example',
+	'https://canary.osaca.example',
 	'android:apk-key-hash:keSY4bimyLqZQV7bKXgpa2xYuqXi0qZJzsYtp6gpx7w',
 	'android:apk-key-hash:Ld4qnT0TfBeHMT3Yu2H0WTwqlxgFs-32uDmwqtLndsk',
 ];
@@ -67,7 +67,7 @@ function defaultConfig(): MasterConfig {
 			cassandra: {
 				hosts: ['127.0.0.1'],
 				port: 9042,
-				keyspace: 'fluxer',
+				keyspace: 'osaca',
 				local_dc: 'datacenter1',
 				username: '',
 				password: '',
@@ -76,13 +76,13 @@ function defaultConfig(): MasterConfig {
 				url: '',
 				host: '127.0.0.1',
 				port: 5432,
-				database: 'fluxer',
-				username: 'fluxer',
-				password: 'fluxer',
+				database: 'osaca',
+				username: 'osaca',
+				password: 'osaca',
 				ssl: false,
 				ssl_ca: '',
 				max_connections: 20,
-				kv_table: 'fluxer_kv',
+				kv_table: 'osaca_kv',
 				prepared_statements: true,
 			},
 		},
@@ -93,10 +93,10 @@ function defaultConfig(): MasterConfig {
 			access_key_id: '',
 			secret_access_key: '',
 			buckets: {
-				cdn: 'fluxer',
-				uploads: 'fluxer-uploads',
-				reports: 'fluxer-reports',
-				harvests: 'fluxer-harvests',
+				cdn: 'osaca',
+				uploads: 'osaca-uploads',
+				reports: 'osaca-reports',
+				harvests: 'osaca-harvests',
 			},
 		},
 		services: {
@@ -152,7 +152,7 @@ function defaultConfig(): MasterConfig {
 			profile_pseudonym_secret: '',
 			sso_allow_private_addresses: false,
 			passkeys: {
-				rp_name: 'Fluxer',
+				rp_name: 'OSACA',
 				rp_id: '',
 				additional_allowed_origins: DEFAULT_PASSKEY_ORIGINS,
 			},
@@ -163,7 +163,7 @@ function defaultConfig(): MasterConfig {
 			},
 			bluesky: {
 				enabled: false,
-				client_name: 'Fluxer',
+				client_name: 'OSACA',
 				client_uri: '',
 				logo_uri: '',
 				tos_uri: '',
@@ -249,7 +249,7 @@ function defaultConfig(): MasterConfig {
 		instance: {
 			self_hosted: false,
 			branding: {
-				product_name: 'Fluxer',
+				product_name: 'OSACA',
 			},
 			setup: {
 				configured: false,
@@ -319,14 +319,14 @@ function requireString(value: string | undefined, envName: string): void {
 	}
 }
 
-const DEVELOPMENT_PROFILE_PSEUDONYM_SECRET = 'fluxer-dev-profile-pseudonym-secret';
+const DEVELOPMENT_PROFILE_PSEUDONYM_SECRET = 'osaca-dev-profile-pseudonym-secret';
 
 function applyProfilePseudonymSecret(config: MasterConfig): void {
 	if (config.auth.profile_pseudonym_secret.trim().length > 0) {
 		return;
 	}
 	if (config.env === 'production') {
-		throw missingSetting('FLUXER_PROFILE_PSEUDONYM_SECRET');
+		throw missingSetting('OSACA_PROFILE_PSEUDONYM_SECRET');
 	}
 	config.auth.profile_pseudonym_secret = DEVELOPMENT_PROFILE_PSEUDONYM_SECRET;
 }
@@ -381,21 +381,21 @@ function normalizeEmailFallbackConfig(config: MasterConfig): void {
 	if (!email.fallback) return;
 	const {domains, smtp}: Partial<NonNullable<typeof email.fallback>> = email.fallback;
 	const missing = (envName: string) => new Error(`${envName} is required when an email fallback provider is set`);
-	if (!domains?.length) throw missing('FLUXER_EMAIL_FALLBACK_DOMAINS');
-	if (!smtp?.host?.trim()) throw missing('FLUXER_EMAIL_FALLBACK_SMTP_HOST');
-	if (!smtp.username?.trim()) throw missing('FLUXER_EMAIL_FALLBACK_SMTP_USERNAME');
-	if (!smtp.password?.trim()) throw missing('FLUXER_EMAIL_FALLBACK_SMTP_PASSWORD');
+	if (!domains?.length) throw missing('OSACA_EMAIL_FALLBACK_DOMAINS');
+	if (!smtp?.host?.trim()) throw missing('OSACA_EMAIL_FALLBACK_SMTP_HOST');
+	if (!smtp.username?.trim()) throw missing('OSACA_EMAIL_FALLBACK_SMTP_USERNAME');
+	if (!smtp.password?.trim()) throw missing('OSACA_EMAIL_FALLBACK_SMTP_PASSWORD');
 	const port: unknown = smtp.port ?? DEFAULT_SMTP_PORT;
-	assertIntegerInRange(port, 'FLUXER_EMAIL_FALLBACK_SMTP_PORT', 1, 65_535);
-	validateSmtpHeaders(smtp.headers, 'FLUXER_EMAIL_FALLBACK_SMTP_HEADERS');
+	assertIntegerInRange(port, 'OSACA_EMAIL_FALLBACK_SMTP_PORT', 1, 65_535);
+	validateSmtpHeaders(smtp.headers, 'OSACA_EMAIL_FALLBACK_SMTP_HEADERS');
 	const normalizedDomains = domains.map((domain) => domain.trim().toLowerCase());
 	if (normalizedDomains.includes('*') && new Set(normalizedDomains).size > 1) {
-		throw new Error('FLUXER_EMAIL_FALLBACK_DOMAINS must be either * or a list of domains');
+		throw new Error('OSACA_EMAIL_FALLBACK_DOMAINS must be either * or a list of domains');
 	}
 	for (const domain of normalizedDomains) {
 		if (domain !== '*' && !EMAIL_DOMAIN_PATTERN.test(domain)) {
 			throw new Error(
-				`FLUXER_EMAIL_FALLBACK_DOMAINS entry ${JSON.stringify(domain)} must be a domain such as gmail.com`,
+				`OSACA_EMAIL_FALLBACK_DOMAINS entry ${JSON.stringify(domain)} must be a domain such as gmail.com`,
 			);
 		}
 	}
@@ -405,13 +405,13 @@ function normalizeEmailFallbackConfig(config: MasterConfig): void {
 function validateUploadRelaySecret(value: string): void {
 	const trimmed = value.trim();
 	if (trimmed.length === 0) {
-		throw missingSetting('FLUXER_MEDIA_PROXY_UPLOAD_RELAY_SECRET_BASE64');
+		throw missingSetting('OSACA_MEDIA_PROXY_UPLOAD_RELAY_SECRET_BASE64');
 	}
 	if (!/^[A-Za-z0-9+/]+={0,2}$/u.test(trimmed)) {
-		throw new Error('FLUXER_MEDIA_PROXY_UPLOAD_RELAY_SECRET_BASE64 must be base64');
+		throw new Error('OSACA_MEDIA_PROXY_UPLOAD_RELAY_SECRET_BASE64 must be base64');
 	}
 	if (Buffer.from(trimmed, 'base64').length < 32) {
-		throw new Error('FLUXER_MEDIA_PROXY_UPLOAD_RELAY_SECRET_BASE64 must decode to at least 32 bytes');
+		throw new Error('OSACA_MEDIA_PROXY_UPLOAD_RELAY_SECRET_BASE64 must decode to at least 32 bytes');
 	}
 }
 
@@ -429,10 +429,10 @@ function validateAttachmentUrlSecrets(values: Array<string>): void {
 			continue;
 		}
 		if (!isCanonicalStandardBase64(trimmed)) {
-			throw new Error('FLUXER_MEDIA_PROXY_ATTACHMENT_URL_SECRETS_BASE64 entries must be standard base64');
+			throw new Error('OSACA_MEDIA_PROXY_ATTACHMENT_URL_SECRETS_BASE64 entries must be standard base64');
 		}
 		if (Buffer.from(trimmed, 'base64').length < 32) {
-			throw new Error('FLUXER_MEDIA_PROXY_ATTACHMENT_URL_SECRETS_BASE64 entries must decode to at least 32 bytes');
+			throw new Error('OSACA_MEDIA_PROXY_ATTACHMENT_URL_SECRETS_BASE64 entries must decode to at least 32 bytes');
 		}
 	}
 }
@@ -459,19 +459,19 @@ const VAPID_REMEDY =
 	'Run rexctl doctor --fix to make a new pair. Browsers that have notifications on subscribe again on their next visit.';
 
 function vapidMismatch(): Error {
-	return new Error(`FLUXER_VAPID_PRIVATE_KEY does not match FLUXER_VAPID_PUBLIC_KEY. ${VAPID_REMEDY}`);
+	return new Error(`OSACA_VAPID_PRIVATE_KEY does not match OSACA_VAPID_PUBLIC_KEY. ${VAPID_REMEDY}`);
 }
 
 function validateVapidConfig(config: MasterConfig): void {
-	requireString(config.auth.vapid.public_key, 'FLUXER_VAPID_PUBLIC_KEY');
-	requireString(config.auth.vapid.private_key, 'FLUXER_VAPID_PRIVATE_KEY');
+	requireString(config.auth.vapid.public_key, 'OSACA_VAPID_PUBLIC_KEY');
+	requireString(config.auth.vapid.private_key, 'OSACA_VAPID_PRIVATE_KEY');
 	const pub = Buffer.from(config.auth.vapid.public_key, 'base64url');
 	const priv = Buffer.from(config.auth.vapid.private_key, 'base64url');
 	if (pub.length !== 65 || pub[0] !== 0x04) {
-		throw new Error(`FLUXER_VAPID_PUBLIC_KEY must be the base64url 65-byte uncompressed P-256 point. ${VAPID_REMEDY}`);
+		throw new Error(`OSACA_VAPID_PUBLIC_KEY must be the base64url 65-byte uncompressed P-256 point. ${VAPID_REMEDY}`);
 	}
 	if (priv.length !== 32) {
-		throw new Error(`FLUXER_VAPID_PRIVATE_KEY must be the base64url 32-byte P-256 scalar. ${VAPID_REMEDY}`);
+		throw new Error(`OSACA_VAPID_PRIVATE_KEY must be the base64url 32-byte P-256 scalar. ${VAPID_REMEDY}`);
 	}
 	let derived: Buffer;
 	try {
@@ -488,28 +488,28 @@ function validateVapidConfig(config: MasterConfig): void {
 
 function validatePostgresConfig(config: MasterConfig): void {
 	const postgres = config.database.postgres;
-	assertIntegerInRange(postgres.port, 'FLUXER_POSTGRES_PORT', 1, 65535);
-	assertIntegerInRange(postgres.max_connections, 'FLUXER_POSTGRES_MAX_CONNECTIONS', 1, 1000);
-	assertBoolean(postgres.ssl, 'FLUXER_POSTGRES_SSL');
-	assertIdentifier(postgres.kv_table, 'FLUXER_POSTGRES_KV_TABLE');
-	assertBoolean(postgres.prepared_statements, 'FLUXER_POSTGRES_PREPARED_STATEMENTS');
+	assertIntegerInRange(postgres.port, 'OSACA_POSTGRES_PORT', 1, 65535);
+	assertIntegerInRange(postgres.max_connections, 'OSACA_POSTGRES_MAX_CONNECTIONS', 1, 1000);
+	assertBoolean(postgres.ssl, 'OSACA_POSTGRES_SSL');
+	assertIdentifier(postgres.kv_table, 'OSACA_POSTGRES_KV_TABLE');
+	assertBoolean(postgres.prepared_statements, 'OSACA_POSTGRES_PREPARED_STATEMENTS');
 	if (config.env !== 'production' || config.database.backend !== 'postgres') {
 		return;
 	}
 	if (!postgres.url) {
-		requireString(postgres.host, 'FLUXER_POSTGRES_HOST');
-		requireString(postgres.database, 'FLUXER_POSTGRES_DATABASE');
-		requireString(postgres.username, 'FLUXER_POSTGRES_USERNAME');
-		requireString(postgres.password, 'FLUXER_POSTGRES_PASSWORD');
+		requireString(postgres.host, 'OSACA_POSTGRES_HOST');
+		requireString(postgres.database, 'OSACA_POSTGRES_DATABASE');
+		requireString(postgres.username, 'OSACA_POSTGRES_USERNAME');
+		requireString(postgres.password, 'OSACA_POSTGRES_PASSWORD');
 		if (['127.0.0.1', 'localhost'].includes(postgres.host.trim().toLowerCase())) {
-			throw new Error('FLUXER_POSTGRES_HOST must be explicitly configured for production');
+			throw new Error('OSACA_POSTGRES_HOST must be explicitly configured for production');
 		}
-		if (postgres.password === 'fluxer') {
-			throw new Error('FLUXER_POSTGRES_PASSWORD must not use the development default in production');
+		if (postgres.password === 'osaca') {
+			throw new Error('OSACA_POSTGRES_PASSWORD must not use the development default in production');
 		}
 	}
 	if (!postgres.ssl && !config.instance.self_hosted) {
-		throw new Error('FLUXER_POSTGRES_SSL must be true in production');
+		throw new Error('OSACA_POSTGRES_SSL must be true in production');
 	}
 }
 
@@ -519,20 +519,20 @@ function validateApiWorkerConfig(config: MasterConfig): void {
 		return;
 	}
 	if (worker.mode !== undefined) {
-		assertOneOf(worker.mode, ['all_lanes', 'single_lane', 'single_task'], 'FLUXER_API_WORKER_MODE');
+		assertOneOf(worker.mode, ['all_lanes', 'single_lane', 'single_task'], 'OSACA_API_WORKER_MODE');
 	}
 	if (worker.lane !== undefined) {
-		assertOneOf(worker.lane, ['realtime', 'unfurl', 'lifecycle', 'batch', 'crosspost'], 'FLUXER_API_WORKER_LANE');
+		assertOneOf(worker.lane, ['realtime', 'unfurl', 'lifecycle', 'batch', 'crosspost'], 'OSACA_API_WORKER_LANE');
 	}
 	if (worker.mode === 'single_task') {
-		requireString(worker.task, 'FLUXER_API_WORKER_TASK');
+		requireString(worker.task, 'OSACA_API_WORKER_TASK');
 	}
 }
 
 function validateReportRetentionConfig(config: MasterConfig): void {
 	const retention = config.report_retention;
-	assertIntegerInRange(retention.days, 'FLUXER_REPORT_RETENTION_DAYS', 1, MAX_REPORT_RETENTION_DAYS);
-	assertBoolean(retention.dry_run, 'FLUXER_REPORT_RETENTION_DRY_RUN');
+	assertIntegerInRange(retention.days, 'OSACA_REPORT_RETENTION_DAYS', 1, MAX_REPORT_RETENTION_DAYS);
+	assertBoolean(retention.dry_run, 'OSACA_REPORT_RETENTION_DRY_RUN');
 }
 
 function validateStorageChangeFeedConfig(config: MasterConfig): void {
@@ -542,7 +542,7 @@ function validateStorageChangeFeedConfig(config: MasterConfig): void {
 	}
 	if (feed.stream === undefined || !/^[A-Za-z0-9_-]+$/u.test(feed.stream)) {
 		throw new Error(
-			'FLUXER_API_STORAGE_CHANGE_FEED_STREAM must be letters, digits, underscores or hyphens when the storage change feed is enabled',
+			'OSACA_API_STORAGE_CHANGE_FEED_STREAM must be letters, digits, underscores or hyphens when the storage change feed is enabled',
 		);
 	}
 }
@@ -554,7 +554,7 @@ function normalizeAppOriginAliases(config: MasterConfig): void {
 			api.app_origin_aliases.map((alias, index) => {
 				const origin = parseWebOrigin(alias);
 				if (!origin) {
-					throw new Error(`FLUXER_APP_ORIGIN_ALIASES entry ${index + 1} must be an HTTP(S) origin`);
+					throw new Error(`OSACA_APP_ORIGIN_ALIASES entry ${index + 1} must be an HTTP(S) origin`);
 				}
 				return origin.origin;
 			}),
@@ -588,10 +588,10 @@ function validateCachePurgeTarget(
 function validateCachePurgeConfig(config: MasterConfig): void {
 	const cachePurge = config.integrations.cache_purge;
 	if (cachePurge.adapter === 'http') {
-		validateCachePurgeTarget(cachePurge.http, 'FLUXER_CACHE_PURGE_HTTP', ['http:', 'https:']);
+		validateCachePurgeTarget(cachePurge.http, 'OSACA_CACHE_PURGE_HTTP', ['http:', 'https:']);
 	}
 	if (cachePurge.adapter === 'controller') {
-		validateCachePurgeTarget(cachePurge.controller, 'FLUXER_CACHE_PURGE_CONTROLLER', ['https:']);
+		validateCachePurgeTarget(cachePurge.controller, 'OSACA_CACHE_PURGE_CONTROLLER', ['https:']);
 	}
 }
 
@@ -612,16 +612,16 @@ function validateStoreBillingConfig(config: MasterConfig): void {
 	const appStore = config.integrations.app_store;
 	for (const [index, app] of (appStore.apps ?? []).entries()) {
 		if (!isConfigObject(app) || typeof app.bundle_id !== 'string' || app.bundle_id.trim().length === 0) {
-			throw new Error(`FLUXER_APP_STORE_APPS entry ${index + 1} must have a bundle_id`);
+			throw new Error(`OSACA_APP_STORE_APPS entry ${index + 1} must have a bundle_id`);
 		}
 		if (typeof app.app_apple_id !== 'number' || !Number.isSafeInteger(app.app_apple_id) || app.app_apple_id <= 0) {
-			throw new Error(`FLUXER_APP_STORE_APPS entry ${index + 1} must have a numeric app_apple_id`);
+			throw new Error(`OSACA_APP_STORE_APPS entry ${index + 1} must have a numeric app_apple_id`);
 		}
 	}
-	validateStoreProductSlots(appStore.products, 'FLUXER_APP_STORE_PRODUCTS', (productKey) => productKey.length > 0);
+	validateStoreProductSlots(appStore.products, 'OSACA_APP_STORE_PRODUCTS', (productKey) => productKey.length > 0);
 	validateStoreProductSlots(
 		config.integrations.google_play.products,
-		'FLUXER_GOOGLE_PLAY_PRODUCTS',
+		'OSACA_GOOGLE_PLAY_PRODUCTS',
 		(productKey, slot) => {
 			const parts = productKey.split(':');
 			const isSubscription = slot === 'monthly' || slot === 'yearly';
@@ -633,10 +633,10 @@ function validateStoreBillingConfig(config: MasterConfig): void {
 	);
 	for (const userId of config.integrations.store_billing.sandbox_user_ids ?? []) {
 		if (!/^\d+$/.test(userId)) {
-			throw new Error('FLUXER_STORE_BILLING_SANDBOX_USER_IDS must be a comma separated list of user ids');
+			throw new Error('OSACA_STORE_BILLING_SANDBOX_USER_IDS must be a comma separated list of user ids');
 		}
 	}
-	assertBoolean(config.integrations.store_billing.sandbox_entitles_all, 'FLUXER_STORE_BILLING_SANDBOX_ENTITLES_ALL');
+	assertBoolean(config.integrations.store_billing.sandbox_entitles_all, 'OSACA_STORE_BILLING_SANDBOX_ENTITLES_ALL');
 }
 
 const AGE_POLICY_REGION_PATTERN = /^[A-Z]{2}(?:-[A-Z0-9]{1,3})?$/u;
@@ -657,11 +657,11 @@ function normalizeAgePolicyRegions(regions: Array<string> | undefined, envName: 
 function normalizeAgePolicyConfig(config: MasterConfig): void {
 	const agePolicy = config.instance.age_policy;
 	if (agePolicy.enabled !== undefined) {
-		assertBoolean(agePolicy.enabled, 'FLUXER_AGE_POLICY_ENABLED');
+		assertBoolean(agePolicy.enabled, 'OSACA_AGE_POLICY_ENABLED');
 	}
 	config.instance.age_policy = {
 		enabled: agePolicy.enabled,
-		restricted_regions: normalizeAgePolicyRegions(agePolicy.restricted_regions, 'FLUXER_AGE_POLICY_RESTRICTED_REGIONS'),
+		restricted_regions: normalizeAgePolicyRegions(agePolicy.restricted_regions, 'OSACA_AGE_POLICY_RESTRICTED_REGIONS'),
 	};
 }
 
@@ -687,7 +687,7 @@ function validateDomain(value: string, envName: string): void {
 
 function validatePublicEndpoints(endpoints: DerivedEndpoints): void {
 	for (const [key, value] of Object.entries(endpoints)) {
-		const envName = `FLUXER_${key.toUpperCase()}_ENDPOINT`;
+		const envName = `OSACA_${key.toUpperCase()}_ENDPOINT`;
 		requireString(value, envName);
 		const gateway = key === 'gateway';
 		const parsed = URL.parse(value);
@@ -714,21 +714,21 @@ function validatePublicEndpoints(endpoints: DerivedEndpoints): void {
 }
 
 function normalizeConfig(config: MasterConfig): MasterConfig {
-	assertOneOf(config.env, ['development', 'production', 'test'], 'FLUXER_ENV');
-	assertOneOf(config.domain.public_scheme, ['http', 'https'], 'FLUXER_PUBLIC_SCHEME');
-	assertOneOf(config.database.backend, ['postgres', 'cassandra'], 'FLUXER_DATABASE_BACKEND');
-	assertOneOf(config.internal.kv_mode, ['standalone', 'cluster'], 'FLUXER_KV_MODE');
-	assertOneOf(config.integrations.email.provider, ['smtp', 'none'], 'FLUXER_EMAIL_PROVIDER');
+	assertOneOf(config.env, ['development', 'production', 'test'], 'OSACA_ENV');
+	assertOneOf(config.domain.public_scheme, ['http', 'https'], 'OSACA_PUBLIC_SCHEME');
+	assertOneOf(config.database.backend, ['postgres', 'cassandra'], 'OSACA_DATABASE_BACKEND');
+	assertOneOf(config.internal.kv_mode, ['standalone', 'cluster'], 'OSACA_KV_MODE');
+	assertOneOf(config.integrations.email.provider, ['smtp', 'none'], 'OSACA_EMAIL_PROVIDER');
 	if (config.integrations.email.delivery !== undefined) {
-		assertOneOf(config.integrations.email.delivery, ['off', 'smtp'], 'FLUXER_EMAIL_DELIVERY');
+		assertOneOf(config.integrations.email.delivery, ['off', 'smtp'], 'OSACA_EMAIL_DELIVERY');
 	}
-	assertOneOf(config.integrations.search.engine, ['elasticsearch', 'meilisearch', 'none'], 'FLUXER_SEARCH_ENGINE');
-	assertOneOf(config.integrations.cache_purge.adapter, CACHE_PURGE_ADAPTER_NAMES, 'FLUXER_CACHE_PURGE_ADAPTER');
+	assertOneOf(config.integrations.search.engine, ['elasticsearch', 'meilisearch', 'none'], 'OSACA_SEARCH_ENGINE');
+	assertOneOf(config.integrations.cache_purge.adapter, CACHE_PURGE_ADAPTER_NAMES, 'OSACA_CACHE_PURGE_ADAPTER');
 	if (config.instance.tag_style !== null) {
-		assertOneOf(config.instance.tag_style, TAG_STYLE_NAMES, 'FLUXER_TAG_STYLE');
+		assertOneOf(config.instance.tag_style, TAG_STYLE_NAMES, 'OSACA_TAG_STYLE');
 	}
 	if (config.instance.account_identity !== null) {
-		assertOneOf(config.instance.account_identity, ACCOUNT_IDENTITY_MODE_NAMES, 'FLUXER_ACCOUNT_IDENTITY');
+		assertOneOf(config.instance.account_identity, ACCOUNT_IDENTITY_MODE_NAMES, 'OSACA_ACCOUNT_IDENTITY');
 	}
 	validatePostgresConfig(config);
 	validateApiWorkerConfig(config);
@@ -736,37 +736,37 @@ function normalizeConfig(config: MasterConfig): MasterConfig {
 	validateReportRetentionConfig(config);
 	validateCachePurgeConfig(config);
 	validateStoreBillingConfig(config);
-	validateSingleEmail(config.integrations.email.reply_to_email, 'FLUXER_EMAIL_REPLY_TO_EMAIL');
-	validateSingleEmail(config.integrations.email.support_alert_email ?? '', 'FLUXER_EMAIL_SUPPORT_ALERT_EMAIL');
+	validateSingleEmail(config.integrations.email.reply_to_email, 'OSACA_EMAIL_REPLY_TO_EMAIL');
+	validateSingleEmail(config.integrations.email.support_alert_email ?? '', 'OSACA_EMAIL_SUPPORT_ALERT_EMAIL');
 	normalizeEmailFallbackConfig(config);
 	normalizeAppOriginAliases(config);
 	normalizeAgePolicyConfig(config);
-	assertIntegerInRange(config.services.api.max_inflight_requests, 'FLUXER_API_MAX_INFLIGHT_REQUESTS', 1, 100_000);
+	assertIntegerInRange(config.services.api.max_inflight_requests, 'OSACA_API_MAX_INFLIGHT_REQUESTS', 1, 100_000);
 	assertIntegerInRange(
 		config.services.api.automated_message_deletion_delay_days,
-		'FLUXER_API_AUTOMATED_MESSAGE_DELETION_DELAY_DAYS',
+		'OSACA_API_AUTOMATED_MESSAGE_DELETION_DELAY_DAYS',
 		1,
 		365,
 	);
-	assertIntegerInRange(config.services.api.headers_timeout_ms, 'FLUXER_API_HEADERS_TIMEOUT_MS', 1_000, 3_600_000);
-	assertIntegerInRange(config.services.api.request_timeout_ms, 'FLUXER_API_REQUEST_TIMEOUT_MS', 1_000, 3_600_000);
-	assertIntegerInRange(config.domain.public_port, 'FLUXER_PUBLIC_PORT', 1, 65_535);
-	requireString(config.domain.base_domain, 'FLUXER_BASE_DOMAIN');
+	assertIntegerInRange(config.services.api.headers_timeout_ms, 'OSACA_API_HEADERS_TIMEOUT_MS', 1_000, 3_600_000);
+	assertIntegerInRange(config.services.api.request_timeout_ms, 'OSACA_API_REQUEST_TIMEOUT_MS', 1_000, 3_600_000);
+	assertIntegerInRange(config.domain.public_port, 'OSACA_PUBLIC_PORT', 1, 65_535);
+	requireString(config.domain.base_domain, 'OSACA_BASE_DOMAIN');
 	for (const key of ['base_domain', 'static_cdn_domain', 'invite_domain', 'gift_domain'] as const) {
-		validateDomain(config.domain[key], `FLUXER_${key.toUpperCase()}`);
+		validateDomain(config.domain[key], `OSACA_${key.toUpperCase()}`);
 	}
-	requireString(config.auth.sudo_mode_secret, 'FLUXER_SUDO_MODE_SECRET');
-	requireString(config.auth.connection_initiation_secret, 'FLUXER_CONNECTION_INITIATION_SECRET');
+	requireString(config.auth.sudo_mode_secret, 'OSACA_SUDO_MODE_SECRET');
+	requireString(config.auth.connection_initiation_secret, 'OSACA_CONNECTION_INITIATION_SECRET');
 	applyProfilePseudonymSecret(config);
 	validateVapidConfig(config);
-	requireString(config.s3?.access_key_id, 'FLUXER_S3_ACCESS_KEY_ID');
-	requireString(config.s3?.secret_access_key, 'FLUXER_S3_SECRET_ACCESS_KEY');
-	requireString(config.services.media_proxy.secret_key, 'FLUXER_MEDIA_PROXY_SECRET_KEY');
+	requireString(config.s3?.access_key_id, 'OSACA_S3_ACCESS_KEY_ID');
+	requireString(config.s3?.secret_access_key, 'OSACA_S3_SECRET_ACCESS_KEY');
+	requireString(config.services.media_proxy.secret_key, 'OSACA_MEDIA_PROXY_SECRET_KEY');
 	validateUploadRelaySecret(config.services.media_proxy.upload_relay.secret_base64);
 	validateAttachmentUrlSecrets(config.services.media_proxy.attachment_urls.secrets_base64);
-	requireString(config.services.admin.secret_key_base, 'FLUXER_ADMIN_SECRET_KEY_BASE');
-	requireString(config.services.admin.oauth_client_secret, 'FLUXER_ADMIN_OAUTH_CLIENT_SECRET');
-	requireString(config.services.gateway.rpc_auth_token, 'FLUXER_GATEWAY_RPC_AUTH_TOKEN');
+	requireString(config.services.admin.secret_key_base, 'OSACA_ADMIN_SECRET_KEY_BASE');
+	requireString(config.services.admin.oauth_client_secret, 'OSACA_ADMIN_OAUTH_CLIENT_SECRET');
+	requireString(config.services.gateway.rpc_auth_token, 'OSACA_GATEWAY_RPC_AUTH_TOKEN');
 	return config;
 }
 
@@ -785,7 +785,7 @@ function applyPublicOrigin(config: MasterConfig): MasterConfig {
 	const origin = parsePublicOrigin(raw);
 	if (!origin) {
 		throw new Error(
-			'FLUXER_PUBLIC_ORIGIN must be a scheme, host and optional port such as https://chat.example.com:8443',
+			'OSACA_PUBLIC_ORIGIN must be a scheme, host and optional port such as https://chat.example.com:8443',
 		);
 	}
 	return {
@@ -879,7 +879,7 @@ function normalizePasskeyOrigin(origin: string, index: number): string {
 		}
 	}
 	throw new Error(
-		`FLUXER_PASSKEY_ADDITIONAL_ALLOWED_ORIGINS entry ${index + 1} must be an HTTP(S) origin or a canonical Android signing-certificate origin`,
+		`OSACA_PASSKEY_ADDITIONAL_ALLOWED_ORIGINS entry ${index + 1} must be an HTTP(S) origin or a canonical Android signing-certificate origin`,
 	);
 }
 
@@ -900,10 +900,10 @@ export async function loadConfig(): Promise<MasterConfig> {
 	if (cachedConfig) {
 		return cachedConfig;
 	}
-	const overrides = buildNamedFluxerEnvOverrides(process.env);
+	const overrides = buildNamedOsacaEnvOverrides(process.env);
 	const merged = applySelfHostedEnvDefault(
 		applyPublicOrigin(mergeConfig(defaultConfig(), overrides)),
-		readEnvValue(process.env, 'FLUXER_ENV'),
+		readEnvValue(process.env, 'OSACA_ENV'),
 	);
 	const normalized = normalizeConfig(merged);
 	const derived = deriveEndpointsFromDomain(normalized.domain);
@@ -912,7 +912,7 @@ export async function loadConfig(): Promise<MasterConfig> {
 	const withPublicPort = applyPublicPort(normalized, endpoints);
 	normalizePasskeys(
 		withPublicPort,
-		readEnvValue(process.env, 'FLUXER_PASSKEY_ADDITIONAL_ALLOWED_ORIGINS') === undefined,
+		readEnvValue(process.env, 'OSACA_PASSKEY_ADDITIONAL_ALLOWED_ORIGINS') === undefined,
 	);
 	cachedConfig = withPublicPort;
 	return cachedConfig;

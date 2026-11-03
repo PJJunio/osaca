@@ -1,25 +1,25 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {DeletionReasons} from '@fluxer/constants/src/Core';
+import {DeletionReasons} from '@osaca/constants/src/Core';
 import {
 	PremiumFlags,
 	PremiumFlagsDescriptions,
 	UserFlags,
 	UserFlagsDescriptions,
-} from '@fluxer/constants/src/UserConstants';
-import {AccountTierSchema} from '@fluxer/schema/src/domains/account/AccountTierSchemas';
-import {ADMIN_ACL_COUNT, AdminAclType} from '@fluxer/schema/src/domains/admin/AdminAclType';
-import {CustomBadgeIdListResponse} from '@fluxer/schema/src/domains/admin/AdminBadgeSchemas';
+} from '@osaca/constants/src/UserConstants';
+import {AccountTierSchema} from '@osaca/schema/src/domains/account/AccountTierSchemas';
+import {ADMIN_ACL_COUNT, AdminAclType} from '@osaca/schema/src/domains/admin/AdminAclType';
+import {CustomBadgeIdListResponse} from '@osaca/schema/src/domains/admin/AdminBadgeSchemas';
 import {
 	BulkModerationBasis,
 	ModerationBasis,
 	NetworkBlockRequest,
 	SkippedNetworkBlock,
-} from '@fluxer/schema/src/domains/admin/EnforcementSchemas';
-import {AdminProfileBadgeResponse} from '@fluxer/schema/src/domains/user/ProfileBadgeSchemas';
-import {CalendarDateType} from '@fluxer/schema/src/primitives/DateValidators';
-import {NSFWLevelSchema} from '@fluxer/schema/src/primitives/GuildValidators';
-import {createQueryIntegerType, QueryBooleanType} from '@fluxer/schema/src/primitives/QueryValidators';
+} from '@osaca/schema/src/domains/admin/EnforcementSchemas';
+import {AdminProfileBadgeResponse} from '@osaca/schema/src/domains/user/ProfileBadgeSchemas';
+import {CalendarDateType} from '@osaca/schema/src/primitives/DateValidators';
+import {NSFWLevelSchema} from '@osaca/schema/src/primitives/GuildValidators';
+import {createQueryIntegerType, QueryBooleanType} from '@osaca/schema/src/primitives/QueryValidators';
 import {
 	createBitflagInt32Type,
 	createBitflagStringType,
@@ -29,8 +29,8 @@ import {
 	Int32Type,
 	SnowflakeStringType,
 	SnowflakeType,
-} from '@fluxer/schema/src/primitives/SchemaPrimitives';
-import {DiscriminatorType, EmailType, UsernameType} from '@fluxer/schema/src/primitives/UserValidators';
+} from '@osaca/schema/src/primitives/SchemaPrimitives';
+import {DiscriminatorType, EmailType, UsernameType} from '@osaca/schema/src/primitives/UserValidators';
 import {z} from 'zod';
 
 const DeletionReasonCodeType = createInt32EnumType(

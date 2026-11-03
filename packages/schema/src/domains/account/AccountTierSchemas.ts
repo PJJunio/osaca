@@ -11,10 +11,10 @@ import {
 	InteractionTierModes,
 	LastSessionCleanupModes,
 	VerificationBases,
-} from '@fluxer/constants/src/AccountConfigConstants';
-import {AccountTiers, AccountVerificationNeeds} from '@fluxer/constants/src/AccountTierConstants';
-import {CaptchaProviders} from '@fluxer/constants/src/CaptchaConstants';
-import {createNamedStringLiteralUnion, withOpenApiType} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+} from '@osaca/constants/src/AccountConfigConstants';
+import {AccountTiers, AccountVerificationNeeds} from '@osaca/constants/src/AccountTierConstants';
+import {CaptchaProviders} from '@osaca/constants/src/CaptchaConstants';
+import {createNamedStringLiteralUnion, withOpenApiType} from '@osaca/schema/src/primitives/SchemaPrimitives';
 
 export const AccountTierSchema = withOpenApiType(
 	createNamedStringLiteralUnion(

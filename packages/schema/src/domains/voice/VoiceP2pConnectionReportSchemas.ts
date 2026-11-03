@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {VOICE_P2P_MAX_PARTICIPANTS} from '@fluxer/constants/src/LimitConstants';
-import {createNamedStringLiteralUnion, Int32Type, SnowflakeType} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+import {VOICE_P2P_MAX_PARTICIPANTS} from '@osaca/constants/src/LimitConstants';
+import {createNamedStringLiteralUnion, Int32Type, SnowflakeType} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 const VOICE_P2P_CONNECTION_REPORTS_MAX = 8;

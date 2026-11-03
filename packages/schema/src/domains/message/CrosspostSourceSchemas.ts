@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {CustomBadgeIdListResponse} from '@fluxer/schema/src/domains/admin/AdminBadgeSchemas';
-import {GuildFeatureSchema} from '@fluxer/schema/src/domains/guild/GuildResponseSchemas';
-import {Int32Type, SnowflakeStringType} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+import {CustomBadgeIdListResponse} from '@osaca/schema/src/domains/admin/AdminBadgeSchemas';
+import {GuildFeatureSchema} from '@osaca/schema/src/domains/guild/GuildResponseSchemas';
+import {Int32Type, SnowflakeStringType} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 export const CrosspostSourceGuildResponse = z.object({

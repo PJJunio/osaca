@@ -11,18 +11,18 @@ export default [
 			'**/build/**',
 			'**/coverage/**',
 			'**/*.generated.*',
-			'fluxer_app/src/features/i18n/locales/*/messages.mjs',
+			'osaca_app/src/features/i18n/locales/*/messages.mjs',
 		],
 	},
 	{
-		files: ['fluxer_app/src/**/*.tsx'],
+		files: ['osaca_app/src/**/*.tsx'],
 		linterOptions: {
 			reportUnusedDisableDirectives: 'error',
 		},
 		languageOptions: {
 			parser: tseslint.parser,
 			parserOptions: {
-				project: './fluxer_app/tsconfig.json',
+				project: './osaca_app/tsconfig.json',
 				tsconfigRootDir: import.meta.dirname,
 			},
 		},

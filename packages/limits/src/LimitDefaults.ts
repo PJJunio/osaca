@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import type {LimitKey} from '@fluxer/constants/src/LimitConfigMetadata';
+import type {LimitKey} from '@osaca/constants/src/LimitConfigMetadata';
 import {
 	ATTACHMENT_MAX_SIZE_NON_PREMIUM,
 	ATTACHMENT_MAX_SIZE_PREMIUM,
@@ -39,7 +39,7 @@ import {
 	MAX_WEBHOOKS_PER_CHANNEL,
 	MAX_WEBHOOKS_PER_GUILD,
 	STICKER_MAX_SIZE,
-} from '@fluxer/constants/src/LimitConstants';
+} from '@osaca/constants/src/LimitConstants';
 
 export const DEFAULT_RESTRICTED_LIMITS: Record<LimitKey, number> = {
 	avatar_max_size: AVATAR_MAX_SIZE,

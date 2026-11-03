@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import * as ChannelConstants from '@fluxer/constants/src/ChannelConstants';
-import {ChannelTypes, isMessageTypeDeletable, MessageTypes} from '@fluxer/constants/src/ChannelConstants';
-import * as ThreadConstants from '@fluxer/constants/src/ThreadConstants';
+import * as ChannelConstants from '@osaca/constants/src/ChannelConstants';
+import {ChannelTypes, isMessageTypeDeletable, MessageTypes} from '@osaca/constants/src/ChannelConstants';
+import * as ThreadConstants from '@osaca/constants/src/ThreadConstants';
 import {
 	ChannelFlags,
 	isValidThreadMemberSettingsFlags,
@@ -10,7 +10,7 @@ import {
 	settableChannelFlags,
 	THREAD_MESSAGE_FLAG_MASK,
 	ThreadMemberFlags,
-} from '@fluxer/constants/src/ThreadConstants';
+} from '@osaca/constants/src/ThreadConstants';
 import {describe, expect, it} from 'vitest';
 
 function numericValues(value: unknown): Array<number> {

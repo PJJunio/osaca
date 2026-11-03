@@ -1,11 +1,11 @@
-import {isRecord} from '@fluxer/record_utils/src/RecordGuards';
+import {isRecord} from '@osaca/record_utils/src/RecordGuards';
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {parseArgs} from 'node:util';
-import {STATIC_I18N_LOCALES, type StaticI18nLocale} from '@fluxer/i18n/src/runtime/StaticLocaleFiles';
+import {STATIC_I18N_LOCALES, type StaticI18nLocale} from '@osaca/i18n/src/runtime/StaticLocaleFiles';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -42,16 +42,16 @@ const CATALOGS: Array<StaticCatalogConfig> = [
 	{
 		name: 'email',
 		kind: 'email',
-		sourceModulePath: path.join(REPO_ROOT, 'fluxer_api/pkgs/email/src/email_i18n/EmailI18nMessages.ts'),
+		sourceModulePath: path.join(REPO_ROOT, 'osaca_api/pkgs/email/src/email_i18n/EmailI18nMessages.ts'),
 		sourceExportName: 'EMAIL_I18N_MESSAGES',
-		weblateDir: path.join(REPO_ROOT, 'fluxer_api/pkgs/email/src/email_i18n/weblate'),
+		weblateDir: path.join(REPO_ROOT, 'osaca_api/pkgs/email/src/email_i18n/weblate'),
 	},
 	{
 		name: 'content',
 		kind: 'flat',
-		sourceModulePath: path.join(REPO_ROOT, 'fluxer_api/src/api/content_i18n/ContentI18nMessages.ts'),
+		sourceModulePath: path.join(REPO_ROOT, 'osaca_api/src/api/content_i18n/ContentI18nMessages.ts'),
 		sourceExportName: 'CONTENT_I18N_MESSAGES',
-		weblateDir: path.join(REPO_ROOT, 'fluxer_api/src/api/content_i18n/weblate'),
+		weblateDir: path.join(REPO_ROOT, 'osaca_api/src/api/content_i18n/weblate'),
 	},
 ];
 

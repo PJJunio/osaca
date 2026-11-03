@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {APIErrorCodes} from '@fluxer/constants/src/ApiErrorCodes';
+import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {
 	sanitizeRetryAfterDecimalSeconds,
 	sanitizeRetryAfterSeconds,
-} from '@fluxer/errors/src/domains/core/RetryAfterSeconds';
-import {ThrottledError} from '@fluxer/errors/src/domains/core/ThrottledError';
-import type {RateLimitMetadata} from '@fluxer/schema/src/domains/common/ErrorSchemas';
+} from '@osaca/errors/src/domains/core/RetryAfterSeconds';
+import {ThrottledError} from '@osaca/errors/src/domains/core/ThrottledError';
+import type {RateLimitMetadata} from '@osaca/schema/src/domains/common/ErrorSchemas';
 
 type RateLimitScope = 'global' | 'shared' | 'user';
 

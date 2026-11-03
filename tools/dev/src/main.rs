@@ -2,14 +2,14 @@
 
 use anyhow::{Context, Result, bail};
 use clap::{Args, Parser, Subcommand};
-use fluxer_dev::cassandra::{apply_schema, compute_diff, verify_schema, write_diff_file};
-use fluxer_dev::desktop::{
+use osaca_dev::cassandra::{apply_schema, compute_diff, verify_schema, write_diff_file};
+use osaca_dev::desktop::{
     DEFAULT_INSTALL_DIR, DesktopAppOptions, RendererDelivery, build_desktop, desktop_app,
     install_desktop_app, install_desktop_dependencies, package_desktop, run_desktop,
 };
-use fluxer_dev::env::merge_default_env_with_current;
-use fluxer_dev::manifest::{DEV_PROXY_PORT, LOCAL_APP_URL};
-use fluxer_dev::paths::{DEV_ENV_FILE, DEV_LOCAL_ENV_FILE, ROOT, ROOT_LOCAL_ENV_FILE};
+use osaca_dev::env::merge_default_env_with_current;
+use osaca_dev::manifest::{DEV_PROXY_PORT, LOCAL_APP_URL};
+use osaca_dev::paths::{DEV_ENV_FILE, DEV_LOCAL_ENV_FILE, ROOT, ROOT_LOCAL_ENV_FILE};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::process::Command as ProcessCommand;
@@ -24,7 +24,7 @@ const DEV_INFRA_SERVICES: &[&str] = &[
 ];
 
 #[derive(Debug, Parser)]
-#[command(name = "fluxer-dev")]
+#[command(name = "osaca-dev")]
 struct Cli {
     #[command(subcommand)]
     command: Command,
@@ -206,7 +206,7 @@ enum TunnelCommand {
         public_url: String,
     },
     Run {
-        #[arg(long, env = "FLUXER_CLOUDFLARE_TUNNEL_TOKEN", hide_env_values = true)]
+        #[arg(long, env = "OSACA_CLOUDFLARE_TUNNEL_TOKEN", hide_env_values = true)]
         token: Option<String>,
         #[arg(long)]
         token_file: Option<PathBuf>,
@@ -222,27 +222,27 @@ async fn main() -> Result<()> {
 
     match cli.command {
         Command::Bootstrap(args) => {
-            fluxer_dev::bootstrap::bootstrap(args.skip_install).await?;
+            osaca_dev::bootstrap::bootstrap(args.skip_install).await?;
         }
-        Command::PostStart => fluxer_dev::bootstrap::post_start().await?,
+        Command::PostStart => osaca_dev::bootstrap::post_start().await?,
         Command::Gateway(args) if args.mode == "single" => {
-            std::process::exit(fluxer_dev::gateway::run_gateway().await?)
+            std::process::exit(osaca_dev::gateway::run_gateway().await?)
         }
         Command::Gateway(_) => {
-            std::process::exit(fluxer_dev::gateway::run_gateway_cluster().await?)
+            std::process::exit(osaca_dev::gateway::run_gateway_cluster().await?)
         }
-        Command::Build => std::process::exit(fluxer_dev::tasks::run_build()?),
-        Command::Proxy(args) => fluxer_dev::proxy::run_proxy(&args.host, args.port).await?,
+        Command::Build => std::process::exit(osaca_dev::tasks::run_build()?),
+        Command::Proxy(args) => osaca_dev::proxy::run_proxy(&args.host, args.port).await?,
         Command::Dev(args) => {
             if args.cloudflare_tunnel {
-                fluxer_dev::tunnel::apply_cloudflare_public_url_env(args.public_url.as_deref())?;
+                osaca_dev::tunnel::apply_cloudflare_public_url_env(args.public_url.as_deref())?;
             } else if let Some(public_url) = args.public_url.as_deref() {
-                fluxer_dev::tunnel::apply_public_url_env(public_url)?;
+                osaca_dev::tunnel::apply_public_url_env(public_url)?;
             }
-            std::process::exit(fluxer_dev::dev::run_dev(&args.tasks, args.cloudflare_tunnel).await?)
+            std::process::exit(osaca_dev::dev::run_dev(&args.tasks, args.cloudflare_tunnel).await?)
         }
         Command::RustServices(args) => {
-            std::process::exit(fluxer_dev::rust_services::run_rust_services(&args.services).await?)
+            std::process::exit(osaca_dev::rust_services::run_rust_services(&args.services).await?)
         }
         Command::Infra(args) => run_infra(args.command)?,
         Command::Cassandra(args) => match args.command {
@@ -272,7 +272,7 @@ async fn main() -> Result<()> {
                 skip_native,
                 RendererDelivery::Offline,
             )?),
-            DesktopCommand::Pkgs => fluxer_dev::desktop_modules::ensure_pkgs_server()?,
+            DesktopCommand::Pkgs => osaca_dev::desktop_modules::ensure_pkgs_server()?,
             DesktopCommand::Package {
                 rebuild_renderer,
                 ad_hoc,
@@ -309,7 +309,7 @@ async fn main() -> Result<()> {
                 run_desktop(&extra_args, !no_build, rebuild_renderer, skip_native)?;
             }
             DesktopCommand::ExecDisclaimed { program, args } => {
-                fluxer_dev::disclaim::exec_disclaimed(&program, &args)?
+                osaca_dev::disclaim::exec_disclaimed(&program, &args)?
             }
         },
         Command::MediaProxy(args) => match args.command {
@@ -318,22 +318,22 @@ async fn main() -> Result<()> {
                 base_url,
                 path,
             } => {
-                fluxer_dev::media_proxy::run_dev_media_doctor(repair, &base_url, path.as_deref())
+                osaca_dev::media_proxy::run_dev_media_doctor(repair, &base_url, path.as_deref())
                     .await?;
             }
         },
         Command::Tunnel(args) => match args.command {
             TunnelCommand::Configure { public_url, token } => {
-                fluxer_dev::tunnel::write_cloudflare_public_url_file(&public_url)?;
+                osaca_dev::tunnel::write_cloudflare_public_url_file(&public_url)?;
                 if let Some(token) = token {
-                    fluxer_dev::tunnel::write_cloudflare_token_file(&token)?;
+                    osaca_dev::tunnel::write_cloudflare_token_file(&token)?;
                 }
             }
             TunnelCommand::PrintEnv { public_url } => {
-                print!("{}", fluxer_dev::tunnel::public_url_env_text(&public_url)?);
+                print!("{}", osaca_dev::tunnel::public_url_env_text(&public_url)?);
             }
             TunnelCommand::Run { token, token_file } => std::process::exit(
-                fluxer_dev::tunnel::run_cloudflare_tunnel(token, token_file).await?,
+                osaca_dev::tunnel::run_cloudflare_tunnel(token, token_file).await?,
             ),
         },
     }

@@ -7,7 +7,7 @@ import {
 	experimentAudienceIncludes,
 	experimentBucket,
 	experimentRolloutCountryIncludes,
-} from '@fluxer/schema/src/domains/experiment/ExperimentBucket';
+} from '@osaca/schema/src/domains/experiment/ExperimentBucket';
 import {z} from 'zod';
 
 const DOMAIN_MIGRATION_ROLLOUT_BASIS_POINTS_MAX = EXPERIMENT_BUCKET_RESOLUTION;

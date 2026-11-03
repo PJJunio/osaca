@@ -5,15 +5,15 @@ import {
 	BASE64_IMAGE_MAX_SIZE,
 	EMOJI_MAX_SIZE,
 	STICKER_MAX_SIZE,
-} from '@fluxer/constants/src/LimitConstants';
-import {ValidationErrorCodes} from '@fluxer/constants/src/ValidationErrorCodes';
+} from '@osaca/constants/src/LimitConstants';
+import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {
 	base64LengthForBytes,
 	createBase64ImageType,
 	createBase64StringType,
 	FilenameType,
 	isValidBase64,
-} from '@fluxer/schema/src/primitives/FileValidators';
+} from '@osaca/schema/src/primitives/FileValidators';
 import {describe, expect, it} from 'vitest';
 
 describe('FilenameType', () => {

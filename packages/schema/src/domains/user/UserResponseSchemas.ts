@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import type {AccountTier, AccountVerificationNeed} from '@fluxer/constants/src/AccountTierConstants';
+import type {AccountTier, AccountVerificationNeed} from '@osaca/constants/src/AccountTierConstants';
 import {
 	DEFAULT_GUILD_FOLDER_ICON,
 	FriendSourceFlags,
@@ -16,13 +16,13 @@ import {
 	ProfileFieldPrivacyFlagsDescriptions,
 	PublicUserFlags,
 	PublicUserFlagsDescriptions,
-} from '@fluxer/constants/src/UserConstants';
-import {AccountTierSchema, AccountVerificationNeedSchema} from '@fluxer/schema/src/domains/account/AccountTierSchemas';
-import {ConnectionResponse} from '@fluxer/schema/src/domains/connection/ConnectionSchemas';
-import {GuildMemberResponse} from '@fluxer/schema/src/domains/guild/GuildMemberSchemas';
-import {MessageResponseSchema} from '@fluxer/schema/src/domains/message/MessageResponseSchemas';
-import {ProfileBadgeListResponse} from '@fluxer/schema/src/domains/user/ProfileBadgeSchemas';
-import {LocaleSchema} from '@fluxer/schema/src/primitives/LocaleSchema';
+} from '@osaca/constants/src/UserConstants';
+import {AccountTierSchema, AccountVerificationNeedSchema} from '@osaca/schema/src/domains/account/AccountTierSchemas';
+import {ConnectionResponse} from '@osaca/schema/src/domains/connection/ConnectionSchemas';
+import {GuildMemberResponse} from '@osaca/schema/src/domains/guild/GuildMemberSchemas';
+import {MessageResponseSchema} from '@osaca/schema/src/domains/message/MessageResponseSchemas';
+import {ProfileBadgeListResponse} from '@osaca/schema/src/domains/user/ProfileBadgeSchemas';
+import {LocaleSchema} from '@osaca/schema/src/primitives/LocaleSchema';
 import {
 	createBitflagInt32Type,
 	createNamedStringLiteralUnion,
@@ -33,7 +33,7 @@ import {
 	SnowflakeStringType,
 	withFieldDescription,
 	withOpenApiType,
-} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {
 	GuildFolderIconSchema,
 	MentionReplyPreferencesSchema,
@@ -47,7 +47,7 @@ import {
 	UserAuthenticatorTypesSchema,
 	UserNotificationSettingsSchema,
 	UserPremiumTypesSchema,
-} from '@fluxer/schema/src/primitives/UserSettingsValidators';
+} from '@osaca/schema/src/primitives/UserSettingsValidators';
 import {z} from 'zod';
 
 export const UserPartialResponse = z.object({

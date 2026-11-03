@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {UserPartialResponse} from '@fluxer/schema/src/domains/user/UserResponseSchemas';
-import {SnowflakeStringType} from '@fluxer/schema/src/primitives/SchemaPrimitives';
-import {WebhookTypeSchema} from '@fluxer/schema/src/primitives/WebhookValidators';
+import {UserPartialResponse} from '@osaca/schema/src/domains/user/UserResponseSchemas';
+import {SnowflakeStringType} from '@osaca/schema/src/primitives/SchemaPrimitives';
+import {WebhookTypeSchema} from '@osaca/schema/src/primitives/WebhookValidators';
 import {z} from 'zod';
 
 const WebhookCommonResponse = {

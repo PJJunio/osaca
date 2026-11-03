@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {formatMinorUnitPrice, formatMinorUnitPriceWithFraction} from '@fluxer/number_utils/src/PriceFormatting';
+import {formatMinorUnitPrice, formatMinorUnitPriceWithFraction} from '@osaca/number_utils/src/PriceFormatting';
 import {describe, expect, test} from 'vitest';
 
 describe('formatMinorUnitPrice', () => {

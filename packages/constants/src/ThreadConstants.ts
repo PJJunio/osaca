@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {ChannelTypes} from '@fluxer/constants/src/ChannelConstants';
-import type {ValueOf} from '@fluxer/constants/src/ValueOf';
+import {ChannelTypes} from '@osaca/constants/src/ChannelConstants';
+import type {ValueOf} from '@osaca/constants/src/ValueOf';
 
 export const THREAD_CHANNEL_TYPES = new Set<number>([
 	ChannelTypes.ANNOUNCEMENT_THREAD,

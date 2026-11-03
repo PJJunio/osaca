@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {APIErrorCodes} from '@fluxer/constants/src/ApiErrorCodes';
-import {HttpStatus} from '@fluxer/constants/src/HttpConstants';
-import {FluxerError} from '@fluxer/errors/src/FluxerError';
-import type {ValidationErrorItem} from '@fluxer/schema/src/domains/common/ErrorSchemas';
+import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
+import {HttpStatus} from '@osaca/constants/src/HttpConstants';
+import {OsacaError} from '@osaca/errors/src/OsacaError';
+import type {ValidationErrorItem} from '@osaca/schema/src/domains/common/ErrorSchemas';
 
 interface PathError extends ValidationErrorItem {
 	code: string;
@@ -15,7 +15,7 @@ interface ValidationErrorOptions {
 	errors: Array<PathError>;
 }
 
-export class ValidationError extends FluxerError {
+export class ValidationError extends OsacaError {
 	readonly errors: Array<PathError>;
 
 	constructor(options: ValidationErrorOptions) {

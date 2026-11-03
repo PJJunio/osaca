@@ -1,8 +1,8 @@
-import {isObjectLike as isRecord} from '@fluxer/record_utils/src/RecordGuards';
+import {isObjectLike as isRecord} from '@osaca/record_utils/src/RecordGuards';
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {APIErrorCodes} from '@fluxer/constants/src/ApiErrorCodes';
-import {FluxerError} from '@fluxer/errors/src/FluxerError';
+import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
+import {OsacaError} from '@osaca/errors/src/OsacaError';
 import {HTTPException} from 'hono/http-exception';
 
 const apiErrorCodeSet = new Set<string>(Object.values(APIErrorCodes));
@@ -37,7 +37,7 @@ export function getErrorRecord(err: unknown): Record<string, unknown> | null {
 }
 
 export function resolveApiErrorCode(err: unknown): string | null {
-	if (err instanceof FluxerError) {
+	if (err instanceof OsacaError) {
 		return err.code;
 	}
 	const record = getErrorRecord(err);
@@ -54,7 +54,7 @@ export function resolveApiErrorCode(err: unknown): string | null {
 }
 
 export function resolveErrorStatus(err: unknown): number | null {
-	if (err instanceof FluxerError || err instanceof HTTPException) {
+	if (err instanceof OsacaError || err instanceof HTTPException) {
 		return err.status;
 	}
 	const record = getErrorRecord(err);

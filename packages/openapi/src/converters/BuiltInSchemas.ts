@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import {ErrorCodeToI18nKey} from '@fluxer/errors/src/i18n/ErrorCodeMappings';
-import {ERROR_I18N_MESSAGES} from '@fluxer/errors/src/i18n/ErrorI18nMessages';
-import type {OpenAPISchema} from '@fluxer/openapi/src/OpenAPITypes';
-import {APIErrorCodeSchema as KnownAPIErrorCodeSchema} from '@fluxer/schema/src/domains/common/ErrorSchemas';
+import {ErrorCodeToI18nKey} from '@osaca/errors/src/i18n/ErrorCodeMappings';
+import {ERROR_I18N_MESSAGES} from '@osaca/errors/src/i18n/ErrorI18nMessages';
+import type {OpenAPISchema} from '@osaca/openapi/src/OpenAPITypes';
+import {APIErrorCodeSchema as KnownAPIErrorCodeSchema} from '@osaca/schema/src/domains/common/ErrorSchemas';
 import {z} from 'zod';
 
 const apiErrorCodeValues = KnownAPIErrorCodeSchema.options;

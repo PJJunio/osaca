@@ -4,8 +4,8 @@ import {
 	PREMIUM_PROFILE_BADGE_KINDS,
 	type ProfileBadgeKey,
 	type ProfileBadgeKind,
-} from '@fluxer/constants/src/BadgeConstants';
-import type {ValueOf} from '@fluxer/constants/src/ValueOf';
+} from '@osaca/constants/src/BadgeConstants';
+import type {ValueOf} from '@osaca/constants/src/ValueOf';
 
 export const UNCATEGORIZED_FOLDER_ID = -1;
 export const GuildFolderFlags = {

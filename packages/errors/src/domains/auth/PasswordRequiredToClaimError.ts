@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {APIErrorCodes} from '@fluxer/constants/src/ApiErrorCodes';
-import type {ValueOf} from '@fluxer/constants/src/ValueOf';
-import {BadRequestError} from '@fluxer/errors/src/domains/core/BadRequestError';
+import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
+import type {ValueOf} from '@osaca/constants/src/ValueOf';
+import {BadRequestError} from '@osaca/errors/src/domains/core/BadRequestError';
 
 export const PasswordRequiredToClaimReasons = {
 	USERNAME_IDENTITY: 'username_identity',

@@ -11,7 +11,7 @@ use crate::text::{
     is_digit, is_digit_only, is_whitespace, starts_with, trim,
 };
 
-const APP_PROTOCOL_SCHEME: &str = "fluxer:";
+const APP_PROTOCOL_SCHEME: &str = "osaca:";
 const MAX_COMMAND_NAME_LENGTH: usize = 32;
 const MAX_COMMAND_SEGMENTS: usize = 3;
 const MAX_COMMAND_COLON_INDEX: usize = MAX_COMMAND_SEGMENTS * (MAX_COMMAND_NAME_LENGTH + 1);

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {DeletionReasons} from '@fluxer/constants/src/Core';
-import type {ValueOf} from '@fluxer/constants/src/ValueOf';
+import {DeletionReasons} from '@osaca/constants/src/Core';
+import type {ValueOf} from '@osaca/constants/src/ValueOf';
 
 export type EnforcementRuleKey =
 	| 'spam'

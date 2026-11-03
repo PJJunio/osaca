@@ -5,7 +5,7 @@ import {
 	MessageRequestSchema,
 	MessageUpdateRequestSchema,
 	RichEmbedRequest,
-} from '@fluxer/schema/src/domains/message/MessageRequestSchemas';
+} from '@osaca/schema/src/domains/message/MessageRequestSchemas';
 import {describe, expect, it} from 'vitest';
 
 describe('MessageNonceRequest', () => {
@@ -28,7 +28,7 @@ describe('MessageNonceRequest', () => {
 
 describe('MessageRequestSchema', () => {
 	it('preserves ANSI escape characters in message content', () => {
-		const content = '```ansi\nWelcome to \u001b[2;33mFluxer\u001b[0m!\n```';
+		const content = '```ansi\nWelcome to \u001b[2;33mOsaca\u001b[0m!\n```';
 		const result = MessageRequestSchema.safeParse({content});
 		expect(result.success).toBe(true);
 		if (!result.success) {

@@ -8,9 +8,9 @@ import {
 	MINUTES_PER_HOUR,
 	SECONDS_PER_HOUR,
 	SECONDS_PER_MINUTE,
-} from '@fluxer/date_utils/src/DateConstants';
-import {parseDate} from '@fluxer/date_utils/src/DateParsing';
-import type {DateInput} from '@fluxer/date_utils/src/DateTypes';
+} from '@osaca/date_utils/src/DateConstants';
+import {parseDate} from '@osaca/date_utils/src/DateParsing';
+import type {DateInput} from '@osaca/date_utils/src/DateTypes';
 
 const UNLOCALIZED_DURATION_LOCALE = 'en-US';
 const durationSegmentFormatters = new Map<string, Intl.NumberFormat>();

@@ -8,8 +8,8 @@ import {
 	VOICE_CHANNEL_CONNECTION_LIMIT_MAX,
 	VOICE_CHANNEL_CONNECTION_LIMIT_MIN,
 	VOICE_CHANNEL_USER_LIMIT_MIN,
-} from '@fluxer/constants/src/LimitConstants';
-import {ColorType, createStringType, Int32Type} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+} from '@osaca/constants/src/LimitConstants';
+import {ColorType, createStringType, Int32Type} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 const TEMPLATE_NAME_MAX_LENGTH = 100;

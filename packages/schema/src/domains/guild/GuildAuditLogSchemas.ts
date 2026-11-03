@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {ThreadChannelResponse} from '@fluxer/schema/src/domains/channel/ChannelSchemas';
-import {UserPartialResponse} from '@fluxer/schema/src/domains/user/UserResponseSchemas';
+import {ThreadChannelResponse} from '@osaca/schema/src/domains/channel/ChannelSchemas';
+import {UserPartialResponse} from '@osaca/schema/src/domains/user/UserResponseSchemas';
 import {
 	AuditLogActionTypeFilterSchema,
 	AuditLogActionTypeSchema,
-} from '@fluxer/schema/src/primitives/AuditLogValidators';
+} from '@osaca/schema/src/primitives/AuditLogValidators';
 import {
 	coerceNumberFromString,
 	Int32Type,
 	SnowflakeStringType,
 	SnowflakeType,
-} from '@fluxer/schema/src/primitives/SchemaPrimitives';
-import {WebhookTypeSchema} from '@fluxer/schema/src/primitives/WebhookValidators';
+} from '@osaca/schema/src/primitives/SchemaPrimitives';
+import {WebhookTypeSchema} from '@osaca/schema/src/primitives/WebhookValidators';
 import {z} from 'zod';
 
 const PermissionsDiffSchema = z.object({

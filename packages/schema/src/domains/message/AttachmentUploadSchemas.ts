@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {ATTACHMENT_UPLOAD_MAX_CHUNKS, MAX_ATTACHMENTS_PER_MESSAGE} from '@fluxer/constants/src/LimitConstants';
-import {ClientUploadedAttachmentRequest} from '@fluxer/schema/src/domains/message/AttachmentSchemas';
+import {ATTACHMENT_UPLOAD_MAX_CHUNKS, MAX_ATTACHMENTS_PER_MESSAGE} from '@osaca/constants/src/LimitConstants';
+import {ClientUploadedAttachmentRequest} from '@osaca/schema/src/domains/message/AttachmentSchemas';
 import {
 	coerceNumberFromString,
 	createStringType,
 	Int32Type,
 	NonNegativeSafeIntegerType,
-} from '@fluxer/schema/src/primitives/SchemaPrimitives';
-import {URLType} from '@fluxer/schema/src/primitives/UrlValidators';
+} from '@osaca/schema/src/primitives/SchemaPrimitives';
+import {URLType} from '@osaca/schema/src/primitives/UrlValidators';
 import {z} from 'zod';
 
 export const PresignedAttachmentUploadRequestItem = z.object({

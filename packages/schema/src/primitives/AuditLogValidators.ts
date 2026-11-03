@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {AuditLogActionType} from '@fluxer/constants/src/AuditLogActionType';
-import {createInt32EnumType} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+import {AuditLogActionType} from '@osaca/constants/src/AuditLogActionType';
+import {createInt32EnumType} from '@osaca/schema/src/primitives/SchemaPrimitives';
 
 const AUDIT_LOG_ACTION_TYPE_PAIRS = [
 	[AuditLogActionType.GUILD_UPDATE, 'GUILD_UPDATE', 'Guild settings were updated'],

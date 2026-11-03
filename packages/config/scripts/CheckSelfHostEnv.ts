@@ -3,41 +3,41 @@
 import {readFileSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {type ConfigObject, isConfigObject} from '@fluxer/config/src/config_loader/ConfigObject';
+import {type ConfigObject, isConfigObject} from '@osaca/config/src/config_loader/ConfigObject';
 import {parse} from 'yaml';
 
 const REPO_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
-const SELF_HOSTING = path.join(REPO_ROOT, 'fluxer_rexctl/internal/stack/files');
-const CHART = path.join(REPO_ROOT, 'deploy/helm/fluxer');
+const SELF_HOSTING = path.join(REPO_ROOT, 'osaca_rexctl/internal/stack/files');
+const CHART = path.join(REPO_ROOT, 'deploy/helm/osaca');
 
 const INPUT_NAMES: Record<string, string> = {
-	FLUXER_BASE_DOMAIN: 'FLUXER_DOMAIN',
-	FLUXER_POSTGRES_PASSWORD: 'POSTGRES_PASSWORD',
-	FLUXER_SEARCH_API_KEY: 'MEILI_MASTER_KEY',
-	FLUXER_S3_ACCESS_KEY_ID: 'FLUXER_S3_ACCESS_KEY',
-	FLUXER_S3_SECRET_ACCESS_KEY: 'FLUXER_S3_SECRET_KEY',
-	FLUXER_LIVEKIT_API_KEY: 'LIVEKIT_API_KEY',
-	FLUXER_LIVEKIT_API_SECRET: 'LIVEKIT_API_SECRET',
-	POSTGRES_DB: 'FLUXER_POSTGRES_DATABASE',
-	POSTGRES_USER: 'FLUXER_POSTGRES_USERNAME',
-	MEILI_ENV: 'FLUXER_MEILISEARCH_ENV',
-	MEILI_NO_ANALYTICS: 'FLUXER_MEILISEARCH_NO_ANALYTICS',
-	MEILI_MAX_INDEXING_MEMORY: 'FLUXER_MEILISEARCH_MAX_INDEXING_MEMORY',
-	MEILI_MAX_INDEXING_THREADS: 'FLUXER_MEILISEARCH_MAX_INDEXING_THREADS',
-	MEILI_LOG_LEVEL: 'FLUXER_MEILISEARCH_LOG_LEVEL',
-	MALLOC_ARENA_MAX: 'FLUXER_MALLOC_ARENA_MAX',
-	TOKIO_WORKER_THREADS: 'FLUXER_TOKIO_WORKER_THREADS',
-	WEED_MASTER_VOLUME_GROWTH_COPY_1: 'FLUXER_SEAWEEDFS_VOLUME_GROWTH',
+	OSACA_BASE_DOMAIN: 'OSACA_DOMAIN',
+	OSACA_POSTGRES_PASSWORD: 'POSTGRES_PASSWORD',
+	OSACA_SEARCH_API_KEY: 'MEILI_MASTER_KEY',
+	OSACA_S3_ACCESS_KEY_ID: 'OSACA_S3_ACCESS_KEY',
+	OSACA_S3_SECRET_ACCESS_KEY: 'OSACA_S3_SECRET_KEY',
+	OSACA_LIVEKIT_API_KEY: 'LIVEKIT_API_KEY',
+	OSACA_LIVEKIT_API_SECRET: 'LIVEKIT_API_SECRET',
+	POSTGRES_DB: 'OSACA_POSTGRES_DATABASE',
+	POSTGRES_USER: 'OSACA_POSTGRES_USERNAME',
+	MEILI_ENV: 'OSACA_MEILISEARCH_ENV',
+	MEILI_NO_ANALYTICS: 'OSACA_MEILISEARCH_NO_ANALYTICS',
+	MEILI_MAX_INDEXING_MEMORY: 'OSACA_MEILISEARCH_MAX_INDEXING_MEMORY',
+	MEILI_MAX_INDEXING_THREADS: 'OSACA_MEILISEARCH_MAX_INDEXING_THREADS',
+	MEILI_LOG_LEVEL: 'OSACA_MEILISEARCH_LOG_LEVEL',
+	MALLOC_ARENA_MAX: 'OSACA_MALLOC_ARENA_MAX',
+	TOKIO_WORKER_THREADS: 'OSACA_TOKIO_WORKER_THREADS',
+	WEED_MASTER_VOLUME_GROWTH_COPY_1: 'OSACA_SEAWEEDFS_VOLUME_GROWTH',
 	LIVEKIT_KEYS: 'LIVEKIT_API_KEY',
-	NODE_EXTRA_CA_CERTS: 'FLUXER_NODE_EXTRA_CA_CERTS',
-	FLUXER_EDGE_TLS_DIRECTIVE: 'FLUXER_EDGE_TLS',
-	FLUXER_API_PUBLIC_ENDPOINT: 'FLUXER_API_ENDPOINT',
+	NODE_EXTRA_CA_CERTS: 'OSACA_NODE_EXTRA_CA_CERTS',
+	OSACA_EDGE_TLS_DIRECTIVE: 'OSACA_EDGE_TLS',
+	OSACA_API_PUBLIC_ENDPOINT: 'OSACA_API_ENDPOINT',
 	http_proxy: 'HTTP_PROXY',
 	https_proxy: 'HTTPS_PROXY',
 };
 
 const OWN_POOL_SIZES = new Set(['api', 'worker', 'users', 'messages']);
-const OBJECT_STORE_CREDENTIALS = ['FLUXER_S3_ACCESS_KEY', 'FLUXER_S3_SECRET_KEY'];
+const OBJECT_STORE_CREDENTIALS = ['OSACA_S3_ACCESS_KEY', 'OSACA_S3_SECRET_KEY'];
 const OBJECT_STORE_CLIENTS = ['api', 'worker', 'media-proxy'];
 
 const problems: Array<string> = [];
@@ -54,13 +54,13 @@ function checkHelmChart(): void {
 	const composeCaddyfile = readFileSync(path.join(SELF_HOSTING, 'Caddyfile'));
 	const chartCaddyfile = readFileSync(path.join(CHART, 'files/Caddyfile'));
 	if (!chartCaddyfile.equals(composeCaddyfile)) {
-		problems.push('deploy/helm/fluxer/files/Caddyfile differs from fluxer_rexctl/internal/stack/files/Caddyfile');
+		problems.push('deploy/helm/osaca/files/Caddyfile differs from osaca_rexctl/internal/stack/files/Caddyfile');
 	}
 }
 
 function expectedInput(serviceName: string, key: string): string {
-	const prefix = `FLUXER_${serviceName.toUpperCase().replace('-', '_')}`;
-	if (key === 'FLUXER_POSTGRES_MAX_CONNECTIONS' && OWN_POOL_SIZES.has(serviceName)) {
+	const prefix = `OSACA_${serviceName.toUpperCase().replace('-', '_')}`;
+	if (key === 'OSACA_POSTGRES_MAX_CONNECTIONS' && OWN_POOL_SIZES.has(serviceName)) {
 		return `${prefix}_POSTGRES_MAX_CONNECTIONS`;
 	}
 	if (key === 'GOMEMLIMIT' || (key === 'TOKIO_WORKER_THREADS' && serviceName === 'media-proxy')) {
@@ -90,7 +90,7 @@ function checkComposeForwarding(): void {
 		}
 	}
 
-	for (const name of ['FLUXER_REPORT_RETENTION_DAYS', 'FLUXER_REPORT_RETENTION_DRY_RUN']) {
+	for (const name of ['OSACA_REPORT_RETENTION_DAYS', 'OSACA_REPORT_RETENTION_DRY_RUN']) {
 		if (environment('worker')[name] !== `\${${name}:-}`) {
 			problems.push(`the worker must forward ${name} as \${${name}:-}`);
 		}
@@ -102,7 +102,7 @@ function checkComposeForwarding(): void {
 		problems.push('seaweedfs-init must run one script through /bin/sh -c');
 	}
 	if (
-		!init.includes('s3.configure -user=fluxer -access_key=$$FLUXER_S3_ACCESS_KEY -secret_key=$$FLUXER_S3_SECRET_KEY') ||
+		!init.includes('s3.configure -user=osaca -access_key=$$OSACA_S3_ACCESS_KEY -secret_key=$$OSACA_S3_SECRET_KEY') ||
 		!init.includes('-apply')
 	) {
 		problems.push('seaweedfs-init must apply an S3 identity built from the .env credentials');
@@ -114,15 +114,15 @@ function checkComposeForwarding(): void {
 	if (!init.includes('could not configure the S3 identity') || !/exit 1;?\s*$/u.test(init)) {
 		problems.push('seaweedfs-init must exit 1 when the S3 identity write fails');
 	}
-	if (!readSelfHosting('docker-compose.yml').includes('${FLUXER_SETTINGS_LOADED:?')) {
-		problems.push('docker-compose.yml must require FLUXER_SETTINGS_LOADED');
+	if (!readSelfHosting('docker-compose.yml').includes('${OSACA_SETTINGS_LOADED:?')) {
+		problems.push('docker-compose.yml must require OSACA_SETTINGS_LOADED');
 	}
 	for (const name of OBJECT_STORE_CREDENTIALS) {
 		if (environment('seaweedfs-init')[name] !== `\${${name}:-}`) {
 			problems.push(`seaweedfs-init must forward ${name}`);
 		}
 	}
-	if (environment('media-proxy').FLUXER_S3_READ_SIGNED !== `\${FLUXER_S3_READ_SIGNED:-true}`) {
+	if (environment('media-proxy').OSACA_S3_READ_SIGNED !== `\${OSACA_S3_READ_SIGNED:-true}`) {
 		problems.push('media-proxy must sign its object store reads by default');
 	}
 	for (const name of OBJECT_STORE_CLIENTS) {

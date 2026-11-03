@@ -4,7 +4,7 @@
 		"lib": ["ESNext"],
 		"types": ["node"],
 		"paths": {
-			"@fluxer/*": ["./../../packages/*"]
+			"@osaca/*": ["./../../packages/*"]
 		}
 	},
 	"include": ["src/**/*.tsx", "src/**/*.ts"]

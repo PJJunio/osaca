@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {RateLimitError} from '@fluxer/errors/src/domains/core/RateLimitError';
+import {RateLimitError} from '@osaca/errors/src/domains/core/RateLimitError';
 import {describe, expect, it} from 'vitest';
 
 interface RateLimitResponseBody {

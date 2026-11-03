@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {APIErrorCodes} from '@fluxer/constants/src/ApiErrorCodes';
-import {FluxerError} from '@fluxer/errors/src/FluxerError';
+import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
+import {OsacaError} from '@osaca/errors/src/OsacaError';
 
-export class StripeError extends FluxerError {
+export class StripeError extends OsacaError {
 	constructor(detail?: string) {
 		super({
 			code: APIErrorCodes.STRIPE_ERROR,

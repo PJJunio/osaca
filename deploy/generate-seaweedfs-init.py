@@ -5,10 +5,10 @@ import re
 import subprocess
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-CHART_INIT = REPO_ROOT / 'deploy/helm/fluxer/files/seaweedfs-init.sh'
-COMPOSE = REPO_ROOT / 'fluxer_rexctl/internal/stack/files/docker-compose.yml'
+CHART_INIT = REPO_ROOT / 'deploy/helm/osaca/files/seaweedfs-init.sh'
+COMPOSE = REPO_ROOT / 'osaca_rexctl/internal/stack/files/docker-compose.yml'
 STARTUP = "trap 'exit 0' TERM INT\n"
-KEEP_ALIVE = '''        touch /tmp/fluxer-buckets-ready
+KEEP_ALIVE = '''        touch /tmp/osaca-buckets-ready
         while :; do
           sleep 86400 &
           wait $!
@@ -23,8 +23,8 @@ body = source[len(STARTUP):].replace(KEEP_ALIVE, '        exit 0\n')
 for original, replacement in [
     ('if ! nc -z 127.0.0.1 9333 2>/dev/null; then',
      'if ! nc -z seaweedfs 9333 2>/dev/null; then'),
-    ('for _attempt in $(seq 1 "$FLUXER_SEAWEEDFS_INIT_ATTEMPTS"); do',
-     'for attempt in $(seq 1 $FLUXER_SEAWEEDFS_INIT_ATTEMPTS); do'),
+    ('for _attempt in $(seq 1 "$OSACA_SEAWEEDFS_INIT_ATTEMPTS"); do',
+     'for attempt in $(seq 1 $OSACA_SEAWEEDFS_INIT_ATTEMPTS); do'),
     ('"^[[:space:]]*${b}[[:space:]]"', '"^[[:space:]]*$b[[:space:]]"'),
 ]:
     if body.count(original) != 1:

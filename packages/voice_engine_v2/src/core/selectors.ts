@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import type {VoiceEngineV2Snapshot} from '@fluxer/voice_engine_v2/src/core/state';
+import type {VoiceEngineV2Snapshot} from '@osaca/voice_engine_v2/src/core/state';
 
 import {
 	summarizeVoiceEngineV2Stats,
 	type VoiceEngineV2StatsNetworkSummary,
 	type VoiceEngineV2StatsSummary,
-} from '@fluxer/voice_engine_v2/src/policies/voiceStats';
+} from '@osaca/voice_engine_v2/src/policies/voiceStats';
 import type {
 	VoiceEngineV2AudioInputDevice,
 	VoiceEngineV2AudioOutputDevice,
@@ -22,7 +22,7 @@ import type {
 	VoiceEngineV2Stats,
 	VoiceEngineV2Track,
 	VoiceEngineV2WatchedStream,
-} from '@fluxer/voice_engine_v2/src/protocol/types';
+} from '@osaca/voice_engine_v2/src/protocol/types';
 
 export interface VoiceEngineV2ParticipantProjection {
 	participants: Array<VoiceEngineV2Participant>;

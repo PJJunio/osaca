@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {createUnboundedStringType, NonNegativeSafeIntegerType} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+import {createUnboundedStringType, NonNegativeSafeIntegerType} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 const LibredeskPerson = z.object({

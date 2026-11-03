@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import type {I18nResult, TemplateCompiler} from '@fluxer/i18n/src/runtime/I18nTypes';
+import type {I18nResult, TemplateCompiler} from '@osaca/i18n/src/runtime/I18nTypes';
 import MessageFormat, {type MessageFormatOptions} from '@messageformat/core';
 
 interface TemplateRenderOptions<TKey extends string, TValue, TVariables> {

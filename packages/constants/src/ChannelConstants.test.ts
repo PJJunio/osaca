@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {MessageFlags, SENDABLE_MESSAGE_FLAGS} from '@fluxer/constants/src/ChannelConstants';
+import {MessageFlags, SENDABLE_MESSAGE_FLAGS} from '@osaca/constants/src/ChannelConstants';
 import {describe, expect, it} from 'vitest';
 
 describe('announcement channel constants', () => {

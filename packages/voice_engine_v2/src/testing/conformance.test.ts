@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {VoiceEngineV2HostPortImplementation} from '@fluxer/voice_engine_v2/src/implementations/VoiceEngineV2HostPortImplementation';
-import type {VoiceEngineV2HostPorts} from '@fluxer/voice_engine_v2/src/ports';
-import {createVoiceEngineV2MemoryEventLogSpillSink} from '@fluxer/voice_engine_v2/src/runtime/eventLogRing';
-import {VoiceEngineV2Runtime} from '@fluxer/voice_engine_v2/src/runtime/VoiceEngineV2Runtime';
-import type {VoiceEngineV2ConformanceSubject} from '@fluxer/voice_engine_v2/src/testing/conformance';
-import {runVoiceEngineV2ConformanceSuite, waitForRuntime} from '@fluxer/voice_engine_v2/src/testing/conformance';
-import {FakeVoiceEngineV2Driver} from '@fluxer/voice_engine_v2/src/testing/FakeVoiceEngineV2Driver';
+import {VoiceEngineV2HostPortImplementation} from '@osaca/voice_engine_v2/src/implementations/VoiceEngineV2HostPortImplementation';
+import type {VoiceEngineV2HostPorts} from '@osaca/voice_engine_v2/src/ports';
+import {createVoiceEngineV2MemoryEventLogSpillSink} from '@osaca/voice_engine_v2/src/runtime/eventLogRing';
+import {VoiceEngineV2Runtime} from '@osaca/voice_engine_v2/src/runtime/VoiceEngineV2Runtime';
+import type {VoiceEngineV2ConformanceSubject} from '@osaca/voice_engine_v2/src/testing/conformance';
+import {runVoiceEngineV2ConformanceSuite, waitForRuntime} from '@osaca/voice_engine_v2/src/testing/conformance';
+import {FakeVoiceEngineV2Driver} from '@osaca/voice_engine_v2/src/testing/FakeVoiceEngineV2Driver';
 import {describe, expect, it} from 'vitest';
 
 function createConformanceHostPorts(driver: FakeVoiceEngineV2Driver): VoiceEngineV2HostPorts {

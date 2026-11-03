@@ -2,7 +2,7 @@ import {
 	createNamedStringLiteralUnion,
 	createStringType,
 	SnowflakeStringType,
-} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 export const ArchiveSubjectTypeSchema = createNamedStringLiteralUnion(

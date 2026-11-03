@@ -6,10 +6,10 @@ import {
 	clearOperationForResource,
 	markOperation,
 	queueCommand,
-} from '@fluxer/voice_engine_v2/src/core/reducers/_helpers';
-import type {VoiceEngineV2Snapshot, VoiceEngineV2Transition} from '@fluxer/voice_engine_v2/src/core/state';
-import {getVoiceEngineV2CommandTypeResourceKey} from '@fluxer/voice_engine_v2/src/protocol/commands';
-import type {VoiceEngineV2Event} from '@fluxer/voice_engine_v2/src/protocol/events';
+} from '@osaca/voice_engine_v2/src/core/reducers/_helpers';
+import type {VoiceEngineV2Snapshot, VoiceEngineV2Transition} from '@osaca/voice_engine_v2/src/core/state';
+import {getVoiceEngineV2CommandTypeResourceKey} from '@osaca/voice_engine_v2/src/protocol/commands';
+import type {VoiceEngineV2Event} from '@osaca/voice_engine_v2/src/protocol/events';
 
 type VoiceEngineV2CommandEvent = Extract<VoiceEngineV2Event, {type: `command.${string}` | `operation.${string}`}>;
 

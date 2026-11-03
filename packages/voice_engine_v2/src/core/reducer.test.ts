@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {transitionVoiceEngineV2} from '@fluxer/voice_engine_v2/src/core/reducer';
-import {VOICE_ENGINE_V2_TERMINAL_OPERATIONS_KEPT_MAX} from '@fluxer/voice_engine_v2/src/core/reducers/_helpers';
+import {transitionVoiceEngineV2} from '@osaca/voice_engine_v2/src/core/reducer';
+import {VOICE_ENGINE_V2_TERMINAL_OPERATIONS_KEPT_MAX} from '@osaca/voice_engine_v2/src/core/reducers/_helpers';
 
 import {
 	availableVoiceEngineV2Capabilities,
 	createVoiceEngineV2InitialSnapshot,
 	unavailableVoiceEngineV2Capabilities,
 	type VoiceEngineV2Snapshot,
-} from '@fluxer/voice_engine_v2/src/core/state';
-import type {VoiceEngineV2Event} from '@fluxer/voice_engine_v2/src/protocol/events';
-import type {VoiceEngineV2DiagnosticEntry} from '@fluxer/voice_engine_v2/src/protocol/types';
+} from '@osaca/voice_engine_v2/src/core/state';
+import type {VoiceEngineV2Event} from '@osaca/voice_engine_v2/src/protocol/events';
+import type {VoiceEngineV2DiagnosticEntry} from '@osaca/voice_engine_v2/src/protocol/types';
 import {describe, expect, it} from 'vitest';
 
 function initialSnapshot(): VoiceEngineV2Snapshot {

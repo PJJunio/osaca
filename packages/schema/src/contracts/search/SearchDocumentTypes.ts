@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import type {JoinSourceType} from '@fluxer/constants/src/GuildConstants';
+import type {JoinSourceType} from '@osaca/constants/src/GuildConstants';
 
 export interface SearchableMessage {
 	readonly [key: string]: unknown;

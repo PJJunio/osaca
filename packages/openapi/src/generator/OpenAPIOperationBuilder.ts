@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {extractPathParameterNames} from '@fluxer/openapi/src/extractors/PathParameters';
+import {extractPathParameterNames} from '@osaca/openapi/src/extractors/PathParameters';
 import type {
 	ExtractedRoute,
 	OpenAPIOperation,
@@ -8,9 +8,9 @@ import type {
 	OpenAPIRequestBody,
 	OpenAPIResponse,
 	OpenAPISchema,
-} from '@fluxer/openapi/src/OpenAPITypes';
-import {getErrorResponses} from '@fluxer/openapi/src/registry/ResponseRegistry';
-import type {SchemaRegistry} from '@fluxer/openapi/src/registry/SchemaRegistry';
+} from '@osaca/openapi/src/OpenAPITypes';
+import {getErrorResponses} from '@osaca/openapi/src/registry/ResponseRegistry';
+import type {SchemaRegistry} from '@osaca/openapi/src/registry/SchemaRegistry';
 
 interface OpenAPIOperationBuilderDependencies {
 	readonly schemaRegistry: SchemaRegistry;
@@ -68,7 +68,7 @@ export class OpenAPIOperationBuilder {
 			operation.externalDocs = route.explicitExternalDocs;
 		}
 		if (route.explicitExperiment) {
-			operation['x-fluxer-experiment'] = route.explicitExperiment;
+			operation['x-osaca-experiment'] = route.explicitExperiment;
 		}
 		if (security.length > 0) {
 			operation.security = security;

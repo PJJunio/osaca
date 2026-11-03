@@ -4,8 +4,8 @@ import {
 	VoicePublicIpv4Type,
 	VoicePublicIpv6Type,
 	VoiceServerHealthResponse,
-} from '@fluxer/schema/src/domains/admin/AdminVoiceSchemas';
-import {createStringType} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+} from '@osaca/schema/src/domains/admin/AdminVoiceSchemas';
+import {createStringType} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 const VoiceIdType = z
@@ -55,7 +55,7 @@ export const VoiceJoinPreviewResponse = z.object({
 		new: z.boolean().describe('Whether the region is created when the server joins'),
 		source: z
 			.enum(['token', 'requested', 'nearest', 'default'])
-			.describe('Why Fluxer picked the region, from the token, region_id, the nearest region or the default region'),
+			.describe('Why OSACA picked the region, from the token, region_id, the nearest region or the default region'),
 	}),
 	latitude: z.number().nullable().describe('Server latitude from GeoIP, rounded to 0.1 degrees'),
 	longitude: z.number().nullable().describe('Server longitude from GeoIP, rounded to 0.1 degrees'),
@@ -64,7 +64,7 @@ export const VoiceJoinPreviewResponse = z.object({
 	soft_connection_limit: z.number().nullable().describe('Soft limit preset of the token, or null'),
 	webhook_url: z.string().describe('URL the server sends LiveKit webhooks to'),
 	api_code_version: z.number().int().describe('Version of the API server code'),
-	release: z.string().describe('Fluxer release of the API, or an empty string for a development build'),
+	release: z.string().describe('OSACA release of the API, or an empty string for a development build'),
 	expires_at: z.string().describe('ISO 8601 timestamp when the token stops working'),
 	turn_servers: TurnServersType,
 });

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {LoginRequest, UsernameInstanceLoginRequest} from '@fluxer/schema/src/domains/auth/AuthSchemas';
-import {createStringType} from '@fluxer/schema/src/primitives/SchemaPrimitives';
-import {EmailType, PasswordType} from '@fluxer/schema/src/primitives/UserValidators';
+import {LoginRequest, UsernameInstanceLoginRequest} from '@osaca/schema/src/domains/auth/AuthSchemas';
+import {createStringType} from '@osaca/schema/src/primitives/SchemaPrimitives';
+import {EmailType, PasswordType} from '@osaca/schema/src/primitives/UserValidators';
 import {describe, expect, it} from 'vitest';
 import {z} from 'zod';
 

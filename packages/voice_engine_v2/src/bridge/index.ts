@@ -3,8 +3,8 @@
 import {
 	assertAudioFrameInvariants,
 	assertVideoFrameInvariants,
-} from '@fluxer/voice_engine_v2/src/bridge/ffi_assertions';
-import type {VoiceEngineV2HardwareEncoderCapabilities} from '@fluxer/voice_engine_v2/src/protocol/types';
+} from '@osaca/voice_engine_v2/src/bridge/ffi_assertions';
+import type {VoiceEngineV2HardwareEncoderCapabilities} from '@osaca/voice_engine_v2/src/protocol/types';
 
 export const VOICE_ENGINE_V2_HARDWARE_ENCODER_IPC_CHANNEL = 'voice-engine-v2:get-hardware-encoder-capabilities';
 

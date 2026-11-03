@@ -1,0 +1,20 @@
+{{- include "osaca.validate" . }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: osaca-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "osaca.labels" (dict "root" . "name" "osaca-config" "component" "config") | nindent 4 }}
+data:
+  {{- include "osaca.configData" . | nindent 2 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: osaca-app-proxy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "osaca.labels" (dict "root" . "name" "osaca-app-proxy" "component" "config") | nindent 4 }}
+data:
+  {{- include "osaca.appProxyConfigData" . | nindent 2 }}

@@ -1680,329 +1680,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "fluxer-ci"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "aws-config",
- "aws-sdk-s3",
- "base64 0.23.1",
- "brotli",
- "chrono",
- "clap",
- "hex",
- "md-5",
- "reqwest",
- "serde",
- "serde_json",
- "sha2 0.11.1",
- "tar",
- "tempfile",
- "tokio",
- "walkdir",
- "zip",
-]
-
-[[package]]
-name = "fluxer-dev"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "chrono",
- "clap",
- "hex",
- "hyper",
- "hyper-util",
- "libc",
- "regex",
- "reqwest",
- "scylla",
- "serde",
- "serde_json",
- "sha2 0.11.1",
- "tempfile",
- "tokio",
- "url",
-]
-
-[[package]]
-name = "fluxer-gifs"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "fluxer-svc",
- "fluxer_common",
- "futures",
- "moka",
- "reqwest",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
- "url",
- "urlencoding",
-]
-
-[[package]]
-name = "fluxer-media-proxy"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "base64 0.23.1",
- "bytes",
- "cc",
- "clap",
- "fluxer_common",
- "futures-util",
- "hex",
- "hmac",
- "http",
- "http-body",
- "http-body-util",
- "hyper",
- "libc",
- "memmap2",
- "moka",
- "parking_lot",
- "percent-encoding",
- "pkg-config",
- "rand 0.10.3",
- "rand_chacha 0.10.0",
- "reqwest",
- "reqwest-middleware",
- "reqwest-retry",
- "serde",
- "serde_json",
- "sha2 0.11.1",
- "tempfile",
- "thiserror",
- "tokio",
- "tower",
- "tower-http 0.7.1",
- "tracing",
- "tracing-subscriber",
- "url",
- "wyhash",
-]
-
-[[package]]
-name = "fluxer-messages"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "base64 0.23.1",
- "chrono",
- "fluxer-svc",
- "fluxer_common",
- "fluxer_markdown_parser",
- "futures",
- "linkify",
- "mime_guess",
- "rmp-serde",
- "scylla",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
- "url",
-]
-
-[[package]]
-name = "fluxer-push"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "base64 0.23.1",
- "clap",
- "fluxer-svc",
- "fluxer_common",
- "futures",
- "hmac",
- "p256",
- "percent-encoding",
- "rand 0.10.3",
- "reqwest",
- "ring",
- "serde",
- "serde_json",
- "sha2 0.11.1",
- "thiserror",
- "tokio",
- "tracing",
- "url",
-]
-
-[[package]]
-name = "fluxer-snowflakes"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "fluxer-svc",
- "serde",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "fluxer-svc"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-nats",
- "async-trait",
- "axum",
- "bytes",
- "chrono",
- "deadpool-postgres",
- "fluxer_common",
- "futures",
- "rmp-serde",
- "rustls",
- "scylla",
- "serde",
- "serde_json",
- "tokio",
- "tokio-postgres",
- "tokio-postgres-rustls",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "fluxer-unfurl"
-version = "0.1.0"
-dependencies = [
- "ammonia",
- "anyhow",
- "base64 0.23.1",
- "chrono",
- "encoding_rs",
- "entities",
- "fluxer-svc",
- "fluxer_common",
- "hickory-resolver",
- "infer",
- "moka",
- "regex",
- "reqwest",
- "ring",
- "scraper",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
- "tracing",
- "url",
- "urlencoding",
-]
-
-[[package]]
-name = "fluxer-users"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "fluxer-svc",
- "fluxer_common",
- "futures",
- "hmac",
- "moka",
- "scylla",
- "serde",
- "serde_json",
- "sha2 0.11.1",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "fluxer_admin"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "base64 0.23.1",
- "chrono",
- "fluxer_common",
- "hmac",
- "maud",
- "openapiv3",
- "prettyplease",
- "progenitor",
- "progenitor-client",
- "rand 0.10.3",
- "regress",
- "reqwest",
- "serde",
- "serde_json",
- "sha2 0.11.1",
- "syn 3.0.9",
- "time",
- "tokio",
- "tower-http 0.7.1",
- "tracing",
- "tracing-subscriber",
- "url",
- "urlencoding",
-]
-
-[[package]]
-name = "fluxer_app_proxy"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "base64 0.23.1",
- "fluxer_common",
- "futures-util",
- "hex",
- "rand 0.10.3",
- "reqwest",
- "serde_json",
- "sha2 0.11.1",
- "thiserror",
- "tokio",
- "tokio-util",
- "tower",
- "tower-http 0.7.1",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "fluxer_common"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "base64 0.23.1",
- "hex",
- "hmac",
- "http",
- "libc",
- "reqwest",
- "serde",
- "serde_json",
- "sha2 0.11.1",
- "thiserror",
- "tokio",
- "tracing",
- "tracing-subscriber",
- "url",
-]
-
-[[package]]
-name = "fluxer_markdown_parser"
-version = "0.1.0"
-dependencies = [
- "criterion",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3094,6 +2771,329 @@ name = "openssl-probe"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7e036b411754132fd6b74e94b74e9a13c5cf606fa93d1885c35860d3060820b1"
+
+[[package]]
+name = "osaca-ci"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "aws-config",
+ "aws-sdk-s3",
+ "base64 0.23.1",
+ "brotli",
+ "chrono",
+ "clap",
+ "hex",
+ "md-5",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha2 0.11.1",
+ "tar",
+ "tempfile",
+ "tokio",
+ "walkdir",
+ "zip",
+]
+
+[[package]]
+name = "osaca-dev"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "chrono",
+ "clap",
+ "hex",
+ "hyper",
+ "hyper-util",
+ "libc",
+ "regex",
+ "reqwest",
+ "scylla",
+ "serde",
+ "serde_json",
+ "sha2 0.11.1",
+ "tempfile",
+ "tokio",
+ "url",
+]
+
+[[package]]
+name = "osaca-gifs"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "futures",
+ "moka",
+ "osaca-svc",
+ "osaca_common",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "url",
+ "urlencoding",
+]
+
+[[package]]
+name = "osaca-media-proxy"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "base64 0.23.1",
+ "bytes",
+ "cc",
+ "clap",
+ "futures-util",
+ "hex",
+ "hmac",
+ "http",
+ "http-body",
+ "http-body-util",
+ "hyper",
+ "libc",
+ "memmap2",
+ "moka",
+ "osaca_common",
+ "parking_lot",
+ "percent-encoding",
+ "pkg-config",
+ "rand 0.10.3",
+ "rand_chacha 0.10.0",
+ "reqwest",
+ "reqwest-middleware",
+ "reqwest-retry",
+ "serde",
+ "serde_json",
+ "sha2 0.11.1",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "tower",
+ "tower-http 0.7.1",
+ "tracing",
+ "tracing-subscriber",
+ "url",
+ "wyhash",
+]
+
+[[package]]
+name = "osaca-messages"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "base64 0.23.1",
+ "chrono",
+ "futures",
+ "linkify",
+ "mime_guess",
+ "osaca-svc",
+ "osaca_common",
+ "osaca_markdown_parser",
+ "rmp-serde",
+ "scylla",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "osaca-push"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "base64 0.23.1",
+ "clap",
+ "futures",
+ "hmac",
+ "osaca-svc",
+ "osaca_common",
+ "p256",
+ "percent-encoding",
+ "rand 0.10.3",
+ "reqwest",
+ "ring",
+ "serde",
+ "serde_json",
+ "sha2 0.11.1",
+ "thiserror",
+ "tokio",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "osaca-snowflakes"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "osaca-svc",
+ "serde",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "osaca-svc"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-nats",
+ "async-trait",
+ "axum",
+ "bytes",
+ "chrono",
+ "deadpool-postgres",
+ "futures",
+ "osaca_common",
+ "rmp-serde",
+ "rustls",
+ "scylla",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tokio-postgres",
+ "tokio-postgres-rustls",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "osaca-unfurl"
+version = "0.1.0"
+dependencies = [
+ "ammonia",
+ "anyhow",
+ "base64 0.23.1",
+ "chrono",
+ "encoding_rs",
+ "entities",
+ "hickory-resolver",
+ "infer",
+ "moka",
+ "osaca-svc",
+ "osaca_common",
+ "regex",
+ "reqwest",
+ "ring",
+ "scraper",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tracing",
+ "url",
+ "urlencoding",
+]
+
+[[package]]
+name = "osaca-users"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "futures",
+ "hmac",
+ "moka",
+ "osaca-svc",
+ "osaca_common",
+ "scylla",
+ "serde",
+ "serde_json",
+ "sha2 0.11.1",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "osaca_admin"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "base64 0.23.1",
+ "chrono",
+ "hmac",
+ "maud",
+ "openapiv3",
+ "osaca_common",
+ "prettyplease",
+ "progenitor",
+ "progenitor-client",
+ "rand 0.10.3",
+ "regress",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha2 0.11.1",
+ "syn 3.0.9",
+ "time",
+ "tokio",
+ "tower-http 0.7.1",
+ "tracing",
+ "tracing-subscriber",
+ "url",
+ "urlencoding",
+]
+
+[[package]]
+name = "osaca_app_proxy"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "base64 0.23.1",
+ "futures-util",
+ "hex",
+ "osaca_common",
+ "rand 0.10.3",
+ "reqwest",
+ "serde_json",
+ "sha2 0.11.1",
+ "thiserror",
+ "tokio",
+ "tokio-util",
+ "tower",
+ "tower-http 0.7.1",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "osaca_common"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "base64 0.23.1",
+ "hex",
+ "hmac",
+ "http",
+ "libc",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha2 0.11.1",
+ "thiserror",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "url",
+]
+
+[[package]]
+name = "osaca_markdown_parser"
+version = "0.1.0"
+dependencies = [
+ "criterion",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "outref"

@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {ChannelThreadsAssignmentResponse} from '@fluxer/schema/src/domains/admin/ChannelThreadsSchemas';
+import {ChannelThreadsAssignmentResponse} from '@osaca/schema/src/domains/admin/ChannelThreadsSchemas';
 import {
 	DomainMigrationAssignmentResponse,
 	INERT_DOMAIN_MIGRATION_ASSIGNMENT,
-} from '@fluxer/schema/src/domains/admin/DomainMigrationSchemas';
-import {GuildVisitsAssignmentResponse} from '@fluxer/schema/src/domains/admin/GuildVisitsSchemas';
-import {PlutoniumPageAssignmentResponse} from '@fluxer/schema/src/domains/admin/PlutoniumPageSchemas';
-import {INERT_VOICE_P2P_ASSIGNMENT, VoiceP2pAssignmentResponse} from '@fluxer/schema/src/domains/admin/VoiceP2pSchemas';
+} from '@osaca/schema/src/domains/admin/DomainMigrationSchemas';
+import {GuildVisitsAssignmentResponse} from '@osaca/schema/src/domains/admin/GuildVisitsSchemas';
+import {PlutoniumPageAssignmentResponse} from '@osaca/schema/src/domains/admin/PlutoniumPageSchemas';
+import {INERT_VOICE_P2P_ASSIGNMENT, VoiceP2pAssignmentResponse} from '@osaca/schema/src/domains/admin/VoiceP2pSchemas';
 import {z} from 'zod';
 
 export const EXPERIMENT_MIN_POLL_INTERVAL_SECONDS = 60;

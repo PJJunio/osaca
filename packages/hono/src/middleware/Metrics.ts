@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {isLoopbackIpAddress} from '@fluxer/ip_utils/src/IpAddress';
+import {isLoopbackIpAddress} from '@osaca/ip_utils/src/IpAddress';
 import type {HttpBindings} from '@hono/node-server';
 import type {Context, Handler, MiddlewareHandler} from 'hono';
 
@@ -189,7 +189,7 @@ interface MetricsResult {
 }
 
 export function createMetricsMiddleware(serviceName: string): MetricsResult {
-	const prefix = `fluxer_${serviceName}`;
+	const prefix = `osaca_${serviceName}`;
 	const startTime = performance.now();
 
 	const requestsTotal = new Counter();

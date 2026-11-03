@@ -1,4 +1,4 @@
-import {APIErrorCodes} from '@fluxer/constants/src/ApiErrorCodes';
+import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {z} from 'zod';
 
 export const APIErrorCodeSchema = z.enum(APIErrorCodes).describe('Known error codes returned by API operations');

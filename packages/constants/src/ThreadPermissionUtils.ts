@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {APIErrorCodes} from '@fluxer/constants/src/ApiErrorCodes';
-import {ALL_PERMISSIONS, ChannelTypes, Permissions} from '@fluxer/constants/src/ChannelConstants';
+import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
+import {ALL_PERMISSIONS, ChannelTypes, Permissions} from '@osaca/constants/src/ChannelConstants';
 
 export const ThreadPermissionFlags = {
 	MANAGE_THREADS: 1n << 34n,

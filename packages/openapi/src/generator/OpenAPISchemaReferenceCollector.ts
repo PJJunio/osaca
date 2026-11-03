@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {visitOpenAPISchemaObjects} from '@fluxer/openapi/src/OpenAPISchemaVisitor';
-import type {OpenAPIPathItem, OpenAPISchema} from '@fluxer/openapi/src/OpenAPITypes';
+import {visitOpenAPISchemaObjects} from '@osaca/openapi/src/OpenAPISchemaVisitor';
+import type {OpenAPIPathItem, OpenAPISchema} from '@osaca/openapi/src/OpenAPITypes';
 
 const SCHEMA_REFERENCE_PREFIX = '#/components/schemas/';
 

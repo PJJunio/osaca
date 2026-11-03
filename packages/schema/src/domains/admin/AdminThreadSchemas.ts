@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {ThreadChannelResponse} from '@fluxer/schema/src/domains/channel/ThreadRequestSchemas';
+import {ThreadChannelResponse} from '@osaca/schema/src/domains/channel/ThreadRequestSchemas';
 import {z} from 'zod';
 
 export const ListGuildThreadsResponse = z.object({

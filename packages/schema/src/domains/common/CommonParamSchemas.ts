@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {ArchiveSubjectTypeSchema} from '@fluxer/schema/src/domains/admin/AdminArchiveSchemas';
-import {createStringType, SnowflakeType} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+import {ArchiveSubjectTypeSchema} from '@osaca/schema/src/domains/admin/AdminArchiveSchemas';
+import {createStringType, SnowflakeType} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 export const GuildIdParam = z.object({

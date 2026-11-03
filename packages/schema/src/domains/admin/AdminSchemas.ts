@@ -4,66 +4,66 @@ import {
 	GIFT_CODE_DURATION_TYPE_DEFINITIONS,
 	MAX_GIFT_CODES_PER_REQUEST,
 	MAX_GIFT_DURATION_QUANTITY,
-} from '@fluxer/constants/src/GiftCodeConstants';
+} from '@osaca/constants/src/GiftCodeConstants';
 import {
 	CONTENT_WARNING_TEXT_MAX_LENGTH,
 	SystemChannelFlags,
 	SystemChannelFlagsDescriptions,
-} from '@fluxer/constants/src/GuildConstants';
-import {LIMIT_KEY_METADATA, LIMIT_KEYS} from '@fluxer/constants/src/LimitConfigMetadata';
-import {SmtpTlsModes} from '@fluxer/constants/src/SmtpConstants';
-import {ValidationErrorCodes} from '@fluxer/constants/src/ValidationErrorCodes';
+} from '@osaca/constants/src/GuildConstants';
+import {LIMIT_KEY_METADATA, LIMIT_KEYS} from '@osaca/constants/src/LimitConfigMetadata';
+import {SmtpTlsModes} from '@osaca/constants/src/SmtpConstants';
+import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {
 	EmailDeliveryModeSchema,
 	EmailDeliveryStateSchema,
 	InstantAccountAvailabilitySchema,
-} from '@fluxer/schema/src/domains/account/AccountTierSchemas';
+} from '@osaca/schema/src/domains/account/AccountTierSchemas';
 import {
 	AccountsConfigSchema,
 	AccountsConfigUpdateRequest,
 	AuthConfigSchema,
 	AuthConfigUpdateRequest,
-} from '@fluxer/schema/src/domains/admin/AccountsConfigSchemas';
-import {ADMIN_ACL_COUNT, AdminAclType} from '@fluxer/schema/src/domains/admin/AdminAclType';
-import {AdminArchiveResponseSchema} from '@fluxer/schema/src/domains/admin/AdminArchiveSchemas';
-import {CustomBadgeIdListResponse} from '@fluxer/schema/src/domains/admin/AdminBadgeSchemas';
-import {GuildAdminResponse} from '@fluxer/schema/src/domains/admin/AdminGuildSchemas';
-import {ReportNoteResponse} from '@fluxer/schema/src/domains/admin/AdminReportNoteSchemas';
-import {UserAdminResponseSchema} from '@fluxer/schema/src/domains/admin/AdminUserSchemas';
-import {CaptchaConfigResponse, CaptchaConfigUpdateRequest} from '@fluxer/schema/src/domains/admin/CaptchaSchemas';
+} from '@osaca/schema/src/domains/admin/AccountsConfigSchemas';
+import {ADMIN_ACL_COUNT, AdminAclType} from '@osaca/schema/src/domains/admin/AdminAclType';
+import {AdminArchiveResponseSchema} from '@osaca/schema/src/domains/admin/AdminArchiveSchemas';
+import {CustomBadgeIdListResponse} from '@osaca/schema/src/domains/admin/AdminBadgeSchemas';
+import {GuildAdminResponse} from '@osaca/schema/src/domains/admin/AdminGuildSchemas';
+import {ReportNoteResponse} from '@osaca/schema/src/domains/admin/AdminReportNoteSchemas';
+import {UserAdminResponseSchema} from '@osaca/schema/src/domains/admin/AdminUserSchemas';
+import {CaptchaConfigResponse, CaptchaConfigUpdateRequest} from '@osaca/schema/src/domains/admin/CaptchaSchemas';
 import {
 	DomainMigrationConfigResponse,
 	DomainMigrationConfigUpdateRequest,
-} from '@fluxer/schema/src/domains/admin/DomainMigrationSchemas';
+} from '@osaca/schema/src/domains/admin/DomainMigrationSchemas';
 import {
 	GatewayRolloutConfigResponse,
 	GatewayRolloutConfigUpdateRequest,
-} from '@fluxer/schema/src/domains/admin/GatewayRolloutSchemas';
+} from '@osaca/schema/src/domains/admin/GatewayRolloutSchemas';
 import {
 	GuildVisitsConfigResponse,
 	GuildVisitsConfigUpdateRequest,
-} from '@fluxer/schema/src/domains/admin/GuildVisitsSchemas';
+} from '@osaca/schema/src/domains/admin/GuildVisitsSchemas';
 import {
 	InstanceBillingResponse,
 	InstanceBillingUpdateRequest,
-} from '@fluxer/schema/src/domains/admin/InstanceBillingSchemas';
-import {PushRelayConfigResponse, PushRelayConfigUpdateRequest} from '@fluxer/schema/src/domains/admin/PushRelaySchemas';
-import {VoiceP2pConfigResponse, VoiceP2pConfigUpdateRequest} from '@fluxer/schema/src/domains/admin/VoiceP2pSchemas';
+} from '@osaca/schema/src/domains/admin/InstanceBillingSchemas';
+import {PushRelayConfigResponse, PushRelayConfigUpdateRequest} from '@osaca/schema/src/domains/admin/PushRelaySchemas';
+import {VoiceP2pConfigResponse, VoiceP2pConfigUpdateRequest} from '@osaca/schema/src/domains/admin/VoiceP2pSchemas';
 import {
 	ExperimentDeliveryConfigResponse,
 	ExperimentDeliveryConfigUpdateRequest,
-} from '@fluxer/schema/src/domains/experiment/ExperimentSchemas';
-import {GuildMemberResponse} from '@fluxer/schema/src/domains/guild/GuildMemberSchemas';
+} from '@osaca/schema/src/domains/experiment/ExperimentSchemas';
+import {GuildMemberResponse} from '@osaca/schema/src/domains/guild/GuildMemberSchemas';
 import {
 	AccountIdentityLockReasonSchema,
 	AccountIdentityModeSchema,
 	InstanceNoticeSchema,
 	InstanceRegistrationModeSchema,
 	TagStyleSchema,
-} from '@fluxer/schema/src/domains/instance/InstanceSchemas';
-import {MessageEmbedResponse} from '@fluxer/schema/src/domains/message/EmbedSchemas';
-import {MessageResponseSchema} from '@fluxer/schema/src/domains/message/MessageResponseSchemas';
-import {ChannelTypeSchema} from '@fluxer/schema/src/primitives/ChannelValidators';
+} from '@osaca/schema/src/domains/instance/InstanceSchemas';
+import {MessageEmbedResponse} from '@osaca/schema/src/domains/message/EmbedSchemas';
+import {MessageResponseSchema} from '@osaca/schema/src/domains/message/MessageResponseSchemas';
+import {ChannelTypeSchema} from '@osaca/schema/src/primitives/ChannelValidators';
 import {
 	ContentWarningLevelSchema,
 	DefaultMessageNotificationsSchema,
@@ -71,9 +71,9 @@ import {
 	GuildMFALevelSchema,
 	GuildVerificationLevelSchema,
 	NSFWLevelSchema,
-} from '@fluxer/schema/src/primitives/GuildValidators';
-import {PermissionStringType} from '@fluxer/schema/src/primitives/PermissionValidators';
-import {createQueryIntegerType, QueryBooleanType} from '@fluxer/schema/src/primitives/QueryValidators';
+} from '@osaca/schema/src/primitives/GuildValidators';
+import {PermissionStringType} from '@osaca/schema/src/primitives/PermissionValidators';
+import {createQueryIntegerType, QueryBooleanType} from '@osaca/schema/src/primitives/QueryValidators';
 import {
 	createBitflagInt32Type,
 	createInt32EnumType,
@@ -85,10 +85,10 @@ import {
 	SnowflakeStringType,
 	SnowflakeType,
 	withOpenApiType,
-} from '@fluxer/schema/src/primitives/SchemaPrimitives';
-import {EmailBlocklistEntryType, EmailType} from '@fluxer/schema/src/primitives/UserValidators';
-import {WebhookTypeSchema} from '@fluxer/schema/src/primitives/WebhookValidators';
-import {schemaMetadata} from '@fluxer/schema/src/SchemaMetadata';
+} from '@osaca/schema/src/primitives/SchemaPrimitives';
+import {EmailBlocklistEntryType, EmailType} from '@osaca/schema/src/primitives/UserValidators';
+import {WebhookTypeSchema} from '@osaca/schema/src/primitives/WebhookValidators';
+import {schemaMetadata} from '@osaca/schema/src/SchemaMetadata';
 import {z} from 'zod';
 
 const ReportStatusSchema = withOpenApiType(
@@ -549,7 +549,7 @@ const SsoConfigResponse = z.object({
 	username_from_provider: z
 		.boolean()
 		.describe(
-			"Each SSO sign-in sets the username from the provider, and people can't change it in Fluxer. Only on username instances",
+			"Each SSO sign-in sets the username from the provider, and people can't change it in OSACA. Only on username instances",
 		),
 	redirect_uri: z.string().nullable(),
 	groups_claim: SsoGroupsClaimSchema.nullable(),
@@ -918,7 +918,7 @@ export const InstanceConfigUpdateRequest = z.object({
 				.boolean()
 				.optional()
 				.describe(
-					"Each SSO sign-in sets the username from the provider, and people can't change it in Fluxer. Only on username instances",
+					"Each SSO sign-in sets the username from the provider, and people can't change it in OSACA. Only on username instances",
 				),
 			groups_claim: SsoGroupsClaimSchema.nullish(),
 			group_role_mappings: SsoGroupRoleMappingsSchema.optional(),

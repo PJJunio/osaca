@@ -6,14 +6,14 @@ import {
 	StaticPathResolver,
 	type StaticValue,
 	UNRESOLVED,
-} from '@fluxer/openapi/src/extractors/StaticPathResolver';
+} from '@osaca/openapi/src/extractors/StaticPathResolver';
 import type {
 	ExtractedRoute,
 	ExtractedValidator,
 	HttpMethod,
 	OpenAPIExternalDocs,
 	ValidatorTarget,
-} from '@fluxer/openapi/src/OpenAPITypes';
+} from '@osaca/openapi/src/OpenAPITypes';
 import {
 	type CallExpression,
 	type FunctionDeclaration,

@@ -5,7 +5,7 @@ import {
 	PushRelayConfigSchema,
 	PushRelayConfigUpdateRequest,
 	toLegacyPushServiceDeliveryWire,
-} from '@fluxer/schema/src/domains/admin/PushRelaySchemas';
+} from '@osaca/schema/src/domains/admin/PushRelaySchemas';
 import {describe, expect, test} from 'vitest';
 
 const ADMIN_USER_ID = '1500000000000000001';

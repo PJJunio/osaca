@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {APIErrorCodes} from '@fluxer/constants/src/ApiErrorCodes';
-import {FluxerError} from '@fluxer/errors/src/FluxerError';
+import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
+import {OsacaError} from '@osaca/errors/src/OsacaError';
 
-export class StripeInvalidProductConfigurationError extends FluxerError {
+export class StripeInvalidProductConfigurationError extends OsacaError {
 	constructor() {
 		super({
 			code: APIErrorCodes.STRIPE_INVALID_PRODUCT_CONFIGURATION,

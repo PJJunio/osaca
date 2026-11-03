@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import fixtureJson from '@fluxer/voice_engine_v2/fixtures/basic_session.json';
-import cameraInPlaceUpdateFixtureJson from '@fluxer/voice_engine_v2/fixtures/event_logs/camera_in_place_update.json';
-import codecRepublishFixtureJson from '@fluxer/voice_engine_v2/fixtures/event_logs/codec_republish.json';
-import nativeFrameSinkFixtureJson from '@fluxer/voice_engine_v2/fixtures/event_logs/native_frame_sink.json';
-import nativeZeroCopyScreenFixtureJson from '@fluxer/voice_engine_v2/fixtures/event_logs/native_zero_copy_screen.json';
-import screenAudioInclusionToggleFixtureJson from '@fluxer/voice_engine_v2/fixtures/event_logs/screen_audio_inclusion_toggle.json';
-import screenAudioRoutingFixtureJson from '@fluxer/voice_engine_v2/fixtures/event_logs/screen_audio_routing.json';
-import screenShareStartUpdateStopFixtureJson from '@fluxer/voice_engine_v2/fixtures/event_logs/screen_share_start_update_stop.json';
-import externallyEstablishedFixtureJson from '@fluxer/voice_engine_v2/fixtures/externally_established_session.json';
-import {transitionVoiceEngineV2} from '@fluxer/voice_engine_v2/src/core/reducer';
+import fixtureJson from '@osaca/voice_engine_v2/fixtures/basic_session.json';
+import cameraInPlaceUpdateFixtureJson from '@osaca/voice_engine_v2/fixtures/event_logs/camera_in_place_update.json';
+import codecRepublishFixtureJson from '@osaca/voice_engine_v2/fixtures/event_logs/codec_republish.json';
+import nativeFrameSinkFixtureJson from '@osaca/voice_engine_v2/fixtures/event_logs/native_frame_sink.json';
+import nativeZeroCopyScreenFixtureJson from '@osaca/voice_engine_v2/fixtures/event_logs/native_zero_copy_screen.json';
+import screenAudioInclusionToggleFixtureJson from '@osaca/voice_engine_v2/fixtures/event_logs/screen_audio_inclusion_toggle.json';
+import screenAudioRoutingFixtureJson from '@osaca/voice_engine_v2/fixtures/event_logs/screen_audio_routing.json';
+import screenShareStartUpdateStopFixtureJson from '@osaca/voice_engine_v2/fixtures/event_logs/screen_share_start_update_stop.json';
+import externallyEstablishedFixtureJson from '@osaca/voice_engine_v2/fixtures/externally_established_session.json';
+import {transitionVoiceEngineV2} from '@osaca/voice_engine_v2/src/core/reducer';
 import {
 	availableVoiceEngineV2Capabilities,
 	createVoiceEngineV2InitialSnapshot,
-} from '@fluxer/voice_engine_v2/src/core/state';
-import type {VoiceEngineV2Command} from '@fluxer/voice_engine_v2/src/protocol/commands';
-import type {VoiceEngineV2Event} from '@fluxer/voice_engine_v2/src/protocol/events';
+} from '@osaca/voice_engine_v2/src/core/state';
+import type {VoiceEngineV2Command} from '@osaca/voice_engine_v2/src/protocol/commands';
+import type {VoiceEngineV2Event} from '@osaca/voice_engine_v2/src/protocol/events';
 import {describe, expect, it} from 'vitest';
 
 interface VoiceEngineV2FixtureExpected {

@@ -78,7 +78,7 @@ export const NATIVE_GATEWAY_TRANSPORT_PROXIED_MESSAGE =
 
 export const NATIVE_GATEWAY_TRANSPORT_EVENT_CHANNEL = 'native-gateway-transport:event';
 
-export const NATIVE_GATEWAY_TRANSPORT_AVAILABLE_RENDERER_ARG = '--fluxer-native-gateway-available=1';
+export const NATIVE_GATEWAY_TRANSPORT_AVAILABLE_RENDERER_ARG = '--osaca-native-gateway-available=1';
 
 export const NATIVE_GATEWAY_TRANSPORT_CONNECTION_ID_MAX_BYTES = 192;
 export const NATIVE_GATEWAY_TRANSPORT_URL_MAX_BYTES = 2048;

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {ChannelOverwriteTypes, ChannelTypes, Permissions} from '@fluxer/constants/src/ChannelConstants';
-import type {ValueOf} from '@fluxer/constants/src/ValueOf';
+import {ChannelOverwriteTypes, ChannelTypes, Permissions} from '@osaca/constants/src/ChannelConstants';
+import type {ValueOf} from '@osaca/constants/src/ValueOf';
 
 export const GUILD_VISITOR_PERMISSIONS_MASK = Permissions.VIEW_CHANNEL | Permissions.READ_MESSAGE_HISTORY;
 

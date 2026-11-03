@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {GuildVisitSources} from '@fluxer/constants/src/GuildVisitConstants';
-import {SnowflakeStringType} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+import {GuildVisitSources} from '@osaca/constants/src/GuildVisitConstants';
+import {SnowflakeStringType} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 export const GuildVisitSourceSchema = z

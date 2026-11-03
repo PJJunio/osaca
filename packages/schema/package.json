@@ -1,5 +1,5 @@
 {
-	"name": "@fluxer/schema",
+	"name": "@osaca/schema",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -14,7 +14,7 @@
 	},
 	"dependencies": {
 		"@bufbuild/protobuf": "^2.16.0",
-		"@fluxer/constants": "workspace:*",
+		"@osaca/constants": "workspace:*",
 		"@simplewebauthn/server": "catalog:",
 		"emoji-regex": "catalog:",
 		"uint8array-extras": "catalog:",

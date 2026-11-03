@@ -4,24 +4,24 @@
 	"ignoreExportsUsedInFile": true,
 	"ignoreDependencies": ["@bufbuild/protoc-gen-es", "@tailwindcss/cli", "@types/events", "events", "tailwindcss"],
 	"ignoreFiles": [
-		"fluxer_admin/src/styles/app.css",
-		"fluxer_admin/static/htmx.min.js",
-		"fluxer_app_proxy/src/routes/instance_brand_preboot.js",
-		"fluxer_app_proxy/src/routes/saturation_preboot.js",
-		"fluxer_app/src/features/voice/utils/camera-effects/models/selfie_segmentation_256x256.d.onnx.ts",
-		"fluxer_app/src/media/images/i-like-food.d.svg.ts"
+		"osaca_admin/src/styles/app.css",
+		"osaca_admin/static/htmx.min.js",
+		"osaca_app_proxy/src/routes/instance_brand_preboot.js",
+		"osaca_app_proxy/src/routes/saturation_preboot.js",
+		"osaca_app/src/features/voice/utils/camera-effects/models/selfie_segmentation_256x256.d.onnx.ts",
+		"osaca_app/src/media/images/i-like-food.d.svg.ts"
 	],
 	"ignoreIssues": {
-		"fluxer_api/src/api/infrastructure/activity/Contract.generated.ts": ["exports", "types"],
-		"fluxer_app/src/features/app/domain_migration/DomainMigrationAppStorage.ts": ["exports"],
-		"fluxer_app/src/features/voice/utils/CodecCapabilityDetector.ts": ["exports"],
-		"fluxer_app/src/index.tsx": ["unlisted"]
+		"osaca_api/src/api/infrastructure/activity/Contract.generated.ts": ["exports", "types"],
+		"osaca_app/src/features/app/domain_migration/DomainMigrationAppStorage.ts": ["exports"],
+		"osaca_app/src/features/voice/utils/CodecCapabilityDetector.ts": ["exports"],
+		"osaca_app/src/index.tsx": ["unlisted"]
 	},
 	"workspaces": {
 		".": {
 			"ignoreDependencies": ["vite"]
 		},
-		"fluxer_api": {
+		"osaca_api": {
 			"ignoreDependencies": [
 				"@messageformat/parser",
 				"@pdf-lib/fontkit",
@@ -39,7 +39,7 @@
 			],
 			"ignoreExportsUsedInFile": false
 		},
-		"fluxer_app": {
+		"osaca_app": {
 			"entry": [
 				"lingui.config.js",
 				"scripts/build-sw.mjs",
@@ -48,7 +48,7 @@
 				"src/features/platform/utils/BrowserAssertStrict.ts"
 			]
 		},
-		"fluxer_desktop": {
+		"osaca_desktop": {
 			"ignoreExportsUsedInFile": false,
 			"entry": [
 				"src/main/Bootstrap.ts",
@@ -64,7 +64,7 @@
 			"ignoreBinaries": ["reg.exe", "update-desktop-database", "xdg-mime"],
 			"ignoreDependencies": ["electron-builder"]
 		},
-		"fluxer_docs": {
+		"osaca_docs": {
 			"entry": ["scripts/*.ts", "src/**/*.astro"],
 			"project": ["src/**/*.{ts,astro,mdx}", "scripts/**/*.ts"]
 		},

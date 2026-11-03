@@ -56,24 +56,24 @@ The project docs in [`docs/`](docs/index.md) are written as an [Obsidian](https:
 - [Technical Survey](docs/osaca-technical-survey.md): the Fluxer baseline, the gap analysis, every decision and the phases.
 - [Architecture Decision Records](docs/adr/).
 - [Glossary](GLOSSARY.md).
-- [Docs rewrite plan](docs/fluxer-docs-rewrite-plan.md): how the inherited `fluxer_docs/` site becomes OSACA's.
+- [Docs rewrite plan](docs/fluxer-docs-rewrite-plan.md): how the inherited `osaca_docs/` site becomes OSACA's.
 
 ### Repository layout
 
-Directories still carry the `fluxer_` prefix until the rename in F0 ([ADR-0001](docs/adr/0001-hard-fork-as-osaca.md)).
+Everything was renamed from `fluxer_*` to `osaca_*` in one mechanical commit ([ADR-0001](docs/adr/0001-hard-fork-as-osaca.md)). Domains that pointed to Fluxer's servers now use the reserved placeholder `osaca.example`, which never resolves.
 
 | Path | Language | Role |
 | --- | --- | --- |
-| `fluxer_app` | TypeScript, React | Client UI (web and desktop) |
-| `fluxer_desktop` | Electron | Desktop client (reference client) |
-| `fluxer_api` | TypeScript, Hono | REST API and worker |
-| `fluxer_gateway` | Erlang/OTP | WebSocket gateway, presence, voice grants |
-| `fluxer_media_proxy` | Rust | Uploads and media |
-| `fluxer_push` | Rust | Push delivery |
-| `fluxer_admin` | Rust | Operator admin panel |
-| `fluxer_svc`, `fluxer_messages`, `fluxer_users`, … | Rust | NATS RPC services |
-| `fluxer_rexctl` | Go | Self-host installer and CLI |
-| `fluxer_docs` | Astro | Inherited docs site (to be rewritten) |
+| `osaca_app` | TypeScript, React | Client UI (web and desktop) |
+| `osaca_desktop` | Electron | Desktop client (reference client) |
+| `osaca_api` | TypeScript, Hono | REST API and worker |
+| `osaca_gateway` | Erlang/OTP | WebSocket gateway, presence, voice grants |
+| `osaca_media_proxy` | Rust | Uploads and media |
+| `osaca_push` | Rust | Push delivery |
+| `osaca_admin` | Rust | Operator admin panel |
+| `osaca_svc`, `osaca_messages`, `osaca_users`, … | Rust | NATS RPC services |
+| `osaca_rexctl` | Go | Self-host installer and CLI |
+| `osaca_docs` | Astro | Inherited docs site (to be rewritten) |
 | `packages/*` | TS, Rust | Shared libraries |
 | `deploy/`, `config/` | | Helm, Compose and environment |
 
@@ -102,7 +102,7 @@ Other useful commands are `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm d
 
 The source is licensed under [AGPL-3.0-or-later](./LICENSE).
 
-OSACA is based on [Fluxer](https://github.com/fluxerapp/fluxer) by the Fluxer contributors, also AGPL-3.0-or-later. See [NOTICE](./NOTICE). Inherited Fluxer artwork in `fluxer_static/` is licensed under [CC BY-SA 4.0](./fluxer_static/LICENSE) and will be replaced. The Fluxer name and logo are not part of OSACA's identity, and OSACA is not affiliated with or endorsed by Fluxer.
+OSACA is based on [Fluxer](https://github.com/fluxerapp/fluxer) by the Fluxer contributors, also AGPL-3.0-or-later. See [NOTICE](./NOTICE). Inherited Fluxer artwork in `osaca_static/` and elsewhere is licensed under [CC BY-SA 4.0](./osaca_static/LICENSE) and will be replaced. The Fluxer name and logo are not part of OSACA's identity, and OSACA is not affiliated with or endorsed by Fluxer.
 
 ---
 

@@ -55,54 +55,54 @@ pub async fn run_ci(args: CiArgs) -> Result<()> {
             run_workspace_tests(&root)?;
             run_command(with_test_env(
                 CommandSpec::new("pnpm")
-                    .args(["--filter", "fluxer_api", "test"])
+                    .args(["--filter", "osaca_api", "test"])
                     .current_dir(root),
             ))
         }
         CiStep::Knip => {
             run_app_test_artifact_generators(&root, AppWasm::ReuseIfPresent)?;
             ensure_desktop_build_channel_file(&root)?;
-            run_fluxer_app_script(&root, "i18n:compile")?;
+            run_osaca_app_script(&root, "i18n:compile")?;
             run_command(
                 CommandSpec::new("pnpm")
                     .args(["exec", "knip"])
                     .current_dir(root),
             )
         }
-        CiStep::GatewayFmt => run_gateway_step(&root.join("fluxer_gateway"), GatewayStep::FmtCheck),
+        CiStep::GatewayFmt => run_gateway_step(&root.join("osaca_gateway"), GatewayStep::FmtCheck),
         CiStep::GatewayCompile => {
-            run_gateway_step(&root.join("fluxer_gateway"), GatewayStep::Compile)
+            run_gateway_step(&root.join("osaca_gateway"), GatewayStep::Compile)
         }
         CiStep::GatewayDialyzer => {
-            run_gateway_step(&root.join("fluxer_gateway"), GatewayStep::Dialyzer)
+            run_gateway_step(&root.join("osaca_gateway"), GatewayStep::Dialyzer)
         }
     }
 }
 
 fn ensure_desktop_build_channel_file(root: &Path) -> Result<()> {
     let channel = env::var("BUILD_CHANNEL").unwrap_or_else(|_| "stable".to_string());
-    write_build_channel_file(&root.join("fluxer_desktop"), &channel)
+    write_build_channel_file(&root.join("osaca_desktop"), &channel)
 }
 
 fn run_app_test_artifact_generators(root: &Path, wasm: AppWasm) -> Result<()> {
     match (wasm, missing_app_wasm_artifact(root)) {
         (AppWasm::ReuseIfPresent, None) => {
-            println!("Reusing restored fluxer_app wasm artifacts");
+            println!("Reusing restored osaca_app wasm artifacts");
         }
         (AppWasm::ReuseIfPresent, Some(missing)) => {
             println!(
-                "Rebuilding fluxer_app wasm artifacts: {} is missing",
+                "Rebuilding osaca_app wasm artifacts: {} is missing",
                 missing.display()
             );
-            run_fluxer_app_script(root, "wasm:codegen")?;
+            run_osaca_app_script(root, "wasm:codegen")?;
         }
-        (AppWasm::Build, _) => run_fluxer_app_script(root, "wasm:codegen")?,
+        (AppWasm::Build, _) => run_osaca_app_script(root, "wasm:codegen")?,
     }
-    run_fluxer_app_script(root, "generate:masks")
+    run_osaca_app_script(root, "generate:masks")
 }
 
 fn app_wasm_artifacts(root: &Path) -> Vec<PathBuf> {
-    let app_dir = root.join("fluxer_app");
+    let app_dir = root.join("osaca_app");
     vec![
         app_dir.join("pkgs/libfluxcore/libfluxcore.js"),
         app_dir.join("pkgs/libfluxcore/libfluxcore.d.ts"),
@@ -127,10 +127,10 @@ fn missing_app_wasm_artifact(root: &Path) -> Option<PathBuf> {
         .find(|path| !path.exists())
 }
 
-fn run_fluxer_app_script(root: &Path, script: &str) -> Result<()> {
+fn run_osaca_app_script(root: &Path, script: &str) -> Result<()> {
     run_command(
         CommandSpec::new("pnpm")
-            .args(["--filter", "fluxer_app", script])
+            .args(["--filter", "osaca_app", script])
             .current_dir(root),
     )
 }
@@ -144,15 +144,15 @@ fn run_generators(root: &Path, for_typecheck: bool) -> Result<()> {
 
 fn generator_commands(for_typecheck: bool) -> Vec<CommandSpec> {
     let mut commands =
-        vec![CommandSpec::new("pnpm").args(["--filter", "@fluxer/schema", "generate"])];
+        vec![CommandSpec::new("pnpm").args(["--filter", "@osaca/schema", "generate"])];
     if for_typecheck {
         commands.push(CommandSpec::new("pnpm").args([
             "--filter",
-            "@fluxer/i18n",
+            "@osaca/i18n",
             "generate:types",
         ]));
     } else {
-        commands.push(CommandSpec::new("pnpm").args(["--filter", "fluxer_app", "i18n:compile"]));
+        commands.push(CommandSpec::new("pnpm").args(["--filter", "osaca_app", "i18n:compile"]));
     }
     commands
 }
@@ -167,9 +167,9 @@ fn workspace_test_args(concurrency: Option<&str>) -> Vec<OsString> {
     args.extend(
         [
             "--filter",
-            "!fluxer_api",
+            "!osaca_api",
             "--filter",
-            "!fluxer",
+            "!osaca",
             "--if-present",
             "test",
         ]
@@ -189,15 +189,15 @@ fn run_workspace_tests(root: &Path) -> Result<()> {
 }
 
 fn with_test_env(spec: CommandSpec) -> CommandSpec {
-    let nats_url = env::var("FLUXER_NATS_URL").unwrap_or_else(|_| default_test_nats_url());
-    spec.env("FLUXER_NATS_URL", &nats_url)
+    let nats_url = env::var("OSACA_NATS_URL").unwrap_or_else(|_| default_test_nats_url());
+    spec.env("OSACA_NATS_URL", &nats_url)
         .env(
-            "FLUXER_NATS_CORE_URL",
-            env::var("FLUXER_NATS_CORE_URL").unwrap_or_else(|_| nats_url.clone()),
+            "OSACA_NATS_CORE_URL",
+            env::var("OSACA_NATS_CORE_URL").unwrap_or_else(|_| nats_url.clone()),
         )
         .env(
-            "FLUXER_NATS_JETSTREAM_URL",
-            env::var("FLUXER_NATS_JETSTREAM_URL").unwrap_or_else(|_| nats_url.clone()),
+            "OSACA_NATS_JETSTREAM_URL",
+            env::var("OSACA_NATS_JETSTREAM_URL").unwrap_or_else(|_| nats_url.clone()),
         )
 }
 

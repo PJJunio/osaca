@@ -16,9 +16,9 @@ fn task_run(args: &[&str]) -> Result<()> {
 }
 
 pub fn run_build() -> Result<i32> {
-    task_run(&["pnpm", "--filter", "@fluxer/schema", "generate"])?;
-    task_run(&["pnpm", "--filter", "fluxer_app", "i18n:compile"])?;
+    task_run(&["pnpm", "--filter", "@osaca/schema", "generate"])?;
+    task_run(&["pnpm", "--filter", "osaca_app", "i18n:compile"])?;
     build_desktop_shell()?;
-    task_run(&["pnpm", "--filter", "fluxer_app", "build"])?;
+    task_run(&["pnpm", "--filter", "osaca_app", "build"])?;
     Ok(0)
 }

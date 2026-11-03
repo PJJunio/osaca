@@ -2,16 +2,16 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import type {OpenAPIGenerationStats, SkippedRoute} from '@fluxer/openapi/src/OpenAPIGenerationTypes';
-import {OpenAPIGenerator} from '@fluxer/openapi/src/OpenAPIGenerator';
-import {printValidationResult, validateSpec} from '@fluxer/openapi/src/output/SpecValidator';
+import type {OpenAPIGenerationStats, SkippedRoute} from '@osaca/openapi/src/OpenAPIGenerationTypes';
+import {OpenAPIGenerator} from '@osaca/openapi/src/OpenAPIGenerator';
+import {printValidationResult, validateSpec} from '@osaca/openapi/src/output/SpecValidator';
 import {
 	getAdminOutputPath,
 	getApiPackageOutputPath,
 	readSpec,
 	type WritableOpenAPISpec,
 	writeSpec,
-} from '@fluxer/openapi/src/output/SpecWriter';
+} from '@osaca/openapi/src/output/SpecWriter';
 
 type GenerateTarget = 'admin' | 'public';
 interface GenerateOptions {
@@ -25,7 +25,7 @@ interface GeneratedTargetSpec {
 	spec: WritableOpenAPISpec;
 }
 const API_DESCRIPTION =
-	'API for Fluxer, a free and open source instant messaging and VoIP chat app built for friends, groups, and communities.';
+	'API for OSACA, a free and open source instant messaging and VoIP chat app built for friends, groups, and communities.';
 function parseArgs(): GenerateOptions {
 	const args = process.argv.slice(2);
 	let validateOnly = false;
@@ -92,10 +92,10 @@ function reportRoutesLeftOut(target: GenerateTarget, stats: OpenAPIGenerationSta
 async function buildTargetSpec(basePath: string, target: GenerateTarget): Promise<WritableOpenAPISpec> {
 	const generator = new OpenAPIGenerator({
 		basePath,
-		title: 'Fluxer API',
+		title: 'OSACA API',
 		version: '1.0.0',
 		description: API_DESCRIPTION,
-		serverUrl: 'https://api.fluxer.app/v1',
+		serverUrl: 'https://api.osaca.example/v1',
 		routeScope: target,
 		schemaTarget: target === 'admin' ? 'openapi-3.0' : 'draft-2020-12',
 	});
@@ -131,7 +131,7 @@ async function main(): Promise<void> {
 		throw new Error('--output requires --target when generating or validating multiple specs.');
 	}
 	const targets: Array<GenerateTarget> = requestedTarget ? [requestedTarget] : ['public', 'admin'];
-	console.log('Fluxer OpenAPI Specification Generator');
+	console.log('OSACA OpenAPI Specification Generator');
 	console.log('======================================');
 	console.log(`Base path: ${basePath}`);
 	console.log(`Targets: ${targets.join(', ')}`);

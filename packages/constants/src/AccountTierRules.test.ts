@@ -9,12 +9,12 @@ import {
 	LegacyDateOfBirthEnforcements,
 	RegistrationModes,
 	VerificationBases,
-} from '@fluxer/constants/src/AccountConfigConstants';
+} from '@osaca/constants/src/AccountConfigConstants';
 import {
 	AccountIdentityModes,
 	normalizeAccountIdentity,
 	TagStyles,
-} from '@fluxer/constants/src/AccountIdentityConstants';
+} from '@osaca/constants/src/AccountIdentityConstants';
 import {
 	AccountTiers,
 	AccountVerificationNeeds,
@@ -25,7 +25,7 @@ import {
 	TierExemptions,
 	type TierGatedAction,
 	TierGatedActions,
-} from '@fluxer/constants/src/AccountTierConstants';
+} from '@osaca/constants/src/AccountTierConstants';
 import {
 	type AccountTierInput,
 	evaluateTierGate,
@@ -38,9 +38,9 @@ import {
 	resolveInstantAccountAvailability,
 	resolveVerificationNeed,
 	type TierGateInput,
-} from '@fluxer/constants/src/AccountTierRules';
-import {CaptchaProviders} from '@fluxer/constants/src/CaptchaConstants';
-import {UserTraits} from '@fluxer/constants/src/UserTraitConstants';
+} from '@osaca/constants/src/AccountTierRules';
+import {CaptchaProviders} from '@osaca/constants/src/CaptchaConstants';
+import {UserTraits} from '@osaca/constants/src/UserTraitConstants';
 import {describe, expect, it} from 'vitest';
 
 const ALL_ACTIONS = Object.values(TierGatedActions);

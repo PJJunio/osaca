@@ -3,8 +3,8 @@
 
 set -euo pipefail
 
-if [ -x "${FLUXER_CI_BIN:-}" ]; then
-	exec "$FLUXER_CI_BIN" "$@"
+if [ -x "${OSACA_CI_BIN:-}" ]; then
+	exec "$OSACA_CI_BIN" "$@"
 fi
 
 script_dir="$(cd "$(dirname "$0")" && pwd)"

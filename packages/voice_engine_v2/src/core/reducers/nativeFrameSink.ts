@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import assert from 'node:assert/strict';
-import {allocateOperation, queueCommand} from '@fluxer/voice_engine_v2/src/core/reducers/_helpers';
+import {allocateOperation, queueCommand} from '@osaca/voice_engine_v2/src/core/reducers/_helpers';
 import {
 	nativeZeroCopyRequiredError,
 	unavailableZeroCopyTransportError,
-} from '@fluxer/voice_engine_v2/src/core/reducers/_zeroCopy';
-import type {VoiceEngineV2Snapshot, VoiceEngineV2Transition} from '@fluxer/voice_engine_v2/src/core/state';
-import type {VoiceEngineV2Event} from '@fluxer/voice_engine_v2/src/protocol/events';
-import type {VoiceEngineV2NativeFrameSinkOptions} from '@fluxer/voice_engine_v2/src/protocol/types';
+} from '@osaca/voice_engine_v2/src/core/reducers/_zeroCopy';
+import type {VoiceEngineV2Snapshot, VoiceEngineV2Transition} from '@osaca/voice_engine_v2/src/core/state';
+import type {VoiceEngineV2Event} from '@osaca/voice_engine_v2/src/protocol/events';
+import type {VoiceEngineV2NativeFrameSinkOptions} from '@osaca/voice_engine_v2/src/protocol/types';
 
 type VoiceEngineV2NativeFrameSinkEvent = Extract<VoiceEngineV2Event, {type: `nativeFrameSink.${string}`}>;
 

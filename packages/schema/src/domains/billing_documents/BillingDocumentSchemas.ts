@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {SnowflakeStringType, SnowflakeType} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+import {SnowflakeStringType, SnowflakeType} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 export const BillingDocumentKind = z
 	.enum(['invoice', 'receipt', 'donation_receipt', 'credit_note', 'refund_note', 'stripe_invoice'])
 	.describe(
-		'What the document is. Credit and refund notes correct an earlier document. stripe_invoice is an invoice Stripe issued before Fluxer issued its own documents, kept read-only as Stripe issued it',
+		'What the document is. Credit and refund notes correct an earlier document. stripe_invoice is an invoice Stripe issued before OSACA issued its own documents, kept read-only as Stripe issued it',
 	);
 
 export const BillingDocumentResponse = z.object({
@@ -47,7 +47,7 @@ export const AdminBillingDocumentExportQuery = z.object({
 
 export const AdminBillingDocumentExportFileResponse = z
 	.file()
-	.describe('A zip with fluxer-dokument-YYYY-MM.csv and pdf/<number>.pdf for every document issued in the month');
+	.describe('A zip with osaca-dokument-YYYY-MM.csv and pdf/<number>.pdf for every document issued in the month');
 
 export const AdminBillingDocumentReissueRequest = z.object({
 	source_key: z
@@ -67,7 +67,7 @@ export const AdminBillingDocumentLegacyImportRequest = z.object({
 	before: z.iso
 		.datetime()
 		.describe(
-			'The cutover time. Only Stripe invoices created before it are imported, so later Stripe invoices that Fluxer documents itself are left out',
+			'The cutover time. Only Stripe invoices created before it are imported, so later Stripe invoices that OSACA documents itself are left out',
 		),
 	dry_run: z.boolean().describe('Count what would be imported without downloading or storing anything'),
 	resume: z
@@ -91,8 +91,8 @@ export const AdminBillingDocumentLegacyImportResponse = z.object({
 	imported: z.number().int().describe('Invoices stored as legacy documents by this run'),
 	already_imported: z.number().int().describe('Invoices an earlier run already stored'),
 	would_import: z.number().int().describe('Invoices a dry run would store'),
-	no_account: z.number().int().describe('Invoices that belong to no Fluxer account, such as donations, left out'),
-	fluxer_document: z.number().int().describe('Invoices Fluxer already issued its own document for, left out'),
+	no_account: z.number().int().describe('Invoices that belong to no OSACA account, such as donations, left out'),
+	osaca_document: z.number().int().describe('Invoices OSACA already issued its own document for, left out'),
 	failed: z.number().int().describe('Invoices that could not be imported; running the import again retries them'),
 });
 

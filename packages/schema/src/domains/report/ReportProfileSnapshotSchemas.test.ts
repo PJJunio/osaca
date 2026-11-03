@@ -5,7 +5,7 @@ import {
 	parseReportProfileSnapshot,
 	type ReportProfileSnapshot,
 	serializeReportProfileSnapshot,
-} from '@fluxer/schema/src/domains/report/ReportProfileSnapshotSchemas';
+} from '@osaca/schema/src/domains/report/ReportProfileSnapshotSchemas';
 import {describe, expect, it} from 'vitest';
 
 const fullSnapshot: ReportProfileSnapshot = {

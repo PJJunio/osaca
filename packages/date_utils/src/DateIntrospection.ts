@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {getDateFormatter} from '@fluxer/date_utils/src/DateFormatterCache';
-import type {DateFieldType} from '@fluxer/date_utils/src/DateTypes';
+import {getDateFormatter} from '@osaca/date_utils/src/DateFormatterCache';
+import type {DateFieldType} from '@osaca/date_utils/src/DateTypes';
 
 export function getDateFieldOrder(locale: string): Array<DateFieldType> {
 	const formatter = getDateFormatter(locale, {

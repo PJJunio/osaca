@@ -8,25 +8,25 @@ import {
 	invalidArgument,
 	isConnected,
 	unsupportedCapability,
-} from '@fluxer/voice_engine_v2/src/core/reducers/_helpers';
+} from '@osaca/voice_engine_v2/src/core/reducers/_helpers';
 import {
 	applyMediaFailure,
 	applyMediaSuccess,
 	completeUnpublish,
-} from '@fluxer/voice_engine_v2/src/core/reducers/_media';
+} from '@osaca/voice_engine_v2/src/core/reducers/_media';
 import {
 	nativeZeroCopyRequiredError,
 	unavailableZeroCopyTransportError,
-} from '@fluxer/voice_engine_v2/src/core/reducers/_zeroCopy';
-import type {VoiceEngineV2Snapshot, VoiceEngineV2Transition} from '@fluxer/voice_engine_v2/src/core/state';
-import {planVoiceEngineV2ScreenEncodingChange} from '@fluxer/voice_engine_v2/src/policies/screenShare';
-import type {VoiceEngineV2Event} from '@fluxer/voice_engine_v2/src/protocol/events';
+} from '@osaca/voice_engine_v2/src/core/reducers/_zeroCopy';
+import type {VoiceEngineV2Snapshot, VoiceEngineV2Transition} from '@osaca/voice_engine_v2/src/core/state';
+import {planVoiceEngineV2ScreenEncodingChange} from '@osaca/voice_engine_v2/src/policies/screenShare';
+import type {VoiceEngineV2Event} from '@osaca/voice_engine_v2/src/protocol/events';
 import type {
 	VoiceEngineV2Error,
 	VoiceEngineV2OperationId,
 	VoiceEngineV2ScreenEncodingOptions,
 	VoiceEngineV2ScreenOptions,
-} from '@fluxer/voice_engine_v2/src/protocol/types';
+} from '@osaca/voice_engine_v2/src/protocol/types';
 
 type VoiceEngineV2ScreenEvent = Extract<VoiceEngineV2Event, {type: `screen.${string}`}>;
 

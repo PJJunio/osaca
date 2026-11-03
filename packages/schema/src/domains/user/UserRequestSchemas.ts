@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {MAX_GROUP_DM_OTHER_RECIPIENTS, MAX_GUILDS_PREMIUM} from '@fluxer/constants/src/LimitConstants';
-import {StatusTypes} from '@fluxer/constants/src/StatusConstants';
+import {MAX_GROUP_DM_OTHER_RECIPIENTS, MAX_GUILDS_PREMIUM} from '@osaca/constants/src/LimitConstants';
+import {StatusTypes} from '@osaca/constants/src/StatusConstants';
 import {
 	DEFAULT_GUILD_FOLDER_ICON,
 	FriendSourceFlags,
@@ -15,18 +15,18 @@ import {
 	ProfileFieldPrivacyFlags,
 	ProfileFieldPrivacyFlagsDescriptions,
 	ThemeTypes,
-} from '@fluxer/constants/src/UserConstants';
-import {ValidationErrorCodes} from '@fluxer/constants/src/ValidationErrorCodes';
-import {SudoVerificationSchema} from '@fluxer/schema/src/domains/auth/AuthSchemas';
-import {HiddenProfileBadgesType} from '@fluxer/schema/src/domains/user/ProfileBadgeSchemas';
+} from '@osaca/constants/src/UserConstants';
+import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
+import {SudoVerificationSchema} from '@osaca/schema/src/domains/auth/AuthSchemas';
+import {HiddenProfileBadgesType} from '@osaca/schema/src/domains/user/ProfileBadgeSchemas';
 import {
 	isValidSyncedPreferencesEncoding,
 	SYNCED_PREFERENCES_MAX_ENCODED_LENGTH,
-} from '@fluxer/schema/src/domains/user/SyncedPreferencesCodec';
-import {isValidSingleUnicodeEmoji} from '@fluxer/schema/src/primitives/EmojiValidators';
-import {createBase64ImageType} from '@fluxer/schema/src/primitives/FileValidators';
-import {LocaleSchema} from '@fluxer/schema/src/primitives/LocaleSchema';
-import {createQueryIntegerType, DateTimeType, QueryBooleanType} from '@fluxer/schema/src/primitives/QueryValidators';
+} from '@osaca/schema/src/domains/user/SyncedPreferencesCodec';
+import {isValidSingleUnicodeEmoji} from '@osaca/schema/src/primitives/EmojiValidators';
+import {createBase64ImageType} from '@osaca/schema/src/primitives/FileValidators';
+import {LocaleSchema} from '@osaca/schema/src/primitives/LocaleSchema';
+import {createQueryIntegerType, DateTimeType, QueryBooleanType} from '@osaca/schema/src/primitives/QueryValidators';
 import {
 	ColorType,
 	createBitflagInt32Type,
@@ -37,8 +37,8 @@ import {
 	SnowflakeType,
 	withFieldDescription,
 	withOpenApiType,
-} from '@fluxer/schema/src/primitives/SchemaPrimitives';
-import {URLType} from '@fluxer/schema/src/primitives/UrlValidators';
+} from '@osaca/schema/src/primitives/SchemaPrimitives';
+import {URLType} from '@osaca/schema/src/primitives/UrlValidators';
 import {
 	GuildFolderIconSchema,
 	MentionReplyPreferencesSchema,
@@ -50,14 +50,14 @@ import {
 	StickerAnimationOptionsSchema,
 	TimeFormatTypesSchema,
 	UserNotificationSettingsSchema,
-} from '@fluxer/schema/src/primitives/UserSettingsValidators';
+} from '@osaca/schema/src/primitives/UserSettingsValidators';
 import {
 	DiscriminatorType,
 	EmailType,
 	GlobalNameType,
 	PasswordType,
 	UsernameType,
-} from '@fluxer/schema/src/primitives/UserValidators';
+} from '@osaca/schema/src/primitives/UserValidators';
 import {z} from 'zod';
 
 export const UserUpdateRequest = z

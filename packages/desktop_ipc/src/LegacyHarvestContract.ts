@@ -8,15 +8,15 @@ export const DESKTOP_LEGACY_HARVEST_CHANNELS = Object.freeze({
 	submit: 'desktop-legacy-harvest:submit',
 } as const);
 
-export const DESKTOP_LEGACY_HARVEST_SENTINEL_PATH = '/__fluxer-desktop-storage-harvest';
+export const DESKTOP_LEGACY_HARVEST_SENTINEL_PATH = '/__osaca-desktop-storage-harvest';
 
 export const DESKTOP_LEGACY_HARVEST_MARKER_KEY = 'legacy_origin_harvest.v1';
 export const DESKTOP_LEGACY_REPLANT_MARKER_KEY = 'legacy_origin_replant.v1';
 export const DESKTOP_LEGACY_HARVEST_FAILURE_MARKER_KEY = 'legacy_origin_harvest.failures';
 export const DESKTOP_LEGACY_HARVEST_MAX_FAILURES = 5;
-export const DESKTOP_LEGACY_RAW_STORAGE_SEED_MARKER_KEY = 'fluxer:desktop:legacy-raw-storage-seed.v1';
+export const DESKTOP_LEGACY_RAW_STORAGE_SEED_MARKER_KEY = 'osaca:desktop:legacy-raw-storage-seed.v1';
 export const DESKTOP_LEGACY_RAW_STORAGE_SEED_MARKER_VALUE = '1';
-export const DESKTOP_LEGACY_HARVEST_VALUE_ENCODING_KEY = '__fluxerLegacyHarvestValue';
+export const DESKTOP_LEGACY_HARVEST_VALUE_ENCODING_KEY = '__osacaLegacyHarvestValue';
 export const DESKTOP_LEGACY_HARVEST_VALUE_ENCODING_VERSION = 1;
 export const DESKTOP_LEGACY_HARVEST_BLOB_REF_KEY = '__blobRef';
 export const DESKTOP_LEGACY_HARVEST_BLOB_BYTES_KEY = 'bytes';

@@ -1,9 +1,9 @@
-import {isRecord} from '@fluxer/record_utils/src/RecordGuards';
+import {isRecord} from '@osaca/record_utils/src/RecordGuards';
 
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 const LEGACY_SKELETON_LAYOUT_MEMORY_KEY = 'SkeletonLayoutMemory';
-const LEGACY_SIDEBAR_WIDTH_KEY = 'fluxer:ui:sidebar-width';
+const LEGACY_SIDEBAR_WIDTH_KEY = 'osaca:ui:sidebar-width';
 const DM_ROOT_PATHNAME = '/channels/@me';
 
 const LEGACY_SHELL_HINT_SEED_VERSION = 4;
@@ -134,8 +134,8 @@ function seedGuildRail(hint: Record<string, unknown>, rail: unknown): void {
 	if (rail.addGuildVisible === true) bottomMask |= RAIL_BOTTOM_ADD_GUILD_BIT;
 	if (rail.downloadVisible === true) bottomMask |= RAIL_BOTTOM_DOWNLOAD_BIT;
 	if (rail.helpVisible === true) bottomMask |= RAIL_BOTTOM_HELP_BIT;
-	hint.rf = flag(rail.fluxerVisible);
-	hint.rti = rail.fluxerVisible === true ? 0 : NO_SELECTED_ROW_INDEX;
+	hint.rf = flag(rail.osacaVisible);
+	hint.rti = rail.osacaVisible === true ? 0 : NO_SELECTED_ROW_INDEX;
 	hint.rv = flag(rail.favoritesVisible);
 	hint.ru = Array.from({length: inlineDmRowCount}, (_unused, index) => flag(unread[index]));
 	hint.ro = flag(rail.outageVisible);

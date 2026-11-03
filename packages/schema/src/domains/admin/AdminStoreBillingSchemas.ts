@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {SnowflakeStringType} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+import {SnowflakeStringType} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 export const AdminStorePurchaseResponse = z.object({
@@ -8,7 +8,7 @@ export const AdminStorePurchaseResponse = z.object({
 	user_id: SnowflakeStringType.nullable().describe('ID of the user the purchase is bound to, null when unbound'),
 	provider: z.enum(['app_store', 'google_play']).describe('Store the purchase was made in'),
 	kind: z.enum(['subscription', 'gift']).describe('Whether the purchase is a subscription or a gift'),
-	slot: z.enum(['monthly', 'yearly', 'gift_1_month', 'gift_1_year']).describe('Fluxer product the purchase is for'),
+	slot: z.enum(['monthly', 'yearly', 'gift_1_month', 'gift_1_year']).describe('OSACA product the purchase is for'),
 	environment: z.enum(['production', 'sandbox']).describe('Whether the purchase was real or a test purchase'),
 	app_id: z.string().describe('Bundle identifier or package name of the app that made the purchase'),
 	product_id: z.string().describe('Store product identifier'),
@@ -34,7 +34,7 @@ export const AdminStorePurchaseResponse = z.object({
 	bound_at: z.iso.datetime().nullable().describe('When the purchase was bound to its user'),
 	last_event_at: z.iso.datetime().nullable().describe('Time of the latest store event applied to the purchase'),
 	synced_at: z.iso.datetime().nullable().describe('When the purchase was last synced with the store'),
-	created_at: z.iso.datetime().describe('When Fluxer first saw the purchase'),
+	created_at: z.iso.datetime().describe('When OSACA first saw the purchase'),
 	updated_at: z.iso.datetime().describe('When the purchase record last changed'),
 });
 

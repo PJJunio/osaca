@@ -17,14 +17,14 @@ pub(crate) const CALVER_SCHEME: &str = "YYYY.MDD.MICRO";
 #[derive(Default)]
 pub(crate) struct CalverEnv {
     pub(crate) build_version: Option<String>,
-    pub(crate) fluxer_build_date: Option<String>,
+    pub(crate) osaca_build_date: Option<String>,
 }
 
 impl CalverEnv {
     pub(crate) fn from_process() -> Self {
         Self {
             build_version: trim_option(env::var("BUILD_VERSION").ok()),
-            fluxer_build_date: trim_option(env::var("FLUXER_BUILD_DATE").ok()),
+            osaca_build_date: trim_option(env::var("OSACA_BUILD_DATE").ok()),
         }
     }
 }
@@ -265,7 +265,7 @@ pub(crate) fn resolve_calver(calver_env: &CalverEnv, now: DateTime<Utc>) -> Resu
 }
 
 fn parse_instant(calver_env: &CalverEnv, now: DateTime<Utc>) -> Result<DateTime<Utc>> {
-    let Some(override_value) = calver_env.fluxer_build_date.as_deref() else {
+    let Some(override_value) = calver_env.osaca_build_date.as_deref() else {
         return Ok(now);
     };
 
@@ -273,14 +273,14 @@ fn parse_instant(calver_env: &CalverEnv, now: DateTime<Utc>) -> Result<DateTime<
         return date
             .and_hms_opt(0, 0, 0)
             .map(|instant| Utc.from_utc_datetime(&instant))
-            .ok_or_else(|| anyhow!("Invalid FLUXER_BUILD_DATE: {override_value}"));
+            .ok_or_else(|| anyhow!("Invalid OSACA_BUILD_DATE: {override_value}"));
     }
 
     if let Ok(instant) = NaiveDateTime::parse_from_str(override_value, "%Y-%m-%dT%H:%M:%SZ") {
         return Ok(Utc.from_utc_datetime(&instant));
     }
 
-    bail!("Invalid FLUXER_BUILD_DATE: {override_value}")
+    bail!("Invalid OSACA_BUILD_DATE: {override_value}")
 }
 
 fn format_calver(instant: DateTime<Utc>) -> String {

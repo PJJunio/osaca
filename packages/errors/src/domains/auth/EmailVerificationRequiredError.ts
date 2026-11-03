@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {type APIErrorCode, APIErrorCodes} from '@fluxer/constants/src/ApiErrorCodes';
-import {ForbiddenError} from '@fluxer/errors/src/domains/core/ForbiddenError';
+import {type APIErrorCode, APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
+import {ForbiddenError} from '@osaca/errors/src/domains/core/ForbiddenError';
 
 export class EmailVerificationRequiredError extends ForbiddenError {
 	constructor(code: APIErrorCode = APIErrorCodes.EMAIL_VERIFICATION_REQUIRED) {

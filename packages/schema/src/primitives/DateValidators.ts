@@ -1,4 +1,4 @@
-import {ValidationErrorCodes} from '@fluxer/constants/src/ValidationErrorCodes';
+import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {z} from 'zod';
 
 const ISO_TIMESTAMP_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/;

@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {ErrorCodeToI18nKey} from '@fluxer/errors/src/i18n/ErrorCodeMappings';
-import {ERROR_I18N_LOCALE_MESSAGES} from '@fluxer/errors/src/i18n/ErrorI18nLocales';
-import {ERROR_I18N_MESSAGES, type ErrorI18nKey} from '@fluxer/errors/src/i18n/ErrorI18nMessages';
-import {compileMessage} from '@fluxer/i18n/src/runtime/CompileMessage';
-import {createStaticI18n} from '@fluxer/i18n/src/runtime/CreateStaticI18n';
-import type {I18nResult} from '@fluxer/i18n/src/runtime/I18nTypes';
-import {validateMessageTemplateVariables} from '@fluxer/i18n/src/runtime/MessageCatalogTypes';
+import {ErrorCodeToI18nKey} from '@osaca/errors/src/i18n/ErrorCodeMappings';
+import {ERROR_I18N_LOCALE_MESSAGES} from '@osaca/errors/src/i18n/ErrorI18nLocales';
+import {ERROR_I18N_MESSAGES, type ErrorI18nKey} from '@osaca/errors/src/i18n/ErrorI18nMessages';
+import {compileMessage} from '@osaca/i18n/src/runtime/CompileMessage';
+import {createStaticI18n} from '@osaca/i18n/src/runtime/CreateStaticI18n';
+import type {I18nResult} from '@osaca/i18n/src/runtime/I18nTypes';
+import {validateMessageTemplateVariables} from '@osaca/i18n/src/runtime/MessageCatalogTypes';
 
 const DEFAULT_LOCALE = 'en-US';
 

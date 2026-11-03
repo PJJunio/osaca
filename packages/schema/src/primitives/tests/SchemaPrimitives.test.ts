@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {ValidationErrorCodes} from '@fluxer/constants/src/ValidationErrorCodes';
+import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {
 	coerceNumberFromString,
 	createStringType,
@@ -15,7 +15,7 @@ import {
 	stripInvisibles,
 	stripVariationSelectors,
 	UnsignedInt64Type,
-} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {describe, expect, it} from 'vitest';
 import {z} from 'zod';
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {ValidationErrorCodes} from '@fluxer/constants/src/ValidationErrorCodes';
+import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import emojiRegex from 'emoji-regex';
 import {z} from 'zod';
 

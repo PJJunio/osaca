@@ -10,34 +10,34 @@ use std::time::{Duration, Instant};
 use tokio::time::sleep;
 
 pub const S3_BUCKETS: &[&str] = &[
-    "fluxer",
-    "fluxer-uploads",
-    "fluxer-downloads",
-    "fluxer-reports",
-    "fluxer-harvests",
-    "fluxer-static",
+    "osaca",
+    "osaca-uploads",
+    "osaca-downloads",
+    "osaca-reports",
+    "osaca-harvests",
+    "osaca-static",
 ];
 
 pub fn s3_endpoint() -> String {
-    env::var("FLUXER_S3_ENDPOINT").unwrap_or_else(|_| "http://127.0.0.1:8333".to_owned())
+    env::var("OSACA_S3_ENDPOINT").unwrap_or_else(|_| "http://127.0.0.1:8333".to_owned())
 }
 
 pub fn s3_env() -> Vec<(String, Option<String>)> {
     vec![
         (
             "AWS_ACCESS_KEY_ID".to_owned(),
-            Some(env::var("FLUXER_S3_ACCESS_KEY_ID").unwrap_or_else(|_| "fluxer".to_owned())),
+            Some(env::var("OSACA_S3_ACCESS_KEY_ID").unwrap_or_else(|_| "osaca".to_owned())),
         ),
         (
             "AWS_SECRET_ACCESS_KEY".to_owned(),
             Some(
-                env::var("FLUXER_S3_SECRET_ACCESS_KEY")
-                    .unwrap_or_else(|_| "fluxer-secret".to_owned()),
+                env::var("OSACA_S3_SECRET_ACCESS_KEY")
+                    .unwrap_or_else(|_| "osaca-secret".to_owned()),
             ),
         ),
         (
             "AWS_DEFAULT_REGION".to_owned(),
-            Some(env::var("FLUXER_S3_REGION").unwrap_or_else(|_| "us-east-1".to_owned())),
+            Some(env::var("OSACA_S3_REGION").unwrap_or_else(|_| "us-east-1".to_owned())),
         ),
     ]
 }
@@ -176,5 +176,5 @@ pub async fn bootstrap_schema() -> Result<()> {
 }
 
 fn cassandra_backend_enabled() -> bool {
-    env::var("FLUXER_DATABASE_BACKEND").as_deref() == Ok("cassandra")
+    env::var("OSACA_DATABASE_BACKEND").as_deref() == Ok("cassandra")
 }

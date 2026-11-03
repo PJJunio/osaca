@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import type {DerivedEndpoints} from '@fluxer/config/src/EndpointDerivation';
+import type {DerivedEndpoints} from '@osaca/config/src/EndpointDerivation';
 
 type RuntimeEnv = 'development' | 'production' | 'test';
 type DatabaseBackend = 'postgres' | 'cassandra';

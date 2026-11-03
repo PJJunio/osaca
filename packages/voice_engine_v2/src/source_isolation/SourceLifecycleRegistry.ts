@@ -10,7 +10,7 @@ import {
 	type SourceLifecycleEvent,
 	type SourceLifecycleState,
 	transitionSourceLifecycle,
-} from '@fluxer/voice_engine_v2/src/source_isolation/SourceLifecycleState';
+} from '@osaca/voice_engine_v2/src/source_isolation/SourceLifecycleState';
 
 export const MAX_TRACKED_SOURCES = 256;
 

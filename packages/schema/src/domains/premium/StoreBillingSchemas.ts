@@ -5,7 +5,7 @@ import {
 	SnowflakeStringType,
 	SnowflakeType,
 	withOpenApiType,
-} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 const StoreProviderSchema = withOpenApiType(z.enum(['app_store', 'google_play']), 'StoreProvider');
@@ -51,7 +51,7 @@ const StoreSubscriptionSlotSchema = withOpenApiType(z.enum(['monthly', 'yearly']
 
 export const StoreBillingAppStoreProductResponse = z.object({
 	product_id: z.string().describe('App Store product identifier'),
-	slot: StoreSlotSchema.describe('Fluxer product this App Store product sells'),
+	slot: StoreSlotSchema.describe('OSACA product this App Store product sells'),
 });
 
 export type StoreBillingAppStoreProductResponse = z.infer<typeof StoreBillingAppStoreProductResponse>;
@@ -59,7 +59,7 @@ export type StoreBillingAppStoreProductResponse = z.infer<typeof StoreBillingApp
 export const StoreBillingGooglePlayProductResponse = z.object({
 	product_id: z.string().describe('Google Play product identifier'),
 	base_plan_id: z.string().nullable().describe('Google Play base plan identifier, null for one-time products'),
-	slot: StoreSlotSchema.describe('Fluxer product this Google Play product sells'),
+	slot: StoreSlotSchema.describe('OSACA product this Google Play product sells'),
 });
 
 export type StoreBillingGooglePlayProductResponse = z.infer<typeof StoreBillingGooglePlayProductResponse>;
@@ -116,7 +116,7 @@ export const StorePurchaseResponse = z.object({
 	id: SnowflakeStringType.describe('The unique identifier (snowflake) for this store purchase'),
 	provider: StoreProviderSchema.describe('Store the purchase was made in'),
 	kind: StorePurchaseKindSchema.describe('Whether the purchase is a subscription or a gift'),
-	slot: StoreSlotSchema.describe('Fluxer product the purchase is for'),
+	slot: StoreSlotSchema.describe('OSACA product the purchase is for'),
 	product_id: z.string().describe('Store product identifier'),
 	environment: StoreEnvironmentSchema.describe('Whether the purchase was a real purchase or a test purchase'),
 	state: StorePurchaseStateSchema.describe('Current state of the purchase'),
@@ -128,7 +128,7 @@ export const StorePurchaseResponse = z.object({
 		.describe('When access from this purchase ends, including any grace period, null when not entitled'),
 	will_renew: z.boolean().nullable().describe('Whether the subscription renews automatically, null for gifts'),
 	gift_code: z.string().nullable().describe('Gift code minted by a gift purchase, null otherwise'),
-	created_at: z.iso.datetime().describe('When Fluxer first saw the purchase'),
+	created_at: z.iso.datetime().describe('When OSACA first saw the purchase'),
 });
 
 export type StorePurchaseResponse = z.infer<typeof StorePurchaseResponse>;
@@ -153,7 +153,7 @@ export type StorePurchaseIdParam = z.infer<typeof StorePurchaseIdParam>;
 export const PremiumStoreSubscriptionState = z.object({
 	provider: StoreProviderSchema.describe('Store that bills the subscription'),
 	purchase_id: SnowflakeStringType.describe('ID of the store purchase that grants the subscription'),
-	slot: StoreSubscriptionSlotSchema.describe('Fluxer subscription product'),
+	slot: StoreSubscriptionSlotSchema.describe('OSACA subscription product'),
 	billing_cycle: StoreBillingCycleSchema.describe('Billing cycle of the subscription'),
 	state: StorePurchaseStateSchema.describe('Current state of the store subscription'),
 	expires_at: z.iso.datetime().describe('When the paid period ends'),

@@ -7,7 +7,7 @@ import {
 	getEffectiveGuildVerificationLevel,
 	getMaxVoiceChannelBitrate,
 	resolveVoiceChannelBitrate,
-} from '@fluxer/constants/src/GuildConstants';
+} from '@osaca/constants/src/GuildConstants';
 import {describe, expect, it} from 'vitest';
 
 describe('getMaxVoiceChannelBitrate', () => {

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {Locales} from '@fluxer/constants/src/Locales';
+import {Locales} from '@osaca/constants/src/Locales';
 
 const displayNamesByLocale = new Map<string, Intl.DisplayNames>();
 

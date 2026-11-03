@@ -1,23 +1,23 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import basicSessionFixture from '@fluxer/voice_engine_v2/fixtures/basic_session.json';
-import {availableVoiceEngineV2Capabilities} from '@fluxer/voice_engine_v2/src/core/state';
+import basicSessionFixture from '@osaca/voice_engine_v2/fixtures/basic_session.json';
+import {availableVoiceEngineV2Capabilities} from '@osaca/voice_engine_v2/src/core/state';
 import type {
 	VoiceEngineV2CommandResult,
 	VoiceEngineV2ExternalEventListener,
 	VoiceEngineV2Implementation,
-} from '@fluxer/voice_engine_v2/src/implementations/VoiceEngineV2ImplementationBase';
-import type {VoiceEngineV2Command} from '@fluxer/voice_engine_v2/src/protocol/commands';
-import type {VoiceEngineV2Event} from '@fluxer/voice_engine_v2/src/protocol/events';
+} from '@osaca/voice_engine_v2/src/implementations/VoiceEngineV2ImplementationBase';
+import type {VoiceEngineV2Command} from '@osaca/voice_engine_v2/src/protocol/commands';
+import type {VoiceEngineV2Event} from '@osaca/voice_engine_v2/src/protocol/events';
 import type {
 	VoiceEngineV2InboundVideoFrame,
 	VoiceEngineV2MicrophoneOptions,
 	VoiceEngineV2Participant,
 	VoiceEngineV2ScreenOptions,
 	VoiceEngineV2Stats,
-} from '@fluxer/voice_engine_v2/src/protocol/types';
-import {createVoiceEngineV2MemoryEventLogSpillSink} from '@fluxer/voice_engine_v2/src/runtime/eventLogRing';
-import {VoiceEngineV2Runtime} from '@fluxer/voice_engine_v2/src/runtime/VoiceEngineV2Runtime';
+} from '@osaca/voice_engine_v2/src/protocol/types';
+import {createVoiceEngineV2MemoryEventLogSpillSink} from '@osaca/voice_engine_v2/src/runtime/eventLogRing';
+import {VoiceEngineV2Runtime} from '@osaca/voice_engine_v2/src/runtime/VoiceEngineV2Runtime';
 import {test} from 'vitest';
 
 interface VoiceEngineV2BenchFixture {

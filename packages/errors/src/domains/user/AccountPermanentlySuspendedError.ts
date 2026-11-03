@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {APIErrorCodes} from '@fluxer/constants/src/ApiErrorCodes';
-import {ForbiddenError} from '@fluxer/errors/src/domains/core/ForbiddenError';
-import type {EnforcementNotice} from '@fluxer/schema/src/domains/auth/EnforcementNoticeSchemas';
+import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
+import {ForbiddenError} from '@osaca/errors/src/domains/core/ForbiddenError';
+import type {EnforcementNotice} from '@osaca/schema/src/domains/auth/EnforcementNoticeSchemas';
 
 export class AccountPermanentlySuspendedError extends ForbiddenError {
 	constructor(notice: EnforcementNotice | null) {

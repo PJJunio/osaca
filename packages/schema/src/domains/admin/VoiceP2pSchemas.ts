@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {VOICE_P2P_MAX_PARTICIPANTS} from '@fluxer/constants/src/LimitConstants';
+import {VOICE_P2P_MAX_PARTICIPANTS} from '@osaca/constants/src/LimitConstants';
 import {
 	EXPERIMENT_BUCKET_RESOLUTION,
 	ExperimentRolloutCountryCodesSchema,
@@ -8,7 +8,7 @@ import {
 	experimentAudienceIncludes,
 	experimentBucket,
 	experimentRolloutCountryIncludes,
-} from '@fluxer/schema/src/domains/experiment/ExperimentBucket';
+} from '@osaca/schema/src/domains/experiment/ExperimentBucket';
 import {z} from 'zod';
 
 const VOICE_P2P_ROLLOUT_BASIS_POINTS_MAX = EXPERIMENT_BUCKET_RESOLUTION;

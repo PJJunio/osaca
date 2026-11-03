@@ -10,9 +10,9 @@ import {
 	BanUrlDomainRequest,
 	BanUrlRequest,
 	CheckAvatarHashRequest,
-} from '@fluxer/schema/src/domains/admin/AdminSchemas';
-import {createQueryIntegerType} from '@fluxer/schema/src/primitives/QueryValidators';
-import {createStringType, Int32Type, SnowflakeStringType} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+} from '@osaca/schema/src/domains/admin/AdminSchemas';
+import {createQueryIntegerType} from '@osaca/schema/src/primitives/QueryValidators';
+import {createStringType, Int32Type, SnowflakeStringType} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 export const AdminBlocklistListType = z

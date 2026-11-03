@@ -1,5 +1,5 @@
 {
-	"name": "@fluxer/errors",
+	"name": "@osaca/errors",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -12,11 +12,11 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@fluxer/constants": "workspace:*",
-		"@fluxer/i18n": "workspace:*",
-		"@fluxer/logger": "workspace:*",
-		"@fluxer/record_utils": "workspace:*",
-		"@fluxer/schema": "workspace:*",
+		"@osaca/constants": "workspace:*",
+		"@osaca/i18n": "workspace:*",
+		"@osaca/logger": "workspace:*",
+		"@osaca/record_utils": "workspace:*",
+		"@osaca/schema": "workspace:*",
 		"hono": "catalog:"
 	},
 	"devDependencies": {

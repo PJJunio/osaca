@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {AllLocales, type LocaleCode, Locales} from '@fluxer/constants/src/Locales';
+import {AllLocales, type LocaleCode, Locales} from '@osaca/constants/src/Locales';
 
 export const DEFAULT_LOCALE: LocaleCode = Locales.EN_US;
 const SUPPORTED_LOCALES: ReadonlyArray<LocaleCode> = AllLocales;

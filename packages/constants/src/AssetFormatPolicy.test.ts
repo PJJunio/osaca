@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {getAcceptString, getPolicy, isExtensionAllowed} from '@fluxer/constants/src/AssetFormatPolicy';
+import {getAcceptString, getPolicy, isExtensionAllowed} from '@osaca/constants/src/AssetFormatPolicy';
 import {describe, expect, it} from 'vitest';
 
 describe('role icon policy', () => {

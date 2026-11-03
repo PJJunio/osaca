@@ -1,0 +1,8 @@
+services:
+  edge:
+    ports: !override
+      - "${OSACA_EDGE_BIND:-127.0.0.1:80}:80"
+    environment:
+      OSACA_EDGE_SITE_ADDRESS: ":80"
+      OSACA_EDGE_TLS_DIRECTIVE: ""
+      OSACA_EDGE_TRUSTED_PROXIES: ${OSACA_EDGE_TRUSTED_PROXIES:-private_ranges}

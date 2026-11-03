@@ -6,16 +6,16 @@ export type NativeTitlebarControlName = 'minimize' | 'maximize' | 'close';
 export type NativeTitlebarLayout = 'macos' | 'controls';
 
 export const NATIVE_TITLEBAR_CLASS = {
-	root: 'fluxer-native-titlebar',
-	left: 'fluxer-native-titlebar__left',
-	wordmark: 'fluxer-native-titlebar__wordmark',
-	spacer: 'fluxer-native-titlebar__spacer',
-	controls: 'fluxer-native-titlebar__controls',
-	control: 'fluxer-native-titlebar__control',
-	controlClose: 'fluxer-native-titlebar__control--close',
+	root: 'osaca-native-titlebar',
+	left: 'osaca-native-titlebar__left',
+	wordmark: 'osaca-native-titlebar__wordmark',
+	spacer: 'osaca-native-titlebar__spacer',
+	controls: 'osaca-native-titlebar__controls',
+	control: 'osaca-native-titlebar__control',
+	controlClose: 'osaca-native-titlebar__control--close',
 } as const;
 
-const NATIVE_TITLEBAR_DEFAULT_PRODUCT_NAME = 'Fluxer';
+const NATIVE_TITLEBAR_DEFAULT_PRODUCT_NAME = 'OSACA';
 
 const NATIVE_TITLEBAR_WORDMARK_VIEWBOX = '0 0 1374 366';
 

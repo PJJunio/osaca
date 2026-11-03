@@ -58,7 +58,7 @@ export interface OpenAPIOperation {
 	responses: Record<string, OpenAPIResponse>;
 	deprecated?: boolean;
 	externalDocs?: OpenAPIExternalDocs;
-	'x-fluxer-experiment'?: string;
+	'x-osaca-experiment'?: string;
 }
 export interface OpenAPIParameter {
 	name: string;

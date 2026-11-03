@@ -5,7 +5,7 @@ import {
 	MAX_BIO_LENGTH,
 	MAX_SCREEN_SHARE_BITRATE_CEILING,
 	MIN_SCREEN_SHARE_BITRATE_CEILING,
-} from '@fluxer/constants/src/LimitConstants';
+} from '@osaca/constants/src/LimitConstants';
 
 export const LIMIT_KEYS = [
 	'avatar_max_size',
@@ -369,7 +369,7 @@ export const LIMIT_KEY_METADATA: Record<LimitKey, LimitKeyMetadata> = {
 		key: 'max_attachment_file_size',
 		label: 'Max Attachment File Size',
 		description:
-			'Maximum size of each attachment file. Above 500 MiB, also raise FLUXER_MEDIA_PROXY_UPLOAD_RELAY_MAX_BODY_BYTES on the media proxy',
+			'Maximum size of each attachment file. Above 500 MiB, also raise OSACA_MEDIA_PROXY_UPLOAD_RELAY_MAX_BODY_BYTES on the media proxy',
 		category: 'files',
 		scope: 'both',
 		isToggle: false,

@@ -7,8 +7,8 @@ import {
 	INERT_DOMAIN_MIGRATION_ASSIGNMENT,
 	resolveDomainMigrationAssignment,
 	toDomainMigrationDiscovery,
-} from '@fluxer/schema/src/domains/admin/DomainMigrationSchemas';
-import {type ExperimentTargeting, experimentBucket} from '@fluxer/schema/src/domains/experiment/ExperimentBucket';
+} from '@osaca/schema/src/domains/admin/DomainMigrationSchemas';
+import {type ExperimentTargeting, experimentBucket} from '@osaca/schema/src/domains/experiment/ExperimentBucket';
 import {describe, expect, test} from 'vitest';
 
 const NO_TARGETING: ExperimentTargeting = {memberGuildIds: new Set(), premium: false, countryCode: null};

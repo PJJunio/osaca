@@ -4,7 +4,7 @@ import {randomUUID} from 'node:crypto';
 import * as fs from 'node:fs';
 import {createRequire} from 'node:module';
 import * as path from 'node:path';
-import type {OpenAPIDocument} from '@fluxer/openapi/src/OpenAPITypes';
+import type {OpenAPIDocument} from '@osaca/openapi/src/OpenAPITypes';
 export type WritableOpenAPISpec = OpenAPIDocument;
 const require = createRequire(import.meta.url);
 function formatSpec(spec: WritableOpenAPISpec): string {
@@ -39,8 +39,8 @@ export function readSpec(inputPath: string): unknown {
 	return JSON.parse(content);
 }
 export function getApiPackageOutputPath(basePath: string): string {
-	return path.join(basePath, 'fluxer_api', 'src', 'api', 'openapi', 'openapi.json');
+	return path.join(basePath, 'osaca_api', 'src', 'api', 'openapi', 'openapi.json');
 }
 export function getAdminOutputPath(basePath: string): string {
-	return path.join(basePath, 'fluxer_admin', 'openapi-admin.json');
+	return path.join(basePath, 'osaca_admin', 'openapi-admin.json');
 }

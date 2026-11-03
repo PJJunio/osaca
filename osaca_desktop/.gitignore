@@ -1,0 +1,11 @@
+/.velopack/
+/dist-electron/
+
+/native/**/*.node
+/native/webauthn/*.so*
+/native/win-game-capture/osaca-game-hook.*.dll
+/native/win-game-capture/osaca-inject-helper.*.exe
+/native/win-game-capture/osaca-vulkan-layer.*.dll
+/native/win-game-capture/osaca-vulkan-layer.*.json
+
+/src/common/BuildChannel.ts

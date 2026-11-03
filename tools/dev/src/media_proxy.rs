@@ -11,9 +11,9 @@ use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
 
 const DEV_S3_BUCKETS: &str =
-    "fluxer,fluxer-uploads,fluxer-downloads,fluxer-reports,fluxer-harvests,fluxer-static";
-const DEV_S3_ACCESS_KEY_ID: &str = "fluxer";
-const DEV_S3_SECRET_ACCESS_KEY: &str = "fluxer-secret";
+    "osaca,osaca-uploads,osaca-downloads,osaca-reports,osaca-harvests,osaca-static";
+const DEV_S3_ACCESS_KEY_ID: &str = "osaca";
+const DEV_S3_SECRET_ACCESS_KEY: &str = "osaca-secret";
 const DEV_S3_HOST: &str = "127.0.0.1";
 const DEV_S3_PORT: u16 = 8333;
 const DEV_SEAWEEDFS_STOP_TIMEOUT: Duration = Duration::from_secs(15);
@@ -31,7 +31,7 @@ pub async fn run_dev_media_doctor(
     if let Some(path) = media_path {
         check_dev_media_path(base_url, path).await?;
     }
-    println!("Fluxer media proxy doctor passed.");
+    println!("OSACA media proxy doctor passed.");
     Ok(())
 }
 
@@ -55,7 +55,7 @@ pub async fn ensure_dev_object_store(repair: bool, repair_timeout_secs: u64) -> 
         }
         Err(error) => {
             bail!(
-                "SeaweedFS S3 is unreachable: {error}\nRun `fluxer-dev media-proxy doctor --repair` to start the local dev object store."
+                "SeaweedFS S3 is unreachable: {error}\nRun `osaca-dev media-proxy doctor --repair` to start the local dev object store."
             );
         }
     }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {DeletionReasons} from '@fluxer/constants/src/Core';
-import enforcementCases from '@fluxer/constants/src/EnforcementReasonCases.json';
+import {DeletionReasons} from '@osaca/constants/src/Core';
+import enforcementCases from '@osaca/constants/src/EnforcementReasonCases.json';
 import {
 	ACCOUNT_DELETION_MIN_DAYS,
 	ENFORCEMENT_APPEAL_WINDOW_DAYS,
@@ -13,7 +13,7 @@ import {
 	isEnforcementKindAllowed,
 	isEnforcementLimitAllowed,
 	isEnforcementReasonCode,
-} from '@fluxer/constants/src/EnforcementReasons';
+} from '@osaca/constants/src/EnforcementReasons';
 import {describe, expect, it} from 'vitest';
 
 const ALL_KINDS: ReadonlyArray<EnforcementKind> = [

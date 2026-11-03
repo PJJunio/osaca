@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import assert from 'node:assert/strict';
-import {markOperation} from '@fluxer/voice_engine_v2/src/core/reducers/_helpers';
-import {resetPublishedMedia} from '@fluxer/voice_engine_v2/src/core/reducers/_media';
+import {markOperation} from '@osaca/voice_engine_v2/src/core/reducers/_helpers';
+import {resetPublishedMedia} from '@osaca/voice_engine_v2/src/core/reducers/_media';
 import {
 	planPendingConnectionTeardown,
 	resetAfterDisconnect,
-} from '@fluxer/voice_engine_v2/src/core/reducers/connection';
-import type {VoiceEngineV2Snapshot, VoiceEngineV2Transition} from '@fluxer/voice_engine_v2/src/core/state';
-import type {VoiceEngineV2Event} from '@fluxer/voice_engine_v2/src/protocol/events';
+} from '@osaca/voice_engine_v2/src/core/reducers/connection';
+import type {VoiceEngineV2Snapshot, VoiceEngineV2Transition} from '@osaca/voice_engine_v2/src/core/state';
+import type {VoiceEngineV2Event} from '@osaca/voice_engine_v2/src/protocol/events';
 
 type VoiceEngineV2LifecycleEvent = Extract<VoiceEngineV2Event, {type: `lifecycle.${string}`}>;
 

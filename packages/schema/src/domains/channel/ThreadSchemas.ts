@@ -5,9 +5,9 @@ import {
 	MAX_APPLIED_TAGS_PER_THREAD,
 	MAX_FORUM_TAGS_PER_CHANNEL,
 	THREAD_MEMBER_IDS_PREVIEW_SIZE,
-} from '@fluxer/constants/src/ThreadConstants';
-import {GuildMemberResponse} from '@fluxer/schema/src/domains/guild/GuildMemberSchemas';
-import {Int32Type, SnowflakeStringType} from '@fluxer/schema/src/primitives/SchemaPrimitives';
+} from '@osaca/constants/src/ThreadConstants';
+import {GuildMemberResponse} from '@osaca/schema/src/domains/guild/GuildMemberSchemas';
+import {Int32Type, SnowflakeStringType} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 const ThreadMuteConfig = z

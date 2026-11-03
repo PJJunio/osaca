@@ -7,7 +7,7 @@ import {
 	generateRecoveryKey,
 	normalizeRecoveryKey,
 	RECOVERY_KEY_LENGTH,
-} from '@fluxer/constants/src/RecoveryKeyUtils';
+} from '@osaca/constants/src/RecoveryKeyUtils';
 import {describe, expect, it} from 'vitest';
 
 function bytesFrom(values: Array<number>): Uint8Array {

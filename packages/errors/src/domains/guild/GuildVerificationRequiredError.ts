@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {APIErrorCodes} from '@fluxer/constants/src/ApiErrorCodes';
-import type {ValueOf} from '@fluxer/constants/src/ValueOf';
-import {ForbiddenError} from '@fluxer/errors/src/domains/core/ForbiddenError';
+import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
+import type {ValueOf} from '@osaca/constants/src/ValueOf';
+import {ForbiddenError} from '@osaca/errors/src/domains/core/ForbiddenError';
 
 export const GuildVerificationRequiredReasons = {
 	ACCOUNT_SETUP: 'account_setup',

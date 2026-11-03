@@ -12,7 +12,7 @@ created: 2026-11-03
 
 # Fluxer Docs Rewrite Plan
 
-This plan reshapes the inherited documentation site (`fluxer_docs/`, built with Astro Starlight; content in `fluxer_docs/src/content/docs/`) for OSACA. It follows the decisions in [[osaca-technical-survey]] and uses the vocabulary in [[GLOSSARY]].
+This plan reshapes the inherited documentation site (now `osaca_docs/`, built with Astro Starlight; content in `osaca_docs/src/content/docs/`) for OSACA. It follows the decisions in [[osaca-technical-survey]] and uses the vocabulary in [[GLOSSARY]].
 
 Verdicts:
 - **Keep**: still accurate, needs only the rename.
@@ -22,7 +22,7 @@ Verdicts:
 - **New**: does not exist yet.
 
 > [!info] When
-> The directory moves to `osaca_docs/` in the rename commit ([[0001-hard-fork-as-osaca]]). Each page is updated **in the same PR as the code change it describes**, never ahead of it.
+> The directory was moved to `osaca_docs/` in the rename commit ([[0001-hard-fork-as-osaca]]). Each page is updated **in the same PR as the code change it describes**, never ahead of it.
 
 ## Top level
 

@@ -1,0 +1,59 @@
+{
+	"name": "Fluxer",
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "workspace",
+	"workspaceFolder": "/workspaces/fluxer",
+	"shutdownAction": "stopCompose",
+	"remoteUser": "vscode",
+	"hostRequirements": {
+		"cpus": 4,
+		"memory": "8gb",
+		"storage": "32gb"
+	},
+	"remoteEnv": {
+		"DOCKER_HOST": "unix:///var/run/docker.sock"
+	},
+	"runServices": ["workspace", "postgres", "valkey", "nats", "livekit", "meilisearch", "mailpit"],
+	"forwardPorts": [3000, 8088, 8080, 8771, 8082, 8773, 3020, 8333],
+	"portsAttributes": {
+		"8088": {
+			"label": "Fluxer dev proxy",
+			"onAutoForward": "notify"
+		},
+		"3000": {
+			"label": "Rspack dev server"
+		},
+		"3020": {
+			"label": "Fluxer admin"
+		},
+		"8333": {
+			"label": "SeaweedFS S3"
+		},
+		"8773": {
+			"label": "Fluxer app proxy"
+		}
+	},
+	"postCreateCommand": "bash /workspaces/fluxer/.devcontainer/fix-docker-socket.sh && bash /workspaces/fluxer/.devcontainer/fix-workspace-permissions.sh && cargo run -p fluxer-dev -- bootstrap",
+	"postStartCommand": "bash /workspaces/fluxer/.devcontainer/fix-docker-socket.sh && bash /workspaces/fluxer/.devcontainer/fix-workspace-permissions.sh && cargo run -p fluxer-dev -- post-start",
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"editor.defaultFormatter": "biomejs.biome",
+				"erlang.includePaths": ["."],
+				"search.exclude": {
+					"**/_build/default/lib/fluxer_gateway": true
+				}
+			},
+			"extensions": [
+				"biomejs.biome",
+				"rust-lang.rust-analyzer",
+				"tamasfe.even-better-toml",
+				"TypeScriptTeam.native-preview",
+				"unifiedjs.vscode-mdx",
+				"pgourlain.erlang",
+				"clinyong.vscode-css-modules",
+				"EditorConfig.EditorConfig"
+			]
+		}
+	}
+}

@@ -1,0 +1,21 @@
+OSACA (Open Source Anonymous Community App)
+Copyright (C) 2026 The OSACA contributors
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or (at your
+option) any later version. See LICENSE.
+
+OSACA is a fork of Fluxer (https://github.com/fluxerapp/fluxer),
+Copyright (C) the Fluxer contributors, licensed under the GNU Affero
+General Public License v3.0 or later. Files inherited from Fluxer keep
+their original copyright notices and SPDX headers.
+
+Inherited Fluxer artwork in fluxer_static/ is licensed under CC BY-SA 4.0
+(see fluxer_static/LICENSE) and is used with attribution until replaced.
+Third-party material keeps its own terms, listed in
+fluxer_static/THIRD_PARTY_LICENSES.md.
+
+The Fluxer name and logo are trademarks of their respective owners and are
+not licensed for use by OSACA. OSACA is not affiliated with or endorsed by
+Fluxer.

@@ -57,11 +57,9 @@ import type {RequestCache} from '@app/api/middleware/RequestCacheMiddleware';
 import {getInstanceConfigRepository, getOAuth2TokenRepository} from '@app/api/middleware/ServiceSingletons';
 import type {User} from '@app/api/models/User';
 import type {TierContext} from '@app/api/user/AccountTier';
-import {BELOW_MINIMUM_AGE_TRAIT} from '@app/api/user/UserTraits';
 import {extractEmailDomain} from '@app/api/utils/EmailDomainUtils';
 import {resolveSessionClientInfo} from '@app/api/utils/SessionClientIdentity';
 import {UserAuthenticatorTypes} from '@osaca/constants/src/UserConstants';
-import {AccountBelowMinimumAgeError} from '@osaca/errors/src/domains/auth/AccountBelowMinimumAgeError';
 import {EmailCodeResendCooldownError} from '@osaca/errors/src/domains/auth/EmailCodeResendCooldownError';
 import {EmailCodesUnavailableError} from '@osaca/errors/src/domains/auth/EmailCodesUnavailableError';
 import {InvalidSignInCodeError} from '@osaca/errors/src/domains/auth/InvalidSignInCodeError';
@@ -453,7 +451,6 @@ async function completeCodeSignIn(
 	AuthUtility.assertNonBotUser(ctx, owner);
 	if (owner.traits.has(REGISTRATION_PENDING_APPROVAL_TRAIT)) throw new RegistrationPendingApprovalError();
 	if (owner.traits.has(REGISTRATION_REJECTED_TRAIT)) throw new RegistrationRejectedError();
-	if (owner.traits.has(BELOW_MINIMUM_AGE_TRAIT)) throw new AccountBelowMinimumAgeError();
 	const allowed = await AuthUtility.assertSignInAllowed(ctx, owner);
 	const hasMfa =
 		allowed.authenticatorTypes.has(UserAuthenticatorTypes.TOTP) ||

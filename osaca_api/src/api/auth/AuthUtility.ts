@@ -12,7 +12,6 @@ import {Logger} from '@app/api/Logger';
 import type {User} from '@app/api/models/User';
 import {followOperatorPassWallStanding} from '@app/api/operator_pass/OperatorPassWallStanding';
 import {isAccountClosed, isSignInRefused} from '@app/api/user/UserHelpers';
-import * as AgeUtils from '@app/api/utils/AgeUtils';
 import * as RandomUtils from '@app/api/utils/RandomUtils';
 import {DeletionReasons} from '@osaca/constants/src/Core';
 import {UserFlags} from '@osaca/constants/src/UserConstants';
@@ -22,11 +21,6 @@ import {AccountTemporarilySuspendedError} from '@osaca/errors/src/domains/user/A
 
 const randomBytesAsync = promisify(crypto.randomBytes);
 const ALPHANUMERIC_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
-interface ValidateAgeParams {
-	dateOfBirth: string;
-	minAge: number;
-}
 
 function base62Encode(buffer: Uint8Array): string {
 	let num = BigInt(`0x${Buffer.from(buffer).toString('hex')}`);
@@ -60,16 +54,6 @@ export function generateBackupCodes(): Array<string> {
 
 export function getTokenIdHash(_ctx: ApiContext, token: string): Uint8Array {
 	return new Uint8Array(crypto.createHash('sha256').update(token).digest());
-}
-
-export function validateAge({dateOfBirth, minAge}: ValidateAgeParams): boolean {
-	const birthDate = new Date(dateOfBirth);
-	const age = AgeUtils.calculateAge({
-		year: birthDate.getUTCFullYear(),
-		month: birthDate.getUTCMonth() + 1,
-		day: birthDate.getUTCDate(),
-	});
-	return age >= minAge;
 }
 
 export function assertNonBotUser(_ctx: ApiContext, user: User): void {

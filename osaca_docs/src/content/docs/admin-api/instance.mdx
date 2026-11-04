@@ -175,25 +175,21 @@ What accounts have to do before they can interact with other people, and which a
 
 | Field | Type | Description |
 | --- | --- | --- |
-| date_of_birth<sup>1</sup> | string | `off`, `ask`, `require_new_accounts` or `require_all` |
-| interaction_tier<sup>2</sup> | string | `legacy` or `enforced` |
-| verification_basis<sup>3</sup> | string | `auto`, `confirmed_email` or `local_credential` (default `auto`) |
-| guild_join_gate<sup>4</sup> | string | `off`, `visits_capable` or `always` (default `always`) |
-| unclaimed_account_cleanup<sup>5</sup> | [unclaimed account cleanup](#unclaimed-account-cleanup-object) object | Deleting accounts nobody can sign in to again |
-| dob_missing_cleanup | [date of birth cleanup](#date-of-birth-cleanup-object) object | Deleting accounts created without a date of birth, while `date_of_birth` isn't `off` |
-| inactivity_deletion<sup>6</sup> | [inactivity deletion](#inactivity-deletion-object) object | Deleting accounts nobody has used for a long time |
+| interaction_tier<sup>1</sup> | string | `legacy` or `enforced` |
+| verification_basis<sup>2</sup> | string | `auto`, `confirmed_email` or `local_credential` (default `auto`) |
+| guild_join_gate<sup>3</sup> | string | `off`, `visits_capable` or `always` (default `always`) |
+| unclaimed_account_cleanup<sup>4</sup> | [unclaimed account cleanup](#unclaimed-account-cleanup-object) object | Deleting accounts nobody can sign in to again |
+| inactivity_deletion<sup>5</sup> | [inactivity deletion](#inactivity-deletion-object) object | Deleting accounts nobody has used for a long time |
 
-<sup>1</sup> `ask` asks accounts without one and refuses nothing. `require_new_accounts` refuses most operations to new accounts until they [set one](/http-api/users/current-user/#set-date-of-birth), and `require_all` does the same for every account without one
+<sup>1</sup> How the [account tiers](/http-api/users/#account-tiers) apply. `enforced` lets an account that hasn't finished setting up do only things that don't involve other people
 
-<sup>2</sup> How the [account tiers](/http-api/users/#account-tiers) apply. `enforced` lets an account that hasn't finished setting up do only things that don't involve other people
+<sup>2</sup> `confirmed_email` needs a confirmed email and `local_credential` needs a password or a passkey. `auto` uses `confirmed_email` while the instance sends email, and a `username` instance always uses `local_credential`
 
-<sup>3</sup> `confirmed_email` needs a confirmed email and `local_credential` needs a password or a passkey. `auto` uses `confirmed_email` while the instance sends email, and a `username` instance always uses `local_credential`
+<sup>3</sup> Whether joining a community needs a verified account. It applies to people assigned [guild visits](#guild-visits-configuration-object) while `interaction_tier` is `enforced`, and `visits_capable` checks only clients that send `X-OSACA-Capabilities: guild_visits`
 
-<sup>4</sup> Whether joining a community needs a verified account. It applies to people assigned [guild visits](#guild-visits-configuration-object) while `interaction_tier` is `enforced`, and `visits_capable` checks only clients that send `X-OSACA-Capabilities: guild_visits`
+<sup>4</sup> Bot, system and single sign-on accounts are never deleted this way. `on_last_session_end` set to `after_grace` also schedules the deletion when the account signs out of its last session. Each deletion is scheduled 24 hours ahead, and signing in cancels it
 
-<sup>5</sup> Bot, system and single sign-on accounts are never deleted this way. `on_last_session_end` set to `after_grace` also schedules the deletion when the account signs out of its last session. Each deletion is scheduled 24 hours ahead, and signing in cancels it
-
-<sup>6</sup> OSACA emails a warning first and deletes the account `warning_lead_days` later unless it is used. An account that never got the warning, such as one with no email, is never deleted this way
+<sup>5</sup> OSACA emails a warning first and deletes the account `warning_lead_days` later unless it is used. An account that never got the warning, such as one with no email, is never deleted this way
 
 #### Unclaimed account cleanup object
 
@@ -203,13 +199,6 @@ What accounts have to do before they can interact with other people, and which a
 | inactive_days | integer | Days without use before the account is deleted (1-3650) |
 | on_last_session_end | string | `off` or `after_grace` |
 
-#### Date of birth cleanup object
-
-| Field | Type | Description |
-| --- | --- | --- |
-| mode | string | `off` or `after_inactivity` |
-| inactive_days | integer | Days without use before the account is deleted (1-3650) |
-
 #### Inactivity deletion object
 
 | Field | Type | Description |
@@ -218,7 +207,7 @@ What accounts have to do before they can interact with other people, and which a
 | inactive_days | integer | Days without use before the warning email is sent (1-3650, default 730) |
 | warning_lead_days | integer | Days between the warning email and the deletion (1-365, default 30) |
 
-A new self-hosted instance starts with `date_of_birth` set to `off` and `interaction_tier` set to `enforced`. It deletes unclaimed accounts after 90 days with `after_grace`, and accounts without a date of birth after 7 days. An upgraded instance starts in `legacy` with both cleanup policies off. Every instance starts with inactivity deletion on.
+A new self-hosted instance starts with `interaction_tier` set to `enforced` and deletes unclaimed accounts after 90 days with `after_grace`. An upgraded instance starts in `legacy` with unclaimed account cleanup off. Every instance starts with inactivity deletion on.
 
 ## Guild visits configuration object
 
@@ -330,7 +319,6 @@ The admin view of the branding, legal and setup settings that the [Instance](/ht
 | branding | [public branding](/http-api/instance/#public-branding-object) object | Product name, image URLs and theme color |
 | setup | object | Has the boolean `configured` |
 | legal | [public legal configuration](/http-api/instance/#public-legal-configuration-object) object | Terms, privacy and community guidelines URLs |
-| registration | [public registration fields](/http-api/instance/#public-registration-fields-object) object | Has the boolean `collect_date_of_birth` |
 
 ## Instance policy object
 

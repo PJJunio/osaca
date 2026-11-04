@@ -27,7 +27,6 @@ async function registerAndFlag(
 		username: createUniqueUsername('captchaflags'),
 		global_name: 'Captcha Flags User',
 		password,
-		date_of_birth: '2000-01-01',
 		consent: true,
 	});
 	if (flags.length > 0) {

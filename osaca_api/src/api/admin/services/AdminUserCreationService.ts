@@ -11,12 +11,10 @@ import {EMPTY_USER_ROW, type UserRow} from '@app/api/database/types/UserTypes';
 import {emitActivity} from '@app/api/infrastructure/activity/ActivityEvents';
 import type {DiscriminatorService} from '@app/api/infrastructure/DiscriminatorService';
 import {withAccountIdentitySetupLock} from '@app/api/instance/AccountIdentitySetupLock';
-import {instanceCollectsDateOfBirth} from '@app/api/instance/DateOfBirthCollectionCache';
 import {getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
 import type {User} from '@app/api/models/User';
 import {UserSettings} from '@app/api/models/UserSettings';
 import {reserveUsername, type UsernameReservation} from '@app/api/user/UniqueUsernames';
-import {DOB_DEFERRED_TRAIT} from '@app/api/user/UserTraits';
 import {EmailDeliveryStates} from '@osaca/constants/src/AccountConfigConstants';
 import {AccountIdentityModes, TagStyles} from '@osaca/constants/src/AccountIdentityConstants';
 import {AdminACLs} from '@osaca/constants/src/AdminACLs';
@@ -99,7 +97,6 @@ export class AdminUserCreationService {
 		const userId = createUserID(await snowflake.generate());
 		const now = new Date();
 		const traits = new Set<string>();
-		if (instanceCollectsDateOfBirth()) traits.add(DOB_DEFERRED_TRAIT);
 		const userRow: UserRow = {
 			...EMPTY_USER_ROW,
 			user_id: userId,
@@ -149,7 +146,6 @@ export class AdminUserCreationService {
 				timezone: null,
 				invite_code: null,
 				flags: user.flags.toString(),
-				date_of_birth: user.dateOfBirth,
 			},
 			null,
 			user.id.toString(),

@@ -512,7 +512,6 @@ export class UserAccountRequestService {
 		response.account_tier = undefined;
 		response.verification_need = undefined;
 		response.has_password = undefined;
-		response.date_of_birth_required = undefined;
 		response.profile_restricted = undefined;
 		response.mfa_enabled = false;
 		response.authenticator_types = undefined;

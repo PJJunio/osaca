@@ -1,30 +1,5 @@
 [
   {
-    "key": "accounts.date_of_birth",
-    "type": "string",
-    "help": "Whether the instance asks for a date of birth, and who must enter one",
-    "options": [
-      "off",
-      "ask",
-      "require_new_accounts",
-      "require_all"
-    ]
-  },
-  {
-    "key": "accounts.dob_missing_cleanup.inactive_days",
-    "type": "integer",
-    "help": "Days without use before such an account is deleted"
-  },
-  {
-    "key": "accounts.dob_missing_cleanup.mode",
-    "type": "string",
-    "help": "Whether accounts that were created without a date of birth and never entered one are deleted",
-    "options": [
-      "off",
-      "after_inactivity"
-    ]
-  },
-  {
     "key": "accounts.guild_join_gate",
     "type": "string",
     "help": "When joining a community needs a finished account. Applies only while the interaction tier is enforced and the person can preview communities",

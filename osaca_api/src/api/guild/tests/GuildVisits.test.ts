@@ -13,7 +13,6 @@ import {createBuilder, createBuilderWithoutAuth} from '@app/api/test/TestRequest
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {DiscoveryCategories} from '@osaca/constants/src/DiscoveryConstants';
 import {GuildFeatures} from '@osaca/constants/src/GuildConstants';
-import {GuildVisitSources} from '@osaca/constants/src/GuildVisitConstants';
 import {Headers} from '@osaca/constants/src/Headers';
 import type {GuildResponse} from '@osaca/schema/src/domains/guild/GuildResponseSchemas';
 import type {GuildVisitResponse, GuildVisitStartResponse} from '@osaca/schema/src/domains/guild/GuildVisitSchemas';
@@ -30,13 +29,6 @@ interface VisitGuild {
 	guildId: string;
 	channelId: string;
 	code: string;
-}
-
-function yearsAgo(years: number): string {
-	const date = new Date();
-	date.setUTCFullYear(date.getUTCFullYear() - years);
-	date.setUTCDate(date.getUTCDate() - 1);
-	return date.toISOString().slice(0, 10);
 }
 
 describe('Guild visits', () => {
@@ -66,10 +58,10 @@ describe('Guild visits', () => {
 		return {owner, guildId: guild.id, channelId, code: invite.code};
 	}
 
-	async function createUnclaimed(dateOfBirth = yearsAgo(30)): Promise<Registered> {
+	async function createUnclaimed(): Promise<Registered> {
 		return await createBuilderWithoutAuth<Registered>(harness)
 			.post('/auth/register')
-			.body({username: 'visitor', consent: true, date_of_birth: dateOfBirth})
+			.body({username: 'visitor', consent: true})
 			.execute();
 	}
 
@@ -139,26 +131,6 @@ describe('Guild visits', () => {
 		await startVisit(visitor.token, code).expect(HTTP_STATUS.FORBIDDEN, APIErrorCodes.GUILD_VISITS_DISABLED).execute();
 		await setFeatures(owner, guildId, [GuildFeatures.VISITS_ENABLED, GuildFeatures.INVITES_DISABLED]);
 		await startVisit(visitor.token, code).expect(HTTP_STATUS.FORBIDDEN, APIErrorCodes.INVITES_DISABLED).execute();
-	});
-
-	it('keeps adults-only guilds away from younger accounts', async () => {
-		const {owner, guildId, code} = await createVisitGuild();
-		await createBuilder(harness, owner.token).patch(`/guilds/${guildId}`).body({nsfw: true}).execute();
-		const teen = await createUnclaimed(yearsAgo(15));
-		await startVisit(teen.token, code)
-			.expect(HTTP_STATUS.FORBIDDEN, APIErrorCodes.GUILD_VISIT_AGE_RESTRICTED)
-			.execute();
-		const adult = await createUnclaimed(yearsAgo(30));
-		await startVisit(adult.token, code).execute();
-	});
-
-	it('asks for a date of birth before any visit', async () => {
-		const {code} = await createVisitGuild();
-		const account = await createBuilderWithoutAuth<Registered>(harness)
-			.post('/auth/register')
-			.body({username: 'birthdayless', consent: true})
-			.execute();
-		await startVisit(account.token, code).expect(HTTP_STATUS.FORBIDDEN, APIErrorCodes.DATE_OF_BIRTH_REQUIRED).execute();
 	});
 
 	it('refuses banned users and accounts that cannot start anything new', async () => {
@@ -302,24 +274,6 @@ describe('Guild visits', () => {
 		expect(anonymous.guild).not.toHaveProperty('visits_enabled');
 	});
 
-	it('turns an invite used at sign-up into a visit after the date of birth step', async () => {
-		const {guildId, code} = await createVisitGuild();
-		const account = await createBuilderWithoutAuth<Registered>(harness)
-			.post('/auth/register')
-			.header(Headers.X_OSACA_CAPABILITIES, 'guild_visits')
-			.body({username: 'latecomer', consent: true, invite_code: code})
-			.execute();
-		expect(account.entry ?? null).toBeNull();
-		expect(await guildVisitRepository().list(createUserID(BigInt(account.user_id)))).toEqual([]);
-		const result = await createBuilder<{entry: {guild_id: string; mode: string} | null}>(harness, account.token)
-			.put('/users/@me/date-of-birth')
-			.header(Headers.X_OSACA_CAPABILITIES, 'guild_visits')
-			.body({date_of_birth: yearsAgo(25)})
-			.execute();
-		expect(result.entry).toEqual({guild_id: guildId, mode: 'visit'});
-		const rows = await guildVisitRepository().list(createUserID(BigInt(account.user_id)));
-		expect(rows.map((row) => [row.guild_id.toString(), row.source])).toEqual([[guildId, GuildVisitSources.INVITE]]);
-	});
 
 	it('ends visits when the guild turns them off later', async () => {
 		const {owner, guildId, code, channelId} = await createVisitGuild();

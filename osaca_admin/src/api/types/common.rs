@@ -90,7 +90,6 @@ pub struct AdminUser {
     pub bio: Option<String>,
     pub pronouns: Option<String>,
     pub accent_color: Option<i32>,
-    pub date_of_birth: Option<String>,
     pub locale: Option<String>,
     #[serde(default)]
     pub acls: Vec<String>,
@@ -121,8 +120,6 @@ pub struct AdminUser {
     pub claimed: bool,
     #[serde(default)]
     pub account_tier: Option<AccountTierSchema>,
-    #[serde(default)]
-    pub date_of_birth_required: bool,
     #[serde(default)]
     pub authenticator_types: Vec<i32>,
     pub temp_banned_until: Option<String>,

@@ -5,7 +5,6 @@ import {AuthLayout} from '@app/features/app/components/layout/AuthLayout';
 import {AppSkeleton} from '@app/features/app/components/skeleton/AppSkeleton';
 import type {AccountHandoffOutcome} from '@app/features/auth/flow/AccountHandoffRedeem';
 import {createAuthRoutePage} from '@app/features/auth/flow/AuthLoadableRoutePage';
-import {isAgeBlocked} from '@app/features/auth/state/AccountEntryStorage';
 import {readCapturedAccountHandoff} from '@app/features/auth/state/AccountHandoffCapture';
 import {loadLazyModule} from '@app/features/platform/utils/LazyModuleLoader';
 import {isDesktop} from '@app/features/ui/utils/NativeUtils';
@@ -19,7 +18,7 @@ type ArrivalState = Exclude<AccountHandoffOutcome, {readonly kind: 'signed_in'}>
 
 function redeemsOnArrival(): boolean {
 	const handoff = readCapturedAccountHandoff();
-	return handoff !== null && handoff.name !== '' && !isAgeBlocked() && !isDesktop();
+	return handoff !== null && handoff.name !== '' && !isDesktop();
 }
 
 export function AccountHandoffArrival() {

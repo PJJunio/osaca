@@ -46,7 +46,6 @@ describe('An address someone else registered with a password', () => {
 				email,
 				username: createUniqueUsername('squatter'),
 				password: SQUATTER_PASSWORD,
-				date_of_birth: '1990-01-01',
 				consent: true,
 			})
 			.execute();
@@ -176,7 +175,6 @@ describe('An address someone else registered with a password', () => {
 			email,
 			username: createUniqueUsername('oldsquat'),
 			password: SQUATTER_PASSWORD,
-			date_of_birth: '1990-01-01',
 			consent: true,
 		});
 		await createBuilderWithoutAuth(harness).post('/auth/forgot').body({email}).expect(HTTP_STATUS.NO_CONTENT).execute();

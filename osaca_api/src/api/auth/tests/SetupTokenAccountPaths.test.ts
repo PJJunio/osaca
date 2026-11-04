@@ -124,7 +124,6 @@ describe('Setup token on every way to create an account', () => {
 			email: createUniqueEmail('setupadmin'),
 			username: createUniqueUsername('setupadmin'),
 			global_name: 'Setup Admin',
-			date_of_birth: '2000-01-01',
 			consent: true,
 			setup_token: SETUP_TOKEN,
 		});

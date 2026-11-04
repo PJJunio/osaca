@@ -173,15 +173,6 @@ fn edit_account_card(
                         }))
                     }, csrf_token))
                 }
-                (post_form(base, &user.id, "change_dob", "account", html! {
-                    p class="text-sm font-medium text-neutral-700" { "Change Date of Birth:" }
-                    input type="date" name="date_of_birth"
-                        value=(user.date_of_birth.as_deref().unwrap_or(""))
-                        required class=(INPUT_CLS);
-                    (form_actions(html! {
-                        (submit_button("Change Date of Birth"))
-                    }))
-                }, csrf_token))
             }
         }))
     }

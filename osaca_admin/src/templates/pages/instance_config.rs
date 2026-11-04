@@ -3,7 +3,7 @@
 use crate::{
     api::types::{
         AccountIdentitySettings, AppPublicConfigResponse, CaptchaProvider, CleanupMode,
-        DateOfBirthPolicy, EXPERIMENT_MAX_ROLLOUT_COUNTRY_CODES, EXPERIMENT_MAX_TARGETED_USERS,
+        EXPERIMENT_MAX_ROLLOUT_COUNTRY_CODES, EXPERIMENT_MAX_TARGETED_USERS,
         EmailDeliveryMode, EmailDeliveryState, ExperimentDeliveryConfigResponse,
         GUILD_VISITS_DEFAULT_SALT, GatewayRolloutConfigResponse, GuildJoinGate,
         GuildVisitsConfigResponse, IdentifierFirstMode, InstanceConfigResponse,
@@ -541,19 +541,6 @@ const IDENTIFIER_FIRST_CHOICES: &[(IdentifierFirstMode, &str)] = &[
     ),
     (IdentifierFirstMode::On, "On"),
     (IdentifierFirstMode::Off, "Off"),
-];
-
-const DATE_OF_BIRTH_CHOICES: &[(DateOfBirthPolicy, &str)] = &[
-    (DateOfBirthPolicy::Off, "Don't ask"),
-    (DateOfBirthPolicy::Ask, "Ask, but let people skip it"),
-    (
-        DateOfBirthPolicy::RequireNewAccounts,
-        "Require it from accounts created without one",
-    ),
-    (
-        DateOfBirthPolicy::RequireAll,
-        "Require it from every account without one",
-    ),
 ];
 
 const INTERACTION_TIER_CHOICES: &[(InteractionTierMode, &str)] = &[

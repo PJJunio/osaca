@@ -19,15 +19,6 @@ The guild an account joined or is visiting after signing up with an invite.
 | guild_id | snowflake | The guild the account entered |
 | mode | string | `member` when the account joined, `visit` when it is visiting without joining |
 
-## Date of birth result object
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| user | [user](/http-api/users/#user-object) object | The updated account |
-| entry | ?[guild entry](#guild-entry-object) object | The guild to open next, or null |
-
 ## Email code delivery object
 
 ### Structure
@@ -174,36 +165,6 @@ Sending `new_password` on a claimed account deletes every other session and issu
 OSACA sends [User Update](/gateway/events/#user-update) to the account.
 
 The rate limit is 20 requests per minute, on the `user:update` bucket.
-
-## Set date of birth
-
-<RouteHeader method="PUT" path="/v1/users/@me/date-of-birth" />
-
-Sets the date of birth of an account that has none and returns a [date of birth result](#date-of-birth-result-object) object. A date of birth can't be changed once set.
-
-### JSON body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| date_of_birth<sup>1</sup> | string | The date of birth as `YYYY-MM-DD` |
-
-<sup>1</sup> A date that doesn't exist, is today or later, or is more than 120 years ago returns `INVALID_DATE_OF_BIRTH_FORMAT`
-
-The minimum age follows the region of the client IP address, as in [register an account](/http-api/authentication/#register-an-account). A person below it gets 403 `ACCOUNT_BELOW_MINIMUM_AGE`, and the account is closed and deleted after 72 hours.
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | [date of birth result](#date-of-birth-result-object) object | The date of birth was set |
-| 400 | [error response](/http-api/#error-response) | The date is invalid |
-| 403 | [error response](/http-api/#error-response) | The person is below the minimum age |
-| 404 | [error response](/http-api/#error-response) | The instance doesn't [collect date of birth](/http-api/instance/#public-registration-fields-object) |
-| 409 | [error response](/http-api/#error-response) | The account already has a date of birth |
-
-OSACA sends [User Update](/gateway/events/#user-update), and [User Settings Update](/gateway/events/#user-settings-update) when settings still on their defaults change to match the age.
-
-The rate limit is 5 requests per hour, on the `user:date_of_birth` bucket.
 
 ## Claim an account
 

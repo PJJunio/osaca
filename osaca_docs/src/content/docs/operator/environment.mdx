@@ -1236,14 +1236,6 @@ How many days the daily retention job keeps a resolved report, from 1 to 36500. 
 
 Whether the report retention job only counts what it would delete and changes nothing. Use `true` or `false`. When it's empty, the worker uses `false`. With rexctl, use `rexctl config set OSACA_REPORT_RETENTION_DRY_RUN`.
 
-### `OSACA_AGE_POLICY_ENABLED`
-
-Whether the apps need an age check before they show mature content to people in the regions in `OSACA_AGE_POLICY_RESTRICTED_REGIONS`. Use `true` or `false`. When it's empty, the age check is on only when `OSACA_AGE_POLICY_RESTRICTED_REGIONS` is set. With rexctl, use `rexctl config set OSACA_AGE_POLICY_ENABLED`.
-
-### `OSACA_AGE_POLICY_RESTRICTED_REGIONS`
-
-The regions where the apps need an age check before they show mature content, separated by commas. Use a country code such as `GB` or a country and region code such as `US-MS`. When it's empty and `OSACA_AGE_POLICY_ENABLED` is `true`, OSACA uses `GB` and `BR`. With rexctl, use `rexctl config set OSACA_AGE_POLICY_RESTRICTED_REGIONS`.
-
 ## Billing
 
 The admin panel can also save whether billing is on, the Stripe keys and the prices. A value saved there is used first, and a saved price list replaces all of `OSACA_STRIPE_PRICES`.

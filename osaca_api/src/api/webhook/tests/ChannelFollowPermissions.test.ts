@@ -228,18 +228,6 @@ describe('Channel follow permissions and content rules', () => {
 		await follow(harness, b.owner.token, a.ann.id, b.ageRestricted.id);
 	});
 
-	test('an age-restricted source requires an age-verified caller', async () => {
-		const {a, b} = world;
-		const restrictedSource = await createAnnouncement(a.owner, a.guild.id, {nsfw_override: true});
-		const minor = await createTestAccount(harness, {dateOfBirth: '2011-06-15'});
-		await addGuildMember(harness, a.owner, a.guild, minor);
-		await addGuildMember(harness, b.owner, b.guild, minor);
-		await grantGuildRole(harness, b.owner, b.guild.id, minor, Permissions.MANAGE_WEBHOOKS, 'Hooks');
-		await followRequest(harness, minor.token, restrictedSource.id, b.ageRestricted.id)
-			.expect(HTTP_STATUS.FORBIDDEN, APIErrorCodes.NSFW_CONTENT_AGE_RESTRICTED)
-			.execute();
-	});
-
 	test('a bot with Manage Webhooks can follow', async () => {
 		const {b} = world;
 		const bot = await createTestBotAccount(harness);

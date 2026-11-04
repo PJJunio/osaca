@@ -51,7 +51,6 @@ describe('auto-join several communities on sign-up', () => {
 				username: createUniqueUsername('autojoin'),
 				global_name: 'New member',
 				password: 'joins-two-communities',
-				date_of_birth: '2000-01-01',
 				consent: true,
 			})
 			.execute();

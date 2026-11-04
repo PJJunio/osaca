@@ -1,13 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {
-	AccountCleanupDefaults,
-	InstantAccountLimits,
-	LegacyDateOfBirthEnforcements,
-} from '@osaca/constants/src/AccountConfigConstants';
+import {AccountCleanupDefaults, InstantAccountLimits} from '@osaca/constants/src/AccountConfigConstants';
 import {
 	CleanupModeSchema,
-	DateOfBirthPolicySchema,
 	GuildJoinGateSchema,
 	IdentifierFirstModeSchema,
 	InteractionTierModeSchema,
@@ -15,14 +10,6 @@ import {
 	VerificationBasisSchema,
 } from '@osaca/schema/src/domains/account/AccountTierSchemas';
 import {z} from 'zod';
-
-const LegacyDateOfBirthEnforcementSchema = z
-	.enum([
-		LegacyDateOfBirthEnforcements.OFF,
-		LegacyDateOfBirthEnforcements.NEW_ACCOUNTS,
-		LegacyDateOfBirthEnforcements.ALL,
-	])
-	.describe('Deprecated, use date_of_birth');
 
 const InstantAccountsConfigSchema = z.object({
 	enabled: z.boolean().describe('Whether accounts can be created from just a display name. Needs the captcha to be on'),
@@ -53,13 +40,6 @@ const UnclaimedAccountCleanupSchema = z.object({
 	on_last_session_end: LastSessionCleanupModeSchema,
 });
 
-const DateOfBirthMissingCleanupSchema = z.object({
-	mode: CleanupModeSchema.describe(
-		'Whether accounts that were created without a date of birth and never entered one are deleted',
-	),
-	inactive_days: InactiveDaysSchema.describe('Days without use before such an account is deleted'),
-});
-
 const InactivityDeletionSchema = z.object({
 	mode: CleanupModeSchema.describe(
 		'Whether accounts unused for a long time are deleted. An account is only deleted after a warning email reached it',
@@ -69,12 +49,10 @@ const InactivityDeletionSchema = z.object({
 });
 
 export const AccountsConfigSchema = z.object({
-	date_of_birth: DateOfBirthPolicySchema,
 	interaction_tier: InteractionTierModeSchema,
 	verification_basis: VerificationBasisSchema,
 	guild_join_gate: GuildJoinGateSchema,
 	unclaimed_account_cleanup: UnclaimedAccountCleanupSchema,
-	dob_missing_cleanup: DateOfBirthMissingCleanupSchema,
 	inactivity_deletion: InactivityDeletionSchema,
 });
 
@@ -90,18 +68,15 @@ export const AuthConfigUpdateRequest = z.object({
 export type AuthConfigUpdateRequest = z.infer<typeof AuthConfigUpdateRequest>;
 
 export const AccountsConfigUpdateRequest = z.object({
-	date_of_birth: DateOfBirthPolicySchema.optional(),
 	interaction_tier: InteractionTierModeSchema.optional(),
 	verification_basis: VerificationBasisSchema.optional(),
 	guild_join_gate: GuildJoinGateSchema.optional(),
 	unclaimed_account_cleanup: UnclaimedAccountCleanupSchema.partial().optional(),
-	dob_missing_cleanup: DateOfBirthMissingCleanupSchema.partial().optional(),
 	inactivity_deletion: InactivityDeletionSchema.partial().optional(),
-	date_of_birth_enforcement: LegacyDateOfBirthEnforcementSchema.optional(),
 	abandoned_account_cleanup: z
 		.boolean()
 		.optional()
-		.describe('Deprecated, use unclaimed_account_cleanup and dob_missing_cleanup'),
+		.describe('Deprecated, use unclaimed_account_cleanup'),
 });
 
 export type AccountsConfigUpdateRequest = z.infer<typeof AccountsConfigUpdateRequest>;

@@ -12,7 +12,7 @@ On an instance where members sign in with a username, the email routes return 40
 
 ## Admin user object
 
-The full admin view of one account, with the flags, lifecycle, contact and network fields the public [user object](/http-api/users/#user-object) leaves out. Without `user:view:email`, `user:view:dob` or `user:view:ip`, the fields that ACL protects are null (or false for the email booleans) and the request still succeeds.
+The full admin view of one account, with the flags, lifecycle, contact and network fields the public [user object](/http-api/users/#user-object) leaves out. Without `user:view:email` or `user:view:ip`, the fields that ACL protects are null (or false for the email booleans) and the request still succeeds.
 
 ### Structure
 
@@ -34,7 +34,6 @@ The full admin view of one account, with the flags, lifecycle, contact and netwo
 | email<sup>2</sup> | ?string | The email address |
 | email_verified<sup>2</sup> | boolean | Whether the email address is verified |
 | email_bounced<sup>2</sup> | boolean | Whether mail to the address hard bounced |
-| date_of_birth<sup>3</sup> | ?string | The date of birth as `YYYY-MM-DD` |
 | locale | ?string | The saved [locale](/topics/locales/#supported-locales) |
 | premium_type | ?integer | [Premium type](#premium-types) |
 | premium_since | ?ISO8601 timestamp | When premium started |
@@ -58,20 +57,17 @@ The full admin view of one account, with the flags, lifecycle, contact and netwo
 | has_password | boolean | Whether the account has a password |
 | claimed | boolean | Whether the account can sign in from another device |
 | account_tier | string | The [account tier](/http-api/users/#account-tiers) |
-| date_of_birth_required | boolean | Whether the account still has to set its date of birth |
 | authenticator_types | array[integer] | Second-factor [authenticator types](/http-api/users/#authenticator-types) (at most 10) |
 | last_active_at | ?ISO8601 timestamp | When the account was last active |
-| last_active_ip<sup>4</sup> | ?string | The IP address the account was last active from |
-| last_active_ip_reverse<sup>4</sup> | ?string | The reverse DNS name of that address |
-| last_active_location<sup>4</sup> | ?string | The approximate location of that address |
+| last_active_ip<sup>3</sup> | ?string | The IP address the account was last active from |
+| last_active_ip_reverse<sup>3</sup> | ?string | The reverse DNS name of that address |
+| last_active_location<sup>3</sup> | ?string | The approximate location of that address |
 
 <sup>1</sup> Other Admin objects use a zero-padded string. On an instance with the `none` tag style, every account that is not a bot has `0`
 
 <sup>2</sup> Needs `user:view:email`
 
-<sup>3</sup> Needs `user:view:dob`
-
-<sup>4</sup> Needs `user:view:ip`
+<sup>3</sup> Needs `user:view:ip`
 
 ### Example
 
@@ -89,7 +85,6 @@ The full admin view of one account, with the flags, lifecycle, contact and netwo
   "email": "subject@example.com",
   "email_verified": true,
   "email_bounced": false,
-  "date_of_birth": "1998-03-21",
   "temp_banned_until": null,
   "pending_deletion_at": null,
   "deletion_reason_code": null,
@@ -100,7 +95,6 @@ The full admin view of one account, with the flags, lifecycle, contact and netwo
   "has_password": true,
   "claimed": true,
   "account_tier": "verified",
-  "date_of_birth_required": false,
   "authenticator_types": [1, 2],
   "last_active_at": "2026-08-30T21:04:02.771000+00:00",
   "last_active_ip": "203.0.113.24",
@@ -215,7 +209,6 @@ Values 1, 2, 19, 32 and 33 are not enforcement reasons. Only the others are acce
 | 29 | REPORTING_ABUSE | Misuse of reporting |
 | 30 | UNDERAGE_ACCOUNT | Account holder under the minimum age |
 | 31 | COPYRIGHT | Copyright |
-| 32 | BELOW_MINIMUM_AGE | Account holder gave a date of birth below the minimum age |
 | 33 | UNCLAIMED_ACCOUNT_ABANDONED | Account with no way to sign back in was left unused |
 
 ## Profile fields
@@ -658,34 +651,6 @@ Deletes the account's recovery kit, on an instance where members sign in with a 
 | --- | --- | --- |
 | 204 | none | The kit was deleted, or there was none |
 | 400 | [error response](/admin-api/#error-response) | `USERNAME_SIGN_IN_ONLY` on an email instance |
-
-The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
-
-## Change user date of birth
-
-<RouteHeader method="PATCH" path="/v1/admin/users/{user_id}/date-of-birth" auditReason />
-
-Changes the date of birth and returns the account. You need `user:update:dob`. A deletion scheduled because the account was under the minimum age is canceled.
-
-### JSON body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| date_of_birth | string | The new date as `YYYY-MM-DD` |
-
-### Response body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| user | [Admin user](#admin-user-object) object | The updated account |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | response body | The date of birth was changed |
-
-OSACA sends [User Update](/gateway/events/#user-update).
 
 The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
 

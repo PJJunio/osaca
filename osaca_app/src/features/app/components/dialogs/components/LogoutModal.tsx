@@ -31,23 +31,6 @@ const SIGN_OUT_ANYWAY_DESCRIPTOR = msg({
 export const LogoutModal = observer(() => {
 	const {i18n} = useLingui();
 	const user = Users.currentUser;
-	if (user?.isClaimed() === false && user.dateOfBirthRequired) {
-		return (
-			<ConfirmModal
-				title={i18n._(SIGN_OUT_DESCRIPTOR)}
-				description={
-					<Trans comment="Sign out dialog text for an unclaimed account that has no way to sign back in after signing out.">
-						This account is unclaimed, so you can't sign back in to it.
-					</Trans>
-				}
-				primaryText={i18n._(SIGN_OUT_ANYWAY_DESCRIPTOR)}
-				primaryVariant="danger"
-				secondaryText={i18n._(STAY_SIGNED_IN_DESCRIPTOR)}
-				onPrimary={() => AuthenticationCommands.logout()}
-				data-flx="app.logout-modal.unclaimed-confirm-modal--date-of-birth"
-			/>
-		);
-	}
 	if (user?.isClaimed() === false) {
 		const presentation = getUnclaimedAccountPresentation(
 			i18n,

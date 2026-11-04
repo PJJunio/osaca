@@ -15,7 +15,6 @@ const SKIP_FIELDS = new Set([
 	'challenge',
 	'channels',
 	'content_type',
-	'date_of_birth',
 	'deny',
 	'email_token',
 	'encryption_key',

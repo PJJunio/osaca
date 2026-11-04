@@ -22,7 +22,6 @@ import {
 	setCachedAccountsConfig,
 	setCachedEmailDeliveryState,
 } from '@app/api/instance/AccountsConfigCache';
-import {getLegacyDateOfBirthCollectionDefault} from '@app/api/instance/DateOfBirthCollectionCache';
 import {
 	describeIncompleteSmtpConfig,
 	type EffectiveSmtpConfig,
@@ -66,10 +65,6 @@ import {DEFAULT_DECAY_CONSTANTS, DEFAULT_RENEWAL_CONSTANTS} from '@app/api/utils
 import {isJsonRecord} from '@app/api/utils/JsonBoundaryUtils';
 import {randomBase64Url, secretMatchesHash, sha256Hex} from '@app/api/utils/SecretHash';
 import {
-	collectsDateOfBirth,
-	DateOfBirthPolicies,
-	type DateOfBirthPolicy,
-	dateOfBirthPolicyFromLegacy,
 	type EmailDeliveryMode,
 	EmailDeliveryModes,
 	type EmailDeliveryState,
@@ -78,8 +73,6 @@ import {
 	type IdentifierFirstMode,
 	IdentifierFirstModes,
 	type InstantAccountAvailability,
-	type LegacyDateOfBirthEnforcement,
-	LegacyDateOfBirthEnforcements,
 } from '@osaca/constants/src/AccountConfigConstants';
 import {
 	type AccountIdentity,
@@ -521,9 +514,6 @@ function getDefaultAppPublicConfig(): InstanceAppPublicConfig {
 			privacy_url: null,
 			guidelines_url: null,
 		},
-		registration: {
-			collect_date_of_birth: getLegacyDateOfBirthCollectionDefault(),
-		},
 	};
 }
 
@@ -765,13 +755,6 @@ function omitUndefined<T extends Record<string, unknown>>(value: T): Partial<T> 
 	return Object.fromEntries(Object.entries(value).filter(([, entry]) => entry !== undefined)) as Partial<T>;
 }
 
-function dateOfBirthPolicyFromLegacyEnforcement(
-	current: DateOfBirthPolicy,
-	enforcement: LegacyDateOfBirthEnforcement,
-): DateOfBirthPolicy {
-	return dateOfBirthPolicyFromLegacy({collect: current !== DateOfBirthPolicies.OFF, enforcement});
-}
-
 function identifierFirstFromLegacy(value: boolean): IdentifierFirstMode {
 	return value ? IdentifierFirstModes.ON : IdentifierFirstModes.OFF;
 }
@@ -804,32 +787,13 @@ function parseStoredAuthConfig(raw: string | null): AuthConfig {
 	);
 }
 
-function isLegacyDateOfBirthEnforcement(value: unknown): value is LegacyDateOfBirthEnforcement {
-	return Object.values<unknown>(LegacyDateOfBirthEnforcements).includes(value);
-}
-
-function readLegacyDateOfBirthCollection(appPublicRaw: string | null): boolean {
-	const appPublic = storedRecord(readStoredConfigValue(appPublicRaw, 'app public'));
-	const collect = storedRecord(appPublic.registration).collect_date_of_birth;
-	return typeof collect === 'boolean' ? collect : getLegacyDateOfBirthCollectionDefault();
-}
-
-function migrateStoredAccountsConfig(stored: Record<string, unknown>, legacyCollect: boolean): Record<string, unknown> {
-	const {date_of_birth_enforcement, abandoned_account_cleanup, ...migrated} = stored;
-	if (!Object.hasOwn(stored, 'date_of_birth')) {
-		migrated.date_of_birth = dateOfBirthPolicyFromLegacy({
-			collect: legacyCollect,
-			enforcement: isLegacyDateOfBirthEnforcement(date_of_birth_enforcement)
-				? date_of_birth_enforcement
-				: LegacyDateOfBirthEnforcements.NEW_ACCOUNTS,
-		});
-	}
+function migrateStoredAccountsConfig(stored: Record<string, unknown>): Record<string, unknown> {
+	const {date_of_birth_enforcement: _legacyEnforcement, date_of_birth: _legacyPolicy, dob_missing_cleanup: _legacyCleanup, abandoned_account_cleanup, ...migrated} = stored;
 	if (typeof abandoned_account_cleanup === 'boolean') {
 		const cleanup = abandonedAccountCleanupDefaults(abandoned_account_cleanup);
 		if (!Object.hasOwn(stored, 'unclaimed_account_cleanup')) {
 			migrated.unclaimed_account_cleanup = cleanup.unclaimed_account_cleanup;
 		}
-		if (!Object.hasOwn(stored, 'dob_missing_cleanup')) migrated.dob_missing_cleanup = cleanup.dob_missing_cleanup;
 	}
 	if (!Object.values<unknown>(GuildJoinGates).includes(stored.guild_join_gate)) {
 		delete migrated.guild_join_gate;
@@ -837,9 +801,9 @@ function migrateStoredAccountsConfig(stored: Record<string, unknown>, legacyColl
 	return migrated;
 }
 
-function decodeAccountsConfig(value: unknown, legacyCollect: boolean): AccountsConfig {
+function decodeAccountsConfig(value: unknown): AccountsConfig {
 	const fallback = fallbackAccountsDefaults().accounts;
-	const stored = migrateStoredAccountsConfig(storedRecord(value), legacyCollect);
+	const stored = migrateStoredAccountsConfig(storedRecord(value));
 	return validateStoredConfig(
 		AccountsConfigSchema,
 		{
@@ -849,19 +813,17 @@ function decodeAccountsConfig(value: unknown, legacyCollect: boolean): AccountsC
 				...fallback.unclaimed_account_cleanup,
 				...storedRecord(stored.unclaimed_account_cleanup),
 			},
-			dob_missing_cleanup: {...fallback.dob_missing_cleanup, ...storedRecord(stored.dob_missing_cleanup)},
 			inactivity_deletion: {...fallback.inactivity_deletion, ...storedRecord(stored.inactivity_deletion)},
 		},
 		'accounts',
 	);
 }
 
-function parseStoredAccountsConfig(raw: string | null, appPublicRaw: string | null): AccountsConfig {
-	const legacyCollect = readLegacyDateOfBirthCollection(appPublicRaw);
+function parseStoredAccountsConfig(raw: string | null): AccountsConfig {
 	return readStoredConfigOrDefault(
 		'accounts',
-		() => decodeAccountsConfig(raw === null ? {} : parseStoredConfigValue(raw, 'accounts'), legacyCollect),
-		() => decodeAccountsConfig({}, legacyCollect),
+		() => decodeAccountsConfig(raw === null ? {} : parseStoredConfigValue(raw, 'accounts')),
+		() => decodeAccountsConfig({}),
 	);
 }
 
@@ -953,7 +915,6 @@ const StoredInstanceAppPublicSchema = InstanceAppPublicSchema.extend({
 		.optional(),
 	setup: InstanceAppPublicSchema.shape.setup.pick({configured: true}).partial().optional(),
 	legal: InstanceAppPublicSchema.shape.legal.partial().optional(),
-	registration: InstanceAppPublicSchema.shape.registration.partial().optional(),
 });
 
 function parseStoredAppPublicConfig(raw: string | null): InstanceAppPublicConfig {
@@ -962,13 +923,6 @@ function parseStoredAppPublicConfig(raw: string | null): InstanceAppPublicConfig
 			salvageStoredConfig(StoredInstanceAppPublicSchema, readStoredConfigValue(raw, 'app public'), 'app public'),
 		),
 	);
-}
-
-function withDerivedDateOfBirthCollection(
-	config: InstanceAppPublicConfig,
-	policy: DateOfBirthPolicy,
-): InstanceAppPublicConfig {
-	return {...config, registration: {collect_date_of_birth: collectsDateOfBirth(policy)}};
 }
 
 function resolveAppPublicConfig(config: InstanceAppPublicConfig): InstanceAppPublicConfig {
@@ -986,7 +940,7 @@ function toStoredBranding<T extends Partial<Record<BrandingAssetField, string | 
 
 function buildAppPublicConfig(config: z.infer<typeof StoredInstanceAppPublicSchema>): InstanceAppPublicConfig {
 	const defaults = getDefaultAppPublicConfig();
-	const {branding = {}, setup = {}, legal = {}, registration = {}} = config;
+	const {branding = {}, setup = {}, legal = {}} = config;
 	return {
 		branding: {
 			product_name: normalizeOptionalString(branding.product_name) ?? defaults.branding.product_name,
@@ -1026,9 +980,6 @@ function buildAppPublicConfig(config: z.infer<typeof StoredInstanceAppPublicSche
 			terms_url: normalizeOptionalPublicString(legal.terms_url, defaults.legal.terms_url),
 			privacy_url: normalizeOptionalPublicString(legal.privacy_url, defaults.legal.privacy_url),
 			guidelines_url: normalizeOptionalPublicString(legal.guidelines_url, defaults.legal.guidelines_url),
-		},
-		registration: {
-			collect_date_of_birth: registration.collect_date_of_birth ?? defaults.registration.collect_date_of_birth,
 		},
 	};
 }
@@ -1775,7 +1726,7 @@ export class InstanceConfigRepository {
 		parseStoredCaptchaConfig(snapshot.get(CAPTCHA_CONFIG_KEY) ?? null);
 		parseStoredAuthConfig(snapshot.get(AUTH_CONFIG_KEY) ?? null);
 		setCachedAccountsConfig(
-			parseStoredAccountsConfig(snapshot.get(ACCOUNTS_CONFIG_KEY) ?? null, snapshot.get(APP_PUBLIC_CONFIG_KEY) ?? null),
+			parseStoredAccountsConfig(snapshot.get(ACCOUNTS_CONFIG_KEY) ?? null),
 		);
 		setCachedGuildVisitsConfig(parseStoredGuildVisitsConfig(snapshot.get(GUILD_VISITS_CONFIG_KEY) ?? null));
 		syncChannelThreadsConfig(snapshot.get(CHANNEL_THREADS_CONFIG_KEY) ?? null, parseStoredChannelThreadsConfig);
@@ -2275,20 +2226,16 @@ export class InstanceConfigRepository {
 	}
 
 	async getAccountsConfig(): Promise<AccountsConfig> {
-		const [raw, appPublicRaw] = await Promise.all([
-			this.getConfig(ACCOUNTS_CONFIG_KEY),
-			this.getConfig(APP_PUBLIC_CONFIG_KEY),
-		]);
-		const config = parseStoredAccountsConfig(raw, appPublicRaw);
+		const raw = await this.getConfig(ACCOUNTS_CONFIG_KEY);
+		const config = parseStoredAccountsConfig(raw);
 		setCachedAccountsConfig(config);
 		return config;
 	}
 
 	async updateAccountsConfig(patch: AccountsConfigUpdateRequest): Promise<AccountsConfig> {
-		const appPublicRaw = await this.getConfig(APP_PUBLIC_CONFIG_KEY);
-		const {date_of_birth_enforcement, abandoned_account_cleanup, ...fields} = patch;
+		const {abandoned_account_cleanup, ...fields} = patch;
 		const config = await this.updateStoredConfig(ACCOUNTS_CONFIG_KEY, (raw) => {
-			const current = parseStoredAccountsConfig(raw, appPublicRaw);
+			const current = parseStoredAccountsConfig(raw);
 			const legacyCleanup: Partial<ReturnType<typeof abandonedAccountCleanupDefaults>> =
 				abandoned_account_cleanup === undefined ? {} : abandonedAccountCleanupDefaults(abandoned_account_cleanup);
 			return validateStoredConfig(
@@ -2296,13 +2243,7 @@ export class InstanceConfigRepository {
 				{
 					...current,
 					...legacyCleanup,
-					...(date_of_birth_enforcement === undefined
-						? {}
-						: {
-								date_of_birth: dateOfBirthPolicyFromLegacyEnforcement(current.date_of_birth, date_of_birth_enforcement),
-							}),
 					...omitUndefined({
-						date_of_birth: fields.date_of_birth,
 						interaction_tier: fields.interaction_tier,
 						verification_basis: fields.verification_basis,
 						guild_join_gate: fields.guild_join_gate,
@@ -2310,10 +2251,6 @@ export class InstanceConfigRepository {
 					unclaimed_account_cleanup: {
 						...(legacyCleanup.unclaimed_account_cleanup ?? current.unclaimed_account_cleanup),
 						...omitUndefined(fields.unclaimed_account_cleanup ?? {}),
-					},
-					dob_missing_cleanup: {
-						...(legacyCleanup.dob_missing_cleanup ?? current.dob_missing_cleanup),
-						...omitUndefined(fields.dob_missing_cleanup ?? {}),
 					},
 					inactivity_deletion: {
 						...current.inactivity_deletion,
@@ -2325,14 +2262,6 @@ export class InstanceConfigRepository {
 		});
 		setCachedAccountsConfig(config);
 		return config;
-	}
-
-	async setDateOfBirthCollection(collect: boolean): Promise<AccountsConfig> {
-		const current = await this.getAccountsConfig();
-		if (collect === (current.date_of_birth !== DateOfBirthPolicies.OFF)) return current;
-		return await this.updateAccountsConfig({
-			date_of_birth: collect ? DateOfBirthPolicies.REQUIRE_NEW_ACCOUNTS : DateOfBirthPolicies.OFF,
-		});
 	}
 
 	async getGuildVisitsConfig(): Promise<GuildVisitsConfig> {
@@ -2371,13 +2300,12 @@ export class InstanceConfigRepository {
 			}
 			const defaults = await this.computeAccountsDefaults();
 			const cache = this.configCache;
-			const appPublicRaw = await this.fetchConfigFromDatabase(APP_PUBLIC_CONFIG_KEY);
 			const writes: Array<[string, string, ((raw: string | null) => void) | null]> = [
 				[AUTH_CONFIG_KEY, JSON.stringify(defaults.auth), null],
 				[
 					ACCOUNTS_CONFIG_KEY,
 					JSON.stringify(defaults.accounts),
-					(raw) => setCachedAccountsConfig(parseStoredAccountsConfig(raw, appPublicRaw)),
+					(raw) => setCachedAccountsConfig(parseStoredAccountsConfig(raw)),
 				],
 			];
 			let wrote = false;
@@ -2436,14 +2364,7 @@ export class InstanceConfigRepository {
 		if (!Config.instance.selfHosted) return hostedAccountsDefaults();
 		const existing = await this.hasExistingInstanceSignals();
 		if (!existing) return selfHostedAccountsDefaults({freshInstall: true});
-		const legacyCollect = readLegacyDateOfBirthCollection(await this.fetchConfigFromDatabase(APP_PUBLIC_CONFIG_KEY));
-		return selfHostedAccountsDefaults({
-			freshInstall: false,
-			dateOfBirth: dateOfBirthPolicyFromLegacy({
-				collect: legacyCollect,
-				enforcement: LegacyDateOfBirthEnforcements.NEW_ACCOUNTS,
-			}),
-		});
+		return selfHostedAccountsDefaults({freshInstall: false});
 	}
 
 	async getChannelThreadsConfig(): Promise<ChannelThreadsConfig> {
@@ -2489,8 +2410,7 @@ export class InstanceConfigRepository {
 	}
 
 	async getAppPublicConfig(): Promise<InstanceAppPublicConfig> {
-		const [raw, accounts] = await Promise.all([this.getConfig(APP_PUBLIC_CONFIG_KEY), this.getAccountsConfig()]);
-		const config = withDerivedDateOfBirthCollection(parseStoredAppPublicConfig(raw), accounts.date_of_birth);
+		const config = parseStoredAppPublicConfig(await this.getConfig(APP_PUBLIC_CONFIG_KEY));
 		setCachedConfiguredLegalUrls(config.legal);
 		setCachedProductName(config.branding.product_name);
 		return config;
@@ -2533,7 +2453,6 @@ export class InstanceConfigRepository {
 						...current.legal,
 						...(config.legal ?? {}),
 					},
-					registration: stored.registration,
 				},
 				'app public',
 			);
@@ -2552,7 +2471,7 @@ export class InstanceConfigRepository {
 		setCachedConfiguredLegalUrls(next.legal);
 		setCachedProductName(next.branding.product_name);
 		return {
-			config: withDerivedDateOfBirthCollection(next, (await this.getAccountsConfig()).date_of_birth),
+			config: next,
 			releasedBrandingAssets,
 		};
 	}

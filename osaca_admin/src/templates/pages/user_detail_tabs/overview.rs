@@ -170,16 +170,6 @@ fn render_overview_tab(
                         }
                         @if !user.has_password { span class="ml-1 text-neutral-500" { "(no password)" } }
                     }))
-                    @if user.date_of_birth_required {
-                        (detail_row("Date of Birth Step", html! {
-                            span class="text-orange-600" { "Waiting for a date of birth" }
-                        }))
-                    }
-                    @if acl::has_permission(admin_acls, acl::USER_VIEW_DOB) {
-                        (detail_row("Date of Birth", html! {
-                            (user.date_of_birth.as_deref().unwrap_or("Not set"))
-                        }))
-                    }
                     (detail_row("Locale", html! {
                         (user.locale.as_deref().unwrap_or("Not set"))
                     }))

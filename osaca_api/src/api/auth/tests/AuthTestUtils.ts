@@ -56,7 +56,6 @@ interface CreateTestAccountParams {
 	password?: string;
 	username?: string;
 	globalName?: string;
-	dateOfBirth?: string;
 	ipAddress?: string;
 	skipSessionStart?: boolean;
 	skipEmailVerification?: boolean;
@@ -101,7 +100,6 @@ export async function createTestAccount(
 			username,
 			global_name: params?.globalName ?? TEST_USER_DATA.DEFAULT_GLOBAL_NAME,
 			password,
-			date_of_birth: params?.dateOfBirth ?? TEST_USER_DATA.DEFAULT_DATE_OF_BIRTH,
 			consent: true,
 		});
 	if (ipAddress) {

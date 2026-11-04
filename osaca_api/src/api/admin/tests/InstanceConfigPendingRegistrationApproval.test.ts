@@ -35,7 +35,6 @@ function invitedRegistrationBody(prefix: string, inviteCode?: string): Record<st
 		username: createUniqueUsername(prefix),
 		global_name: 'Invited person',
 		password: 'invited-since-1999',
-		date_of_birth: '2000-01-01',
 		consent: true,
 		invite_code: inviteCode,
 	};
@@ -75,7 +74,6 @@ describe('pending registration approval and the stock community', () => {
 				username: createUniqueUsername('bannedapproval'),
 				global_name: 'The banned man',
 				password: 'approving-since-1999',
-				date_of_birth: '2000-01-01',
 				consent: true,
 			})
 			.execute();
@@ -332,7 +330,6 @@ describe('pending registration approval and the stock community', () => {
 				username: createUniqueUsername('reviewonly'),
 				global_name: 'Review only',
 				password: 'reviewing-since-1999',
-				date_of_birth: '2000-01-01',
 				consent: true,
 			})
 			.execute();

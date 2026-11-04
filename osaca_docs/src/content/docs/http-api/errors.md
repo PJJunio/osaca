@@ -82,7 +82,6 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | --- | --- |
 | `ACCESS_DENIED` | You don't have access to this resource or feature |
 | `ACCOUNT_ALREADY_CLAIMED` | This account is already set up to sign in from other devices |
-| `ACCOUNT_BELOW_MINIMUM_AGE` | You aren't old enough to have an account here |
 | `ACCOUNT_IDENTITY_LOCKED` | The sign-in method is already set and can't be changed |
 | `ACCOUNT_LIMITED` | Messaging is paused on your account |
 | `ACCOUNT_SUSPENDED_PERMANENTLY` | This account has been permanently suspended |
@@ -135,8 +134,6 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `CONNECTION_NOT_FOUND` | Unknown connection |
 | `CONNECTION_VERIFICATION_FAILED` | Connection verification failed |
 | `CONTENT_BLOCKED` | This content was blocked by safety systems |
-| `DATE_OF_BIRTH_ALREADY_SET` | Your date of birth is already set |
-| `DATE_OF_BIRTH_REQUIRED` | Enter your date of birth to continue |
 | `DELETION_FAILED` | We couldn't delete the resource |
 | `DIRECT_MESSAGES_DISABLED` | Direct messages are disabled on this instance |
 | `DIRECT_MESSAGE_EMAIL_VERIFICATION_REQUIRED` | Email verification is required for this action |
@@ -184,7 +181,6 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `GUILD_TEMPLATE_INVALID` | The community template data is invalid or malformed |
 | `GUILD_VERIFICATION_REQUIRED` | Claim your account to talk in this community |
 | `GUILD_VISITS_DISABLED` | This community asks people to join before previewing it |
-| `GUILD_VISIT_AGE_RESTRICTED` | This community is for adults only |
 | `GUILD_VISIT_NOT_FOUND` | You're not previewing this community anymore |
 | `HANDOFF_ATTEMPTS_EXCEEDED` | Too many sign-in attempts from your network |
 | `HANDOFF_CODE_ALREADY_USED` | This code was already used |
@@ -536,7 +532,6 @@ These are the values of `code` inside `errors`.
 | `INVALID_BASE64_FORMAT` | The provided value is in an invalid format |
 | `INVALID_CHANNEL_ID` | Invalid channel ID: {channelId} |
 | `INVALID_CODE` | Invalid code |
-| `INVALID_DATE_OF_BIRTH_FORMAT` | Enter your real date of birth |
 | `INVALID_EMAIL_ADDRESS` | Invalid email address format |
 | `INVALID_EMAIL_FORMAT` | Invalid email address format |
 | `INVALID_EMAIL_LOCAL_PART` | Invalid email address format |
@@ -587,7 +582,6 @@ These are the values of `code` inside `errors`.
 | `MODERATION_BASIS_REQUIRED` | Give a basis to delete the messages |
 | `MULTIPLE_FILES_FOR_INDEX_NOT_ALLOWED` | Multiple files for index {index} aren't allowed |
 | `MUST_AGREE_TO_TOS_AND_PRIVACY_POLICY` | You need to accept the terms of service to create an account |
-| `MUST_BE_MINIMUM_AGE` | You must be at least {minAge} years old to create an account |
 | `MUST_ENABLE_2FA_BEFORE_REQUIRING_FOR_MODS` | You must enable 2FA on your account before requiring it for moderators |
 | `MUST_HAVE_EMAIL_TO_CHANGE_IT` | You must have an email address to change it |
 | `MUST_START_SESSION_BEFORE_SENDING` | You must start a session before sending messages |

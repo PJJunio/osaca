@@ -30,7 +30,6 @@ import type {AuthSession as AuthSessionModel} from '@app/api/models/AuthSession'
 import type {User} from '@app/api/models/User';
 import {tierContextFromRequest} from '@app/api/user/AccountTier';
 import {findPersonByLoginHandle, type ParsedLoginHandle, parseLoginHandle} from '@app/api/user/UniqueUsernames';
-import {BELOW_MINIMUM_AGE_TRAIT} from '@app/api/user/UserTraits';
 import {verifyPassword} from '@app/api/utils/PasswordUtils';
 import * as RandomUtils from '@app/api/utils/RandomUtils';
 import {createRateLimitError} from '@app/api/utils/RateLimitUtils';
@@ -38,7 +37,6 @@ import {requireConfiguredClientIp} from '@app/api/utils/RequestClientIp';
 import {AccountIdentityModes} from '@osaca/constants/src/AccountIdentityConstants';
 import {UserAuthenticatorTypes, UserFlags} from '@osaca/constants/src/UserConstants';
 import {type ValidationErrorCode, ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
-import {AccountBelowMinimumAgeError} from '@osaca/errors/src/domains/auth/AccountBelowMinimumAgeError';
 import {IpAuthorizationRequiredError} from '@osaca/errors/src/domains/auth/IpAuthorizationRequiredError';
 import {IpAuthorizationResendCooldownError} from '@osaca/errors/src/domains/auth/IpAuthorizationResendCooldownError';
 import {IpAuthorizationResendLimitExceededError} from '@osaca/errors/src/domains/auth/IpAuthorizationResendLimitExceededError';
@@ -317,9 +315,6 @@ export async function login(
 	}
 	if (currentUser.traits.has(REGISTRATION_REJECTED_TRAIT)) {
 		throw new RegistrationRejectedError();
-	}
-	if (currentUser.traits.has(BELOW_MINIMUM_AGE_TRAIT)) {
-		throw new AccountBelowMinimumAgeError();
 	}
 	const isAppStoreReviewer = (currentUser.flags & UserFlags.APP_STORE_REVIEWER) !== 0n;
 	let newIp = false;

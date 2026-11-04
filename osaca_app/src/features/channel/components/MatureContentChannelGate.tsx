@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {ExternalLink} from '@app/features/app/components/shared/ExternalLink';
-import {HelpCenterArticleSlug} from '@app/features/app/config/HelpCenterConstants';
 import styles from '@app/features/channel/components/MatureContentChannelGate.module.css';
 import * as GuildMatureContentCommands from '@app/features/guild/commands/GuildMatureContentCommands';
 import GuildMatureContentAgree, {
@@ -12,7 +10,6 @@ import {MATURE_CONTENT_DESCRIPTOR, PROCEED_DESCRIPTOR} from '@app/features/i18n/
 import {getDefaultContentWarningText} from '@app/features/messaging/utils/ContentWarningUtils';
 import {getEffectiveMatureContentGeoContext} from '@app/features/moderation/utils/MatureContentGeoUtils';
 import {Button} from '@app/features/ui/button/Button';
-import * as HelpCenterUtils from '@app/features/ui/utils/HelpCenterUtils';
 import {getRegionDisplayName} from '@app/features/user/utils/UserGeo';
 import {msg} from '@lingui/core/macro';
 import {Trans, useLingui} from '@lingui/react/macro';
@@ -41,7 +38,6 @@ interface Props {
 
 export const MatureContentChannelGate = observer(({channelId, guildId, reason, scope: scopeOverride}: Props) => {
 	const {i18n} = useLingui();
-	const learnMoreUrl = HelpCenterUtils.getURL(HelpCenterArticleSlug.ChangeDateOfBirth);
 	const resolved = GuildMatureContentAgree.getResolvedContext({channelId: channelId ?? null, guildId});
 	const scope: AgreementScope = scopeOverride ?? resolved.scope;
 	const effectiveMatureContent = resolved.effectiveMatureContent;
@@ -93,19 +89,7 @@ export const MatureContentChannelGate = observer(({channelId, guildId, reason, s
 								className={styles.description}
 								data-flx="channel.mature-content-channel-gate.render-content.description--3"
 							>
-								{learnMoreUrl ? (
-									<Trans>
-										This mature community is not available to your account.{' '}
-										<ExternalLink
-											href={learnMoreUrl}
-											data-flx="channel.mature-content-channel-gate.render-content.external-link"
-										>
-											Learn more
-										</ExternalLink>
-									</Trans>
-								) : (
-									i18n._(MATURE_COMMUNITY_NOT_AVAILABLE_DESCRIPTOR)
-								)}
+								{i18n._(MATURE_COMMUNITY_NOT_AVAILABLE_DESCRIPTOR)}
 							</p>
 						</>
 					);
@@ -120,19 +104,7 @@ export const MatureContentChannelGate = observer(({channelId, guildId, reason, s
 								className={styles.description}
 								data-flx="channel.mature-content-channel-gate.render-content.description--4"
 							>
-								{learnMoreUrl ? (
-									<Trans>
-										This mature category is not available to your account.{' '}
-										<ExternalLink
-											href={learnMoreUrl}
-											data-flx="channel.mature-content-channel-gate.render-content.external-link--2"
-										>
-											Learn more
-										</ExternalLink>
-									</Trans>
-								) : (
-									i18n._(MATURE_CATEGORY_NOT_AVAILABLE_DESCRIPTOR)
-								)}
+								{i18n._(MATURE_CATEGORY_NOT_AVAILABLE_DESCRIPTOR)}
 							</p>
 						</>
 					);
@@ -146,19 +118,7 @@ export const MatureContentChannelGate = observer(({channelId, guildId, reason, s
 							className={styles.description}
 							data-flx="channel.mature-content-channel-gate.render-content.description--5"
 						>
-							{learnMoreUrl ? (
-								<Trans>
-									This mature channel is not available to your account.{' '}
-									<ExternalLink
-										href={learnMoreUrl}
-										data-flx="channel.mature-content-channel-gate.render-content.external-link--3"
-									>
-										Learn more
-									</ExternalLink>
-								</Trans>
-							) : (
-								i18n._(MATURE_CHANNEL_NOT_AVAILABLE_DESCRIPTOR)
-							)}
+							{i18n._(MATURE_CHANNEL_NOT_AVAILABLE_DESCRIPTOR)}
 						</p>
 					</>
 				);

@@ -398,19 +398,6 @@ impl AdminApiClient {
         Ok(resp.user)
     }
 
-    pub async fn change_dob(&self, user_id: &str, dob: &str) -> ApiResult<AdminUser> {
-        let body = generated_types::AdminUserDobUpdateRequest {
-            date_of_birth: dob.to_owned(),
-        };
-        let response = self
-            .generated()
-            .update_admin_user_date_of_birth(&snowflake(user_id), &body)
-            .await
-            .map_err(|e| self.generated_error(e))?;
-        let resp: UserMutationResponse = self.generated_value(response.into_inner())?;
-        Ok(resp.user)
-    }
-
     pub async fn send_password_reset(&self, user_id: &str) -> ApiResult<()> {
         self.generated()
             .send_admin_user_password_reset(&snowflake(user_id))

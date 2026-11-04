@@ -28,13 +28,6 @@ interface Scene {
 	message: MessageResponse;
 }
 
-function yearsAgo(years: number): string {
-	const date = new Date();
-	date.setUTCFullYear(date.getUTCFullYear() - years);
-	date.setUTCDate(date.getUTCDate() - 1);
-	return date.toISOString().slice(0, 10);
-}
-
 describe('Guild visitor reads', () => {
 	let harness: ApiTestHarness;
 	beforeAll(async () => {
@@ -64,10 +57,10 @@ describe('Guild visitor reads', () => {
 		return {owner, guildId: guild.id, channelId, code: invite.code, message};
 	}
 
-	async function createUnclaimed(dateOfBirth = yearsAgo(30)): Promise<Registered> {
+	async function createUnclaimed(): Promise<Registered> {
 		return await createBuilderWithoutAuth<Registered>(harness)
 			.post('/auth/register')
-			.body({username: 'reader', consent: true, date_of_birth: dateOfBirth})
+			.body({username: 'reader', consent: true})
 			.execute();
 	}
 
@@ -191,20 +184,6 @@ describe('Guild visitor reads', () => {
 			.get(`/channels/${channelId}/messages`)
 			.expect(HttpStatus.NOT_FOUND, APIErrorCodes.UNKNOWN_CHANNEL)
 			.execute();
-	});
-
-	it('hides adult channels from younger visitors entirely', async () => {
-		const {owner, channelId, code} = await createScene();
-		await createBuilder(harness, owner.token).patch(`/channels/${channelId}`).body({nsfw: true}).execute();
-		const teen = await createUnclaimed(yearsAgo(15));
-		await visit(teen.token, code);
-		await createBuilder(harness, teen.token)
-			.get(`/channels/${channelId}/messages`)
-			.expect(HttpStatus.NOT_FOUND, APIErrorCodes.UNKNOWN_CHANNEL)
-			.execute();
-		const adult = await createUnclaimed(yearsAgo(30));
-		await visit(adult.token, code);
-		await createBuilder(harness, adult.token).get(`/channels/${channelId}/messages`).execute();
 	});
 
 	it('limits how far back accounts without a confirmed email can read', async () => {

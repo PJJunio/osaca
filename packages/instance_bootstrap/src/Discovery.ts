@@ -19,11 +19,7 @@ import type {LimitKey} from '@osaca/constants/src/LimitConfigMetadata';
 import {InstanceEndpointKind, normalizeInstanceEndpoint} from '@osaca/instance_bootstrap/src/EndpointNormalization';
 import {CanonicalNetworkProtocol} from '@osaca/instance_bootstrap/src/NetworkOrigin';
 import {
-	AGE_POLICY_ACTIONS,
 	CURRENT_INSTANCE_CODENAME,
-	type InstanceAgePolicy,
-	type InstanceAgePolicyGeo,
-	type InstanceAppRegistration,
 	type InstanceBranding,
 	type InstanceBuiltInGuildBadgeImages,
 	type InstanceCommunity,
@@ -53,7 +49,6 @@ export const INSTANCE_DISCOVERY_TIMEOUT_MS = 15_000;
 export const ACCOUNT_DELETION_GRACE_PERIOD_HOURS_MIN = 1;
 export const ACCOUNT_DELETION_GRACE_PERIOD_HOURS_MAX = 8760;
 export const LIMIT_RULES_MAX = 100;
-export const AGE_POLICY_GEOS_MAX = 512;
 export const DOMAIN_MIGRATION_ROLLOUT_BASIS_POINTS_MAX = EXPERIMENT_BUCKET_RESOLUTION;
 export const DOMAIN_MIGRATION_ROLLOUT_SALT_MAX_LENGTH = 64;
 const DOMAIN_MIGRATION_ROLLOUT_SALT_PATTERN = /^[\x20-\x7e]+$/u;
@@ -79,7 +74,6 @@ const FEATURE_FLAG_KEYS = Object.freeze([
 	'identifier_first',
 	'instant_accounts',
 	'email_codes',
-	'date_of_birth_step',
 ] as const) satisfies ReadonlyArray<keyof InstanceFeatures>;
 
 const BRANDING_URL_KEYS = Object.freeze([
@@ -128,7 +122,6 @@ interface InstanceDiscoveryAppPublic {
 	readonly branding: Readonly<Partial<InstanceBranding>>;
 	readonly setup: Readonly<Partial<InstanceSetup>>;
 	readonly legal: Readonly<Partial<InstanceLegal>>;
-	readonly registration: Readonly<Partial<InstanceAppRegistration>>;
 }
 
 export interface InstanceDiscoveryDocument {
@@ -143,7 +136,6 @@ export interface InstanceDiscoveryDocument {
 	readonly limits: LimitConfigSnapshot | LimitConfigWireFormat | null;
 	readonly push: Readonly<Partial<InstancePush>>;
 	readonly appPublic: InstanceDiscoveryAppPublic | null;
-	readonly agePolicy: InstanceAgePolicy | null;
 	readonly domainMigration: InstanceDomainMigration | null;
 	readonly notice?: InstanceNotice | null;
 	readonly guildBadges?: ReadonlyArray<InstanceGuildBadge>;
@@ -309,7 +301,6 @@ export function parseInstanceDiscoveryDocument(payload: unknown): InstanceDiscov
 		limits: parseLimits(source.limits),
 		push: parsePush(source.push),
 		appPublic: parseAppPublic(source.app_public),
-		agePolicy: parseAgePolicy(source.age_policy),
 		domainMigration: parseInstanceDomainMigration(source.domain_migration),
 		notice: parseNotice(source.notice),
 		guildBadges: parseGuildBadges(source.guild_badges),
@@ -868,7 +859,6 @@ function parseAppPublic(value: unknown): InstanceDiscoveryAppPublic | null {
 		branding: parseBranding(source.branding),
 		setup: parseSetup(source.setup),
 		legal: parseLegal(source.legal),
-		registration: parseAppRegistration(source.registration),
 	};
 }
 
@@ -948,44 +938,6 @@ function parseLegal(value: unknown): Readonly<Partial<InstanceLegal>> {
 		}
 	}
 	return legal;
-}
-
-function parseAppRegistration(value: unknown): Readonly<Partial<InstanceAppRegistration>> {
-	const source = asRecord(value);
-	if (source == null) {
-		return {};
-	}
-	const collectDateOfBirth = readBoolean(source, 'collect_date_of_birth');
-	return collectDateOfBirth == null ? {} : {collect_date_of_birth: collectDateOfBirth};
-}
-
-function parseAgePolicy(value: unknown): InstanceAgePolicy | null {
-	const source = asRecord(value);
-	if (source == null) {
-		return null;
-	}
-	const entries = source.geos;
-	if (!Array.isArray(entries) || entries.length > AGE_POLICY_GEOS_MAX) {
-		return null;
-	}
-	const geos: Array<InstanceAgePolicyGeo> = [];
-	for (const entry of entries) {
-		const geo = asRecord(entry);
-		const countryCode = geo == null ? null : readNonEmptyString(geo, 'country_code');
-		if (geo == null || countryCode == null) {
-			return null;
-		}
-		const action = readLiteral(geo, 'action', AGE_POLICY_ACTIONS);
-		if (action == null) {
-			return null;
-		}
-		geos.push({
-			country_code: countryCode,
-			region_code: readNonEmptyString(geo, 'region_code'),
-			action,
-		});
-	}
-	return {geos};
 }
 
 export function parseInstanceDomainMigration(value: unknown): InstanceDomainMigration | null {

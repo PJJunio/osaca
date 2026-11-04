@@ -14,10 +14,7 @@ import {clearChannelThreadsTaintCacheForTesting} from '@app/api/experiment/Chann
 import {ensureSessionStarted} from '@app/api/message/tests/MessageTestUtils';
 import {ReportRepository} from '@app/api/report/ReportRepository';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
-import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {ChannelTypes} from '@osaca/constants/src/ChannelConstants';
-import type {ChannelResponse} from '@osaca/schema/src/domains/channel/ChannelSchemas';
-import type {StartForumThreadResponse} from '@osaca/schema/src/domains/channel/ForumRequestSchemas';
 import type {ThreadChannelResponse} from '@osaca/schema/src/domains/channel/ThreadRequestSchemas';
 import type {MessageResponse} from '@osaca/schema/src/domains/message/MessageResponseSchemas';
 import {afterAll, beforeAll, beforeEach, describe, expect, it} from 'vitest';
@@ -76,32 +73,6 @@ describe('thread nsfw scope', () => {
 			.expect(200)
 			.execute();
 	}
-
-	it('requires age verification for posts and post data under an nsfw forum', async () => {
-		const s = await setup();
-		const minor = await createTestAccount(harness, {dateOfBirth: '2012-01-01'});
-		const invite = await createChannelInvite(harness, s.owner.token, s.sfwChannelId);
-		await acceptInvite(harness, minor.token, invite.code);
-		await ensureSessionStarted(harness, minor.token);
-		const forum = await threadsRequest<ChannelResponse>(harness, s.owner.token)
-			.post(`/guilds/${s.guildId}/channels`)
-			.body({name: 'forum', type: ChannelTypes.GUILD_FORUM, nsfw: true})
-			.execute();
-		const created = await threadsRequest<StartForumThreadResponse>(harness, s.owner.token)
-			.post(`/channels/${forum.id}/threads`)
-			.body({name: 'post', message: {content: 'hello'}})
-			.expect(201)
-			.execute();
-		const restricted = (method: 'get' | 'post', route: string, body?: Record<string, unknown>) => {
-			const request = threadsRequest(harness, minor.token)[method](route);
-			return (body ? request.body(body) : request).expect(403, APIErrorCodes.NSFW_CONTENT_AGE_RESTRICTED).execute();
-		};
-		await restricted('get', `/channels/${forum.id}`);
-		await restricted('get', `/channels/${created.id}/messages`);
-		await restricted('post', `/channels/${forum.id}/post-data`, {thread_ids: [created.id]});
-		await restricted('get', `/channels/${forum.id}/threads/search`);
-		await threadsRequest(harness, s.member.token).get(`/channels/${created.id}/messages`).expect(200).execute();
-	});
 
 	it('records the effective nsfw of the parent on a thread message report', async () => {
 		const s = await setup();

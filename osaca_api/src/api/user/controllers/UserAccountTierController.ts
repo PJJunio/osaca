@@ -8,8 +8,6 @@ import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
 import {RateLimitConfigs} from '@app/api/RateLimitConfig';
 import type {HonoApp} from '@app/api/types/HonoEnv';
 import {claimAccount, confirmEmailVerification, sendEmailVerificationCode} from '@app/api/user/AccountClaim';
-import {tierContextFrom} from '@app/api/user/AccountTier';
-import {setDateOfBirth} from '@app/api/user/DateOfBirth';
 import {requireRequestClientIp} from '@app/api/utils/RequestClientIp';
 import {Validator} from '@app/api/Validator';
 import {EmailCodesUnavailableError} from '@osaca/errors/src/domains/auth/EmailCodesUnavailableError';
@@ -17,8 +15,6 @@ import {SudoSecondFactorRequiredError} from '@osaca/errors/src/domains/auth/Sudo
 import {
 	ClaimAccountRequest,
 	ClaimAccountResponse,
-	DateOfBirthUpdateRequest,
-	DateOfBirthUpdateResponse,
 	EmailVerificationCodeResponse,
 	EmailVerificationConfirmRequest,
 	SudoEmailCodeResponse,
@@ -26,42 +22,6 @@ import {
 import {UserPrivateResponse} from '@osaca/schema/src/domains/user/UserResponseSchemas';
 
 export function UserAccountTierController(app: HonoApp) {
-	app.put(
-		'/users/@me/date-of-birth',
-		RateLimitMiddleware(RateLimitConfigs.USER_DATE_OF_BIRTH),
-		LoginRequired,
-		DefaultUserOnly,
-		Validator('json', DateOfBirthUpdateRequest),
-		OpenAPI({
-			operationId: 'set_user_date_of_birth',
-			summary: 'Set date of birth',
-			responseSchema: DateOfBirthUpdateResponse,
-			statusCode: 200,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				'Sets the date of birth once, for accounts that do not have one yet. It cannot be changed afterwards. The minimum age depends on the country the request comes from. Below it, the account is closed and deleted after 72 hours. Returns the updated account and the community to open next, when an invite was used at sign-up.',
-		}),
-		async (ctx) => {
-			return ctx.json(
-				await setDateOfBirth(
-					ctx.get('apiContext'),
-					{
-						inviteService: ctx.get('inviteService'),
-						singleCommunityService: ctx.get('singleCommunityService'),
-						guildVisitService: ctx.get('guildVisitService'),
-					},
-					{
-						user: ctx.get('user'),
-						dateOfBirth: ctx.req.valid('json').date_of_birth,
-						clientIp: requireRequestClientIp(ctx),
-						tierContext: tierContextFrom(ctx),
-						requestCache: ctx.get('requestCache'),
-					},
-				),
-			);
-		},
-	);
 	app.post(
 		'/users/@me/claim',
 		RateLimitMiddleware(RateLimitConfigs.USER_CLAIM),

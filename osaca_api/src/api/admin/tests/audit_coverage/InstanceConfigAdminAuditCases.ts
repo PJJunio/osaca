@@ -155,7 +155,6 @@ export const InstanceConfigAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase
 				username: createUniqueUsername('coveragelisted'),
 				global_name: 'Coverage Listed',
 				password: 'coverage-listed-password',
-				date_of_birth: '2000-01-01',
 				consent: true,
 			});
 			return {
@@ -179,7 +178,6 @@ export const InstanceConfigAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase
 				username: createUniqueUsername('coveragepending'),
 				global_name: 'Coverage Pending',
 				password: 'coverage-pending-password',
-				date_of_birth: '2000-01-01',
 				consent: true,
 			});
 			return {

@@ -31,7 +31,6 @@ import type {GuildMemberService} from '@app/api/guild/services/GuildMemberServic
 import {emitActivity} from '@app/api/infrastructure/activity/ActivityEvents';
 import type {DiscriminatorService} from '@app/api/infrastructure/DiscriminatorService';
 import type {KVActivityTracker} from '@app/api/infrastructure/KVActivityTracker';
-import {instanceCollectsDateOfBirth} from '@app/api/instance/DateOfBirthCollectionCache';
 import {
 	type InstanceConfigRepository,
 	type InstanceSsoConfig,
@@ -62,7 +61,6 @@ import {isEnforcementDeletion, isProfileSubstringExempt, isSignInRefused} from '
 import {dispatchUserUpdate} from '@app/api/user/UserMappers';
 import {renameUser} from '@app/api/user/UserRename';
 import {USERNAME_MODE_DISCRIMINATOR} from '@app/api/user/UserTag';
-import {DOB_DEFERRED_TRAIT} from '@app/api/user/UserTraits';
 import {EXTERNAL_RESPONSE_LIMITS} from '@app/api/utils/ExternalResponseLimits';
 import * as FetchUtils from '@app/api/utils/FetchUtils';
 import {isJsonRecord, parseJsonRecord, parseJsonWithGuard} from '@app/api/utils/JsonBoundaryUtils';
@@ -1082,9 +1080,6 @@ export class SsoService {
 		if (options.pendingApproval) {
 			traits.add(REGISTRATION_PENDING_APPROVAL_TRAIT);
 		}
-		if (instanceCollectsDateOfBirth()) {
-			traits.add(DOB_DEFERRED_TRAIT);
-		}
 		const globalName = claims.name?.substring(0, 256) ?? username;
 		if (
 			profileSubstringBlocklistCache.containsBannedSubstring('username', username) ||
@@ -1140,7 +1135,7 @@ export class SsoService {
 				UserSettings.getDefaultUserSettings({
 					userId,
 					locale: 'en-US',
-					isAdult: !instanceCollectsDateOfBirth(),
+					isAdult: true,
 				}),
 			);
 			void this.kvActivityTracker.updateActivity(user.id, now).catch((error: unknown) => {
@@ -1161,7 +1156,6 @@ export class SsoService {
 					timezone: null,
 					invite_code: null,
 					flags: user.flags.toString(),
-					date_of_birth: user.dateOfBirth,
 				},
 				null,
 				user.id.toString(),

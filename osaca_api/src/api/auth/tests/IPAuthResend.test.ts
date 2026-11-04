@@ -63,7 +63,6 @@ describe('Auth IP Authorization Resend', () => {
 				username: createUniqueUsername('resendcool'),
 				global_name: 'Resend Cooldown User',
 				password,
-				date_of_birth: '2000-01-01',
 				consent: true,
 			});
 			const newIP = '10.230.240.250';
@@ -90,7 +89,6 @@ describe('Auth IP Authorization Resend', () => {
 				username: createUniqueUsername('resendused'),
 				global_name: 'Resend Used User',
 				password,
-				date_of_birth: '2000-01-01',
 				consent: true,
 			});
 			const ticket = `ticket-used-${Date.now()}`;

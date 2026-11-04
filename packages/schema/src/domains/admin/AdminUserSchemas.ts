@@ -17,7 +17,6 @@ import {
 	SkippedNetworkBlock,
 } from '@osaca/schema/src/domains/admin/EnforcementSchemas';
 import {AdminProfileBadgeResponse} from '@osaca/schema/src/domains/user/ProfileBadgeSchemas';
-import {CalendarDateType} from '@osaca/schema/src/primitives/DateValidators';
 import {NSFWLevelSchema} from '@osaca/schema/src/primitives/GuildValidators';
 import {createQueryIntegerType, QueryBooleanType} from '@osaca/schema/src/primitives/QueryValidators';
 import {
@@ -61,7 +60,6 @@ export const UserAdminResponseSchema = z.object({
 	email: z.string().nullable(),
 	email_verified: z.boolean(),
 	email_bounced: z.boolean(),
-	date_of_birth: z.string().nullable(),
 	locale: z.string().nullable(),
 	premium_type: Int32Type.nullable(),
 	premium_since: z.string().nullable(),
@@ -97,9 +95,6 @@ export const UserAdminResponseSchema = z.object({
 	has_password: z.boolean().describe('Whether the account has a password'),
 	claimed: z.boolean().describe('Whether the account can be signed in to from another device'),
 	account_tier: AccountTierSchema.describe('How far the account has got with setting up a way to sign in'),
-	date_of_birth_required: z
-		.boolean()
-		.describe('Whether the account still has to enter its date of birth, which clients ask for before anything else'),
 	authenticator_types: z.array(Int32Type).max(10),
 	last_active_at: z.string().nullable(),
 	last_active_ip: z.string().nullable(),
@@ -429,15 +424,6 @@ export const SetUserTraitsRequest = z.object({
 
 export type SetUserTraitsRequest = z.infer<typeof SetUserTraitsRequest>;
 
-export const ChangeDobRequest = z.object({
-	user_id: SnowflakeType.describe('ID of the user to change date of birth for'),
-	date_of_birth: createStringType(10, 10)
-		.refine((value) => CalendarDateType.safeParse(value).success, 'Invalid date format')
-		.describe('New date of birth in YYYY-MM-DD format'),
-});
-
-export type ChangeDobRequest = z.infer<typeof ChangeDobRequest>;
-
 export const BulkUpdateUserFlagsRequest = z.object({
 	user_ids: z.array(SnowflakeType).max(1000).describe('List of user IDs to update'),
 	add_flags: z.array(UserFlagValueType).max(64).default([]).describe('User flags to add to all specified users'),
@@ -705,10 +691,6 @@ export type AdminUserFlagsUpdateRequest = z.infer<typeof AdminUserFlagsUpdateReq
 export const AdminUserPremiumFlagsUpdateRequest = UpdatePremiumFlagsRequest.omit({user_id: true});
 
 export type AdminUserPremiumFlagsUpdateRequest = z.infer<typeof AdminUserPremiumFlagsUpdateRequest>;
-
-export const AdminUserDobUpdateRequest = ChangeDobRequest.omit({user_id: true});
-
-export type AdminUserDobUpdateRequest = z.infer<typeof AdminUserDobUpdateRequest>;
 
 export const AdminUserDmChannelListResponse = z.union([ListUserDmChannelsResponse, ListUserGroupDmChannelsResponse]);
 

@@ -47,7 +47,7 @@ import type {Guild} from '@app/api/models/Guild';
 import type {Invite} from '@app/api/models/Invite';
 import type {User} from '@app/api/models/User';
 import {assertAccountNotLimited} from '@app/api/user/AccountLimit';
-import {assertCanVisit, assertTierAllows, getAccountTier, type TierContext} from '@app/api/user/AccountTier';
+import {assertTierAllows, getAccountTier, type TierContext} from '@app/api/user/AccountTier';
 import {TierGatedActions} from '@osaca/constants/src/AccountTierConstants';
 import {ChannelTypes, InviteTypes, Permissions} from '@osaca/constants/src/ChannelConstants';
 import {DiscoveryApplicationStatus} from '@osaca/constants/src/DiscoveryConstants';
@@ -172,7 +172,6 @@ export class GuildVisitService {
 		if (source !== GuildVisitSources.OPERATOR && !guild.features.has(GuildFeatures.VISITS_ENABLED)) {
 			throw new GuildVisitsDisabledError();
 		}
-		assertCanVisit(user, guild);
 		assertAccountNotLimited(user);
 		await assertNotBannedFromGuildVisit({guildId, user, ip});
 		const repository = guildVisitRepository();

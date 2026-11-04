@@ -2,9 +2,6 @@
 
 export const ERROR_I18N_MESSAGES = {
 	'account.already_claimed': 'This account is already set up to sign in from other devices.',
-	'account.below_minimum_age': "You aren't old enough to have an account here.",
-	'account.date_of_birth_already_set': 'Your date of birth is already set.',
-	'account.date_of_birth_required': 'Enter your date of birth to continue.',
 	'account.password_required_to_claim':
 		"{reason, select, email_delivery_off {Set a password to keep this account. This instance can't send email codes.} local_credential_basis {Set a password to keep this account. This instance asks every account for a password or passkey.} other {Set a password to keep this account.}}",
 	'account.unclaimed_cannot_accept_friend_requests': 'Claim your account to accept friend requests.',
@@ -330,7 +327,6 @@ export const ERROR_I18N_MESSAGES = {
 	'channels_and_guilds.guild_id_must_match_referenced_message':
 		'Community ID must match the community containing the channel the referenced message was fetched from.',
 	'channels_and_guilds.guild_template_invalid': 'The community template data is invalid or malformed.',
-	'channels_and_guilds.guild_visit_age_restricted': 'This community is for adults only.',
 	'channels_and_guilds.guild_visit_not_found': "You're not previewing this community anymore.",
 	'channels_and_guilds.guild_visits_disabled': 'This community asks people to join before previewing it.',
 	'channels_and_guilds.invalid_channel_id': 'Invalid channel ID: {channelId}.',
@@ -700,10 +696,7 @@ export const ERROR_I18N_MESSAGES = {
 	'threads.thread_archived': 'This thread is archived.',
 	'threads.thread_locked': 'This thread is locked.',
 	'tickets.ticket_already_completed': 'This ticket has already been completed.',
-	'tos_and_age.date_of_birth_format_invalid': 'Enter your real date of birth.',
 	'tos_and_age.must_agree_to_tos_and_privacy': 'You need to accept the terms of service to create an account.',
-	'tos_and_age.must_be_minimum_age':
-		'You must be at least {minAge, plural, one {# year} other {# years}} old to create an account.',
 	'unknown_entities.unknown_badge': "Badge wasn't found.",
 	'unknown_entities.unknown_channel': "Channel wasn't found.",
 	'unknown_entities.unknown_forum_tag': "Tag wasn't found.",

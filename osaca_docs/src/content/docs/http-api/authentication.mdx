@@ -41,7 +41,7 @@ A new session token and the account it belongs to. Every route that signs someon
 | device_proof? | string | A value to send to [identify an account](#identify-an-account) from this device later |
 | entry?<sup>1</sup> | ?[guild entry](/http-api/users/current-user/#guild-entry-object) object | The community to open next, from the invite used at sign-up |
 
-<sup>1</sup> Returned only by registration, and null when no invite applied or the account still has to enter a date of birth
+<sup>1</sup> Returned only by registration, and null when no invite applied
 
 When a route can return this object or a different one, check for `token`.
 
@@ -489,12 +489,11 @@ If you lose the response, try to sign in before you retry, because registration 
 | username?<sup>2</sup> | string | The username (1-32 characters, letters, digits and underscores) |
 | global_name? | string | The display name (1-32 characters) |
 | password?<sup>3</sup> | string | The password (8-256 characters) |
-| date_of_birth?<sup>4</sup> | string | The date of birth as `YYYY-MM-DD` |
-| consent?<sup>5</sup> | boolean | Whether the person accepted the terms of service (default false) |
+| consent?<sup>4</sup> | boolean | Whether the person accepted the terms of service (default false) |
 | invite_code? | ?string | An invite to accept after registration (0-256 characters) |
-| registration_url_code?<sup>6</sup> | ?string | A registration URL code from an admin (1-128 characters) |
+| registration_url_code?<sup>5</sup> | ?string | A registration URL code from an admin (1-128 characters) |
 | theme? | string | The starting theme, one of `dark`, `dark_legacy`, `coal`, `light` or `system` |
-| setup_token?<sup>7</sup> | ?string | The setup token of a new self-hosted instance (1-256 characters) |
+| setup_token?<sup>6</sup> | ?string | The setup token of a new self-hosted instance (1-256 characters) |
 
 <sup>1</sup> An address already used by any account returns the field code `EMAIL_ALREADY_IN_USE`. On a `username` instance, older apps send the username here as `name@` followed by the instance host. Any other address returns the field code `INSTANCE_ADDRESS_REQUIRED`, and the address is never stored
 
@@ -502,13 +501,11 @@ If you lose the response, try to sign in before you retry, because registration 
 
 <sup>3</sup> A known breached password returns the field code `PASSWORD_IS_TOO_COMMON`
 
-<sup>4</sup> Used when the instance [collects date of birth](/http-api/instance/#public-registration-fields-object). An age under the minimum for the region (13 by default) returns the field code `MUST_BE_MINIMUM_AGE`. Without it, the account joins its invite's community after it [sets one](/http-api/users/current-user/#set-date-of-birth)
+<sup>4</sup> Must be true on an instance with terms or a privacy policy, or you get the field code `MUST_AGREE_TO_TOS_AND_PRIVACY_POLICY`
 
-<sup>5</sup> Must be true on an instance with terms or a privacy policy, or you get the field code `MUST_AGREE_TO_TOS_AND_PRIVACY_POLICY`
+<sup>5</sup> Lets the person sign up while registration is closed. An unknown code returns 400 `REGISTRATION_URL_INVALID`
 
-<sup>6</sup> Lets the person sign up while registration is closed. An unknown code returns 400 `REGISTRATION_URL_INVALID`
-
-<sup>7</sup> Needed until the first admin account exists. A missing value returns the field code `SETUP_TOKEN_REQUIRED`, and the account that uses it gets the full [Admin ACL](/admin-api/#acl-registry)
+<sup>6</sup> Needed until the first admin account exists. A missing value returns the field code `SETUP_TOKEN_REQUIRED`, and the account that uses it gets the full [Admin ACL](/admin-api/#acl-registry)
 
 ### Response
 

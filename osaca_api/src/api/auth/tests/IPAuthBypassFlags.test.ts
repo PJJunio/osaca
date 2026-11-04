@@ -29,7 +29,6 @@ describe('Auth IP Authorization Bypass Flags', () => {
 			username: createUniqueUsername('regularflags'),
 			global_name: 'Regular Flags User',
 			password,
-			date_of_birth: '2000-01-01',
 			consent: true,
 		});
 		await createBuilderWithoutAuth(harness)
@@ -57,7 +56,6 @@ describe('Auth IP Authorization Bypass Flags', () => {
 			username: createUniqueUsername('bypassremoved'),
 			global_name: 'Bypass Removed User',
 			password,
-			date_of_birth: '2000-01-01',
 			consent: true,
 		});
 		await createBuilderWithoutAuth(harness)
@@ -97,7 +95,6 @@ describe('Auth IP Authorization Bypass Flags', () => {
 			username: createUniqueUsername('bypassadded'),
 			global_name: 'Bypass Added User',
 			password,
-			date_of_birth: '2000-01-01',
 			consent: true,
 		});
 		const newIP = '10.80.90.100';

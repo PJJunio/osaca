@@ -211,10 +211,6 @@ export const UserPrivateResponse = UserPartialResponse.extend({
 		.optional()
 		.describe('What the account still has to do before it can use everything, null once it is verified'),
 	has_password: z.boolean().optional().describe('Whether the account has a password'),
-	date_of_birth_required: z
-		.boolean()
-		.optional()
-		.describe('Whether the account still has to enter its date of birth, which clients ask for before anything else'),
 	profile_restricted: z
 		.boolean()
 		.optional()
@@ -582,7 +578,6 @@ export interface UserPrivate extends UserPartial, UserProfile {
 	readonly account_tier?: AccountTier;
 	readonly verification_need?: AccountVerificationNeed | null;
 	readonly has_password?: boolean;
-	readonly date_of_birth_required?: boolean;
 	readonly profile_restricted?: boolean;
 }
 

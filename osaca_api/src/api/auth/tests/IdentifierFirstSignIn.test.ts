@@ -218,7 +218,6 @@ describe('Identifier-first sign-in', () => {
 			verified: boolean;
 			claimed: boolean;
 			has_password: boolean;
-			date_of_birth_required: boolean;
 			global_name: string | null;
 		}>(harness, created.token!)
 			.get('/users/@me')
@@ -228,7 +227,6 @@ describe('Identifier-first sign-in', () => {
 			verified: true,
 			claimed: true,
 			has_password: false,
-			date_of_birth_required: true,
 			global_name: null,
 		});
 		const user = await getUserRepository().findUniqueAssert(createUserID(BigInt(created.user_id!)));
@@ -277,7 +275,7 @@ describe('Identifier-first sign-in', () => {
 		const email = createUniqueEmail('claimed-address');
 		const squatter = await createBuilderWithoutAuth<{token: string; user_id: string}>(harness)
 			.post('/auth/register')
-			.body({username: 'squatter', consent: true, date_of_birth: '2000-01-01'})
+			.body({username: 'squatter', consent: true})
 			.execute();
 		await createBuilder(harness, squatter.token).post('/users/@me/claim').body({email}).execute();
 		const {ticket, account} = await identify(email);
@@ -357,7 +355,7 @@ describe('Identifier-first sign-in', () => {
 		const email = createUniqueEmail('squatted');
 		const squatter = await createBuilderWithoutAuth<{token: string; user_id: string}>(harness)
 			.post('/auth/register')
-			.body({username: 'squatter', consent: true, date_of_birth: '2000-01-01'})
+			.body({username: 'squatter', consent: true})
 			.execute();
 		await createBuilder(harness, squatter.token).post('/users/@me/claim').body({email}).execute();
 		const {ticket, sign_in_method} = await identify(email);
@@ -388,7 +386,7 @@ describe('Identifier-first sign-in', () => {
 		const squatterPassword = 'a-strong-squatter-password-3';
 		const squatter = await createBuilderWithoutAuth<{token: string; user_id: string}>(harness)
 			.post('/auth/register')
-			.body({username: 'squatter', consent: true, date_of_birth: '2000-01-01'})
+			.body({username: 'squatter', consent: true})
 			.execute();
 		await createBuilder(harness, squatter.token)
 			.post('/users/@me/claim')

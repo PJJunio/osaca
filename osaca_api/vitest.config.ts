@@ -29,8 +29,6 @@ const MODULE_REGISTRY_TEST_FILES = [
 
 const INSTANCE_POLICY_TEST_FILES = ['src/api/admin/tests/InstanceConfigPendingRegistrationApproval.test.ts'];
 
-const NATIVE_TIMEZONE_TEST_FILES = ['src/api/utils/AgeUtils.test.ts'];
-
 const sharedExclude = [...configDefaults.exclude, 'pkgs/**', '../osaca_desktop/**', '**/target/**'];
 
 const sharedTestConfig = {
@@ -65,7 +63,6 @@ export default defineConfig({
 						...sharedExclude,
 						...MODULE_REGISTRY_TEST_FILES,
 						...INSTANCE_POLICY_TEST_FILES,
-						...NATIVE_TIMEZONE_TEST_FILES,
 					],
 					isolate: false,
 				},
@@ -87,17 +84,6 @@ export default defineConfig({
 					name: 'api-instance-policy',
 					include: INSTANCE_POLICY_TEST_FILES,
 					exclude: sharedExclude,
-					isolate: true,
-				},
-			},
-			{
-				resolve: {tsconfigPaths: true},
-				test: {
-					...sharedTestConfig,
-					name: 'api-native-timezones',
-					include: NATIVE_TIMEZONE_TEST_FILES,
-					exclude: sharedExclude,
-					pool: 'forks',
 					isolate: true,
 				},
 			},

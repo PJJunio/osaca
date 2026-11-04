@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use super::{
-    CLEANUP_MODE_CHOICES, DATE_OF_BIRTH_CHOICES, GUILD_JOIN_GATE_CHOICES, IDENTIFIER_FIRST_CHOICES,
+    CLEANUP_MODE_CHOICES, GUILD_JOIN_GATE_CHOICES, IDENTIFIER_FIRST_CHOICES,
     INTERACTION_TIER_CHOICES, LAST_SESSION_CLEANUP_CHOICES, VERIFICATION_BASIS_CHOICES,
     choice_select,
 };
@@ -10,7 +10,7 @@ use crate::{
     api::types::{
         AccountIdentityConfigResponse, AccountIdentityLockReason, AccountIdentityMode,
         AccountIdentitySettings, AccountsConfigResponse, AuthConfigResponse,
-        CLEANUP_INACTIVE_DAYS_RANGE, CaptchaProvider, CleanupMode, DateOfBirthPolicy,
+        CLEANUP_INACTIVE_DAYS_RANGE, CaptchaProvider,
         EmailDeliveryState, GuildJoinGate, INACTIVITY_WARNING_LEAD_DAYS_RANGE,
         INSTANT_ACCOUNTS_ESCALATION_RANGE, InstantAccountAvailability, InteractionTierMode,
         SCHEDULED_DELETION_GRACE_HOURS, TagStyle, VerificationBasis,
@@ -223,7 +223,6 @@ pub(super) fn accounts_section(
     let join_gate_inactive = guild_join_gate_inactive_reason(accounts, guild_visits_enabled);
     let interaction_tier_label = format!("Accounts {}", wording.missing);
     let unclaimed = &accounts.unclaimed_account_cleanup;
-    let dob_missing = &accounts.dob_missing_cleanup;
     let inactivity = &accounts.inactivity_deletion;
     section_card_with_description(
         "Sign-in & new accounts",
@@ -282,16 +281,6 @@ pub(super) fn accounts_section(
                         helper: Some("Every this many instant accounts in the current hour doubles the check's cost for the next one."),
                         placeholder: None,
                     }.render())
-                    (choice_select(
-                        "accounts_date_of_birth",
-                        "Date of birth",
-                        DATE_OF_BIRTH_CHOICES,
-                        &accounts.date_of_birth,
-                    ))
-                    p class="text-xs text-neutral-500" {
-                        "With \u{201c}Don't ask\u{201d}, new accounts do not store a date of birth and \
-                         are treated as adults."
-                    }
                     @if !identity.mode.is_username() {
                         (choice_select(
                             "accounts_verification_basis",
@@ -360,36 +349,6 @@ pub(super) fn accounts_section(
                                  last session.",
                                 way_back_in_wording(identity.mode, delivery_state),
                                 unclaimed.inactive_days,
-                            ))
-                        }
-                    }
-                    div class="space-y-4 border-t border-neutral-200 pt-6" {
-                        div class="flex flex-wrap items-center gap-2" {
-                            h3 class="text-sm font-semibold text-neutral-900" { "Accounts that never gave a date of birth" }
-                            @if dob_missing.mode != CleanupMode::Off && accounts.date_of_birth == DateOfBirthPolicy::Off {
-                                (badge("Inactive: the date of birth is not asked for", BadgeVariant::Warning))
-                            }
-                        }
-                        div class="grid grid-cols-1 gap-4 sm:grid-cols-2" {
-                            (choice_select(
-                                "accounts_dob_missing_cleanup_mode",
-                                "Delete",
-                                CLEANUP_MODE_CHOICES,
-                                &dob_missing.mode,
-                            ))
-                            (days_field(
-                                "accounts_dob_missing_cleanup_inactive_days",
-                                "Days without use",
-                                dob_missing.inactive_days.get(),
-                                &CLEANUP_INACTIVE_DAYS_RANGE,
-                            ))
-                        }
-                        p class="text-xs text-neutral-500" {
-                            (format!(
-                                "Covers accounts created without a date of birth that never entered \
-                                 one, after {} days without use. Applies only while the date of birth \
-                                 setting is not \u{201c}Don't ask\u{201d}.",
-                                dob_missing.inactive_days,
                             ))
                         }
                     }

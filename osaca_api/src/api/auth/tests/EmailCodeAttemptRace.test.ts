@@ -117,7 +117,7 @@ describe('Email code attempt cap under concurrency', () => {
 	it('checks at most five claim confirmation guesses even when they arrive together', async () => {
 		const account = await createBuilderWithoutAuth<{token: string}>(harness)
 			.post('/auth/register')
-			.body({username: 'racer', consent: true, date_of_birth: '1995-05-05'})
+			.body({username: 'racer', consent: true})
 			.execute();
 		const email = createUniqueEmail('claim-race');
 		await createBuilder(harness, account.token).post('/users/@me/claim').body({email}).execute();

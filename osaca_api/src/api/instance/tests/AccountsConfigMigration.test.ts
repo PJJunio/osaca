@@ -9,7 +9,6 @@ import {AdminAuditLogs} from '@app/api/Tables';
 import {InMemoryCassandraQueryExecutor} from '@app/api/test/InMemoryCassandraQueryExecutor';
 import {
 	CleanupModes,
-	DateOfBirthPolicies,
 	EmailDeliveryModes,
 	EmailDeliveryStates,
 	GuildJoinGates,
@@ -22,7 +21,6 @@ import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 
 const AUTH_CONFIG_KEY = 'auth_config';
 const ACCOUNTS_CONFIG_KEY = 'accounts_config';
-const APP_PUBLIC_CONFIG_KEY = 'app_public_config';
 const INTEGRATIONS_CONFIG_KEY = 'instance_integrations_config';
 
 const LEGACY_HOSTED_ACCOUNTS = {
@@ -144,51 +142,6 @@ describe('account config migrations', () => {
 		});
 	});
 
-	describe('date_of_birth', () => {
-		const cases: Array<[boolean | undefined, string | undefined, boolean, string]> = [
-			[false, 'all', true, DateOfBirthPolicies.OFF],
-			[true, 'off', true, DateOfBirthPolicies.ASK],
-			[true, 'new_accounts', true, DateOfBirthPolicies.REQUIRE_NEW_ACCOUNTS],
-			[true, 'all', true, DateOfBirthPolicies.REQUIRE_ALL],
-			[undefined, 'new_accounts', true, DateOfBirthPolicies.OFF],
-			[undefined, 'new_accounts', false, DateOfBirthPolicies.REQUIRE_NEW_ACCOUNTS],
-			[undefined, undefined, false, DateOfBirthPolicies.REQUIRE_NEW_ACCOUNTS],
-		];
-		for (const [collect, enforcement, selfHosted, expected] of cases) {
-			it(`reads collect=${collect} with enforcement=${enforcement} ${selfHosted ? 'self-hosted' : 'hosted'} as ${expected}`, async () => {
-				config.instance.selfHosted = selfHosted;
-				const repository = createRepository();
-				if (collect !== undefined) {
-					await repository.setConfig(
-						APP_PUBLIC_CONFIG_KEY,
-						JSON.stringify({registration: {collect_date_of_birth: collect}}),
-					);
-				}
-				await repository.setConfig(
-					ACCOUNTS_CONFIG_KEY,
-					JSON.stringify(enforcement === undefined ? {} : {date_of_birth_enforcement: enforcement}),
-				);
-				expect((await repository.getAccountsConfig()).date_of_birth).toBe(expected);
-				expect((await repository.getAppPublicConfig()).registration.collect_date_of_birth).toBe(
-					expected !== DateOfBirthPolicies.OFF,
-				);
-			});
-		}
-
-		it('translates the deprecated collection switch and enforcement on write', async () => {
-			const repository = createRepository();
-			await repository.updateAccountsConfig({date_of_birth: DateOfBirthPolicies.REQUIRE_NEW_ACCOUNTS});
-			await repository.updateAccountsConfig({date_of_birth_enforcement: 'all'});
-			expect((await repository.getAccountsConfig()).date_of_birth).toBe(DateOfBirthPolicies.REQUIRE_ALL);
-			await repository.setDateOfBirthCollection(false);
-			expect((await repository.getAccountsConfig()).date_of_birth).toBe(DateOfBirthPolicies.OFF);
-			await repository.updateAccountsConfig({date_of_birth_enforcement: 'all'});
-			expect((await repository.getAccountsConfig()).date_of_birth).toBe(DateOfBirthPolicies.OFF);
-			await repository.setDateOfBirthCollection(true);
-			expect((await repository.getAccountsConfig()).date_of_birth).toBe(DateOfBirthPolicies.REQUIRE_NEW_ACCOUNTS);
-		});
-	});
-
 	describe('cleanup', () => {
 		it('turns both cleanup policies on with the defaults from a stored true', async () => {
 			const repository = createRepository();
@@ -199,7 +152,6 @@ describe('account config migrations', () => {
 				inactive_days: 90,
 				on_last_session_end: LastSessionCleanupModes.AFTER_GRACE,
 			});
-			expect(accounts.dob_missing_cleanup).toEqual({mode: CleanupModes.AFTER_INACTIVITY, inactive_days: 7});
 		});
 
 		it('turns both cleanup policies off from a stored false', async () => {
@@ -209,7 +161,6 @@ describe('account config migrations', () => {
 			const accounts = await repository.getAccountsConfig();
 			expect(accounts.unclaimed_account_cleanup.mode).toBe(CleanupModes.OFF);
 			expect(accounts.unclaimed_account_cleanup.on_last_session_end).toBe(LastSessionCleanupModes.OFF);
-			expect(accounts.dob_missing_cleanup.mode).toBe(CleanupModes.OFF);
 		});
 
 		it('seeds a missing inactivity policy from the deprecated threshold, never below two years', async () => {
@@ -245,7 +196,6 @@ describe('account config migrations', () => {
 		const repository = createRepository();
 		await repository.setConfig(ACCOUNTS_CONFIG_KEY, JSON.stringify(LEGACY_HOSTED_ACCOUNTS));
 		expect(await repository.getAccountsConfig()).toEqual({
-			date_of_birth: DateOfBirthPolicies.REQUIRE_NEW_ACCOUNTS,
 			interaction_tier: 'legacy',
 			verification_basis: 'auto',
 			guild_join_gate: GuildJoinGates.ALWAYS,
@@ -254,7 +204,6 @@ describe('account config migrations', () => {
 				inactive_days: 90,
 				on_last_session_end: LastSessionCleanupModes.OFF,
 			},
-			dob_missing_cleanup: {mode: CleanupModes.OFF, inactive_days: 7},
 			inactivity_deletion: {
 				mode: CleanupModes.AFTER_INACTIVITY,
 				inactive_days: Math.max(730, config.inactivityDeletionThresholdDays ?? 0),

@@ -676,7 +676,6 @@ class RuntimeConfig {
 				admin_url: current.appPublic.setup.admin_url,
 			},
 			legal: config.app_public.legal,
-			registration: config.app_public.registration,
 		};
 		const snapshot: RuntimeConfigSnapshot = {
 			...current,

@@ -1,12 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import type {
-	AgePolicyConfig,
-	APIConfig,
-	BlueskyOAuthConfig,
-	OperatorPassConfig,
-	TrustedCallerConfig,
-} from '@app/api/config/APIConfig';
+import type {APIConfig, BlueskyOAuthConfig, OperatorPassConfig, TrustedCallerConfig} from '@app/api/config/APIConfig';
 import {
 	parseOperatorPassMaxQuantity,
 	parseOperatorPassReleaseLists,
@@ -24,7 +18,6 @@ import type {MasterConfig} from '@osaca/config/src/MasterConfig';
 import {EmailDeliveryModes} from '@osaca/constants/src/AccountConfigConstants';
 import {smtpTlsModeFromSecure} from '@osaca/constants/src/SmtpConstants';
 import {parseIpAddress} from '@osaca/ip_utils/src/IpAddress';
-import type {GeoEntry} from '@osaca/schema/src/domains/geolocation/GeolocationSchemas';
 import {normalizeString} from '@osaca/schema/src/primitives/SchemaPrimitives';
 
 function extractHostname(url: string): string {
@@ -168,26 +161,6 @@ function buildTrustedCallers(master: MasterConfig): Array<TrustedCallerConfig> {
 		});
 	}
 	return trustedCallers;
-}
-
-const HOSTED_AGE_RESTRICTED_REGIONS = ['GB', 'BR'];
-
-function toGeoEntry(region: string): GeoEntry {
-	const separator = region.indexOf('-');
-	if (separator === -1) {
-		return {countryCode: region, regionCode: null};
-	}
-	return {countryCode: region.slice(0, separator), regionCode: region.slice(separator + 1)};
-}
-
-function buildAgePolicyConfig(master: MasterConfig): AgePolicyConfig {
-	const {enabled, restricted_regions} = master.instance.age_policy;
-	const regionsSet = restricted_regions !== undefined;
-	if (!(enabled ?? (regionsSet || !master.instance.self_hosted))) {
-		return {restricted: []};
-	}
-	const restricted = regionsSet ? restricted_regions : HOSTED_AGE_RESTRICTED_REGIONS;
-	return {restricted: restricted.map(toGeoEntry)};
 }
 
 const SETUP_TOKEN_MIN_LENGTH = 32;
@@ -609,7 +582,6 @@ export function buildAPIConfigFromMaster(master: MasterConfig): APIConfig {
 			},
 			accountIdentity: master.instance.account_identity,
 			tagStyle: master.instance.tag_style,
-			agePolicy: buildAgePolicyConfig(master),
 		},
 		discovery: {
 			enabled: master.discovery.enabled,

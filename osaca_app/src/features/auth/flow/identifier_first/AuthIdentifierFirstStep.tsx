@@ -3,7 +3,6 @@
 import type {RuntimeConfigSnapshot} from '@app/features/app/state/InstanceSnapshotStore';
 import type {AccountEntryResult} from '@app/features/auth/commands/AccountEntryCommands';
 import * as AccountEntryCommands from '@app/features/auth/commands/AccountEntryCommands';
-import {AgeBlockedNotice} from '@app/features/auth/components/AgeBlockedNotice';
 import loginStyles from '@app/features/auth/components/pages/LoginPage.module.css';
 import sharedStyles from '@app/features/auth/flow/AuthPageStyles.module.css';
 import {NO_INSTANT_ACCOUNT_ERRORS} from '@app/features/auth/flow/InstantAccountForm';
@@ -31,19 +30,17 @@ import {
 	parseIsoTimestamp,
 } from '@app/features/auth/flow/identifier_first/IdentifierFirstState';
 import {usePasskeyAutofill} from '@app/features/auth/flow/identifier_first/usePasskeyAutofill';
-import {QuietButton} from '@app/features/auth/flow/QuietButton';
 import {getRegistrationLegalConsentConfig} from '@app/features/auth/flow/RegistrationLegalNotice';
 import {getAuthErrorMessage} from '@app/features/auth/hooks/useAuthForm';
 import {useResendCooldown} from '@app/features/auth/hooks/useResendCooldown';
-import {isAgeBlocked, takeAgeBlockedAccountRemoved} from '@app/features/auth/state/AccountEntryStorage';
 import type {IpAuthorizationChallenge, LoginSuccessPayload, MfaChallenge} from '@app/features/auth/state/AuthFlow';
 import {isolateBidi} from '@app/features/i18n/utils/BidiIsolate';
 import {useLocation} from '@app/features/platform/components/router/RouterReact';
 import {instanceTargetFromSnapshot} from '@app/features/platform/transport/InstanceHTTP';
-import {MS_PER_SECOND} from '@osaca/date_utils/src/DateConstants';
-import type {GuildEntryResult} from '@osaca/schema/src/domains/user/AccountSchemas';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
+import {MS_PER_SECOND} from '@osaca/date_utils/src/DateConstants';
+import type {GuildEntryResult} from '@osaca/schema/src/domains/user/AccountSchemas';
 import {type ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState} from 'react';
 
 const EMAIL_CODE_RESEND_FALLBACK_MS = 30 * MS_PER_SECOND;
@@ -141,8 +138,6 @@ export function AuthIdentifierFirstStep({
 	const [profileDraft] = useState(() => new IdentifierProfileDraft());
 	const [submitting, setSubmitting] = useState(false);
 	const [pendingApproval, setPendingApproval] = useState(false);
-	const [ageBlocked, setAgeBlocked] = useState(() => isAgeBlocked());
-	const [ageBlockedAccountRemoved] = useState(() => takeAgeBlockedAccountRemoved());
 	const resendAvailableAt = step.kind === 'code' ? step.resendAvailableAt : null;
 	const resendSeconds = useResendCooldown(resendAvailableAt);
 	const fieldRef = useRef<HTMLInputElement | null>(null);
@@ -231,24 +226,6 @@ export function AuthIdentifierFirstStep({
 		</>
 	);
 
-	if (ageBlocked) {
-		return (
-			<>
-				<AgeBlockedNotice accountDeleted={ageBlockedAccountRemoved} data-flx="auth.flow.identifier-first.age-blocked" />
-				<div className={styles.quietActions} data-flx="auth.flow.identifier-first.age-blocked-actions">
-					<QuietButton
-						onClick={() => {
-							setAgeBlocked(false);
-							goTo({kind: 'email'});
-						}}
-						data-flx="auth.flow.identifier-first.age-blocked.sign-in-existing"
-					>
-						{i18n._(SIGN_IN_TO_EXISTING_ACCOUNT_DESCRIPTOR)}
-					</QuietButton>
-				</div>
-			</>
-		);
-	}
 
 	if (pendingApproval) {
 		return (
@@ -384,7 +361,6 @@ export function AuthIdentifierFirstStep({
 			run={run}
 			goTo={goTo}
 			sendCode={sendCode}
-			onAgeBlocked={() => setAgeBlocked(true)}
 			data-flx="auth.flow.identifier-first.email-step-component"
 		/>
 	);

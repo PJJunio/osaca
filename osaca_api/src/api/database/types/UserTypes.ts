@@ -10,7 +10,6 @@ import type {
 	MessageID,
 	UserID,
 } from '@app/api/BrandedTypes';
-import type {LocalDate} from '@app/api/database/LocalDate';
 import type {LocaleCode} from '@osaca/constants/src/Locales';
 import type {GuildFolderIcon, MentionReplyPreference} from '@osaca/constants/src/UserConstants';
 import type {types} from 'cassandra-driver';
@@ -45,7 +44,6 @@ export interface UserRow {
 	accent_color: number | null;
 	timezone: string | null;
 	timezone_privacy_flags: number | null;
-	date_of_birth: LocalDate | null;
 	locale: string | null;
 	flags: bigint | null;
 	premium_flags?: number | null;
@@ -113,7 +111,6 @@ export const USER_COLUMNS = [
 	'accent_color',
 	'timezone',
 	'timezone_privacy_flags',
-	'date_of_birth',
 	'locale',
 	'flags',
 	'premium_flags',
@@ -180,7 +177,6 @@ export const EMPTY_USER_ROW: UserRow = {
 	accent_color: null,
 	timezone: null,
 	timezone_privacy_flags: null,
-	date_of_birth: null,
 	locale: null,
 	flags: null,
 	premium_flags: null,

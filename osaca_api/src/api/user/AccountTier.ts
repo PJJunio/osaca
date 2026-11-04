@@ -9,12 +9,10 @@ import {
 	getInteractionTierMode,
 	guildJoinGateApplies,
 } from '@app/api/instance/AccountsConfigCache';
-import {instanceCollectsDateOfBirth} from '@app/api/instance/DateOfBirthCollectionCache';
 import type {User} from '@app/api/models/User';
 import type {HonoEnv} from '@app/api/types/HonoEnv';
 import type {UserRepository} from '@app/api/user/repositories/UserRepository';
 import {UserTraits} from '@app/api/user/UserTraits';
-import {canUserAccessNsfwContent} from '@app/api/utils/AgeUtils';
 import {EmailDeliveryStates, InteractionTierModes} from '@osaca/constants/src/AccountConfigConstants';
 import {
 	type AccountTier,
@@ -42,9 +40,7 @@ import {
 } from '@osaca/constants/src/AccountTierRules';
 import {Headers} from '@osaca/constants/src/Headers';
 import {UserAuthenticatorTypes} from '@osaca/constants/src/UserConstants';
-import {AccountBelowMinimumAgeError} from '@osaca/errors/src/domains/auth/AccountBelowMinimumAgeError';
 import {AccountVerificationRequiredError} from '@osaca/errors/src/domains/auth/AccountVerificationRequiredError';
-import {DateOfBirthRequiredError} from '@osaca/errors/src/domains/auth/DateOfBirthRequiredError';
 import {
 	DirectMessageEmailVerificationRequiredError,
 	EmailVerificationRequiredError,
@@ -64,7 +60,6 @@ import {UnclaimedAccountCannotSendDirectMessagesError} from '@osaca/errors/src/d
 import {UnclaimedAccountCannotSendMessagesError} from '@osaca/errors/src/domains/channel/UnclaimedAccountCannotSendMessagesError';
 import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
 import {GuildVerificationRequiredError} from '@osaca/errors/src/domains/guild/GuildVerificationRequiredError';
-import {GuildVisitAgeRestrictedError} from '@osaca/errors/src/domains/guild/GuildVisitAgeRestrictedError';
 import {UnclaimedAccountCannotCreateGuildsError} from '@osaca/errors/src/domains/guild/UnclaimedAccountCannotCreateGuildsError';
 import {UnclaimedAccountCannotSubmitReportsError} from '@osaca/errors/src/domains/moderation/UnclaimedAccountCannotSubmitReportsError';
 import {UnclaimedAccountCannotCreateApplicationsError} from '@osaca/errors/src/domains/oauth/UnclaimedAccountCannotCreateApplicationsError';
@@ -237,18 +232,6 @@ export type PurchaseEligibility = {allowed: true} | {allowed: false; blocked: Pu
 export function resolvePurchaseEligibility(user: TierUser): PurchaseEligibility {
 	const blocked = resolvePurchaseBlockedReason({tier: getAccountTier(user)});
 	return blocked === null ? {allowed: true} : {allowed: false, blocked};
-}
-
-type VisitUser = Pick<User, 'isBot' | 'isSystem' | 'dateOfBirth'> & {traits: ReadonlySet<string>};
-
-export function assertCanVisit(user: VisitUser, guild: {nsfw: boolean}): {adult_content_allowed: boolean} {
-	if (user.traits.has(UserTraits.BELOW_MINIMUM_AGE)) throw new AccountBelowMinimumAgeError();
-	if (!user.isBot && !user.isSystem && instanceCollectsDateOfBirth() && user.dateOfBirth === null) {
-		throw new DateOfBirthRequiredError();
-	}
-	const adultContentAllowed = canUserAccessNsfwContent(user);
-	if (guild.nsfw && !adultContentAllowed) throw new GuildVisitAgeRestrictedError();
-	return {adult_content_allowed: adultContentAllowed};
 }
 
 const MAX_CAPABILITY_HEADER_LENGTH = 512;

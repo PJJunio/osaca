@@ -55,7 +55,7 @@ describe('Tier gates on purchases and joins', () => {
 	async function createUnclaimed(): Promise<Registered> {
 		return await createBuilderWithoutAuth<Registered>(harness)
 			.post('/auth/register')
-			.body({username: 'shopper', consent: true, date_of_birth: '1995-05-05'})
+			.body({username: 'shopper', consent: true})
 			.execute();
 	}
 

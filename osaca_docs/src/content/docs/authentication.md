@@ -85,7 +85,7 @@ An account linked to the provider can't change its email or password while enfor
 
 ## Account restrictions
 
-A [limited account](/http-api/users/#account-limitation) gets 403 `ACCOUNT_LIMITED` on the operations listed there. An account that still has to [set its date of birth](/http-api/users/current-user/#set-date-of-birth) gets 403 `DATE_OF_BIRTH_REQUIRED` from most operations. An unverified account can be refused operations that involve other people, as [account tiers](/http-api/users/#account-tiers) describe.
+A [limited account](/http-api/users/#account-limitation) gets 403 `ACCOUNT_LIMITED` on the operations listed there. An unverified account can be refused operations that involve other people, as [account tiers](/http-api/users/#account-tiers) describe.
 
 ## Sudo mode
 

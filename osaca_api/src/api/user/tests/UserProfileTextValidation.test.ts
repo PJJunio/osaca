@@ -96,7 +96,6 @@ describe('User profile text validation', () => {
 				username: 'blockedsluguser',
 				global_name: TEST_USER_DATA.DEFAULT_GLOBAL_NAME,
 				password: TEST_CREDENTIALS.STRONG_PASSWORD,
-				date_of_birth: TEST_USER_DATA.DEFAULT_DATE_OF_BIRTH,
 				consent: true,
 			})
 			.expect(HTTP_STATUS.FORBIDDEN, APIErrorCodes.CONTENT_BLOCKED)
@@ -108,7 +107,6 @@ describe('User profile text validation', () => {
 				username: 'allowedregistrationuser',
 				global_name: 'BlockedSlug Display',
 				password: TEST_CREDENTIALS.STRONG_PASSWORD,
-				date_of_birth: TEST_USER_DATA.DEFAULT_DATE_OF_BIRTH,
 				consent: true,
 			})
 			.expect(HTTP_STATUS.FORBIDDEN, APIErrorCodes.CONTENT_BLOCKED)

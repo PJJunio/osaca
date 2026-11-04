@@ -39,7 +39,6 @@ import {
 	AdminUserDeletionScheduleRequest,
 	AdminUserDmChannelListQuery,
 	AdminUserDmChannelListResponse,
-	AdminUserDobUpdateRequest,
 	AdminUserEmailUpdateRequest,
 	AdminUserFlagsUpdateRequest,
 	AdminUserGuildListQuery,
@@ -1329,38 +1328,6 @@ export function UserAdminController(app: HonoApp) {
 					auditLogReason,
 					acls: adminUserAcls,
 				}),
-			);
-		},
-	);
-	app.patch(
-		'/admin/users/:user_id/date-of-birth',
-		RateLimitMiddleware(RateLimitConfigs.ADMIN_USER_MODIFY),
-		requireAdminACL(AdminACLs.USER_UPDATE_DOB),
-		Validator('param', UserIdParam),
-		Validator('json', AdminUserDobUpdateRequest),
-		OpenAPI({
-			operationId: 'update_admin_user_date_of_birth',
-			summary: 'Change user date of birth',
-			responseSchema: UserMutationResponse,
-			statusCode: 200,
-			security: 'adminApiKey',
-			tags: 'Admin',
-			description:
-				'Update user date of birth. May affect age-restricted content access. Creates audit log entry. Requires USER_UPDATE_DOB permission.',
-		}),
-		async (ctx) => {
-			const adminService = ctx.get('adminService');
-			const adminUserId = ctx.get('adminUserId');
-			const auditLogReason = ctx.get('auditLogReason');
-			const adminUserAcls = ctx.get('adminUserAcls');
-			const {user_id: userId} = ctx.req.valid('param');
-			return ctx.json(
-				await adminService.userService.profileService.changeDob(
-					{user_id: userId, ...ctx.req.valid('json')},
-					adminUserId,
-					auditLogReason,
-					adminUserAcls,
-				),
 			);
 		},
 	);

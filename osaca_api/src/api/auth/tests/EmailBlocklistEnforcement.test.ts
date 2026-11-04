@@ -71,7 +71,6 @@ describe('Email blocklist at signup and email change', () => {
 				username: createUniqueUsername('blocked'),
 				global_name: TEST_USER_DATA.DEFAULT_GLOBAL_NAME,
 				password: TEST_CREDENTIALS.STRONG_PASSWORD,
-				date_of_birth: TEST_USER_DATA.DEFAULT_DATE_OF_BIRTH,
 				consent: true,
 			})
 			.expect(HTTP_STATUS.BAD_REQUEST, 'INVALID_FORM_BODY')
@@ -87,7 +86,6 @@ describe('Email blocklist at signup and email change', () => {
 				username: createUniqueUsername('domain'),
 				global_name: TEST_USER_DATA.DEFAULT_GLOBAL_NAME,
 				password: TEST_CREDENTIALS.STRONG_PASSWORD,
-				date_of_birth: TEST_USER_DATA.DEFAULT_DATE_OF_BIRTH,
 				consent: true,
 			});
 	}

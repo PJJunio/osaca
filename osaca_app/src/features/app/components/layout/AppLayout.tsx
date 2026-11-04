@@ -2,11 +2,9 @@
 
 import styles from '@app/features/app/components/layout/AppLayout.module.css';
 import {useAppLayoutState} from '@app/features/app/components/layout/app_layout/AppLayoutHooks';
-import {DateOfBirthGate} from '@app/features/auth/components/date_of_birth/DateOfBirthGate';
 import Authentication from '@app/features/auth/state/Authentication';
 import GatewaySessions from '@app/features/gateway/transport/GatewaySessionPool';
 import {RecoveryKitReminderGate} from '@app/features/user/components/RecoveryKitReminderGate';
-import Users from '@app/features/user/state/Users';
 import {MediaDeviceStartupPreloadManager} from '@app/features/voice/components/MediaDeviceStartupPreloadManager';
 import {NewDeviceMonitoringManager} from '@app/features/voice/components/NewDeviceMonitoringManager';
 import {VoiceReconnectionManager} from '@app/features/voice/components/VoiceReconnectionManager';
@@ -18,8 +16,7 @@ export const AppLayout = observer(({children}: {children: React.ReactNode}) => {
 	const isAuthenticated = Authentication.isAuthenticated;
 	const socket = GatewaySessions.foregroundConnection.socket;
 	const appState = useAppLayoutState();
-	const dateOfBirthRequired = isAuthenticated && Users.currentUser?.dateOfBirthRequired === true;
-	const managersEnabled = isAuthenticated && !dateOfBirthRequired;
+	const managersEnabled = isAuthenticated;
 	return (
 		<>
 			{managersEnabled && socket && <VoiceReconnectionManager data-flx="app.app-layout.voice-reconnection-manager" />}
@@ -34,7 +31,6 @@ export const AppLayout = observer(({children}: {children: React.ReactNode}) => {
 			>
 				{children}
 			</div>
-			{dateOfBirthRequired && <DateOfBirthGate data-flx="app.app-layout.date-of-birth-gate" />}
 		</>
 	);
 });

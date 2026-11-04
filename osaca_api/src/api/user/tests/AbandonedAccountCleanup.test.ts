@@ -6,7 +6,7 @@ import {getKVClient} from '@app/api/middleware/ServiceRegistry';
 import {getInstanceConfigRepository, getUserRepository} from '@app/api/middleware/ServiceSingletons';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {createBuilder, createBuilderWithoutAuth} from '@app/api/test/TestRequestBuilder';
-import {CleanupModes, LastSessionCleanupModes} from '@osaca/constants/src/AccountConfigConstants';
+import {CleanupModes} from '@osaca/constants/src/AccountConfigConstants';
 import {DeletionReasons} from '@osaca/constants/src/Core';
 import {UserFlags, UserPremiumTypes} from '@osaca/constants/src/UserConstants';
 import {afterAll, beforeAll, beforeEach, describe, expect, it} from 'vitest';
@@ -57,7 +57,7 @@ describe('Abandoned account cleanup', () => {
 	}
 
 	it('leaves idle unclaimed accounts alone while the sweep is off', async () => {
-		const userId = await register({date_of_birth: '1995-05-05'});
+		const userId = await register({});
 		await idleFor(userId, 120);
 		await sweep();
 		expect(await deletionReason(userId)).toBeNull();
@@ -65,7 +65,7 @@ describe('Abandoned account cleanup', () => {
 
 	it('schedules idle accounts with no way back in once the sweep is on', async () => {
 		await getInstanceConfigRepository().updateAccountsConfig({abandoned_account_cleanup: true});
-		const unclaimed = await register({date_of_birth: '1995-05-05'});
+		const unclaimed = await register({});
 		const owner = await createTestAccount(harness);
 		await idleFor(unclaimed, 120);
 		await idleFor(owner.userId, 120);
@@ -77,8 +77,8 @@ describe('Abandoned account cleanup', () => {
 	it('reads a missing activity entry as the last recorded activity, never as endless inactivity', async () => {
 		await getInstanceConfigRepository().updateAccountsConfig({abandoned_account_cleanup: true});
 		const fresh = await register({});
-		const freshWithDate = await register({date_of_birth: '1995-05-05'});
-		const stale = await register({date_of_birth: '1995-05-05'});
+		const freshWithDate = await register({});
+		const stale = await register({});
 		await idleFor(stale, 120);
 		await getKVClient().del(`user_activity:${fresh}`, `user_activity:${freshWithDate}`, `user_activity:${stale}`);
 		await sweep();
@@ -88,14 +88,14 @@ describe('Abandoned account cleanup', () => {
 	});
 
 	it('keeps an account with no way back in after its last session ends while the cleanup is off', async () => {
-		const created = await registerWithToken({date_of_birth: '1995-05-05'});
+		const created = await registerWithToken({});
 		await signOut(created.token);
 		expect(await deletionReason(created.user_id)).toBeNull();
 	});
 
 	it('schedules an account with no way back in a day after its last session ends once the cleanup is on', async () => {
 		await getInstanceConfigRepository().updateAccountsConfig({abandoned_account_cleanup: true});
-		const created = await registerWithToken({date_of_birth: '1995-05-05'});
+		const created = await registerWithToken({});
 		await signOut(created.token);
 		const user = await getUserRepository().findUniqueAssert(createUserID(BigInt(created.user_id)));
 		expect(user.deletionReasonCode).toBe(DeletionReasons.UNCLAIMED_ACCOUNT_ABANDONED);
@@ -109,49 +109,17 @@ describe('Abandoned account cleanup', () => {
 		expect(await deletionReason(account.userId)).toBeNull();
 	});
 
-	it('schedules accounts that never entered a date of birth after a week', async () => {
-		await getInstanceConfigRepository().updateAccountsConfig({abandoned_account_cleanup: true});
-		const fresh = await register({});
-		const stale = await register({});
-		await idleFor(fresh, 2);
-		await idleFor(stale, 8);
-		await sweep();
-		expect(await deletionReason(fresh)).toBeNull();
-		expect(await deletionReason(stale)).toBe(DeletionReasons.INACTIVITY);
-	});
-
 	it('honours the configured idle days of each cleanup policy', async () => {
 		await getInstanceConfigRepository().updateAccountsConfig({
 			unclaimed_account_cleanup: {mode: CleanupModes.AFTER_INACTIVITY, inactive_days: 30},
-			dob_missing_cleanup: {mode: CleanupModes.AFTER_INACTIVITY, inactive_days: 3},
 		});
-		const unclaimed = await register({date_of_birth: '1995-05-05'});
-		const recent = await register({date_of_birth: '1995-05-05'});
-		const noBirthday = await register({});
+		const unclaimed = await register({});
+		const recent = await register({});
 		await idleFor(unclaimed, 40);
 		await idleFor(recent, 20);
-		await idleFor(noBirthday, 4);
 		await sweep();
 		expect(await deletionReason(unclaimed)).toBe(DeletionReasons.UNCLAIMED_ACCOUNT_ABANDONED);
-		expect(await deletionReason(noBirthday)).toBe(DeletionReasons.INACTIVITY);
 		expect(await deletionReason(recent)).toBeNull();
-	});
-
-	it('runs each cleanup policy on its own', async () => {
-		await getInstanceConfigRepository().updateAccountsConfig({
-			unclaimed_account_cleanup: {mode: CleanupModes.OFF, on_last_session_end: LastSessionCleanupModes.OFF},
-			dob_missing_cleanup: {mode: CleanupModes.AFTER_INACTIVITY},
-		});
-		const unclaimed = await register({date_of_birth: '1995-05-05'});
-		const noBirthday = await register({});
-		await idleFor(unclaimed, 120);
-		await idleFor(noBirthday, 8);
-		await sweep();
-		expect(await deletionReason(unclaimed)).toBeNull();
-		expect(await deletionReason(noBirthday)).toBe(DeletionReasons.INACTIVITY);
-		const created = await registerWithToken({date_of_birth: '1995-05-05'});
-		await signOut(created.token);
-		expect(await deletionReason(created.user_id)).toBeNull();
 	});
 
 	it('leaves lifetime members and suspended accounts alone', async () => {

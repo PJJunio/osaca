@@ -14,7 +14,6 @@ import type {User} from '@app/api/models/User';
 import {followOperatorPassWallStanding} from '@app/api/operator_pass/OperatorPassWallStanding';
 import {scheduleSystemDeletion} from '@app/api/user/AccountCleanup';
 import {hasWayBackIn} from '@app/api/user/AccountTier';
-import {isDateOfBirthMissing} from '@app/api/user/DateOfBirth';
 import type {UserRepository} from '@app/api/user/repositories/UserRepository';
 import {
 	type PartialUserChangePropagationDeps,
@@ -23,7 +22,6 @@ import {
 import {reschedulePendingDeletion} from '@app/api/user/services/PendingDeletionCoordinator';
 import type {UserDeletionEligibilityService} from '@app/api/user/services/UserDeletionEligibilityService';
 import {isDeletionComplete} from '@app/api/user/UserHelpers';
-import {DOB_DEFERRED_TRAIT} from '@app/api/user/UserTraits';
 import {mapWithConcurrency} from '@app/api/utils/ConcurrencyUtils';
 import {getWorkerDependencies} from '@app/api/worker/WorkerContext';
 import {
@@ -79,10 +77,7 @@ async function scheduleDeletion(
 	Logger.debug({userId, pendingDeletionAt, reason: 'INACTIVITY'}, 'Scheduled inactive user for deletion');
 }
 
-type AccountCleanupConfig = Pick<
-	AccountsConfig,
-	'unclaimed_account_cleanup' | 'dob_missing_cleanup' | 'inactivity_deletion'
->;
+type AccountCleanupConfig = Pick<AccountsConfig, 'unclaimed_account_cleanup' | 'inactivity_deletion'>;
 
 function daysMs(days: number): number {
 	return days * ms('1 day');
@@ -90,7 +85,6 @@ function daysMs(days: number): number {
 
 function sweepsAbandonedAccounts(cleanup: AccountCleanupConfig): boolean {
 	return (
-		cleanup.dob_missing_cleanup.mode !== CleanupModes.OFF ||
 		cleanup.unclaimed_account_cleanup.mode !== CleanupModes.OFF ||
 		cleanup.unclaimed_account_cleanup.on_last_session_end !== LastSessionCleanupModes.OFF
 	);
@@ -247,15 +241,6 @@ async function abandonedAccountReason(
 	userRepository: UserRepository,
 	cleanup: AccountCleanupConfig,
 ): Promise<number | null> {
-	const dobMissing = cleanup.dob_missing_cleanup;
-	if (
-		dobMissing.mode === CleanupModes.AFTER_INACTIVITY &&
-		user.traits.has(DOB_DEFERRED_TRAIT) &&
-		isDateOfBirthMissing(user) &&
-		inactiveMs >= daysMs(dobMissing.inactive_days)
-	) {
-		return DeletionReasons.INACTIVITY;
-	}
 	const unclaimed = cleanup.unclaimed_account_cleanup;
 	const afterInactivity = unclaimed.mode === CleanupModes.AFTER_INACTIVITY;
 	const afterLastSession = unclaimed.on_last_session_end === LastSessionCleanupModes.AFTER_GRACE;

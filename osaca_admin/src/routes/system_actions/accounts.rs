@@ -4,7 +4,7 @@ use super::{parse_choice, parse_form_number};
 use crate::{
     api::types::{
         AccountsConfigUpdateRequest, AuthConfigUpdateRequest, CLEANUP_INACTIVE_DAYS_RANGE,
-        DobMissingCleanupUpdateRequest, INACTIVITY_WARNING_LEAD_DAYS_RANGE,
+        INACTIVITY_WARNING_LEAD_DAYS_RANGE,
         INSTANT_ACCOUNTS_ESCALATION_RANGE, InactivityDeletionUpdateRequest,
         InstanceConfigUpdateRequest, InstantAccountsConfigUpdateRequest,
         UnclaimedAccountCleanupUpdateRequest,
@@ -46,19 +46,6 @@ pub(super) fn build_accounts_update(
             "After the last sign-out",
         )?,
     };
-    let dob_missing = DobMissingCleanupUpdateRequest {
-        mode: parse_choice(
-            form,
-            "accounts_dob_missing_cleanup_mode",
-            "Accounts that never gave a date of birth",
-        )?,
-        inactive_days: parse_form_days(
-            form,
-            "accounts_dob_missing_cleanup_inactive_days",
-            "Days without use",
-            &CLEANUP_INACTIVE_DAYS_RANGE,
-        )?,
-    };
     let inactivity = InactivityDeletionUpdateRequest {
         mode: parse_choice(
             form,
@@ -93,7 +80,6 @@ pub(super) fn build_accounts_update(
             }),
         }),
         accounts: Some(AccountsConfigUpdateRequest {
-            date_of_birth: parse_choice(form, "accounts_date_of_birth", "Date of birth")?,
             interaction_tier: parse_choice(form, "accounts_interaction_tier", "Account limits")?,
             verification_basis: parse_choice(
                 form,
@@ -105,9 +91,6 @@ pub(super) fn build_accounts_update(
                 || unclaimed.inactive_days.is_some()
                 || unclaimed.on_last_session_end.is_some())
             .then_some(unclaimed),
-            dob_missing_cleanup: (dob_missing.mode.is_some()
-                || dob_missing.inactive_days.is_some())
-            .then_some(dob_missing),
             inactivity_deletion: (inactivity.mode.is_some()
                 || inactivity.inactive_days.is_some()
                 || inactivity.warning_lead_days.is_some())

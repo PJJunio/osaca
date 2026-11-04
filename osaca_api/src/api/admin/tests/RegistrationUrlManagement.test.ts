@@ -13,10 +13,7 @@ import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHa
 import {HTTP_STATUS} from '@app/api/test/TestConstants';
 import {createBuilder, createBuilderWithoutAuth} from '@app/api/test/TestRequestBuilder';
 import {AdminACLs} from '@osaca/constants/src/AdminACLs';
-import type {
-	CreateRegistrationUrlResponse,
-	InstanceConfigResponse,
-} from '@osaca/schema/src/domains/admin/AdminSchemas';
+import type {CreateRegistrationUrlResponse, InstanceConfigResponse} from '@osaca/schema/src/domains/admin/AdminSchemas';
 import {afterAll, beforeAll, beforeEach, describe, expect, it} from 'vitest';
 
 describe('admin registration links', () => {
@@ -71,7 +68,6 @@ describe('admin registration links', () => {
 				username: createUniqueUsername('linkinvite'),
 				global_name: 'Invited by link',
 				password: 'joined-through-a-link',
-				date_of_birth: '2000-01-01',
 				consent: true,
 				registration_url_code: code,
 			})

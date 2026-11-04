@@ -9,7 +9,6 @@ import type {WorkerTaskName} from '@app/api/worker/WorkerLaneConfig';
 import type {CachePurgeAdapterName, StoreProductSlotName, VoiceTurnServerConfig} from '@osaca/config/src/MasterConfig';
 import type {AccountIdentityMode, TagStyle} from '@osaca/constants/src/AccountIdentityConstants';
 import type {SmtpTlsMode} from '@osaca/constants/src/SmtpConstants';
-import type {GeoEntry} from '@osaca/schema/src/domains/geolocation/GeolocationSchemas';
 import type {OperatorPassCurrency} from '@osaca/schema/src/domains/operator_pass/OperatorPassSchemas';
 
 export type APIWorkerMode = 'all_lanes' | 'single_lane' | 'single_task';
@@ -18,10 +17,6 @@ export type APIWorkerLaneName = 'realtime' | 'unfurl' | 'lifecycle' | 'batch' | 
 export interface AppStoreAppConfig {
 	bundleId: string;
 	appAppleId: number;
-}
-
-export interface AgePolicyConfig {
-	restricted: Array<GeoEntry>;
 }
 
 export interface TrustedCallerConfig {
@@ -314,7 +309,6 @@ export interface APIConfig {
 		};
 		accountIdentity: AccountIdentityMode | null;
 		tagStyle: TagStyle | null;
-		agePolicy: AgePolicyConfig;
 	};
 	discovery: {
 		enabled: boolean;

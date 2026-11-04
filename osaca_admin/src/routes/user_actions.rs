@@ -390,16 +390,6 @@ pub async fn dispatch(
                 Err(error) => decision_failure("Failed to cancel the deletion", user_id, &error),
             }
         }
-        "change_dob" => {
-            let Some(dob) = get("date_of_birth") else {
-                return DispatchOutcome::error("Date of birth is required");
-            };
-            DispatchOutcome::from_result(
-                client.change_dob(user_id, &dob).await,
-                "Date of birth changed successfully",
-                "Failed to change date of birth",
-            )
-        }
         "trigger_archive" => {
             let inc = form.bool_value("include_attachments");
             DispatchOutcome::from_result(

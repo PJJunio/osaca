@@ -26,19 +26,8 @@ import type {UserAccountUpdatePropagator} from '@app/api/user/services/UserAccou
 import {controlUserGuildSettingsView} from '@app/api/user/UserGuildSettingsThreadView';
 import {dispatchUserUpdate, mapRelationshipToResponse} from '@app/api/user/UserMappers';
 import {dedupeGuildFolders} from '@app/api/user/utils/GuildFolderUtils';
-import {canUserAccessNsfwContent} from '@app/api/utils/AgeUtils';
 import {CHANNEL_OVERRIDE_FLAG_MASK} from '@osaca/constants/src/ThreadConstants';
-import {
-	DEFAULT_GUILD_FOLDER_ICON,
-	GroupDmAddPermissionFlags,
-	IncomingCallFlags,
-	RelationshipTypes,
-	SensitiveMediaFilterLevel,
-	UNCATEGORIZED_FOLDER_ID,
-	UserFlags,
-	UserNotificationSettings,
-	VOICE_ACTIVITY_SHARING_COOLDOWN_MS,
-} from '@osaca/constants/src/UserConstants';
+import {DEFAULT_GUILD_FOLDER_ICON, GroupDmAddPermissionFlags, IncomingCallFlags, RelationshipTypes, UNCATEGORIZED_FOLDER_ID, UserFlags, UserNotificationSettings, VOICE_ACTIVITY_SHARING_COOLDOWN_MS} from '@osaca/constants/src/UserConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
 import {SyncedPreferencesConflictError} from '@osaca/errors/src/domains/user/SyncedPreferencesConflictError';
@@ -86,10 +75,9 @@ export class UserAccountSettingsService {
 	async updateSettings(params: {
 		userId: UserID;
 		data: UserSettingsUpdateRequest;
-		dateOfBirth?: string | null;
 		flags?: bigint;
 	}): Promise<UserSettings> {
-		const {userId, data, dateOfBirth, flags = 0n} = params;
+		const {userId, data, flags = 0n} = params;
 		const currentSettings = await this.deps.userAccountRepository.findSettings(userId);
 		if (!currentSettings) {
 			throw new UnknownUserError();
@@ -206,51 +194,14 @@ export class UserAccountSettingsService {
 		if (data.default_hide_muted_channels !== undefined) {
 			updatedRowData.default_hide_muted_channels = data.default_hide_muted_channels;
 		}
-		const userIsAdult = canUserAccessNsfwContent({isBot: false, dateOfBirth});
-		if (userIsAdult) {
-			if (data.sensitive_content_friend_dm_filter !== undefined) {
-				updatedRowData.sensitive_content_friend_dm_filter = data.sensitive_content_friend_dm_filter;
-			}
-			if (data.sensitive_content_non_friend_dm_filter !== undefined) {
-				updatedRowData.sensitive_content_non_friend_dm_filter = data.sensitive_content_non_friend_dm_filter;
-			}
-			if (data.sensitive_content_guild_filter !== undefined) {
-				updatedRowData.sensitive_content_guild_filter = data.sensitive_content_guild_filter;
-			}
-		} else {
-			if (data.sensitive_content_friend_dm_filter !== undefined) {
-				const allowed =
-					data.sensitive_content_friend_dm_filter === SensitiveMediaFilterLevel.BLUR ||
-					data.sensitive_content_friend_dm_filter === SensitiveMediaFilterLevel.BLOCK;
-				if (!allowed) {
-					throw ValidationError.fromPath(
-						'sensitive_content_friend_dm_filter',
-						'AGE_RESTRICTED',
-						'Non-adult users can only set friend DM filter to blur or block',
-					);
-				}
-				updatedRowData.sensitive_content_friend_dm_filter = data.sensitive_content_friend_dm_filter;
-			}
-			if (data.sensitive_content_non_friend_dm_filter !== undefined) {
-				const allowed =
-					data.sensitive_content_non_friend_dm_filter === SensitiveMediaFilterLevel.BLUR ||
-					data.sensitive_content_non_friend_dm_filter === SensitiveMediaFilterLevel.BLOCK;
-				if (!allowed) {
-					throw ValidationError.fromPath(
-						'sensitive_content_non_friend_dm_filter',
-						'AGE_RESTRICTED',
-						'Non-adult users can only set non-friend DM filter to blur or block',
-					);
-				}
-				updatedRowData.sensitive_content_non_friend_dm_filter = data.sensitive_content_non_friend_dm_filter;
-			}
-			if (data.sensitive_content_guild_filter !== undefined) {
-				throw ValidationError.fromPath(
-					'sensitive_content_guild_filter',
-					'AGE_RESTRICTED',
-					'Non-adult users cannot modify the guild content filter',
-				);
-			}
+		if (data.sensitive_content_friend_dm_filter !== undefined) {
+			updatedRowData.sensitive_content_friend_dm_filter = data.sensitive_content_friend_dm_filter;
+		}
+		if (data.sensitive_content_non_friend_dm_filter !== undefined) {
+			updatedRowData.sensitive_content_non_friend_dm_filter = data.sensitive_content_non_friend_dm_filter;
+		}
+		if (data.sensitive_content_guild_filter !== undefined) {
+			updatedRowData.sensitive_content_guild_filter = data.sensitive_content_guild_filter;
 		}
 		if (isStaffUser) {
 			if (data.suppress_unprivileged_self_mentions !== undefined) {

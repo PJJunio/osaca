@@ -20,7 +20,6 @@ const NON_ENFORCEMENT_DELETION_REASONS: ReadonlySet<number> = new Set([
 	DeletionReasons.USER_REQUESTED,
 	DeletionReasons.OTHER,
 	DeletionReasons.INACTIVITY,
-	DeletionReasons.BELOW_MINIMUM_AGE,
 	DeletionReasons.UNCLAIMED_ACCOUNT_ABANDONED,
 ]);
 

@@ -7,7 +7,6 @@ import {
 } from '@osaca/instance_bootstrap/src/Discovery';
 import {officialClientApiTransportEndpoint} from '@osaca/instance_bootstrap/src/OfficialInstance';
 import type {
-	InstanceAgePolicy,
 	InstanceAppPublic,
 	InstanceBuiltInGuildBadgeImages,
 	InstanceCommunity,
@@ -60,7 +59,6 @@ export interface ClientRuntimeDiscovery {
 	readonly limits: LimitConfigSnapshot | LimitConfigWireFormat;
 	readonly push: InstancePush;
 	readonly appPublic: InstanceAppPublic;
-	readonly agePolicy: InstanceAgePolicy | null;
 	readonly domainMigration: InstanceDomainMigration | null;
 	readonly notice?: InstanceNotice | null;
 	readonly guildBadges: ReadonlyArray<InstanceGuildBadge>;
@@ -83,7 +81,6 @@ export function projectClientRuntimeDiscovery(document: InstanceDiscoveryDocumen
 		limits: requireValue(document.limits, 'limits'),
 		push: projectPush(document.push),
 		appPublic: projectAppPublic(document.appPublic),
-		agePolicy: document.agePolicy,
 		domainMigration: document.domainMigration,
 		notice: document.notice ?? null,
 		guildBadges: document.guildBadges ?? [],
@@ -178,12 +175,6 @@ function projectAppPublic(appPublic: InstanceDiscoveryDocument['appPublic']): In
 			terms_url: requireDefined(value.legal.terms_url, 'app_public.legal.terms_url'),
 			privacy_url: requireDefined(value.legal.privacy_url, 'app_public.legal.privacy_url'),
 			guidelines_url: value.legal.guidelines_url ?? null,
-		},
-		registration: {
-			collect_date_of_birth: requireDefined(
-				value.registration.collect_date_of_birth,
-				'app_public.registration.collect_date_of_birth',
-			),
 		},
 	};
 }

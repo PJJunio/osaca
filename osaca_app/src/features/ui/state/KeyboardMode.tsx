@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {isDateOfBirthStepOpen} from '@app/features/auth/state/DateOfBirthStep';
 import {Logger} from '@app/features/platform/utils/AppLogger';
 import {initializeStore} from '@app/features/platform/utils/StoreInitialization';
 import ModalState, {
@@ -39,7 +38,7 @@ class KeyboardMode {
 		runInAction(() => {
 			this.keyboardModeEnabled = true;
 		});
-		if (showIntro && !this.introSeen && !ModalState.hasModalOpen() && !isDateOfBirthStepOpen()) {
+		if (showIntro && !this.introSeen && !ModalState.hasModalOpen()) {
 			this.introSeen = true;
 			void Promise.all([
 				import('@app/features/ui/commands/ModalCommands'),

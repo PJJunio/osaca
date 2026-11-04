@@ -24,7 +24,6 @@ import {markChannelAsIndexed, markGuildChannelsAsIndexed} from '@app/api/message
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {HTTP_STATUS} from '@app/api/test/TestConstants';
 import {createBuilder} from '@app/api/test/TestRequestBuilder';
-import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {ChannelTypes, Permissions} from '@osaca/constants/src/ChannelConstants';
 import {GuildNSFWLevel} from '@osaca/constants/src/GuildConstants';
 import {afterEach, beforeEach, describe, expect, test} from 'vitest';
@@ -266,7 +265,7 @@ describe('Message Search Permissions', () => {
 			expect(result.messages.length).toBe(0);
 		});
 		test('age-restricted guild is searchable by an adult member without include_nsfw', async () => {
-			const owner = await createTestAccount(harness, {dateOfBirth: '2000-01-01'});
+			const owner = await createTestAccount(harness);
 			const guild = await createGuild(harness, owner.token, 'Age Restricted Search Guild');
 			const systemChannelId = guild.system_channel_id!;
 			await sendChannelMessage(harness, owner.token, systemChannelId, 'age restricted guild searchable message');
@@ -301,7 +300,7 @@ describe('Message Search Permissions', () => {
 			expect(included.messages.some((m) => m.channel_id === systemChannelId)).toBe(true);
 		});
 		test('age-restricted guild is searchable in a channel pinned to nsfw_override: false', async () => {
-			const owner = await createTestAccount(harness, {dateOfBirth: '2000-01-01'});
+			const owner = await createTestAccount(harness);
 			const guild = await createGuild(harness, owner.token, 'Age Restricted Override Guild');
 			const channel = await createBuilder<{id: string; nsfw_override?: boolean | null}>(harness, owner.token)
 				.post(`/guilds/${guild.id}/channels`)
@@ -324,28 +323,8 @@ describe('Message Search Permissions', () => {
 			}
 			expect(result.messages.some((m) => m.channel_id === channel.id)).toBe(true);
 		});
-		test('underage user cannot search messages in an age-restricted guild', async () => {
-			const owner = await createTestAccount(harness, {dateOfBirth: '2000-01-01'});
-			const underageMember = await createTestAccount(harness, {dateOfBirth: '2012-01-01'});
-			const guild = await createGuild(harness, owner.token, 'Age Restricted Guild');
-			const systemChannelId = guild.system_channel_id!;
-			const invite = await createChannelInvite(harness, owner.token, systemChannelId);
-			await acceptInvite(harness, underageMember.token, invite.code);
-			await sendChannelMessage(harness, owner.token, systemChannelId, 'underage search test message');
-			await updateGuild(harness, owner.token, guild.id, {nsfw_level: GuildNSFWLevel.AGE_RESTRICTED});
-			await markGuildChannelsAsIndexed(harness, owner.token, guild.id);
-			await createBuilder(harness, underageMember.token)
-				.post('/search/messages')
-				.body({
-					content: 'underage search test',
-					context_guild_id: guild.id,
-					include_nsfw: true,
-				})
-				.expect(HTTP_STATUS.FORBIDDEN, APIErrorCodes.NSFW_CONTENT_AGE_RESTRICTED)
-				.execute();
-		});
 		test('scope: all_guilds excludes NSFW channel messages by default', async () => {
-			const owner = await createTestAccount(harness, {dateOfBirth: '2000-01-01'});
+			const owner = await createTestAccount(harness);
 			const guild = await createGuild(harness, owner.token, 'All Guilds NSFW Filter Guild');
 			const systemChannelId = guild.system_channel_id!;
 			const nsfwChannel = await createChannel(harness, owner.token, guild.id, 'nsfw-channel', ChannelTypes.GUILD_TEXT);
@@ -370,7 +349,7 @@ describe('Message Search Permissions', () => {
 			expect(sfwMessages.length).toBeGreaterThan(0);
 		});
 		test('scope: all_guilds includes NSFW channel messages with include_nsfw: true', async () => {
-			const owner = await createTestAccount(harness, {dateOfBirth: '2000-01-01'});
+			const owner = await createTestAccount(harness);
 			const guild = await createGuild(harness, owner.token, 'All Guilds NSFW Include Guild');
 			const systemChannelId = guild.system_channel_id!;
 			const nsfwChannel = await createChannel(harness, owner.token, guild.id, 'nsfw-channel', ChannelTypes.GUILD_TEXT);

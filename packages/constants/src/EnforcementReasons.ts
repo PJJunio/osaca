@@ -49,7 +49,6 @@ export type EnforcementReasonCode = Exclude<
 	| typeof DeletionReasons.USER_REQUESTED
 	| typeof DeletionReasons.OTHER
 	| typeof DeletionReasons.INACTIVITY
-	| typeof DeletionReasons.BELOW_MINIMUM_AGE
 	| typeof DeletionReasons.UNCLAIMED_ACCOUNT_ABANDONED
 >;
 

@@ -8,8 +8,6 @@ import {envEmailDeliveryState} from '@app/api/instance/EmailDelivery';
 import {
 	AccountCleanupDefaults,
 	CleanupModes,
-	DateOfBirthPolicies,
-	type DateOfBirthPolicy,
 	type EffectiveVerificationBasis,
 	type EmailDeliveryState,
 	type GuildJoinGate,
@@ -43,16 +41,12 @@ function inactivityDeletionDefaults(): AccountsConfig['inactivity_deletion'] {
 
 export function abandonedAccountCleanupDefaults(
 	on: boolean,
-): Pick<AccountsConfig, 'unclaimed_account_cleanup' | 'dob_missing_cleanup'> {
+): Pick<AccountsConfig, 'unclaimed_account_cleanup'> {
 	return {
 		unclaimed_account_cleanup: {
 			mode: on ? CleanupModes.AFTER_INACTIVITY : CleanupModes.OFF,
 			inactive_days: AccountCleanupDefaults.UNCLAIMED_INACTIVE_DAYS,
 			on_last_session_end: on ? LastSessionCleanupModes.AFTER_GRACE : LastSessionCleanupModes.OFF,
-		},
-		dob_missing_cleanup: {
-			mode: on ? CleanupModes.AFTER_INACTIVITY : CleanupModes.OFF,
-			inactive_days: AccountCleanupDefaults.DOB_MISSING_INACTIVE_DAYS,
 		},
 	};
 }
@@ -64,7 +58,6 @@ export function hostedAccountsDefaults(): AccountsConfigDefaults {
 			instant_accounts: {enabled: true, pow_escalation_per_hour: InstantAccountLimits.DEFAULT_POW_ESCALATION_PER_HOUR},
 		},
 		accounts: {
-			date_of_birth: DateOfBirthPolicies.REQUIRE_NEW_ACCOUNTS,
 			interaction_tier: InteractionTierModes.LEGACY,
 			verification_basis: VerificationBases.AUTO,
 			guild_join_gate: GuildJoinGates.ALWAYS,
@@ -74,17 +67,13 @@ export function hostedAccountsDefaults(): AccountsConfigDefaults {
 	};
 }
 
-export function selfHostedAccountsDefaults(params: {
-	freshInstall: boolean;
-	dateOfBirth?: DateOfBirthPolicy;
-}): AccountsConfigDefaults {
+export function selfHostedAccountsDefaults(params: {freshInstall: boolean}): AccountsConfigDefaults {
 	return {
 		auth: {
 			identifier_first: IdentifierFirstModes.AUTO,
 			instant_accounts: {enabled: false, pow_escalation_per_hour: InstantAccountLimits.DEFAULT_POW_ESCALATION_PER_HOUR},
 		},
 		accounts: {
-			date_of_birth: params.dateOfBirth ?? DateOfBirthPolicies.OFF,
 			interaction_tier: params.freshInstall ? InteractionTierModes.ENFORCED : InteractionTierModes.LEGACY,
 			verification_basis: VerificationBases.AUTO,
 			guild_join_gate: GuildJoinGates.ALWAYS,
@@ -141,6 +130,3 @@ export function getEffectiveVerificationBasis(): EffectiveVerificationBasis {
 	});
 }
 
-export function getDateOfBirthPolicy(): DateOfBirthPolicy {
-	return getCachedAccountsConfig().date_of_birth;
-}

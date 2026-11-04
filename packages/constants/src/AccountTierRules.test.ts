@@ -1,12 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {
-	collectsDateOfBirth,
-	DateOfBirthPolicies,
-	dateOfBirthPolicyFromLegacy,
 	InstantAccountAvailability,
 	InteractionTierModes,
-	LegacyDateOfBirthEnforcements,
 	RegistrationModes,
 	VerificationBases,
 } from '@osaca/constants/src/AccountConfigConstants';
@@ -678,19 +674,5 @@ describe('normalizeAccountIdentity', () => {
 				tagStyle,
 			});
 		}
-	});
-});
-
-describe('dateOfBirthPolicyFromLegacy', () => {
-	it.each([
-		[false, LegacyDateOfBirthEnforcements.OFF, DateOfBirthPolicies.OFF],
-		[false, LegacyDateOfBirthEnforcements.NEW_ACCOUNTS, DateOfBirthPolicies.OFF],
-		[false, LegacyDateOfBirthEnforcements.ALL, DateOfBirthPolicies.OFF],
-		[true, LegacyDateOfBirthEnforcements.OFF, DateOfBirthPolicies.ASK],
-		[true, LegacyDateOfBirthEnforcements.NEW_ACCOUNTS, DateOfBirthPolicies.REQUIRE_NEW_ACCOUNTS],
-		[true, LegacyDateOfBirthEnforcements.ALL, DateOfBirthPolicies.REQUIRE_ALL],
-	] as const)('collect=%s enforcement=%s gives %s', (collect, enforcement, policy) => {
-		expect(dateOfBirthPolicyFromLegacy({collect, enforcement})).toBe(policy);
-		expect(collectsDateOfBirth(policy)).toBe(collect);
 	});
 });

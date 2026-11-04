@@ -59,7 +59,7 @@ describe('Claiming an account', () => {
 	async function createUnclaimed(username = 'drifter'): Promise<Registered> {
 		return await createBuilderWithoutAuth<Registered>(harness)
 			.post('/auth/register')
-			.body({username, consent: true, date_of_birth: '1995-05-05'})
+			.body({username, consent: true})
 			.execute();
 	}
 
@@ -114,7 +114,6 @@ describe('Claiming an account', () => {
 				username: 'latecomer',
 				password: 'a-strong-password-9',
 				consent: true,
-				date_of_birth: '1995-05-05',
 			}),
 		);
 		expect(await me(late.token)).toMatchObject({email: null});
@@ -215,7 +214,7 @@ describe('Account limits by tier', () => {
 	async function createUnclaimed(): Promise<Registered> {
 		return await createBuilderWithoutAuth<Registered>(harness)
 			.post('/auth/register')
-			.body({username: 'quiet', consent: true, date_of_birth: '1995-05-05'})
+			.body({username: 'quiet', consent: true})
 			.execute();
 	}
 
@@ -404,7 +403,7 @@ describe('Sudo by email code', () => {
 	it('still waves through an account with no email, password or passkey', async () => {
 		const account = await createBuilderWithoutAuth<Registered>(harness)
 			.post('/auth/register')
-			.body({username: 'nothing', consent: true, date_of_birth: '1995-05-05'})
+			.body({username: 'nothing', consent: true})
 			.execute();
 		await createBuilder(harness, account.token).post('/users/@me/disable').body({}).expect(204).execute();
 	});
@@ -444,7 +443,7 @@ describe('Claim next step, tier payloads and email codes', () => {
 	async function createUnclaimed(username = 'drifter'): Promise<Registered> {
 		return await createBuilderWithoutAuth<Registered>(harness)
 			.post('/auth/register')
-			.body({username, consent: true, date_of_birth: '1995-05-05'})
+			.body({username, consent: true})
 			.execute();
 	}
 
@@ -455,7 +454,7 @@ describe('Claim next step, tier payloads and email codes', () => {
 		await getInstanceConfigRepository().updateAuthConfig({instant_accounts: {enabled: true}});
 		return await createBuilderWithoutAuth<Registered>(harness)
 			.post('/auth/register')
-			.body({global_name: 'Guest', date_of_birth: '1995-05-05'})
+			.body({global_name: 'Guest'})
 			.execute();
 	}
 

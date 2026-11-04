@@ -10,7 +10,6 @@ import {
 	SIGN_IN_WITH_BROWSER_DESCRIPTOR,
 } from '@app/features/auth/AuthMessageDescriptors';
 import * as AuthenticationCommands from '@app/features/auth/commands/AuthenticationCommands';
-import {AgeBlockedRemovalGate} from '@app/features/auth/components/AgeBlockedRemovalGate';
 import {SIGN_IN_AGAIN_AS_DESCRIPTOR} from '@app/features/auth/components/accounts/AccountList';
 import {AccountSelector} from '@app/features/auth/components/accounts/AccountSelector';
 import styles from '@app/features/auth/components/pages/LoginPage.module.css';
@@ -99,10 +98,10 @@ import {Button, ButtonVariant} from '@app/features/ui/button/Button';
 import * as ToastCommands from '@app/features/ui/commands/ToastCommands';
 import {SteppedCarousel} from '@app/features/ui/stepped_carousel/SteppedCarousel';
 import {isDesktop, navigateToExternalURL} from '@app/features/ui/utils/NativeUtils';
-import type {GuildEntryResult} from '@osaca/schema/src/domains/user/AccountSchemas';
 import type {MessageDescriptor} from '@lingui/core';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
+import type {GuildEntryResult} from '@osaca/schema/src/domains/user/AccountSchemas';
 import {observer} from 'mobx-react-lite';
 import {type ReactElement, type ReactNode, useCallback, useEffect, useMemo, useState} from 'react';
 
@@ -1204,11 +1203,7 @@ export const AuthLoginLayout = observer(function AuthLoginLayout({
 			return renderIdentifierFirstStep();
 		}
 		if (authLoginStep === AuthLoginStep.METHOD) {
-			return (
-				<AgeBlockedRemovalGate data-flx="auth.flow.auth-login-layout.age-blocked-removal-gate">
-					{renderMethodStep()}
-				</AgeBlockedRemovalGate>
-			);
+			return renderMethodStep();
 		}
 		if (authLoginStep === AuthLoginStep.BROWSER) {
 			const runtimeSnapshot = requireAuthInstanceSnapshot(resolvedAuthRuntimeSnapshot);

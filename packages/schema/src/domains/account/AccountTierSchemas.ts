@@ -2,7 +2,6 @@
 
 import {
 	CleanupModes,
-	DateOfBirthPolicies,
 	EmailDeliveryModes,
 	EmailDeliveryStates,
 	GuildJoinGates,
@@ -115,23 +114,6 @@ export const GuildJoinGateSchema = withOpenApiType(
 		'When joining a community needs a finished account. Applies only while the interaction tier is enforced and the person can preview communities',
 	),
 	'GuildJoinGate',
-);
-
-export const DateOfBirthPolicySchema = withOpenApiType(
-	createNamedStringLiteralUnion(
-		[
-			[DateOfBirthPolicies.OFF, 'OFF', 'The date of birth is never asked for'],
-			[DateOfBirthPolicies.ASK, 'ASK', 'The date of birth is asked for, but nothing waits on it'],
-			[
-				DateOfBirthPolicies.REQUIRE_NEW_ACCOUNTS,
-				'REQUIRE_NEW_ACCOUNTS',
-				'Accounts created without a date of birth must enter one before using the app',
-			],
-			[DateOfBirthPolicies.REQUIRE_ALL, 'REQUIRE_ALL', 'Every account without a date of birth must enter one'],
-		],
-		'Whether the instance asks for a date of birth, and who must enter one',
-	),
-	'DateOfBirthPolicy',
 );
 
 export const IdentifierFirstModeSchema = withOpenApiType(

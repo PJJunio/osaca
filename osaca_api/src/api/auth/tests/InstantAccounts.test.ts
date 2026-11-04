@@ -114,19 +114,16 @@ describe('Username-only accounts', () => {
 		expect(JSON.stringify(refused.json)).toContain('MUST_AGREE_TO_TOS_AND_PRIVACY_POLICY');
 	}
 
-	it('creates an unclaimed account that must enter a date of birth', async () => {
+	it('creates an unclaimed account', async () => {
 		const created = await registerInstant();
-		const me = await createBuilder<{claimed: boolean; has_password: boolean; date_of_birth_required: boolean}>(
-			harness,
-			created.token,
-		)
+		const me = await createBuilder<{claimed: boolean; has_password: boolean}>(harness, created.token)
 			.get('/users/@me')
 			.execute();
-		expect(me).toEqual(expect.objectContaining({claimed: false, has_password: false, date_of_birth_required: true}));
+		expect(me).toEqual(expect.objectContaining({claimed: false, has_password: false}));
 		const settings = await createBuilder<{sensitive_content_friend_dm_filter: number}>(harness, created.token)
 			.get('/users/@me/settings')
 			.execute();
-		expect(settings.sensitive_content_friend_dm_filter).toBe(SensitiveMediaFilterLevel.BLUR);
+		expect(settings.sensitive_content_friend_dm_filter).toBe(SensitiveMediaFilterLevel.SHOW);
 	});
 
 	it('refuses a username-only account without accepting the terms', async () => {
@@ -212,16 +209,6 @@ describe('Username-only accounts', () => {
 		expect(user.termsAgreedAt).not.toBeNull();
 		expect(user.privacyAgreedAt).not.toBeNull();
 		await redeem(handoff_code, nonce).expect(HTTP_STATUS.BAD_REQUEST, APIErrorCodes.UNKNOWN_ACCOUNT_HANDOFF).execute();
-	});
-
-	it('starts every website account at the date of birth step', async () => {
-		const {nonce, hash} = nonceWithHash();
-		const {handoff_code} = await handoff('Web Visitor', hash).execute();
-		const redeemed = await redeem(handoff_code, nonce, {consent: true}).execute();
-		const me = await createBuilder<{date_of_birth_required: boolean}>(harness, redeemed.token)
-			.get('/users/@me')
-			.execute();
-		expect(me.date_of_birth_required).toBe(true);
 	});
 
 	it('refuses a website handoff for a display name that is not allowed', async () => {

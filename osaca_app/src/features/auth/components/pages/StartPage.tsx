@@ -3,7 +3,6 @@
 import {Routes} from '@app/app/Routes';
 import type {RuntimeConfigSnapshot} from '@app/features/app/state/InstanceSnapshotStore';
 import * as AuthenticationCommands from '@app/features/auth/commands/AuthenticationCommands';
-import {AgeBlockedNotice} from '@app/features/auth/components/AgeBlockedNotice';
 import loginStyles from '@app/features/auth/components/pages/LoginPage.module.css';
 import {
 	type AccountHandoffOutcome,
@@ -20,16 +19,12 @@ import {
 	instantAccountErrors,
 	NO_INSTANT_ACCOUNT_ERRORS,
 } from '@app/features/auth/flow/InstantAccountForm';
-import {
-	CREATE_YOUR_ACCOUNT_DESCRIPTOR,
-	SIGN_IN_TO_EXISTING_ACCOUNT_DESCRIPTOR,
-} from '@app/features/auth/flow/identifier_first/AuthIdentifierFirstStep';
+import {CREATE_YOUR_ACCOUNT_DESCRIPTOR} from '@app/features/auth/flow/identifier_first/AuthIdentifierFirstStep';
 import styles from '@app/features/auth/flow/identifier_first/AuthIdentifierFirstStep.module.css';
 import {getRegistrationLegalConsentConfig} from '@app/features/auth/flow/RegistrationLegalNotice';
 import {useAuthPresentation} from '@app/features/auth/flow/useAuthPresentation';
 import {getAuthErrorMessage} from '@app/features/auth/hooks/useAuthForm';
-import {isAgeBlocked} from '@app/features/auth/state/AccountEntryStorage';
-import {clearCapturedAccountHandoff, readCapturedAccountHandoff} from '@app/features/auth/state/AccountHandoffCapture';
+import {readCapturedAccountHandoff} from '@app/features/auth/state/AccountHandoffCapture';
 import {AuthCardVariant} from '@app/features/auth/state/AuthLayoutContext';
 import {openGuildWhenAvailable} from '@app/features/guild/commands/GuildVisitCommands';
 import {isolateBidi} from '@app/features/i18n/utils/BidiIsolate';
@@ -83,7 +78,6 @@ type StartState =
 	| {readonly kind: 'details'}
 	| {readonly kind: 'expired'}
 	| {readonly kind: 'failed'; readonly message: string}
-	| {readonly kind: 'age_blocked'}
 	| Extract<AccountHandoffOutcome, {readonly kind: 'choose'}>;
 
 function startStateFor(outcome: StartArrival, i18n: I18n): StartState {
@@ -110,10 +104,6 @@ const StartPageContent = observer(function StartPageContent({
 	const [state, setState] = useState<StartState>(() => {
 		if (arrival !== null) return startStateFor(arrival, i18n);
 		if (readCapturedAccountHandoff() === null) return {kind: 'expired'};
-		if (isAgeBlocked()) {
-			clearCapturedAccountHandoff();
-			return {kind: 'age_blocked'};
-		}
 		return {kind: 'details'};
 	});
 	const [submitting, setSubmitting] = useState(false);
@@ -135,22 +125,6 @@ const StartPageContent = observer(function StartPageContent({
 		setState(startStateFor(outcome, i18n));
 	};
 
-	if (state.kind === 'age_blocked') {
-		return (
-			<>
-				<AgeBlockedNotice data-flx="auth.start-page.age-blocked" />
-				<div className={styles.quietActions} data-flx="auth.start-page.age-blocked-actions">
-					<AuthRouterLink
-						to={Routes.LOGIN}
-						className={styles.textButton}
-						data-flx="auth.start-page.link.sign-in-existing"
-					>
-						{i18n._(SIGN_IN_TO_EXISTING_ACCOUNT_DESCRIPTOR)}
-					</AuthRouterLink>
-				</div>
-			</>
-		);
-	}
 	if (state.kind === 'expired' || state.kind === 'failed') {
 		return (
 			<AuthErrorState

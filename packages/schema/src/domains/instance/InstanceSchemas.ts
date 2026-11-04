@@ -156,17 +156,10 @@ const InstanceLegalSchema = z
 	})
 	.describe('Optional legal and policy document URLs shown to users');
 
-const InstanceAppRegistrationSchema = z
-	.object({
-		collect_date_of_birth: z.boolean().describe('Whether public registration collects and validates date of birth'),
-	})
-	.describe('Public registration field collection policy');
-
 export const InstanceAppPublicSchema = z.object({
 	branding: InstanceBrandingSchema,
 	setup: InstanceSetupSchema,
 	legal: InstanceLegalSchema,
-	registration: InstanceAppRegistrationSchema,
 });
 export type InstanceAppPublic = z.infer<typeof InstanceAppPublicSchema>;
 
@@ -258,12 +251,6 @@ export const InstanceFeaturesSchema = z
 			.boolean()
 			.optional()
 			.describe('Whether the instance can send sign-in and verification codes by email. Missing means false'),
-		date_of_birth_step: z
-			.boolean()
-			.optional()
-			.describe(
-				'Whether accounts enter their date of birth in a step after they are created, so sign-up never asks for it. Missing means false',
-			),
 		instant_account_availability: InstantAccountAvailabilitySchema.optional().describe(
 			'Whether accounts can be created from just a display name through public sign-up, and why not. Missing means instant_accounts decides',
 		),
@@ -354,25 +341,6 @@ export const InstancePushSchema = z
 	})
 	.describe('Push notification configuration');
 export type InstancePush = z.infer<typeof InstancePushSchema>;
-
-export const InstanceAgePolicyActionSchema = z.enum(['restrict', 'block']);
-export type InstanceAgePolicyAction = z.infer<typeof InstanceAgePolicyActionSchema>;
-
-export const InstanceAgePolicyGeoSchema = z
-	.object({
-		country_code: z.string().describe('ISO 3166-1 alpha-2 country code'),
-		region_code: z.string().nullable().describe('ISO 3166-2 subdivision code, or null for the whole country'),
-		action: InstanceAgePolicyActionSchema.describe('Whether the region restricts or blocks access'),
-	})
-	.describe('Age policy for one region');
-export type InstanceAgePolicyGeo = z.infer<typeof InstanceAgePolicyGeoSchema>;
-
-export const InstanceAgePolicySchema = z
-	.object({
-		geos: z.array(InstanceAgePolicyGeoSchema).describe('Regions with an age policy'),
-	})
-	.describe('Regional age policy for this instance');
-export type InstanceAgePolicy = z.infer<typeof InstanceAgePolicySchema>;
 
 export const InstanceNoticeSchema = z
 	.object({
@@ -474,7 +442,6 @@ export const WellKnownOsacaResponse = z.object({
 	limits: LimitConfigResponse.describe('Limit configuration with rules and trait definitions'),
 	push: InstancePushSchema,
 	app_public: InstanceAppPublicSchema.describe('Public application configuration for client-side features'),
-	age_policy: InstanceAgePolicySchema,
 	notice: InstanceNoticeSchema.nullable()
 		.optional()
 		.describe('Notice from the instance administrator, or null when there is none'),

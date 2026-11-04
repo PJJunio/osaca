@@ -49,13 +49,6 @@ interface SessionData {
 	};
 }
 
-function yearsAgo(years: number): string {
-	const date = new Date();
-	date.setUTCFullYear(date.getUTCFullYear() - years);
-	date.setUTCDate(date.getUTCDate() - 1);
-	return date.toISOString().slice(0, 10);
-}
-
 describe('Guild visit lifecycle', () => {
 	let harness: ApiTestHarness;
 	let gateway: NoopGatewayService;
@@ -96,10 +89,10 @@ describe('Guild visit lifecycle', () => {
 		return {owner, guildId: guild.id, channelId, code: invite.code};
 	}
 
-	async function createUnclaimed(dateOfBirth = yearsAgo(30), ip?: string): Promise<Registered> {
+	async function createUnclaimed(ip?: string): Promise<Registered> {
 		const builder = createBuilderWithoutAuth<Registered>(harness)
 			.post('/auth/register')
-			.body({username: 'wanderer', consent: true, date_of_birth: dateOfBirth});
+			.body({username: 'wanderer', consent: true});
 		if (ip) builder.header('x-forwarded-for', ip);
 		return await builder.execute();
 	}
@@ -130,7 +123,7 @@ describe('Guild visit lifecycle', () => {
 			.header('x-forwarded-for', ip)
 			.body(null)
 			.execute();
-		const alt = await createUnclaimed(yearsAgo(30), ip);
+		const alt = await createUnclaimed(ip);
 		await createBuilder(harness, alt.token)
 			.post(`/invites/${code}/visit`)
 			.header('x-forwarded-for', ip)
@@ -146,27 +139,13 @@ describe('Guild visit lifecycle', () => {
 			.execute();
 		expect(await visitRow(target.userId, guildId)).toBeNull();
 		expect(await visitRow(alt.user_id, guildId)).toBeNull();
-		const late = await createUnclaimed(yearsAgo(30), ip);
+		const late = await createUnclaimed(ip);
 		await createBuilder(harness, late.token)
 			.post(`/invites/${code}/visit`)
 			.header('x-forwarded-for', ip)
 			.body(null)
 			.expect(HTTP_STATUS.FORBIDDEN, APIErrorCodes.USER_IP_BANNED_FROM_GUILD)
 			.execute();
-	});
-
-	it('prunes visitors who are too young when a guild becomes adults only', async () => {
-		const {owner, guildId, code} = await createScene();
-		const teen = await createUnclaimed(yearsAgo(15));
-		const adult = await createUnclaimed(yearsAgo(30));
-		for (const visitor of [teen, adult]) {
-			await createBuilder(harness, visitor.token).post(`/invites/${code}/visit`).body(null).execute();
-		}
-		await createBuilder(harness, owner.token).patch(`/guilds/${guildId}`).body({nsfw: true}).execute();
-		expect(await visitRow(teen.user_id, guildId)).toBeNull();
-		expect(await visitRow(adult.user_id, guildId)).not.toBeNull();
-		await createBuilder(harness, owner.token).patch(`/guilds/${guildId}`).body({features: []}).execute();
-		expect(await visitRow(adult.user_id, guildId)).toBeNull();
 	});
 
 	it('restores visits for visit-capable sessions and drops stale ones', async () => {

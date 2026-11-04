@@ -28,7 +28,6 @@ import type {User} from '@app/api/models/User';
 import {deleteChannelMessageSearchDocuments} from '@app/api/search/MessageSearchIndexCleanup';
 import {assertAccountNotLimited} from '@app/api/user/AccountLimit';
 import type {UserRepository} from '@app/api/user/repositories/UserRepository';
-import {canUserAccessNsfwContent} from '@app/api/utils/AgeUtils';
 import {UserPermissionUtils} from '@app/api/utils/UserPermissionUtils';
 import {ChannelTypes, MessageTypes} from '@osaca/constants/src/ChannelConstants';
 import type {LimitKey} from '@osaca/constants/src/LimitConfigMetadata';
@@ -119,7 +118,7 @@ export class GroupDmOperationsService {
 
 	private async canJoinMatureGroup(userId: UserID): Promise<boolean> {
 		const user = await this.userRepository.findUnique(userId);
-		return user != null && canUserAccessNsfwContent(user);
+		return user != null;
 	}
 
 	private async assertInviterNotLimited(userId: UserID): Promise<void> {

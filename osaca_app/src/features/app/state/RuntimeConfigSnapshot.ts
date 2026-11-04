@@ -19,7 +19,6 @@ import {NO_BUILT_IN_GUILD_BADGE_IMAGES} from '@osaca/instance_bootstrap/src/Clie
 import {
 	ACCOUNT_DELETION_GRACE_PERIOD_HOURS_MAX,
 	ACCOUNT_DELETION_GRACE_PERIOD_HOURS_MIN,
-	AGE_POLICY_GEOS_MAX,
 	LIMIT_RULES_MAX,
 	parseInstanceDomainMigration,
 } from '@osaca/instance_bootstrap/src/Discovery';
@@ -27,9 +26,6 @@ import {InstanceEndpointKind, normalizeInstanceEndpoint} from '@osaca/instance_b
 import {CanonicalNetworkProtocol} from '@osaca/instance_bootstrap/src/NetworkOrigin';
 import {normalizeThemeColor} from '@osaca/instance_bootstrap/src/ThemeColor';
 import {
-	AGE_POLICY_ACTIONS,
-	type InstanceAgePolicy,
-	type InstanceAgePolicyGeo,
 	type InstanceAppPublic,
 	type InstanceBuiltInGuildBadgeImages,
 	type InstanceCommunity,
@@ -72,7 +68,6 @@ export interface RuntimeConfigSnapshot extends RuntimeConfigIdentity {
 	readonly publicPushVapidKey: string | null;
 	readonly limits: LimitConfigSnapshot;
 	readonly appPublic: InstanceAppPublic;
-	readonly agePolicy: InstanceAgePolicy | null;
 	readonly domainMigration: InstanceDomainMigration | null;
 	readonly notice: InstanceNotice | null;
 	readonly guildBadges: ReadonlyArray<InstanceGuildBadge>;
@@ -278,7 +273,6 @@ function readFeatures(value: unknown): InstanceFeatures {
 		'identifier_first',
 		'instant_accounts',
 		'email_codes',
-		'date_of_birth_step',
 		'discovery_enabled',
 	] as const) {
 		const value = readOptionalBoolean(source, key, `features.${key}`);
@@ -462,7 +456,6 @@ function readAppPublic(value: unknown): InstanceAppPublic {
 	const branding = readRecord(source.branding, 'appPublic.branding');
 	const setup = readRecord(source.setup, 'appPublic.setup');
 	const legal = readRecord(source.legal, 'appPublic.legal');
-	const registration = readRecord(source.registration, 'appPublic.registration');
 	const accountIdentityLocked = readOptionalBoolean(
 		setup,
 		'account_identity_locked',
@@ -514,35 +507,7 @@ function readAppPublic(value: unknown): InstanceAppPublic {
 					? null
 					: readNullableAbsoluteHttpUrl(legal, 'guidelines_url', 'appPublic.legal.guidelines_url'),
 		},
-		registration: {
-			collect_date_of_birth: readBoolean(
-				registration,
-				'collect_date_of_birth',
-				'appPublic.registration.collect_date_of_birth',
-			),
-		},
 	};
-}
-
-function readAgePolicyGeo(value: unknown, index: number): InstanceAgePolicyGeo {
-	const path = `agePolicy.geos[${index.toString()}]`;
-	const source = readRecord(value, path);
-	return {
-		country_code: readNonEmptyString(source, 'country_code', `${path}.country_code`),
-		region_code: readNullableNonEmptyString(source, 'region_code', `${path}.region_code`),
-		action: readLiteral(source, 'action', `${path}.action`, AGE_POLICY_ACTIONS),
-	};
-}
-
-function readAgePolicy(value: unknown): InstanceAgePolicy | null {
-	if (value === null) {
-		return null;
-	}
-	const source = readRecord(value, 'agePolicy');
-	if (!Array.isArray(source.geos) || source.geos.length > AGE_POLICY_GEOS_MAX) {
-		invalid('agePolicy.geos', `must be an array with at most ${AGE_POLICY_GEOS_MAX.toString()} entries`);
-	}
-	return {geos: source.geos.map(readAgePolicyGeo)};
 }
 
 function readNullableDateTime(source: Record<string, unknown>, key: string, path: string): string | null {
@@ -636,7 +601,6 @@ export function requireRuntimeConfigSnapshot(value: unknown): RuntimeConfigSnaps
 		publicPushVapidKey: readNullableNonEmptyString(source, 'publicPushVapidKey', 'publicPushVapidKey'),
 		limits: readLimits(source.limits),
 		appPublic: readAppPublic(source.appPublic),
-		agePolicy: readAgePolicy(source.agePolicy),
 		domainMigration: parseInstanceDomainMigration(source.domainMigration),
 		notice: readNotice(source.notice),
 		guildBadges: readGuildBadges(source.guildBadges),

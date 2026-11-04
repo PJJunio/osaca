@@ -84,7 +84,7 @@ describe('Passkey trait', () => {
 		await getInstanceConfigRepository().updateAuthConfig({instant_accounts: {enabled: true}});
 		return await createBuilderWithoutAuth<Registered>(harness)
 			.post('/auth/register')
-			.body({global_name: 'Guest', date_of_birth: '1995-05-05'})
+			.body({global_name: 'Guest'})
 			.execute();
 	}
 
@@ -150,7 +150,7 @@ describe('Passkey trait', () => {
 		await getInstanceConfigRepository().isEmailEnabled();
 		const account = await createBuilderWithoutAuth<Registered>(harness)
 			.post('/auth/register')
-			.body({username: 'keyholder', consent: true, date_of_birth: '1995-05-05'})
+			.body({username: 'keyholder', consent: true})
 			.execute();
 		await storeCredentialWithoutTrait(createUserID(BigInt(account.user_id)));
 		await backfillPasskeyTraits(createApiContext());

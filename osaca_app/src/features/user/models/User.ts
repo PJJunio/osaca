@@ -190,7 +190,6 @@ export class User {
 	private readonly _accountTier: AccountTier | undefined;
 	private readonly _verificationNeed: AccountVerificationNeed | null | undefined;
 	private readonly _hasPassword: boolean | undefined;
-	private readonly _dateOfBirthRequired: boolean | undefined;
 
 	constructor(user: WireUser, options?: UserRecordOptions) {
 		this.instanceId = options?.instanceId ?? RuntimeConfig.localInstanceDomain;
@@ -279,7 +278,6 @@ export class User {
 		this._accountTier = hasKey(user, 'account_tier') ? user.account_tier : undefined;
 		this._verificationNeed = hasKey(user, 'verification_need') ? user.verification_need : undefined;
 		this._hasPassword = hasKey(user, 'has_password') ? user.has_password : undefined;
-		this._dateOfBirthRequired = hasKey(user, 'date_of_birth_required') ? user.date_of_birth_required : undefined;
 	}
 
 	get email(): string | null | undefined {
@@ -539,8 +537,6 @@ export class User {
 		if (verificationNeed !== undefined) result.verification_need = verificationNeed;
 		const hasPassword = pickField(this._hasPassword, u, 'has_password', opts);
 		if (hasPassword !== undefined) result.has_password = hasPassword;
-		const dateOfBirthRequired = pickField(this._dateOfBirthRequired, u, 'date_of_birth_required', opts);
-		if (dateOfBirthRequired !== undefined) result.date_of_birth_required = dateOfBirthRequired;
 		return result;
 	}
 
@@ -676,10 +672,6 @@ export class User {
 		return this._hasPassword ?? this.passwordLastChangedAt != null;
 	}
 
-	get dateOfBirthRequired(): boolean {
-		return this._dateOfBirthRequired === true;
-	}
-
 	equals(other: User): boolean {
 		if (this === other) return true;
 		return (
@@ -738,8 +730,7 @@ export class User {
 			this._claimed === other._claimed &&
 			this._accountTier === other._accountTier &&
 			this._verificationNeed === other._verificationNeed &&
-			this._hasPassword === other._hasPassword &&
-			this._dateOfBirthRequired === other._dateOfBirthRequired
+			this._hasPassword === other._hasPassword
 		);
 	}
 
@@ -827,7 +818,6 @@ export class User {
 		setOptional('account_tier', this._accountTier);
 		setOptional('verification_need', this._verificationNeed);
 		setOptional('has_password', this._hasPassword);
-		setOptional('date_of_birth_required', this._dateOfBirthRequired);
 		return {
 			...baseFields,
 			...(privateFields as Partial<UserPrivate>),

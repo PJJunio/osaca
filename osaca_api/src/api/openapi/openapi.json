@@ -17687,63 +17687,6 @@
 				]
 			}
 		},
-		"/users/@me/date-of-birth": {
-			"put": {
-				"operationId": "set_user_date_of_birth",
-				"summary": "Set date of birth",
-				"tags": ["Users"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/DateOfBirthUpdateResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Sets the date of birth once, for accounts that do not have one yet. It cannot be changed afterwards. The minimum age depends on the country the request comes from. Below it, the account is closed and deleted after 72 hours. Returns the updated account and the community to open next, when an invite was used at sign-up.",
-				"security": [{"sessionToken": []}],
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/DateOfBirthUpdateRequest"}}}
-				}
-			}
-		},
 		"/users/@me/delete": {
 			"post": {
 				"operationId": "delete_current_user_account",
@@ -27354,10 +27297,6 @@
 						"anyOf": [{"$ref": "#/components/schemas/AccountVerificationNeedSchema"}, {"type": "null"}]
 					},
 					"has_password": {"description": "Whether the account has a password", "type": "boolean"},
-					"date_of_birth_required": {
-						"description": "Whether the account still has to enter its date of birth, which clients ask for before anything else",
-						"type": "boolean"
-					},
 					"profile_restricted": {
 						"description": "Whether other people see only the username and tag of this account until it has a confirmed email address",
 						"type": "boolean"
@@ -29979,23 +29918,6 @@
 				},
 				"required": ["email_token"]
 			},
-			"DateOfBirthUpdateRequest": {
-				"type": "object",
-				"properties": {"date_of_birth": {"description": "Date of birth in YYYY-MM-DD format", "type": "string"}},
-				"required": ["date_of_birth"]
-			},
-			"DateOfBirthUpdateResponse": {
-				"type": "object",
-				"properties": {
-					"user": {"$ref": "#/components/schemas/UserPrivateResponse"},
-					"entry": {
-						"anyOf": [{"$ref": "#/components/schemas/GuildEntryResult"}, {"type": "null"}],
-						"description": "Community to open next, from an invite used during sign-up"
-					}
-				},
-				"required": ["user", "entry"],
-				"additionalProperties": false
-			},
 			"ConnectionType": {
 				"description": "The type of external connection",
 				"x-enumNames": ["BLUESKY", "DOMAIN"],
@@ -30645,10 +30567,6 @@
 						"anyOf": [{"$ref": "#/components/schemas/AccountVerificationNeedSchema"}, {"type": "null"}]
 					},
 					"has_password": {"description": "Whether the account has a password", "type": "boolean"},
-					"date_of_birth_required": {
-						"description": "Whether the account still has to enter its date of birth, which clients ask for before anything else",
-						"type": "boolean"
-					},
 					"profile_restricted": {
 						"description": "Whether other people see only the username and tag of this account until it has a confirmed email address",
 						"type": "boolean"
@@ -36472,7 +36390,6 @@
 					},
 					"global_name": {"description": "Display name shown to other users", "type": "string"},
 					"password": {"description": "Password for the new account", "$ref": "#/components/schemas/PasswordType"},
-					"date_of_birth": {"description": "Date of birth in YYYY-MM-DD format", "type": "string"},
 					"consent": {
 						"default": false,
 						"description": "Whether the person submitted the step that says creating the account accepts the terms of service. Must be true when the instance publishes terms or a privacy policy",
@@ -37271,24 +37188,11 @@
 								"required": ["terms_url", "privacy_url", "guidelines_url"],
 								"additionalProperties": false,
 								"description": "Optional legal and policy document URLs shown to users"
-							},
-							"registration": {
-								"type": "object",
-								"properties": {
-									"collect_date_of_birth": {
-										"type": "boolean",
-										"description": "Whether public registration collects and validates date of birth"
-									}
-								},
-								"required": ["collect_date_of_birth"],
-								"additionalProperties": false,
-								"description": "Public registration field collection policy"
 							}
 						},
 						"description": "Public application configuration for client-side features",
 						"$ref": "#/components/schemas/InstanceAppPublicSchema"
 					},
-					"age_policy": {"$ref": "#/components/schemas/InstanceAgePolicySchema"},
 					"notice": {
 						"description": "Notice from the instance administrator, or null when there is none",
 						"anyOf": [{"$ref": "#/components/schemas/InstanceNoticeSchema"}, {"type": "null"}]
@@ -37335,8 +37239,7 @@
 					"services",
 					"limits",
 					"push",
-					"app_public",
-					"age_policy"
+					"app_public"
 				],
 				"additionalProperties": false
 			},
@@ -37445,19 +37348,6 @@
 				"additionalProperties": false,
 				"description": "Notice from the instance administrator shown to everyone, such as planned maintenance"
 			},
-			"InstanceAgePolicySchema": {
-				"type": "object",
-				"properties": {
-					"geos": {
-						"type": "array",
-						"items": {"$ref": "#/components/schemas/InstanceAgePolicyGeoSchema"},
-						"description": "Regions with an age policy"
-					}
-				},
-				"required": ["geos"],
-				"additionalProperties": false,
-				"description": "Regional age policy for this instance"
-			},
 			"InstanceAppPublicSchema": {
 				"type": "object",
 				"properties": {
@@ -37482,21 +37372,9 @@
 						"required": ["terms_url", "privacy_url", "guidelines_url"],
 						"additionalProperties": false,
 						"description": "Optional legal and policy document URLs shown to users"
-					},
-					"registration": {
-						"type": "object",
-						"properties": {
-							"collect_date_of_birth": {
-								"type": "boolean",
-								"description": "Whether public registration collects and validates date of birth"
-							}
-						},
-						"required": ["collect_date_of_birth"],
-						"additionalProperties": false,
-						"description": "Public registration field collection policy"
 					}
 				},
-				"required": ["branding", "setup", "legal", "registration"],
+				"required": ["branding", "setup", "legal"],
 				"additionalProperties": false
 			},
 			"InstanceSetupSchema": {
@@ -37771,10 +37649,6 @@
 						"description": "Whether the instance can send sign-in and verification codes by email. Missing means false",
 						"type": "boolean"
 					},
-					"date_of_birth_step": {
-						"description": "Whether accounts enter their date of birth in a step after they are created, so sign-up never asks for it. Missing means false",
-						"type": "boolean"
-					},
 					"instant_account_availability": {
 						"description": "Whether accounts can be created from just a display name through public sign-up, and why not. Missing means instant_accounts decides",
 						"$ref": "#/components/schemas/InstantAccountAvailabilitySchema"
@@ -37962,24 +37836,6 @@
 				"enum": ["setup_configured", "existing_instance", "admin_exists", "accounts_exist"],
 				"type": "string"
 			},
-			"InstanceAgePolicyGeoSchema": {
-				"type": "object",
-				"properties": {
-					"country_code": {"type": "string", "description": "ISO 3166-1 alpha-2 country code"},
-					"region_code": {
-						"description": "ISO 3166-2 subdivision code, or null for the whole country",
-						"type": ["string", "null"]
-					},
-					"action": {
-						"description": "Whether the region restricts or blocks access",
-						"$ref": "#/components/schemas/InstanceAgePolicyActionSchema"
-					}
-				},
-				"required": ["country_code", "region_code", "action"],
-				"additionalProperties": false,
-				"description": "Age policy for one region"
-			},
-			"InstanceAgePolicyActionSchema": {"type": "string", "enum": ["restrict", "block"]},
 			"CustomBadgePositionType": {
 				"type": "string",
 				"pattern": "^-?[0-9]{1,19}$",
@@ -45177,9 +45033,6 @@
 					"VOICE_SERVER_ID_IN_USE",
 					"WEBAUTHN_CREDENTIAL_LIMIT_REACHED",
 					"ACCOUNT_VERIFICATION_REQUIRED",
-					"DATE_OF_BIRTH_REQUIRED",
-					"DATE_OF_BIRTH_ALREADY_SET",
-					"ACCOUNT_BELOW_MINIMUM_AGE",
 					"UNKNOWN_SIGN_IN_TICKET",
 					"INVALID_SIGN_IN_CODE",
 					"SIGN_IN_CODE_EXPIRED",
@@ -45194,7 +45047,6 @@
 					"USE_CLAIM_ROUTE",
 					"PASSWORD_REQUIRED_TO_CLAIM",
 					"GUILD_VISITS_DISABLED",
-					"GUILD_VISIT_AGE_RESTRICTED",
 					"GUILD_VISIT_NOT_FOUND"
 				],
 				"description": "Known error codes returned by API operations",
@@ -45551,9 +45403,6 @@
 					"Another voice server already uses this ID.",
 					"You can't have more than {count, plural, one {# WebAuthn credential} other {# WebAuthn credentials}}.",
 					"{need, select, add_email {{action, select, message {Add an email to your account to send messages.} typing {Add an email to your account to send messages.} reaction {Add an email to your account to add reactions.} direct_message {Add an email to your account to send direct messages.} direct_message_open {Add an email to your account to start direct messages.} group_dm {Add an email to your account to join group chats.} friend_request {Add an email to your account to send friend requests.} friend_accept {Add an email to your account to accept friend requests.} invite_create {Add an email to your account to create invites.} guild_join {Add an email to your account to join this community.} guild_create {Add an email to your account to create a community.} voice {Add an email to your account to join voice channels.} call {Add an email to your account to start calls.} group_call {Add an email to your account to join group calls.} thread_join {Add an email to your account to join threads.} channel_follow {Add an email to your account to follow channels.} ownership_transfer {This person needs to add an email to their account before they can own a community.} application_create {Add an email to your account to create applications.} gift_redeem {Add an email to your account to redeem gifts.} profile_customize {Add an email to your account to change your profile.} report {Add an email to your account to submit reports.} mfa {Add an email to your account to turn on two-factor authentication.} guild_verification {Add an email to your account to talk in this community.} other {Add an email to your account to do this.}}} confirm_email {{action, select, message {Confirm your email to send messages.} typing {Confirm your email to send messages.} reaction {Confirm your email to add reactions.} direct_message {Confirm your email to send direct messages.} direct_message_open {Confirm your email to start direct messages.} group_dm {Confirm your email to join group chats.} friend_request {Confirm your email to send friend requests.} friend_accept {Confirm your email to accept friend requests.} invite_create {Confirm your email to create invites.} guild_join {Confirm your email to join this community.} guild_create {Confirm your email to create a community.} voice {Confirm your email to join voice channels.} call {Confirm your email to start calls.} group_call {Confirm your email to join group calls.} thread_join {Confirm your email to join threads.} channel_follow {Confirm your email to follow channels.} ownership_transfer {This person needs to confirm their email before they can own a community.} application_create {Confirm your email to create applications.} gift_redeem {Confirm your email to redeem gifts.} profile_customize {Confirm your email to change your profile.} report {Confirm your email to submit reports.} mfa {Confirm your email to turn on two-factor authentication.} guild_verification {Confirm your email to talk in this community.} other {Confirm your email to do this.}}} password {{action, select, message {Set a password to send messages.} typing {Set a password to send messages.} reaction {Set a password to add reactions.} direct_message {Set a password to send direct messages.} direct_message_open {Set a password to start direct messages.} group_dm {Set a password to join group chats.} friend_request {Set a password to send friend requests.} friend_accept {Set a password to accept friend requests.} invite_create {Set a password to create invites.} guild_join {Set a password to join this community.} guild_create {Set a password to create a community.} voice {Set a password to join voice channels.} call {Set a password to start calls.} group_call {Set a password to join group calls.} thread_join {Set a password to join threads.} channel_follow {Set a password to follow channels.} ownership_transfer {This person needs to set a password before they can own a community.} application_create {Set a password to create applications.} gift_redeem {Set a password to redeem gifts.} profile_customize {Set a password to change your profile.} report {Set a password to submit reports.} mfa {Set a password to turn on two-factor authentication.} guild_verification {Set a password to talk in this community.} other {Set a password to do this.}}} other {{action, select, message {Claim your account to send messages.} typing {Claim your account to send messages.} reaction {Claim your account to add reactions.} direct_message {Claim your account to send direct messages.} direct_message_open {Claim your account to start direct messages.} group_dm {Claim your account to join group chats.} friend_request {Claim your account to send friend requests.} friend_accept {Claim your account to accept friend requests.} invite_create {Claim your account to create invites.} guild_join {Claim your account to join this community.} guild_create {Claim your account to create a community.} voice {Claim your account to join voice channels.} call {Claim your account to start calls.} group_call {Claim your account to join group calls.} thread_join {Claim your account to join threads.} channel_follow {Claim your account to follow channels.} ownership_transfer {This person needs to claim their account before they can own a community.} application_create {Claim your account to create applications.} gift_redeem {Claim your account to redeem gifts.} profile_customize {Claim your account to change your profile.} report {Claim your account to submit reports.} mfa {Claim your account to turn on two-factor authentication.} guild_verification {Claim your account to talk in this community.} other {Claim your account to do this.}}}}",
-					"Enter your date of birth to continue.",
-					"Your date of birth is already set.",
-					"You aren't old enough to have an account here.",
 					"This sign-in attempt has expired. Start again.",
 					"That code isn't right. Check it and try again.",
 					"This code has expired. Ask for a new one.",
@@ -45568,7 +45417,6 @@
 					"Add an email address to your account first.",
 					"{reason, select, email_delivery_off {Set a password to keep this account. This instance can't send email codes.} local_credential_basis {Set a password to keep this account. This instance asks every account for a password or passkey.} other {Set a password to keep this account.}}",
 					"This community asks people to join before previewing it.",
-					"This community is for adults only.",
 					"You're not previewing this community anymore."
 				]
 			}

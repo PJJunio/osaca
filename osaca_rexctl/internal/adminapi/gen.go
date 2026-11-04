@@ -78,27 +78,6 @@ func (e AccountTierSchema) Valid() bool {
 	}
 }
 
-// Defines values for AccountsConfigUpdateRequestDateOfBirthEnforcement.
-const (
-	All         AccountsConfigUpdateRequestDateOfBirthEnforcement = "all"
-	NewAccounts AccountsConfigUpdateRequestDateOfBirthEnforcement = "new_accounts"
-	Off         AccountsConfigUpdateRequestDateOfBirthEnforcement = "off"
-)
-
-// Valid indicates whether the value is a known member of the AccountsConfigUpdateRequestDateOfBirthEnforcement enum.
-func (e AccountsConfigUpdateRequestDateOfBirthEnforcement) Valid() bool {
-	switch e {
-	case All:
-		return true
-	case NewAccounts:
-		return true
-	case Off:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for AdminAclType.
 const (
 	AclSetUser                    AdminAclType = "acl:set:user"
@@ -197,7 +176,6 @@ const (
 	UserTempBan                   AdminAclType = "user:temp_ban"
 	UserUpdateBadges              AdminAclType = "user:update:badges"
 	UserUpdateBotStatus           AdminAclType = "user:update:bot_status"
-	UserUpdateDob                 AdminAclType = "user:update:dob"
 	UserUpdateEmail               AdminAclType = "user:update:email"
 	UserUpdateFlags               AdminAclType = "user:update:flags"
 	UserUpdateMfa                 AdminAclType = "user:update:mfa"
@@ -205,7 +183,6 @@ const (
 	UserUpdateTraits              AdminAclType = "user:update:traits"
 	UserUpdateUsername            AdminAclType = "user:update:username"
 	UserViewContactLog            AdminAclType = "user:view:contact_log"
-	UserViewDob                   AdminAclType = "user:view:dob"
 	UserViewEmail                 AdminAclType = "user:view:email"
 	UserViewIp                    AdminAclType = "user:view:ip"
 	VoiceJoinTokenCreate          AdminAclType = "voice:join_token:create"
@@ -416,8 +393,6 @@ func (e AdminAclType) Valid() bool {
 		return true
 	case UserUpdateBotStatus:
 		return true
-	case UserUpdateDob:
-		return true
 	case UserUpdateEmail:
 		return true
 	case UserUpdateFlags:
@@ -431,8 +406,6 @@ func (e AdminAclType) Valid() bool {
 	case UserUpdateUsername:
 		return true
 	case UserViewContactLog:
-		return true
-	case UserViewDob:
 		return true
 	case UserViewEmail:
 		return true
@@ -552,30 +525,6 @@ func (e CleanupModeSchema) Valid() bool {
 	}
 }
 
-// Defines values for DateOfBirthPolicySchema.
-const (
-	DateOfBirthPolicySchemaASK                DateOfBirthPolicySchema = "ask"
-	DateOfBirthPolicySchemaOFF                DateOfBirthPolicySchema = "off"
-	DateOfBirthPolicySchemaREQUIREALL         DateOfBirthPolicySchema = "require_all"
-	DateOfBirthPolicySchemaREQUIRENEWACCOUNTS DateOfBirthPolicySchema = "require_new_accounts"
-)
-
-// Valid indicates whether the value is a known member of the DateOfBirthPolicySchema enum.
-func (e DateOfBirthPolicySchema) Valid() bool {
-	switch e {
-	case DateOfBirthPolicySchemaASK:
-		return true
-	case DateOfBirthPolicySchemaOFF:
-		return true
-	case DateOfBirthPolicySchemaREQUIREALL:
-		return true
-	case DateOfBirthPolicySchemaREQUIRENEWACCOUNTS:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for DeleteAllUserMessagesResponseSuccess.
 const (
 	True DeleteAllUserMessagesResponseSuccess = true
@@ -595,7 +544,6 @@ func (e DeleteAllUserMessagesResponseSuccess) Valid() bool {
 const (
 	DeletionReasonCodeAUTOMATIONORSELFBOT          DeletionReasonCode = 6
 	DeletionReasonCodeBANEVASION                   DeletionReasonCode = 17
-	DeletionReasonCodeBELOWMINIMUMAGE              DeletionReasonCode = 32
 	DeletionReasonCodeBILLINGDISPUTEORABUSE        DeletionReasonCode = 14
 	DeletionReasonCodeCHEATINGOREXPLOITATION       DeletionReasonCode = 4
 	DeletionReasonCodeCHILDSAFETYVIOLATION         DeletionReasonCode = 13
@@ -635,8 +583,6 @@ func (e DeletionReasonCode) Valid() bool {
 	case DeletionReasonCodeAUTOMATIONORSELFBOT:
 		return true
 	case DeletionReasonCodeBANEVASION:
-		return true
-	case DeletionReasonCodeBELOWMINIMUMAGE:
 		return true
 	case DeletionReasonCodeBILLINGDISPUTEORABUSE:
 		return true
@@ -1283,16 +1229,16 @@ func (e InteractionTierModeSchema) Valid() bool {
 
 // Defines values for LastSessionCleanupModeSchema.
 const (
-	AFTERGRACE LastSessionCleanupModeSchema = "after_grace"
-	OFF        LastSessionCleanupModeSchema = "off"
+	LastSessionCleanupModeSchemaAFTERGRACE LastSessionCleanupModeSchema = "after_grace"
+	LastSessionCleanupModeSchemaOFF        LastSessionCleanupModeSchema = "off"
 )
 
 // Valid indicates whether the value is a known member of the LastSessionCleanupModeSchema enum.
 func (e LastSessionCleanupModeSchema) Valid() bool {
 	switch e {
-	case AFTERGRACE:
+	case LastSessionCleanupModeSchemaAFTERGRACE:
 		return true
-	case OFF:
+	case LastSessionCleanupModeSchemaOFF:
 		return true
 	default:
 		return false
@@ -1478,14 +1424,6 @@ type AccountTierSchema string
 
 // AccountsConfigSchema defines model for AccountsConfigSchema.
 type AccountsConfigSchema struct {
-	DateOfBirth       DateOfBirthPolicySchema `json:"date_of_birth"`
-	DobMissingCleanup struct {
-		// InactiveDays Days without use before such an account is deleted
-		InactiveDays int `json:"inactive_days"`
-
-		// Mode Whether accounts that were created without a date of birth and never entered one are deleted
-		Mode CleanupModeSchema `json:"mode"`
-	} `json:"dob_missing_cleanup"`
 	GuildJoinGate      GuildJoinGateSchema `json:"guild_join_gate"`
 	InactivityDeletion struct {
 		// InactiveDays Days without use before the warning email is sent
@@ -1511,21 +1449,10 @@ type AccountsConfigSchema struct {
 
 // AccountsConfigUpdateRequest defines model for AccountsConfigUpdateRequest.
 type AccountsConfigUpdateRequest struct {
-	// AbandonedAccountCleanup Deprecated, use unclaimed_account_cleanup and dob_missing_cleanup
-	AbandonedAccountCleanup *bool                    `json:"abandoned_account_cleanup,omitempty"`
-	DateOfBirth             *DateOfBirthPolicySchema `json:"date_of_birth,omitempty"`
-
-	// DateOfBirthEnforcement Deprecated, use date_of_birth
-	DateOfBirthEnforcement *AccountsConfigUpdateRequestDateOfBirthEnforcement `json:"date_of_birth_enforcement,omitempty"`
-	DobMissingCleanup      *struct {
-		// InactiveDays Days without use before such an account is deleted
-		InactiveDays *int `json:"inactive_days,omitempty"`
-
-		// Mode Whether accounts that were created without a date of birth and never entered one are deleted
-		Mode *CleanupModeSchema `json:"mode,omitempty"`
-	} `json:"dob_missing_cleanup,omitempty"`
-	GuildJoinGate      *GuildJoinGateSchema `json:"guild_join_gate,omitempty"`
-	InactivityDeletion *struct {
+	// AbandonedAccountCleanup Deprecated, use unclaimed_account_cleanup
+	AbandonedAccountCleanup *bool                `json:"abandoned_account_cleanup,omitempty"`
+	GuildJoinGate           *GuildJoinGateSchema `json:"guild_join_gate,omitempty"`
+	InactivityDeletion      *struct {
 		// InactiveDays Days without use before the warning email is sent
 		InactiveDays *int `json:"inactive_days,omitempty"`
 
@@ -1546,9 +1473,6 @@ type AccountsConfigUpdateRequest struct {
 	} `json:"unclaimed_account_cleanup,omitempty"`
 	VerificationBasis *VerificationBasisSchema `json:"verification_basis,omitempty"`
 }
-
-// AccountsConfigUpdateRequestDateOfBirthEnforcement Deprecated, use date_of_birth
-type AccountsConfigUpdateRequestDateOfBirthEnforcement string
 
 // AdminAclType defines model for AdminAclType.
 type AdminAclType string
@@ -1954,9 +1878,6 @@ type CreateVoiceServerTestTokenResponse struct {
 // CustomBadgeIdListResponse IDs of the custom badges assigned to it
 type CustomBadgeIdListResponse = []SnowflakeStringType
 
-// DateOfBirthPolicySchema Whether the instance asks for a date of birth, and who must enter one
-type DateOfBirthPolicySchema string
-
 // DeleteAllUserMessagesResponse defines model for DeleteAllUserMessagesResponse.
 type DeleteAllUserMessagesResponse struct {
 	ChannelCount Int32Type `json:"channel_count"`
@@ -2258,10 +2179,6 @@ type InstanceConfigResponse struct {
 			PrivacyUrl    *string `json:"privacy_url"`
 			TermsUrl      *string `json:"terms_url"`
 		} `json:"legal"`
-		Registration struct {
-			// CollectDateOfBirth Deprecated, derived from accounts.date_of_birth not being off
-			CollectDateOfBirth bool `json:"collect_date_of_birth"`
-		} `json:"registration"`
 		Setup struct {
 			Configured bool `json:"configured"`
 		} `json:"setup"`
@@ -2491,10 +2408,6 @@ type InstanceConfigUpdateRequest struct {
 			PrivacyUrl    *string `json:"privacy_url,omitempty"`
 			TermsUrl      *string `json:"terms_url,omitempty"`
 		} `json:"legal,omitempty"`
-		Registration *struct {
-			// CollectDateOfBirth Deprecated, use accounts.date_of_birth. false sets it to off
-			CollectDateOfBirth *bool `json:"collect_date_of_birth,omitempty"`
-		} `json:"registration,omitempty"`
 		Setup *struct {
 			Configured *bool `json:"configured,omitempty"`
 		} `json:"setup,omitempty"`
@@ -3029,11 +2942,7 @@ type UserAdminResponseSchema struct {
 	Bot                bool                      `json:"bot"`
 
 	// Claimed Whether the account can be signed in to from another device
-	Claimed     bool    `json:"claimed"`
-	DateOfBirth *string `json:"date_of_birth"`
-
-	// DateOfBirthRequired Whether the account still has to enter its date of birth, which clients ask for before anything else
-	DateOfBirthRequired bool `json:"date_of_birth_required"`
+	Claimed bool `json:"claimed"`
 
 	// DeletionAuditLogReason Private reason recorded with the pending deletion, null without the audit log view permission
 	DeletionAuditLogReason *string `json:"deletion_audit_log_reason"`

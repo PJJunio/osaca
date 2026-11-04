@@ -15,21 +15,6 @@ export const GuildEntryResult = z
 
 export type GuildEntryResult = z.infer<typeof GuildEntryResult>;
 
-export const DateOfBirthUpdateRequest = z.object({
-	date_of_birth: createStringType(10, 10)
-		.refine((value) => /^\d{4}-\d{2}-\d{2}$/.test(value), 'Invalid date format')
-		.describe('Date of birth in YYYY-MM-DD format'),
-});
-
-export type DateOfBirthUpdateRequest = z.infer<typeof DateOfBirthUpdateRequest>;
-
-export const DateOfBirthUpdateResponse = z.object({
-	user: UserPrivateResponse,
-	entry: GuildEntryResult.nullable().describe('Community to open next, from an invite used during sign-up'),
-});
-
-export type DateOfBirthUpdateResponse = z.infer<typeof DateOfBirthUpdateResponse>;
-
 const CodeDeliveryFields = {
 	code_expires_at: z.iso.datetime().describe('When the emailed code stops working'),
 	resend_available_at: z.iso.datetime().describe('When another code can be requested'),

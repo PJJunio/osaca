@@ -24,7 +24,7 @@ describe('User settings defaults', () => {
 	});
 	it('defaults incoming calls to friends-only (adult and minor)', async () => {
 		const incomingCallFriendsOnly = 8;
-		const adult = await createTestAccount(harness, {dateOfBirth: '2000-01-01'});
+		const adult = await createTestAccount(harness);
 		const adultSettings = await fetchSettings(harness, adult.token);
 		expect(adultSettings.response.status).toBe(200);
 		expect(
@@ -39,7 +39,6 @@ describe('User settings defaults', () => {
 			username: createUniqueUsername(),
 			global_name: 'Minor Settings',
 			password: 'a-strong-password',
-			date_of_birth: '2012-01-01',
 			consent: true,
 		});
 		const minorSettings = await fetchSettings(harness, minorReg.token);

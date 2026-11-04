@@ -83,7 +83,6 @@ import {
 	timeRpcStepSync,
 } from '@app/api/rpc/RpcTimings';
 import {getAccountTier} from '@app/api/user/AccountTier';
-import {isDateOfBirthEnforced} from '@app/api/user/DateOfBirth';
 import type {UserRepository} from '@app/api/user/repositories/UserRepository';
 import {CustomStatusValidator} from '@app/api/user/services/CustomStatusValidator';
 import {
@@ -98,7 +97,6 @@ import {
 	mapUserToPrivateResponse,
 	mapWebAuthnCredentialToResponse,
 } from '@app/api/user/UserMappers';
-import {canUserAccessNsfwContent} from '@app/api/utils/AgeUtils';
 import {deriveDominantAvatarColor} from '@app/api/utils/AvatarColorUtils';
 import {allSettledWithConcurrency} from '@app/api/utils/ConcurrencyUtils';
 import {calculateDistance, parseCoordinate} from '@app/api/utils/GeoUtils';
@@ -1101,7 +1099,7 @@ export class RpcService {
 			Promise.all(userData.guildSettings.map((settings) => mapUserGuildSettingsForViewer(settings, sessionViewer))),
 		);
 		const visitGuildIds =
-			guildVisitsCapable && !isDateOfBirthEnforced(user)
+			guildVisitsCapable
 				? await timings.time('resolve_guild_visits', async () =>
 						resolveSessionGuildVisits({user, ip: ip ?? null, memberGuildIds: userData.guildIds}),
 					)
@@ -1150,7 +1148,7 @@ export class RpcService {
 			operator_visit_guild_ids: visitGuildIds
 				.filter((visit) => visit.operator)
 				.map((visit) => visit.guildId.toString()),
-			adult_content_allowed: canUserAccessNsfwContent(user),
+			adult_content_allowed: true,
 			account_tier: getAccountTier(user),
 			ip_key: ip ? (getSameIpDecisionKey(ip) ?? ip) : null,
 		};
@@ -1597,12 +1595,11 @@ export class RpcService {
 			const needsIncomingCallRepair = settings.incomingCallFlags === 0;
 			const needsGroupDmRepair = settings.groupDmAddPermissionFlags === 0;
 			if (needsIncomingCallRepair || needsGroupDmRepair) {
-				const isAdult = canUserAccessNsfwContent({isBot: false, dateOfBirth: user.dateOfBirth});
 				const baseRow = settings.toRow();
 				const updatedRow = {
 					...baseRow,
 					...(needsIncomingCallRepair && {
-						incoming_call_flags: isAdult ? IncomingCallFlags.EVERYONE : IncomingCallFlags.FRIENDS_ONLY,
+						incoming_call_flags: IncomingCallFlags.EVERYONE,
 					}),
 					...(needsGroupDmRepair && {group_dm_add_permission_flags: GroupDmAddPermissionFlags.FRIENDS_ONLY}),
 				};
@@ -1618,7 +1615,7 @@ export class RpcService {
 			guildSettings,
 			notes,
 			readStates,
-			guildIds: isDateOfBirthEnforced(user) ? [] : guildIds,
+			guildIds,
 			privateChannels,
 			relationships,
 			favoriteMemes,

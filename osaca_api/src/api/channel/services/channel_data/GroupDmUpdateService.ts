@@ -15,7 +15,6 @@ import type {ISnowflakeService} from '@app/api/infrastructure/ISnowflakeService'
 import type {RequestCache} from '@app/api/middleware/RequestCacheMiddleware';
 import type {Channel} from '@app/api/models/Channel';
 import type {UserRepository} from '@app/api/user/repositories/UserRepository';
-import {canUserAccessNsfwContent} from '@app/api/utils/AgeUtils';
 import {MessageTypes} from '@osaca/constants/src/ChannelConstants';
 import {GroupDmMatureContentIneligibleError} from '@osaca/errors/src/domains/channel/GroupDmMatureContentIneligibleError';
 import {MissingPermissionsError} from '@osaca/errors/src/domains/core/MissingPermissionsError';
@@ -119,7 +118,7 @@ export class GroupDmUpdateService {
 				const recipients = await Promise.all(
 					Array.from(channel.recipientIds).map((id) => this.userRepository.findUnique(id)),
 				);
-				if (recipients.some((recipient) => !recipient || !canUserAccessNsfwContent(recipient))) {
+				if (recipients.some((recipient) => !recipient)) {
 					throw new GroupDmMatureContentIneligibleError();
 				}
 			}

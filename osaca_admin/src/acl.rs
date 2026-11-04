@@ -94,13 +94,11 @@ pub const USER_LIST_SESSIONS: &str = "user:list:sessions";
 pub const USER_LOOKUP: &str = "user:lookup";
 pub const USER_REMOVE_RELATIONSHIP: &str = "user:remove:relationship";
 pub const USER_VIEW_CONTACT_LOG: &str = "user:view:contact_log";
-pub const USER_VIEW_DOB: &str = "user:view:dob";
 pub const USER_VIEW_EMAIL: &str = "user:view:email";
 pub const USER_VIEW_IP: &str = "user:view:ip";
 pub const USER_TEMP_BAN: &str = "user:temp_ban";
 pub const USER_UPDATE_BADGES: &str = "user:update:badges";
 pub const USER_UPDATE_BOT_STATUS: &str = "user:update:bot_status";
-pub const USER_UPDATE_DOB: &str = "user:update:dob";
 pub const USER_UPDATE_EMAIL: &str = "user:update:email";
 pub const USER_UPDATE_FLAGS: &str = "user:update:flags";
 pub const USER_UPDATE_MFA: &str = "user:update:mfa";
@@ -213,13 +211,11 @@ pub const ALL_ACLS: &[&str] = &[
     USER_LOOKUP,
     USER_REMOVE_RELATIONSHIP,
     USER_VIEW_CONTACT_LOG,
-    USER_VIEW_DOB,
     USER_VIEW_EMAIL,
     USER_VIEW_IP,
     USER_TEMP_BAN,
     USER_UPDATE_BADGES,
     USER_UPDATE_BOT_STATUS,
-    USER_UPDATE_DOB,
     USER_UPDATE_EMAIL,
     USER_UPDATE_FLAGS,
     USER_UPDATE_MFA,

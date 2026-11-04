@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type {UserID} from '@app/api/BrandedTypes';
-import {LocalDate} from '@app/api/database/LocalDate';
 import type {UserRow} from '@app/api/database/types/UserTypes';
 import {checkIsPremium, getEffectivePremiumUntil} from '@app/api/user/UserHelpers';
 import {isProfileBadgeKey, type ProfileBadgeKey} from '@osaca/constants/src/BadgeConstants';
@@ -37,7 +36,6 @@ export class User {
 	readonly accentColor: number | null;
 	readonly timezone: string | null;
 	readonly timezonePrivacyFlags: number;
-	readonly dateOfBirth: string | null;
 	readonly locale: string | null;
 	readonly flags: bigint;
 	readonly premiumFlags: number;
@@ -104,7 +102,6 @@ export class User {
 		this.accentColor = row.accent_color ?? null;
 		this.timezone = row.timezone ?? null;
 		this.timezonePrivacyFlags = row.timezone_privacy_flags ?? ProfileFieldPrivacyFlags.EVERYONE;
-		this.dateOfBirth = row.date_of_birth ? row.date_of_birth.toString() : null;
 		this.locale = row.locale ?? null;
 		const rawFlags = row.flags ?? 0n;
 		this.flags = rawFlags;
@@ -189,7 +186,6 @@ export class User {
 			accent_color: this.accentColor,
 			timezone: this.timezone,
 			timezone_privacy_flags: this.timezonePrivacyFlags,
-			date_of_birth: this.dateOfBirth ? LocalDate.fromString(this.dateOfBirth) : null,
 			locale: this.locale,
 			flags: this.flags,
 			premium_flags: this.premiumFlags,

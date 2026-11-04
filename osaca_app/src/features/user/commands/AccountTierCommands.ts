@@ -5,20 +5,10 @@ import {http} from '@app/features/platform/transport/RestTransport';
 import Users from '@app/features/user/state/Users';
 import type {
 	ClaimAccountResponse,
-	DateOfBirthUpdateResponse,
 	EmailVerificationCodeResponse,
-	GuildEntryResult,
 	SudoEmailCodeResponse,
 } from '@osaca/schema/src/domains/user/AccountSchemas';
 import type {UserPrivateResponse} from '@osaca/schema/src/domains/user/UserResponseSchemas';
-
-export async function setDateOfBirth(dateOfBirth: string): Promise<GuildEntryResult | null> {
-	const response = await http.put<DateOfBirthUpdateResponse>(Endpoints.USER_DATE_OF_BIRTH, {
-		body: {date_of_birth: dateOfBirth},
-	});
-	Users.handleUserUpdate(response.body.user);
-	return response.body.entry;
-}
 
 export async function claimAccount(email: string, password: string | null): Promise<ClaimAccountResponse> {
 	const response = await http.post<ClaimAccountResponse>(Endpoints.USER_CLAIM, {

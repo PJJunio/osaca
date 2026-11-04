@@ -13,7 +13,6 @@ import {
 	needsPasswordStep,
 } from '@app/features/auth/flow/identifier_first/IdentifierFirstState';
 import {QuietButton} from '@app/features/auth/flow/QuietButton';
-import {isAgeBlocked} from '@app/features/auth/state/AccountEntryStorage';
 import {CONTINUE_DESCRIPTOR, EMAIL_DESCRIPTOR} from '@app/features/i18n/utils/CommonMessageDescriptors';
 import {Button} from '@app/features/ui/button/Button';
 import {msg} from '@lingui/core/macro';
@@ -56,7 +55,6 @@ interface AuthIdentifierEmailStepProps
 	readonly run: (work: () => Promise<void>) => Promise<void>;
 	readonly goTo: (step: IdentifierStep) => void;
 	readonly sendCode: (request: CodeDeliveryRequest) => Promise<void>;
-	readonly onAgeBlocked: () => void;
 }
 
 export function AuthIdentifierEmailStep({
@@ -82,7 +80,6 @@ export function AuthIdentifierEmailStep({
 	run,
 	goTo,
 	sendCode,
-	onAgeBlocked,
 }: AuthIdentifierEmailStepProps) {
 	const {i18n} = useLingui();
 	const handleEmailSubmit = () =>
@@ -96,10 +93,6 @@ export function AuthIdentifierEmailStep({
 			}
 			if (decision.kind === 'password') {
 				goTo({kind: 'password', email: address, ticket: response.ticket});
-				return;
-			}
-			if (isAgeBlocked() && response.account === 'new') {
-				onAgeBlocked();
 				return;
 			}
 			if (decision.kind === 'create_password') {
@@ -169,10 +162,6 @@ export function AuthIdentifierEmailStep({
 				{instantAccounts ? (
 					<QuietButton
 						onClick={() => {
-							if (isAgeBlocked()) {
-								onAgeBlocked();
-								return;
-							}
 							goTo({kind: 'name'});
 						}}
 						data-flx="auth.flow.identifier-first.auth-identifier-first-step.quiet-button.go-to--4"

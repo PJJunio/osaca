@@ -284,7 +284,6 @@ export class ApplicationService {
 					accent_color: null,
 					timezone: null,
 					timezone_privacy_flags: ProfileFieldPrivacyFlags.EVERYONE,
-					date_of_birth: null,
 					flags: UserFlags.DELETED,
 					premium_type: null,
 					premium_since: null,

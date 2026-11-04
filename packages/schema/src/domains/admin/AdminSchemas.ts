@@ -628,9 +628,6 @@ const AppPublicConfigResponse = z.object({
 		privacy_url: z.string().nullable(),
 		guidelines_url: z.string().nullable(),
 	}),
-	registration: z.object({
-		collect_date_of_birth: z.boolean().describe('Deprecated, derived from accounts.date_of_birth not being off'),
-	}),
 });
 
 function isAbsoluteHttpUrl(value: string): boolean {
@@ -682,14 +679,6 @@ const AppPublicConfigUpdateRequest = z.object({
 			guidelines_url: z.string().trim().max(2048).refine(isAbsoluteHttpUrl).nullish(),
 		})
 		.register(schemaMetadata, {preserveNullFields: true})
-		.nullish(),
-	registration: z
-		.object({
-			collect_date_of_birth: z
-				.boolean()
-				.optional()
-				.describe('Deprecated, use accounts.date_of_birth. false sets it to off'),
-		})
 		.nullish(),
 });
 

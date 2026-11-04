@@ -318,7 +318,7 @@ describe('Email change flow', () => {
 		const owner = await createTestAccount(harness);
 		const holder = await createBuilderWithoutAuth<{token: string}>(harness)
 			.post('/auth/register')
-			.body({username: 'pendingholder', consent: true, date_of_birth: '1995-05-05'})
+			.body({username: 'pendingholder', consent: true})
 			.execute();
 		const unconfirmed = `integration-held-${Date.now()}@example.com`;
 		await createBuilder(harness, holder.token).post('/users/@me/claim').body({email: unconfirmed}).execute();
@@ -357,7 +357,7 @@ describe('Email change flow', () => {
 		await getInstanceConfigRepository().setRegistrationConfig({allowed_email_domains: ['example.com']});
 		const holder = await createBuilderWithoutAuth<{token: string}>(harness)
 			.post('/auth/register')
-			.body({username: 'outsideclaimer', consent: true, date_of_birth: '1995-05-05'})
+			.body({username: 'outsideclaimer', consent: true})
 			.execute();
 		const {json} = await createBuilder<{errors: Array<{path: string; code: string}>}>(harness, holder.token)
 			.post('/users/@me/claim')

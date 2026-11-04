@@ -394,8 +394,6 @@ const NAMED_OSACA_ENV_OVERRIDES: Record<string, NamedEnvOverride> = {
 	OSACA_SETUP_TOKEN: {path: ['instance', 'setup', 'token']},
 	OSACA_ACCOUNT_IDENTITY: {path: ['instance', 'account_identity'], parse: parseAccountIdentity},
 	OSACA_TAG_STYLE: {path: ['instance', 'tag_style'], parse: parseTagStyle},
-	OSACA_AGE_POLICY_ENABLED: {path: ['instance', 'age_policy', 'enabled'], parse: parseBoolean},
-	OSACA_AGE_POLICY_RESTRICTED_REGIONS: {path: ['instance', 'age_policy', 'restricted_regions'], parse: parseCsv},
 	OSACA_DISCOVERY_ENABLED: {path: ['discovery', 'enabled'], parse: parseBoolean},
 	OSACA_DISCOVERY_MIN_MEMBER_COUNT: {path: ['discovery', 'min_member_count'], parse: parseInteger},
 	OSACA_DELETION_GRACE_PERIOD_HOURS: {path: ['deletion_grace_period_hours'], parse: parseInteger},

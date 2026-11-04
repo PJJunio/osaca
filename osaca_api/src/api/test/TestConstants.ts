@@ -9,7 +9,6 @@ export const TEST_CREDENTIALS = {
 	ALT_PASSWORD_2: 'SecurePass-2024!',
 } as const;
 export const TEST_USER_DATA = {
-	DEFAULT_DATE_OF_BIRTH: '2000-01-01',
 	DEFAULT_GLOBAL_NAME: 'Test User',
 } as const;
 export const HTTP_STATUS = {

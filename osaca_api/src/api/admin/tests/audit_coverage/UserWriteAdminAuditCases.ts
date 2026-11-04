@@ -666,25 +666,4 @@ export const UserWriteAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase> = [
 			};
 		},
 	},
-	{
-		method: 'PATCH',
-		route: '/admin/users/:user_id/date-of-birth',
-		async prepare({harness}) {
-			const target = await createTestAccount(harness);
-			return {
-				request: {path: `/admin/users/${target.userId}/date-of-birth`, body: {date_of_birth: '1995-06-15'}},
-				expected: {
-					action: 'change_dob',
-					targetType: 'user',
-					targetId: target.userId,
-					metadata: {
-						old_dob: (await loadUser(target)).dateOfBirth!,
-						new_dob: '1995-06-15',
-						cleared_below_minimum_age: 'false',
-						outside_plausible_range: 'false',
-					},
-				},
-			};
-		},
-	},
 ];

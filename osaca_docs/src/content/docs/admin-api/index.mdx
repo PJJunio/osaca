@@ -130,13 +130,11 @@ Each route needs one or more ACLs, and the caller needs at least one of them. Th
 | user:lookup | Reads and searches the base Admin [user](/admin-api/users/) resource |
 | user:remove:relationship | Removes one relationship or every relationship in one category |
 | user:view:contact_log | Reads a user's identity and contact change log |
-| user:view:dob | Unredacts user dates of birth |
 | user:view:email | Unredacts user email addresses and email verification state |
 | user:view:ip | Unredacts the last active IP address and the location derived from it |
 | user:temp_ban | Suspends accounts and lifts suspensions |
 | user:update:badges | Replaces the custom badges of an account |
 | user:update:bot_status | Updates bot and system account state |
-| user:update:dob | Updates dates of birth |
 | user:update:email | Updates the email address, verifies it, resends verification, sends a password reset and binds SSO subjects |
 | user:update:flags | Updates account flags and premium flags, and ends every login session of an account |
 | user:update:mfa | Reads and removes a user's WebAuthn credentials, and removes MFA state |
@@ -400,7 +398,6 @@ These entries have `access` set to `write`.
 | cancel_bulk_message_deletion | A bulk message deletion an account scheduled for itself was canceled |
 | cancel_deletion | A scheduled account deletion was canceled |
 | cancel_job | Cancellation of a job was requested |
-| change_dob | A date of birth was changed |
 | change_email | An email address was changed |
 | change_username | A username or discriminator was changed |
 | clear_fields | Profile fields of an account, or fields of a guild, were cleared |

@@ -141,10 +141,6 @@ describe('SSO while the provider is unreachable', () => {
 			.post('/auth/sso/complete')
 			.body({code: createUniqueEmail('sso-outage'), state: start.state, client_binding: start.client_binding})
 			.execute();
-		await createBuilder(harness, login.token)
-			.put('/users/@me/date-of-birth')
-			.body({date_of_birth: '1990-01-01'})
-			.execute();
 		await requireSsoThenLoseProvider();
 		await createBuilder(harness, login.token)
 			.post('/users/@me/password-change/start')

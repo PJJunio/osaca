@@ -105,7 +105,7 @@ The current account as its owner sees it, returned by [Get current user](/http-a
 | premium_billing_cycle<sup>1</sup> | ?string | The premium billing cycle, or null |
 | premium_lifetime_sequence<sup>1</sup> | ?integer | The lifetime premium sequence number, or null |
 | premium_grace_ends_at<sup>1</sup> | ?ISO8601 timestamp | When premium access ends after `premium_until` passes, or null |
-| premium_discriminator<sup>1</sup> <sup>4</sup> | boolean | Whether the discriminator was picked with premium |
+| premium_discriminator<sup>1</sup> <sup>3</sup> | boolean | Whether the discriminator was picked with premium |
 | hidden_profile_badges<sup>1</sup> | array[string] | The [badge keys](#hiding-badges) hidden from other people, sorted |
 | premium_badge_hidden<sup>1</sup> | boolean | Deprecated. Whether the premium badge the account holds is in the hidden list |
 | premium_badge_masked<sup>1</sup> | boolean | Whether a lifetime badge shows as a subscription badge |
@@ -130,16 +130,13 @@ The current account as its owner sees it, returned by [Get current user](/http-a
 | account_tier?<sup>1</sup> | string | The [account tier](#account-tiers), `unclaimed`, `unverified` or `verified` |
 | verification_need?<sup>1</sup> | ?string | `add_email`, `confirm_email` or `password` until the account is verified, then null |
 | has_password?<sup>1</sup> | boolean | Whether the account has a password |
-| date_of_birth_required?<sup>1</sup> <sup>3</sup> | boolean | Whether the account has to [set its date of birth](/http-api/users/current-user/#set-date-of-birth) first |
 | profile_restricted?<sup>1</sup> | boolean | Whether other accounts see only the username and discriminator |
 
 <sup>1</sup> With an OAuth2 bearer token on [Get current user](/http-api/users/current-user/#get-current-user), arrays are empty, optional fields are left out, booleans are false, nullable fields are null and `unread_gift_inventory_count` is `0`
 
 <sup>2</sup> With an OAuth2 bearer token that lacks the `email` [scope](/http-api/oauth2/#oauth2-scopes), `email` is null and `verified` is false
 
-<sup>3</sup> When the [accounts configuration](/admin-api/instance/#accounts-configuration-object) enforces it, most routes return 403 `DATE_OF_BIRTH_REQUIRED` until the date is set
-
-<sup>4</sup> After premium ends, a `random` tag-style instance gives the account a new discriminator at its next Gateway session
+<sup>3</sup> After premium ends, a `random` tag-style instance gives the account a new discriminator at its next Gateway session
 
 ## Pending bulk message deletion object
 

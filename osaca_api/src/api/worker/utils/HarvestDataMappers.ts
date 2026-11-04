@@ -289,7 +289,6 @@ export function buildUserDataJson(params: UserDataJsonParams) {
 			bio: user.bio,
 			pronouns: user.pronouns,
 			accent_color: user.accentColor,
-			date_of_birth: user.dateOfBirth,
 			locale: user.locale,
 			flags: user.flags.toString(),
 			premium_type: user.premiumType,

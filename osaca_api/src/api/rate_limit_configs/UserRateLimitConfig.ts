@@ -256,10 +256,6 @@ export const UserRateLimitConfigs = {
 		bucket: 'user:entrance_sound:mutate',
 		config: {limit: 20, windowMs: ms('1 minute')},
 	} as RouteRateLimitConfig,
-	USER_DATE_OF_BIRTH: {
-		bucket: 'user:date_of_birth',
-		config: {limit: 5, windowMs: ms('1 hour')},
-	} as RouteRateLimitConfig,
 	USER_CLAIM: {
 		bucket: 'user:claim',
 		config: {limit: 5, windowMs: ms('1 hour')},

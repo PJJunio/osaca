@@ -39,7 +39,6 @@ function createUser(params?: {emailVerified?: boolean}): User {
 		accent_color: null,
 		timezone: null,
 		timezone_privacy_flags: ProfileFieldPrivacyFlags.EVERYONE,
-		date_of_birth: null,
 		locale: null,
 		flags: 0n,
 		premium_type: null,

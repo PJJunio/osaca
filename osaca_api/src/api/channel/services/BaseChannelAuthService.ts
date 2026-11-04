@@ -48,7 +48,6 @@ import type {Channel} from '@app/api/models/Channel';
 import type {GuildMember} from '@app/api/models/GuildMember';
 import type {User} from '@app/api/models/User';
 import type {UserRepository} from '@app/api/user/repositories/UserRepository';
-import {canUserAccessNsfwContent} from '@app/api/utils/AgeUtils';
 import {startEarly} from '@app/api/utils/ConcurrencyUtils';
 import {ChannelTypes, Permissions} from '@osaca/constants/src/ChannelConstants';
 import {GUILD_VISITOR_PERMISSIONS_MASK} from '@osaca/constants/src/GuildVisitConstants';
@@ -63,7 +62,6 @@ import {UnknownChannelError} from '@osaca/errors/src/domains/channel/UnknownChan
 import {AccessDeniedError} from '@osaca/errors/src/domains/core/AccessDeniedError';
 import {MissingPermissionsError} from '@osaca/errors/src/domains/core/MissingPermissionsError';
 import {UnknownGuildError} from '@osaca/errors/src/domains/guild/UnknownGuildError';
-import {NsfwContentRequiresAgeVerificationError} from '@osaca/errors/src/domains/moderation/NsfwContentRequiresAgeVerificationError';
 import {UnknownUserError} from '@osaca/errors/src/domains/user/UnknownUserError';
 import type {GuildMemberResponse} from '@osaca/schema/src/domains/guild/GuildMemberSchemas';
 import type {GuildResponse} from '@osaca/schema/src/domains/guild/GuildResponseSchemas';
@@ -391,9 +389,6 @@ export abstract class BaseChannelAuthService {
 		) {
 			const user = await this.userRepository.findUnique(userId);
 			if (!user) throw new UnknownUserError();
-			if (!canUserAccessNsfwContent(user)) {
-				throw new NsfwContentRequiresAgeVerificationError();
-			}
 		}
 		return {
 			channel,
@@ -501,9 +496,6 @@ export abstract class BaseChannelAuthService {
 			if (requiresAgeVerification) {
 				const user = await this.userRepository.findUnique(userId);
 				if (!user) throw new UnknownUserError();
-				if (!canUserAccessNsfwContent(user)) {
-					throw new NsfwContentRequiresAgeVerificationError();
-				}
 			}
 		}
 		return {channel, guild, member, hasPermission, checkPermission, thread};

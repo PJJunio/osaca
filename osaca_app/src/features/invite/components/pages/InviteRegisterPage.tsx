@@ -22,7 +22,6 @@ import {offersInstantAccount} from '@app/features/auth/flow/identifier_first/Ide
 import {linkRegisterFields, readRegistrationUrlCode} from '@app/features/auth/flow/RegisterFormFields';
 import {getRegistrationLegalConsentConfig} from '@app/features/auth/flow/RegistrationLegalNotice';
 import {useAuthPresentation} from '@app/features/auth/flow/useAuthPresentation';
-import {isAgeBlocked} from '@app/features/auth/state/AccountEntryStorage';
 import {AuthCardVariant} from '@app/features/auth/state/AuthLayoutContext';
 import {useAuthRuntimeTarget} from '@app/features/auth/state/AuthRuntimeTarget';
 import {safeRedirectTarget} from '@app/features/auth/utils/SafeRedirect';
@@ -168,7 +167,7 @@ const InviteRegisterPageContent = observer(function InviteRegisterPageContent({
 	const usernameSignIn = usesUsernameSignIn(runtimeSnapshot.features);
 	const registrationUrlCode = readRegistrationUrlCode(params);
 	const instantAccount =
-		guildInvite !== null && offersInstantAccount(runtimeSnapshot.features, null) && !isAgeBlocked();
+		guildInvite !== null && offersInstantAccount(runtimeSnapshot.features, null);
 	return (
 		<>
 			<DesktopDeepLinkPrompt

@@ -11,7 +11,6 @@ import {issueDeviceProof, normalizeEmailKey} from '@app/api/auth/AccountCodes';
 import {sendVerificationEmail} from '@app/api/auth/AuthEmail';
 import * as AuthPassword from '@app/api/auth/AuthPassword';
 import * as AuthSession from '@app/api/auth/AuthSession';
-import * as AuthUtility from '@app/api/auth/AuthUtility';
 import {assertEmailNotBlocklisted} from '@app/api/auth/EmailBlocklist';
 import {
 	getLocalPartAtInstance,
@@ -20,7 +19,6 @@ import {
 } from '@app/api/auth/InstanceAddress';
 import {createInviteCode, createUserID, type UserID} from '@app/api/BrandedTypes';
 import type {APIConfig} from '@app/api/config/APIConfig';
-import type {LocalDate} from '@app/api/database/LocalDate';
 import {EMPTY_USER_ROW, type UserRow} from '@app/api/database/types/UserTypes';
 import {emitActivity} from '@app/api/infrastructure/activity/ActivityEvents';
 import type {RegMethod} from '@app/api/infrastructure/activity/Contract.generated';
@@ -44,7 +42,7 @@ import {getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons
 import type {User} from '@app/api/models/User';
 import {UserSettings} from '@app/api/models/UserSettings';
 import {NO_TIER_CONTEXT, type TierContext} from '@app/api/user/AccountTier';
-import {buildPendingEntries, executeEntries, type GuildEntryDeps, storePendingEntries} from '@app/api/user/GuildEntry';
+import {buildPendingEntries, executeEntries, type GuildEntryDeps} from '@app/api/user/GuildEntry';
 import {
 	deriveAvailableUsername,
 	isUsernameTaken,
@@ -52,8 +50,6 @@ import {
 	type UsernameReservation,
 } from '@app/api/user/UniqueUsernames';
 import {USERNAME_MODE_DISCRIMINATOR} from '@app/api/user/UserTag';
-import {DOB_DEFERRED_TRAIT} from '@app/api/user/UserTraits';
-import * as AgeUtils from '@app/api/utils/AgeUtils';
 import {assertEmailDomainAllowed, extractEmailDomain} from '@app/api/utils/EmailDomainUtils';
 import {hashPassword} from '@app/api/utils/PasswordUtils';
 import {createRateLimitError} from '@app/api/utils/RateLimitUtils';
@@ -73,7 +69,6 @@ import {
 import {AccountIdentityModes, TagStyles} from '@osaca/constants/src/AccountIdentityConstants';
 import {requiresLocalCredential} from '@osaca/constants/src/AccountTierRules';
 import {AdminACLs} from '@osaca/constants/src/AdminACLs';
-import {getRegionalMinimumAge} from '@osaca/constants/src/RegionalMinimumAge';
 import {ProfileFieldPrivacyFlags} from '@osaca/constants/src/UserConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {InstantAccountsDisabledError} from '@osaca/errors/src/domains/auth/InstantAccountsDisabledError';
@@ -118,7 +113,6 @@ interface AccountCreationInput {
 	username?: string;
 	globalName?: string;
 	password?: string;
-	dateOfBirth?: string;
 	consent: boolean | undefined;
 	inviteCode?: string | null;
 	registrationUrlCode?: string | null;
@@ -212,7 +206,6 @@ export async function register(
 			username: data.username,
 			globalName: data.global_name,
 			password: data.password,
-			dateOfBirth: data.date_of_birth,
 			consent: data.consent,
 			inviteCode: data.invite_code,
 			registrationUrlCode: data.registration_url_code,
@@ -326,11 +319,6 @@ async function createAccountUnlocked(
 		}
 		assertInstantAccountAvailable(await instanceConfigRepository.getInstantAccountAvailability(approvalOverride));
 	}
-	const dateOfBirthResult = resolveRegistrationDateOfBirth({
-		collect: appPublicConfig.registration.collect_date_of_birth,
-		dateOfBirth: input.dateOfBirth,
-		countryCode: null,
-	});
 	if (input.password && (await AuthPassword.isPasswordPwned(ctx, input.password))) {
 		throw InputValidationError.fromCode('password', ValidationErrorCodes.PASSWORD_IS_TOO_COMMON);
 	}
@@ -395,7 +383,6 @@ async function createAccountUnlocked(
 	const emailOwnedAtCreation = rawEmail !== null && (input.emailProven || !emailEnabled);
 	const traits = new Set<string>();
 	if (registrationAccess.pendingApproval) traits.add(REGISTRATION_PENDING_APPROVAL_TRAIT);
-	if (dateOfBirthResult.deferred) traits.add(DOB_DEFERRED_TRAIT);
 	const userRow: UserRow = {
 		...EMPTY_USER_ROW,
 		user_id: userId,
@@ -411,7 +398,6 @@ async function createAccountUnlocked(
 		password_last_changed_at: passwordHash ? now : null,
 		authenticator_types: new Set(),
 		timezone_privacy_flags: ProfileFieldPrivacyFlags.EVERYONE,
-		date_of_birth: dateOfBirthResult.date,
 		locale: userLocale,
 		flags: 0n,
 		terms_agreed_at: requiresTermsConsent ? now : null,
@@ -471,7 +457,7 @@ async function createAccountUnlocked(
 		UserSettings.getDefaultUserSettings({
 			userId,
 			locale: userLocale,
-			isAdult: dateOfBirthResult.adult,
+			isAdult: true,
 			theme: input.theme,
 		}),
 	);
@@ -501,7 +487,6 @@ async function createAccountUnlocked(
 			timezone: null,
 			invite_code: input.inviteCode?.trim() || null,
 			flags: user.flags.toString(),
-			date_of_birth: user.dateOfBirth,
 		},
 		null,
 		user.id.toString(),
@@ -519,39 +504,18 @@ async function createAccountUnlocked(
 		autoJoinInviteCode: config.instance.autoJoinInviteCode,
 		singleCommunity: (await deps.singleCommunityService.getStockCommunityId()) !== null,
 	});
-	let entry: GuildEntryResult | null = null;
-	if (dateOfBirthResult.deferred) {
-		await storePendingEntries(ctx.services.kv, user.id, entries);
-	} else {
-		entry = await executeEntries(deps, {user, entries, tierContext, requestCache, ip: clientIp});
-	}
+	const entry: GuildEntryResult | null = await executeEntries(deps, {
+		user,
+		entries,
+		tierContext,
+		requestCache,
+		ip: clientIp,
+	});
 	const [token] = await AuthSession.createAuthSession(ctx, {
 		user,
 		origin: AuthSession.resolveSessionOrigin(ctx, request),
 	});
 	return {pendingApproval: false, user, token, entry, deviceProof: issueDeviceProof(user.id)};
-}
-
-interface RegistrationDateOfBirth {
-	date: LocalDate | null;
-	adult: boolean;
-	deferred: boolean;
-}
-
-function resolveRegistrationDateOfBirth(params: {
-	collect: boolean;
-	dateOfBirth: string | undefined;
-	countryCode: string | null | undefined;
-}): RegistrationDateOfBirth {
-	if (!params.collect) return {date: null, adult: true, deferred: false};
-	const dateOfBirthInput = params.dateOfBirth?.trim();
-	if (!dateOfBirthInput) return {date: null, adult: false, deferred: true};
-	const date = AgeUtils.parseDateOfBirth(dateOfBirthInput);
-	const minAge = getRegionalMinimumAge(params.countryCode);
-	if (!AuthUtility.validateAge({dateOfBirth: dateOfBirthInput, minAge})) {
-		throw InputValidationError.fromCode('date_of_birth', ValidationErrorCodes.MUST_BE_MINIMUM_AGE, {minAge});
-	}
-	return {date, adult: AgeUtils.isUserAdult(dateOfBirthInput), deferred: false};
 }
 
 export async function assertRegistrationEmailDeliverable(

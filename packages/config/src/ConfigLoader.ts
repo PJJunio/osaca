@@ -252,7 +252,6 @@ function defaultConfig(): MasterConfig {
 			},
 			account_identity: null,
 			tag_style: null,
-			age_policy: {},
 		},
 		payment_disputes: {},
 		operator_pass: {
@@ -632,32 +631,6 @@ function validateStoreBillingConfig(config: MasterConfig): void {
 	assertBoolean(config.integrations.store_billing.sandbox_entitles_all, 'OSACA_STORE_BILLING_SANDBOX_ENTITLES_ALL');
 }
 
-const AGE_POLICY_REGION_PATTERN = /^[A-Z]{2}(?:-[A-Z0-9]{1,3})?$/u;
-
-function normalizeAgePolicyRegions(regions: Array<string> | undefined, envName: string): Array<string> | undefined {
-	if (regions === undefined) return undefined;
-	const normalized = regions.map((region) => region.trim().toUpperCase());
-	for (const region of normalized) {
-		if (!AGE_POLICY_REGION_PATTERN.test(region)) {
-			throw new Error(
-				`${envName} entry ${JSON.stringify(region)} must be a country code such as GB or a country and region code such as US-MS`,
-			);
-		}
-	}
-	return [...new Set(normalized)];
-}
-
-function normalizeAgePolicyConfig(config: MasterConfig): void {
-	const agePolicy = config.instance.age_policy;
-	if (agePolicy.enabled !== undefined) {
-		assertBoolean(agePolicy.enabled, 'OSACA_AGE_POLICY_ENABLED');
-	}
-	config.instance.age_policy = {
-		enabled: agePolicy.enabled,
-		restricted_regions: normalizeAgePolicyRegions(agePolicy.restricted_regions, 'OSACA_AGE_POLICY_RESTRICTED_REGIONS'),
-	};
-}
-
 function validateDomain(value: string, envName: string): void {
 	if (value === '') return;
 	const parsed = URL.parse(`http://${value}/`);
@@ -733,7 +706,6 @@ function normalizeConfig(config: MasterConfig): MasterConfig {
 	validateSingleEmail(config.integrations.email.support_alert_email ?? '', 'OSACA_EMAIL_SUPPORT_ALERT_EMAIL');
 	normalizeEmailFallbackConfig(config);
 	normalizeAppOriginAliases(config);
-	normalizeAgePolicyConfig(config);
 	assertIntegerInRange(config.services.api.max_inflight_requests, 'OSACA_API_MAX_INFLIGHT_REQUESTS', 1, 100_000);
 	assertIntegerInRange(
 		config.services.api.automated_message_deletion_delay_days,

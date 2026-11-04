@@ -12,10 +12,10 @@ import * as RouterUtils from '@app/features/navigation/utils/RouterUtils';
 import {http} from '@app/features/platform/transport/RestTransport';
 import {failureCode, failureMessage} from '@app/features/platform/utils/ResponseInspection';
 import * as ToastCommands from '@app/features/ui/commands/ToastCommands';
-import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
-import type {GuildVisitStartResponse} from '@osaca/schema/src/domains/guild/GuildVisitSchemas';
 import {i18n} from '@lingui/core';
 import {msg} from '@lingui/core/macro';
+import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
+import type {GuildVisitStartResponse} from '@osaca/schema/src/domains/guild/GuildVisitSchemas';
 import {when} from 'mobx';
 
 const VISIT_ENDED_DESCRIPTOR = msg({
@@ -24,10 +24,6 @@ const VISIT_ENDED_DESCRIPTOR = msg({
 		'Quiet toast when the preview of a community ends without the person ending it. community is its name. Previewing means reading before joining.',
 });
 
-const ADULTS_ONLY_COMMUNITY_DESCRIPTOR = msg({
-	message: 'This community is for adults only.',
-	comment: 'Toast when someone who is not an adult tries to join a community marked 18+.',
-});
 const JOIN_FAILED_DESCRIPTOR = msg({
 	message: "Couldn't join this community. Try again in a moment.",
 	comment: 'Toast when joining a community from its preview fails for an unexpected reason.',
@@ -57,11 +53,7 @@ export async function visitFromDiscovery(guildId: string, fallback: () => void):
 	try {
 		const response = await http.post<GuildVisitStartResponse>(Endpoints.DISCOVERY_VISIT(guildId), {body: {}});
 		await openGuildWhenAvailable(response.body.guild_id);
-	} catch (error) {
-		if (failureCode(error) === APIErrorCodes.GUILD_VISIT_AGE_RESTRICTED) {
-			ToastCommands.error(i18n._(ADULTS_ONLY_COMMUNITY_DESCRIPTOR));
-			return;
-		}
+	} catch {
 		fallback();
 	} finally {
 		discoveryVisitsInFlight.delete(guildId);
@@ -79,10 +71,6 @@ export async function joinVisitedGuild(guildId: string): Promise<void> {
 		const code = failureCode(error);
 		if (code === APIErrorCodes.GUILD_VISIT_NOT_FOUND || code === APIErrorCodes.UNKNOWN_INVITE) {
 			showVisitEndedToast(Guilds.getGuild(guildId)?.name ?? '');
-			return;
-		}
-		if (code === APIErrorCodes.GUILD_VISIT_AGE_RESTRICTED) {
-			ToastCommands.error(i18n._(ADULTS_ONLY_COMMUNITY_DESCRIPTOR));
 			return;
 		}
 		ToastCommands.error(failureMessage(error) ?? i18n._(JOIN_FAILED_DESCRIPTOR));

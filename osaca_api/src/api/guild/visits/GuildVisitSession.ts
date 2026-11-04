@@ -12,7 +12,6 @@ import {
 import {maxGuildVisitsFor} from '@app/api/guild/visits/GuildVisitService';
 import {getInviteRepository, getLimitConfigService} from '@app/api/middleware/ServiceSingletons';
 import type {User} from '@app/api/models/User';
-import {canUserAccessNsfwContent} from '@app/api/utils/AgeUtils';
 import {GuildVisitEndReasons, GuildVisitSources} from '@osaca/constants/src/GuildVisitConstants';
 import {BannedFromGuildError} from '@osaca/errors/src/domains/guild/BannedFromGuildError';
 import {IpBannedFromGuildError} from '@osaca/errors/src/domains/guild/IpBannedFromGuildError';
@@ -33,7 +32,6 @@ async function checkSessionVisit(
 	if (row.invite_expires_at !== null && row.invite_expires_at.getTime() <= now) return 'EXPIRED';
 	const view = await loadGuildVisitorView(row.guild_id);
 	if (!view || !guildVisitAuthorizedByView(row, view)) return 'drop';
-	if (view.guild.nsfw && !canUserAccessNsfwContent(user)) return 'drop';
 	if (row.source === GuildVisitSources.INVITE || row.source === GuildVisitSources.VANITY_URL) {
 		const invite = row.invite_code ? await getInviteRepository().findUnique(createInviteCode(row.invite_code)) : null;
 		if (!invite || invite.guildId !== row.guild_id) return 'INVITE_REVOKED';

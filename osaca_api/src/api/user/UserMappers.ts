@@ -20,10 +20,8 @@ import {
 	getVerificationNeed,
 	isInteractionTierEnforced,
 } from '@app/api/user/AccountTier';
-import {isDateOfBirthMissing} from '@app/api/user/DateOfBirth';
 import {hiddenUserPartial, isProfileHidden} from '@app/api/user/ProfileVisibility';
 import {deprecatedBadgeHideFields} from '@app/api/user/profile_badges/HiddenProfileBadges';
-import {canUserAccessNsfwContent} from '@app/api/utils/AgeUtils';
 import {AccountTiers} from '@osaca/constants/src/AccountTierConstants';
 import type {ChannelMessageNotifications} from '@osaca/constants/src/NotificationConstants';
 import {
@@ -184,7 +182,7 @@ export function mapUserToPrivateResponse(user: User): UserPrivateResponse {
 		last_voice_activity_sharing_change_at: user.lastVoiceActivitySharingChangeAt?.toISOString() ?? null,
 		required_actions: [],
 		account_limited: isAccountLimited(user),
-		nsfw_allowed: canUserAccessNsfwContent(user),
+		nsfw_allowed: true,
 		has_dismissed_premium_onboarding: isActuallyPremium && user.premiumOnboardingDismissedAt != null,
 		has_ever_purchased: user.hasEverPurchased,
 		has_unread_gift_inventory:
@@ -199,7 +197,6 @@ export function mapUserToPrivateResponse(user: User): UserPrivateResponse {
 		account_tier: accountTier,
 		verification_need: getVerificationNeed(user),
 		has_password: user.passwordHash !== null,
-		date_of_birth_required: isDateOfBirthMissing(user),
 		profile_restricted: isProfileRestricted(user),
 		pending_bulk_message_deletion:
 			user.pendingBulkMessageDeletionAt != null

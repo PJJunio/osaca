@@ -5,11 +5,8 @@ import Accessibility from '@app/features/accessibility/state/Accessibility';
 import type {RuntimeConfigSnapshot} from '@app/features/app/state/InstanceSnapshotStore';
 import {usesUniqueUsernames} from '@app/features/app/utils/AccountIdentityFeatures';
 import * as AuthenticationCommands from '@app/features/auth/commands/AuthenticationCommands';
-import {AGE_BLOCKED_BODY_DESCRIPTOR} from '@app/features/auth/components/AgeBlockedNotice';
 import FormField from '@app/features/auth/flow/AuthFormField';
 import styles from '@app/features/auth/flow/AuthPageStyles.module.css';
-import {DateOfBirthField} from '@app/features/auth/flow/DateOfBirthField';
-import {asksDateOfBirthAtSignUp} from '@app/features/auth/flow/DateOfBirthRules';
 import {type RegisterFormFields, readRegistrationUrlCode} from '@app/features/auth/flow/RegisterFormFields';
 import {
 	getRegistrationLegalConsentConfig,
@@ -18,7 +15,6 @@ import {
 import {type MissingField, SubmitTooltip, shouldDisableSubmit} from '@app/features/auth/flow/SubmitTooltip';
 import {useAuthForm} from '@app/features/auth/hooks/useAuthForm';
 import {useUsernameAvailability} from '@app/features/auth/hooks/useUsernameAvailability';
-import {isAgeBlocked} from '@app/features/auth/state/AccountEntryStorage';
 import {
 	type AuthRegisterFormDraft,
 	EMPTY_AUTH_REGISTER_FORM_DRAFT,
@@ -39,9 +35,9 @@ import {failureValidationErrors} from '@app/features/platform/utils/ResponseInsp
 import {Button} from '@app/features/ui/button/Button';
 import {createRecoveryKitWithPasswordAndOpen} from '@app/features/user/commands/RecoveryKitCommands';
 import {useUsernameSuggestions} from '@app/features/user/hooks/useUsernameSuggestions';
-import type {ThemeType} from '@osaca/constants/src/UserConstants';
 import {msg} from '@lingui/core/macro';
 import {Trans, useLingui} from '@lingui/react/macro';
+import type {ThemeType} from '@osaca/constants/src/UserConstants';
 import {AnimatePresence, motion} from 'framer-motion';
 import {observer} from 'mobx-react-lite';
 import {useCallback, useId, useMemo, useRef, useState} from 'react';
@@ -49,14 +45,6 @@ import {useCallback, useId, useMemo, useRef, useState} from 'react';
 const CONFIRM_PASSWORD_DESCRIPTOR = msg({
 	message: 'Confirm password',
 	comment: 'Short label in the authentication auth register form core. Keep the tone plain and specific.',
-});
-const DATE_OF_BIRTH_DESCRIPTOR = msg({
-	message: 'Date of birth',
-	comment: 'Short label in the authentication auth register form core. Keep the tone plain and specific.',
-});
-const DATE_OF_BIRTH_WITHOUT_USERNAME_DESCRIPTOR = msg({
-	message: 'Date of birth',
-	comment: 'Short label in the authentication auth minimal register form core. Keep the tone plain and specific.',
 });
 export const USERNAME_MUST_BE_CHARACTERS_OR_LESS_DESCRIPTOR = msg({
 	message: 'Username must be {maxUsernameLength} characters or fewer',
@@ -158,8 +146,6 @@ export const AuthRegisterFormCore = observer(function AuthRegisterFormCore({
 	);
 	const registrationTarget = useMemo(() => instanceTargetFromSnapshot(runtimeSnapshot), [runtimeSnapshot]);
 	const isPublicRegistrationClosed = runtimeSnapshot.registration.mode === 'closed' && !registrationUrlCode;
-	const [ageBlocked] = useState(() => isAgeBlocked());
-	const collectDateOfBirth = asksDateOfBirthAtSignUp(runtimeSnapshot);
 	const {getRegisterFormDraft, setRegisterFormDraft, clearRegisterFormDraft} = useAuthRegisterDraftContext();
 	const emailId = useId();
 	const globalNameId = useId();
@@ -181,9 +167,6 @@ export const AuthRegisterFormCore = observer(function AuthRegisterFormCore({
 		...initialDraft,
 		formValues: {...initialDraft.formValues},
 	});
-	const [selectedMonth, setSelectedMonthState] = useState(initialDraft.selectedMonth);
-	const [selectedDay, setSelectedDayState] = useState(initialDraft.selectedDay);
-	const [selectedYear, setSelectedYearState] = useState(initialDraft.selectedYear);
 	const [pendingApprovalUserId, setPendingApprovalUserId] = useState<string | null>(null);
 	const legalConsentConfig = getRegistrationLegalConsentConfig(runtimeSnapshot, showLegalConsent);
 	const initialValues: Record<string, string> = {
@@ -208,40 +191,15 @@ export const AuthRegisterFormCore = observer(function AuthRegisterFormCore({
 		},
 		[draftKey, setRegisterFormDraft],
 	);
-	const handleMonthChange = useCallback(
-		(month: string) => {
-			setSelectedMonthState(month);
-			persistDraft({selectedMonth: month});
-		},
-		[persistDraft],
-	);
-	const handleDayChange = useCallback(
-		(day: string) => {
-			setSelectedDayState(day);
-			persistDraft({selectedDay: day});
-		},
-		[persistDraft],
-	);
-	const handleYearChange = useCallback(
-		(year: string) => {
-			setSelectedYearState(year);
-			persistDraft({selectedYear: year});
-		},
-		[persistDraft],
-	);
 	const handleRegisterSubmit = async (values: Record<string, string>) => {
 		if (showPasswordConfirmation && showPassword && values.password !== values.confirm_password) {
 			form.setError('confirm_password', i18n._(PASSWORDS_DO_NOT_MATCH_DESCRIPTOR));
 			return false;
 		}
-		if (isPublicRegistrationClosed || isAgeBlocked()) {
+		if (isPublicRegistrationClosed) {
 			return false;
 		}
 		setPendingApprovalUserId(null);
-		const dateOfBirth =
-			collectDateOfBirth && selectedYear && selectedMonth && selectedDay
-				? `${selectedYear}-${selectedMonth.padStart(2, '0')}-${selectedDay.padStart(2, '0')}`
-				: undefined;
 		let response: Awaited<ReturnType<typeof AuthenticationCommands.register>>;
 		try {
 			response = await AuthenticationCommands.register(
@@ -250,7 +208,6 @@ export const AuthRegisterFormCore = observer(function AuthRegisterFormCore({
 					username: (requireUsername ? values.username.trim() : values.username) || undefined,
 					email: showEmail ? values.email : undefined,
 					password: showPassword ? values.password : undefined,
-					date_of_birth: dateOfBirth,
 					consent: true,
 					invite_code: inviteCode,
 					registration_url_code: registrationUrlCode,
@@ -349,24 +306,14 @@ export const AuthRegisterFormCore = observer(function AuthRegisterFormCore({
 		if (showPassword && showPasswordConfirmation && !form.getValue('confirm_password')) {
 			missing.push({key: 'confirm_password', label: i18n._(CONFIRM_PASSWORD_DESCRIPTOR)});
 		}
-		if (collectDateOfBirth && (!selectedMonth || !selectedDay || !selectedYear)) {
-			missing.push({
-				key: 'date_of_birth',
-				label: i18n._(showUsername ? DATE_OF_BIRTH_DESCRIPTOR : DATE_OF_BIRTH_WITHOUT_USERNAME_DESCRIPTOR),
-			});
-		}
 		return missing;
 	}, [
 		form,
-		selectedMonth,
-		selectedDay,
-		selectedYear,
 		showEmail,
 		requireUsername,
 		showPassword,
 		showPasswordConfirmation,
 		showUsername,
-		collectDateOfBirth,
 		i18n.locale,
 	]);
 	type HelperTextState =
@@ -421,7 +368,6 @@ export const AuthRegisterFormCore = observer(function AuthRegisterFormCore({
 	const submitDisabled =
 		isLoading ||
 		form.isSubmitting ||
-		ageBlocked ||
 		(requireUsername && !usernameFormatValid) ||
 		(uniqueUsernames && usernameAvailability === 'taken') ||
 		shouldDisableSubmit(missingFields);
@@ -459,11 +405,6 @@ export const AuthRegisterFormCore = observer(function AuthRegisterFormCore({
 			{formError ? (
 				<div className={styles.registrationNotice} role="alert" data-flx={`${flx}.form-error`}>
 					{formError}
-				</div>
-			) : null}
-			{ageBlocked ? (
-				<div className={styles.registrationNotice} role="alert" data-flx={`${flx}.age-blocked-notice`}>
-					{i18n._(AGE_BLOCKED_BODY_DESCRIPTOR)}
 				</div>
 			) : null}
 			{showEmail && (
@@ -584,18 +525,6 @@ export const AuthRegisterFormCore = observer(function AuthRegisterFormCore({
 					data-flx="auth.flow.auth-register-form-core.form-field.set-drafted-form-value.password--2"
 				/>
 			)}
-			{collectDateOfBirth ? (
-				<DateOfBirthField
-					selectedMonth={selectedMonth}
-					selectedDay={selectedDay}
-					selectedYear={selectedYear}
-					onMonthChange={handleMonthChange}
-					onDayChange={handleDayChange}
-					onYearChange={handleYearChange}
-					error={fieldErrors?.get('date_of_birth')}
-					data-flx={`${flx}.date-of-birth-field`}
-				/>
-			) : null}
 			{extraContent}
 			<RegistrationLegalNotice
 				config={legalConsentConfig}

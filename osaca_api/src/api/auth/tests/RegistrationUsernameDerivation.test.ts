@@ -90,7 +90,6 @@ describe('registration username derivation through the public API', () => {
 			email: 'username-derivation@example.com',
 			password: 'a-strong-password',
 			global_name: 'Åsa',
-			date_of_birth: '2000-01-01',
 			consent: true,
 		}).then(({token}) => createBuilder<UserPrivateResponse>(harness, token).get('/users/@me').execute());
 		requests.add(request);

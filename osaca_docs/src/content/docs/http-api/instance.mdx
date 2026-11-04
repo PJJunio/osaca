@@ -28,7 +28,6 @@ The public description of one instance.
 | limits | [limit configuration](#limit-configuration-object) object | Limit rules and trait names |
 | push | [push configuration](#push-configuration-object) object | Web Push identity |
 | app_public | [public application configuration](#public-application-configuration-object) object | Branding, setup state and legal links |
-| age_policy | [age policy](#age-policy-object) object | Regional age policy |
 | notice? | ?[instance notice](#instance-notice-object) object | The current notice from the instance admins, or null |
 | guild_badges?<sup>1</sup> | array[[guild badge](#guild-badge-object) object] | The first custom badges that guilds can show next to their name, in display order (at most 100) |
 | guild_badges_partial? | boolean | True when the instance has more guild badges than `guild_badges` lists |
@@ -157,7 +156,6 @@ Instance-wide switches to check before you offer a feature.
 | identifier_first? | boolean | Whether sign-in starts with [identify an account](/http-api/authentication/#identify-an-account) |
 | instant_accounts? | boolean | Whether [register an account](/http-api/authentication/#register-an-account) accepts an account with only a display name |
 | email_codes? | boolean | Whether [send an email code](/http-api/authentication/#send-an-email-code) works |
-| date_of_birth_step? | boolean | Whether accounts [set their date of birth](/http-api/users/current-user/#set-date-of-birth) after sign-up |
 | instant_account_availability? | string | Whether sign-up can create an instant account, one of the [instant account availability](#instant-account-availability) values |
 | interaction_tier? | string | How the [account tiers](/http-api/users/#account-tiers) apply, `legacy` or `enforced` |
 | guild_join_gate? | string | When joining a guild needs a verified account, `off`, `visits_capable` (only for clients that can visit guilds) or `always` |
@@ -440,32 +438,6 @@ What a client needs before anyone signs in.
 | terms_url | ?string | Terms of service URL, or null |
 | privacy_url | ?string | Privacy policy URL, or null |
 | guidelines_url | ?string | Community guidelines URL, used by [report flows](/http-api/reports/#report-flows), or null to hide guidelines links |
-
-## Public registration fields object
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| collect_date_of_birth | boolean | Whether sign-up asks for a date of birth, set in the admin [accounts configuration](/admin-api/instance/#accounts-configuration-object) |
-
-## Age policy object
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| geos | array[[age policy region](#age-policy-region-object) object] | Regions with an age policy |
-
-## Age policy region object
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| country_code | string | The ISO 3166-1 alpha-2 country code |
-| region_code | ?string | The ISO 3166-2 subdivision code, or null for the whole country |
-| action | string | `restrict` to need an age check, or `block` to refuse access |
 
 ## Geo entry object
 

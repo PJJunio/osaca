@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import * as Modal from '@app/features/app/components/dialogs/Modal';
-import {ExternalLink} from '@app/features/app/components/shared/ExternalLink';
-import {HelpCenterArticleSlug} from '@app/features/app/config/HelpCenterConstants';
 import {MatureContentGateReason} from '@app/features/guild/state/GuildMatureContentAgree';
 import {getEffectiveMatureContentGeoContext} from '@app/features/moderation/utils/MatureContentGeoUtils';
 import * as ModalCommands from '@app/features/ui/commands/ModalCommands';
-import * as HelpCenterUtils from '@app/features/ui/utils/HelpCenterUtils';
 import {getRegionDisplayName} from '@app/features/user/utils/UserGeo';
 import {msg} from '@lingui/core/macro';
 import {Trans, useLingui} from '@lingui/react/macro';
@@ -29,7 +26,6 @@ interface MatureMediaGateDetailsModalProps {
 
 export const MatureMediaGateDetailsModal = observer(({reason}: MatureMediaGateDetailsModalProps) => {
 	const {i18n} = useLingui();
-	const learnMoreUrl = HelpCenterUtils.getURL(HelpCenterArticleSlug.ChangeDateOfBirth);
 	const handleClose = useCallback(() => {
 		ModalCommands.pop();
 	}, []);
@@ -67,16 +63,7 @@ export const MatureMediaGateDetailsModal = observer(({reason}: MatureMediaGateDe
 			<Modal.Content data-flx="moderation.mature-media-gate-details-modal.modal-content--2">
 				<Modal.ContentLayout data-flx="moderation.mature-media-gate-details-modal.modal-content-layout--2">
 					<Modal.Description data-flx="moderation.mature-media-gate-details-modal.modal-description--4">
-						{learnMoreUrl ? (
-							<Trans>
-								This mature media is not available to your account.{' '}
-								<ExternalLink href={learnMoreUrl} data-flx="moderation.mature-media-gate-details-modal.external-link">
-									Learn more
-								</ExternalLink>
-							</Trans>
-						) : (
-							i18n._(MATURE_MEDIA_NOT_AVAILABLE_DESCRIPTOR)
-						)}
+						{i18n._(MATURE_MEDIA_NOT_AVAILABLE_DESCRIPTOR)}
 					</Modal.Description>
 				</Modal.ContentLayout>
 			</Modal.Content>

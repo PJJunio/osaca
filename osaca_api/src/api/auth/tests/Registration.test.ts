@@ -36,7 +36,6 @@ function bootstrapRegistrationBody(prefix: string): Record<string, unknown> {
 		email: createUniqueEmail(prefix),
 		username: createUniqueUsername(prefix),
 		global_name: 'Bootstrap Admin',
-		date_of_birth: '2000-01-01',
 		consent: true,
 	};
 }
@@ -122,7 +121,6 @@ describe('Auth registration', () => {
 			username: createUniqueUsername('devnotstaff'),
 			global_name: 'Dev User',
 			password: 'a-strong-password',
-			date_of_birth: '2000-01-01',
 			consent: true,
 		});
 		const user = await getUserRepository().findUniqueAssert(createUserID(BigInt(reg.user_id)));
@@ -216,7 +214,6 @@ describe('Auth registration', () => {
 					username: createUniqueUsername('blockedregister'),
 					global_name: 'Blocked Register',
 					password: 'a-strong-password',
-					date_of_birth: '2000-01-01',
 					consent: true,
 				})
 				.expect(403, 'GLOBAL_IP_BANNED')
@@ -233,7 +230,6 @@ describe('Auth registration', () => {
 			username: createUniqueUsername('caseuser'),
 			global_name: 'Test User',
 			password,
-			date_of_birth: '2000-01-01',
 			consent: true,
 		});
 		await confirmTestEmail(harness, registered.user_id);
@@ -258,7 +254,6 @@ describe('Auth registration', () => {
 				username: createUniqueUsername('caseuser2'),
 				global_name: 'Test User',
 				password: 'another-strong-password',
-				date_of_birth: '2000-01-01',
 				consent: true,
 			})
 			.expect(400)
@@ -276,7 +271,6 @@ describe('Auth registration', () => {
 			username: createUniqueUsername('caseemailstored'),
 			global_name: 'Stored Email',
 			password: 'a-strong-password',
-			date_of_birth: '2000-01-01',
 			consent: true,
 		});
 		const me = (await fetchMe(harness, caseEmailUser.token)).json as UserMeResponse;

@@ -90,17 +90,9 @@ describe('FriendRequestSourceFlags', () => {
 			assertRelationshipId(outgoing, bob.userId);
 			assertRelationshipType(outgoing, RelationshipTypes.OUTGOING_REQUEST);
 		});
-		test('teen users default to blocking strangers', async () => {
-			const alice = await createTestAccount(harness);
-			const bob = await createTestAccount(harness, {dateOfBirth: '2012-01-01'});
-			await createBuilder(harness, alice.token)
-				.post(`/users/@me/relationships/${bob.userId}`)
-				.expect(HTTP_STATUS.BAD_REQUEST, 'FRIEND_REQUEST_BLOCKED')
-				.execute();
-		});
 		test('teen users can receive requests from mutual friends', async () => {
 			const alice = await createTestAccount(harness);
-			const bob = await createTestAccount(harness, {dateOfBirth: '2012-01-01'});
+			const bob = await createTestAccount(harness);
 			const charlie = await createTestAccount(harness);
 			await createFriendship(harness, alice, charlie);
 			await createFriendship(harness, bob, charlie);

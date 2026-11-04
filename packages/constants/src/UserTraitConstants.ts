@@ -5,8 +5,6 @@ import type {ValueOf} from '@osaca/constants/src/ValueOf';
 export const UserTraits = {
 	SSO: 'sso',
 	PASSKEY: 'passkey',
-	DOB_DEFERRED: 'dob_deferred',
-	BELOW_MINIMUM_AGE: 'below_minimum_age',
 } as const;
 
 export type UserTrait = ValueOf<typeof UserTraits>;

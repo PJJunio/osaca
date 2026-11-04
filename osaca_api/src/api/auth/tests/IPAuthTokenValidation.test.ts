@@ -32,7 +32,6 @@ describe('Auth IP Authorization Token Validation', () => {
 			username: createUniqueUsername('singleuse'),
 			global_name: 'Single Use User',
 			password,
-			date_of_birth: '2000-01-01',
 			consent: true,
 		});
 		await clearTestEmails(harness);
@@ -69,7 +68,6 @@ describe('Auth IP Authorization Token Validation', () => {
 			username: createUniqueUsername('expire'),
 			global_name: 'Expire User',
 			password,
-			date_of_birth: '2000-01-01',
 			consent: true,
 		});
 		await clearTestEmails(harness);

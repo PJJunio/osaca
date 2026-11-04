@@ -781,12 +781,6 @@ const INSTANCE_CONFIG_SECTION_APPLIERS = {
 					: undefined,
 			});
 			await queueReleasedBrandingAssets(releasedBrandingAssets);
-			const collectDateOfBirth = appPublic.registration
-				? readOptionalField(appPublic.registration, 'collect_date_of_birth')
-				: undefined;
-			if (collectDateOfBirth !== undefined) {
-				await instanceConfigRepository.setDateOfBirthCollection(collectDateOfBirth);
-			}
 		},
 	),
 	integrations: createInstanceConfigSectionApplier(

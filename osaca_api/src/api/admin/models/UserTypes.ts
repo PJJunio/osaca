@@ -10,7 +10,6 @@ import {
 	resolveOperatorPassHolder,
 } from '@app/api/operator_pass/OperatorPassEntitlementService';
 import {getAccountTier} from '@app/api/user/AccountTier';
-import {isDateOfBirthMissing} from '@app/api/user/DateOfBirth';
 import {isProfileHidden} from '@app/api/user/ProfileVisibility';
 import {buildOperatorProfileBadges} from '@app/api/user/profile_badges/ProfileBadgeBuilder';
 import {loadProfileBadgeEnvironment} from '@app/api/user/profile_badges/ProfileBadgeEnvironment';
@@ -56,7 +55,6 @@ export async function mapUserToAdminResponse(
 	locale?: string,
 ): Promise<UserAdminResponse> {
 	const canViewEmail = !acls || hasAdminACL(acls, AdminACLs.USER_VIEW_EMAIL);
-	const canViewDob = !acls || hasAdminACL(acls, AdminACLs.USER_VIEW_DOB);
 	const canViewIp = !acls || hasAdminACL(acls, AdminACLs.USER_VIEW_IP);
 	const canViewAuditLog = !acls || hasAdminACL(acls, AdminACLs.AUDIT_LOG_VIEW);
 	const [lastActiveIpReverse, profileBadges] = await Promise.all([
@@ -82,7 +80,6 @@ export async function mapUserToAdminResponse(
 		email: canViewEmail ? (user.email ?? null) : null,
 		email_verified: canViewEmail ? user.emailVerified : false,
 		email_bounced: canViewEmail ? user.emailBounced : false,
-		date_of_birth: canViewDob ? user.dateOfBirth : null,
 		locale: user.locale,
 		premium_type: user.premiumType,
 		premium_since: user.premiumSince?.toISOString() ?? null,
@@ -107,7 +104,6 @@ export async function mapUserToAdminResponse(
 		has_password: user.passwordHash !== null,
 		claimed: accountTier !== AccountTiers.UNCLAIMED,
 		account_tier: accountTier,
-		date_of_birth_required: isDateOfBirthMissing(user),
 		authenticator_types: user.authenticatorTypes ? Array.from(user.authenticatorTypes) : [],
 		last_active_at: user.lastActiveAt?.toISOString() ?? null,
 		last_active_ip: canViewIp ? (user.lastActiveIp ?? null) : null,

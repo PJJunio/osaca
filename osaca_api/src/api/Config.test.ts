@@ -137,48 +137,6 @@ describe('buildAPIConfigFromMaster optional outbound lookups', () => {
 	});
 });
 
-function withAgePolicy(
-	master: MasterConfig,
-	selfHosted: boolean,
-	agePolicy: MasterConfig['instance']['age_policy'],
-): MasterConfig {
-	return {...master, instance: {...master.instance, self_hosted: selfHosted, age_policy: agePolicy}};
-}
-
-describe('buildAPIConfigFromMaster regional age policy', () => {
-	let master: MasterConfig;
-	beforeAll(async () => {
-		master = await loadConfig();
-	});
-
-	it('restricts the UK and Brazil on the hosted service by default', () => {
-		expect(buildAPIConfigFromMaster(withAgePolicy(master, false, {})).instance.agePolicy).toEqual({
-			restricted: [
-				{countryCode: 'GB', regionCode: null},
-				{countryCode: 'BR', regionCode: null},
-			],
-		});
-	});
-
-	it('applies no regional age policy on a self-hosted instance by default', () => {
-		expect(buildAPIConfigFromMaster(withAgePolicy(master, true, {})).instance.agePolicy).toEqual({
-			restricted: [],
-		});
-	});
-
-	it('applies only the regions a self-hosted operator chooses', () => {
-		expect(
-			buildAPIConfigFromMaster(withAgePolicy(master, true, {restricted_regions: ['DE']})).instance.agePolicy,
-		).toEqual({restricted: [{countryCode: 'DE', regionCode: null}]});
-	});
-
-	it('lets the hosted service switch the policy off', () => {
-		expect(buildAPIConfigFromMaster(withAgePolicy(master, false, {enabled: false})).instance.agePolicy).toEqual({
-			restricted: [],
-		});
-	});
-});
-
 function withHostedOperatorPassSale(
 	master: MasterConfig,
 	operatorPass: Partial<MasterConfig['operator_pass']>,

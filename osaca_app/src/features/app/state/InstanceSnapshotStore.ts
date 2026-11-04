@@ -114,7 +114,6 @@ export function runtimeSnapshotFromDiscovery(document: InstanceDiscoveryDocument
 		publicPushVapidKey: discovery.push.public_vapid_key,
 		limits: readInstanceLimits(discovery.limits),
 		appPublic: discovery.appPublic,
-		agePolicy: discovery.agePolicy,
 		domainMigration: discovery.domainMigration,
 		notice: discovery.notice ?? null,
 		guildBadges: discovery.guildBadges,

@@ -5,9 +5,6 @@ import {UserTraits} from '@osaca/constants/src/UserTraitConstants';
 
 export {UserTraits};
 
-export const DOB_DEFERRED_TRAIT = UserTraits.DOB_DEFERRED;
-export const BELOW_MINIMUM_AGE_TRAIT = UserTraits.BELOW_MINIMUM_AGE;
-
 const DERIVED_TRAITS = new Set(['premium']);
 
 const SERVER_MANAGED_TRAITS = new Set<string>([
@@ -15,8 +12,6 @@ const SERVER_MANAGED_TRAITS = new Set<string>([
 	UserTraits.PASSKEY,
 	'registration_pending_approval',
 	'registration_rejected',
-	UserTraits.DOB_DEFERRED,
-	UserTraits.BELOW_MINIMUM_AGE,
 ]);
 
 const SERVER_MANAGED_TRAIT_PREFIXES = ['sso:', 'sso_provider:', 'sso_identity:'];

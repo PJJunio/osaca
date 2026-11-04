@@ -155,12 +155,10 @@ Starts a [visit](/http-api/guilds/#visiting-guilds) to the guild of a guild invi
 | --- | --- | --- |
 | 200 | [guild visit start](/http-api/guilds/#guild-visit-start-object) object | The visit started or was already open, or the caller is a member |
 | 403 | [error response](/http-api/#error-response) | `GUILD_VISITS_DISABLED` when the guild does not accept visitors |
-| 403 | [error response](/http-api/#error-response) | `GUILD_VISIT_AGE_RESTRICTED` when the guild is for adults and the caller may not see it |
 | 403 | [error response](/http-api/#error-response) | `INVITES_DISABLED` when the guild has paused invites |
 | 403 | [error response](/http-api/#error-response) | `FEATURE_TEMPORARILY_DISABLED` when `INSTANT_INVITES` is set in the guild's [disabled operations](/http-api/guilds/#disabled-guild-operations) |
 | 403 | [error response](/http-api/#error-response) | `USER_BANNED_FROM_GUILD` or `USER_IP_BANNED_FROM_GUILD` when the caller is banned |
 | 403 | [error response](/http-api/#error-response) | `ACCOUNT_LIMITED` when the account is [limited](/http-api/users/#account-limitation) |
-| 403 | [error response](/http-api/#error-response) | `DATE_OF_BIRTH_REQUIRED` or `ACCOUNT_BELOW_MINIMUM_AGE` when the age check fails |
 | 404 | [error response](/http-api/#error-response) | `UNKNOWN_INVITE` or `UNKNOWN_GUILD` when the invite or guild is unavailable |
 
 The rate limit is 10 requests per 60 seconds, on the `guild:visit:start` bucket. Each IP address can also start 30 visits per 60 seconds.

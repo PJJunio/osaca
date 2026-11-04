@@ -87,10 +87,6 @@ describe('Credentials of SSO accounts while SSO is enforced', () => {
 			.post('/auth/sso/complete')
 			.body({code: createUniqueEmail('sso-credentials'), state: start.state, client_binding: start.client_binding})
 			.execute();
-		await createBuilder(harness, login.token)
-			.put('/users/@me/date-of-birth')
-			.body({date_of_birth: '1990-01-01'})
-			.execute();
 		return login;
 	}
 

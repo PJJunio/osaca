@@ -56,7 +56,6 @@ export const DEPLOYED_OFFICIAL_DOCUMENT = {
 		},
 		setup: {configured: true, admin_url: 'https://admin.osaca.example'},
 		legal: {terms_url: 'https://osaca.example/terms', privacy_url: 'https://osaca.example/privacy'},
-		registration: {collect_date_of_birth: true},
 	},
 } as const;
 
@@ -108,6 +107,5 @@ export const SELF_HOSTED_API_TOPOLOGY_DOCUMENT = {
 		},
 		setup: {configured: true, admin_url: 'https://chat.example.test/admin'},
 		legal: {terms_url: null, privacy_url: null},
-		registration: {collect_date_of_birth: false},
 	},
 } as const;

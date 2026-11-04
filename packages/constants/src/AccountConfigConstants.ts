@@ -19,42 +19,6 @@ export const GuildJoinGates = {
 
 export type GuildJoinGate = ValueOf<typeof GuildJoinGates>;
 
-export const DateOfBirthPolicies = {
-	OFF: 'off',
-	ASK: 'ask',
-	REQUIRE_NEW_ACCOUNTS: 'require_new_accounts',
-	REQUIRE_ALL: 'require_all',
-} as const;
-
-export type DateOfBirthPolicy = ValueOf<typeof DateOfBirthPolicies>;
-
-export const LegacyDateOfBirthEnforcements = {
-	OFF: 'off',
-	NEW_ACCOUNTS: 'new_accounts',
-	ALL: 'all',
-} as const;
-
-export type LegacyDateOfBirthEnforcement = ValueOf<typeof LegacyDateOfBirthEnforcements>;
-
-export function dateOfBirthPolicyFromLegacy(params: {
-	collect: boolean;
-	enforcement: LegacyDateOfBirthEnforcement;
-}): DateOfBirthPolicy {
-	if (!params.collect) return DateOfBirthPolicies.OFF;
-	switch (params.enforcement) {
-		case LegacyDateOfBirthEnforcements.OFF:
-			return DateOfBirthPolicies.ASK;
-		case LegacyDateOfBirthEnforcements.NEW_ACCOUNTS:
-			return DateOfBirthPolicies.REQUIRE_NEW_ACCOUNTS;
-		case LegacyDateOfBirthEnforcements.ALL:
-			return DateOfBirthPolicies.REQUIRE_ALL;
-	}
-}
-
-export function collectsDateOfBirth(policy: DateOfBirthPolicy): boolean {
-	return policy !== DateOfBirthPolicies.OFF;
-}
-
 export const IdentifierFirstModes = {
 	AUTO: 'auto',
 	ON: 'on',
@@ -139,7 +103,6 @@ export const AccountCleanupDefaults = {
 	SCHEDULED_DELETION_GRACE_MS: 24 * HOUR_MS,
 	MIN_ACCOUNT_AGE_MS: 24 * HOUR_MS,
 	UNCLAIMED_INACTIVE_DAYS: 90,
-	DOB_MISSING_INACTIVE_DAYS: 7,
 	INACTIVITY_DAYS: 730,
 	INACTIVITY_WARNING_LEAD_DAYS: 30,
 	MIN_INACTIVE_DAYS: 1,

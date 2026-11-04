@@ -54,7 +54,7 @@ describe('Guild visits under adversarial use', () => {
 	async function createUnclaimed(username: string, ip?: string): Promise<Registered> {
 		const builder = createBuilderWithoutAuth<Registered>(harness)
 			.post('/auth/register')
-			.body({username, consent: true, date_of_birth: '1990-01-01'});
+			.body({username, consent: true});
 		if (ip) builder.header('x-forwarded-for', ip);
 		return await builder.execute();
 	}

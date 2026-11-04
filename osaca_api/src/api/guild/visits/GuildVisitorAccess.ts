@@ -25,7 +25,6 @@ import type {Guild} from '@app/api/models/Guild';
 import type {User} from '@app/api/models/User';
 import type {HonoEnv} from '@app/api/types/HonoEnv';
 import {type AccountTier, getAccountTier} from '@app/api/user/AccountTier';
-import {canUserAccessNsfwContent} from '@app/api/utils/AgeUtils';
 import {getRequestClientIp} from '@app/api/utils/RequestClientIp';
 import {ChannelOverwriteTypes} from '@osaca/constants/src/ChannelConstants';
 import {DiscoveryApplicationStatus} from '@osaca/constants/src/DiscoveryConstants';
@@ -209,10 +208,7 @@ export async function resolveGuildVisitorAccess(params: {
 	if (!(await visitorStillAllowedIn(guildId, user))) {
 		return null;
 	}
-	const adultContentAllowed = canUserAccessNsfwContent(user);
-	if (view.guild.nsfw && !adultContentAllowed) {
-		return null;
-	}
+	const adultContentAllowed = true;
 	const tier = getAccountTier(user);
 	if (now - visit.opened_at.getTime() >= GUILD_VISIT_OPEN_REFRESH_SECONDS * 1000) {
 		forgetGuildVisitRow(userId, guildId);

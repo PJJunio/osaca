@@ -66,7 +66,6 @@ describe('ENFORCEMENT_REASONS', () => {
 				code !== DeletionReasons.USER_REQUESTED &&
 				code !== DeletionReasons.OTHER &&
 				code !== DeletionReasons.INACTIVITY &&
-				code !== DeletionReasons.BELOW_MINIMUM_AGE &&
 				code !== DeletionReasons.UNCLAIMED_ACCOUNT_ABANDONED,
 		);
 		expect(enforcementCodes.sort((a, b) => a - b)).toEqual(expected.sort((a, b) => a - b));

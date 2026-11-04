@@ -2,7 +2,6 @@
 
 import {showPremiumActionErrorModal} from '@app/features/app/components/dialogs/components/plutonium/utils/PremiumActionErrorModal';
 import {Endpoints} from '@app/features/app/constants/Endpoints';
-import {whenDateOfBirthStepClosed} from '@app/features/auth/state/DateOfBirthStep';
 import {http} from '@app/features/platform/transport/RestTransport';
 import {Logger} from '@app/features/platform/utils/AppLogger';
 import {isAbortError} from '@app/features/platform/utils/PlatformHelpers';
@@ -107,7 +106,6 @@ async function fetchPremiumState(countryCode?: string): Promise<PremiumStateResp
 }
 
 export async function refreshPremiumState(countryCode?: string): Promise<PremiumStateResponse> {
-	await whenDateOfBirthStepClosed();
 	const currentUserId = Users.currentUser?.id;
 	if (currentUserId) {
 		PremiumState.beginLoad(currentUserId);

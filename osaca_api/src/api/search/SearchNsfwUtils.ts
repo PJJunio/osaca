@@ -8,7 +8,6 @@ import {
 } from '@app/api/channel/utils/EffectiveContentWarning';
 import type {Channel} from '@app/api/models/Channel';
 import type {UserRepository} from '@app/api/user/repositories/UserRepository';
-import {canUserAccessNsfwContent} from '@app/api/utils/AgeUtils';
 import {ContentWarningLevel} from '@osaca/constants/src/GuildConstants';
 import {THREAD_CHANNEL_TYPES} from '@osaca/constants/src/ThreadConstants';
 import {UnknownUserError} from '@osaca/errors/src/domains/user/UnknownUserError';
@@ -41,5 +40,5 @@ export async function getCanUserAccessNsfw(userRepository: UserRepository, userI
 	if (!user) {
 		throw new UnknownUserError();
 	}
-	return canUserAccessNsfwContent(user);
+	return true;
 }

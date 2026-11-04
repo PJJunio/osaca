@@ -8,11 +8,10 @@ use crate::api::generated::types as generated_types;
 pub use generated_types::{
     AccountIdentityLockReasonSchema as AccountIdentityLockReason,
     AccountsConfigSchema as AccountsConfigResponse, AccountsConfigUpdateRequest,
-    AccountsConfigUpdateRequestDobMissingCleanup as DobMissingCleanupUpdateRequest,
     AccountsConfigUpdateRequestInactivityDeletion as InactivityDeletionUpdateRequest,
     AccountsConfigUpdateRequestUnclaimedAccountCleanup as UnclaimedAccountCleanupUpdateRequest,
     CaptchaProviderSchema as CaptchaProvider, CleanupModeSchema as CleanupMode,
-    DateOfBirthPolicySchema as DateOfBirthPolicy, EmailDeliveryModeSchema as EmailDeliveryMode,
+    EmailDeliveryModeSchema as EmailDeliveryMode,
     EmailDeliveryStateSchema as EmailDeliveryState, GuildJoinGateSchema as GuildJoinGate,
     IdentifierFirstModeSchema as IdentifierFirstMode,
     InstanceConfigResponseAuth as AuthConfigResponse,

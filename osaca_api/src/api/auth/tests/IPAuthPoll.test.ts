@@ -30,7 +30,6 @@ describe('Auth IP Authorization Poll', () => {
 			username: createUniqueUsername('poll'),
 			global_name: 'Poll User',
 			password,
-			date_of_birth: '2000-01-01',
 			consent: true,
 		});
 		const ticket = createUniqueTestId('poll');
@@ -66,7 +65,6 @@ describe('Auth IP Authorization Poll', () => {
 			username: createUniqueUsername('pollcomplete'),
 			global_name: 'Poll Complete User',
 			password,
-			date_of_birth: '2000-01-01',
 			consent: true,
 		});
 		const ticket = createUniqueTestId('poll-complete');
@@ -117,7 +115,6 @@ describe('Auth IP Authorization Poll', () => {
 			username: createUniqueUsername('polldeleted'),
 			global_name: 'Poll Deleted Ticket User',
 			password,
-			date_of_birth: '2000-01-01',
 			consent: true,
 		});
 		const ticket = createUniqueTestId('poll-deleted');

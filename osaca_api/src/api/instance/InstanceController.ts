@@ -2,7 +2,6 @@
 
 import {createHash} from 'node:crypto';
 import {Config} from '@app/api/Config';
-import type {AgePolicyConfig} from '@app/api/config/APIConfig';
 import {withAccountIdentitySetupLock} from '@app/api/instance/AccountIdentitySetupLock';
 import {type CustomBadge, compareBigInts} from '@app/api/instance/custom_badges/CustomBadgeRepository';
 import {
@@ -47,12 +46,9 @@ import type {InstanceAppPublic} from '@osaca/instance_bootstrap/src/Types';
 import type {AccountsConfig, AuthConfig} from '@osaca/schema/src/domains/admin/AccountsConfigSchemas';
 import type {CaptchaConfig} from '@osaca/schema/src/domains/admin/CaptchaSchemas';
 import {toDomainMigrationDiscovery} from '@osaca/schema/src/domains/admin/DomainMigrationSchemas';
-import type {GeoEntry} from '@osaca/schema/src/domains/geolocation/GeolocationSchemas';
 import {
 	InstanceAccountIdentityResponse,
 	InstanceAccountIdentityUpdateRequest,
-	type InstanceAgePolicy,
-	type InstanceAgePolicyAction,
 	type InstanceBadge,
 	InstanceBadgesQuery,
 	InstanceBadgesResponse,
@@ -65,12 +61,6 @@ import type {Hono} from 'hono';
 import {getDomain} from 'tldts';
 
 let discoveryValidators: DiscoveryValidators | null = null;
-
-function toAgePolicyDiscovery(agePolicy: AgePolicyConfig): InstanceAgePolicy {
-	const geos = (entries: Array<GeoEntry>, action: InstanceAgePolicyAction) =>
-		entries.map((entry) => ({country_code: entry.countryCode, region_code: entry.regionCode, action}));
-	return {geos: geos(agePolicy.restricted, 'restrict')};
-}
 
 function buildDiscoveryStaticInput(
 	appPublic: InstanceAppPublic,
@@ -125,7 +115,6 @@ function buildDiscoveryStaticInput(
 			identifier_first: signIn.identifierFirst,
 			instant_accounts: runtime.instantAccountAvailability === InstantAccountAvailability.AVAILABLE,
 			email_codes: signIn.emailCodes,
-			date_of_birth_step: true,
 			instant_account_availability: runtime.instantAccountAvailability,
 			interaction_tier: runtime.accounts.interaction_tier,
 			guild_join_gate: runtime.accounts.guild_join_gate,
@@ -140,7 +129,6 @@ function buildDiscoveryStaticInput(
 			public_vapid_key: Config.push.publicVapidKey ?? null,
 		},
 		appPublic,
-		agePolicy: toAgePolicyDiscovery(Config.instance.agePolicy),
 	};
 }
 

@@ -13,14 +13,12 @@ import {Logger} from '@app/api/Logger';
 import {getKVAccountDeletionQueue} from '@app/api/middleware/ServiceSingletons';
 import type {AuthSession} from '@app/api/models/AuthSession';
 import type {User} from '@app/api/models/User';
-import {BELOW_MINIMUM_AGE_TRAIT} from '@app/api/user/UserTraits';
 import {requireConfiguredClientIp} from '@app/api/utils/RequestClientIp';
 import {
 	isOsacaNativeUserAgent,
 	parseReportedClientApp,
 	parseReportedClientOs,
 } from '@app/api/utils/SessionClientIdentity';
-import {AccountBelowMinimumAgeError} from '@osaca/errors/src/domains/auth/AccountBelowMinimumAgeError';
 import {BotUserAuthSessionCreationDeniedError} from '@osaca/errors/src/domains/auth/BotUserAuthSessionCreationDeniedError';
 import {RegistrationPendingApprovalError} from '@osaca/errors/src/domains/auth/RegistrationPendingApprovalError';
 import {RegistrationRejectedError} from '@osaca/errors/src/domains/auth/RegistrationRejectedError';
@@ -88,7 +86,6 @@ export async function createAuthSession(
 	user = await AuthUtility.assertSignInAllowed(ctx, user);
 	if (user.traits.has(REGISTRATION_PENDING_APPROVAL_TRAIT)) throw new RegistrationPendingApprovalError();
 	if (user.traits.has(REGISTRATION_REJECTED_TRAIT)) throw new RegistrationRejectedError();
-	if (user.traits.has(BELOW_MINIMUM_AGE_TRAIT)) throw new AccountBelowMinimumAgeError();
 	user = await AuthUtility.reactivateOnSignIn(ctx, user, getKVAccountDeletionQueue());
 	const now = new Date();
 	const token = await AuthUtility.generateAuthToken();

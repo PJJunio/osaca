@@ -5,7 +5,6 @@ import {AuditLogMiddleware} from '@app/api/middleware/AuditLogMiddleware';
 import {ClientFeaturesMiddleware} from '@app/api/middleware/ClientFeaturesMiddleware';
 import {ConcurrencyLimitMiddleware} from '@app/api/middleware/ConcurrencyLimitMiddleware';
 import ContentFilterMiddleware from '@app/api/middleware/ContentFilterMiddleware';
-import {DateOfBirthGateMiddleware} from '@app/api/middleware/DateOfBirthGateMiddleware';
 import {GuildAvailabilityMiddleware} from '@app/api/middleware/GuildAvailabilityMiddleware';
 import {GuildVisitorRequestContextMiddleware} from '@app/api/middleware/GuildVisitorRequestContextMiddleware';
 import {IpBanMiddleware} from '@app/api/middleware/IpBanMiddleware';
@@ -128,7 +127,6 @@ export function configureMiddleware(routes: HonoApp, options: MiddlewarePipeline
 	routes.use(ActivityContextMiddleware);
 	routes.use(ServiceMiddleware);
 	routes.use(UserMiddleware);
-	routes.use(DateOfBirthGateMiddleware);
 	routes.use(GuildVisitorRequestContextMiddleware);
 	routes.use(ContentFilterMiddleware);
 	routes.use(GuildAvailabilityMiddleware);

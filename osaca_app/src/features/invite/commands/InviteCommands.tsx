@@ -27,14 +27,14 @@ import * as ModalCommands from '@app/features/ui/commands/ModalCommands';
 import {modal} from '@app/features/ui/commands/ModalCommands';
 import Users from '@app/features/user/state/Users';
 import {blockIfAccountLimited, showAccountLimitedModal} from '@app/features/user/utils/AccountLimitUtils';
+import type {I18n} from '@lingui/core';
+import {msg} from '@lingui/core/macro';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {ME} from '@osaca/constants/src/AppConstants';
 import {ChannelTypes} from '@osaca/constants/src/ChannelConstants';
 import {GuildFeatures} from '@osaca/constants/src/GuildConstants';
 import type {GuildVisitStartResponse} from '@osaca/schema/src/domains/guild/GuildVisitSchemas';
 import type {Invite} from '@osaca/schema/src/domains/invite/InviteSchemas';
-import type {I18n} from '@lingui/core';
-import {msg} from '@lingui/core/macro';
 
 const InviteAcceptFailedModal_FAILED_TO_ACCEPT_INVITE_DESCRIPTOR = msg({
 	message: "Couldn't join community",
@@ -102,11 +102,6 @@ function removeInviteIfMissing(
 	}
 }
 
-const ADULTS_ONLY_COMMUNITY_DESCRIPTOR = msg({
-	message: 'This community is for adults only.',
-	comment: 'Error dialog text when someone who is not an adult tries to open a community marked 18+.',
-});
-
 export function showGuildJoinRefusal(error: unknown): boolean {
 	const errorCode = failureCode(error);
 	if (errorCode === APIErrorCodes.ACCOUNT_LIMITED) {
@@ -173,12 +168,6 @@ function showGuildInviteAcceptFailure(invite: Invite | null, error: unknown): vo
 			message: () =>
 				modalI18n._(TemporaryInviteRequiresPresenceModal_YOU_MUST_BE_CONNECTED_TO_THE_GATEWAY_TO_DESCRIPTOR),
 			dataFlx: 'app.temporary-invite-requires-presence-modal.confirm-modal',
-		});
-	} else if (errorCode === APIErrorCodes.GUILD_VISIT_AGE_RESTRICTED) {
-		showGenericErrorModal({
-			title: () => modalI18n._(InviteAcceptFailedModal_FAILED_TO_ACCEPT_INVITE_DESCRIPTOR),
-			message: () => modalI18n._(ADULTS_ONLY_COMMUNITY_DESCRIPTOR),
-			dataFlx: 'invite.invite-commands.show-guild-invite-accept-failure.adults-only-modal',
 		});
 	} else if (responseErr?.status && responseErr.status >= 400) {
 		showGenericErrorModal({

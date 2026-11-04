@@ -54,7 +54,6 @@ function registrationBody(prefix: string, registrationUrlCode?: string) {
 		username: createUniqueUsername(prefix),
 		global_name: 'Signup Race',
 		password: 'a-strong-password',
-		date_of_birth: '2000-01-01',
 		consent: true,
 		...(registrationUrlCode === undefined ? {} : {registration_url_code: registrationUrlCode}),
 	};

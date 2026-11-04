@@ -55,7 +55,6 @@ const FIELDS_CLEARED_ON_DELETION = [
 	'pronouns',
 	'accent_color',
 	'timezone',
-	'date_of_birth',
 	'locale',
 	'premium_flags',
 	'hidden_profile_badges',

@@ -320,10 +320,6 @@ export interface MasterConfig {
 		};
 		account_identity: AccountIdentityModeName | null;
 		tag_style: TagStyleName | null;
-		age_policy: {
-			enabled?: boolean;
-			restricted_regions?: Array<string>;
-		};
 	};
 	payment_disputes: {
 		closure_effective_at?: string;

@@ -12,7 +12,6 @@ import {
 } from '@app/features/accessibility/state/MotionPreferencesMachine';
 import {Endpoints} from '@app/features/app/constants/Endpoints';
 import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
-import {isDateOfBirthStepOpen, whenDateOfBirthStepClosed} from '@app/features/auth/state/DateOfBirthStep';
 import {resolveRetryAfterMs} from '@app/features/messaging/utils/RetryAfterUtils';
 import {AccountScopedWork} from '@app/features/platform/state/AccountScopedWork';
 import AppStorage, {flushAppStorageWrites} from '@app/features/platform/state/PersistentStorage';
@@ -339,7 +338,6 @@ class UserSettingsState {
 	private wireSyncedPreferences: SyncedPreferences = readPersistedSyncedPreferences(SYNCED_PREFERENCES_WIRE_KEY);
 	private wireSyncedPreferencesBase: string | null = null;
 	private syncFlushTimer: NodeJS.Timeout | 'microtask' | null = null;
-	private syncWaitingForDateOfBirth = false;
 	private syncFlushInFlight = false;
 	private syncFlushPendingPromise: Promise<void> | null = null;
 	private syncFlushPendingResolvers: Array<{
@@ -945,16 +943,6 @@ class UserSettingsState {
 
 	private async runSyncedPreferencesFlush(): Promise<void> {
 		if (this.syncFlushInFlight || AccountScopedWork.isSuspended) return;
-		if (isDateOfBirthStepOpen()) {
-			if (!this.syncWaitingForDateOfBirth) {
-				this.syncWaitingForDateOfBirth = true;
-				void whenDateOfBirthStepClosed().then(() => {
-					this.syncWaitingForDateOfBirth = false;
-					void this.scheduleSyncedPreferencesFlush();
-				});
-			}
-			return;
-		}
 		const resolvers = this.syncFlushPendingResolvers;
 		this.syncFlushPendingResolvers = [];
 		const pendingPromise = this.syncFlushPendingPromise;

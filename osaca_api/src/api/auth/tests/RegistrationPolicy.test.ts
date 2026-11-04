@@ -24,7 +24,6 @@ function registrationBody(prefix: string): Record<string, unknown> {
 		username: createUniqueUsername(prefix),
 		global_name: 'Registration Policy',
 		password: 'a-strong-password',
-		date_of_birth: '2000-01-01',
 		consent: true,
 	};
 }
@@ -97,7 +96,7 @@ describe('Auth registration policy', () => {
 		await getInstanceConfigRepository().setRegistrationConfig({mode: 'approval'});
 		await createBuilderWithoutAuth(harness)
 			.post('/auth/register')
-			.body({global_name: 'Nobody Signs In', date_of_birth: '2000-01-01', consent: true})
+			.body({global_name: 'Nobody Signs In', consent: true})
 			.expect(400, APIErrorCodes.REGISTRATION_CREDENTIALS_REQUIRED)
 			.execute();
 		expect(await getInstanceConfigRepository().getPendingRegistrations()).toEqual([]);
@@ -137,7 +136,7 @@ describe('Auth registration policy', () => {
 		});
 		await createBuilderWithoutAuth(harness)
 			.post('/auth/register')
-			.body({global_name: 'Seat Keeper', date_of_birth: '2000-01-01', consent: true, registration_url_code: code})
+			.body({global_name: 'Seat Keeper', consent: true, registration_url_code: code})
 			.expect(400, APIErrorCodes.REGISTRATION_CREDENTIALS_REQUIRED)
 			.execute();
 		const registration = await createBuilderWithoutAuth<PendingRegistrationResponse>(harness)
@@ -151,7 +150,7 @@ describe('Auth registration policy', () => {
 		await getInstanceConfigRepository().setRegistrationConfig({mode: 'open'});
 		const registration = await createBuilderWithoutAuth<RegistrationTokenResponse>(harness)
 			.post('/auth/register')
-			.body({global_name: 'Open Unclaimed', date_of_birth: '2000-01-01', consent: true})
+			.body({global_name: 'Open Unclaimed', consent: true})
 			.execute();
 		expect(registration.token.length).toBeGreaterThan(0);
 	});

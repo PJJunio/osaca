@@ -39,10 +39,6 @@ export const RegisterRequest = z.object({
 	username: UsernameType.optional().describe('Username for the new account (1-32 characters)'),
 	global_name: GlobalNameType.optional().describe('Display name shown to other users'),
 	password: PasswordType.optional().describe('Password for the new account'),
-	date_of_birth: createStringType(10, 10)
-		.refine((value) => /^\d{4}-\d{2}-\d{2}$/.test(value), 'Invalid date format')
-		.optional()
-		.describe('Date of birth in YYYY-MM-DD format'),
 	consent: z
 		.boolean()
 		.default(false)

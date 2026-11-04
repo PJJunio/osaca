@@ -7,7 +7,6 @@ import {
 	pruneGuildVisits,
 } from '@app/api/guild/visits/GuildVisitLifecycle';
 import {getInstanceConfigRepository, getUserRepository} from '@app/api/middleware/ServiceSingletons';
-import {canUserAccessNsfwContent} from '@app/api/utils/AgeUtils';
 import type {WorkerTaskHandler} from '@pkgs/worker/src/contracts/WorkerTask';
 import {z} from 'zod';
 
@@ -23,7 +22,7 @@ const PrunePayload = z.object({
 
 async function adultContentAllowed(userId: UserID): Promise<boolean> {
 	const user = await getUserRepository().findUnique(userId);
-	return user !== null && canUserAccessNsfwContent(user);
+	return user !== null;
 }
 
 export const endGuildVisitsForCodeTask: WorkerTaskHandler = async (payload, helpers) => {

@@ -40,38 +40,6 @@ describe('buildNamedOsacaEnvOverrides', () => {
 			services: {nats: {core_url: 'nats://canonical'}},
 		});
 	});
-
-	test('an individual Stripe price env var wins over the blob, and the blob keys it does not name survive', () => {
-		// The deploy runbook flips one slot at a time with OSACA_STRIPE_PRICE_* while the blob stays
-		// pinned to the previous release. The individual variable is declared after the blob, so it is
-		// merged into the blob rather than replaced by it.
-		const overrides = buildNamedOsacaEnvOverrides({
-			OSACA_STRIPE_PRICES:
-				'{"monthly_brl":"price_blob_monthly_brl","yearly_brl":"price_blob_yearly_brl","monthly_usd":"price_blob_monthly_usd"}',
-			OSACA_STRIPE_PRICE_MONTHLY_BRL: 'price_individual_monthly_brl',
-		});
-
-		expect((overrides.integrations as {stripe: {prices: unknown}}).stripe.prices).toEqual({
-			monthly_brl: 'price_individual_monthly_brl',
-			yearly_brl: 'price_blob_yearly_brl',
-			monthly_usd: 'price_blob_monthly_usd',
-		});
-	});
-
-	test('several individual Stripe price env vars merge into the blob together', () => {
-		const overrides = buildNamedOsacaEnvOverrides({
-			OSACA_STRIPE_PRICES: '{"monthly_brl":"price_blob_monthly_brl","yearly_brl":"price_blob_yearly_brl"}',
-			OSACA_STRIPE_PRICE_MONTHLY_BRL: 'price_individual_monthly_brl',
-			OSACA_STRIPE_PRICE_YEARLY_BRL: 'price_individual_yearly_brl',
-			OSACA_STRIPE_PRICE_MONTHLY_EUR: 'price_individual_monthly_eur',
-		});
-
-		expect((overrides.integrations as {stripe: {prices: unknown}}).stripe.prices).toEqual({
-			monthly_brl: 'price_individual_monthly_brl',
-			yearly_brl: 'price_individual_yearly_brl',
-			monthly_eur: 'price_individual_monthly_eur',
-		});
-	});
 });
 
 describe('readEnvValue with NAME_FILE', () => {
@@ -129,12 +97,12 @@ describe('readEnvValue with NAME_FILE', () => {
 	});
 
 	test('feeds named overrides and aliases', () => {
-		const secret = secretFile('stripe', 'sk_test_file\n');
+		const secret = secretFile('youtube', 'yt_test_file\n');
 		const nats = secretFile('nats', 'nats://nats:4222\n');
 		expect(
-			buildNamedOsacaEnvOverrides({OSACA_STRIPE_SECRET_KEY_FILE: secret, OSACA_NATS_CORE_URL_FILE: nats}),
+			buildNamedOsacaEnvOverrides({OSACA_YOUTUBE_API_KEY_FILE: secret, OSACA_NATS_CORE_URL_FILE: nats}),
 		).toMatchObject({
-			integrations: {stripe: {secret_key: 'sk_test_file'}},
+			integrations: {youtube: {api_key: 'yt_test_file'}},
 			services: {nats: {core_url: 'nats://nats:4222'}},
 		});
 	});

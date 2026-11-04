@@ -10,7 +10,6 @@ import {type InstanceHTTPTarget, instanceRequest} from '@app/features/platform/t
 import {HttpError} from '@app/features/platform/types/EndpointError';
 import {Logger} from '@app/features/platform/utils/AppLogger';
 import {failureCode, ipAuthorizationRequiredResponseFromError} from '@app/features/platform/utils/ResponseInspection';
-import {forgetPurchaseIntent} from '@app/features/premium/state/PurchaseIntent';
 import {getCurrentOrDetectedLocale} from '@app/features/user/utils/LocaleUtils';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import type {ValueOf} from '@osaca/constants/src/ValueOf';
@@ -615,7 +614,6 @@ export async function resendVerificationEmail(target: InstanceHTTPTarget): Promi
 }
 
 export async function logout(options: {notifyServer?: boolean} = {}): Promise<void> {
-	forgetPurchaseIntent();
 	await Accounts.logout(options);
 }
 

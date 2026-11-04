@@ -372,9 +372,6 @@ catalogs:
     sharp:
       specifier: 0.35.5
       version: 0.35.5
-    stripe:
-      specifier: 22.6.2
-      version: 22.6.2
     tailwindcss:
       specifier: 4.3.3
       version: 4.3.3
@@ -698,9 +695,6 @@ importers:
       sharp:
         specifier: 'catalog:'
         version: 0.35.5(@types/node@26.6.6)
-      stripe:
-        specifier: 'catalog:'
-        version: 22.6.2(@types/node@26.6.6)
       tempy:
         specifier: 'catalog:'
         version: 3.2.0
@@ -10829,15 +10823,6 @@ packages:
   strip-json-comments@5.0.3:
     resolution: {integrity: sha512-1tB5mhVo7U+ETBKNf92xT4hrQa3pm0MZ0PQvuDnWgAAGHDsfp4lPSpiS6psrSiet87wyGPh9ft6wmhOMQ0hDiw==}
     engines: {node: '>=14.16'}
-
-  stripe@22.6.2:
-    resolution: {integrity: sha512-PwRE2scocvXqDKPiskMa5vRJEAEkq46W69XyUYmAwrNSLr675lQnfqLwnsndAWizwgihOWw/irLmoFRo3ez7ew==}
-    engines: {node: '>=18'}
-    peerDependencies:
-      '@types/node': '>=18'
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
 
   style-mod@4.1.4:
     resolution: {integrity: sha512-XXWIQt633/EpAFx8aZDOTjBzrCaGmhvEQlQo6MVPfa2OzO2cWo+4hV9h+6UkHYlXGfy+ODXKUdP7Pthmcu5ATw==}
@@ -21393,10 +21378,6 @@ snapshots:
       ansi-regex: 6.5.0
 
   strip-json-comments@5.0.3: {}
-
-  stripe@22.6.2(@types/node@26.6.6):
-    optionalDependencies:
-      '@types/node': 26.6.6
 
   style-mod@4.1.4: {}
 

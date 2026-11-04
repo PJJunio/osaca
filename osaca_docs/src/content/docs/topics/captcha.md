@@ -53,7 +53,6 @@ These operations need a solved challenge while the check is on.
 | POST | /v1/auth/forgot | [Request password recovery](/http-api/authentication/#request-password-recovery) |
 | POST | /v1/auth/recover | [Recover an account](/http-api/authentication/#recover-an-account) |
 | POST | /v1/oauth2/applications | [Create application](/http-api/applications/#create-application) |
-| POST | /v1/gifts/{code}/redeem | [Redeem gift](/http-api/gifts/#redeem-gift) |
 | POST | /v1/users/@me/channels | [Create private channel](/http-api/users/private-channels/#create-private-channel) |
 | PUT | /v1/channels/{channel_id}/recipients/{user_id} | [Add group direct message recipient](/http-api/channels/#add-group-direct-message-recipient) |
 

@@ -20,20 +20,11 @@ import {
 } from '@app/features/i18n/utils/CommonMessageDescriptors';
 import * as RouterUtils from '@app/features/navigation/utils/RouterUtils';
 import {useLocation} from '@app/features/platform/components/router/RouterReact';
-import {hasPurchaseIntent} from '@app/features/premium/state/PurchaseIntent';
-import {getPremiumProductName} from '@app/features/premium/utils/PremiumUtils';
 import {SteppedCarousel} from '@app/features/ui/stepped_carousel/SteppedCarousel';
 import {useOsacaDocumentTitle} from '@app/features/window/hooks/useOsacaDocumentTitle';
-import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
 import {observer} from 'mobx-react-lite';
 import {useCallback, useEffect, useMemo, useState} from 'react';
-
-const GET_PREMIUM_HEADING_DESCRIPTOR = msg({
-	message: 'Sign in or create an account to get {premiumProductName}',
-	comment:
-		'Heading of the sign-in screen when someone came from a purchase button. premiumProductName is the subscription name.',
-});
 
 const SIGN_IN_LINK_HASH_PARAM = 'sign_in_link';
 
@@ -83,11 +74,7 @@ const LoginPage = observer(function LoginPage({onBackActionChange}: LoginPagePro
 			extraTopContent={null}
 			forgotPasswordAction={null}
 			showTitle={true}
-			title={
-				hasPurchaseIntent()
-					? i18n._(GET_PREMIUM_HEADING_DESCRIPTOR, {premiumProductName: getPremiumProductName()})
-					: null
-			}
+			title={null}
 			onLoginComplete={runtimeTarget.reset}
 			onBackActionChange={onBackActionChange}
 			completeLoginRedirectPath={Routes.ME}

@@ -4,7 +4,6 @@ import type {UserID} from '@app/api/BrandedTypes';
 import {Config} from '@app/api/Config';
 import {getCachedAccountsConfig} from '@app/api/instance/AccountsConfigCache';
 import type {User} from '@app/api/models/User';
-import type {OperatorPassRepository} from '@app/api/operator_pass/OperatorPassRepository';
 import {isTemporarilyBanned} from '@app/api/user/UserHelpers';
 import {getValidTimestamp, parseStoredTimestamp} from '@app/api/utils/TimestampUtils';
 import {UserFlags, UserPremiumTypes} from '@osaca/constants/src/UserConstants';
@@ -14,13 +13,8 @@ import {ms, seconds} from 'itty-time';
 const INACTIVITY_WARNING_KEY_EXTRA_DAYS = 5;
 const INACTIVITY_WARNING_PREFIX = 'inactivity_warning_sent';
 
-export type OperatorPassHolderLookup = Pick<OperatorPassRepository, 'findOperatorPass'>;
-
 export class UserDeletionEligibilityService {
-	constructor(
-		private readonly kvClient: IKVProvider,
-		private readonly operatorPassLookup: OperatorPassHolderLookup | null = null,
-	) {}
+	constructor(private readonly kvClient: IKVProvider) {}
 
 	async isEligibleForInactivityDeletion(user: User): Promise<boolean> {
 		if (user.isBot) {
@@ -46,24 +40,15 @@ export class UserDeletionEligibilityService {
 		if (Date.now() - lastActiveAt < inactivityThresholdMs) {
 			return false;
 		}
-		return !(await this.isProtectedByOperatorPass(user));
+		return !this.isProtectedByLifetimePremium(user);
 	}
 
 	async isProtectedFromSystemDeletion(user: User): Promise<boolean> {
-		return isTemporarilyBanned(user) || (await this.isProtectedByOperatorPass(user));
+		return isTemporarilyBanned(user) || this.isProtectedByLifetimePremium(user);
 	}
 
-	private async isProtectedByOperatorPass(user: User): Promise<boolean> {
-		if (Config.instance.selfHosted) {
-			return false;
-		}
-		if (user.premiumType === UserPremiumTypes.LIFETIME) {
-			return true;
-		}
-		if (!this.operatorPassLookup) {
-			return false;
-		}
-		return (await this.operatorPassLookup.findOperatorPass(user.id)) !== null;
+	private isProtectedByLifetimePremium(user: User): boolean {
+		return !Config.instance.selfHosted && user.premiumType === UserPremiumTypes.LIFETIME;
 	}
 
 	async markWarningSent(userId: UserID): Promise<void> {

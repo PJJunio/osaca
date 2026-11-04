@@ -28,7 +28,6 @@ import {Logger} from '@app/features/platform/utils/AppLogger';
 import * as ModalCommands from '@app/features/ui/commands/ModalCommands';
 import {modal} from '@app/features/ui/commands/ModalCommands';
 import * as TextCopyCommands from '@app/features/ui/commands/TextCopyCommands';
-import {MentionBadgeAnimated} from '@app/features/ui/components/MentionBadge';
 import {NotificationDot} from '@app/features/ui/components/NotificationDot';
 import {Scroller, type ScrollerHandle} from '@app/features/ui/components/Scroller';
 import {Spinner} from '@app/features/ui/components/Spinner';
@@ -459,14 +458,7 @@ const MobileSettingsList = observer(
 								const isLastTab = index === tabs.length - 1;
 								const isLastCategory = categoryIndex === lastCategoryIndex;
 								let badge: React.ReactNode;
-								if (tab.type === 'gift_inventory' && currentUser?.hasUnreadGiftInventory) {
-									badge = (
-										<MentionBadgeAnimated
-											mentionCount={currentUser.unreadGiftInventoryCount ?? 1}
-											data-flx="app.mobile-settings-view.mobile-settings-list.mention-badge-animated"
-										/>
-									);
-								} else if (tab.type === 'advanced_settings' && advancedSettingsHasNew) {
+								if (tab.type === 'advanced_settings' && advancedSettingsHasNew) {
 									badge = (
 										<SettingsStatusBadge
 											kind="new"

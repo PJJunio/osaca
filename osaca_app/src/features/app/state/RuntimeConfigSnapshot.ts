@@ -245,7 +245,6 @@ function readFeatures(value: unknown): InstanceFeatures {
 	const source = readRecord(value, 'features');
 	const features: InstanceFeatures = {
 		voice_enabled: readBoolean(source, 'voice_enabled', 'features.voice_enabled'),
-		stripe_enabled: readBoolean(source, 'stripe_enabled', 'features.stripe_enabled'),
 		self_hosted: readBoolean(source, 'self_hosted', 'features.self_hosted'),
 		presigned_attachment_uploads: readBoolean(
 			source,
@@ -254,7 +253,6 @@ function readFeatures(value: unknown): InstanceFeatures {
 		),
 		emails_enabled: readBoolean(source, 'emails_enabled', 'features.emails_enabled'),
 		premium_enabled: false,
-		stripe_serviceable: readOptionalBoolean(source, 'stripe_serviceable', 'features.stripe_serviceable') ?? false,
 		phone_verification_enabled: false,
 	};
 	features.premium_enabled =

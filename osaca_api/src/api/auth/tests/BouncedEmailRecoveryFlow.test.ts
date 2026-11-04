@@ -60,11 +60,6 @@ describe('Bounced email recovery flow', () => {
 	it('allows bounced users to replace email without original-email verification', async () => {
 		const account = await createTestAccount(harness);
 		await markEmailAsBounced(harness, account);
-		await createBuilderWithoutAuth(harness)
-			.post(`/test/users/${account.userId}/premium`)
-			.body({stripe_customer_id: 'cus_bounced_email_sync'})
-			.expect(200)
-			.execute();
 		const worker = new RecordingWorkerService();
 		setInjectedWorkerService(worker);
 		resetApiServicesForTesting();
@@ -105,7 +100,6 @@ describe('Bounced email recovery flow', () => {
 		const finalMe = await createBuilder<UserPrivateResponse>(harness, account.token).get('/users/@me').execute();
 		expect(finalMe.email).toBe(replacementEmail);
 		expect(finalMe.email_bounced).toBe(false);
-		expect(worker.byTask('syncStripeCustomerEmail').map((job) => job.payload)).toContainEqual({userId: account.userId});
 	});
 	it('rejects bounced-email recovery for accounts that are not marked as bounced', async () => {
 		const account = await createTestAccount(harness);

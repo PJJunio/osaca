@@ -189,9 +189,9 @@ fn search_input(name: &str, value: &str, placeholder: &str, action: &str) -> Mar
 fn search_form(base: &str, params: &UserListParams, email: UserEmailAccess) -> Markup {
     let action = format!("{base}/users");
     let placeholder = if unique_usernames() {
-        "Search by user ID, username, or Stripe ID..."
+        "Search by user ID or username..."
     } else {
-        "Search by user ID, username, tag#0000, or Stripe ID..."
+        "Search by user ID, username or tag#0000..."
     };
     html! {
         form method="get" action=(&action)

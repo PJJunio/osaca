@@ -29,18 +29,3 @@ describe('ErrorI18n global IP block messages', () => {
 		}
 	});
 });
-
-describe('ErrorI18n self-hosted payment error', () => {
-	it('has a translated neutral variant without a support contact in every locale', () => {
-		const english = getErrorMessageUnsafe('STRIPE_ERROR', 'en-US', {supportEmail: null});
-		for (const locale of Object.keys(ERROR_I18N_LOCALE_MESSAGES)) {
-			const hosted = getErrorMessageUnsafe('STRIPE_ERROR', locale, {supportEmail: 'support@osaca.example'});
-			const neutral = getErrorMessageUnsafe('STRIPE_ERROR', locale, {supportEmail: null});
-			expect(neutral, locale).not.toBe(hosted);
-			expect(neutral, locale).not.toMatch(/@|\bnull\b|\{|support/i);
-			if (locale !== 'en-US' && locale !== 'en-GB') {
-				expect(neutral, locale).not.toBe(english);
-			}
-		}
-	});
-});

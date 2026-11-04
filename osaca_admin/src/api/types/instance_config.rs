@@ -2,7 +2,6 @@
 
 use serde::{Deserialize, Serialize};
 
-use super::{InstanceBillingResponse, InstanceBillingUpdateRequest};
 use crate::api::generated::types as generated_types;
 
 pub use generated_types::{
@@ -44,8 +43,6 @@ pub struct InstanceConfigResponse {
     pub captcha: CaptchaConfigResponse,
     #[serde(default)]
     pub experiment_delivery: ExperimentDeliveryConfigResponse,
-    #[serde(default)]
-    pub billing: InstanceBillingResponse,
     pub auth: AuthConfigResponse,
     pub accounts: AccountsConfigResponse,
     #[serde(default)]
@@ -882,8 +879,6 @@ pub struct InstanceConfigUpdateRequest {
     pub captcha: Option<CaptchaConfigUpdateRequest>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub experiment_delivery: Option<ExperimentDeliveryConfigUpdateRequest>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub billing: Option<InstanceBillingUpdateRequest>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub auth: Option<AuthConfigUpdateRequest>,
     #[serde(skip_serializing_if = "Option::is_none")]

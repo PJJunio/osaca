@@ -1,16 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import type {APIConfig, BlueskyOAuthConfig, OperatorPassConfig, TrustedCallerConfig} from '@app/api/config/APIConfig';
-import {
-	parseOperatorPassMaxQuantity,
-	parseOperatorPassReleaseLists,
-	parseOperatorPassStandardPrices,
-	parseOperatorPassWallTiers,
-	parseOperatorPassWithdrawalCountries,
-	resolveOperatorPassDisabledCurrencies,
-} from '@app/api/operator_pass/OperatorPassPrices';
-import {DonationRateLimitConfigs} from '@app/api/rate_limit_configs/DonationRateLimitConfig';
-import {OperatorPassRateLimitConfigs} from '@app/api/rate_limit_configs/OperatorPassRateLimitConfig';
+import type {APIConfig, BlueskyOAuthConfig, TrustedCallerConfig} from '@app/api/config/APIConfig';
 import {parseIpBanEntry} from '@app/api/utils/IpRangeUtils';
 import {trimTrailingSlash} from '@app/api/utils/UrlUtils';
 import type {WorkerTaskName} from '@app/api/worker/WorkerLaneConfig';
@@ -143,24 +133,7 @@ function parseTrustedCaller(entry: unknown, index: number): TrustedCallerConfig 
 }
 
 function buildTrustedCallers(master: MasterConfig): Array<TrustedCallerConfig> {
-	const trustedCallers = (master.services.api.trusted_callers ?? []).map(parseTrustedCaller);
-	const donationProxyKey = (master.services.api.donation_proxy_key ?? '').trim();
-	if (donationProxyKey.length > 0 && donationProxyKey.length < TRUSTED_CALLER_MIN_KEY_LENGTH) {
-		throw new Error(`OSACA_API_DONATION_PROXY_KEY must be at least ${TRUSTED_CALLER_MIN_KEY_LENGTH} characters`);
-	}
-	if (donationProxyKey.length > 0) {
-		trustedCallers.push({
-			name: 'donation',
-			key: donationProxyKey,
-			buckets: [
-				...Object.values(DonationRateLimitConfigs).map((routeConfig) => routeConfig.bucket),
-				...Object.values(OperatorPassRateLimitConfigs)
-					.filter((routeConfig) => routeConfig.trustForwardedClientIp === true)
-					.map((routeConfig) => routeConfig.bucket),
-			],
-		});
-	}
-	return trustedCallers;
+	return (master.services.api.trusted_callers ?? []).map(parseTrustedCaller);
 }
 
 const SETUP_TOKEN_MIN_LENGTH = 32;
@@ -179,119 +152,6 @@ function resolveSetupToken(master: MasterConfig): string | null {
 		);
 	}
 	return token;
-}
-
-const ISO_INSTANT_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/u;
-const OPERATOR_PASS_MAX_GRACE_MINUTES = 24 * 60;
-
-function parseIsoInstant(value: string | undefined, envName: string): Date {
-	const trimmed = (value ?? '').trim();
-	const parsed = ISO_INSTANT_PATTERN.test(trimmed) ? Date.parse(trimmed) : Number.NaN;
-	if (!Number.isFinite(parsed)) {
-		throw new Error(`${envName} must be an ISO-8601 instant such as 2026-11-01T16:00:00Z`);
-	}
-	return new Date(parsed);
-}
-
-function parseOptionalIsoInstant(value: string | undefined, envName: string): Date | null {
-	return (value ?? '').trim().length === 0 ? null : parseIsoInstant(value, envName);
-}
-
-function parseOptionalSnowflake(value: string | undefined, envName: string): bigint | null {
-	const trimmed = (value ?? '').trim();
-	if (trimmed.length === 0) {
-		return null;
-	}
-	if (!/^[1-9]\d{0,19}$/u.test(trimmed)) {
-		throw new Error(`${envName} must be a snowflake ID`);
-	}
-	return BigInt(trimmed);
-}
-
-function resolveOperatorPassClockOffsetMs(master: MasterConfig): number {
-	const override = (master.operator_pass.now_override ?? '').trim();
-	if (override.length === 0) {
-		return 0;
-	}
-	const overrideAt = parseIsoInstant(override, 'OSACA_OPERATOR_PASS_NOW');
-	if (master.env === 'production' && !master.dev.test_mode_enabled) {
-		console.warn('OSACA_OPERATOR_PASS_NOW is ignored in production');
-		return 0;
-	}
-	return overrideAt.getTime() - Date.now();
-}
-
-function buildOperatorPassConfig(master: MasterConfig): OperatorPassConfig {
-	const source = master.operator_pass;
-	const priceRisesAt = parseOptionalIsoInstant(source.price_rises_at, 'OSACA_OPERATOR_PASS_PRICE_RISES_AT');
-	if (priceRisesAt === null && master.env === 'production' && !master.instance.self_hosted) {
-		console.warn('OSACA_OPERATOR_PASS_PRICE_RISES_AT is not set, the Operator Pass early bird price never ends');
-	}
-	const graceMinutes = source.grace_minutes;
-	if (
-		typeof graceMinutes !== 'number' ||
-		!Number.isInteger(graceMinutes) ||
-		graceMinutes < 0 ||
-		graceMinutes > OPERATOR_PASS_MAX_GRACE_MINUTES
-	) {
-		throw new Error(
-			`OSACA_OPERATOR_PASS_GRACE_MINUTES must be an integer between 0 and ${OPERATOR_PASS_MAX_GRACE_MINUTES}`,
-		);
-	}
-	const labsGuildId = parseOptionalSnowflake(source.labs_guild_id, 'OSACA_LABS_GUILD_ID');
-	const labsOperatorRoleId = parseOptionalSnowflake(source.labs_operator_role_id, 'OSACA_LABS_OPERATOR_ROLE_ID');
-	if ((labsGuildId === null) !== (labsOperatorRoleId === null)) {
-		throw new Error('OSACA_LABS_GUILD_ID and OSACA_LABS_OPERATOR_ROLE_ID must be set together');
-	}
-	const labsVisionaryRoleId = parseOptionalSnowflake(source.labs_visionary_role_id, 'OSACA_LABS_VISIONARY_ROLE_ID');
-	if (labsVisionaryRoleId !== null && labsGuildId === null) {
-		throw new Error('OSACA_LABS_VISIONARY_ROLE_ID needs OSACA_LABS_GUILD_ID');
-	}
-	const labsAccessRoleId = parseOptionalSnowflake(source.labs_access_role_id, 'OSACA_LABS_ACCESS_ROLE_ID');
-	if (labsAccessRoleId !== null && labsGuildId === null) {
-		throw new Error('OSACA_LABS_ACCESS_ROLE_ID needs OSACA_LABS_GUILD_ID');
-	}
-	const labsOperatorsChannelId = parseOptionalSnowflake(
-		source.labs_operators_channel_id,
-		'OSACA_LABS_OPERATORS_CHANNEL_ID',
-	);
-	if (labsOperatorsChannelId !== null && labsGuildId === null) {
-		throw new Error('OSACA_LABS_OPERATORS_CHANNEL_ID needs OSACA_LABS_GUILD_ID');
-	}
-	const standardPricesMinor = parseOperatorPassStandardPrices(source.standard_prices_minor);
-	const hostedSale = priceRisesAt !== null && master.env === 'production' && !master.instance.self_hosted;
-	if (hostedSale && standardPricesMinor === null) {
-		throw new Error(
-			'OSACA_OPERATOR_PASS_STANDARD_PRICE_* must be set in production when OSACA_OPERATOR_PASS_PRICE_RISES_AT is set',
-		);
-	}
-	if (
-		hostedSale &&
-		(labsGuildId === null ||
-			labsOperatorRoleId === null ||
-			labsVisionaryRoleId === null ||
-			labsOperatorsChannelId === null)
-	) {
-		throw new Error(
-			'OSACA_LABS_GUILD_ID, OSACA_LABS_OPERATOR_ROLE_ID, OSACA_LABS_VISIONARY_ROLE_ID and OSACA_LABS_OPERATORS_CHANNEL_ID must be set in production when OSACA_OPERATOR_PASS_PRICE_RISES_AT is set',
-		);
-	}
-	return {
-		priceRisesAt,
-		graceMs: graceMinutes * 60 * 1000,
-		clockOffsetMs: resolveOperatorPassClockOffsetMs(master),
-		labsGuildId,
-		labsOperatorRoleId,
-		labsVisionaryRoleId,
-		labsAccessRoleId,
-		labsOperatorsChannelId,
-		standardPricesMinor,
-		releaseLists: parseOperatorPassReleaseLists(source.release_lists),
-		withdrawalCountries: parseOperatorPassWithdrawalCountries(source.withdrawal_countries),
-		wallTierMinimums: parseOperatorPassWallTiers(source.wall_tiers),
-		maxQuantity: parseOperatorPassMaxQuantity(source.max_quantity),
-		disabledCurrencies: resolveOperatorPassDisabledCurrencies(source.localized_prices_enabled),
-	};
 }
 
 export function buildAPIConfigFromMaster(master: MasterConfig): APIConfig {
@@ -470,56 +330,6 @@ export function buildAPIConfigFromMaster(master: MasterConfig): APIConfig {
 			joinAllowPrivateEndpoints: master.integrations.voice.join_allow_private_endpoints ?? false,
 			healthIntervalMs: master.integrations.voice.health_interval_ms ?? 15000,
 		},
-		stripe: {
-			enabled: master.integrations.stripe.enabled,
-			secretKey: master.integrations.stripe.secret_key,
-			webhookSecret: master.integrations.stripe.webhook_secret,
-			prices: master.integrations.stripe.prices
-				? {
-						monthlyUsd: master.integrations.stripe.prices.monthly_usd,
-						monthlyEur: master.integrations.stripe.prices.monthly_eur,
-						monthlyBrl: master.integrations.stripe.prices.monthly_brl,
-						monthlyDkk: master.integrations.stripe.prices.monthly_dkk,
-						monthlyInr: master.integrations.stripe.prices.monthly_inr,
-						monthlyIsk: master.integrations.stripe.prices.monthly_isk,
-						monthlyNok: master.integrations.stripe.prices.monthly_nok,
-						monthlyPln: master.integrations.stripe.prices.monthly_pln,
-						monthlySek: master.integrations.stripe.prices.monthly_sek,
-						monthlyTry: master.integrations.stripe.prices.monthly_try,
-						yearlyUsd: master.integrations.stripe.prices.yearly_usd,
-						yearlyEur: master.integrations.stripe.prices.yearly_eur,
-						yearlyBrl: master.integrations.stripe.prices.yearly_brl,
-						yearlyDkk: master.integrations.stripe.prices.yearly_dkk,
-						yearlyInr: master.integrations.stripe.prices.yearly_inr,
-						yearlyIsk: master.integrations.stripe.prices.yearly_isk,
-						yearlyNok: master.integrations.stripe.prices.yearly_nok,
-						yearlyPln: master.integrations.stripe.prices.yearly_pln,
-						yearlySek: master.integrations.stripe.prices.yearly_sek,
-						yearlyTry: master.integrations.stripe.prices.yearly_try,
-						gift1MonthUsd: master.integrations.stripe.prices.gift_1_month_usd,
-						gift1MonthEur: master.integrations.stripe.prices.gift_1_month_eur,
-						gift1MonthSek: master.integrations.stripe.prices.gift_1_month_sek,
-						gift1YearSek: master.integrations.stripe.prices.gift_1_year_sek,
-						gift1MonthDkk: master.integrations.stripe.prices.gift_1_month_dkk,
-						gift1YearDkk: master.integrations.stripe.prices.gift_1_year_dkk,
-						gift1MonthNok: master.integrations.stripe.prices.gift_1_month_nok,
-						gift1YearNok: master.integrations.stripe.prices.gift_1_year_nok,
-						gift1MonthIsk: master.integrations.stripe.prices.gift_1_month_isk,
-						gift1YearIsk: master.integrations.stripe.prices.gift_1_year_isk,
-						gift1MonthBrl: master.integrations.stripe.prices.gift_1_month_brl,
-						gift1MonthInr: master.integrations.stripe.prices.gift_1_month_inr,
-						gift1MonthPln: master.integrations.stripe.prices.gift_1_month_pln,
-						gift1MonthTry: master.integrations.stripe.prices.gift_1_month_try,
-						gift1YearUsd: master.integrations.stripe.prices.gift_1_year_usd,
-						gift1YearEur: master.integrations.stripe.prices.gift_1_year_eur,
-						gift1YearBrl: master.integrations.stripe.prices.gift_1_year_brl,
-						gift1YearInr: master.integrations.stripe.prices.gift_1_year_inr,
-						gift1YearPln: master.integrations.stripe.prices.gift_1_year_pln,
-						gift1YearTry: master.integrations.stripe.prices.gift_1_year_try,
-					}
-				: undefined,
-			legacyPrices: master.integrations.stripe.legacy_prices,
-		},
 		cachePurge: {
 			adapter: master.integrations.cache_purge.adapter,
 			http: {
@@ -560,8 +370,6 @@ export function buildAPIConfigFromMaster(master: MasterConfig): APIConfig {
 			selfHosted: master.instance.self_hosted,
 			baseDomain: master.domain.base_domain,
 			autoJoinInviteCode: master.instance.auto_join_invite_code,
-			visionariesGuildId: master.instance.visionaries_guild_id,
-			visionariesGuildVisionaryRoleId: master.instance.visionaries_guild_visionary_role_id,
 			branding: {
 				productName: master.instance.branding.product_name,
 				iconUrl: master.instance.branding.icon_url,
@@ -586,13 +394,6 @@ export function buildAPIConfigFromMaster(master: MasterConfig): APIConfig {
 			enabled: master.discovery.enabled,
 			minMemberCount: master.discovery.min_member_count,
 		},
-		operatorPass: buildOperatorPassConfig(master),
-		paymentDisputes: {
-			closureEffectiveAt: parseOptionalIsoInstant(
-				master.payment_disputes.closure_effective_at,
-				'OSACA_PAYMENT_DISPUTE_CLOSURE_EFFECTIVE_AT',
-			),
-		},
 		dev: {
 			relaxRegistrationRateLimits: master.dev.relax_registration_rate_limits,
 			disableRateLimits: master.dev.disable_rate_limits,
@@ -611,35 +412,6 @@ export function buildAPIConfigFromMaster(master: MasterConfig): APIConfig {
 		},
 		push: {
 			publicVapidKey: master.auth.vapid.public_key,
-		},
-		appStore: {
-			enabled: master.integrations.app_store.enabled,
-			issuerId: master.integrations.app_store.issuer_id,
-			keyId: master.integrations.app_store.key_id,
-			privateKey: master.integrations.app_store.private_key,
-			privateKeyPath: master.integrations.app_store.private_key_path,
-			apps: (master.integrations.app_store.apps ?? []).map((app) => ({
-				bundleId: app.bundle_id,
-				appAppleId: app.app_apple_id,
-			})),
-			products: master.integrations.app_store.products ?? {},
-		},
-		googlePlay: {
-			enabled: master.integrations.google_play.enabled,
-			packages: master.integrations.google_play.packages ?? [],
-			clientEmail: master.integrations.google_play.client_email,
-			privateKey: master.integrations.google_play.private_key,
-			privateKeyPath: master.integrations.google_play.private_key_path,
-			serviceAccountJsonPath: master.integrations.google_play.service_account_json_path,
-			tokenUri: master.integrations.google_play.token_uri ?? 'https://oauth2.googleapis.com/token',
-			products: master.integrations.google_play.products ?? {},
-			pushAudience: master.integrations.google_play.push_audience,
-			pushServiceAccountEmail: master.integrations.google_play.push_service_account_email,
-			selfServiceRefunds: master.integrations.google_play.self_service_refunds,
-		},
-		storeBilling: {
-			sandboxUserIds: master.integrations.store_billing.sandbox_user_ids ?? [],
-			sandboxEntitlesAll: master.integrations.store_billing.sandbox_entitles_all,
 		},
 		worker: {
 			mode: apiWorkerConfig?.mode ?? 'all_lanes',

@@ -31,18 +31,14 @@ import {
 	type SelfMessageEligibilityContext,
 	type SelfMessageFilter,
 } from '@app/api/channel/services/message/SelfMessageFilter';
-import type {OperatorPassCertificateRow, OperatorPassUnitRow} from '@app/api/database/types/OperatorPassTypes';
 import {isTainted} from '@app/api/experiment/ChannelThreadsGate';
 import type {IStorageService} from '@app/api/infrastructure/IStorageService';
 import {Logger} from '@app/api/Logger';
-import {getOperatorPassRepository} from '@app/api/middleware/ServiceSingletons';
 import type {Application} from '@app/api/models/Application';
 import type {Attachment} from '@app/api/models/Attachment';
 import type {Channel} from '@app/api/models/Channel';
-import type {Payment} from '@app/api/models/Payment';
 import type {ThreadMember} from '@app/api/models/ThreadMember';
 import type {User} from '@app/api/models/User';
-import {getOperatorPassVisionaryPassId} from '@app/api/operator_pass/OperatorPassVisionaryService';
 import {buildHarvestDownloadUrl} from '@app/api/user/services/HarvestDownloadUrl';
 import {mapWithConcurrency} from '@app/api/utils/ConcurrencyUtils';
 import {writeZipArchive} from '@app/api/worker/utils/ArchiveFile';
@@ -53,13 +49,7 @@ import {
 	getAnimatedAssetExtension,
 } from '@app/api/worker/utils/AssetArchiveHelpers';
 import {ContentAddressedAttachmentCollector} from '@app/api/worker/utils/ContentAddressedAttachmentCollector';
-import {
-	buildUserDataJson,
-	getOperatorPassCertificateArchivePath,
-	mapOAuthApplication,
-	mapPayment,
-	mapSecurityData,
-} from '@app/api/worker/utils/HarvestDataMappers';
+import {buildUserDataJson, mapOAuthApplication, mapSecurityData} from '@app/api/worker/utils/HarvestDataMappers';
 import {deserializeSelfMessageFilter, SelfMessageFilterPayload} from '@app/api/worker/utils/SelfMessageFilterPayload';
 import {getWorkerDependencies} from '@app/api/worker/WorkerContext';
 import type {WorkerDependencies} from '@app/api/worker/WorkerDependencies';
@@ -115,7 +105,6 @@ interface ArchiveParams {
 	userDataJsonBuffer: Buffer;
 	user: User;
 	channelMessagesMap: Map<string, Array<HarvestedMessage>>;
-	payments: Array<Payment>;
 	oauthClients: Array<Application>;
 	authorizedIps: Array<{
 		ip: string;
@@ -124,7 +113,6 @@ interface ArchiveParams {
 		last_active_at: Date | null;
 		last_active_ip: string | null;
 	};
-	operatorPassCertificates: Array<OperatorPassCertificateRow>;
 	storageService: IStorageService;
 }
 
@@ -346,11 +334,9 @@ async function createAndUploadArchive(params: ArchiveParams): Promise<ArchiveRes
 		userDataJsonBuffer,
 		user,
 		channelMessagesMap,
-		payments,
 		oauthClients,
 		authorizedIps,
 		activityData,
-		operatorPassCertificates,
 		storageService,
 	} = params;
 	const userIdString = userId.toString();
@@ -408,14 +394,6 @@ async function createAndUploadArchive(params: ArchiveParams): Promise<ArchiveRes
 			const manifest = collector.getManifest();
 			await archive.append(createArchiveJsonBuffer(manifest), {name: 'attachments_manifest.json'});
 		}
-		for (const certificate of operatorPassCertificates) {
-			if (certificate.pdf.length > 0) {
-				await archive.append(Buffer.from(certificate.pdf), {name: getOperatorPassCertificateArchivePath(certificate)});
-			}
-		}
-		await archive.append(createArchiveJsonBuffer(payments.map(mapPayment)), {
-			name: 'payments/payment_history.json',
-		});
 		await archive.append(createArchiveJsonBuffer({applications: oauthClients.map(mapOAuthApplication)}), {
 			name: 'integrations/oauth.json',
 		});
@@ -459,13 +437,11 @@ const harvestUserData: ArchiveTaskHandler = async (payload, helpers, attempt) =>
 		guildRepository,
 		userRepository,
 		favoriteMemeRepository,
-		paymentRepository,
 		applicationRepository,
 		connectionRepository,
 		storageService,
 		emailService,
 		instanceConfigRepository,
-		storeEntitlementService,
 	} = dependencies;
 	const adminRequestedBy = validated.adminRequestedBy ? BigInt(validated.adminRequestedBy) : null;
 	const isAdminArchive = adminRequestedBy !== null;
@@ -528,14 +504,6 @@ const harvestUserData: ArchiveTaskHandler = async (payload, helpers, attempt) =>
 			webAuthnCredentials,
 			mfaBackupCodes,
 			recoveryKitCreatedAt,
-			createdGiftCodes,
-			payments,
-			storePurchases,
-			operatorPass,
-			operatorPassPurchases,
-			operatorPassWaitlistEntry,
-			operatorPassWall,
-			operatorPassWallEvents,
 			oauthClients,
 			connections,
 			pinnedDms,
@@ -554,48 +522,12 @@ const harvestUserData: ArchiveTaskHandler = async (payload, helpers, attempt) =>
 			userRepository.listWebAuthnCredentials(userId),
 			userRepository.listMfaBackupCodes(userId),
 			findRecoveryKitCreatedAt(userId),
-			userRepository.findGiftCodesByCreator(userId),
-			paymentRepository.findPaymentsByUserId(userId),
-			storeEntitlementService.listStorePurchases(userId),
-			getOperatorPassRepository().findOperatorPass(userId),
-			getOperatorPassRepository().listPurchasesByPurchaser(userId),
-			user.email ? getOperatorPassRepository().findWaitlistEntryByEmail(user.email.trim().toLowerCase()) : null,
-			getOperatorPassRepository().findWallEntry(userId),
-			getOperatorPassRepository().listWallEvents(userId),
 			applicationRepository.listApplicationsByOwner(userId),
 			connectionRepository.findByUserId(userId),
 			userRepository.getPinnedDmsWithDetails(userId),
 			userRepository.getAuthorizedIps(userId),
 			userRepository.getActivityTracking(userId),
 		]);
-		const operatorPassRepository = getOperatorPassRepository();
-		const operatorPassUnitRows = new Map<string, OperatorPassUnitRow>();
-		for (const unit of await operatorPassRepository.listUnitsByHolder(userId)) {
-			operatorPassUnitRows.set(unit.pass_id, unit);
-		}
-		for (const purchase of operatorPassPurchases) {
-			for (const unit of await operatorPassRepository.listUnitsByPurchase(purchase.checkout_session_id)) {
-				operatorPassUnitRows.set(unit.pass_id, unit);
-			}
-		}
-		const operatorPassUnits = await Promise.all(
-			[...operatorPassUnitRows.values()].map(async (unit) => ({
-				unit,
-				events: await operatorPassRepository.listUnitEvents(unit.pass_id),
-			})),
-		);
-		const operatorPassOffers = await operatorPassRepository.listOffersByUser(userId);
-		const operatorPassCertificates: Array<OperatorPassCertificateRow> = [];
-		for (const purchase of operatorPassPurchases) {
-			for (const page of await operatorPassRepository.listCertificatesByPurchase(purchase.checkout_session_id)) {
-				operatorPassCertificates.push(...(await operatorPassRepository.listCertificateVersions(page.pass_id)));
-			}
-		}
-		const operatorPassVisionaryActivation = await operatorPassRepository.findVisionaryActivation(userId);
-		const operatorPassLabs = await operatorPassRepository.findLabsMember(userId);
-		operatorPassCertificates.push(
-			...(await operatorPassRepository.listCertificateVersions(getOperatorPassVisionaryPassId(userId))),
-		);
 		const guilds = await guildRepository.listGuilds(guildIds);
 		const guildsMap = new Map(guilds.map((guild) => [guild.id.toString(), guild]));
 		const guildMemberships = await mapWithConcurrency(guildIds, HARVEST_READ_CONCURRENCY, async (guildId) => {
@@ -626,19 +558,6 @@ const harvestUserData: ArchiveTaskHandler = async (payload, helpers, attempt) =>
 			webAuthnCredentials,
 			mfaBackupCodes,
 			recoveryKitCreatedAt,
-			createdGiftCodes,
-			payments,
-			storePurchases,
-			operatorPass,
-			operatorPassPurchases,
-			operatorPassWaitlistEntry,
-			operatorPassWall,
-			operatorPassWallEvents,
-			operatorPassUnits,
-			operatorPassOffers,
-			operatorPassCertificates,
-			operatorPassVisionaryActivation,
-			operatorPassLabs,
 			oauthClients,
 			connections,
 			pinnedDms,
@@ -660,11 +579,9 @@ const harvestUserData: ArchiveTaskHandler = async (payload, helpers, attempt) =>
 			userDataJsonBuffer,
 			user,
 			channelMessagesMap,
-			payments,
 			oauthClients,
 			authorizedIps,
 			activityData,
-			operatorPassCertificates,
 			storageService,
 		});
 		Logger.debug(

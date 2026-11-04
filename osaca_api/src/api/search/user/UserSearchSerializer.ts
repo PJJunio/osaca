@@ -25,7 +25,5 @@ export function convertToSearchableUser(user: User): SearchableUser {
 		lastActiveAt,
 		tempBannedUntil,
 		pendingDeletionAt,
-		stripeSubscriptionId: user.stripeSubscriptionId,
-		stripeCustomerId: user.stripeCustomerId,
 	};
 }

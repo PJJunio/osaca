@@ -1,11 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {
-	GIFT_CODE_DURATION_TYPE_DEFINITIONS,
-	MAX_GIFT_CODES_PER_REQUEST,
-	MAX_GIFT_DURATION_QUANTITY,
-} from '@osaca/constants/src/GiftCodeConstants';
-import {
 	CONTENT_WARNING_TEXT_MAX_LENGTH,
 	SystemChannelFlags,
 	SystemChannelFlagsDescriptions,
@@ -43,10 +38,6 @@ import {
 	GuildVisitsConfigResponse,
 	GuildVisitsConfigUpdateRequest,
 } from '@osaca/schema/src/domains/admin/GuildVisitsSchemas';
-import {
-	InstanceBillingResponse,
-	InstanceBillingUpdateRequest,
-} from '@osaca/schema/src/domains/admin/InstanceBillingSchemas';
 import {VoiceP2pConfigResponse, VoiceP2pConfigUpdateRequest} from '@osaca/schema/src/domains/admin/VoiceP2pSchemas';
 import {
 	ExperimentDeliveryConfigResponse,
@@ -478,27 +469,6 @@ export const BanProfileSubstringRequest = z.object({
 
 export type BanProfileSubstringRequest = z.infer<typeof BanProfileSubstringRequest>;
 
-const GenerateGiftCodeDurationTypeSchema = createNamedStringLiteralUnion(
-	[
-		...GIFT_CODE_DURATION_TYPE_DEFINITIONS,
-		['lifetime', 'lifetime', 'Lifetime premium that never ends. duration_quantity is ignored'],
-	],
-	'Gift code duration unit, or lifetime',
-);
-
-export const GenerateGiftCodesRequest = z.object({
-	count: z.number().int().min(1).max(MAX_GIFT_CODES_PER_REQUEST).describe('Number of gift codes to generate'),
-	duration_type: GenerateGiftCodeDurationTypeSchema.describe('Duration unit for the generated gift codes'),
-	duration_quantity: z
-		.number()
-		.int()
-		.min(1)
-		.max(MAX_GIFT_DURATION_QUANTITY)
-		.describe('Duration quantity for the selected unit. Ignored for lifetime gifts.'),
-});
-
-export type GenerateGiftCodesRequest = z.infer<typeof GenerateGiftCodesRequest>;
-
 export const AllowedEmailDomainsSchema = z.array(z.string()).max(100);
 
 const InstanceRegistrationConfigResponse = z.object({
@@ -757,7 +727,6 @@ export const InstanceConfigResponse = z.object({
 	policy: InstancePolicyResponse,
 	integrations: InstanceIntegrationsResponse,
 	media: InstanceMediaResponse,
-	billing: InstanceBillingResponse,
 	notice: InstanceNoticeSchema.nullable().describe('Notice shown to everyone on the instance, or null'),
 	warnings: z
 		.array(z.string())
@@ -886,7 +855,6 @@ export const InstanceConfigUpdateRequest = z.object({
 		})
 		.nullish(),
 	policy: InstancePolicyUpdateSchema.nullish(),
-	billing: InstanceBillingUpdateRequest.nullish(),
 	notice: z
 		.object({
 			message: z

@@ -4,8 +4,6 @@ import * as AccessibilityCommands from '@app/features/accessibility/commands/Acc
 import Accessibility from '@app/features/accessibility/state/Accessibility';
 import {CANNOT_SEND_MESSAGES_IN_CHANNEL_DESCRIPTOR} from '@app/features/i18n/utils/CommonMessageDescriptors';
 import Keybind from '@app/features/input/state/InputKeybind';
-import * as PremiumModalCommands from '@app/features/premium/commands/PremiumModalCommands';
-import {useCanSendGift} from '@app/features/premium/hooks/useCanSendGift';
 import {CREATE_THREAD_DESCRIPTOR} from '@app/features/threads/utils/ThreadMessageDescriptors';
 import {CheckboxItem, SubMenu as MenuItemSubmenu} from '@app/features/ui/action_menu/ContextMenu';
 import {CreateThreadIcon} from '@app/features/ui/action_menu/ContextMenuIcons';
@@ -15,7 +13,7 @@ import {MenuItem} from '@app/features/ui/action_menu/MenuItem';
 import {KeybindHint} from '@app/features/ui/keybind_hint/KeybindHint';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
-import {GiftIcon, MicrophoneIcon, PaperclipIcon, UploadSimpleIcon} from '@phosphor-icons/react';
+import {MicrophoneIcon, PaperclipIcon, UploadSimpleIcon} from '@phosphor-icons/react';
 import {observer} from 'mobx-react-lite';
 
 const YOU_DO_NOT_HAVE_PERMISSION_TO_UPLOAD_FILES_DESCRIPTOR = msg({
@@ -29,10 +27,6 @@ const UPLOAD_FILE_DESCRIPTOR = msg({
 const UPLOAD_YOUR_MESSAGE_AS_A_FILE_DESCRIPTOR = msg({
 	message: 'Upload your message as a file',
 	comment: 'Plus menu item that uploads the current textarea content as a .txt file when it exceeds the size limit.',
-});
-const SEND_GIFT_DESCRIPTOR = msg({
-	message: 'Send gift',
-	comment: 'Plus menu item that opens the gift purchase flow.',
 });
 const SEND_VOICE_MESSAGE_DESCRIPTOR = msg({
 	message: 'Send voice message',
@@ -84,7 +78,6 @@ export const TextareaPlusMenu = observer(
 		const showStickersButton = Accessibility.showStickersButton;
 		const showEmojiButton = Accessibility.showEmojiButton;
 		const showMessageSendButton = Accessibility.showMessageSendButton;
-		const canSendGift = useCanSendGift();
 		const hasTextContent = textareaValue && textareaValue.trim().length > 0;
 		const cannotSendMessagesHint = i18n._(CANNOT_SEND_MESSAGES_IN_CHANNEL_DESCRIPTOR);
 		const cannotUploadFilesHint = i18n._(YOU_DO_NOT_HAVE_PERMISSION_TO_UPLOAD_FILES_DESCRIPTOR);
@@ -94,7 +87,6 @@ export const TextareaPlusMenu = observer(
 		} else if (!canAttachFiles) {
 			uploadActionHint = cannotUploadFilesHint;
 		}
-		const sendGiftHint = !canSendMessages ? cannotSendMessagesHint : undefined;
 		const sendVoiceMessageKeybind = Keybind.getByAction('chat_send_voice_message').combo;
 		const sendVoiceMessageKeybindHint =
 			sendVoiceMessageKeybind.key || sendVoiceMessageKeybind.code ? (
@@ -132,17 +124,6 @@ export const TextareaPlusMenu = observer(
 						data-flx="channel.textarea.textarea-plus-menu.menu-item.create-thread"
 					>
 						{i18n._(CREATE_THREAD_DESCRIPTOR)}
-					</MenuItem>
-				)}
-				{canSendGift && (
-					<MenuItem
-						icon={<GiftIcon data-flx="channel.textarea.textarea-plus-menu.gift-icon" />}
-						onClick={() => PremiumModalCommands.open(true)}
-						disabled={sendGiftHint != null}
-						hint={sendGiftHint}
-						data-flx="channel.textarea.textarea-plus-menu.menu-item.open"
-					>
-						{i18n._(SEND_GIFT_DESCRIPTOR)}
 					</MenuItem>
 				)}
 				{onSendVoiceMessage && (

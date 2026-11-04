@@ -133,30 +133,6 @@ describe('ConfigLoader', () => {
 		await expect(loadConfig()).rejects.toThrow('OSACA_POSTGRES_SSL must be true');
 	});
 
-	test('rejects an App Store product mapped to an unknown slot', async () => {
-		stubMinimalEnv({OSACA_APP_STORE_PRODUCTS: '{"com.osaca.visionary":"visionary"}'});
-		await expect(loadConfig()).rejects.toThrow(
-			'Invalid OSACA_APP_STORE_PRODUCTS slot for com.osaca.visionary: visionary',
-		);
-	});
-
-	test('rejects a Google Play product mapped to an unknown slot', async () => {
-		stubMinimalEnv({OSACA_GOOGLE_PLAY_PRODUCTS: '{"plutonium:weekly":"weekly"}'});
-		await expect(loadConfig()).rejects.toThrow('Invalid OSACA_GOOGLE_PLAY_PRODUCTS slot for plutonium:weekly: weekly');
-	});
-
-	test('rejects a Google Play product key that does not fit its slot kind', async () => {
-		stubMinimalEnv({OSACA_GOOGLE_PLAY_PRODUCTS: '{"plutonium":"monthly"}'});
-		await expect(loadConfig()).rejects.toThrow(
-			'OSACA_GOOGLE_PLAY_PRODUCTS key plutonium does not match its monthly slot',
-		);
-		resetConfig();
-		stubMinimalEnv({OSACA_GOOGLE_PLAY_PRODUCTS: '{"gift:one":"gift_1_month"}'});
-		await expect(loadConfig()).rejects.toThrow(
-			'OSACA_GOOGLE_PLAY_PRODUCTS key gift:one does not match its gift_1_month slot',
-		);
-	});
-
 	test('rejects a cache purge endpoint that contains credentials', async () => {
 		stubMinimalEnv({
 			OSACA_CACHE_PURGE_ADAPTER: 'http',

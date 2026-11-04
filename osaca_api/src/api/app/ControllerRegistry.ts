@@ -8,12 +8,10 @@ import {AccountEntryController} from '@app/api/auth/AccountEntryController';
 import {AuthController} from '@app/api/auth/AuthController';
 import {OriginHandoffController} from '@app/api/auth/OriginHandoffController';
 import {PasskeyBridgeController} from '@app/api/auth/PasskeyBridgeController';
-import {BillingDocumentController} from '@app/api/billing_documents/BillingDocumentController';
 import {BlueskyOAuthController} from '@app/api/bluesky/BlueskyOAuthController';
 import {registerChannelControllers} from '@app/api/channel/controllers/index';
 import type {APIConfig} from '@app/api/config/APIConfig';
 import {ConnectionController} from '@app/api/connection/ConnectionController';
-import {DonationController} from '@app/api/donation/DonationController';
 import {DownloadController} from '@app/api/download/DownloadController';
 import {ExperimentController} from '@app/api/experiment/ExperimentController';
 import {FavoriteMemeController} from '@app/api/favorite_meme/FavoriteMemeController';
@@ -24,15 +22,10 @@ import {InviteController} from '@app/api/invite/InviteController';
 import {OAuth2ApplicationsController} from '@app/api/oauth/OAuth2ApplicationsController';
 import {OAuth2Controller} from '@app/api/oauth/OAuth2Controller';
 import {OpenAPIController} from '@app/api/openapi/OpenAPIController';
-import {OperatorPassController} from '@app/api/operator_pass/OperatorPassController';
-import {OperatorPassInternalController} from '@app/api/operator_pass/OperatorPassInternalController';
-import {PremiumController} from '@app/api/premium/PremiumController';
 import {ReadStateController} from '@app/api/read_state/ReadStateController';
 import {ReportController} from '@app/api/report/ReportController';
 import {InternalRpcController} from '@app/api/rpc/InternalRpcController';
 import {SearchController} from '@app/api/search/controllers/SearchController';
-import {StoreBillingController} from '@app/api/store_billing/StoreBillingController';
-import {StripeController} from '@app/api/stripe/StripeController';
 import {TestHarnessController} from '@app/api/test/TestHarnessController';
 import {ThemeController} from '@app/api/theme/ThemeController';
 import type {HonoApp} from '@app/api/types/HonoEnv';
@@ -44,7 +37,6 @@ import {WebhookController} from '@app/api/webhook/WebhookController';
 
 export function registerControllers(routes: HonoApp, config: APIConfig): void {
 	InternalRpcController(routes);
-	OperatorPassInternalController(routes);
 	GatewayController(routes);
 	registerAdminControllers(routes);
 	AdminDownloadController(routes);
@@ -75,15 +67,7 @@ export function registerControllers(routes: HonoApp, config: APIConfig): void {
 	UserController(routes);
 	VoiceP2pConnectionReportController(routes);
 	VoiceNodeController(routes);
-	StoreBillingController(routes);
 	WebhookController(routes);
 	OAuth2Controller(routes);
 	OAuth2ApplicationsController(routes);
-	PremiumController(routes);
-	if (!config.instance.selfHosted) {
-		DonationController(routes);
-		OperatorPassController(routes);
-		BillingDocumentController(routes);
-	}
-	StripeController(routes);
 }

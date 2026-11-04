@@ -2,12 +2,10 @@
 
 import type {AdminRepository} from '@app/api/admin/AdminRepository';
 import type {AdminArchiveRepository} from '@app/api/admin/repositories/AdminArchiveRepository';
-import {BillingRepository} from '@app/api/billing/repositories/BillingRepository';
 import {createApiContext} from '@app/api/CreateApiContext';
 import type {ChannelRepository} from '@app/api/channel/ChannelRepository';
 import type {ChannelService} from '@app/api/channel/services/ChannelService';
 import type {ConnectionRepository} from '@app/api/connection/ConnectionRepository';
-import {DonationRepository} from '@app/api/donation/DonationRepository';
 import type {FavoriteMemeRepository} from '@app/api/favorite_meme/FavoriteMemeRepository';
 import type {GuildAuditLogService} from '@app/api/guild/GuildAuditLogService';
 import type {GuildRepository} from '@app/api/guild/repositories/GuildRepository';
@@ -26,13 +24,11 @@ import type {IVoiceRoomStore} from '@app/api/infrastructure/IVoiceRoomStore';
 import type {KVAccountDeletionQueueService} from '@app/api/infrastructure/KVAccountDeletionQueueService';
 import type {KVActivityTracker} from '@app/api/infrastructure/KVActivityTracker';
 import type {KVBulkMessageDeletionQueueService} from '@app/api/infrastructure/KVBulkMessageDeletionQueueService';
-import type {PremiumStateReconciliationQueueService} from '@app/api/infrastructure/PremiumStateReconciliationQueueService';
 import type {UserCacheService} from '@app/api/infrastructure/UserCacheService';
 import type {InstanceConfigRepository} from '@app/api/instance/InstanceConfigRepository';
 import {Logger} from '@app/api/Logger';
 import type {LimitConfigService} from '@app/api/limits/LimitConfigService';
 import {createGuildStackServices} from '@app/api/middleware/GuildStackServiceFactory';
-import {createOperatorPassServices, type OperatorPassServices} from '@app/api/middleware/OperatorPassServiceFactory';
 import {
 	ensureVoiceResourcesInitialized,
 	getGatewayService,
@@ -67,7 +63,6 @@ import {
 	getKVBulkMessageDeletionQueue,
 	getLimitConfigService,
 	getOAuth2TokenRepository,
-	getPremiumStateReconciliationQueueService,
 	getPurgeQueue,
 	getReadStateService,
 	getReportRepository,
@@ -79,13 +74,8 @@ import {
 } from '@app/api/middleware/ServiceSingletons';
 import type {ApplicationRepository} from '@app/api/oauth/repositories/ApplicationRepository';
 import type {OAuth2TokenRepository} from '@app/api/oauth/repositories/OAuth2TokenRepository';
-import {OperatorPassRepository} from '@app/api/operator_pass/OperatorPassRepository';
 import type {ReadStateService} from '@app/api/read_state/ReadStateService';
 import type {ReportRepository} from '@app/api/report/ReportRepository';
-import type {StoreEntitlementService} from '@app/api/store_billing/StoreEntitlementService';
-import {createStoreEntitlementService} from '@app/api/store_billing/StoreEntitlementServiceFactory';
-import {getStripeClient} from '@app/api/stripe/StripeClient';
-import {PaymentRepository} from '@app/api/user/repositories/PaymentRepository';
 import type {UserRepository} from '@app/api/user/repositories/UserRepository';
 import {UserDeletionEligibilityService} from '@app/api/user/services/UserDeletionEligibilityService';
 import {UserHarvestRepository} from '@app/api/user/UserHarvestRepository';
@@ -97,7 +87,6 @@ import type {IEmailService} from '@pkgs/email/src/IEmailService';
 import type {IKVProvider} from '@pkgs/kv_client/src/IKVProvider';
 import type {IVirusScanService} from '@pkgs/virus_scan/src/IVirusScanService';
 import type {IWorkerService} from '@pkgs/worker/src/contracts/IWorkerService';
-import type Stripe from 'stripe';
 
 export interface WorkerDependencies {
 	kvClient: IKVProvider;
@@ -111,7 +100,6 @@ export interface WorkerDependencies {
 	oauth2TokenRepository: OAuth2TokenRepository;
 	adminRepository: AdminRepository;
 	reportRepository: ReportRepository;
-	paymentRepository: PaymentRepository;
 	userHarvestRepository: UserHarvestRepository;
 	adminArchiveRepository: AdminArchiveRepository;
 	connectionRepository: ConnectionRepository;
@@ -134,19 +122,12 @@ export interface WorkerDependencies {
 	activityTracker: KVActivityTracker;
 	deletionQueueService: KVAccountDeletionQueueService;
 	bulkMessageDeletionQueueService: KVBulkMessageDeletionQueueService;
-	premiumStateReconciliationQueueService: PremiumStateReconciliationQueueService;
 	deletionEligibilityService: UserDeletionEligibilityService;
 	voiceRoomStore: IVoiceRoomStore;
 	liveKitService: ILiveKitService;
 	channelService: ChannelService;
 	guildAuditLogService: GuildAuditLogService;
-	donationRepository: DonationRepository;
-	operatorPassRepository: OperatorPassRepository;
-	operatorPassServices: OperatorPassServices;
 	guildService: GuildService;
-	billingRepository: BillingRepository;
-	storeEntitlementService: StoreEntitlementService;
-	stripe: Stripe | null;
 }
 
 export async function initializeWorkerDependencies(snowflakeService: ISnowflakeService): Promise<WorkerDependencies> {
@@ -161,9 +142,6 @@ export async function initializeWorkerDependencies(snowflakeService: ISnowflakeS
 	const adminRepository = getAdminRepository();
 	const adminArchiveRepository = getAdminArchiveRepository();
 	const reportRepository = getReportRepository();
-	const paymentRepository = new PaymentRepository();
-	const donationRepository = new DonationRepository();
-	const operatorPassRepository = new OperatorPassRepository();
 	const userHarvestRepository = new UserHarvestRepository();
 	const connectionRepository = getConnectionRepository();
 	const cacheService = getCacheService();
@@ -192,8 +170,7 @@ export async function initializeWorkerDependencies(snowflakeService: ISnowflakeS
 	const activityTracker = getKVActivityTracker();
 	const deletionQueueService = getKVAccountDeletionQueue();
 	const bulkMessageDeletionQueueService = getKVBulkMessageDeletionQueue();
-	const premiumStateReconciliationQueueService = getPremiumStateReconciliationQueueService();
-	const deletionEligibilityService = new UserDeletionEligibilityService(kvClient, operatorPassRepository);
+	const deletionEligibilityService = new UserDeletionEligibilityService(kvClient);
 	await ensureVoiceResourcesInitialized();
 	const voiceRoomStore = getVoiceRoomStoreInstance();
 	const liveKitService = getLiveKitServiceInstance();
@@ -228,16 +205,6 @@ export async function initializeWorkerDependencies(snowflakeService: ISnowflakeS
 		liveKitService,
 		voiceAvailabilityService,
 	});
-	const billingRepository = new BillingRepository(kvClient);
-	const storeEntitlementService = createStoreEntitlementService({
-		userRepository,
-		userCacheService,
-		gatewayService,
-		kvClient,
-		snowflakeService,
-		premiumStateReconciliationQueueService,
-	});
-	let operatorPassServices: OperatorPassServices | undefined;
 	Logger.info('Worker dependencies initialized successfully');
 	return {
 		kvClient,
@@ -251,7 +218,6 @@ export async function initializeWorkerDependencies(snowflakeService: ISnowflakeS
 		oauth2TokenRepository,
 		adminRepository,
 		reportRepository,
-		paymentRepository,
 		userHarvestRepository,
 		adminArchiveRepository,
 		connectionRepository,
@@ -274,31 +240,12 @@ export async function initializeWorkerDependencies(snowflakeService: ISnowflakeS
 		activityTracker,
 		deletionQueueService,
 		bulkMessageDeletionQueueService,
-		premiumStateReconciliationQueueService,
 		deletionEligibilityService,
 		voiceRoomStore,
 		liveKitService,
 		channelService,
 		guildService,
-		donationRepository,
-		operatorPassRepository,
-		get operatorPassServices() {
-			operatorPassServices ??= createOperatorPassServices({
-				operatorPassRepository,
-				userRepository,
-				guildRepository,
-				guildService,
-				emailService,
-				gatewayService,
-			});
-			return operatorPassServices;
-		},
-		billingRepository,
-		storeEntitlementService,
 		guildAuditLogService,
-		get stripe() {
-			return getStripeClient();
-		},
 	};
 }
 

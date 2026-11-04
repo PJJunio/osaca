@@ -18,9 +18,6 @@ import {StreamService} from '@app/api/channel/services/StreamService';
 import {ThreadService} from '@app/api/channel/services/thread/ThreadService';
 import {ConnectionRequestService} from '@app/api/connection/ConnectionRequestService';
 import {ConnectionService} from '@app/api/connection/ConnectionService';
-import {DonationService} from '@app/api/donation/DonationService';
-import {DonationCheckoutService} from '@app/api/donation/services/DonationCheckoutService';
-import {DonationMagicLinkService} from '@app/api/donation/services/DonationMagicLinkService';
 import {FavoriteMemeRequestService} from '@app/api/favorite_meme/FavoriteMemeRequestService';
 import {FavoriteMemeService} from '@app/api/favorite_meme/FavoriteMemeService';
 import {GuildRepository} from '@app/api/guild/repositories/GuildRepository';
@@ -39,11 +36,9 @@ import {InviteRequestService} from '@app/api/invite/InviteRequestService';
 import {JobLedgerRepository} from '@app/api/jobs/JobLedgerRepository';
 import {createGuildStackServices, type GuildStackServices} from '@app/api/middleware/GuildStackServiceFactory';
 import {installLazyServices, type RequestScopedServices} from '@app/api/middleware/LazyServiceProvider';
-import {createOperatorPassServices, type OperatorPassServices} from '@app/api/middleware/OperatorPassServiceFactory';
 import type {RequestCache} from '@app/api/middleware/RequestCacheMiddleware';
 import {
 	ensureVoiceResourcesInitialized,
-	getBillingRepository,
 	getGatewayService,
 	getKVClient,
 	getLiveKitServiceInstance,
@@ -69,7 +64,6 @@ import {
 	getConnectionRepository,
 	getContactChangeLogService,
 	getDiscriminatorService,
-	getDonationRepository,
 	getEmailChangeRepository,
 	getEmailDnsValidationService,
 	getEmailService,
@@ -92,17 +86,13 @@ import {
 	getKVThreadAutoArchiveQueue,
 	getLimitConfigService,
 	getOAuth2TokenRepository,
-	getOperatorPassEntitlementService,
-	getOperatorPassRepository,
 	getPasswordChangeRepository,
-	getPremiumStateReconciliationQueueService,
 	getPurgeQueue,
 	getRateLimitService,
 	getReadStateRequestService,
 	getReadStateService,
 	getReportRepository,
 	getStorageService,
-	getStoreBillingRepository,
 	getStreamPreviewService,
 	getSweegoWebhookService,
 	getThemeService,
@@ -119,16 +109,11 @@ import {ApplicationService} from '@app/api/oauth/ApplicationService';
 import {OAuth2ApplicationsRequestService} from '@app/api/oauth/OAuth2ApplicationsRequestService';
 import {OAuth2RequestService} from '@app/api/oauth/OAuth2RequestService';
 import {OAuth2Service} from '@app/api/oauth/OAuth2Service';
-import {OperatorPassCheckoutService} from '@app/api/operator_pass/OperatorPassCheckoutService';
-import type {OperatorPassEntitlementService} from '@app/api/operator_pass/OperatorPassEntitlementService';
 import {ReportRequestService} from '@app/api/report/ReportRequestService';
 import {ReportService} from '@app/api/report/ReportService';
 import {RpcService} from '@app/api/rpc/RpcService';
 import {getReportSearchService} from '@app/api/SearchFactory';
 import {SearchService} from '@app/api/search/SearchService';
-import type {StoreEntitlementService} from '@app/api/store_billing/StoreEntitlementService';
-import {createStoreEntitlementService} from '@app/api/store_billing/StoreEntitlementServiceFactory';
-import {StripeService} from '@app/api/stripe/StripeService';
 import type {HonoEnv} from '@app/api/types/HonoEnv';
 import {EmailChangeService} from '@app/api/user/services/EmailChangeService';
 import {MfaBackupCodesChallengeService} from '@app/api/user/services/MfaBackupCodesChallengeService';
@@ -205,7 +190,6 @@ function getLiveKitWebhookService(): LiveKitWebhookService | null {
 }
 
 class RequestServices implements RequestScopedServices {
-	private cachedOperatorPassServices: OperatorPassServices | undefined;
 	private cachedGuildVisitService: GuildVisitService | undefined;
 	private cachedGateway: IGatewayService | undefined;
 	private cachedMedia: IMediaService | undefined;
@@ -238,10 +222,6 @@ class RequestServices implements RequestScopedServices {
 	private cachedReportRequestService: ReportRequestService | undefined;
 	private cachedRpcService: RpcService | undefined;
 	private cachedSearchService: SearchService | undefined;
-	private cachedStripeService: StripeService | undefined;
-	private cachedStoreEntitlementService: StoreEntitlementService | undefined;
-	private cachedDonationService: DonationService | undefined;
-	private cachedOperatorPassCheckoutService: OperatorPassCheckoutService | undefined;
 	private cachedUserService: UserService | undefined;
 	private cachedUserAccountRequestService: UserAccountRequestService | undefined;
 	private cachedUserAuthRequestService: UserAuthRequestService | undefined;
@@ -509,10 +489,7 @@ class RequestServices implements RequestScopedServices {
 			getVoiceRepository(),
 			getKVBulkMessageDeletionQueue(),
 			getApplicationRepository(),
-			this.stripeService.getStripe(),
 			new JobLedgerRepository(),
-			this.storeEntitlementService,
-			this.stripeService.operatorPassFulfilment,
 		);
 		return this.cachedAdminService;
 	}
@@ -740,8 +717,6 @@ class RequestServices implements RequestScopedServices {
 			getRateLimitService(),
 			getLimitConfigService(),
 			getKVClient(),
-			getWorkerService(),
-			getPremiumStateReconciliationQueueService(),
 			getInstanceConfigRepository(),
 			this.voice,
 			getVoiceAvailabilityService(),
@@ -761,81 +736,6 @@ class RequestServices implements RequestScopedServices {
 		return this.cachedSearchService;
 	}
 
-	private get operatorPassServices(): OperatorPassServices {
-		this.cachedOperatorPassServices ??= createOperatorPassServices({
-			operatorPassRepository: getOperatorPassRepository(),
-			userRepository: getUserRepository(),
-			guildRepository: getGuildRepository(),
-			guildService: this.guildService,
-			get emailService() {
-				return getEmailService();
-			},
-			gatewayService: this.gatewayService,
-		});
-		return this.cachedOperatorPassServices;
-	}
-
-	get stripeService(): StripeService {
-		this.cachedStripeService ??= new StripeService(
-			getUserRepository(),
-			this.gatewayService,
-			getGuildRepository(),
-			this.guildService,
-			getCacheService(),
-			getBillingRepository(),
-			getStoreBillingRepository(),
-			this.storeEntitlementService,
-			this.operatorPassServices,
-		);
-		return this.cachedStripeService;
-	}
-
-	get storeEntitlementService(): StoreEntitlementService {
-		this.cachedStoreEntitlementService ??= createStoreEntitlementService({
-			userRepository: getUserRepository(),
-			userCacheService: getUserCacheService(),
-			gatewayService: this.gatewayService,
-			kvClient: getKVClient(),
-			snowflakeService: getSnowflakeService(),
-			premiumStateReconciliationQueueService: getPremiumStateReconciliationQueueService(),
-		});
-		return this.cachedStoreEntitlementService;
-	}
-
-	get donationService(): DonationService | undefined {
-		if (Config.instance.selfHosted) {
-			return undefined;
-		}
-		this.cachedDonationService ??= new DonationService(
-			new DonationMagicLinkService(getDonationRepository(), getEmailService(), getEmailDnsValidationService()),
-			new DonationCheckoutService(
-				this.stripeService.getStripe(),
-				getDonationRepository(),
-				getEmailDnsValidationService(),
-			),
-		);
-		return this.cachedDonationService;
-	}
-
-	get operatorPassEntitlementService(): OperatorPassEntitlementService | undefined {
-		if (Config.instance.selfHosted) {
-			return undefined;
-		}
-		return getOperatorPassEntitlementService();
-	}
-
-	get operatorPassCheckoutService(): OperatorPassCheckoutService | undefined {
-		if (Config.instance.selfHosted) {
-			return undefined;
-		}
-		this.cachedOperatorPassCheckoutService ??= new OperatorPassCheckoutService(
-			this.stripeService.getStripe(),
-			getOperatorPassRepository(),
-			getOperatorPassEntitlementService(),
-		);
-		return this.cachedOperatorPassCheckoutService;
-	}
-
 	get userService(): UserService {
 		this.cachedUserService ??= new UserService(
 			this.context,
@@ -852,7 +752,6 @@ class RequestServices implements RequestScopedServices {
 			getContactChangeLogService(),
 			getConnectionRepository(),
 			getLimitConfigService(),
-			Config.instance.selfHosted ? null : this.operatorPassServices,
 		);
 		return this.cachedUserService;
 	}
@@ -865,9 +764,6 @@ class RequestServices implements RequestScopedServices {
 				this.userService.channelService,
 				getUserRepository(),
 				getUserCacheService(),
-				getGatewayService(),
-				Config.instance.selfHosted ? null : getOperatorPassEntitlementService(),
-				Config.instance.selfHosted ? null : this.operatorPassServices.roleService,
 			);
 		}
 		return this.cachedUserAccountRequestService;

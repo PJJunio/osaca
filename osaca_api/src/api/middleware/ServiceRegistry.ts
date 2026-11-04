@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {BillingRepository} from '@app/api/billing/repositories/BillingRepository';
 import type {IBlueskyOAuthService} from '@app/api/bluesky/IBlueskyOAuthService';
 import {Config} from '@app/api/Config';
 import type {BlueskyOAuthConfig} from '@app/api/config/APIConfig';
@@ -19,7 +18,6 @@ import {SnowflakeService} from '@app/api/infrastructure/SnowflakeService';
 import {VoiceRoomStore} from '@app/api/infrastructure/VoiceRoomStore';
 import type {InstanceConfigRepository} from '@app/api/instance/InstanceConfigRepository';
 import {Logger} from '@app/api/Logger';
-import {singleton} from '@app/api/middleware/Singleton';
 import {readOptionalEnv, readOptionalIntegerEnv} from '@app/api/utils/IntegerOptions';
 import {VoiceAvailabilityService} from '@app/api/voice/VoiceAvailabilityService';
 import {VoiceRepository} from '@app/api/voice/VoiceRepository';
@@ -137,8 +135,6 @@ export async function releaseSnowflakeService({service, owned}: SnowflakeService
 		if (_snowflakeService === service) _snowflakeService = null;
 	}
 }
-
-export const getBillingRepository = singleton(() => new BillingRepository(getKVClient()));
 
 let _injectedMediaService: IMediaService | undefined;
 

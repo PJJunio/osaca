@@ -48,10 +48,10 @@ import {Tooltip} from '@app/features/ui/tooltip/Tooltip';
 import * as UserCommands from '@app/features/user/commands/UserCommands';
 import Users from '@app/features/user/state/Users';
 import {accountGateReason} from '@app/features/user/utils/AccountGatePresentation';
-import {ME} from '@osaca/constants/src/AppConstants';
-import {RelationshipTypes} from '@osaca/constants/src/UserConstants';
 import {msg} from '@lingui/core/macro';
 import {Trans, useLingui} from '@lingui/react/macro';
+import {ME} from '@osaca/constants/src/AppConstants';
+import {RelationshipTypes} from '@osaca/constants/src/UserConstants';
 import {
 	AtomIcon,
 	MagnifyingGlassIcon,
@@ -604,7 +604,7 @@ export const DMList = observer(() => {
 					)}
 					{showPremiumFeatures && (
 						<ClickableItem
-							isSelected={location.pathname === Routes.PLUTONIUM}
+							isSelected={false}
 							onClick={() => PremiumModalCommands.open()}
 							data-flx="channel.direct-message.dm-list.clickable-item.open"
 						>

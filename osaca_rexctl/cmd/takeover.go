@@ -174,7 +174,7 @@ func describeTakeover(u *ui.UI, r *instance.ImportReport) {
 		u.Info("These settings still have the example value from the old installer: %s. rexctl keeps them. Run rexctl config list to check them.", ui.JoinAnd(r.Placeholders))
 	}
 	if n := len(r.AdminKeys); n > 0 {
-		u.Info("%s move into OSACA's own settings, where rexctl config set changes them.", countWord(n, "One email, branding or billing setting", "email, branding and billing settings"))
+		u.Info("%s move into OSACA's own settings, where rexctl config set changes them.", countWord(n, "One email or branding setting", "email and branding settings"))
 	}
 	if len(r.Changed) > 0 {
 		u.Info("rexctl keeps the changes you made: %s.", ui.JoinAnd(r.Changed))

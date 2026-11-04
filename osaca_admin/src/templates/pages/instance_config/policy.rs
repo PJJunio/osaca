@@ -3,7 +3,7 @@
 use super::inherit_select;
 use crate::templates::pages::instance_config::ConfigForm;
 use crate::{
-    api::types::{InstancePolicyResponse, PremiumMode},
+    api::types::InstancePolicyResponse,
     templates::components::{
         badge::{BadgeVariant, badge},
         form::{Checkbox, danger_button, form_actions, select_input, submit_button, text_input},
@@ -17,7 +17,6 @@ pub(super) fn policy_config_section(
     config_form: ConfigForm<'_>,
     policy: &InstancePolicyResponse,
     premium_name: &str,
-    billing_enabled: bool,
 ) -> Markup {
     section_card_with_description(
         "Community & Policy",
@@ -28,7 +27,7 @@ pub(super) fn policy_config_section(
             div class="space-y-8" {
                 (single_community_form(base, config_form, policy))
                 (direct_messages_form(base, config_form, policy))
-                (premium_mode_form(base, config_form, policy, premium_name, billing_enabled))
+                (premium_mode_form(base, config_form, policy, premium_name))
                 (community_creation_form(base, config_form, policy))
                 (services_form(base, config_form, policy))
             }
@@ -181,7 +180,6 @@ fn premium_mode_form(
     config_form: ConfigForm<'_>,
     policy: &InstancePolicyResponse,
     premium_name: &str,
-    billing_enabled: bool,
 ) -> Markup {
     let mirror_label = format!("Mirror (Free and {premium_name} tiers)");
     let everyone_label = format!("Everyone (every member gets {premium_name} limits)");
@@ -198,12 +196,6 @@ fn premium_mode_form(
                     p class="text-xs text-neutral-500" {
                         "Limits you have not edited follow the model. Limits you changed under Limit \
                          Config keep your values in both models."
-                    }
-                    @if billing_enabled && matches!(policy.premium_mode, PremiumMode::Mirror) {
-                        p class="text-sm text-amber-700" {
-                            "Billing is enabled. Disable it under Premium & billing before switching \
-                             the premium model to Everyone."
-                        }
                     }
                     (form_actions(html! {
                         (submit_button("Save premium model"))

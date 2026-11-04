@@ -44,7 +44,7 @@ export class AdminUserLookupService {
 		} else if (query.includes('@')) {
 			user = await userRepository.findByEmail(query);
 		} else {
-			user = (await this.findPersonByBareUsername(query)) ?? (await userRepository.findByStripeSubscriptionId(query));
+			user = await this.findPersonByBareUsername(query);
 		}
 		return {
 			users: user ? [await mapUserToAdminResponse(user, cacheService, acls, locale)] : [],

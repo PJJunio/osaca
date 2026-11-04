@@ -44,7 +44,6 @@ function installWorkerDependencies(): void {
 		deletionQueueService: getKVAccountDeletionQueue(),
 		bulkMessageDeletionQueueService: getKVBulkMessageDeletionQueue(),
 		gatewayService: getGatewayService(),
-		stripe: null,
 	});
 }
 

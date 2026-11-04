@@ -279,8 +279,6 @@ export class UserAccountRepository {
 			user.username,
 			user.discriminator,
 			user.email,
-			user.stripeCustomerId,
-			user.stripeSubscriptionId,
 			user.lastActiveIp,
 			user.acls,
 		);
@@ -303,19 +301,6 @@ export class UserAccountRepository {
 		last_active_ip: string | null;
 	} | null> {
 		return this.dataRepo.getActivityTracking(userId);
-	}
-
-	async updateSubscriptionStatus(
-		userId: UserID,
-		updates: {
-			premiumWillCancel: boolean;
-			computedPremiumUntil: Date | null;
-			periodStart: Date | null;
-		},
-	): Promise<{
-		finalVersion: number | null;
-	}> {
-		return this.dataRepo.updateSubscriptionStatus(userId, updates);
 	}
 
 	private applyPremiumFlagsMigration(data: UserRow, oldData: UserRow | null | undefined): void {

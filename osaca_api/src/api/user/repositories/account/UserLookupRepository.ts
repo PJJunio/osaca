@@ -6,19 +6,10 @@ import type {
 	UserByAclRow,
 	UserByLastActiveIpRow,
 	UserByLastActiveIpTrustKeyRow,
-	UserByStripeCustomerIdRow,
-	UserByStripeSubscriptionIdRow,
 	UserByUsernameRow,
 } from '@app/api/database/types/UserTypes';
 import type {User} from '@app/api/models/User';
-import {
-	UserByAcl,
-	UserByLastActiveIp,
-	UserByLastActiveIpTrustKey,
-	UserByStripeCustomerId,
-	UserByStripeSubscriptionId,
-	UserByUsername,
-} from '@app/api/Tables';
+import {UserByAcl, UserByLastActiveIp, UserByLastActiveIpTrustKey, UserByUsername} from '@app/api/Tables';
 import type {UserEmailOwnershipRepository} from '@app/api/user/repositories/account/crud/UserEmailOwnershipRepository';
 import {getSameIpDecisionKey, normalizeIpString} from '@osaca/ip_utils/src/IpAddress';
 
@@ -29,16 +20,6 @@ const FETCH_USER_IDS_BY_ACL_QUERY = UserByAcl.select({
 const FETCH_DISCRIMINATORS_BY_USERNAME_QUERY = UserByUsername.select({
 	columns: ['discriminator', 'user_id'],
 	where: UserByUsername.where.eq('username'),
-});
-const FETCH_USER_ID_BY_STRIPE_CUSTOMER_ID_QUERY = UserByStripeCustomerId.select({
-	columns: ['user_id'],
-	where: UserByStripeCustomerId.where.eq('stripe_customer_id'),
-	limit: 1,
-});
-const FETCH_USER_ID_BY_STRIPE_SUBSCRIPTION_ID_QUERY = UserByStripeSubscriptionId.select({
-	columns: ['user_id'],
-	where: UserByStripeSubscriptionId.where.eq('stripe_subscription_id'),
-	limit: 1,
 });
 const FETCH_USER_ID_BY_USERNAME_DISCRIMINATOR_QUERY = UserByUsername.select({
 	columns: ['user_id'],
@@ -64,22 +45,6 @@ export class UserLookupRepository {
 		const ownerId = await this.emailOwnershipRepo.findOwnerId(email);
 		if (!ownerId) return null;
 		return await this.findUniqueUser(ownerId);
-	}
-
-	async findByStripeCustomerId(stripeCustomerId: string): Promise<User | null> {
-		const result = await fetchOne<Pick<UserByStripeCustomerIdRow, 'user_id'>>(
-			FETCH_USER_ID_BY_STRIPE_CUSTOMER_ID_QUERY.bind({stripe_customer_id: stripeCustomerId}),
-		);
-		if (!result) return null;
-		return await this.findUniqueUser(result.user_id);
-	}
-
-	async findByStripeSubscriptionId(stripeSubscriptionId: string): Promise<User | null> {
-		const result = await fetchOne<Pick<UserByStripeSubscriptionIdRow, 'user_id'>>(
-			FETCH_USER_ID_BY_STRIPE_SUBSCRIPTION_ID_QUERY.bind({stripe_subscription_id: stripeSubscriptionId}),
-		);
-		if (!result) return null;
-		return await this.findUniqueUser(result.user_id);
 	}
 
 	async findByUsernameDiscriminator(username: string, discriminator: number): Promise<User | null> {

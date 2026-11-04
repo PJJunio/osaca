@@ -7,7 +7,6 @@ import {AdminAssetPurgeService} from '@app/api/admin/services/AdminAssetPurgeSer
 import {AdminAuditService} from '@app/api/admin/services/AdminAuditService';
 import {AdminBadgeService} from '@app/api/admin/services/AdminBadgeService';
 import {AdminBanManagementService} from '@app/api/admin/services/AdminBanManagementService';
-import {AdminCodeGenerationService} from '@app/api/admin/services/AdminCodeGenerationService';
 import {AdminGuildService} from '@app/api/admin/services/AdminGuildService';
 import {AdminMessageDeletionService} from '@app/api/admin/services/AdminMessageDeletionService';
 import {AdminMessageService} from '@app/api/admin/services/AdminMessageService';
@@ -41,25 +40,16 @@ import {
 	getGuildDiscoveryRepository,
 	getInstanceConfigRepository,
 	getKVAccountDeletionQueue,
-	getOAuth2TokenRepository,
-	getPaymentDisputeRepository,
 	getReportRepository,
 } from '@app/api/middleware/ServiceSingletons';
 import type {ApplicationRepository} from '@app/api/oauth/repositories/ApplicationRepository';
-import type {OperatorPassDisputeServices} from '@app/api/operator_pass/OperatorPassDisputeBar';
-import {
-	PaymentDisputeEnforcementService,
-	queuePaymentDisputeClosures,
-} from '@app/api/payment_disputes/PaymentDisputeEnforcement';
 import type {ReportService} from '@app/api/report/ReportService';
-import type {StoreEntitlementService} from '@app/api/store_billing/StoreEntitlementService';
 import {systemDmsHidden} from '@app/api/user/services/SystemDmMessage';
 import type {UserService} from '@app/api/user/services/UserService';
 import {VoiceJoinTokenRepository} from '@app/api/voice/VoiceJoinTokenRepository';
 import type {VoiceRepository} from '@app/api/voice/VoiceRepository';
 import {DirectMessagesDisabledError} from '@osaca/errors/src/domains/channel/DirectMessagesDisabledError';
 import type {SendSystemDmResponse} from '@osaca/schema/src/domains/admin/AdminSchemas';
-import type Stripe from 'stripe';
 
 export class AdminService {
 	readonly auditService: AdminAuditService;
@@ -75,12 +65,10 @@ export class AdminService {
 	readonly voiceService: AdminVoiceService;
 	readonly badgeService: AdminBadgeService;
 	readonly searchService: AdminSearchService;
-	readonly codeGenerationService: AdminCodeGenerationService;
 	readonly assetPurgeService: AdminAssetPurgeService;
 	readonly applicationService: AdminApplicationService;
 	readonly jobAdminService: JobAdminService;
 	readonly relationshipService: AdminUserRelationshipService;
-	readonly paymentDisputeEnforcement: PaymentDisputeEnforcementService;
 
 	constructor(
 		private readonly apiContext: ApiContext,
@@ -100,10 +88,7 @@ export class AdminService {
 		private readonly voiceRepository: VoiceRepository,
 		private readonly bulkMessageDeletionQueue: KVBulkMessageDeletionQueueService,
 		private readonly applicationRepository: ApplicationRepository,
-		private readonly stripe: Stripe | null = null,
 		private readonly jobLedger: JobLedgerRepository,
-		private readonly storeEntitlementService: StoreEntitlementService,
-		private readonly operatorPassServices: OperatorPassDisputeServices | null = null,
 	) {
 		const {users, gateway, worker, snowflake} = this.apiContext.services;
 		this.auditService = new AdminAuditService(this.adminRepository, snowflake, {
@@ -168,7 +153,6 @@ export class AdminService {
 			guildRepository: this.guildRepository,
 			reportService: this.reportService,
 			adminReportService: this.reportServiceAggregate,
-			onClosureEnded: queuePaymentDisputeClosures,
 		});
 		this.guildServiceAggregate = new AdminGuildService({
 			guildRepository: this.guildRepository,
@@ -195,20 +179,6 @@ export class AdminService {
 			auditService: this.auditService,
 			enforcement: this.enforcementService,
 		});
-		this.paymentDisputeEnforcement = new PaymentDisputeEnforcementService({
-			repository: getPaymentDisputeRepository(),
-			userRepository: users,
-			userCacheService: this.userCacheService,
-			emailService: this.apiContext.services.email,
-			cacheService: this.apiContext.services.cache,
-			gatewayService: gateway,
-			auditService: this.auditService,
-			kvDeletionQueue: getKVAccountDeletionQueue(),
-			oauth2Tokens: getOAuth2TokenRepository(),
-			systemDm,
-			enforcement: this.enforcementService,
-			operatorPass: this.operatorPassServices,
-		});
 		this.userService = new AdminUserService({
 			apiContext: this.apiContext,
 			guildRepository: this.guildRepository,
@@ -220,9 +190,7 @@ export class AdminService {
 			banManagementService: this.banManagementService,
 			kvDeletionQueue: getKVAccountDeletionQueue(),
 			bulkMessageDeletionQueue: this.bulkMessageDeletionQueue,
-			stripe: this.stripe,
 			reportService: this.reportService,
-			storeEntitlementService: this.storeEntitlementService,
 			reporterResolutionNotifier,
 			enforcement: this.enforcementService,
 			delivery,
@@ -256,7 +224,6 @@ export class AdminService {
 			guildRepository: this.guildRepository,
 			auditService: this.auditService,
 		});
-		this.codeGenerationService = new AdminCodeGenerationService(users);
 		this.applicationService = new AdminApplicationService({
 			apiContext: this.apiContext,
 			applicationRepository: this.applicationRepository,

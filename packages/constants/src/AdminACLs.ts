@@ -54,7 +54,6 @@ export const AdminACLs = {
 	ENFORCEMENT_VIEW: 'enforcement:view',
 	GATEWAY_MEMORY_STATS: 'gateway:memory_stats',
 	GATEWAY_RELOAD_ALL: 'gateway:reload_all',
-	GIFT_CODES_GENERATE: 'gift_codes:generate',
 	GUILD_AUDIT_LOG_VIEW: 'guild:audit_log:view',
 	GUILD_BAN_MEMBER: 'guild:ban_member',
 	GUILD_DELETE: 'guild:delete',

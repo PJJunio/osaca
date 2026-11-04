@@ -53,7 +53,6 @@ pub const ENFORCEMENT_ANNOTATE: &str = "enforcement:annotate";
 pub const ENFORCEMENT_VIEW: &str = "enforcement:view";
 pub const GATEWAY_MEMORY_STATS: &str = "gateway:memory_stats";
 pub const GATEWAY_RELOAD_ALL: &str = "gateway:reload_all";
-pub const GIFT_CODES_GENERATE: &str = "gift_codes:generate";
 pub const GUILD_AUDIT_LOG_VIEW: &str = "guild:audit_log:view";
 pub const GUILD_BAN_MEMBER: &str = "guild:ban_member";
 pub const GUILD_DELETE: &str = "guild:delete";
@@ -170,7 +169,6 @@ pub const ALL_ACLS: &[&str] = &[
     ENFORCEMENT_VIEW,
     GATEWAY_MEMORY_STATS,
     GATEWAY_RELOAD_ALL,
-    GIFT_CODES_GENERATE,
     GUILD_AUDIT_LOG_VIEW,
     GUILD_BAN_MEMBER,
     GUILD_DELETE,

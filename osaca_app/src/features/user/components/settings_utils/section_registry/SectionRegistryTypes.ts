@@ -13,11 +13,6 @@ type SectionKeyword = MessageDescriptor | string | (() => string);
 export type UserSettingsTabType =
 	| 'my_profile'
 	| 'account_security'
-	| 'plutonium'
-	| 'subscriptions'
-	| 'operator_pass'
-	| 'gift_inventory'
-	| 'payments'
 	| 'privacy_safety'
 	| 'authorized_apps'
 	| 'blocked_users'

@@ -5,7 +5,6 @@ import {MobileSettingsView} from '@app/features/app/components/dialogs/component
 import * as Modal from '@app/features/app/components/dialogs/Modal';
 import {SettingsModalContainer} from '@app/features/app/components/dialogs/shared/SettingsModalLayout';
 import {ComponentBus} from '@app/features/platform/utils/ComponentBus';
-import * as PlutoniumPageCommands from '@app/features/premium/commands/PlutoniumPageCommands';
 import * as ModalCommands from '@app/features/ui/commands/ModalCommands';
 import * as UnsavedChangesCommands from '@app/features/ui/commands/UnsavedChangesCommands';
 import MobileLayout from '@app/features/ui/state/MobileLayout';
@@ -109,19 +108,11 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = observer(
 		}, [currentTab?.type, mobileNav, unsavedChangesState.unsavedChanges]);
 		const handleTabSelect = useCallback(
 			(tabType: string, title: string) => {
-				if (tabType === 'plutonium') {
-					PlutoniumPageCommands.openPlutoniumPage();
-					return;
-				}
 				mobileNav.navigateTo(tabType as UserSettingsTabType, title);
 			},
 			[mobileNav],
 		);
 		const handleDesktopTabSelect = useCallback((tabType: UserSettingsTabType) => {
-			if (tabType === 'plutonium') {
-				PlutoniumPageCommands.openPlutoniumPage();
-				return;
-			}
 			setSelectedTab(tabType);
 		}, []);
 		const handleClose = useCallback(() => {
@@ -148,10 +139,6 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = observer(
 		useEffect(() => {
 			const unsubscribe = ComponentBus.subscribe('USER_SETTINGS_TAB_SELECT', (args?: unknown) => {
 				const {tab, section} = (args ?? {}) as {tab?: string; section?: string};
-				if (tab === 'plutonium') {
-					PlutoniumPageCommands.openPlutoniumPage();
-					return;
-				}
 				if (tab && typeof tab === 'string') {
 					const accountSection =
 						getAccountSectionForNestedTab(tab as UserSettingsTabType) ?? getAccountSectionForLegacySection(section);

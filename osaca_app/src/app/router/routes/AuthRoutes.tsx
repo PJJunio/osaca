@@ -6,12 +6,9 @@ import * as ShortLinkRouteEnterPolicy from '@app/app/router/policy/ShortLinkRout
 import {rootRoute} from '@app/app/router/routes/RootRoutes';
 import * as ShortLinkAcceptModalOpener from '@app/app/router/ShortLinkAcceptModalOpener';
 import {AuthLayout} from '@app/features/app/components/layout/AuthLayout';
-import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
 import {type AuthRoutePage, createAuthRoutePage} from '@app/features/auth/flow/AuthLoadableRoutePage';
 import {createRoute, type RouteBuilder} from '@app/features/platform/components/router/RouterBuilder';
-import {NotFound, Redirect, type RouteContext} from '@app/features/platform/components/router/RouterTypes';
-import {planForCheckoutProduct, rememberPurchaseIntent} from '@app/features/premium/state/PurchaseIntent';
-import {shouldShowPremiumFeatures} from '@app/features/premium/utils/PremiumUtils';
+import {type NotFound, Redirect, type RouteContext} from '@app/features/platform/components/router/RouterTypes';
 
 const AuthorizeIPPage = createAuthRoutePage(
 	'AuthorizeIPPage',
@@ -45,14 +42,6 @@ const ResetPasswordPage = createAuthRoutePage(
 const VerifyEmailPage = createAuthRoutePage(
 	'VerifyEmailPage',
 	() => import('@app/features/auth/components/pages/VerifyEmailPage'),
-);
-const GiftLoginPage = createAuthRoutePage(
-	'GiftLoginPage',
-	() => import('@app/features/expressions/components/pages/GiftLoginPage'),
-);
-const GiftRegisterPage = createAuthRoutePage(
-	'GiftRegisterPage',
-	() => import('@app/features/expressions/components/pages/GiftRegisterPage'),
 );
 const InviteLoginPage = createAuthRoutePage(
 	'InviteLoginPage',
@@ -168,29 +157,6 @@ const inviteRouteEnterHandlers = {
 	),
 	onLoginEnter: inviteShortLinkHandlers.onLoginEnter,
 };
-const giftShortLinkHandlers = ShortLinkRouteEnterPolicy.createHandlers({
-	paramName: 'code',
-	openAcceptModal: ShortLinkAcceptModalOpener.openGift,
-});
-
-function whenGiftingAvailable(handler: AuthRouteRedirectPolicy.AuthRouteEnterHandler): AuthPageEnterHandler {
-	return (context: RouteContext): Redirect | NotFound | undefined => {
-		if (RuntimeConfig.getSnapshotOrNull() !== null && !shouldShowPremiumFeatures()) {
-			return new NotFound();
-		}
-		return handler(context);
-	};
-}
-
-const giftRouteEnterHandlers = {
-	onRegisterEnter: whenGiftingAvailable(
-		AuthRouteRedirectPolicy.redirectRegisterToSignIn(
-			shortLinkSignInPath('code', Routes.giftLogin),
-			giftShortLinkHandlers.onRegisterEnter,
-		),
-	),
-	onLoginEnter: whenGiftingAvailable(giftShortLinkHandlers.onLoginEnter),
-};
 const themeRouteEnterHandlers = ShortLinkRouteEnterPolicy.createHandlers({
 	paramName: 'themeId',
 	openAcceptModal: ShortLinkAcceptModalOpener.openTheme,
@@ -204,7 +170,6 @@ const loginRoute = createAuthPageRoute({
 	onEnter: AuthRouteRedirectPolicy.whenAuthenticated(AuthRouteRedirectPolicy.resolveAuthenticatedLoginEntry),
 });
 const inviteBaseRoute = createAuthRedirectRoute('inviteBase', '/invite');
-const giftBaseRoute = createAuthRedirectRoute('giftBase', '/gift');
 const themeBaseRoute = createAuthRedirectRoute('themeBase', '/theme');
 const registerRoute = createAuthPageRoute({
 	id: 'register',
@@ -227,14 +192,6 @@ const inviteRoutes = createShortLinkAuthRoutes({
 	registerPage: InviteRegisterPage,
 	loginPage: InviteLoginPage,
 	handlers: inviteRouteEnterHandlers,
-});
-const giftRoutes = createShortLinkAuthRoutes({
-	id: 'gift',
-	dataFlxPrefix: 'app.router.auth-routes.gift',
-	paths: {register: Routes.GIFT_REGISTER, login: Routes.GIFT_LOGIN},
-	registerPage: GiftRegisterPage,
-	loginPage: GiftLoginPage,
-	handlers: giftRouteEnterHandlers,
 });
 const forgotPasswordRoute = createAuthPageRoute({
 	id: 'forgotPassword',
@@ -278,19 +235,6 @@ const authorizeIPRoute = createAuthPageRoute({
 	dataFlx: 'app.router.auth-routes.authorize-ip-page',
 });
 const pendingRoute = createAuthRedirectRoute('pending', Routes.PENDING);
-const checkoutRoute = createRoute({
-	getParentRoute: () => authLayoutRoute,
-	id: 'checkout',
-	path: Routes.CHECKOUT,
-	onEnter: (context) => {
-		const plan = planForCheckoutProduct(context.params['product'] ?? '');
-		if (plan === null || (RuntimeConfig.getSnapshotOrNull() !== null && !shouldShowPremiumFeatures())) {
-			return new Redirect(Routes.ME);
-		}
-		rememberPurchaseIntent(plan);
-		return new Redirect(Routes.PLUTONIUM);
-	},
-});
 const reportRoute = createAuthPageRoute({
 	id: 'report',
 	path: Routes.REPORT,
@@ -320,10 +264,8 @@ export const authRouteTree = authLayoutRoute.addChildren([
 	registerRoute,
 	oauthAuthorizeRoute,
 	inviteBaseRoute,
-	giftBaseRoute,
 	themeBaseRoute,
 	...inviteRoutes,
-	...giftRoutes,
 	themeRegisterRoute,
 	themeLoginRoute,
 	forgotPasswordRoute,
@@ -333,6 +275,5 @@ export const authRouteTree = authLayoutRoute.addChildren([
 	verifyEmailRoute,
 	authorizeIPRoute,
 	pendingRoute,
-	checkoutRoute,
 	reportRoute,
 ]);

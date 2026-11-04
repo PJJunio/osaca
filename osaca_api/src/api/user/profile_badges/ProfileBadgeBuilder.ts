@@ -3,17 +3,11 @@
 import {resolveContentLocale} from '@app/api/content_i18n/ContentI18n';
 import {customBadgeImageUrl} from '@app/api/instance/InstanceAssetReferences';
 import type {User} from '@app/api/models/User';
-import type {OperatorPassHolder} from '@app/api/operator_pass/OperatorPassEntitlementService';
-import {
-	applyPremiumBadgeMasking,
-	isOperatorPassCountHidden,
-	isOperatorPassTimestampHidden,
-} from '@app/api/user/profile_badges/PremiumBadgeMasking';
+import {applyPremiumBadgeMasking} from '@app/api/user/profile_badges/PremiumBadgeMasking';
 import {
 	PROFILE_BADGE_REGISTRY,
 	type ProfileBadgeEnvironment,
 	type ProfileBadgeView,
-	type VisibleOperatorPass,
 } from '@app/api/user/profile_badges/ProfileBadgeRegistry';
 import {
 	customProfileBadgeKey,
@@ -41,7 +35,6 @@ export type ProfileBadgeSubject = Pick<
 
 export interface ProfileBadgeInput {
 	user: ProfileBadgeSubject;
-	operatorPass: OperatorPassHolder | null;
 	locale: string | null | undefined;
 	environment: ProfileBadgeEnvironment;
 	restricted?: boolean;
@@ -51,18 +44,6 @@ export interface ProfileBadgeInput {
 type ViewSource = Omit<ProfileBadgeView, 'shown'> & {customBadgeIds: ReadonlySet<bigint>};
 
 const NO_HIDDEN_BADGES: ReadonlySet<ProfileBadgeKey> = new Set();
-
-function visibleOperatorPass(holder: OperatorPassHolder, user: ProfileBadgeSubject): VisibleOperatorPass {
-	return {
-		since: isOperatorPassTimestampHidden(user.premiumFlags) ? null : holder.since,
-		count: isOperatorPassCountHidden(user.premiumFlags) ? null : holder.count,
-	};
-}
-
-function publicOperatorPass(holder: OperatorPassHolder | null, user: ProfileBadgeSubject): VisibleOperatorPass | null {
-	if (!holder || user.hiddenProfileBadges.has('operator_pass')) return null;
-	return visibleOperatorPass(holder, user);
-}
 
 function publicViewSource(input: ProfileBadgeInput): ViewSource | null {
 	if (input.profileHidden) return null;
@@ -77,7 +58,6 @@ function publicViewSource(input: ProfileBadgeInput): ViewSource | null {
 			selfHosted: environment.selfHosted,
 			restricted,
 		}),
-		operatorPass: restricted ? null : publicOperatorPass(input.operatorPass, user),
 		environment,
 		locale: resolveContentLocale(input.locale),
 		customBadgeIds: new Set([...user.badgeIds].filter((id) => !hidden.has(customProfileBadgeKey(id.toString())))),
@@ -94,7 +74,6 @@ function heldViewSource(input: ProfileBadgeInput, premiumFlags: number): ViewSou
 			selfHosted: environment.selfHosted,
 			restricted: false,
 		}),
-		operatorPass: input.operatorPass ? visibleOperatorPass(input.operatorPass, input.user) : null,
 		environment,
 		locale: resolveContentLocale(input.locale),
 		customBadgeIds: user.badgeIds,

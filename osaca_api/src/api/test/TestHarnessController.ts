@@ -29,14 +29,12 @@ import {
 	type MessageByAuthorRow,
 	type MessageRow,
 } from '@app/api/database/types/MessageTypes';
-import type {GiftCodeDurationType} from '@app/api/database/types/PaymentTypes';
 import {GuildRepository} from '@app/api/guild/repositories/GuildRepository';
 import type {ISnowflakeService} from '@app/api/infrastructure/ISnowflakeService';
 import {KVAccountDeletionQueueService} from '@app/api/infrastructure/KVAccountDeletionQueueService';
 import {KVActivityTracker} from '@app/api/infrastructure/KVActivityTracker';
 import {Logger} from '@app/api/Logger';
 import {getKVClient, getSnowflakeService} from '@app/api/middleware/ServiceRegistry';
-import {mapGiftDurationMonthsToFields} from '@app/api/models/GiftCode';
 import {OAuth2TokenRepository} from '@app/api/oauth/repositories/OAuth2TokenRepository';
 import {IpAuthorizationTokens, OAuth2AccessTokensByUser} from '@app/api/Tables';
 import type {HonoApp, HonoEnv} from '@app/api/types/HonoEnv';
@@ -80,54 +78,6 @@ import {seconds} from 'itty-time';
 
 const TEST_EMAIL_ENDPOINT = '/test/emails';
 const TEST_AUTH_HEADER = 'x-test-token';
-const GIFT_DURATION_TYPES = new Set<GiftCodeDurationType>(['days', 'weeks', 'months', 'years']);
-
-interface GiftDurationInput {
-	duration_months?: number;
-	duration_type?: string;
-	duration_quantity?: number;
-}
-
-interface ParsedGiftDuration {
-	durationType: GiftCodeDurationType;
-	durationQuantity: number;
-}
-
-function isGiftCodeDurationType(value: string): value is GiftCodeDurationType {
-	return GIFT_DURATION_TYPES.has(value as GiftCodeDurationType);
-}
-
-function parseGiftDurationInput(body: GiftDurationInput): ParsedGiftDuration {
-	const durationTypeInput = body.duration_type;
-	const durationQuantityInput = body.duration_quantity;
-	if (durationTypeInput !== undefined || durationQuantityInput !== undefined) {
-		if (durationTypeInput === undefined || durationQuantityInput === undefined) {
-			throw new Error('duration_type and duration_quantity must both be provided');
-		}
-		if (!isGiftCodeDurationType(durationTypeInput)) {
-			throw new Error('duration_type must be one of: days, weeks, months, years');
-		}
-		if (
-			typeof durationQuantityInput !== 'number' ||
-			!Number.isInteger(durationQuantityInput) ||
-			durationQuantityInput < 0
-		) {
-			throw new Error('duration_quantity must be a non-negative integer');
-		}
-		return {
-			durationType: durationTypeInput,
-			durationQuantity: durationQuantityInput,
-		};
-	}
-	if (typeof body.duration_months !== 'number' || !Number.isInteger(body.duration_months) || body.duration_months < 0) {
-		throw new Error('duration_months is required when duration_type and duration_quantity are not provided');
-	}
-	const legacyDuration = mapGiftDurationMonthsToFields(body.duration_months);
-	return {
-		durationType: legacyDuration.durationType,
-		durationQuantity: legacyDuration.durationQuantity,
-	};
-}
 
 const Messages = defineTable<MessageRow, 'channel_id' | 'bucket' | 'message_id'>({
 	name: 'messages',
@@ -690,8 +640,6 @@ export function TestHarnessController(app: HonoApp) {
 			premium_until: premiumUntil,
 			premium_gift_extension_ends_at: premiumGiftExtensionEndsAt,
 			premium_since: premiumSince,
-			stripe_subscription_id: stripeSubscriptionId,
-			stripe_customer_id: stripeCustomerId,
 			premium_will_cancel: premiumWillCancel,
 			premium_billing_cycle: premiumBillingCycle,
 			premium_lifetime_sequence: premiumLifetimeSequence,
@@ -702,8 +650,6 @@ export function TestHarnessController(app: HonoApp) {
 			premium_until?: string | null;
 			premium_gift_extension_ends_at?: string | null;
 			premium_since?: string | null;
-			stripe_subscription_id?: string | null;
-			stripe_customer_id?: string | null;
 			premium_will_cancel?: boolean | null;
 			premium_billing_cycle?: string | null;
 			premium_lifetime_sequence?: number | null;
@@ -729,12 +675,6 @@ export function TestHarnessController(app: HonoApp) {
 		}
 		if (premiumSince !== undefined) {
 			updates['premium_since'] = premiumSince ? new Date(premiumSince) : null;
-		}
-		if (stripeSubscriptionId !== undefined) {
-			updates['stripe_subscription_id'] = stripeSubscriptionId;
-		}
-		if (stripeCustomerId !== undefined) {
-			updates['stripe_customer_id'] = stripeCustomerId;
 		}
 		if (premiumWillCancel !== undefined) {
 			updates['premium_will_cancel'] = premiumWillCancel;
@@ -769,90 +709,6 @@ export function TestHarnessController(app: HonoApp) {
 				: (user.premiumUntil?.toISOString() ?? null),
 			has_ever_purchased: updates['has_ever_purchased'] ?? user.hasEverPurchased,
 		});
-	});
-	app.post('/test/gifts/:code', async (ctx) => {
-		ensureHarnessAccess(ctx);
-		const params = ctx.req.param() as {
-			code?: string;
-		};
-		const code = params.code;
-		if (!code) {
-			throw new Error('Missing code parameter');
-		}
-		const body = await ctx.req.json();
-		const {
-			duration_months: durationMonths,
-			duration_type: durationTypeInput,
-			duration_quantity: durationQuantityInput,
-			created_by_user_id: createdByUserIdParam,
-			visionary_sequence_number: visionarySequenceNumber,
-		} = body as {
-			duration_months?: number;
-			duration_type?: string;
-			duration_quantity?: number;
-			created_by_user_id?: string;
-			visionary_sequence_number?: number | null;
-		};
-		const {durationType, durationQuantity} = parseGiftDurationInput({
-			duration_months: durationMonths,
-			duration_type: durationTypeInput,
-			duration_quantity: durationQuantityInput,
-		});
-		if (!createdByUserIdParam) {
-			throw new Error('Missing created_by_user_id');
-		}
-		const createdByUserId = createUserID(BigInt(createdByUserIdParam));
-		const userRepository = ctx.get('userRepository');
-		await userRepository.createGiftCode({
-			code,
-			duration_months: null,
-			duration_type: durationType,
-			duration_quantity: durationQuantity,
-			created_at: new Date(),
-			created_by_user_id: createdByUserId,
-			redeemed_at: null,
-			redeemed_by_user_id: null,
-			stripe_payment_intent_id: null,
-			visionary_sequence_number: visionarySequenceNumber ?? null,
-			checkout_session_id: null,
-			version: 1,
-		});
-		return ctx.json({success: true, code});
-	});
-	app.post('/test/users/:userId/extend-subscription-trial', async (ctx) => {
-		ensureHarnessAccess(ctx);
-		const params = ctx.req.param() as {
-			userId?: string;
-		};
-		const userIdParam = params.userId;
-		if (!userIdParam) {
-			throw new Error('Missing userId parameter');
-		}
-		const userId = createUserID(BigInt(userIdParam));
-		const body = (await ctx.req.json()) as {
-			duration_months?: number;
-			duration_type?: string;
-			duration_quantity?: number;
-			idempotency_key?: string;
-		};
-		const idempotencyKey = body.idempotency_key;
-		if (!idempotencyKey) {
-			throw new Error('Missing idempotency_key');
-		}
-		const {durationType, durationQuantity} = parseGiftDurationInput(body);
-		const userRepository = ctx.get('userRepository');
-		const user = await userRepository.findUnique(userId);
-		if (!user) {
-			throw new UnknownUserError();
-		}
-		const stripeService = ctx.get('stripeService');
-		await stripeService.subscriptions.extendSubscriptionWithGiftTrialDuration(
-			user,
-			durationType,
-			durationQuantity,
-			idempotencyKey,
-		);
-		return ctx.body(null, 204);
 	});
 	app.post('/test/guilds/:guildId/features', async (ctx) => {
 		ensureHarnessAccess(ctx);

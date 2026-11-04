@@ -25,7 +25,7 @@ use crate::{
         },
         layout::admin_layout,
         pages::{
-            instance_billing::premium_billing_section, instance_branding::branding_section,
+            instance_branding::branding_section,
             instance_registration::registration_config_section,
         },
     },
@@ -208,18 +208,6 @@ pub fn instance_config_page(
                                 config_form,
                                 &instance_config.policy,
                                 &instance_config.app_public.branding.premium_product_name,
-                                instance_config.billing.enabled == Some(true),
-                            ),
-                    ))
-                    (config_group(
-                        "Premium & billing",
-                        "The premium tier's name, Stripe credentials and the prices members pay.",
-                        premium_billing_section(
-                                base,
-                                config_form,
-                                &instance_config.app_public.branding,
-                                &instance_config.billing,
-                                instance_config.policy.premium_mode,
                             ),
                     ))
                 }

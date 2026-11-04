@@ -9,7 +9,6 @@ import {collectKnownUserIps} from '@app/api/admin/services/KnownUserIps';
 import {type ReporterResolutionNotifier, wasReporterNotified} from '@app/api/admin/services/ReporterResolutionNotifier';
 import {revokeAllAuthSessions} from '@app/api/auth/AuthSessionRevocation';
 import {createReportID, type UserID} from '@app/api/BrandedTypes';
-import type {BillingRepository} from '@app/api/billing/repositories/BillingRepository';
 import {Config} from '@app/api/Config';
 import type {EnforcementDecisionRow} from '@app/api/database/types/EnforcementTypes';
 import {cancelClosure} from '@app/api/enforcement/ClosureState';
@@ -31,7 +30,6 @@ import type {OAuth2TokenRepository} from '@app/api/oauth/repositories/OAuth2Toke
 import {type IARSubmission, ReportStatus} from '@app/api/report/ReportModels';
 import type {ReportService} from '@app/api/report/ReportService';
 import {getReportSearchService} from '@app/api/SearchFactory';
-import type {StoreEntitlementService} from '@app/api/store_billing/StoreEntitlementService';
 import {isEnforcementDeletionReason} from '@app/api/user/ProfileVisibility';
 import {
 	type PartialUserChangePropagationDeps,
@@ -58,7 +56,6 @@ import type {
 	AdminUserDeletionCancelRequest,
 	AdminUserDeletionScheduleRequest,
 } from '@osaca/schema/src/domains/admin/AdminUserSchemas';
-import type Stripe from 'stripe';
 
 interface AdminUserDeletionServiceDeps {
 	apiContext: ApiContext;
@@ -67,10 +64,7 @@ interface AdminUserDeletionServiceDeps {
 	reportService: ReportService;
 	userUpdateDeps: PartialUserChangePropagationDeps;
 	kvDeletionQueue: KVAccountDeletionQueueService;
-	stripe: Stripe | null;
-	billingRepository: BillingRepository;
 	oauth2Tokens: Pick<OAuth2TokenRepository, 'deleteAllAccessTokensForUser' | 'deleteAllRefreshTokensForUser'>;
-	storeEntitlementService: StoreEntitlementService;
 	reporterResolutionNotifier: ReporterResolutionNotifier;
 	enforcement: EnforcementDecisionService;
 	delivery: EnforcementNoticeDelivery;
@@ -225,8 +219,6 @@ export class AdminUserDeletionService {
 				decisionId: null,
 			});
 		}
-		await this.cancelSubscription(user, actor.adminUserId, basis.type === 'enforcement');
-		await this.deps.storeEntitlementService.revokeForBannedUser(userId);
 		const notificationSent =
 			basis.type === 'enforcement' || immediate
 				? null
@@ -385,72 +377,6 @@ export class AdminUserDeletionService {
 			}
 		}
 		return collectKnownUserIps(this.deps.apiContext.services.users, user);
-	}
-
-	private async cancelSubscription(user: User, adminUserId: UserID, refundLatestPayment: boolean): Promise<void> {
-		const {stripe, billingRepository} = this.deps;
-		const userId = user.id;
-		if (!user.stripeSubscriptionId || !stripe) return;
-		try {
-			const sub = await billingRepository.subscriptions.findById(user.stripeSubscriptionId);
-			const latestInvoiceId = sub?.latest_invoice_id ?? null;
-			let refundTarget: {charge: string} | {payment_intent: string} | null = null;
-			if (latestInvoiceId && refundLatestPayment) {
-				const payment = await billingRepository.payments.findPrimaryForInvoice(latestInvoiceId);
-				if (payment?.status === 'paid' && payment.charge_id) refundTarget = {charge: payment.charge_id};
-				else if (payment?.status === 'paid' && payment.payment_intent_id) {
-					refundTarget = {payment_intent: payment.payment_intent_id};
-				}
-			}
-			const canceled = await stripe.subscriptions.cancel(user.stripeSubscriptionId, {
-				invoice_now: false,
-				prorate: false,
-			});
-			try {
-				await billingRepository.subscriptions.upsertFromStripe(canceled, {
-					knownUserId: BigInt(userId),
-					snapshotCapturedAt: new Date(),
-				});
-			} catch (mirrorErr) {
-				Logger.error(
-					{mirrorErr, subId: canceled.id},
-					'Mirror upsert failed after deletion-time subscription cancel; reconciler will heal',
-				);
-			}
-			Logger.info(
-				{userId: userId.toString(), subscriptionId: user.stripeSubscriptionId},
-				'Stripe subscription cancelled on ban',
-			);
-			if (refundTarget) {
-				const refund = await stripe.refunds.create({
-					...refundTarget,
-					reason: 'fraudulent',
-					metadata: {
-						admin_user_id: String(adminUserId),
-						target_user_id: String(userId),
-						reason: 'pending_deletion',
-					},
-				});
-				try {
-					await billingRepository.refunds.upsertFromStripe(refund, {
-						invoiceId: latestInvoiceId ?? undefined,
-						customerId: user.stripeCustomerId ?? undefined,
-						userId: BigInt(userId),
-					});
-				} catch (mirrorErr) {
-					Logger.error(
-						{mirrorErr, refundId: refund.id},
-						'Mirror upsert failed after deletion-time refund; reconciler will heal',
-					);
-				}
-				Logger.info({userId: userId.toString(), ...refundTarget}, 'Stripe refund issued on ban');
-			}
-		} catch (err) {
-			Logger.error(
-				{err, userId: userId.toString(), subscriptionId: user.stripeSubscriptionId},
-				'Failed to cancel/refund Stripe subscription on ban',
-			);
-		}
 	}
 
 	private async resolvePendingReportsAgainstUser(params: {user: User; adminUserId: UserID}): Promise<void> {

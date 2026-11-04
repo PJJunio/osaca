@@ -20,13 +20,6 @@ export function openInvite(code: string): void {
 	});
 }
 
-export function openGift(code: string): void {
-	openAcceptModal('gift', async () => {
-		const commands = await import('@app/features/gift/commands/GiftCommands');
-		await commands.openAcceptModal(code, currentInstanceTarget());
-	});
-}
-
 export function openTheme(themeId: string): void {
 	openAcceptModal('theme', async () => {
 		const commands = await import('@app/features/theme/commands/ThemeCommands');

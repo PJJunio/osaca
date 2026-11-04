@@ -16,7 +16,7 @@ import {useState} from 'react';
 
 interface DesktopDeepLinkPromptProps {
 	code: string;
-	kind: 'invite' | 'gift' | 'theme';
+	kind: 'invite' | 'theme';
 	preferLogin?: boolean;
 }
 
@@ -42,8 +42,6 @@ export const DesktopDeepLinkPrompt: React.FC<DesktopDeepLinkPromptProps> = ({cod
 		switch (kind) {
 			case 'invite':
 				return preferLogin ? Routes.inviteLogin(code) : Routes.inviteRegister(code);
-			case 'gift':
-				return preferLogin ? Routes.giftLogin(code) : Routes.giftRegister(code);
 			case 'theme':
 				return preferLogin ? Routes.themeLogin(code) : Routes.themeRegister(code);
 		}

@@ -10,7 +10,6 @@ import {clearExpiredSuspension} from '@app/api/enforcement/SuspensionState';
 import type {KVAccountDeletionQueueService} from '@app/api/infrastructure/KVAccountDeletionQueueService';
 import {Logger} from '@app/api/Logger';
 import type {User} from '@app/api/models/User';
-import {followOperatorPassWallStanding} from '@app/api/operator_pass/OperatorPassWallStanding';
 import {isAccountClosed, isSignInRefused} from '@app/api/user/UserHelpers';
 import * as RandomUtils from '@app/api/utils/RandomUtils';
 import {DeletionReasons} from '@osaca/constants/src/Core';
@@ -124,6 +123,5 @@ export async function reactivateOnSignIn(
 		await deletionQueue.removeFromQueue(currentUser.id);
 		Logger.info({userId: currentUser.id}, 'Auto-cancelled deletion on sign-in');
 	}
-	await followOperatorPassWallStanding(user, currentUser);
 	return currentUser;
 }

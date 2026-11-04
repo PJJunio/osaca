@@ -3,11 +3,11 @@
 import {randomInt} from 'node:crypto';
 import {Config} from '@app/api/Config';
 import {Logger} from '@app/api/Logger';
+import {isPremiumTieringActive} from '@app/api/limits/InstancePremiumModeCache';
 import type {LimitConfigService} from '@app/api/limits/LimitConfigService';
 import {resolveLimitSafe} from '@app/api/limits/LimitConfigUtils';
 import {createLimitMatchContext} from '@app/api/limits/LimitMatchContextBuilder';
 import type {User} from '@app/api/models/User';
-import {isPremiumTieringActive} from '@app/api/stripe/BillingConfigCache';
 import type {UserRepository} from '@app/api/user/repositories/UserRepository';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {NON_SELF_HOSTED_RESERVED_DISCRIMINATORS} from '@osaca/constants/src/DiscriminatorConstants';

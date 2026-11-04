@@ -58,8 +58,6 @@ const FIELDS_CLEARED_ON_DELETION = [
 	'premium_billing_cycle',
 	'premium_lifetime_sequence',
 	'premium_grace_ends_at',
-	'stripe_subscription_id',
-	'stripe_customer_id',
 	'has_ever_purchased',
 	'terms_agreed_at',
 	'privacy_agreed_at',

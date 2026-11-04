@@ -7,8 +7,6 @@ type DatabaseBackend = 'postgres' | 'cassandra';
 type PublicScheme = 'http' | 'https';
 export const CACHE_PURGE_ADAPTER_NAMES = ['none', 'http', 'controller'] as const;
 export type CachePurgeAdapterName = (typeof CACHE_PURGE_ADAPTER_NAMES)[number];
-export const STORE_PRODUCT_SLOT_NAMES = ['monthly', 'yearly', 'gift_1_month', 'gift_1_year'] as const;
-export type StoreProductSlotName = (typeof STORE_PRODUCT_SLOT_NAMES)[number];
 export const ACCOUNT_IDENTITY_MODE_NAMES = ['email', 'username'] as const;
 type AccountIdentityModeName = (typeof ACCOUNT_IDENTITY_MODE_NAMES)[number];
 export const TAG_STYLE_NAMES = ['none', 'random'] as const;
@@ -112,7 +110,6 @@ export interface MasterConfig {
 			max_inflight_requests: number;
 			automated_message_deletion_delay_days: number;
 			ip_ban_exempt_ips: Array<string>;
-			donation_proxy_key: string;
 			trusted_callers: Array<{
 				name: string;
 				key: string;
@@ -242,13 +239,6 @@ export interface MasterConfig {
 			password: string;
 			tls_reject_unauthorized: boolean;
 		};
-		stripe: {
-			enabled: boolean;
-			secret_key: string;
-			webhook_secret: string;
-			prices?: Record<string, string | undefined>;
-			legacy_prices?: Record<string, Array<string> | undefined>;
-		};
 		clamav: {
 			enabled: boolean;
 			host: string;
@@ -277,41 +267,10 @@ export interface MasterConfig {
 		breached_password_check: {
 			enabled?: boolean;
 		};
-		app_store: {
-			enabled: boolean;
-			issuer_id?: string;
-			key_id?: string;
-			private_key?: string;
-			private_key_path?: string;
-			apps?: Array<{
-				bundle_id: string;
-				app_apple_id: number;
-			}>;
-			products?: Record<string, StoreProductSlotName>;
-		};
-		google_play: {
-			enabled: boolean;
-			packages?: Array<string>;
-			client_email?: string;
-			private_key?: string;
-			private_key_path?: string;
-			service_account_json_path?: string;
-			token_uri?: string;
-			products?: Record<string, StoreProductSlotName>;
-			push_audience?: string;
-			push_service_account_email?: string;
-			self_service_refunds: boolean;
-		};
-		store_billing: {
-			sandbox_user_ids?: Array<string>;
-			sandbox_entitles_all: boolean;
-		};
 	};
 	instance: {
 		self_hosted: boolean;
 		auto_join_invite_code?: string;
-		visionaries_guild_id?: string;
-		visionaries_guild_visionary_role_id?: string;
 		branding: InstanceBrandingConfig;
 		setup: {
 			configured: boolean;
@@ -319,25 +278,6 @@ export interface MasterConfig {
 		};
 		account_identity: AccountIdentityModeName | null;
 		tag_style: TagStyleName | null;
-	};
-	payment_disputes: {
-		closure_effective_at?: string;
-	};
-	operator_pass: {
-		price_rises_at?: string;
-		grace_minutes: number;
-		now_override?: string;
-		labs_guild_id?: string;
-		labs_operator_role_id?: string;
-		labs_visionary_role_id?: string;
-		labs_access_role_id?: string;
-		labs_operators_channel_id?: string;
-		standard_prices_minor?: Partial<Record<string, number>>;
-		release_lists?: string;
-		withdrawal_countries?: string;
-		localized_prices_enabled?: Partial<Record<string, boolean>>;
-		wall_tiers?: string;
-		max_quantity?: number;
 	};
 	dev: {
 		relax_registration_rate_limits: boolean;

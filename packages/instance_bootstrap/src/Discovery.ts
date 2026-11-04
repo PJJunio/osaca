@@ -61,12 +61,10 @@ export type InstanceGeneration = (typeof InstanceGeneration)[keyof typeof Instan
 
 const FEATURE_FLAG_KEYS = Object.freeze([
 	'voice_enabled',
-	'stripe_enabled',
 	'self_hosted',
 	'presigned_attachment_uploads',
 	'emails_enabled',
 	'premium_enabled',
-	'stripe_serviceable',
 	'phone_verification_enabled',
 	'discovery_enabled',
 	'desktop_modules_enabled',

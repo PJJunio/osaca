@@ -11,7 +11,6 @@ import {emitAccountChangedIfRelevant} from '@app/api/infrastructure/activity/Acc
 import {getInstanceProductName} from '@app/api/instance/ProductName';
 import {User} from '@app/api/models/User';
 import {Users} from '@app/api/Tables';
-import {shiftGiftExtensionPastPremiumUntil} from '@app/api/user/GiftExtensionShift';
 import {isPendingDeletionBlocked} from '@app/api/user/services/PendingDeletionCoordinator';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {DELETED_USER_ID, UserFlags} from '@osaca/constants/src/UserConstants';
@@ -325,48 +324,5 @@ export class UserDataRepository {
 			last_active_ip: string | null;
 		}>(FETCH_ACTIVITY_TRACKING_CQL, {user_id: userId});
 		return result;
-	}
-
-	async updateSubscriptionStatus(
-		userId: UserID,
-		updates: {
-			premiumWillCancel: boolean;
-			computedPremiumUntil: Date | null;
-			periodStart: Date | null;
-		},
-	): Promise<{
-		finalVersion: number | null;
-	}> {
-		assertWritableUserId(userId);
-		const result = await executeVersionedUpdate<UserRow, 'user_id'>(
-			async () => {
-				return fetchOne<UserRow>(FETCH_USER_BY_ID_CQL, {user_id: userId});
-			},
-			(current) => {
-				const computedPremiumUntil = updates.computedPremiumUntil;
-				const patch: UserPatch = {
-					premium_will_cancel: Db.set(updates.premiumWillCancel),
-					premium_until: computedPremiumUntil ? Db.set(computedPremiumUntil) : Db.clear(),
-				};
-				const giftEnd = current?.premium_gift_extension_ends_at ?? null;
-				if (computedPremiumUntil && giftEnd) {
-					const shiftedGiftEnd = shiftGiftExtensionPastPremiumUntil(
-						{premiumUntil: current?.premium_until, giftEnd},
-						computedPremiumUntil,
-						new Date(),
-						updates.periodStart,
-					);
-					if (shiftedGiftEnd && shiftedGiftEnd.getTime() !== giftEnd.getTime()) {
-						patch.premium_gift_extension_ends_at = Db.set(shiftedGiftEnd);
-					}
-				}
-				return {
-					pk: {user_id: userId},
-					patch,
-				};
-			},
-			Users,
-		);
-		return {finalVersion: result.finalVersion};
 	}
 }

@@ -9,7 +9,6 @@ import {usesUniqueUsernames} from '@app/api/instance/AccountIdentityModeCache';
 import type {LimitConfigService} from '@app/api/limits/LimitConfigService';
 import {resolveLimitSafe} from '@app/api/limits/LimitConfigUtils';
 import {createLimitMatchContext} from '@app/api/limits/LimitMatchContextBuilder';
-import type {OperatorPassServices} from '@app/api/middleware/OperatorPassServiceFactory';
 import type {RequestCache} from '@app/api/middleware/RequestCacheMiddleware';
 import {getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
 import type {Relationship} from '@app/api/models/Relationship';
@@ -66,7 +65,6 @@ export class UserRelationshipService {
 		apiContext: ApiContext,
 		private userPermissionUtils: UserPermissionUtils,
 		private readonly limitConfigService: LimitConfigService,
-		private readonly operatorPassServices: Pick<OperatorPassServices, 'holdingService'> | null,
 	) {
 		const {users, gateway} = apiContext.services;
 		this.userRepository = users;
@@ -355,7 +353,6 @@ export class UserRelationshipService {
 	async endFriendship(userId: UserID, targetId: UserID): Promise<void> {
 		await this.userRepository.deleteRelationship(userId, targetId, RelationshipTypes.FRIEND);
 		await this.userRepository.deleteRelationship(targetId, userId, RelationshipTypes.FRIEND);
-		await this.operatorPassServices?.holdingService.cancelOffersBetween(userId, targetId);
 	}
 
 	async updateFriendNickname({

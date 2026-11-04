@@ -10,7 +10,6 @@ import {createEmailRevertToken} from '@app/api/BrandedTypes';
 import {Logger} from '@app/api/Logger';
 import {getKVClient} from '@app/api/middleware/ServiceRegistry';
 import type {User} from '@app/api/models/User';
-import {enqueueStripeCustomerEmailSync} from '@app/api/stripe/StripeCustomer';
 import {EMAIL_REVERT_TOKEN_TTL_SECONDS} from '@app/api/user/repositories/auth/TokenRepository';
 import {dispatchUserUpdate} from '@app/api/user/UserMappers';
 import {UserTraits} from '@app/api/user/UserTraits';
@@ -71,7 +70,7 @@ export async function revertEmailChange(
 	user_id: string;
 	token: string;
 }> {
-	const {users, gateway, contactChangeLog, config, worker} = ctx.services;
+	const {users, gateway, contactChangeLog, config} = ctx.services;
 	const {token, password, request} = params;
 	const tokenData = await users.getEmailRevertToken(token);
 	if (!tokenData) {
@@ -129,6 +128,5 @@ export async function revertEmailChange(
 		reason: 'user_requested',
 		actorUserId: user.id,
 	});
-	await enqueueStripeCustomerEmailSync(worker, user, updatedUser);
 	return {user_id: updatedUser.id.toString(), token: authToken};
 }

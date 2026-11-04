@@ -19,11 +19,6 @@ const USER_SETTINGS_DEEP_LINK_PATH = '/settings/user';
 const USER_SETTINGS_TAB_TYPES = new Set<UserSettingsTabType>([
 	'my_profile',
 	'account_security',
-	'plutonium',
-	'subscriptions',
-	'operator_pass',
-	'gift_inventory',
-	'payments',
 	'privacy_safety',
 	'authorized_apps',
 	'blocked_users',

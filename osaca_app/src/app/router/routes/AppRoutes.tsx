@@ -104,20 +104,6 @@ const NotificationsPage = createNamedLoadableComponent<AppRouteComponentProps>({
 	displayName: 'NotificationsPage',
 	load: async () => (await import('@app/features/notification/components/pages/NotificationsPage')).NotificationsPage,
 });
-const PlutoniumPageLayout = createNamedLoadableComponent<AppRouteComponentProps>({
-	displayName: 'PlutoniumPageLayout',
-	load: async () =>
-		(await import('@app/features/premium/components/plutonium_page/PlutoniumPageLayout')).PlutoniumPageLayout,
-});
-const OperatorPassRoutePage = createNamedLoadableComponent<AppRouteComponentProps>({
-	displayName: 'OperatorPassRoutePage',
-	load: async () =>
-		(await import('@app/features/premium/components/operator_pass/OperatorPassRoutePage')).OperatorPassRoutePage,
-});
-const PremiumCallbackPage = createDefaultLoadableComponent<AppRouteComponentProps>({
-	displayName: 'PremiumCallbackPage',
-	load: () => import('@app/features/premium/components/pages/PremiumCallbackPage'),
-});
 const StatusChangeBottomSheet = createNamedLoadableComponent<AppRouteComponentProps>({
 	displayName: 'StatusChangeBottomSheet',
 	load: async () =>
@@ -205,15 +191,6 @@ const youRoute = createRoute({
 		);
 	},
 });
-export const premiumCallbackRoute = createRoute({
-	getParentRoute: () => rootRoute,
-	id: 'premiumCallback',
-	path: Routes.PREMIUM_CALLBACK,
-	onEnter: (context) =>
-		context.url.searchParams.get('product') === 'operator_pass' ? requireAuthentication(context) : undefined,
-	preload: PremiumCallbackPage.preload,
-	component: () => <PremiumCallbackPage data-flx="app.router.app-routes.premium-callback-page" />,
-});
 export const connectionCallbackRoute = createRoute({
 	getParentRoute: () => rootRoute,
 	id: 'connectionCallback',
@@ -280,34 +257,6 @@ const legacyDiscoverRoute = createRoute({
 	id: 'legacyDiscover',
 	path: Routes.LEGACY_DISCOVER,
 	onEnter: () => new Redirect(Routes.DISCOVER),
-});
-const plutoniumRoute = createRoute({
-	getParentRoute: () => guildsLayoutRoute,
-	id: 'plutonium',
-	path: Routes.PLUTONIUM,
-	preload: PlutoniumPageLayout.preload,
-	component: () => (
-		<DMLayout data-flx="app.router.app-routes.dm-layout--plutonium">
-			<PlutoniumPageLayout data-flx="app.router.app-routes.plutonium-page-layout" />
-		</DMLayout>
-	),
-});
-const legacyPlutoniumRoute = createRoute({
-	getParentRoute: () => guildsLayoutRoute,
-	id: 'legacyPlutonium',
-	path: Routes.LEGACY_PLUTONIUM,
-	onEnter: () => new Redirect(Routes.PLUTONIUM),
-});
-const operatorPassRoute = createRoute({
-	getParentRoute: () => guildsLayoutRoute,
-	id: 'operatorPass',
-	path: Routes.OPERATOR_PASS,
-	preload: OperatorPassRoutePage.preload,
-	component: () => (
-		<DMLayout data-flx="app.router.app-routes.dm-layout--operator-pass">
-			<OperatorPassRoutePage data-flx="app.router.app-routes.operator-pass-route-page" />
-		</DMLayout>
-	),
 });
 const userProfileRoute = createRoute({
 	getParentRoute: () => appLayoutRoute,
@@ -446,9 +395,6 @@ export const appRouteTree = appLayoutRoute.addChildren([
 		meRoute,
 		discoverRoute,
 		legacyDiscoverRoute,
-		plutoniumRoute,
-		legacyPlutoniumRoute,
-		operatorPassRoute,
 		favoritesRoute.addChildren([favoritesChannelRoute]),
 		channelsRoute.addChildren([membersRoute, channelRoute.addChildren([messageRoute, threadPanelRoute])]),
 	]),

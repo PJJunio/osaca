@@ -205,7 +205,6 @@ pub const ADMIN_ACTION_FORM_SCRIPT: &str = r#"
 		if (!url || url.origin !== window.location.origin) return true;
 		var path = stripBase(url.pathname);
 		var action = url.searchParams.get('action') || '';
-		if (path === '/gift-codes') return true;
 		if (path === '/logout') return true;
 		if (path === '/messages' && (
 			action === 'search' ||

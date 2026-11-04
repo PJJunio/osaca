@@ -11,13 +11,8 @@ import {DesktopDownloadNagbar} from '@app/features/app/components/layout/app_lay
 import {DesktopNotificationNagbar} from '@app/features/app/components/layout/app_layout/nagbars/DesktopNotificationNagbar';
 import {DomainMovedNagbar} from '@app/features/app/components/layout/app_layout/nagbars/DomainMovedNagbar';
 import {EmailVerificationNagbar} from '@app/features/app/components/layout/app_layout/nagbars/EmailVerificationNagbar';
-import {GiftInventoryNagbar} from '@app/features/app/components/layout/app_layout/nagbars/GiftInventoryNagbar';
 import {GuildMembershipCtaNagbar} from '@app/features/app/components/layout/app_layout/nagbars/GuildMembershipCtaNagbar';
 import {InstanceNoticeNagbar} from '@app/features/app/components/layout/app_layout/nagbars/InstanceNoticeNagbar';
-import {LegacyPriceOptInNagbar} from '@app/features/app/components/layout/app_layout/nagbars/LegacyPriceOptInNagbar';
-import {PremiumOnboardingNagbar} from '@app/features/app/components/layout/app_layout/nagbars/PremiumOnboardingNagbar';
-import {PremiumStatusNagbar} from '@app/features/app/components/layout/app_layout/nagbars/PremiumStatusNagbar';
-import {PriceAnnouncementNagbar} from '@app/features/app/components/layout/app_layout/nagbars/PriceAnnouncementNagbar';
 import {ScheduledMaintenanceNagbar} from '@app/features/app/components/layout/app_layout/nagbars/ScheduledMaintenanceNagbar';
 import {StreamerModeNagbar} from '@app/features/app/components/layout/app_layout/nagbars/StreamerModeNagbar';
 import {TermsAcceptanceNagbar} from '@app/features/app/components/layout/app_layout/nagbars/TermsAcceptanceNagbar';
@@ -47,22 +42,6 @@ class UnexpectedNagbarTypeError extends Error {
 	}
 }
 
-const PremiumGracePeriodNagbar = ({isMobile}: {isMobile: boolean}) => (
-	<PremiumStatusNagbar
-		variant="grace-period"
-		isMobile={isMobile}
-		data-flx="app.app-layout.nagbar-container.premium-grace-period-nagbar"
-	/>
-);
-
-const PremiumExpiredNagbar = ({isMobile}: {isMobile: boolean}) => (
-	<PremiumStatusNagbar
-		variant="expired"
-		isMobile={isMobile}
-		data-flx="app.app-layout.nagbar-container.premium-expired-nagbar"
-	/>
-);
-
 const NAGBARS: Record<NagbarType, NagbarEntry> = {
 	[NagbarType.BUILD_ENVIRONMENT]: {Component: BuildEnvironmentNagbar},
 	[NagbarType.CONNECTION]: {Component: ConnectionNagbar},
@@ -74,12 +53,6 @@ const NAGBARS: Record<NagbarType, NagbarEntry> = {
 	[NagbarType.EMAIL_VERIFICATION]: {Component: EmailVerificationNagbar},
 	[NagbarType.ACCOUNT_LIMITED]: {Component: AccountLimitedNagbar},
 	[NagbarType.DESKTOP_NOTIFICATION]: {Component: DesktopNotificationNagbar},
-	[NagbarType.PREMIUM_GRACE_PERIOD]: {Component: PremiumGracePeriodNagbar, premium: true},
-	[NagbarType.PREMIUM_EXPIRED]: {Component: PremiumExpiredNagbar, premium: true},
-	[NagbarType.PREMIUM_ONBOARDING]: {Component: PremiumOnboardingNagbar, premium: true},
-	[NagbarType.PRICE_ANNOUNCEMENT]: {Component: PriceAnnouncementNagbar, premium: true},
-	[NagbarType.LEGACY_PRICE_OPT_IN]: {Component: LegacyPriceOptInNagbar, premium: true},
-	[NagbarType.GIFT_INVENTORY]: {Component: GiftInventoryNagbar, premium: true},
 	[NagbarType.DESKTOP_DOWNLOAD]: {Component: DesktopDownloadNagbar},
 	[NagbarType.GUILD_MEMBERSHIP_CTA]: {Component: GuildMembershipCtaNagbar},
 	[NagbarType.VISIONARY_MFA]: {Component: VisionaryMfaNagbar, premium: true},

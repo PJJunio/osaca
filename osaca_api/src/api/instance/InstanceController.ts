@@ -13,12 +13,12 @@ import {customBadgeImageUrl} from '@app/api/instance/InstanceAssetReferences';
 import type {BuiltInBadgeImages} from '@app/api/instance/InstanceConfigRepository';
 import {assertSetupToken} from '@app/api/instance/SetupToken';
 import {getStatusPageDetector} from '@app/api/instance/StatusPageDetector';
+import {isPremiumTieringActive} from '@app/api/limits/InstancePremiumModeCache';
 import {RateLimitMiddleware} from '@app/api/middleware/RateLimitMiddleware';
 import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
 import {getVoiceTopology} from '@app/api/middleware/ServiceRegistry';
 import {getCustomBadgeCatalog} from '@app/api/middleware/ServiceSingletons';
 import {RateLimitConfigs} from '@app/api/RateLimitConfig';
-import {isBillingActive, isPremiumTieringActive, isStripeServiceable} from '@app/api/stripe/BillingConfigCache';
 import type {HonoEnv} from '@app/api/types/HonoEnv';
 import {entityTagMatches} from '@app/api/utils/EntityTag';
 import {requireConfiguredClientIp} from '@app/api/utils/RequestClientIp';
@@ -102,9 +102,7 @@ function buildDiscoveryStaticInput(
 		},
 		features: {
 			voice_enabled: Config.voice.enabled,
-			stripe_enabled: isBillingActive(),
 			premium_enabled: isPremiumTieringActive(),
-			stripe_serviceable: isStripeServiceable(),
 			self_hosted: Config.instance.selfHosted,
 			presigned_attachment_uploads: Config.presignedAttachmentUploadsEnabled,
 			emails_enabled: runtime.emailDeliveryState === EmailDeliveryStates.ON,

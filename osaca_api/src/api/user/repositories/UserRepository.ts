@@ -7,7 +7,6 @@ import type {
 	EmailVerificationTokenRow,
 	PasswordResetTokenRow,
 } from '@app/api/database/types/AuthTypes';
-import type {GiftCodeRow, PaymentBySubscriptionRow, PaymentRow} from '@app/api/database/types/PaymentTypes';
 import type {
 	PushSubscriptionRow,
 	RecentMentionRow,
@@ -21,10 +20,8 @@ import type {AuthSession, AuthSessionTombstone} from '@app/api/models/AuthSessio
 import type {Channel} from '@app/api/models/Channel';
 import type {EmailRevertToken} from '@app/api/models/EmailRevertToken';
 import type {EmailVerificationToken} from '@app/api/models/EmailVerificationToken';
-import type {GiftCode} from '@app/api/models/GiftCode';
 import type {MfaBackupCode} from '@app/api/models/MfaBackupCode';
 import type {PasswordResetToken} from '@app/api/models/PasswordResetToken';
-import type {Payment} from '@app/api/models/Payment';
 import type {PushSubscription} from '@app/api/models/PushSubscription';
 import type {RecentMention} from '@app/api/models/RecentMention';
 import type {Relationship} from '@app/api/models/Relationship';
@@ -33,7 +30,6 @@ import type {User} from '@app/api/models/User';
 import type {UserGuildSettings} from '@app/api/models/UserGuildSettings';
 import type {UserNote} from '@app/api/models/UserNote';
 import type {UserSettings} from '@app/api/models/UserSettings';
-import type {VisionarySlot} from '@app/api/models/VisionarySlot';
 import type {WebAuthnCredential} from '@app/api/models/WebAuthnCredential';
 import {UserEmailOwnershipRepository} from '@app/api/user/repositories/account/crud/UserEmailOwnershipRepository';
 import {
@@ -48,8 +44,6 @@ import {IpAuthorizationRepository} from '@app/api/user/repositories/auth/IpAutho
 import {MfaBackupCodeRepository} from '@app/api/user/repositories/auth/MfaBackupCodeRepository';
 import {TokenRepository} from '@app/api/user/repositories/auth/TokenRepository';
 import {WebAuthnRepository} from '@app/api/user/repositories/auth/WebAuthnRepository';
-import {GiftCodeRepository} from '@app/api/user/repositories/GiftCodeRepository';
-import {PaymentRepository} from '@app/api/user/repositories/PaymentRepository';
 import {PushSubscriptionRepository} from '@app/api/user/repositories/PushSubscriptionRepository';
 import {RecentMentionRepository} from '@app/api/user/repositories/RecentMentionRepository';
 import {SavedMessageRepository} from '@app/api/user/repositories/SavedMessageRepository';
@@ -61,7 +55,6 @@ import {
 } from '@app/api/user/repositories/UserChannelRepository';
 import {UserRelationshipRepository} from '@app/api/user/repositories/UserRelationshipRepository';
 import {UserSettingsRepository} from '@app/api/user/repositories/UserSettingsRepository';
-import {VisionarySlotRepository} from '@app/api/user/repositories/VisionarySlotRepository';
 import type {IKVProvider} from '@pkgs/kv_client/src/IKVProvider';
 
 export class UserRepository {
@@ -77,12 +70,9 @@ export class UserRepository {
 	private webAuthnRepository = new WebAuthnRepository();
 	private relationshipRepo = new UserRelationshipRepository();
 	private channelRepo = new UserChannelRepository();
-	private giftCodeRepository = new GiftCodeRepository();
-	private paymentRepository = new PaymentRepository();
 	private pushSubscriptionRepository = new PushSubscriptionRepository();
 	private recentMentionRepository = new RecentMentionRepository();
 	private savedMessageRepository = new SavedMessageRepository();
-	private visionarySlotRepository = new VisionarySlotRepository();
 
 	constructor(kv: IKVProvider = getKVClient()) {
 		this.accountRepo = new UserAccountRepository(kv);
@@ -155,14 +145,6 @@ export class UserRepository {
 		return this.lookupRepo.findByEmail(email);
 	}
 
-	async findByStripeSubscriptionId(stripeSubscriptionId: string): Promise<User | null> {
-		return this.lookupRepo.findByStripeSubscriptionId(stripeSubscriptionId);
-	}
-
-	async findByStripeCustomerId(stripeCustomerId: string): Promise<User | null> {
-		return this.lookupRepo.findByStripeCustomerId(stripeCustomerId);
-	}
-
 	async listUserIdsWithAcl(acl: string): Promise<Array<UserID>> {
 		return this.lookupRepo.listUserIdsWithAcl(acl);
 	}
@@ -214,19 +196,6 @@ export class UserRepository {
 
 	async removeFromAllGuilds(userId: UserID): Promise<void> {
 		return this.guildRepo.removeFromAllGuilds(userId);
-	}
-
-	async updateSubscriptionStatus(
-		userId: UserID,
-		updates: {
-			premiumWillCancel: boolean;
-			computedPremiumUntil: Date | null;
-			periodStart: Date | null;
-		},
-	): Promise<{
-		finalVersion: number | null;
-	}> {
-		return this.accountRepo.updateSubscriptionStatus(userId, updates);
 	}
 
 	async findSettings(userId: UserID): Promise<UserSettings | null> {
@@ -622,54 +591,6 @@ export class UserRepository {
 		return this.savedMessageRepository.deleteAllSavedMessages(userId);
 	}
 
-	async createGiftCode(data: GiftCodeRow): Promise<void> {
-		return this.giftCodeRepository.createGiftCode(data);
-	}
-
-	async findGiftCode(code: string): Promise<GiftCode | null> {
-		return this.giftCodeRepository.findGiftCode(code);
-	}
-
-	async findGiftCodeByPaymentIntent(paymentIntentId: string): Promise<GiftCode | null> {
-		return this.giftCodeRepository.findGiftCodeByPaymentIntent(paymentIntentId);
-	}
-
-	async findGiftCodesByCreator(userId: UserID): Promise<Array<GiftCode>> {
-		return this.giftCodeRepository.findGiftCodesByCreator(userId);
-	}
-
-	async findGiftCodesByRedeemer(userId: UserID): Promise<Array<GiftCode>> {
-		return this.giftCodeRepository.findGiftCodesByRedeemer(userId);
-	}
-
-	async redeemGiftCode(code: string, userId: UserID): Promise<void> {
-		return this.giftCodeRepository.redeemGiftCode(code, userId);
-	}
-
-	async unredeemGiftCode(code: string, userId: UserID): Promise<void> {
-		return this.giftCodeRepository.unredeemGiftCode(code, userId);
-	}
-
-	async revokeGiftCode(code: string): Promise<void> {
-		return this.giftCodeRepository.revokeGiftCode(code);
-	}
-
-	async unrevokeGiftCode(code: string): Promise<void> {
-		return this.giftCodeRepository.unrevokeGiftCode(code);
-	}
-
-	async markGiftPremiumReversed(gift: GiftCode, seconds: number): Promise<boolean> {
-		return this.giftCodeRepository.markGiftPremiumReversed(gift, seconds);
-	}
-
-	async clearGiftPremiumReversed(code: string, seconds: number): Promise<boolean> {
-		return this.giftCodeRepository.clearGiftPremiumReversed(code, seconds);
-	}
-
-	async linkGiftCodeToCheckoutSession(code: string, checkoutSessionId: string): Promise<void> {
-		return this.giftCodeRepository.linkGiftCodeToCheckoutSession(code, checkoutSessionId);
-	}
-
 	async listPushSubscriptions(userId: UserID): Promise<Array<PushSubscription>> {
 		return this.pushSubscriptionRepository.listPushSubscriptions(userId);
 	}
@@ -696,49 +617,5 @@ export class UserRepository {
 
 	async deleteAllPushSubscriptions(userId: UserID): Promise<void> {
 		return this.pushSubscriptionRepository.deleteAllPushSubscriptions(userId);
-	}
-
-	async createPayment(data: Parameters<PaymentRepository['createPayment']>[0]): Promise<void> {
-		return this.paymentRepository.createPayment(data);
-	}
-
-	async updatePayment(
-		data: Partial<PaymentRow> & {
-			checkout_session_id: string;
-		},
-	): Promise<void> {
-		return this.paymentRepository.updatePayment(data);
-	}
-
-	async getPaymentByCheckoutSession(checkoutSessionId: string): Promise<Payment | null> {
-		return this.paymentRepository.getPaymentByCheckoutSession(checkoutSessionId);
-	}
-
-	async findPaymentsByUserId(userId: UserID): Promise<Array<Payment>> {
-		return this.paymentRepository.findPaymentsByUserId(userId);
-	}
-
-	async getPaymentByPaymentIntent(paymentIntentId: string): Promise<Payment | null> {
-		return this.paymentRepository.getPaymentByPaymentIntent(paymentIntentId);
-	}
-
-	async getSubscriptionInfo(subscriptionId: string): Promise<PaymentBySubscriptionRow | null> {
-		return this.paymentRepository.getSubscriptionInfo(subscriptionId);
-	}
-
-	async listVisionarySlots(): Promise<Array<VisionarySlot>> {
-		return this.visionarySlotRepository.listVisionarySlots();
-	}
-
-	async expandVisionarySlots(byCount: number): Promise<void> {
-		return this.visionarySlotRepository.expandVisionarySlots(byCount);
-	}
-
-	async reserveVisionarySlot(slotIndex: number, userId: UserID): Promise<void> {
-		return this.visionarySlotRepository.reserveVisionarySlot(slotIndex, userId);
-	}
-
-	async unreserveVisionarySlot(slotIndex: number, userId: UserID): Promise<void> {
-		return this.visionarySlotRepository.unreserveVisionarySlot(slotIndex, userId);
 	}
 }

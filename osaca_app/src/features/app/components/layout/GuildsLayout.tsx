@@ -33,11 +33,11 @@ import {AddGuildButton} from '@app/features/app/components/layout/sidebar_nav/Ad
 import {DiscoveryButton} from '@app/features/app/components/layout/sidebar_nav/DiscoveryButton';
 import {DownloadButton} from '@app/features/app/components/layout/sidebar_nav/DownloadButton';
 import {FavoritesButton} from '@app/features/app/components/layout/sidebar_nav/FavoritesButton';
-import {OsacaButton} from '@app/features/app/components/layout/sidebar_nav/OsacaButton';
 import {GuildFolderItem} from '@app/features/app/components/layout/sidebar_nav/GuildFolderItem';
 import {resolveDMListItemUnreadState} from '@app/features/app/components/layout/sidebar_nav/GuildListDMItem';
 import {GuildListItem} from '@app/features/app/components/layout/sidebar_nav/GuildListItem';
 import {HelpButton} from '@app/features/app/components/layout/sidebar_nav/HelpButton';
+import {OsacaButton} from '@app/features/app/components/layout/sidebar_nav/OsacaButton';
 import {
 	DragItemType,
 	DropPlacement,
@@ -110,14 +110,10 @@ import MediaEngine from '@app/features/voice/engine/MediaEngineFacade';
 import CallState from '@app/features/voice/state/CallState';
 import VoiceCallFullscreen from '@app/features/voice/state/VoiceCallFullscreen';
 import {flxElementClassName} from '@app/lib/react';
-import {ChannelTypes} from '@osaca/constants/src/ChannelConstants';
-import {
-	DEFAULT_GUILD_FOLDER_ICON,
-	GuildFolderFlags,
-	UNCATEGORIZED_FOLDER_ID,
-} from '@osaca/constants/src/UserConstants';
 import {msg, plural} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
+import {ChannelTypes} from '@osaca/constants/src/ChannelConstants';
+import {DEFAULT_GUILD_FOLDER_ICON, GuildFolderFlags, UNCATEGORIZED_FOLDER_ID} from '@osaca/constants/src/UserConstants';
 import {ExclamationMarkIcon} from '@phosphor-icons/react';
 import {clsx} from 'clsx';
 import {autorun, untracked} from 'mobx';
@@ -1280,12 +1276,6 @@ const SKELETON_NAGBAR_ROW_SHAPES: Record<NagbarType, SkeletonNagbarRowShape> = {
 	[NagbarType.EMAIL_VERIFICATION]: {tone: SkeletonNagbarTone.NEUTRAL, hasActions: true},
 	[NagbarType.ACCOUNT_LIMITED]: {tone: SkeletonNagbarTone.NEUTRAL, hasActions: false},
 	[NagbarType.DESKTOP_NOTIFICATION]: {tone: SkeletonNagbarTone.BRAND, hasActions: true},
-	[NagbarType.PREMIUM_GRACE_PERIOD]: {tone: SkeletonNagbarTone.PREMIUM, hasActions: true},
-	[NagbarType.PREMIUM_EXPIRED]: {tone: SkeletonNagbarTone.DANGER, hasActions: true},
-	[NagbarType.PREMIUM_ONBOARDING]: {tone: SkeletonNagbarTone.BRAND, hasActions: true},
-	[NagbarType.PRICE_ANNOUNCEMENT]: {tone: SkeletonNagbarTone.BRAND, hasActions: true},
-	[NagbarType.LEGACY_PRICE_OPT_IN]: {tone: SkeletonNagbarTone.BRAND, hasActions: true},
-	[NagbarType.GIFT_INVENTORY]: {tone: SkeletonNagbarTone.BRAND, hasActions: true},
 	[NagbarType.DESKTOP_DOWNLOAD]: {tone: SkeletonNagbarTone.BRAND, hasActions: true},
 	[NagbarType.GUILD_MEMBERSHIP_CTA]: {tone: SkeletonNagbarTone.BRAND, hasActions: true},
 	[NagbarType.VISIONARY_MFA]: {tone: SkeletonNagbarTone.BRAND, hasActions: true},

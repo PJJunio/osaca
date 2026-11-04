@@ -6,8 +6,6 @@ import {
 	postgresKvPassRecorded,
 	recordPostgresKvCleanPass,
 } from '@app/api/database/PostgresKvQueryExecutor';
-import * as DonationTables from '@app/api/donation/DonationTables';
-import * as OperatorPassTables from '@app/api/operator_pass/OperatorPassTables';
 import * as Tables from '@app/api/Tables';
 import {type IPostgresClient, quoteIdentifier} from '@pkgs/postgres/src/Client';
 
@@ -15,11 +13,10 @@ const PAGE_SIZE = 2000;
 const OWN_EXPIRY_PASS = new Set<string>([Tables.JobsById.name, Tables.JobsByDayBucket.name]);
 
 export const DEFAULT_TTL_TABLES: ReadonlyArray<{name: string; defaultTtlSeconds: number}> = [
-	...[...Object.values(Tables), ...Object.values(DonationTables), ...Object.values(OperatorPassTables)].flatMap(
-		(table) =>
-			table.defaultTtlSeconds === undefined || OWN_EXPIRY_PASS.has(table.name)
-				? []
-				: [{name: table.name, defaultTtlSeconds: table.defaultTtlSeconds}],
+	...Object.values(Tables).flatMap((table) =>
+		table.defaultTtlSeconds === undefined || OWN_EXPIRY_PASS.has(table.name)
+			? []
+			: [{name: table.name, defaultTtlSeconds: table.defaultTtlSeconds}],
 	),
 ];
 

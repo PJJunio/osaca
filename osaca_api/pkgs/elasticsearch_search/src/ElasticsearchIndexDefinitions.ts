@@ -151,8 +151,6 @@ export const ELASTICSEARCH_INDEX_DEFINITIONS: Record<OsacaSearchIndexName, Elast
 				lastActiveAt: long(),
 				tempBannedUntil: long(),
 				pendingDeletionAt: long(),
-				stripeSubscriptionId: keyword(),
-				stripeCustomerId: keyword(),
 			},
 		},
 	},

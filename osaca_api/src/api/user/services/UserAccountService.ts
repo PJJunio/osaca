@@ -2,7 +2,6 @@
 
 import type {ApiContext} from '@app/api/ApiContext';
 import type {SudoVerificationResult} from '@app/api/auth/services/SudoVerificationService';
-import {Config} from '@app/api/Config';
 import type {ConnectionRepository} from '@app/api/connection/ConnectionRepository';
 import type {GuildRepository} from '@app/api/guild/repositories/GuildRepository';
 import type {GuildService} from '@app/api/guild/services/GuildService';
@@ -13,11 +12,8 @@ import type {KVAccountDeletionQueueService} from '@app/api/infrastructure/KVAcco
 import type {UserCacheService} from '@app/api/infrastructure/UserCacheService';
 import {Logger} from '@app/api/Logger';
 import type {LimitConfigService} from '@app/api/limits/LimitConfigService';
-import {getOperatorPassWallService} from '@app/api/middleware/ServiceSingletons';
 import type {AuthSession} from '@app/api/models/AuthSession';
 import type {User} from '@app/api/models/User';
-import {enqueueStripeCustomerEmailSync} from '@app/api/stripe/StripeCustomer';
-import {isOperatorPassCountHidden} from '@app/api/user/profile_badges/PremiumBadgeMasking';
 import type {UserRepository} from '@app/api/user/repositories/UserRepository';
 import {
 	type PartialUserChangePropagationDeps,
@@ -172,7 +168,6 @@ export class UserAccountService {
 					reason: 'user_requested',
 					actorUserId: user.id,
 				}),
-			() => enqueueStripeCustomerEmailSync(this.apiContext.services.worker, user, updatedUser),
 			async () => {
 				try {
 					await this.profileService.commitAssetChanges(profileResult);
@@ -181,37 +176,6 @@ export class UserAccountService {
 				}
 			},
 			() => propagateUserUpdate(this.userUpdateDeps, user, updatedUser, {continueAfterDispatchFailure: true}),
-			async () => {
-				const changed =
-					user.username !== updatedUser.username ||
-					user.globalName !== updatedUser.globalName ||
-					user.avatarHash !== updatedUser.avatarHash;
-				if (!changed || Config.instance.selfHosted) {
-					return;
-				}
-				try {
-					await getOperatorPassWallService().onProfileChanged(updatedUser, {
-						username: user.username,
-						globalName: user.globalName,
-						avatarHash: user.avatarHash,
-					});
-				} catch (error) {
-					Logger.error({error, userId: user.id}, "Failed to follow a profile change on the Operators' wall");
-				}
-			},
-			async () => {
-				if (
-					Config.instance.selfHosted ||
-					isOperatorPassCountHidden(user.premiumFlags) === isOperatorPassCountHidden(updatedUser.premiumFlags)
-				) {
-					return;
-				}
-				try {
-					await getOperatorPassWallService().publication.publishChanges([updatedUser.id], 'preserve');
-				} catch (error) {
-					Logger.error({error, userId: user.id}, "Failed to publish an Operators' wall count visibility change");
-				}
-			},
 			async () => {
 				const nameChanged =
 					user.username !== updatedUser.username ||
@@ -252,8 +216,6 @@ export class UserAccountService {
 		const updates = {
 			...createPremiumClearPatch(),
 			premium_lifetime_sequence: null,
-			stripe_subscription_id: null,
-			stripe_customer_id: null,
 			has_ever_purchased: null,
 			first_refund_at: null,
 			gift_inventory_server_seq: null,

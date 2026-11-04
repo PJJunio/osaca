@@ -15,7 +15,6 @@ import {
 	ACCOUNT_IDENTITY_MODE_NAMES,
 	CACHE_PURGE_ADAPTER_NAMES,
 	type MasterConfig,
-	STORE_PRODUCT_SLOT_NAMES,
 	TAG_STYLE_NAMES,
 } from '@osaca/config/src/MasterConfig';
 
@@ -107,7 +106,6 @@ function defaultConfig(): MasterConfig {
 				max_inflight_requests: 512,
 				automated_message_deletion_delay_days: 7,
 				ip_ban_exempt_ips: [],
-				donation_proxy_key: '',
 				trusted_callers: [],
 				presigned_attachment_uploads_enabled: false,
 				presigned_harvest_downloads_enabled: true,
@@ -193,13 +191,6 @@ function defaultConfig(): MasterConfig {
 				password: '',
 				tls_reject_unauthorized: true,
 			},
-			stripe: {
-				enabled: false,
-				secret_key: '',
-				webhook_secret: '',
-				prices: {},
-				legacy_prices: {},
-			},
 			clamav: {
 				enabled: false,
 				host: '127.0.0.1',
@@ -224,22 +215,6 @@ function defaultConfig(): MasterConfig {
 			},
 			blocklist_feeds: {},
 			breached_password_check: {},
-			app_store: {
-				enabled: false,
-				apps: [],
-				products: {},
-			},
-			google_play: {
-				enabled: false,
-				packages: [],
-				token_uri: 'https://oauth2.googleapis.com/token',
-				products: {},
-				self_service_refunds: false,
-			},
-			store_billing: {
-				sandbox_user_ids: [],
-				sandbox_entitles_all: false,
-			},
 		},
 		instance: {
 			self_hosted: false,
@@ -251,10 +226,6 @@ function defaultConfig(): MasterConfig {
 			},
 			account_identity: null,
 			tag_style: null,
-		},
-		payment_disputes: {},
-		operator_pass: {
-			grace_minutes: 30,
 		},
 		dev: {
 			relax_registration_rate_limits: false,
@@ -586,50 +557,6 @@ function validateCachePurgeConfig(config: MasterConfig): void {
 	}
 }
 
-function validateStoreProductSlots(
-	products: Record<string, string> | undefined,
-	envName: string,
-	isValidKey: (productKey: string, slot: string) => boolean,
-): void {
-	for (const [productKey, slot] of Object.entries(products ?? {})) {
-		assertOneOf(slot, STORE_PRODUCT_SLOT_NAMES, `${envName} slot for ${productKey}`);
-		if (!isValidKey(productKey, slot)) {
-			throw new Error(`${envName} key ${productKey} does not match its ${slot} slot`);
-		}
-	}
-}
-
-function validateStoreBillingConfig(config: MasterConfig): void {
-	const appStore = config.integrations.app_store;
-	for (const [index, app] of (appStore.apps ?? []).entries()) {
-		if (!isConfigObject(app) || typeof app.bundle_id !== 'string' || app.bundle_id.trim().length === 0) {
-			throw new Error(`OSACA_APP_STORE_APPS entry ${index + 1} must have a bundle_id`);
-		}
-		if (typeof app.app_apple_id !== 'number' || !Number.isSafeInteger(app.app_apple_id) || app.app_apple_id <= 0) {
-			throw new Error(`OSACA_APP_STORE_APPS entry ${index + 1} must have a numeric app_apple_id`);
-		}
-	}
-	validateStoreProductSlots(appStore.products, 'OSACA_APP_STORE_PRODUCTS', (productKey) => productKey.length > 0);
-	validateStoreProductSlots(
-		config.integrations.google_play.products,
-		'OSACA_GOOGLE_PLAY_PRODUCTS',
-		(productKey, slot) => {
-			const parts = productKey.split(':');
-			const isSubscription = slot === 'monthly' || slot === 'yearly';
-			if (isSubscription) {
-				return parts.length === 2 && parts.every((part) => part.length > 0);
-			}
-			return parts.length === 1 && productKey.length > 0;
-		},
-	);
-	for (const userId of config.integrations.store_billing.sandbox_user_ids ?? []) {
-		if (!/^\d+$/.test(userId)) {
-			throw new Error('OSACA_STORE_BILLING_SANDBOX_USER_IDS must be a comma separated list of user ids');
-		}
-	}
-	assertBoolean(config.integrations.store_billing.sandbox_entitles_all, 'OSACA_STORE_BILLING_SANDBOX_ENTITLES_ALL');
-}
-
 function validateDomain(value: string, envName: string): void {
 	if (value === '') return;
 	const parsed = URL.parse(`http://${value}/`);
@@ -700,7 +627,6 @@ function normalizeConfig(config: MasterConfig): MasterConfig {
 	validateStorageChangeFeedConfig(config);
 	validateReportRetentionConfig(config);
 	validateCachePurgeConfig(config);
-	validateStoreBillingConfig(config);
 	validateSingleEmail(config.integrations.email.reply_to_email, 'OSACA_EMAIL_REPLY_TO_EMAIL');
 	validateSingleEmail(config.integrations.email.support_alert_email ?? '', 'OSACA_EMAIL_SUPPORT_ALERT_EMAIL');
 	normalizeEmailFallbackConfig(config);

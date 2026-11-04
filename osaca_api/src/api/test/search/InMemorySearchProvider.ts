@@ -306,7 +306,7 @@ function matchesUserFilters(doc: SearchableUser, filters: UserSearchFilters): bo
 }
 
 function collectUserText(doc: SearchableUser): Array<string | null> {
-	return [doc.id, doc.username, doc.email, doc.stripeCustomerId, doc.stripeSubscriptionId];
+	return [doc.id, doc.username, doc.email];
 }
 
 function sortNumericField<TDocument extends SearchableDocument, TFilters>(

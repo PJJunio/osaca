@@ -18,7 +18,6 @@ export const DEPLOYED_OFFICIAL_DOCUMENT = {
 	captcha: {provider: 'altcha'},
 	features: {
 		voice_enabled: true,
-		stripe_enabled: true,
 		self_hosted: false,
 		presigned_attachment_uploads: true,
 		emails_enabled: true,
@@ -70,7 +69,6 @@ export const SELF_HOSTED_API_TOPOLOGY_DOCUMENT = {
 	captcha: {provider: 'none'},
 	features: {
 		voice_enabled: false,
-		stripe_enabled: false,
 		self_hosted: true,
 		presigned_attachment_uploads: false,
 		emails_enabled: false,

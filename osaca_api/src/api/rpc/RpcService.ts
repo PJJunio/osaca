@@ -46,7 +46,6 @@ import type {AvatarService} from '@app/api/infrastructure/AvatarService';
 import type {DiscriminatorService} from '@app/api/infrastructure/DiscriminatorService';
 import type {IGatewayService} from '@app/api/infrastructure/IGatewayService';
 import type {IStorageService} from '@app/api/infrastructure/IStorageService';
-import type {PremiumStateReconciliationQueueService} from '@app/api/infrastructure/PremiumStateReconciliationQueueService';
 import type {UserCacheService} from '@app/api/infrastructure/UserCacheService';
 import type {InstanceConfigRepository} from '@app/api/instance/InstanceConfigRepository';
 import type {InviteRepository} from '@app/api/invite/InviteRepository';
@@ -55,7 +54,6 @@ import type {LimitConfigService} from '@app/api/limits/LimitConfigService';
 import {resolveLimitSafe} from '@app/api/limits/LimitConfigUtils';
 import {createLimitMatchContext} from '@app/api/limits/LimitMatchContextBuilder';
 import type {RequestCache} from '@app/api/middleware/RequestCacheMiddleware';
-import {getOperatorPassEntitlementService} from '@app/api/middleware/ServiceSingletons';
 import type {AuthSession as AuthSessionModel} from '@app/api/models/AuthSession';
 import type {Channel} from '@app/api/models/Channel';
 import type {FavoriteMeme} from '@app/api/models/FavoriteMeme';
@@ -69,7 +67,6 @@ import type {UserGuildSettings} from '@app/api/models/UserGuildSettings';
 import {UserSettings} from '@app/api/models/UserSettings';
 import type {WebAuthnCredential} from '@app/api/models/WebAuthnCredential';
 import type {BotAuthService} from '@app/api/oauth/BotAuthService';
-import {operatorPassPrivateFields} from '@app/api/operator_pass/OperatorPassEntitlementService';
 import {mapReadStateResponse} from '@app/api/read_state/ReadStateResponseMapper';
 import type {ReadStateService} from '@app/api/read_state/ReadStateService';
 import {visibleReadStates} from '@app/api/read_state/ReadStateVisibility';
@@ -104,17 +101,11 @@ import type {VoiceAccessContext, VoiceAvailabilityService} from '@app/api/voice/
 import type {VoiceService} from '@app/api/voice/VoiceService';
 import type {WebhookRepository} from '@app/api/webhook/WebhookRepository';
 import {ensureGuildThreadPermissionsSeeded} from '@app/api/worker/tasks/SeedThreadPermissions';
-import type {WorkerTaskName} from '@app/api/worker/WorkerLaneConfig';
 import {AUTOMATIC_VOICE_REGION_ID, ChannelTypes, MessageTypes} from '@osaca/constants/src/ChannelConstants';
 import type {LimitKey} from '@osaca/constants/src/LimitConfigMetadata';
 import {MAX_PRIVATE_CHANNELS_PER_USER} from '@osaca/constants/src/LimitConstants';
 import {THREAD_ONLY_CHANNEL_TYPES} from '@osaca/constants/src/ThreadConstants';
-import {
-	GroupDmAddPermissionFlags,
-	IncomingCallFlags,
-	UserFlags,
-	UserPremiumTypes,
-} from '@osaca/constants/src/UserConstants';
+import {GroupDmAddPermissionFlags, IncomingCallFlags, UserFlags} from '@osaca/constants/src/UserConstants';
 import {RateLimitError} from '@osaca/errors/src/domains/core/RateLimitError';
 import {UnauthorizedError} from '@osaca/errors/src/domains/core/UnauthorizedError';
 import {UnknownGuildError} from '@osaca/errors/src/domains/guild/UnknownGuildError';
@@ -133,7 +124,6 @@ import type {
 import type {RelationshipResponse} from '@osaca/schema/src/domains/user/UserResponseSchemas';
 import type {IKVProvider} from '@pkgs/kv_client/src/IKVProvider';
 import type {IRateLimitService} from '@pkgs/rate_limit/src/IRateLimitService';
-import type {IWorkerService} from '@pkgs/worker/src/contracts/IWorkerService';
 import {ms} from 'itty-time';
 import sharp from 'sharp';
 import {uint8ArrayToBase64} from 'uint8array-extras';
@@ -186,10 +176,6 @@ const GUILD_COLLECTION_DEFAULT_LIMIT = 250;
 const GUILD_COLLECTION_MAX_LIMIT = 1000;
 const RPC_RESPONSE_MAP_CONCURRENCY = 32;
 const VOICE_STATE_KV_KEY_PREFIX = 'voice:guild:states:';
-const PREMIUM_RECONCILE_ENQUEUE_COOLDOWN_SECONDS = 10 * 60;
-const PREMIUM_RECONCILE_ENQUEUE_COOLDOWN_KEY_PREFIX = 'rpc:premium:reconcile:enqueue:';
-const PAYMENT_RECONCILE_ENQUEUE_COOLDOWN_SECONDS = 30 * 60;
-const PAYMENT_RECONCILE_ENQUEUE_COOLDOWN_KEY_PREFIX = 'rpc:payment:reconcile:enqueue:';
 
 const THREAD_MEMBERS_RPC_DEFAULT_LIMIT = 1000;
 
@@ -215,8 +201,6 @@ export class RpcService {
 		private rateLimitService: IRateLimitService,
 		private readonly limitConfigService: LimitConfigService,
 		private readonly kvClient: IKVProvider,
-		private readonly workerService: IWorkerService<WorkerTaskName>,
-		private readonly premiumStateReconciliationQueueService: PremiumStateReconciliationQueueService,
 		private readonly instanceConfigRepository: InstanceConfigRepository,
 		private voiceService: VoiceService | null,
 		private voiceAvailabilityService: VoiceAvailabilityService | null,
@@ -233,18 +217,6 @@ export class RpcService {
 			gatewayService: this.gatewayService,
 			discriminatorService: this.discriminatorService,
 		});
-	}
-
-	private async loadOperatorPassFields(user: User): Promise<ReturnType<typeof operatorPassPrivateFields> | null> {
-		if (Config.instance.selfHosted || user.isBot) {
-			return null;
-		}
-		try {
-			return operatorPassPrivateFields(user, await getOperatorPassEntitlementService().getHolder(user));
-		} catch (error) {
-			Logger.warn({userId: user.id, error}, 'Failed to load Operator Pass holder for session start');
-			return null;
-		}
 	}
 
 	private async ensurePersonalNotesChannel(user: User): Promise<void> {
@@ -764,56 +736,6 @@ export class RpcService {
 		return validMembers;
 	}
 
-	private queueStripePremiumStateReconciliation(user: User): void {
-		if (user.isBot || user.premiumType === UserPremiumTypes.LIFETIME) {
-			return;
-		}
-		if (!user.stripeSubscriptionId && !user.stripeCustomerId) {
-			return;
-		}
-		const userIdString = user.id.toString();
-		const cooldownKey = `${PREMIUM_RECONCILE_ENQUEUE_COOLDOWN_KEY_PREFIX}${userIdString}`;
-		void this.kvClient
-			.setnx(cooldownKey, new Date().toISOString(), PREMIUM_RECONCILE_ENQUEUE_COOLDOWN_SECONDS)
-			.then(async (queueAllowed) => {
-				if (!queueAllowed) {
-					return;
-				}
-				await this.premiumStateReconciliationQueueService.enqueueUser(user.id);
-			})
-			.catch((error) => {
-				Logger.warn(
-					{userId: userIdString, error},
-					'Failed to queue user for premium reconciliation during RPC session handling',
-				);
-			});
-	}
-
-	private queuePaymentReconciliation(user: User): void {
-		if (user.isBot) {
-			return;
-		}
-		if (!user.stripeCustomerId) {
-			return;
-		}
-		const userIdString = user.id.toString();
-		const cooldownKey = `${PAYMENT_RECONCILE_ENQUEUE_COOLDOWN_KEY_PREFIX}${userIdString}`;
-		void this.kvClient
-			.setnx(cooldownKey, new Date().toISOString(), PAYMENT_RECONCILE_ENQUEUE_COOLDOWN_SECONDS)
-			.then(async (queueAllowed) => {
-				if (!queueAllowed) {
-					return;
-				}
-				await this.workerService.addJob('reconcileUserPayments', {userId: userIdString}, {skipLedger: true});
-			})
-			.catch((error) => {
-				Logger.warn(
-					{userId: userIdString, error},
-					'Failed to queue user for payment reconciliation during RPC session handling',
-				);
-			});
-	}
-
 	private async handleSessionRequest({
 		token,
 		version,
@@ -987,10 +909,6 @@ export class RpcService {
 		});
 		timings.record('process_session_start', sessionStartStartedAtNs, sessionStartResult.timings.steps);
 		user = sessionStartResult.user;
-		timings.timeSync('queue_stripe_premium_state_reconciliation', () =>
-			this.queueStripePremiumStateReconciliation(user),
-		);
-		timings.timeSync('queue_payment_reconciliation', () => this.queuePaymentReconciliation(user));
 		if (await personalNotesEnabled()) {
 			await timings.time('ensure_personal_notes_channel', async () => this.ensurePersonalNotesChannel(user));
 		} else {
@@ -1021,7 +939,7 @@ export class RpcService {
 			preloadUserPartialsStartedAtNs,
 			preloadUserPartialsSteps,
 		);
-		const [privateChannels, relationships, guilds, operatorPassFields] = await Promise.all([
+		const [privateChannels, relationships, guilds] = await Promise.all([
 			timeRpcStep(readyPayloadSteps, 'map_private_channels', async () =>
 				this.mapRpcSessionPrivateChannels({
 					channels: userData.privateChannels,
@@ -1039,7 +957,6 @@ export class RpcService {
 			timeRpcStepSync(readyPayloadSteps, 'map_guild_ids', () =>
 				userData.guildIds.map((guildId) => ({id: guildId.toString()})),
 			),
-			timeRpcStep(readyPayloadSteps, 'load_operator_pass', async () => this.loadOperatorPassFields(user)),
 		]);
 		timings.record('map_ready_payloads', readyPayloadStartedAtNs, readyPayloadSteps);
 		const rtcRegions = timings.timeSync('build_rtc_regions', () => {
@@ -1098,12 +1015,11 @@ export class RpcService {
 		const userGuildSettings = await timings.time('map_user_guild_settings', () =>
 			Promise.all(userData.guildSettings.map((settings) => mapUserGuildSettingsForViewer(settings, sessionViewer))),
 		);
-		const visitGuildIds =
-			guildVisitsCapable
-				? await timings.time('resolve_guild_visits', async () =>
-						resolveSessionGuildVisits({user, ip: ip ?? null, memberGuildIds: userData.guildIds}),
-					)
-				: [];
+		const visitGuildIds = guildVisitsCapable
+			? await timings.time('resolve_guild_visits', async () =>
+					resolveSessionGuildVisits({user, ip: ip ?? null, memberGuildIds: userData.guildIds}),
+				)
+			: [];
 		const responseBuildSteps: RpcTimingSteps = {};
 		const responseBuildStartedAtNs = startRpcTiming();
 		const responsePayload = {
@@ -1112,7 +1028,6 @@ export class RpcService {
 			),
 			user: timeRpcStepSync(responseBuildSteps, 'map_user', () => ({
 				...mapUserToPrivateResponse(user),
-				...operatorPassFields,
 			})),
 			user_settings: timeRpcStepSync(responseBuildSteps, 'map_user_settings', () =>
 				userData.settings

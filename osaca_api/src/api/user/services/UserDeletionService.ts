@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {randomInt} from 'node:crypto';
 import type {AdminRepository} from '@app/api/admin/AdminRepository';
 import {deleteRecoveryKit} from '@app/api/auth/AuthRecoveryKit';
 import {revokeAllAuthSessions} from '@app/api/auth/AuthSessionRevocation';
 import {createMessageID, createUserID, type MessageID, type UserID} from '@app/api/BrandedTypes';
-import {BillingDocumentRepository} from '@app/api/billing_documents/BillingDocumentRepository';
 import {Config} from '@app/api/Config';
 import {mapChannelToResponse} from '@app/api/channel/ChannelMappers';
 import type {ChannelRepository} from '@app/api/channel/ChannelRepository';
@@ -24,15 +22,11 @@ import type {IStorageService} from '@app/api/infrastructure/IStorageService';
 import type {UserCacheService} from '@app/api/infrastructure/UserCacheService';
 import {REGISTRATION_PENDING_APPROVAL_TRAIT} from '@app/api/instance/InstanceConfigRepository';
 import {Logger} from '@app/api/Logger';
-import type {OperatorPassServices} from '@app/api/middleware/OperatorPassServiceFactory';
 import {createRequestCache} from '@app/api/middleware/RequestCacheMiddleware';
-import {getBillingRepository} from '@app/api/middleware/ServiceRegistry';
 import {getEnforcementDecisionRepository, getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
 import type {User} from '@app/api/models/User';
 import type {ApplicationRepository} from '@app/api/oauth/repositories/ApplicationRepository';
 import type {OAuth2TokenRepository} from '@app/api/oauth/repositories/OAuth2TokenRepository';
-import {endOperatorPassesForDeletion} from '@app/api/operator_pass/OperatorPassHoldingService';
-import type {StoreEntitlementService} from '@app/api/store_billing/StoreEntitlementService';
 import type {UserRepository} from '@app/api/user/repositories/UserRepository';
 import {isPendingDeletionBlocked} from '@app/api/user/services/PendingDeletionCoordinator';
 import {deletedUserIdentity, personalFieldsToClear} from '@app/api/user/UserHelpers';
@@ -41,13 +35,10 @@ import {ChannelTypes, MessageTypes} from '@osaca/constants/src/ChannelConstants'
 import * as BucketUtils from '@osaca/snowflake/src/SnowflakeBuckets';
 import type {ICacheService} from '@pkgs/cache/src/ICacheService';
 import type {IWorkerService} from '@pkgs/worker/src/contracts/IWorkerService';
-import {ms} from 'itty-time';
-import type Stripe from 'stripe';
 
 const CHUNK_SIZE = 100;
 
 interface UserDeletionDependencies {
-	operatorPassServices: Pick<OperatorPassServices, 'repository' | 'wallService' | 'holdingService'>;
 	userRepository: UserRepository;
 	guildRepository: GuildRepository;
 	channelRepository: ChannelRepository;
@@ -59,11 +50,9 @@ interface UserDeletionDependencies {
 	gatewayService: IGatewayService;
 	snowflakeService: ISnowflakeService;
 
-	stripe: Stripe | null;
 	applicationRepository: ApplicationRepository;
 	workerService: IWorkerService<WorkerTaskName>;
 	connectionRepository: ConnectionRepository;
-	storeEntitlementService: StoreEntitlementService;
 	adminRepository: AdminRepository;
 	cacheService: ICacheService;
 }
@@ -117,11 +106,9 @@ export async function processUserDeletion(
 		userCacheService,
 		gatewayService,
 		snowflakeService,
-		stripe,
 		applicationRepository,
 		workerService,
 		connectionRepository,
-		storeEntitlementService,
 	} = deps;
 	Logger.debug({userId, deletionReasonCode}, 'Starting user account deletion');
 	const scheduledUser = await userRepository.findUnique(userId);
@@ -134,66 +121,6 @@ export async function processUserDeletion(
 		Logger.info({userId, pendingDeletionAt}, 'Account deletion schedule is no longer eligible');
 		return;
 	}
-	if (scheduledUser.stripeSubscriptionId && stripe) {
-		const MAX_RETRIES = 3;
-		let lastError: unknown = null;
-		for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-			try {
-				Logger.debug(
-					{userId, subscriptionId: scheduledUser.stripeSubscriptionId, attempt},
-					'Canceling active Stripe subscription',
-				);
-				const canceledSubscription = await stripe.subscriptions.cancel(scheduledUser.stripeSubscriptionId, {
-					invoice_now: false,
-					prorate: false,
-				});
-				try {
-					await getBillingRepository().subscriptions.upsertFromStripe(canceledSubscription, {
-						knownUserId: scheduledUser.id,
-						snapshotCapturedAt: new Date(),
-					});
-				} catch (mirrorErr) {
-					Logger.error(
-						{mirrorErr, subId: canceledSubscription.id},
-						'Mirror upsert failed after Stripe write; reconciler will heal',
-					);
-				}
-				Logger.debug(
-					{userId, subscriptionId: scheduledUser.stripeSubscriptionId},
-					'Stripe subscription cancelled successfully',
-				);
-				lastError = null;
-				break;
-			} catch (error) {
-				lastError = error;
-				const isLastAttempt = attempt === MAX_RETRIES - 1;
-				Logger.error(
-					{
-						error,
-						userId,
-						subscriptionId: scheduledUser.stripeSubscriptionId,
-						attempt: attempt + 1,
-						maxRetries: MAX_RETRIES,
-						willRetry: !isLastAttempt,
-					},
-					isLastAttempt
-						? 'Failed to cancel Stripe subscription after all retries'
-						: 'Failed to cancel Stripe subscription, retrying with exponential backoff',
-				);
-				if (!isLastAttempt) {
-					const backoffDelay = ms('1 second') * 2 ** attempt + randomInt(500);
-					await new Promise((resolve) => setTimeout(resolve, backoffDelay));
-				}
-			}
-		}
-		if (lastError) {
-			const error = new Error(
-				`Failed to cancel Stripe subscription ${scheduledUser.stripeSubscriptionId} for user ${userId} after ${MAX_RETRIES} attempts. User deletion halted to prevent billing issues.`,
-				{cause: lastError},
-			);
-			throw error;
-		}
-	}
 	const user = await userRepository.startDeletion(userId, pendingDeletionAt);
 	if (!user) {
 		Logger.info({userId, pendingDeletionAt}, 'Account deletion schedule is no longer eligible');
@@ -201,7 +128,6 @@ export async function processUserDeletion(
 	}
 	await removeNetworkBlocksOf(userId, deps);
 	await withdrawPendingRegistrationOf(user);
-	await storeEntitlementService.stopBillingForDeletedUser(userId);
 	await connectionRepository.sealAndDeleteForUser(userId);
 	Logger.debug({userId}, 'Leaving all guilds');
 	const guildIds = await userRepository.getUserGuildIds(userId);
@@ -442,7 +368,6 @@ export async function processUserDeletion(
 		Logger.error({error, userId}, 'Failed to schedule application deletions');
 	}
 	Logger.debug({userId}, 'Deleting user data');
-	const operatorPassRepository = deps.operatorPassServices.repository;
 	await Promise.all([
 		guildRepository.deleteAllBansForUser(userId),
 		guildVisitRepository().deleteAllForUser(userId),
@@ -460,14 +385,6 @@ export async function processUserDeletion(
 		userRepository.deleteAllRecentMentions(userId),
 		userRepository.deleteAllAuthorizedIps(userId),
 		userRepository.deletePinnedDmsByUserId(userId),
-		endOperatorPassesForDeletion(operatorPassRepository, deps.cacheService, userId).then(async (buyers) => {
-			await operatorPassRepository.deleteOperatorPass(userId);
-			for (const buyer of buyers) {
-				await deps.operatorPassServices.holdingService.syncHolding(buyer);
-			}
-		}),
-		deps.operatorPassServices.wallService.forgetForDeletion(userId),
-		new BillingDocumentRepository().removeUserIndex(userId),
 	]);
 	await userRepository.deleteUserSecondaryIndices(userId);
 	const userForAnonymization = await userRepository.findUniqueAssert(userId);

@@ -30,20 +30,15 @@ import {clientDeveloperSettingsIndex} from '@app/features/user/components/settin
 import {desktopSettingsIndex} from '@app/features/user/components/settings_utils/search_index/DesktopSettingsIndex';
 import {devicesIndex} from '@app/features/user/components/settings_utils/search_index/DevicesIndex';
 import {embedDebuggerIndex} from '@app/features/user/components/settings_utils/search_index/EmbedDebuggerIndex';
-import {giftInventoryIndex} from '@app/features/user/components/settings_utils/search_index/GiftInventoryIndex';
 import {keybindsIndex} from '@app/features/user/components/settings_utils/search_index/KeybindsIndex';
 import {languageIndex} from '@app/features/user/components/settings_utils/search_index/LanguageIndex';
 import {linkedAccountsIndex} from '@app/features/user/components/settings_utils/search_index/LinkedAccountsIndex';
 import {myProfileIndex} from '@app/features/user/components/settings_utils/search_index/MyProfileIndex';
 import {notificationsIndex} from '@app/features/user/components/settings_utils/search_index/NotificationsIndex';
-import {operatorPassIndex} from '@app/features/user/components/settings_utils/search_index/OperatorPassIndex';
-import {paymentsIndex} from '@app/features/user/components/settings_utils/search_index/PaymentsIndex';
-import {plutoniumIndex} from '@app/features/user/components/settings_utils/search_index/PlutoniumIndex';
 import type {
 	SearchableSettingDescriptor,
 	SearchableSettingKeyword,
 } from '@app/features/user/components/settings_utils/search_index/SearchIndexTypes';
-import {subscriptionsIndex} from '@app/features/user/components/settings_utils/search_index/SubscriptionsIndex';
 import {themesIndex} from '@app/features/user/components/settings_utils/search_index/ThemesIndex';
 import {voiceVideoIndex} from '@app/features/user/components/settings_utils/search_index/VoiceVideoIndex';
 import type {I18n} from '@lingui/core';
@@ -103,11 +98,6 @@ const ADDITIONAL_SEARCHABLE_ITEMS: Array<SearchableSettingDescriptor> = [
 	...authorizedAppsIndex,
 	...blockedUsersIndex,
 	...devicesIndex,
-	...plutoniumIndex,
-	...subscriptionsIndex,
-	...operatorPassIndex,
-	...giftInventoryIndex,
-	...paymentsIndex,
 	...appearanceIndex,
 	...themesIndex,
 	...notificationsIndex,

@@ -16,7 +16,6 @@ import {
 	getUserPermissionUtils,
 	getUserRepository,
 } from '@app/api/middleware/ServiceSingletons';
-import {createTestStoreEntitlementService} from '@app/api/store_billing/tests/StoreBillingTestUtils';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {createTestWorkerHelpers} from '@app/api/test/SyncTaskWorkerService';
 import bulkDeleteMessagesForUsers from '@app/api/worker/tasks/admin_bulk/BulkDeleteMessagesForUsers';
@@ -57,8 +56,6 @@ describe('Bulk delete messages for users', () => {
 			limitConfigService: getLimitConfigService(),
 			deletionQueueService: getKVAccountDeletionQueue(),
 			bulkMessageDeletionQueueService: getKVBulkMessageDeletionQueue(),
-			stripe: null,
-			storeEntitlementService: createTestStoreEntitlementService(),
 		});
 	});
 

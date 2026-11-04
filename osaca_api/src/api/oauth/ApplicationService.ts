@@ -289,8 +289,6 @@ export class ApplicationService {
 					premium_since: null,
 					premium_until: null,
 					premium_gift_extension_ends_at: null,
-					stripe_customer_id: null,
-					stripe_subscription_id: null,
 					pending_deletion_at: null,
 					deletion_reason_code: null,
 					deletion_public_reason: null,

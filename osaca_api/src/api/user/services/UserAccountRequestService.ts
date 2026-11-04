@@ -7,21 +7,12 @@ import type {UserConnectionRow} from '@app/api/database/types/ConnectionTypes';
 import type {ThreadViewer} from '@app/api/experiment/ChannelThreadsGate';
 import {emitActivity} from '@app/api/infrastructure/activity/ActivityEvents';
 import {isBlockedEmailDomain} from '@app/api/infrastructure/activity/SharedLists';
-import type {IGatewayService} from '@app/api/infrastructure/IGatewayService';
 import type {UserCacheService} from '@app/api/infrastructure/UserCacheService';
 import {usesUsernameSignIn} from '@app/api/instance/AccountIdentityModeCache';
 import {Logger} from '@app/api/Logger';
 import type {RequestCache} from '@app/api/middleware/RequestCacheMiddleware';
 import type {AuthSession} from '@app/api/models/AuthSession';
 import type {User} from '@app/api/models/User';
-import {
-	dispatchOperatorPassUserUpdate,
-	type OperatorPassEntitlementService,
-	operatorPassPrivateFields,
-	profileOperatorPassSince,
-	resolveOperatorPassHolder,
-} from '@app/api/operator_pass/OperatorPassEntitlementService';
-import type {OperatorPassLabsRoleService} from '@app/api/operator_pass/OperatorPassLabsRole';
 import type {AuthTokenType, HonoEnv} from '@app/api/types/HonoEnv';
 import {assertAccountNotLimited} from '@app/api/user/AccountLimit';
 import {
@@ -131,9 +122,6 @@ export class UserAccountRequestService {
 		private readonly userChannelService: UserChannelService,
 		private readonly userRepository: UserRepository,
 		private readonly userCacheService: UserCacheService,
-		private readonly gatewayService: IGatewayService,
-		private readonly operatorPassEntitlementService: OperatorPassEntitlementService | null = null,
-		private readonly labsRoleService: OperatorPassLabsRoleService | null = null,
 	) {}
 
 	async getCurrentUserResponse(params: {
@@ -158,17 +146,9 @@ export class UserAccountRequestService {
 		}
 		const user = params.user;
 		if (user) {
-			return this.withOperatorPassFields(user, mapUserToPrivateResponse(user));
+			return mapUserToPrivateResponse(user);
 		}
 		throw new UnauthorizedError();
-	}
-
-	private async withOperatorPassFields<T extends UserPrivateResponse>(user: User, response: T): Promise<T> {
-		if (!this.operatorPassEntitlementService || user.isBot) {
-			return response;
-		}
-		const holder = await this.operatorPassEntitlementService.getHolder(user);
-		return {...response, ...operatorPassPrivateFields(user, holder)};
 	}
 
 	async updateCurrentUser(params: {
@@ -191,7 +171,7 @@ export class UserAccountRequestService {
 		let userUpdateData: UserUpdatePayload = userUpdateDataRest;
 		const emailTokenProvided = emailToken !== undefined;
 		if (!emailTokenProvided && !hasDefinedUserUpdatePayload(userUpdateData)) {
-			return this.withOperatorPassFields(user, mapUserToPrivateResponse(user));
+			return mapUserToPrivateResponse(user);
 		}
 		if (userUpdateData.email !== undefined) {
 			throw InputValidationError.fromCode('email', ValidationErrorCodes.EMAIL_MUST_BE_CHANGED_VIA_TOKEN);
@@ -288,30 +268,7 @@ export class UserAccountRequestService {
 				Logger.warn({error, userId: updatedUser.id}, 'Failed to issue email revert token');
 			}
 		}
-		if (
-			this.labsRoleService &&
-			(user.hiddenProfileBadges.has('visionary') !== updatedUser.hiddenProfileBadges.has('visionary') ||
-				user.hiddenProfileBadges.has('operator_pass') !== updatedUser.hiddenProfileBadges.has('operator_pass') ||
-				userUpdateData.premium_badge_masked !== undefined)
-		) {
-			await this.labsRoleService.resyncLabsRoles(updatedUser);
-		}
-		if (
-			(user.hiddenProfileBadges.has('operator_pass') !== updatedUser.hiddenProfileBadges.has('operator_pass') ||
-				userUpdateData.operator_pass_badge_timestamp_hidden !== undefined ||
-				userUpdateData.operator_pass_badge_count_hidden !== undefined) &&
-			this.operatorPassEntitlementService
-		) {
-			await dispatchOperatorPassUserUpdate(
-				{
-					repository: this.operatorPassEntitlementService.repository,
-					userRepository: this.userRepository,
-					gatewayService: this.gatewayService,
-				},
-				updatedUser.id,
-			);
-		}
-		const response = await this.withOperatorPassFields(updatedUser, mapUserToPrivateResponse(updatedUser));
+		const response = mapUserToPrivateResponse(updatedUser);
 		if (!authSessionReplacement) {
 			return response;
 		}
@@ -360,9 +317,8 @@ export class UserAccountRequestService {
 			withMutualGuilds: params.withMutualGuilds,
 			requestCache: params.requestCache,
 		});
-		const [profile, operatorPassState, badgeEnvironment] = await Promise.all([
+		const [profile, badgeEnvironment] = await Promise.all([
 			profileLookup,
-			this.operatorPassEntitlementService?.loadState(params.targetUserId) ?? null,
 			profileLookup.then((found) => loadProfileBadgeEnvironment(found.user.badgeIds)),
 		]);
 		let profileUser = profile.user;
@@ -410,18 +366,9 @@ export class UserAccountRequestService {
 			: undefined;
 		const connectedAccounts =
 			profile.connections && !hidden ? this.mapConnectionsToResponse(profile.connections) : undefined;
-		const operatorPassSince = operatorPassState
-			? profileOperatorPassSince({
-					user: profileUser,
-					state: operatorPassState,
-					viewerId: params.currentUserId,
-					restrictProfile,
-				})
-			: null;
 		const viewerIsSelf = params.currentUserId === profileUser.id;
 		const badgeInput = {
 			user: profileUser,
-			operatorPass: profileUser.isBot || !operatorPassState ? null : resolveOperatorPassHolder(operatorPassState),
 			locale: params.requestLocale,
 			environment: badgeEnvironment,
 			restricted: restrictProfile,
@@ -442,7 +389,6 @@ export class UserAccountRequestService {
 			premium_since: premiumSince?.toISOString(),
 			premium_lifetime_sequence: premiumLifetimeSequence,
 			profile_badges: profileBadges,
-			operator_pass_since: operatorPassSince?.toISOString() ?? null,
 			hidden_profile_badge_count: hiddenProfileBadgeCount,
 			mutual_friends: mutualFriends,
 			mutual_guilds: profile.mutualGuilds,
@@ -458,10 +404,7 @@ export class UserAccountRequestService {
 		requestLocale: string;
 	}): Promise<ProfileBadgePreviewResponse> {
 		const {user, settings} = params;
-		const [operatorPassState, environment] = await Promise.all([
-			user.isBot ? null : (this.operatorPassEntitlementService?.loadState(user.id) ?? null),
-			loadProfileBadgeEnvironment(user.badgeIds),
-		]);
+		const environment = await loadProfileBadgeEnvironment(user.badgeIds);
 		const expired = shouldStripExpiredPremium(user);
 		const input = {
 			user: {
@@ -473,7 +416,6 @@ export class UserAccountRequestService {
 				badgeIds: user.badgeIds,
 				hiddenProfileBadges: resolveHiddenProfileBadges(user.hiddenProfileBadges, settings) ?? user.hiddenProfileBadges,
 			},
-			operatorPass: operatorPassState ? resolveOperatorPassHolder(operatorPassState) : null,
 			locale: params.requestLocale,
 			environment,
 			profileHidden: isProfileHidden(user),

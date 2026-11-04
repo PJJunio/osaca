@@ -109,7 +109,6 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `CANNOT_EDIT_OTHER_USER_MESSAGE` | You can't edit another user's message |
 | `CANNOT_EXECUTE_ON_DM` | This action can't be performed in a DM |
 | `CANNOT_MODIFY_SYSTEM_WEBHOOK` | You can't edit system messages |
-| `CANNOT_REDEEM_PLUTONIUM_WITH_VISIONARY` | You already have lifetime {premium_tier_name} |
 | `CANNOT_REPORT_GUILD` | You can't report this community |
 | `CANNOT_REPORT_OWN_GUILD` | You can't report your own community |
 | `CANNOT_REPORT_OWN_MESSAGE` | You can't report your own message |
@@ -169,7 +168,6 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `FRIEND_REQUEST_EMAIL_VERIFICATION_REQUIRED` | Email verification is required for this action |
 | `GATEWAY_TIMEOUT` | Gateway timeout |
 | `GENERAL_ERROR` | Something went wrong |
-| `GIFT_CODE_ALREADY_REDEEMED` | Gift code is already redeemed |
 | `GLOBAL_IP_BANNED` | {product_name} blocked access from this network |
 | `GLOBAL_IP_TEMPORARILY_BANNED` | {product_name} blocked access from this network |
 | `GONE` | Gone |
@@ -268,7 +266,6 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `NOT_FRIENDS_WITH_USER` | You're not friends with this user |
 | `NOT_IMPLEMENTED` | Not implemented |
 | `NO_ACTIVE_CALL` | No active call |
-| `NO_ACTIVE_SUBSCRIPTION` | No active subscription |
 | `NO_PASSKEYS_REGISTERED` | No passkeys are registered |
 | `NO_PENDING_DELETION` | Invalid request |
 | `NO_TAGS_AVAILABLE_TO_NON_MODERATORS` | A tag is required, but only moderators can apply the tags in this channel |
@@ -278,7 +275,6 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `PASSWORD_REQUIRED_TO_CLAIM` | Set a password to keep this account |
 | `PASSWORD_SIGN_IN_REQUIRED` | Sign in to this account with its password |
 | `PERSONAL_NOTES_DISABLED` | Personal notes are turned off on this instance |
-| `PREMIUM_PURCHASE_BLOCKED` | No active subscription |
 | `PREVIEW_MUST_BE_JPEG` | Preview must be JPEG |
 | `PROCESSING_FAILED` | We couldn't process the request |
 | `PROFILE_EMAIL_VERIFICATION_REQUIRED` | Email verification is required for this action |
@@ -309,20 +305,6 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `SLOWMODE_RATE_LIMITED` | Slowmode rate limited |
 | `STREAM_KEY_CHANNEL_MISMATCH` | Stream key channel mismatch |
 | `STREAM_KEY_SCOPE_MISMATCH` | Stream key scope mismatch |
-| `STRIPE_BILLING_CYCLE_CHANGE_NEEDS_RESUBSCRIBE` | A Pix or UPI subscription can't switch between monthly and yearly |
-| `STRIPE_ERROR` | Payment processing encountered an error |
-| `STRIPE_GIFT_REDEMPTION_IN_PROGRESS` | Gift code redemption is in progress |
-| `STRIPE_INVALID_PRODUCT` | Invalid product selection |
-| `STRIPE_INVALID_PRODUCT_CONFIGURATION` | Invalid product configuration |
-| `STRIPE_NO_ACTIVE_SUBSCRIPTION` | No active subscription found |
-| `STRIPE_NO_PURCHASE_HISTORY` | No purchase history found |
-| `STRIPE_NO_SUBSCRIPTION` | No subscription found |
-| `STRIPE_PAYMENT_NOT_AVAILABLE` | Payment processing is temporarily unavailable |
-| `STRIPE_SUBSCRIPTION_ALREADY_CANCELING` | Subscription is already set to cancel at period end |
-| `STRIPE_SUBSCRIPTION_NOT_CANCELING` | Subscription isn't set to cancel |
-| `STRIPE_WEBHOOK_NOT_AVAILABLE` | Webhook processing isn't available |
-| `STRIPE_WEBHOOK_SIGNATURE_INVALID` | Stripe webhook signature is invalid |
-| `STRIPE_WEBHOOK_SIGNATURE_MISSING` | Stripe webhook signature is missing |
 | `SUDO_MODE_REQUIRED` | Sudo mode is required |
 | `SUDO_SECOND_FACTOR_REQUIRED` | Confirm it's you with your authenticator app, passkey or a backup code |
 | `SYNCED_PREFERENCES_CONFLICT` | Your preferences changed on another device |
@@ -356,7 +338,6 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `UNKNOWN_ENFORCEMENT_DECISION` | Unknown enforcement decision |
 | `UNKNOWN_FAVORITE_MEME` | Unknown saved media |
 | `UNKNOWN_FORUM_TAG` | Tag wasn't found |
-| `UNKNOWN_GIFT_CODE` | Unknown gift code |
 | `UNKNOWN_GUILD` | Community wasn't found |
 | `UNKNOWN_HARVEST` | Unknown data export |
 | `UNKNOWN_INVITE` | Invite wasn't found or is no longer valid |

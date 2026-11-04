@@ -9,9 +9,7 @@ import {AssetAdminAuditCases} from '@app/api/admin/tests/audit_coverage/AssetAdm
 import {AuditLogAdminAuditCases} from '@app/api/admin/tests/audit_coverage/AuditLogAdminAuditCases';
 import {BadgeAdminAuditCases} from '@app/api/admin/tests/audit_coverage/BadgeAdminAuditCases';
 import {BanAdminAuditCases} from '@app/api/admin/tests/audit_coverage/BanAdminAuditCases';
-import {BillingDocumentAdminAuditCases} from '@app/api/admin/tests/audit_coverage/BillingDocumentAdminAuditCases';
 import {BulkAdminAuditCases} from '@app/api/admin/tests/audit_coverage/BulkAdminAuditCases';
-import {CodesAdminAuditCases} from '@app/api/admin/tests/audit_coverage/CodesAdminAuditCases';
 import {DiscoveryAdminAuditCases} from '@app/api/admin/tests/audit_coverage/DiscoveryAdminAuditCases';
 import {EnforcementAdminAuditCases} from '@app/api/admin/tests/audit_coverage/EnforcementAdminAuditCases';
 import {GatewayAdminAuditCases} from '@app/api/admin/tests/audit_coverage/GatewayAdminAuditCases';
@@ -20,10 +18,8 @@ import {InstanceConfigAdminAuditCases} from '@app/api/admin/tests/audit_coverage
 import {JobsAdminAuditCases} from '@app/api/admin/tests/audit_coverage/JobsAdminAuditCases';
 import {LimitConfigAdminAuditCases} from '@app/api/admin/tests/audit_coverage/LimitConfigAdminAuditCases';
 import {MessageAdminAuditCases} from '@app/api/admin/tests/audit_coverage/MessageAdminAuditCases';
-import {PaymentDisputeAdminAuditCases} from '@app/api/admin/tests/audit_coverage/PaymentDisputeAdminAuditCases';
 import {ReportAdminAuditCases} from '@app/api/admin/tests/audit_coverage/ReportAdminAuditCases';
 import {SearchAdminAuditCases} from '@app/api/admin/tests/audit_coverage/SearchAdminAuditCases';
-import {StoreBillingAdminAuditCases} from '@app/api/admin/tests/audit_coverage/StoreBillingAdminAuditCases';
 import {SystemDmAdminAuditCases} from '@app/api/admin/tests/audit_coverage/SystemDmAdminAuditCases';
 import {ThreadAdminAuditCases} from '@app/api/admin/tests/audit_coverage/ThreadAdminAuditCases';
 import {UserAdminAuditCases} from '@app/api/admin/tests/audit_coverage/UserAdminAuditCases';
@@ -41,9 +37,7 @@ const ALL_CASES = [
 	...AuditLogAdminAuditCases,
 	...BadgeAdminAuditCases,
 	...BanAdminAuditCases,
-	...BillingDocumentAdminAuditCases,
 	...BulkAdminAuditCases,
-	...CodesAdminAuditCases,
 	...DiscoveryAdminAuditCases,
 	...EnforcementAdminAuditCases,
 	...GatewayAdminAuditCases,
@@ -52,10 +46,8 @@ const ALL_CASES = [
 	...JobsAdminAuditCases,
 	...LimitConfigAdminAuditCases,
 	...MessageAdminAuditCases,
-	...PaymentDisputeAdminAuditCases,
 	...ReportAdminAuditCases,
 	...SearchAdminAuditCases,
-	...StoreBillingAdminAuditCases,
 	...SystemDmAdminAuditCases,
 	...ThreadAdminAuditCases,
 	...UserAdminAuditCases,
@@ -71,19 +63,11 @@ const EXEMPT_ROUTES = [
 	'GET /admin/users/@me',
 ];
 
-function isUncoveredOperatorPassRoute(path: string): boolean {
-	return path.includes('/operator-pass');
-}
-
 function registeredAdminRoutes(): Array<string> {
 	const app = new Hono<HonoEnv>();
 	registerAdminControllers(app);
 	return [
-		...new Set(
-			app.routes
-				.filter((route) => route.method !== 'ALL' && !isUncoveredOperatorPassRoute(route.path))
-				.map((route) => `${route.method} ${route.path}`),
-		),
+		...new Set(app.routes.filter((route) => route.method !== 'ALL').map((route) => `${route.method} ${route.path}`)),
 	].sort();
 }
 

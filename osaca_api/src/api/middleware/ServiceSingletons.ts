@@ -12,7 +12,6 @@ import {AttachmentUploadTraceRepository} from '@app/api/channel/repositories/mes
 import {StreamPreviewService} from '@app/api/channel/services/StreamPreviewService';
 import type {APIConfig} from '@app/api/config/APIConfig';
 import {ConnectionRepository} from '@app/api/connection/ConnectionRepository';
-import {DonationRepository} from '@app/api/donation/DonationRepository';
 import {createEmailProvider} from '@app/api/email/EmailProviderFactory';
 import {EnforcementDecisionRepository} from '@app/api/enforcement/EnforcementDecisionRepository';
 import {FavoriteMemeRepository} from '@app/api/favorite_meme/FavoriteMemeRepository';
@@ -38,7 +37,6 @@ import {KVActivityTracker} from '@app/api/infrastructure/KVActivityTracker';
 import {KVBulkMessageDeletionQueueService} from '@app/api/infrastructure/KVBulkMessageDeletionQueueService';
 import {KVThreadAutoArchiveQueueService} from '@app/api/infrastructure/KVThreadAutoArchiveQueueService';
 import {NatsUnfurlerService} from '@app/api/infrastructure/NatsUnfurlerService';
-import {PremiumStateReconciliationQueueService} from '@app/api/infrastructure/PremiumStateReconciliationQueueService';
 import {createStorageService} from '@app/api/infrastructure/StorageServiceFactory';
 import {UserCacheService} from '@app/api/infrastructure/UserCacheService';
 import {createUsersServiceClient} from '@app/api/infrastructure/UsersServiceClient';
@@ -67,25 +65,11 @@ import {BotAuthService} from '@app/api/oauth/BotAuthService';
 import {BotMfaMirrorService} from '@app/api/oauth/BotMfaMirrorService';
 import {ApplicationRepository} from '@app/api/oauth/repositories/ApplicationRepository';
 import {OAuth2TokenRepository} from '@app/api/oauth/repositories/OAuth2TokenRepository';
-import {OperatorPassEntitlementService} from '@app/api/operator_pass/OperatorPassEntitlementService';
-import {OperatorPassRepository} from '@app/api/operator_pass/OperatorPassRepository';
-import {OperatorPassWallAvatarStore} from '@app/api/operator_pass/OperatorPassWallAvatarStore';
-import {
-	type IOperatorPassWallPublisher,
-	NatsOperatorPassWallPublisher,
-} from '@app/api/operator_pass/OperatorPassWallPublisher';
-import {OperatorPassWallService} from '@app/api/operator_pass/OperatorPassWallService';
-import {PaymentDisputeRepository} from '@app/api/payment_disputes/PaymentDisputeRepository';
 import {ReadStateRepository} from '@app/api/read_state/ReadStateRepository';
 import {ReadStateRequestService} from '@app/api/read_state/ReadStateRequestService';
 import {ReadStateService} from '@app/api/read_state/ReadStateService';
 import {ReportRepository} from '@app/api/report/ReportRepository';
 import {getGuildSearchService} from '@app/api/SearchFactory';
-import {AppStoreServerApiClient} from '@app/api/store_billing/app_store/AppStoreServerApiClient';
-import {GooglePlayAccessTokenProvider} from '@app/api/store_billing/google_play/GooglePlayAccessTokenProvider';
-import {GooglePlayDeveloperApiClient} from '@app/api/store_billing/google_play/GooglePlayDeveloperApiClient';
-import {GooglePlayPushVerifier} from '@app/api/store_billing/google_play/GooglePlayPushVerifier';
-import {StoreBillingRepository} from '@app/api/store_billing/StoreBillingRepository';
 import {ThemeService} from '@app/api/theme/ThemeService';
 import {EntranceSoundPlayService} from '@app/api/user/entrance_sound/EntranceSoundPlayService';
 import {EntranceSoundRepository} from '@app/api/user/entrance_sound/EntranceSoundRepository';
@@ -94,7 +78,6 @@ import {EmailChangeRepository} from '@app/api/user/repositories/auth/EmailChange
 import {PasswordChangeRepository} from '@app/api/user/repositories/auth/PasswordChangeRepository';
 import {UserContactChangeLogRepository} from '@app/api/user/repositories/UserContactChangeLogRepository';
 import {UserRepository} from '@app/api/user/repositories/UserRepository';
-import {VisionarySlotRepository} from '@app/api/user/repositories/VisionarySlotRepository';
 import {UserActivityBuffer} from '@app/api/user/services/UserActivityBuffer';
 import {UserContactChangeLogService} from '@app/api/user/services/UserContactChangeLogService';
 import {awaitAll} from '@app/api/utils/ConcurrencyUtils';
@@ -133,16 +116,6 @@ export const getGuildDiscoveryRepository = singleton(() => new GuildDiscoveryRep
 export const getEmailChangeRepository = singleton(() => new EmailChangeRepository());
 export const getPasswordChangeRepository = singleton(() => new PasswordChangeRepository());
 const getUserContactChangeLogRepository = singleton(() => new UserContactChangeLogRepository());
-export const getDonationRepository = singleton(() => new DonationRepository());
-export const getOperatorPassRepository = singleton(() => new OperatorPassRepository());
-export const getPaymentDisputeRepository = singleton(() => new PaymentDisputeRepository());
-export const getStoreBillingRepository = singleton(() => new StoreBillingRepository());
-export const getAppStoreServerApiClient = singleton(() => new AppStoreServerApiClient());
-const getGooglePlayAccessTokenProvider = singleton(() => new GooglePlayAccessTokenProvider());
-export const getGooglePlayDeveloperApiClient = singleton(
-	() => new GooglePlayDeveloperApiClient({accessTokenProvider: getGooglePlayAccessTokenProvider()}),
-);
-export const getGooglePlayPushVerifier = singleton(() => new GooglePlayPushVerifier());
 const getAdminApiKeyRepository = singleton(() => new AdminApiKeyRepository());
 let instanceConfigRepositoryInstance: InstanceConfigRepository | null = null;
 export const getInstanceConfigRepository = singleton(
@@ -174,7 +147,6 @@ export const getNatsConfigPublisher = singleton(
 		),
 );
 
-export const getVisionarySlotRepository = singleton(() => new VisionarySlotRepository());
 export const getCacheService: () => ICacheService = singleton(() => new KVCacheProvider({client: getKVClient()}));
 export const getCustomBadgeCatalog = singleton(
 	() =>
@@ -187,32 +159,6 @@ export const getCustomBadgeCatalog = singleton(
 );
 export const getRateLimitService = singleton(() => new RateLimitService(getKVClient()));
 export const getEmailDnsValidationService = singleton(() => new EmailDnsValidationService());
-export const getOperatorPassEntitlementService = singleton(
-	() => new OperatorPassEntitlementService(getOperatorPassRepository()),
-);
-export const getOperatorPassWallService = singleton(
-	() => new OperatorPassWallService(getOperatorPassRepository(), getUserRepository()),
-);
-
-interface OperatorPassWallInfrastructure {
-	avatarStore: OperatorPassWallAvatarStore;
-	publisher: IOperatorPassWallPublisher;
-	nextId: () => Promise<bigint>;
-}
-
-export const getOperatorPassWallInfrastructure = singleton<OperatorPassWallInfrastructure>(() => ({
-	avatarStore: new OperatorPassWallAvatarStore(getStorageService(), getPurgeQueue()),
-	publisher:
-		serviceSingletonInitializationOwner?.operatorPassWallPublisher ??
-		new NatsOperatorPassWallPublisher(
-			new NatsConnectionManager({
-				url: Config.nats.coreUrl,
-				token: Config.nats.authToken || undefined,
-				name: 'osaca-api-operator-wall',
-			}),
-		),
-	nextId: () => getSnowflakeService().generate(),
-}));
 
 function createEmailServiceForConfig(
 	emailConfigSource: APIConfig['email'],
@@ -303,10 +249,6 @@ export const getKVBulkMessageDeletionQueue = keyedSingleton(
 	(kv) => new KVBulkMessageDeletionQueueService(kv, getUserRepository()),
 );
 export const getKVThreadAutoArchiveQueue = keyedSingleton(getKVClient, (kv) => new KVThreadAutoArchiveQueueService(kv));
-export const getPremiumStateReconciliationQueueService = keyedSingleton(
-	getKVClient,
-	(kv) => new PremiumStateReconciliationQueueService(kv),
-);
 export const getKVActivityTracker = keyedSingleton(
 	getKVClient,
 	(kv) => new KVActivityTracker(kv),
@@ -437,11 +379,7 @@ export function createUserCacheService(): UserCacheService {
 	return new UserCacheService(createUsersServiceClient());
 }
 
-export interface ServiceSingletonDependencies {
-	operatorPassWallPublisher?: IOperatorPassWallPublisher;
-}
-
-interface ServiceSingletonInitializationOwner extends ServiceSingletonDependencies {
+interface ServiceSingletonInitializationOwner {
 	stopping: boolean;
 	snowflake: SnowflakeServiceHandle;
 	limitConfigService: LimitConfigService | null;
@@ -457,13 +395,12 @@ function assertServiceSingletonInitializationActive(owner: ServiceSingletonIniti
 	}
 }
 
-export async function initializeServiceSingletons(dependencies: ServiceSingletonDependencies = {}): Promise<void> {
+export async function initializeServiceSingletons(): Promise<void> {
 	if (serviceSingletonShutdownPromise) {
 		throw new Error('Service singletons are shutting down');
 	}
 	if (!serviceSingletonInitializationPromise) {
 		const owner: ServiceSingletonInitializationOwner = {
-			operatorPassWallPublisher: dependencies.operatorPassWallPublisher,
 			stopping: false,
 			snowflake: acquireSnowflakeService(),
 			limitConfigService: null,

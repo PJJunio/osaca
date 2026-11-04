@@ -184,7 +184,6 @@ async function buildInstanceConfigResponse(warnings: Array<string> = []): Promis
 		resolvedServices,
 		integrations,
 		media,
-		billing,
 		accountIdentity,
 		accountIdentityLockReason,
 		instantAccountAvailability,
@@ -195,7 +194,6 @@ async function buildInstanceConfigResponse(warnings: Array<string> = []): Promis
 		instanceConfigRepository.getResolvedServicesConfig(),
 		instanceConfigRepository.getInstanceIntegrationsAdminConfig(),
 		instanceConfigRepository.getInstanceMediaAdminConfig(),
-		instanceConfigRepository.getInstanceBillingAdminConfig(),
 		instanceConfigRepository.getAccountIdentity(),
 		instanceConfigRepository.getAccountIdentityLockReason(),
 		instanceConfigRepository.getInstantAccountAvailability(),
@@ -243,7 +241,6 @@ async function buildInstanceConfigResponse(warnings: Array<string> = []): Promis
 		},
 		integrations,
 		media,
-		billing,
 		notice,
 		warnings,
 	};
@@ -254,12 +251,9 @@ function buildAdminIssuedRegistrationUrl(code: string): string {
 	return `${baseUrl}/register?registration_url=${encodeURIComponent(code)}`;
 }
 
-function assertSelfHostedBillingSections(data: InstanceConfigUpdateRequest): void {
+function assertSelfHostedBrandingSections(data: InstanceConfigUpdateRequest): void {
 	if (Config.instance.selfHosted) {
 		return;
-	}
-	if (data.billing) {
-		throw InputValidationError.create('billing', 'Billing is configured through the environment on this instance');
 	}
 	const branding = data.app_public?.branding;
 	if (!branding) {
@@ -280,74 +274,6 @@ function assertSelfHostedBillingSections(data: InstanceConfigUpdateRequest): voi
 				'This setting is only available on self-hosted instances',
 			);
 		}
-	}
-}
-
-async function assertBillingCompatibleWithStoredPremiumMode(
-	billing: NonNullable<InstanceConfigUpdateRequest['billing']>,
-): Promise<void> {
-	const requestedEnabled = readOptionalField(billing, 'enabled');
-	if (requestedEnabled !== true) {
-		return;
-	}
-	const policy = await getInstanceConfigRepository().readStoredInstancePolicyConfig();
-	if (policy.premium_mode === 'everyone') {
-		throw InputValidationError.create('billing.enabled', 'Billing can only be enabled when the premium mode is mirror');
-	}
-}
-
-async function assertPremiumModeCompatibleWithStoredBilling(
-	requestedBillingEnabled: boolean | null | undefined,
-): Promise<void> {
-	if (!Config.instance.selfHosted) {
-		return;
-	}
-	const repository = getInstanceConfigRepository();
-	const [policy, billing] = await Promise.all([
-		repository.readStoredInstancePolicyConfig(),
-		repository.readStoredInstanceBillingConfig(),
-	]);
-	if (policy.premium_mode === 'everyone') {
-		return;
-	}
-	const nextEnabled = requestedBillingEnabled === undefined ? billing.enabled : requestedBillingEnabled;
-	if (nextEnabled === true) {
-		throw InputValidationError.create(
-			'policy.premium_mode',
-			'Disable billing before switching the premium mode to everyone',
-		);
-	}
-}
-
-async function assertBillingCompatibleWithPremiumMode(data: InstanceConfigUpdateRequest): Promise<void> {
-	if (!Config.instance.selfHosted) {
-		return;
-	}
-	const requestedEnabled = data.billing ? readOptionalField(data.billing, 'enabled') : undefined;
-	const requestedPremiumMode = data.policy ? readOptionalField(data.policy, 'premium_mode') : undefined;
-	if (requestedEnabled === undefined && requestedPremiumMode === undefined) {
-		return;
-	}
-	const currentPremiumMode = (await getInstanceConfigRepository().getInstancePolicyConfig()).premium_mode;
-	const nextPremiumMode = requestedPremiumMode ?? currentPremiumMode;
-	if (nextPremiumMode !== 'everyone') {
-		return;
-	}
-	const nextEnabled =
-		requestedEnabled === undefined
-			? (await getInstanceConfigRepository().readStoredInstanceBillingConfig()).enabled
-			: requestedEnabled;
-	if (nextEnabled !== true) {
-		return;
-	}
-	if (requestedEnabled !== undefined) {
-		throw InputValidationError.create('billing.enabled', 'Billing can only be enabled when the premium mode is mirror');
-	}
-	if (currentPremiumMode !== 'everyone') {
-		throw InputValidationError.create(
-			'policy.premium_mode',
-			'Disable billing before switching the premium mode to everyone',
-		);
 	}
 }
 
@@ -660,33 +586,8 @@ const INSTANCE_CONFIG_SECTION_APPLIERS = {
 	),
 	policy: createInstanceConfigSectionApplier(
 		({data}) => data.policy,
-		async (policy, {ctx, data}) => {
-			await applyInstancePolicyUpdate(
-				ctx,
-				policy,
-				data.billing ? readOptionalField(data.billing, 'enabled') : undefined,
-			);
-		},
-	),
-	billing: createInstanceConfigSectionApplier(
-		({data}) => data.billing,
-		async (billing, {instanceConfigRepository}) => {
-			await assertBillingCompatibleWithStoredPremiumMode(billing);
-			await instanceConfigRepository.setInstanceBillingConfig(
-				omitUndefinedFields({
-					enabled: readOptionalField(billing, 'enabled'),
-					stripe_secret_key: readOptionalField(billing, 'stripe_secret_key'),
-					stripe_webhook_secret: readOptionalField(billing, 'stripe_webhook_secret'),
-					default_currency: readOptionalField(billing, 'default_currency'),
-					prices: readOptionalField(billing, 'prices'),
-					country_currencies: readOptionalField(billing, 'country_currencies'),
-					legacy_prices: readOptionalField(billing, 'legacy_prices'),
-					automatic_tax: readOptionalField(billing, 'automatic_tax'),
-					tax_id_collection: readOptionalField(billing, 'tax_id_collection'),
-					terms_consent_required: readOptionalField(billing, 'terms_consent_required'),
-					billing_emails: readOptionalField(billing, 'billing_emails'),
-				}),
-			);
+		async (policy, {ctx}) => {
+			await applyInstancePolicyUpdate(ctx, policy);
 		},
 	),
 	notice: createInstanceConfigSectionApplier(
@@ -764,8 +665,7 @@ export function InstanceConfigAdminController(app: HonoApp) {
 		}),
 		async (ctx) => {
 			const data = ctx.req.valid('json');
-			assertSelfHostedBillingSections(data);
-			await assertBillingCompatibleWithPremiumMode(data);
+			assertSelfHostedBrandingSections(data);
 			const integrationsPatch = toIntegrationsPatch(data.integrations, await readSavedSmtpConfig());
 			await assertConsistentInstanceConfig(data, integrationsPatch);
 			await assertValidBlueskyKeys(integrationsPatch);
@@ -1045,7 +945,6 @@ export function InstanceConfigAdminController(app: HonoApp) {
 async function applyInstancePolicyUpdate(
 	ctx: Context<HonoEnv>,
 	policy: NonNullable<InstanceConfigUpdateRequest['policy']>,
-	requestedBillingEnabled: boolean | null | undefined,
 ): Promise<void> {
 	const instanceConfigRepository = getInstanceConfigRepository();
 	const singleCommunityService = ctx.get('singleCommunityService');
@@ -1061,9 +960,6 @@ async function applyInstancePolicyUpdate(
 		policy.single_community_enabled === true && requestedGuildId === null
 			? await ctx.get('userRepository').findUnique(ctx.get('adminUserId'))
 			: null;
-	if (policy.premium_mode === 'everyone') {
-		await assertPremiumModeCompatibleWithStoredBilling(requestedBillingEnabled);
-	}
 	let enablesSingleCommunity = false;
 	const updated = await instanceConfigRepository.updateInstancePolicyConfig((current) => {
 		const planned = planInstancePolicyPatch(policy, current, {

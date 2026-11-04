@@ -119,8 +119,6 @@ export interface SearchableUser {
 	lastActiveAt: number | null;
 	tempBannedUntil: number | null;
 	pendingDeletionAt: number | null;
-	stripeSubscriptionId: string | null;
-	stripeCustomerId: string | null;
 }
 
 export interface UserSearchFilters {

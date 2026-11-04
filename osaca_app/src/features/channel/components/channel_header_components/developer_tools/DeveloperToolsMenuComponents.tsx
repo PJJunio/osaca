@@ -10,7 +10,6 @@ import {
 import {updateOption} from '@app/features/channel/components/channel_header_components/developer_tools/ResetOptions';
 import type {DeveloperOptionsState} from '@app/features/devtools/state/DeveloperOptions';
 import DeveloperOptions from '@app/features/devtools/state/DeveloperOptions';
-import * as PremiumCommands from '@app/features/premium/commands/PremiumCommands';
 import {remFromPx} from '@app/features/theme/layout/RemFromPx';
 import {CheckboxItem, SubMenu as MenuItemSubmenu} from '@app/features/ui/action_menu/ContextMenu';
 import {MenuGroup} from '@app/features/ui/action_menu/MenuGroup';
@@ -158,28 +157,6 @@ export const BackendPremiumOverrideMenuGroup: React.FC<{label: string; hint: str
 		</MenuItem>
 	</MenuGroup>
 );
-export const BackendPremiumPerksDisabledMenuGroup: React.FC<{label: string; hint: string}> = ({label, hint}) => (
-	<MenuGroup data-flx="channel.channel-header-components.developer-tools-context-menu.backend-premium-perks-disabled-menu-group.menu-group">
-		<MenuItem
-			icon={
-				<AtomIcon
-					size={remFromPx(16)}
-					weight="fill"
-					data-flx="channel.channel-header-components.developer-tools-context-menu.backend-premium-perks-disabled-menu-group.atom-icon"
-				/>
-			}
-			hint={hint}
-			onClick={() => {
-				void PremiumCommands.setPremiumPerksDisabled(false);
-			}}
-			closeOnSelect={false}
-			data-flx="channel.channel-header-components.developer-tools-context-menu.backend-premium-perks-disabled-menu-group.menu-item"
-		>
-			{label}
-		</MenuItem>
-	</MenuGroup>
-);
-
 interface DangerConfirmationOptions {
 	onClose: () => void;
 	title: string;

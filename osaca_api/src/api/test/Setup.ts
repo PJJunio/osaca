@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {generateKeyPairSync} from 'node:crypto';
 import {existsSync} from 'node:fs';
 import type {UserID} from '@app/api/BrandedTypes';
 import {buildAPIConfigFromMaster, initializeConfig} from '@app/api/Config';
@@ -115,14 +114,6 @@ class RepositoryBackedUsersServiceClient implements IUsersServiceClient {
 setDefaultTestEnv();
 process.env.OSACA_MEDIA_PROXY_UPLOAD_RELAY_SECRET_BASE64 ??= 'AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=';
 
-function generateTestPrivateKeyPem(type: 'ec' | 'rsa'): string {
-	const {privateKey} =
-		type === 'ec'
-			? generateKeyPairSync('ec', {namedCurve: 'prime256v1'})
-			: generateKeyPairSync('rsa', {modulusLength: 2048});
-	return privateKey.export({format: 'pem', type: 'pkcs8'}).toString();
-}
-
 const master = await loadConfig();
 const apiConfig = buildAPIConfigFromMaster(master);
 const testApiConfig: APIConfig = {
@@ -138,49 +129,6 @@ const testApiConfig: APIConfig = {
 	voice: {
 		...apiConfig.voice,
 		enabled: false,
-	},
-	stripe: {
-		...apiConfig.stripe,
-		enabled: true,
-		secretKey: 'sk_test_osaca',
-		webhookSecret: 'whsec_test_osaca',
-	},
-	appStore: {
-		...apiConfig.appStore,
-		enabled: true,
-		issuerId: '57246542-96fe-1a63-e053-0824d011072a',
-		keyId: 'OSACATEST',
-		privateKey: generateTestPrivateKeyPem('ec'),
-		privateKeyPath: undefined,
-		apps: [{bundleId: 'com.osaca', appAppleId: 1234567890}],
-		products: {
-			'com.osaca.plutonium.monthly': 'monthly',
-			'com.osaca.plutonium.yearly': 'yearly',
-			'com.osaca.gift.1month': 'gift_1_month',
-			'com.osaca.gift.1year': 'gift_1_year',
-		},
-	},
-	googlePlay: {
-		...apiConfig.googlePlay,
-		enabled: true,
-		packages: ['com.osaca'],
-		clientEmail: 'play-billing@osaca-test.iam.gserviceaccount.com',
-		privateKey: generateTestPrivateKeyPem('rsa'),
-		privateKeyPath: undefined,
-		serviceAccountJsonPath: undefined,
-		tokenUri: 'https://oauth2.googleapis.com/token',
-		products: {
-			'plutonium:monthly': 'monthly',
-			'plutonium:yearly': 'yearly',
-			gift_1_month: 'gift_1_month',
-			gift_1_year: 'gift_1_year',
-		},
-		pushAudience: 'https://api.osaca.test/webhooks/google-play',
-		pushServiceAccountEmail: 'rtdn@osaca-test.iam.gserviceaccount.com',
-	},
-	storeBilling: {
-		sandboxUserIds: [],
-		sandboxEntitlesAll: false,
 	},
 };
 testApiConfig.dev.relaxRegistrationRateLimits = true;

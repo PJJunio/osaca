@@ -42,22 +42,6 @@ const DESKTOP_NOTIFICATION_NAGBAR_DESCRIPTOR = msg({
 	message: 'Desktop notification nagbar',
 	comment: 'Developer control label for the desktop-notification banner.',
 });
-const PREMIUM_GRACE_PERIOD_NAGBAR_DESCRIPTOR = msg({
-	message: 'Premium grace period nagbar',
-	comment: 'Developer control label for the premium grace-period banner.',
-});
-const PREMIUM_EXPIRED_NAGBAR_DESCRIPTOR = msg({
-	message: 'Premium expired nagbar',
-	comment: 'Developer control label for the premium-expired banner.',
-});
-const PREMIUM_ONBOARDING_NAGBAR_DESCRIPTOR = msg({
-	message: 'Premium onboarding nagbar',
-	comment: 'Developer control label for the premium-onboarding banner.',
-});
-const GIFT_INVENTORY_NAGBAR_DESCRIPTOR = msg({
-	message: 'Gift inventory nagbar',
-	comment: 'Developer control label for the gift-inventory banner.',
-});
 const VISIONARY_2FA_NAGBAR_DESCRIPTOR = msg({
 	message: 'Visionary 2FA nagbar',
 	comment: 'Developer control label for the Visionary two-factor-authentication banner.',
@@ -119,14 +103,6 @@ const CURRENTLY_DISMISSED = msg({
 const CURRENTLY_SHOWING = msg({
 	message: 'Currently showing',
 	comment: 'Developer nagbar status: the banner is showing in the current real state.',
-});
-const USING_ACTUAL_PREMIUM_STATE = msg({
-	message: 'Using actual premium state',
-	comment: 'Developer nagbar status: banner follows real premium subscription state.',
-});
-const USING_ACTUAL_GIFT_INVENTORY_STATE = msg({
-	message: 'Using actual gift inventory state',
-	comment: 'Developer nagbar status: banner follows real gift inventory state.',
 });
 const USING_ACTUAL_STATE = msg({
 	message: 'Using actual state',
@@ -198,40 +174,6 @@ export const getNagbarControls = (): Array<NagbarControlDefinition> => [
 		resetKeys: ['forceDesktopNotification', 'desktopNotificationDismissed'],
 		actualStatus: CURRENTLY_SHOWING,
 		dismissedKey: 'desktopNotificationDismissed',
-	}),
-	createNagbarControl({
-		key: 'forcePremiumGracePeriod',
-		label: PREMIUM_GRACE_PERIOD_NAGBAR_DESCRIPTOR,
-		forceKey: 'forcePremiumGracePeriod',
-		forceHideKey: 'forceHidePremiumGracePeriod',
-		resetKeys: ['forcePremiumGracePeriod'],
-		actualStatus: USING_ACTUAL_PREMIUM_STATE,
-	}),
-	createNagbarControl({
-		key: 'forcePremiumExpired',
-		label: PREMIUM_EXPIRED_NAGBAR_DESCRIPTOR,
-		forceKey: 'forcePremiumExpired',
-		forceHideKey: 'forceHidePremiumExpired',
-		resetKeys: ['forcePremiumExpired'],
-		actualStatus: USING_ACTUAL_PREMIUM_STATE,
-	}),
-	createNagbarControl({
-		key: 'forcePremiumOnboarding',
-		label: PREMIUM_ONBOARDING_NAGBAR_DESCRIPTOR,
-		forceKey: 'forcePremiumOnboarding',
-		forceHideKey: 'forceHidePremiumOnboarding',
-		resetKeys: ['forcePremiumOnboarding', 'premiumOnboardingDismissed'],
-		actualStatus: USING_ACTUAL_PREMIUM_STATE,
-		dismissedKey: 'premiumOnboardingDismissed',
-	}),
-	createNagbarControl({
-		key: 'forceGiftInventory',
-		label: GIFT_INVENTORY_NAGBAR_DESCRIPTOR,
-		forceKey: 'forceGiftInventory',
-		forceHideKey: 'forceHideGiftInventory',
-		resetKeys: ['forceGiftInventory', 'giftInventoryDismissed'],
-		actualStatus: USING_ACTUAL_GIFT_INVENTORY_STATE,
-		dismissedKey: 'giftInventoryDismissed',
 	}),
 	createNagbarControl({
 		key: 'forceVisionaryMfa',

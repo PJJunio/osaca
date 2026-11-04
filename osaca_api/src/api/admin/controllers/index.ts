@@ -7,9 +7,7 @@ import {AssetAdminController} from '@app/api/admin/controllers/AssetAdminControl
 import {AuditLogAdminController} from '@app/api/admin/controllers/AuditLogAdminController';
 import {BadgeAdminController} from '@app/api/admin/controllers/BadgeAdminController';
 import {BanAdminController} from '@app/api/admin/controllers/BanAdminController';
-import {BillingDocumentAdminController} from '@app/api/admin/controllers/BillingDocumentAdminController';
 import {BulkAdminController} from '@app/api/admin/controllers/BulkAdminController';
-import {CodesAdminController} from '@app/api/admin/controllers/CodesAdminController';
 import {DiscoveryAdminController} from '@app/api/admin/controllers/DiscoveryAdminController';
 import {EnforcementAdminController} from '@app/api/admin/controllers/EnforcementAdminController';
 import {GatewayAdminController} from '@app/api/admin/controllers/GatewayAdminController';
@@ -18,11 +16,8 @@ import {InstanceConfigAdminController} from '@app/api/admin/controllers/Instance
 import {JobsAdminController} from '@app/api/admin/controllers/JobsAdminController';
 import {LimitConfigAdminController} from '@app/api/admin/controllers/LimitConfigAdminController';
 import {MessageAdminController} from '@app/api/admin/controllers/MessageAdminController';
-import {OperatorPassAdminController} from '@app/api/admin/controllers/OperatorPassAdminController';
-import {PaymentDisputeAdminController} from '@app/api/admin/controllers/PaymentDisputeAdminController';
 import {ReportAdminController} from '@app/api/admin/controllers/ReportAdminController';
 import {SearchAdminController} from '@app/api/admin/controllers/SearchAdminController';
-import {StoreBillingAdminController} from '@app/api/admin/controllers/StoreBillingAdminController';
 import {SystemDmAdminController} from '@app/api/admin/controllers/SystemDmAdminController';
 import {ThreadAdminController} from '@app/api/admin/controllers/ThreadAdminController';
 import {UserAdminController} from '@app/api/admin/controllers/UserAdminController';
@@ -35,11 +30,6 @@ export function registerAdminControllers(app: HonoApp) {
 	UserAdminController(app);
 	BadgeAdminController(app);
 	EnforcementAdminController(app);
-	StoreBillingAdminController(app);
-	BillingDocumentAdminController(app);
-	OperatorPassAdminController(app);
-	PaymentDisputeAdminController(app);
-	CodesAdminController(app);
 	GuildAdminController(app);
 	ThreadAdminController(app);
 	AssetAdminController(app);

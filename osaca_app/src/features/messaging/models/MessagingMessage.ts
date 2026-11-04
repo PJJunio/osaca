@@ -3,7 +3,6 @@
 import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
 import Authentication from '@app/features/auth/state/Authentication';
 import Channels from '@app/features/channel/state/Channels';
-import * as GiftCodeUtils from '@app/features/gift/utils/GiftCodeUtils';
 import Guilds from '@app/features/guild/state/Guilds';
 import * as InviteUtils from '@app/features/invite/utils/InviteUtils';
 import GuildMembers from '@app/features/member/state/GuildMembers';
@@ -163,7 +162,6 @@ export class Message {
 	readonly nonce?: string;
 	readonly blocked: boolean;
 	readonly invites: ReadonlyArray<string>;
-	readonly gifts: ReadonlyArray<string>;
 	readonly themes: ReadonlyArray<string>;
 	readonly _allowedMentions?: AllowedMentions;
 	readonly _favoriteMemeId?: string;
@@ -233,7 +231,6 @@ export class Message {
 		this.call = transformMessageCall(message.call);
 		const embeddableCodeLinkContent = extractEmbeddableCodeLinkContent(message.content);
 		this.invites = Object.freeze(InviteUtils.findInvites(embeddableCodeLinkContent));
-		this.gifts = Object.freeze(GiftCodeUtils.findGifts(embeddableCodeLinkContent));
 		this.themes = Object.freeze(ThemeUtils.findThemes(embeddableCodeLinkContent));
 		this._allowedMentions = message._allowedMentions;
 		this._favoriteMemeId = message._favoriteMemeId;
@@ -379,7 +376,6 @@ export class Message {
 		if (this.stickerItems.length !== other.stickerItems.length) return false;
 		if (this.reactions.length !== other.reactions.length) return false;
 		if (this.invites.length !== other.invites.length) return false;
-		if (this.gifts.length !== other.gifts.length) return false;
 		if (this.themes.length !== other.themes.length) return false;
 		for (let i = 0; i < this.mentions.length; i++) {
 			if (!this.mentions[i].equals(other.mentions[i])) return false;
@@ -432,9 +428,6 @@ export class Message {
 		}
 		for (let i = 0; i < this.invites.length; i++) {
 			if (this.invites[i] !== other.invites[i]) return false;
-		}
-		for (let i = 0; i < this.gifts.length; i++) {
-			if (this.gifts[i] !== other.gifts[i]) return false;
 		}
 		for (let i = 0; i < this.themes.length; i++) {
 			if (this.themes[i] !== other.themes[i]) return false;

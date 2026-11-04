@@ -195,11 +195,6 @@ describe('Email revert flow', () => {
 	});
 	it('restores original email and clears mfa', async () => {
 		const account = await createTestAccount(harness);
-		await createBuilderWithoutAuth(harness)
-			.post(`/test/users/${account.userId}/premium`)
-			.body({stripe_customer_id: 'cus_email_revert_sync'})
-			.expect(200)
-			.execute();
 		const worker = new RecordingWorkerService();
 		setInjectedWorkerService(worker);
 		resetApiServicesForTesting();
@@ -214,7 +209,6 @@ describe('Email revert flow', () => {
 			})
 			.execute();
 		expect(revertResp.token.length).toBeGreaterThan(0);
-		expect(worker.byTask('syncStripeCustomerEmail').map((job) => job.payload)).toContainEqual({userId: account.userId});
 		expect(Object.keys(revertResp).sort()).toEqual(['token', 'user', 'user_id']);
 		await createBuilder(harness, account.token).get('/users/@me').expect(401).execute();
 		const user = await createBuilder<UserPrivateResponse>(harness, revertResp.token).get('/users/@me').execute();

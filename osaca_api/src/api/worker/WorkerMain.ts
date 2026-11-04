@@ -35,9 +35,7 @@ import {
 	getInstanceConfigRepository,
 	getLimitConfigService,
 } from '@app/api/middleware/ServiceSingletons';
-import {getLabsOperatorsChannelId, isLabsAutoJoinConfigured} from '@app/api/operator_pass/OperatorPassLabsRole';
 import {initializeSearch, shutdownSearch} from '@app/api/SearchFactory';
-import {getStripeClient} from '@app/api/stripe/StripeClient';
 import {accountStateDepsFromContext} from '@app/api/user/services/AccountStateApplier';
 import {awaitAll} from '@app/api/utils/ConcurrencyUtils';
 import {readOptionalEnv} from '@app/api/utils/IntegerOptions';
@@ -66,9 +64,9 @@ import {createWorkerProcessErrorHandler} from '@app/api/worker/WorkerProcessErro
 import {WorkerRunner} from '@app/api/worker/WorkerRunner';
 import {WorkerService} from '@app/api/worker/WorkerService';
 import {workerTasks} from '@app/api/worker/WorkerTaskRegistry';
+import type {ServerType} from '@hono/node-server';
 import {createRegisteredMetricsHandler} from '@osaca/hono/src/middleware/Metrics';
 import {createServer, setupGracefulShutdown} from '@osaca/hono/src/Server';
-import type {ServerType} from '@hono/node-server';
 import {BACKGROUND_READ_TIMEOUT_MS, getClient, initCassandra, shutdownCassandra} from '@pkgs/cassandra/src/Client';
 import type {IKVProvider} from '@pkgs/kv_client/src/IKVProvider';
 import {JetStreamConnectionManager} from '@pkgs/nats/src/JetStreamConnectionManager';
@@ -92,46 +90,6 @@ function registerCronJobs(cron: CronScheduler, jobsStreamMaxAgeMs: number, kvCli
 		ledger: false,
 	});
 	cron.upsert('userProcessPendingDeletions', 'userProcessPendingDeletions', {}, '0 * * * * *', {ledger: false});
-	cron.upsert('processPremiumStateReconciliationQueue', 'processPremiumStateReconciliationQueue', {}, '0 * * * * *', {
-		ledger: false,
-		enabled: () => getStripeClient() !== null,
-	});
-	cron.upsert('scanBillingNotices', 'scanBillingNotices', {}, '0 15 9 * * *', {
-		ledger: false,
-		enabled: () => getStripeClient() !== null,
-	});
-	cron.upsert('processExpiredPremiumSweep', 'processExpiredPremiumSweep', {}, '0 0 * * * *', {ledger: false});
-	cron.upsert('closePaymentDisputeAccounts', 'closePaymentDisputeAccounts', {}, '0 40 * * * *', {ledger: false});
-	if (!Config.instance.selfHosted) {
-		cron.upsert('processStorePurchaseRefreshQueue', 'processStorePurchaseRefreshQueue', {}, '0 */5 * * * *', {
-			ledger: false,
-		});
-		cron.upsert('pollGooglePlayVoidedPurchases', 'pollGooglePlayVoidedPurchases', {}, '0 30 4 * * *', {ledger: false});
-		cron.upsert('pollAppStoreNotificationHistory', 'pollAppStoreNotificationHistory', {}, '0 45 4 * * *', {
-			ledger: false,
-		});
-		cron.upsert('operatorPassWaitlistCleanup', 'operatorPassWaitlistCleanup', {}, '0 20 * * * *', {ledger: false});
-		cron.upsert('operatorPassRemovalExpiry', 'operatorPassRemovalExpiry', {}, '0 */5 * * * *', {ledger: false});
-		cron.upsert('operatorPassWallRetention', 'operatorPassWallRetention', {}, '0 40 3 * * *', {ledger: false});
-		cron.upsert('operatorPassConsentRetention', 'operatorPassConsentRetention', {}, '0 50 3 * * *', {ledger: false});
-		cron.upsert('operatorPassLabsVisionaryRoleSync', 'operatorPassLabsVisionaryRoleSync', {}, '0 55 3 * * *', {
-			ledger: false,
-			enabled: () => Config.operatorPass.labsVisionaryRoleId !== null,
-		});
-		cron.upsert('operatorPassLabsGreeting', 'operatorPassLabsGreeting', {}, '15 */5 * * * *', {
-			ledger: false,
-			enabled: () => getLabsOperatorsChannelId() !== null,
-		});
-		cron.upsert('operatorPassLabsDelivery', 'operatorPassLabsDelivery', {}, '0 10 4 * * *', {
-			ledger: false,
-			enabled: isLabsAutoJoinConfigured,
-		});
-		cron.upsert('operatorPassOfferCompletion', 'operatorPassOfferCompletion', {}, '30 */5 * * * *', {ledger: false});
-		cron.upsert('operatorPassFulfilmentSweep', 'operatorPassFulfilmentSweep', {}, '45 */15 * * * *', {
-			ledger: false,
-			enabled: () => getStripeClient() !== null,
-		});
-	}
 	cron.upsert('processInactivityDeletions', 'processInactivityDeletions', {}, '0 0 */6 * * *', {ledger: false});
 	cron.upsert('expireAttachments', 'expireAttachments', {}, '0 0 */12 * * *', {ledger: false});
 	cron.upsert('expireReportSnapshots', 'expireReportSnapshots', {}, '0 15 5 * * *', {ledger: false});

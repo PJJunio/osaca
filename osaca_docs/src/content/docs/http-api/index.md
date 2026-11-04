@@ -13,7 +13,6 @@ Limits such as attachment counts differ between instances, and [instance discove
 | Page | Covers |
 | --- | --- |
 | [Errors](/http-api/errors/) | Error responses, status codes and every error code |
-| [Deployment availability](/http-api/deployment-availability/) | Routes served only while premium or billing is on |
 | [Authentication operations](/http-api/authentication/) | Registration, login, MFA, WebAuthn, recovery, sessions |
 | [Gateway](/http-api/gateway/) | Gateway endpoint discovery and the session start budget |
 | [Instance](/http-api/instance/) | Instance discovery, limit keys, the OpenAPI document |
@@ -32,7 +31,6 @@ Limits such as attachment counts differ between instances, and [instance discove
 | [Private channels](/http-api/users/private-channels/) | Direct message and group DM channels |
 | [Push notifications](/http-api/users/push-notifications/) | Registering a device for push delivery |
 | [User content collections](/http-api/users/content/) | Recent mentions, saved messages, message deletion |
-| [Gift inventory](/http-api/users/gifts/) | Premium gift codes you created |
 | [Data harvests](/http-api/users/data-harvest/) | Requesting and downloading your data |
 | [Read states](/http-api/read-states/) | Read acknowledgements and mention counts |
 | [Memes](/http-api/memes/) | Saved media and GIF URL resolution |
@@ -61,9 +59,6 @@ Limits such as attachment counts differ between instances, and [instance discove
 | [Webhooks](/http-api/webhooks/) | Webhook management, execution and provider callbacks |
 | [Search](/http-api/search/) | Global message search |
 | [Unfurl](/http-api/unfurl/) | External URL metadata |
-| [Billing](/http-api/billing/) | Stripe checkout, gift purchase, the Stripe webhook |
-| [Premium](/http-api/premium/) | Pricing, entitlement state, subscription self-service |
-| [Gifts](/http-api/gifts/) | Gift code lookup and redemption |
 | [Reports](/http-api/reports/) | Safety reports and Digital Services Act notices |
 
 ## Request format
@@ -120,10 +115,6 @@ The `X-RateLimit-*` headers are listed under [Rate limits](/topics/rate-limits/)
 ## Rate limits
 
 Every route has its own bucket, and most routes also count against a global bucket. A denial returns 429 `RATE_LIMITED`, as described in [Rate limits](/topics/rate-limits/).
-
-## Conditional routes
-
-A self-hosted instance serves some routes only while its premium mode or billing is on, and returns 404 `NOT_FOUND` for the others. [Deployment availability](/http-api/deployment-availability/) lists them.
 
 ## Cross-origin requests
 

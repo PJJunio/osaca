@@ -17,13 +17,11 @@ import {AccountSecurityInlineTab} from '@app/features/user/components/modals/tab
 import ApplicationsTab from '@app/features/user/components/modals/tabs/applications_tab';
 import {ChatSettingsInlineContent} from '@app/features/user/components/modals/tabs/ChatSettingsTab';
 import DesktopSettingsTab from '@app/features/user/components/modals/tabs/DesktopSettingsTab';
-import GiftInventoryTab from '@app/features/user/components/modals/tabs/GiftInventoryTab';
 import KeybindsTab from '@app/features/user/components/modals/tabs/KeybindsTab';
 import LanguageTab from '@app/features/user/components/modals/tabs/LanguageTab';
 import LinkedAccountsTab from '@app/features/user/components/modals/tabs/LinkedAccountsTab';
 import MyProfileTab from '@app/features/user/components/modals/tabs/MyProfileTab';
 import {NotificationsInlineContent} from '@app/features/user/components/modals/tabs/NotificationsTab';
-import {PlutoniumInlineTab} from '@app/features/user/components/modals/tabs/PlutoniumTab';
 import {PrivacyDashboardContent} from '@app/features/user/components/modals/tabs/privacy_safety_tab/PrivacySafetyTabInline';
 import {VoiceVideoInlineContent} from '@app/features/user/components/modals/tabs/VoiceVideoTab';
 import {getSettingsTabComponent} from '@app/features/user/components/settings_utils/DesktopSettingsTabs';
@@ -64,8 +62,6 @@ interface SettingsSectionProps {
 const INLINE_TAB_COMPONENTS: Partial<Record<UserSettingsTabType, React.ComponentType<Record<string, unknown>>>> = {
 	my_profile: MyProfileTab,
 	account_security: AccountSecurityInlineTab,
-	plutonium: PlutoniumInlineTab,
-	gift_inventory: GiftInventoryTab,
 	privacy_safety: PrivacyDashboardContent,
 	authorized_apps: AccountSecurityInlineTab,
 	blocked_users: AccountSecurityInlineTab,

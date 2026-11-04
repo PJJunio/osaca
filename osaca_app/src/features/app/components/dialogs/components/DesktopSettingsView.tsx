@@ -39,7 +39,6 @@ import {remFromPx} from '@app/features/theme/layout/RemFromPx';
 import {Button} from '@app/features/ui/button/Button';
 import * as ModalCommands from '@app/features/ui/commands/ModalCommands';
 import {modal} from '@app/features/ui/commands/ModalCommands';
-import {MentionBadgeAnimated} from '@app/features/ui/components/MentionBadge';
 import {StatusAwareAvatar} from '@app/features/ui/components/StatusAwareAvatar';
 import {ArrowLeftIcon, ArrowRightIcon, CaretRightIcon} from '@app/features/ui/icons/DirectionalIcons';
 import SettingsSidebar from '@app/features/ui/state/SettingsSidebar';
@@ -636,17 +635,6 @@ export const DesktopSettingsView: React.FC<DesktopSettingsViewProps> = observer(
 																	label={
 																		<div className={styles.tabLabel} data-flx="app.desktop-settings-view.tab-label">
 																			<span data-flx="app.desktop-settings-view.span">{tab.label}</span>
-																			{tab.type === 'gift_inventory' && currentUser?.hasUnreadGiftInventory && (
-																				<span
-																					className={styles.badgeContainer}
-																					data-flx="app.desktop-settings-view.badge-container"
-																				>
-																					<MentionBadgeAnimated
-																						mentionCount={currentUser.unreadGiftInventoryCount ?? 1}
-																						data-flx="app.desktop-settings-view.mention-badge-animated"
-																					/>
-																				</span>
-																			)}
 																		</div>
 																	}
 																	selected={isSelected}

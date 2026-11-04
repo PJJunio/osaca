@@ -373,7 +373,7 @@ describe('Email change flow', () => {
 		const account = await createTestAccount(harness);
 		await createBuilderWithoutAuth(harness)
 			.post(`/test/users/${account.userId}/premium`)
-			.body({has_ever_purchased: true, stripe_customer_id: 'cus_email_change_sync'})
+			.body({has_ever_purchased: true})
 			.expect(200)
 			.execute();
 		const worker = new RecordingWorkerService();
@@ -418,7 +418,6 @@ describe('Email change flow', () => {
 			.execute();
 		expect(updated.email).toBe(newEmail);
 		expect(updated.has_ever_purchased).toBe(true);
-		expect(worker.byTask('syncStripeCustomerEmail').map((job) => job.payload)).toContainEqual({userId: account.userId});
 	});
 	it('requires MFA (not password) for email_token apply when user has TOTP enabled', async () => {
 		const account = await createTestAccount(harness);

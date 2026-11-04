@@ -6,8 +6,6 @@ pub mod auth;
 pub mod badges;
 pub mod bans;
 mod bans_actions;
-mod billing_actions;
-pub mod codes;
 pub mod discovery;
 pub mod enforcement;
 mod guild_tabs;
@@ -16,8 +14,6 @@ pub mod jobs;
 mod limit_config_actions;
 mod message_actions;
 pub mod messages;
-pub mod operator_pass;
-pub mod payment_disputes;
 pub mod registrations;
 pub mod reports;
 pub mod system;
@@ -67,9 +63,6 @@ pub fn build_router(config: AdminConfig) -> Router {
         .merge(reports::router())
         .merge(bans::router())
         .merge(applications::router())
-        .merge(codes::router())
-        .merge(operator_pass::router().route_layer(from_fn_with_state(state.clone(), hosted_only)))
-        .merge(payment_disputes::router())
         .merge(discovery::router())
         .merge(enforcement::router())
         .merge(registrations::router())
@@ -238,13 +231,6 @@ async fn dashboard(State(state): State<AppState>) -> impl IntoResponse {
         ],
         "",
     )
-}
-
-async fn hosted_only(State(state): State<AppState>, request: Request, next: Next) -> Response {
-    if state.config().self_hosted {
-        return not_found(State(state)).await.into_response();
-    }
-    next.run(request).await
 }
 
 async fn not_found(State(state): State<AppState>) -> impl IntoResponse {

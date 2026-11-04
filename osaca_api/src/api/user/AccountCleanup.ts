@@ -8,7 +8,6 @@ import type {KVAccountDeletionQueueService} from '@app/api/infrastructure/KVAcco
 import {getCachedAccountsConfig} from '@app/api/instance/AccountsConfigCache';
 import {getKVAccountDeletionQueue} from '@app/api/middleware/ServiceSingletons';
 import type {User} from '@app/api/models/User';
-import {followOperatorPassWallStanding} from '@app/api/operator_pass/OperatorPassWallStanding';
 import {hasWayBackIn} from '@app/api/user/AccountTier';
 import type {UserRepository} from '@app/api/user/repositories/UserRepository';
 import {reschedulePendingDeletion} from '@app/api/user/services/PendingDeletionCoordinator';
@@ -45,7 +44,6 @@ export async function scheduleSystemDeletion(
 	if (params.endSessions) {
 		await revokeAllAuthSessions({users: deps.users, gateway: deps.gateway}, user.id);
 	}
-	await followOperatorPassWallStanding(user, updated);
 	return updated;
 }
 

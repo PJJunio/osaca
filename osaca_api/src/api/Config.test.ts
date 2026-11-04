@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {buildAPIConfigFromMaster} from '@app/api/Config';
-import {OPERATOR_PASS_EARLY_BIRD_PRICES_MINOR} from '@app/api/operator_pass/OperatorPassPrices';
 import {loadConfig, resetConfig} from '@osaca/config/src/ConfigLoader';
 import type {MasterConfig} from '@osaca/config/src/MasterConfig';
 import {afterAll, afterEach, beforeAll, describe, expect, it, test, vi} from 'vitest';
@@ -26,22 +25,6 @@ function withUploadRelaySecret(master: MasterConfig, secretBase64: string): Mast
 					...master.services.media_proxy.upload_relay,
 					secret_base64: secretBase64,
 				},
-			},
-		},
-	};
-}
-
-function withStripeLegacyPrices(
-	master: MasterConfig,
-	legacyPrices: Record<string, Array<string> | undefined> | undefined,
-): MasterConfig {
-	return {
-		...master,
-		integrations: {
-			...master.integrations,
-			stripe: {
-				...master.integrations.stripe,
-				legacy_prices: legacyPrices,
 			},
 		},
 	};
@@ -72,45 +55,6 @@ describe('buildAPIConfigFromMaster upload relay secret', () => {
 	});
 });
 
-describe('buildAPIConfigFromMaster stripe legacy prices', () => {
-	let master: MasterConfig;
-	beforeAll(async () => {
-		master = await loadConfig();
-	});
-
-	it('copies the retired stripe price map from master config onto the api config', () => {
-		const legacyPrices = {
-			monthly_brl: ['price_retired_monthly_brl'],
-			yearly_brl: ['price_retired_yearly_brl_a', 'price_retired_yearly_brl_b'],
-			monthly_try: ['price_1TMYpdFPC94Os7FdZVRx98Up'],
-		};
-		expect(buildAPIConfigFromMaster(withStripeLegacyPrices(master, legacyPrices)).stripe.legacyPrices).toEqual(
-			legacyPrices,
-		);
-	});
-
-	it('copies the retired price map even when no live prices are configured', () => {
-		const withoutPrices: MasterConfig = {
-			...master,
-			integrations: {
-				...master.integrations,
-				stripe: {
-					...master.integrations.stripe,
-					prices: undefined,
-					legacy_prices: {monthly_try: ['price_1TMYpdFPC94Os7FdZVRx98Up']},
-				},
-			},
-		};
-		const config = buildAPIConfigFromMaster(withoutPrices);
-		expect(config.stripe.prices).toBeUndefined();
-		expect(config.stripe.legacyPrices).toEqual({monthly_try: ['price_1TMYpdFPC94Os7FdZVRx98Up']});
-	});
-
-	it('leaves the retired price map undefined when master config does not set one', () => {
-		expect(buildAPIConfigFromMaster(withStripeLegacyPrices(master, undefined)).stripe.legacyPrices).toBeUndefined();
-	});
-});
-
 function withSelfHostedInstance(master: MasterConfig): MasterConfig {
 	return {
 		...master,
@@ -137,47 +81,6 @@ describe('buildAPIConfigFromMaster optional outbound lookups', () => {
 	});
 });
 
-function withHostedOperatorPassSale(
-	master: MasterConfig,
-	operatorPass: Partial<MasterConfig['operator_pass']>,
-): MasterConfig {
-	return {
-		...master,
-		env: 'production',
-		instance: {...master.instance, self_hosted: false},
-		operator_pass: {
-			...master.operator_pass,
-			price_rises_at: '2027-02-01T12:00:00Z',
-			labs_guild_id: '1',
-			labs_operator_role_id: '2',
-			labs_visionary_role_id: '3',
-			labs_operators_channel_id: '4',
-			standard_prices_minor: Object.fromEntries(
-				Object.entries(OPERATOR_PASS_EARLY_BIRD_PRICES_MINOR).map(([currency, amount]) => [
-					currency.toLowerCase(),
-					amount + 1,
-				]),
-			),
-			...operatorPass,
-		},
-	};
-}
-
-describe('buildAPIConfigFromMaster Operator Pass sale', () => {
-	let master: MasterConfig;
-	beforeAll(async () => {
-		master = await loadConfig();
-	});
-
-	test.each([
-		['standard price', {standard_prices_minor: undefined}, /OSACA_OPERATOR_PASS_STANDARD_PRICE_/],
-		['Labs Visionary role', {labs_visionary_role_id: undefined}, /OSACA_LABS_VISIONARY_ROLE_ID/],
-		['Labs #operators channel', {labs_operators_channel_id: undefined}, /OSACA_LABS_OPERATORS_CHANNEL_ID/],
-	] as const)('refuses a hosted production sale without the %s', (_name, missing, message) => {
-		expect(() => buildAPIConfigFromMaster(withHostedOperatorPassSale(master, missing))).toThrow(message);
-	});
-});
-
 async function trustedCallersFromEnv(env: Record<string, string>) {
 	for (const [key, value] of Object.entries(env)) {
 		vi.stubEnv(key, value);
@@ -188,7 +91,6 @@ async function trustedCallersFromEnv(env: Record<string, string>) {
 
 describe('buildAPIConfigFromMaster trusted callers', () => {
 	const bugsKey = 'b'.repeat(32);
-	const donationKey = 'd'.repeat(32);
 
 	test('reads callers from OSACA_API_TRUSTED_CALLERS', async () => {
 		const callers = await trustedCallersFromEnv({
@@ -197,32 +99,6 @@ describe('buildAPIConfigFromMaster trusted callers', () => {
 			]),
 		});
 		expect(callers).toEqual([{name: 'bugs', key: bugsKey, buckets: ['oauth:token', 'oauth:revoke']}]);
-	});
-
-	test('turns OSACA_API_DONATION_PROXY_KEY into a caller scoped to the donation and Operator Pass buckets', async () => {
-		const callers = await trustedCallersFromEnv({OSACA_API_DONATION_PROXY_KEY: donationKey});
-		expect(callers).toEqual([
-			{
-				name: 'donation',
-				key: donationKey,
-				buckets: [
-					'donation:request_link',
-					'donation:manage',
-					'donation:checkout',
-					'operator_pass:state',
-					'operator_pass:certificate_link',
-					'operator_pass:waitlist_unsubscribe',
-				],
-			},
-		]);
-	});
-
-	test('keeps both forms side by side', async () => {
-		const callers = await trustedCallersFromEnv({
-			OSACA_API_DONATION_PROXY_KEY: donationKey,
-			OSACA_API_TRUSTED_CALLERS: JSON.stringify([{name: 'bugs', key: bugsKey, buckets: ['oauth:token']}]),
-		});
-		expect(callers.map((caller) => caller.name)).toEqual(['bugs', 'donation']);
 	});
 
 	test('tolerates bucket names and fields this build does not know', async () => {

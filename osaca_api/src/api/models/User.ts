@@ -47,8 +47,6 @@ export class User {
 	readonly premiumBillingCycle: string | null;
 	readonly premiumLifetimeSequence: number | null;
 	readonly premiumGraceEndsAt: Date | null;
-	readonly stripeSubscriptionId: string | null;
-	readonly stripeCustomerId: string | null;
 	readonly hasEverPurchased: boolean;
 	readonly termsAgreedAt: Date | null;
 	readonly privacyAgreedAt: Date | null;
@@ -114,8 +112,6 @@ export class User {
 		this.premiumBillingCycle = row.premium_billing_cycle ?? null;
 		this.premiumLifetimeSequence = row.premium_lifetime_sequence ?? null;
 		this.premiumGraceEndsAt = row.premium_grace_ends_at ?? null;
-		this.stripeSubscriptionId = row.stripe_subscription_id ?? null;
-		this.stripeCustomerId = row.stripe_customer_id ?? null;
 		this.hasEverPurchased = row.has_ever_purchased ?? false;
 		this.termsAgreedAt = row.terms_agreed_at ?? null;
 		this.privacyAgreedAt = row.privacy_agreed_at ?? null;
@@ -197,8 +193,6 @@ export class User {
 			premium_billing_cycle: this.premiumBillingCycle,
 			premium_lifetime_sequence: this.premiumLifetimeSequence,
 			premium_grace_ends_at: this.premiumGraceEndsAt,
-			stripe_subscription_id: this.stripeSubscriptionId,
-			stripe_customer_id: this.stripeCustomerId,
 			has_ever_purchased: this.hasEverPurchased,
 			terms_agreed_at: this.termsAgreedAt,
 			privacy_agreed_at: this.privacyAgreedAt,

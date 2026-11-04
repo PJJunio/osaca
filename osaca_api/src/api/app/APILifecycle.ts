@@ -36,13 +36,11 @@ import {
 	getKVAccountDeletionQueue,
 	getReportRepository,
 	getUserRepository,
-	type ServiceSingletonDependencies,
 	shutdownInstanceConfigRepository,
 	shutdownServiceSingletons,
 } from '@app/api/middleware/ServiceSingletons';
 import {initializeSearch, shutdownSearch} from '@app/api/SearchFactory';
 import {warmupAdminSearchIndexes} from '@app/api/search/SearchWarmup';
-import {VisionarySlotInitializer} from '@app/api/stripe/VisionarySlotInitializer';
 import {VoiceDataInitializer} from '@app/api/voice/VoiceDataInitializer';
 import {JetStreamWorkerQueue} from '@app/api/worker/JetStreamWorkerQueue';
 import {WorkerService} from '@app/api/worker/WorkerService';
@@ -178,11 +176,7 @@ function scheduleSearchInitRetry(
 	}, delay);
 }
 
-export function createInitializer(
-	config: APIConfig,
-	logger: LoggerInterface,
-	dependencies: ServiceSingletonDependencies = {},
-): () => Promise<void> {
+export function createInitializer(config: APIConfig, logger: LoggerInterface): () => Promise<void> {
 	return async (): Promise<void> => {
 		try {
 			logger.info('Initializing API service...');
@@ -244,7 +238,7 @@ export function createInitializer(
 			const {profileSubstringBlocklistCache} = await import('@app/api/middleware/ProfileSubstringBlocklistCache');
 			profileSubstringBlocklistCache.setRefreshSubscriber(kvClient);
 			await initializeRefreshCache(profileSubstringBlocklistCache, 'Profile substring blocklist cache', logger);
-			await initializeServiceSingletons(dependencies);
+			await initializeServiceSingletons();
 			logger.info('Service singletons initialized');
 			await getCustomBadgeCatalog().initialize();
 			logger.info('Custom badge catalog initialized');
@@ -291,11 +285,6 @@ export function createInitializer(
 				await voiceDataInitializer.initialize();
 				await ensureVoiceResourcesInitialized();
 				logger.info('Voice data initialized');
-			}
-			if (config.dev.testModeEnabled && config.stripe.enabled) {
-				const visionarySlotInitializer = new VisionarySlotInitializer();
-				await visionarySlotInitializer.initialize();
-				logger.info('Stripe visionary slots initialized');
 			}
 			logger.info('API service initialization complete');
 		} catch (error) {

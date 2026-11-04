@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {showChannelErrorModal} from '@app/features/channel/components/alerts/ChannelErrorModalUtils';
 import {
 	PREMIUM_TYPE_DESCRIPTOR,
 	UNREAD_GIFT_COUNT_DESCRIPTOR,
@@ -21,9 +20,6 @@ import {
 	resetPremiumStateOverrides,
 } from '@app/features/devtools/components/PremiumScenarioOptions';
 import DeveloperOptions from '@app/features/devtools/state/DeveloperOptions';
-import {TRY_AGAIN_IN_A_MOMENT_DESCRIPTOR} from '@app/features/i18n/utils/CommonMessageDescriptors';
-import {Logger} from '@app/features/platform/utils/AppLogger';
-import * as PremiumCommands from '@app/features/premium/commands/PremiumCommands';
 import {CheckboxItem, SubMenu as MenuItemSubmenu} from '@app/features/ui/action_menu/ContextMenu';
 import {MenuItem} from '@app/features/ui/action_menu/MenuItem';
 import {MenuItemSlider} from '@app/features/ui/action_menu/MenuItemSlider';
@@ -35,13 +31,8 @@ import {Trans, useLingui} from '@lingui/react/macro';
 import {observer} from 'mobx-react-lite';
 import type React from 'react';
 
-const logger = new Logger('DeveloperToolsContextMenu/AccountPremiumMenu');
 const ACCOUNT_STATE_DESCRIPTOR = msg({
 	message: 'Account state',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const FAILED_TO_UPDATE_PREMIUM_PERK_STATE_DESCRIPTOR = msg({
-	message: 'Failed to update premium perk state.',
 	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
 });
 const VISIONARY_BADGE_DESCRIPTOR = msg({
@@ -133,25 +124,6 @@ const PremiumTypeMenu: React.FC = observer(() => {
 							data-flx="channel.channel-header-components.developer-tools-context-menu.premium-type-menu.checkbox-item"
 						>
 							<Trans>Backend premium override</Trans>
-						</CheckboxItem>
-					)}
-					{user?.isClaimed() && (
-						<CheckboxItem
-							checked={user.premiumPerksDisabled ?? false}
-							onCheckedChange={(checked) => {
-								void PremiumCommands.setPremiumPerksDisabled(checked).catch((error) => {
-									logger.error('Failed to update premium perks disabled state', error);
-									showChannelErrorModal({
-										title: i18n._(FAILED_TO_UPDATE_PREMIUM_PERK_STATE_DESCRIPTOR),
-										message: i18n._(TRY_AGAIN_IN_A_MOMENT_DESCRIPTOR),
-										dataFlx:
-											'channel.channel-header-components.developer-tools-context-menu.premium-perks-disabled-failed.generic-error-modal',
-									});
-								});
-							}}
-							data-flx="channel.channel-header-components.developer-tools-context-menu.premium-type-menu.checkbox-item--2"
-						>
-							<Trans>Disable backend premium perks</Trans>
 						</CheckboxItem>
 					)}
 					<DeveloperOptionCheckbox

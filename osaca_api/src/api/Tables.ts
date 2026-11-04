@@ -71,44 +71,6 @@ import {
 	type WebAuthnCredentialRow,
 } from '@app/api/database/types/AuthTypes';
 import {
-	BILLING_CHARGE_COLUMNS,
-	BILLING_CUSTOMER_BY_USER_ID_COLUMNS,
-	BILLING_CUSTOMER_COLUMNS,
-	BILLING_INVOICE_BY_CUSTOMER_COLUMNS,
-	BILLING_INVOICE_COLUMNS,
-	BILLING_PAYMENT_BY_INVOICE_COLUMNS,
-	BILLING_PAYMENT_COLUMNS,
-	BILLING_PAYMENT_INTENT_COLUMNS,
-	BILLING_PAYMENT_METHOD_BY_CUSTOMER_COLUMNS,
-	BILLING_PAYMENT_METHOD_COLUMNS,
-	BILLING_PRICE_COLUMNS,
-	BILLING_REFUND_BY_CHARGE_COLUMNS,
-	BILLING_REFUND_BY_INVOICE_COLUMNS,
-	BILLING_REFUND_BY_PAYMENT_INTENT_COLUMNS,
-	BILLING_REFUND_COLUMNS,
-	BILLING_SUBSCRIPTION_BY_CUSTOMER_COLUMNS,
-	BILLING_SUBSCRIPTION_BY_USER_COLUMNS,
-	BILLING_SUBSCRIPTION_COLUMNS,
-	type BillingChargeRow,
-	type BillingCustomerByUserIdRow,
-	type BillingCustomerRow,
-	type BillingInvoiceByCustomerRow,
-	type BillingInvoiceRow,
-	type BillingPaymentByInvoiceRow,
-	type BillingPaymentIntentRow,
-	type BillingPaymentMethodByCustomerRow,
-	type BillingPaymentMethodRow,
-	type BillingPaymentRow,
-	type BillingPriceRow,
-	type BillingRefundByChargeRow,
-	type BillingRefundByInvoiceRow,
-	type BillingRefundByPaymentIntentRow,
-	type BillingRefundRow,
-	type BillingSubscriptionByCustomerRow,
-	type BillingSubscriptionByUserRow,
-	type BillingSubscriptionRow,
-} from '@app/api/database/types/BillingTypes';
-import {
 	CHANNEL_COLUMNS,
 	CHANNELS_BY_GUILD_COLUMNS,
 	type ChannelRow,
@@ -221,32 +183,6 @@ import {
 	type OAuth2RefreshTokenRow,
 } from '@app/api/database/types/OAuth2Types';
 import {
-	PAYMENT_DISPUTE_REVIEW_BY_PURCHASER_COLUMNS,
-	PAYMENT_DISPUTE_REVIEW_COLUMNS,
-	type PaymentDisputeReviewByPurchaserRow,
-	type PaymentDisputeReviewRow,
-} from '@app/api/database/types/PaymentDisputeTypes';
-import {
-	GIFT_CODE_BY_CREATOR_COLUMNS,
-	GIFT_CODE_BY_PAYMENT_INTENT_COLUMNS,
-	GIFT_CODE_BY_REDEEMER_COLUMNS,
-	GIFT_CODE_COLUMNS,
-	type GiftCodeByCreatorRow,
-	type GiftCodeByPaymentIntentRow,
-	type GiftCodeByRedeemerRow,
-	type GiftCodeRow,
-	PAYMENT_BY_PAYMENT_INTENT_COLUMNS,
-	PAYMENT_BY_SUBSCRIPTION_COLUMNS,
-	PAYMENT_BY_USER_COLUMNS,
-	PAYMENT_COLUMNS,
-	type PaymentByPaymentIntentRow,
-	type PaymentBySubscriptionRow,
-	type PaymentByUserRow,
-	type PaymentRow,
-	VISIONARY_SLOT_COLUMNS,
-	type VisionarySlotRow,
-} from '@app/api/database/types/PaymentTypes';
-import {
 	DSA_REPORT_EMAIL_VERIFICATION_COLUMNS,
 	DSA_REPORT_TICKET_COLUMNS,
 	type DSAReportEmailVerificationRow,
@@ -262,16 +198,6 @@ import {
 	USER_REPORT_SUBMISSION_BY_REPORTER_COLUMNS,
 	type UserReportSubmissionByReporterRow,
 } from '@app/api/database/types/ReportTypes';
-import {
-	STORE_ACCOUNT_TOKEN_BY_USER_COLUMNS,
-	STORE_ACCOUNT_TOKEN_COLUMNS,
-	STORE_PURCHASE_BY_USER_COLUMNS,
-	STORE_PURCHASE_COLUMNS,
-	type StoreAccountTokenByUserRow,
-	type StoreAccountTokenRow,
-	type StorePurchaseByUserRow,
-	type StorePurchaseRow,
-} from '@app/api/database/types/StoreBillingTypes';
 import {
 	ACTIVE_THREADS_BY_GUILD_COLUMNS,
 	type ActiveThreadsByGuildRow,
@@ -313,8 +239,6 @@ import {
 	USER_BY_EMAIL_COLUMNS,
 	USER_BY_LAST_ACTIVE_IP_COLUMNS,
 	USER_BY_LAST_ACTIVE_IP_TRUST_KEY_COLUMNS,
-	USER_BY_STRIPE_CUSTOMER_ID_COLUMNS,
-	USER_BY_STRIPE_SUBSCRIPTION_ID_COLUMNS,
 	USER_BY_USERNAME_COLUMNS,
 	USER_COLUMNS,
 	USER_CONTACT_CHANGE_LOG_COLUMNS,
@@ -329,8 +253,6 @@ import {
 	type UserByEmailRow,
 	type UserByLastActiveIpRow,
 	type UserByLastActiveIpTrustKeyRow,
-	type UserByStripeCustomerIdRow,
-	type UserByStripeSubscriptionIdRow,
 	type UserByUsernameRow,
 	type UserContactChangeLogRow,
 	type UserDmHistoryRow,
@@ -381,19 +303,6 @@ export const UserByAcl = defineTable<UserByAclRow, 'acl' | 'user_id', 'acl'>({
 	columns: USER_BY_ACL_COLUMNS,
 	primaryKey: ['acl', 'user_id'],
 	partitionKey: ['acl'],
-});
-export const UserByStripeCustomerId = defineTable<UserByStripeCustomerIdRow, 'stripe_customer_id' | 'user_id'>({
-	name: 'users_by_stripe_customer_id',
-	columns: USER_BY_STRIPE_CUSTOMER_ID_COLUMNS,
-	primaryKey: ['stripe_customer_id', 'user_id'],
-});
-export const UserByStripeSubscriptionId = defineTable<
-	UserByStripeSubscriptionIdRow,
-	'stripe_subscription_id' | 'user_id'
->({
-	name: 'users_by_stripe_subscription_id',
-	columns: USER_BY_STRIPE_SUBSCRIPTION_ID_COLUMNS,
-	primaryKey: ['stripe_subscription_id', 'user_id'],
 });
 export const UserByLastActiveIp = defineTable<UserByLastActiveIpRow, 'last_active_ip' | 'user_id'>({
 	name: 'users_by_last_active_ip',
@@ -782,77 +691,6 @@ export const PushSubscriptions = defineTable<PushSubscriptionRow, 'user_id' | 's
 	columns: PUSH_SUBSCRIPTION_COLUMNS,
 	primaryKey: ['user_id', 'subscription_id'],
 	defaultTtlSeconds: seconds('90 days'),
-});
-export const Payments = defineTable<PaymentRow, 'checkout_session_id'>({
-	name: 'payments',
-	columns: PAYMENT_COLUMNS,
-	primaryKey: ['checkout_session_id'],
-});
-export const PaymentsByPaymentIntent = defineTable<PaymentByPaymentIntentRow, 'payment_intent_id'>({
-	name: 'payments_by_payment_intent',
-	columns: PAYMENT_BY_PAYMENT_INTENT_COLUMNS,
-	primaryKey: ['payment_intent_id'],
-});
-export const PaymentsBySubscription = defineTable<PaymentBySubscriptionRow, 'subscription_id'>({
-	name: 'payments_by_subscription',
-	columns: PAYMENT_BY_SUBSCRIPTION_COLUMNS,
-	primaryKey: ['subscription_id'],
-});
-export const PaymentsByUser = defineTable<PaymentByUserRow, 'user_id' | 'created_at'>({
-	name: 'payments_by_user',
-	columns: PAYMENT_BY_USER_COLUMNS,
-	primaryKey: ['user_id', 'created_at'],
-});
-export const VisionarySlots = defineTable<VisionarySlotRow, 'slot_index'>({
-	name: 'visionary_slots',
-	columns: VISIONARY_SLOT_COLUMNS,
-	primaryKey: ['slot_index'],
-});
-export const GiftCodes = defineTable<GiftCodeRow, 'code'>({
-	name: 'gift_codes',
-	columns: GIFT_CODE_COLUMNS,
-	primaryKey: ['code'],
-});
-export const GiftCodesByCreator = defineTable<GiftCodeByCreatorRow, 'created_by_user_id' | 'code'>({
-	name: 'gift_codes_by_creator',
-	columns: GIFT_CODE_BY_CREATOR_COLUMNS,
-	primaryKey: ['created_by_user_id', 'code'],
-});
-export const GiftCodesByPaymentIntent = defineTable<
-	GiftCodeByPaymentIntentRow,
-	'stripe_payment_intent_id' | 'code',
-	'stripe_payment_intent_id'
->({
-	name: 'gift_codes_by_payment_intent',
-	columns: GIFT_CODE_BY_PAYMENT_INTENT_COLUMNS,
-	primaryKey: ['stripe_payment_intent_id', 'code'],
-	partitionKey: ['stripe_payment_intent_id'],
-});
-export const GiftCodesByRedeemer = defineTable<GiftCodeByRedeemerRow, 'redeemed_by_user_id' | 'code'>({
-	name: 'gift_codes_by_redeemer',
-	columns: GIFT_CODE_BY_REDEEMER_COLUMNS,
-	primaryKey: ['redeemed_by_user_id', 'code'],
-});
-export const StorePurchases = defineTable<StorePurchaseRow, 'store_key'>({
-	name: 'store_purchases',
-	columns: STORE_PURCHASE_COLUMNS,
-	primaryKey: ['store_key'],
-});
-export const StorePurchasesByUser = defineTable<StorePurchaseByUserRow, 'user_id' | 'store_key', 'user_id'>({
-	name: 'store_purchases_by_user',
-	columns: STORE_PURCHASE_BY_USER_COLUMNS,
-	primaryKey: ['user_id', 'store_key'],
-	partitionKey: ['user_id'],
-});
-export const StoreAccountTokens = defineTable<StoreAccountTokenRow, 'token_'>({
-	name: 'store_account_tokens',
-	columns: STORE_ACCOUNT_TOKEN_COLUMNS,
-	primaryKey: ['token_'],
-});
-export const StoreAccountTokensByUser = defineTable<StoreAccountTokenByUserRow, 'user_id'>({
-	name: 'store_account_tokens_by_user',
-	columns: STORE_ACCOUNT_TOKEN_BY_USER_COLUMNS,
-	primaryKey: ['user_id'],
 });
 export const AdminArchivesBySubject = defineTable<AdminArchiveRow, 'subject_type' | 'subject_id' | 'archive_id'>({
 	name: 'admin_archives_by_subject',
@@ -1368,142 +1206,6 @@ export const AttachmentUploadTracesByAttachment = defineTable<AttachmentUploadTr
 	columns: ATTACHMENT_UPLOAD_TRACE_BY_ATTACHMENT_COLUMNS,
 	primaryKey: ['attachment_id'],
 	defaultTtlSeconds: seconds('30 days'),
-});
-export const BillingCustomers = defineTable<BillingCustomerRow, 'provider_id'>({
-	name: 'billing_customers',
-	columns: BILLING_CUSTOMER_COLUMNS,
-	primaryKey: ['provider_id'],
-});
-export const BillingCustomersByUserId = defineTable<BillingCustomerByUserIdRow, 'user_id' | 'provider_id'>({
-	name: 'billing_customers_by_user_id',
-	columns: BILLING_CUSTOMER_BY_USER_ID_COLUMNS,
-	primaryKey: ['user_id', 'provider_id'],
-});
-export const BillingPrices = defineTable<BillingPriceRow, 'provider_id'>({
-	name: 'billing_prices',
-	columns: BILLING_PRICE_COLUMNS,
-	primaryKey: ['provider_id'],
-});
-export const BillingPaymentMethods = defineTable<BillingPaymentMethodRow, 'provider_id'>({
-	name: 'billing_payment_methods',
-	columns: BILLING_PAYMENT_METHOD_COLUMNS,
-	primaryKey: ['provider_id'],
-});
-export const BillingPaymentMethodsByCustomer = defineTable<
-	BillingPaymentMethodByCustomerRow,
-	'customer_id' | 'provider_id'
->({
-	name: 'billing_payment_methods_by_customer',
-	columns: BILLING_PAYMENT_METHOD_BY_CUSTOMER_COLUMNS,
-	primaryKey: ['customer_id', 'provider_id'],
-});
-export const BillingSubscriptions = defineTable<BillingSubscriptionRow, 'provider_id'>({
-	name: 'billing_subscriptions',
-	columns: BILLING_SUBSCRIPTION_COLUMNS,
-	primaryKey: ['provider_id'],
-});
-export const BillingSubscriptionsByCustomer = defineTable<
-	BillingSubscriptionByCustomerRow,
-	'customer_id' | 'provider_id'
->({
-	name: 'billing_subscriptions_by_customer',
-	columns: BILLING_SUBSCRIPTION_BY_CUSTOMER_COLUMNS,
-	primaryKey: ['customer_id', 'provider_id'],
-});
-export const BillingSubscriptionsByUser = defineTable<BillingSubscriptionByUserRow, 'user_id' | 'provider_id'>({
-	name: 'billing_subscriptions_by_user',
-	columns: BILLING_SUBSCRIPTION_BY_USER_COLUMNS,
-	primaryKey: ['user_id', 'provider_id'],
-});
-export const BillingInvoices = defineTable<BillingInvoiceRow, 'provider_id'>({
-	name: 'billing_invoices',
-	columns: BILLING_INVOICE_COLUMNS,
-	primaryKey: ['provider_id'],
-});
-export const BillingInvoicesByCustomer = defineTable<
-	BillingInvoiceByCustomerRow,
-	'customer_id' | 'stripe_created_at' | 'provider_id',
-	'customer_id'
->({
-	name: 'billing_invoices_by_customer',
-	columns: BILLING_INVOICE_BY_CUSTOMER_COLUMNS,
-	primaryKey: ['customer_id', 'stripe_created_at', 'provider_id'],
-	partitionKey: ['customer_id'],
-});
-export const BillingPaymentIntents = defineTable<BillingPaymentIntentRow, 'provider_id'>({
-	name: 'billing_payment_intents',
-	columns: BILLING_PAYMENT_INTENT_COLUMNS,
-	primaryKey: ['provider_id'],
-});
-export const BillingCharges = defineTable<BillingChargeRow, 'provider_id'>({
-	name: 'billing_charges',
-	columns: BILLING_CHARGE_COLUMNS,
-	primaryKey: ['provider_id'],
-});
-export const BillingPayments = defineTable<BillingPaymentRow, 'provider_id'>({
-	name: 'billing_payments',
-	columns: BILLING_PAYMENT_COLUMNS,
-	primaryKey: ['provider_id'],
-});
-export const BillingPaymentsByInvoice = defineTable<
-	BillingPaymentByInvoiceRow,
-	'invoice_id' | 'stripe_created_at' | 'provider_id',
-	'invoice_id'
->({
-	name: 'billing_payments_by_invoice',
-	columns: BILLING_PAYMENT_BY_INVOICE_COLUMNS,
-	primaryKey: ['invoice_id', 'stripe_created_at', 'provider_id'],
-	partitionKey: ['invoice_id'],
-});
-export const BillingRefunds = defineTable<BillingRefundRow, 'provider_id'>({
-	name: 'billing_refunds',
-	columns: BILLING_REFUND_COLUMNS,
-	primaryKey: ['provider_id'],
-});
-export const BillingRefundsByCharge = defineTable<
-	BillingRefundByChargeRow,
-	'charge_id' | 'stripe_created_at' | 'provider_id',
-	'charge_id'
->({
-	name: 'billing_refunds_by_charge',
-	columns: BILLING_REFUND_BY_CHARGE_COLUMNS,
-	primaryKey: ['charge_id', 'stripe_created_at', 'provider_id'],
-	partitionKey: ['charge_id'],
-});
-export const BillingRefundsByPaymentIntent = defineTable<
-	BillingRefundByPaymentIntentRow,
-	'payment_intent_id' | 'stripe_created_at' | 'provider_id',
-	'payment_intent_id'
->({
-	name: 'billing_refunds_by_payment_intent',
-	columns: BILLING_REFUND_BY_PAYMENT_INTENT_COLUMNS,
-	primaryKey: ['payment_intent_id', 'stripe_created_at', 'provider_id'],
-	partitionKey: ['payment_intent_id'],
-});
-export const BillingRefundsByInvoice = defineTable<
-	BillingRefundByInvoiceRow,
-	'invoice_id' | 'stripe_created_at' | 'provider_id',
-	'invoice_id'
->({
-	name: 'billing_refunds_by_invoice',
-	columns: BILLING_REFUND_BY_INVOICE_COLUMNS,
-	primaryKey: ['invoice_id', 'stripe_created_at', 'provider_id'],
-	partitionKey: ['invoice_id'],
-});
-export const PaymentDisputeReviews = defineTable<PaymentDisputeReviewRow, 'dispute_id'>({
-	name: 'payment_dispute_reviews',
-	columns: PAYMENT_DISPUTE_REVIEW_COLUMNS,
-	primaryKey: ['dispute_id'],
-});
-export const PaymentDisputeReviewsByPurchaser = defineTable<
-	PaymentDisputeReviewByPurchaserRow,
-	'purchaser_id' | 'dispute_id',
-	'purchaser_id'
->({
-	name: 'payment_dispute_reviews_by_purchaser',
-	columns: PAYMENT_DISPUTE_REVIEW_BY_PURCHASER_COLUMNS,
-	primaryKey: ['purchaser_id', 'dispute_id'],
-	partitionKey: ['purchaser_id'],
 });
 export const VoiceP2pConnectionReports = defineTable<VoiceP2pConnectionReportRow, 'user_id' | 'report_id'>({
 	name: 'voice_p2p_connection_reports',

@@ -5,11 +5,7 @@ import type {CustomBadge} from '@app/api/instance/custom_badges/CustomBadgeRepos
 import type {BuiltInBadgeImages} from '@app/api/instance/InstanceConfigRepository';
 import {Logger} from '@app/api/Logger';
 import type {VisiblePremiumBadge} from '@app/api/user/profile_badges/PremiumBadgeMasking';
-import {
-	operatorPassBadgeAsset,
-	operatorPassSmallBadgeAsset,
-	PROFILE_BADGE_ASSETS,
-} from '@app/api/user/profile_badges/ProfileBadgeAssets';
+import {PROFILE_BADGE_ASSETS} from '@app/api/user/profile_badges/ProfileBadgeAssets';
 import {getVisionaryNumberTag} from '@app/api/user/profile_badges/VisionaryNumberTags';
 import type {ProfileBadgeKind} from '@osaca/constants/src/BadgeConstants';
 import {UserFlags, UserPremiumTypes} from '@osaca/constants/src/UserConstants';
@@ -27,15 +23,9 @@ export interface ProfileBadgeEnvironment {
 	builtInImages: BuiltInBadgeImages;
 }
 
-export interface VisibleOperatorPass {
-	since: Date | null;
-	count: number | null;
-}
-
 export interface ProfileBadgeView {
 	flags: bigint;
 	premium: VisiblePremiumBadge;
-	operatorPass: VisibleOperatorPass | null;
 	environment: ProfileBadgeEnvironment;
 	locale: string;
 	shown: ReadonlySet<ProfileBadgeKind>;
@@ -117,54 +107,6 @@ export const PROFILE_BADGE_REGISTRY: ReadonlyArray<ProfileBadgeDefinition> = [
 		qualify: flagBadge(UserFlags.BUG_HUNTER, (view) =>
 			getContentMessage('profile_badge.bug_hunter', view.locale, {product_name: view.environment.productName}),
 		),
-	},
-	{
-		kind: 'operator_pass',
-		asset: PROFILE_BADGE_ASSETS.operator_pass,
-		availability: 'hosted',
-		href: marketing('pass'),
-		qualify: (view) => {
-			if (!view.operatorPass) return null;
-			const {since, count} = view.operatorPass;
-			const stacked = count != null && count >= 2;
-			const sinceDate = since ? formatSinceDate(since, view.locale) : null;
-			const lines: Array<string> = [];
-			if (sinceDate) {
-				lines.push(
-					getContentMessage('profile_badge.operator_pass_since_line', view.locale, {
-						since_date: sinceDate,
-					}),
-				);
-			}
-			if (stacked) {
-				lines.push(getContentMessage('profile_badge.operator_pass_count', view.locale, {count}));
-				lines.push(getContentMessage('profile_badge.operator_pass_recognition_v2', view.locale));
-			}
-			let label: string;
-			if (sinceDate && stacked) {
-				label = getContentMessage('profile_badge.operator_pass_since_count', view.locale, {
-					since_date: sinceDate,
-					count,
-				});
-			} else if (sinceDate) {
-				label = getContentMessage('profile_badge.operator_pass_since', view.locale, {
-					since_date: sinceDate,
-				});
-			} else {
-				label = getContentMessage('profile_badge.operator_pass', view.locale);
-			}
-			const title = getContentMessage('profile_badge.operator_pass_title', view.locale);
-			return {
-				label,
-				asset: operatorPassBadgeAsset(count),
-				smallAsset: operatorPassSmallBadgeAsset(count),
-				...(stacked ? {count} : {}),
-				accessibleLabel: stacked
-					? getContentMessage('profile_badge.operator_pass_accessible_count', view.locale, {count})
-					: title,
-				details: {title, lines},
-			};
-		},
 	},
 	{
 		kind: 'visionary',

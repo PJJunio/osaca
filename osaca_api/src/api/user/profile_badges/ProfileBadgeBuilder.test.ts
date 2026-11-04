@@ -50,7 +50,6 @@ const visionary = (premiumFlags = 0, premiumLifetimeSequence: number | null = 42
 function build(overrides: Partial<ProfileBadgeInput> = {}) {
 	return buildProfileBadges({
 		user: subject(),
-		operatorPass: null,
 		locale: 'en-US',
 		environment: HOSTED,
 		...overrides,

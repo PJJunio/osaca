@@ -14,7 +14,6 @@ import type {EntityAssetService, PreparedAssetUpload} from '@app/api/infrastruct
 import {getEmailDeliveryState} from '@app/api/instance/AccountsConfigCache';
 import {getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
 import type {User} from '@app/api/models/User';
-import {enqueueStripeCustomerEmailSync} from '@app/api/stripe/StripeCustomer';
 import {
 	type PartialUserChangePropagationDeps,
 	propagateUserUpdate,
@@ -200,7 +199,6 @@ export class AdminUserProfileService {
 		const user = await userRepository.findUniqueAssert(userId);
 		const updatedUser = await confirmEmailOwnership(this.deps.apiContext, user);
 		await propagateUserUpdate(userUpdateDeps, user, updatedUser);
-		await enqueueStripeCustomerEmailSync(this.deps.apiContext.services.worker, user, updatedUser);
 		await auditService.createAuditLog({
 			adminUserId,
 			targetType: 'user',
@@ -259,7 +257,6 @@ export class AdminUserProfileService {
 			users: userRepository,
 			cache: cacheService,
 			contactChangeLog: contactChangeLogService,
-			worker: workerService,
 		} = this.deps.apiContext.services;
 		const {auditService, userUpdateDeps} = this.deps;
 		const userId = createUserID(data.user_id);
@@ -279,7 +276,6 @@ export class AdminUserProfileService {
 			reason: 'admin_action',
 			actorUserId: adminUserId,
 		});
-		await enqueueStripeCustomerEmailSync(workerService, user, updatedUser);
 		await auditService.createAuditLog({
 			adminUserId,
 			targetType: 'user',

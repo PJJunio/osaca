@@ -4,7 +4,6 @@ import {getActiveDeveloperOptionEntries} from '@app/features/channel/components/
 import {
 	ActiveOverrideMenuGroup,
 	BackendPremiumOverrideMenuGroup,
-	BackendPremiumPerksDisabledMenuGroup,
 } from '@app/features/channel/components/channel_header_components/developer_tools/DeveloperToolsMenuComponents';
 import {
 	ACTIVE_DESCRIPTOR,
@@ -14,7 +13,6 @@ import {
 import {setNagbarUseActual} from '@app/features/channel/components/channel_header_components/developer_tools/NagbarControls';
 import {resetAllDeveloperOptions} from '@app/features/channel/components/channel_header_components/developer_tools/ResetOptions';
 import {getNagbarControls} from '@app/features/devtools/components/NagbarControls';
-import * as PremiumCommands from '@app/features/premium/commands/PremiumCommands';
 import {remFromPx} from '@app/features/theme/layout/RemFromPx';
 import {SubMenu as MenuItemSubmenu} from '@app/features/ui/action_menu/ContextMenu';
 import {MenuItem} from '@app/features/ui/action_menu/MenuItem';
@@ -44,14 +42,6 @@ const BACKEND_PREMIUM_OVERRIDE_ENABLED_DESCRIPTOR = msg({
 	message: 'Backend premium override enabled',
 	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
 });
-const BACKEND_PREMIUM_PERKS_DISABLED_DESCRIPTOR = msg({
-	message: 'Backend premium perks disabled',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const PREMIUM_PERKS_DISABLED_DESCRIPTOR = msg({
-	message: 'Premium perks disabled',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
 export const DeveloperStateSummaryMenu: React.FC = observer(() => {
 	const {i18n} = useLingui();
 	const user = Users.currentUser;
@@ -65,12 +55,7 @@ export const DeveloperStateSummaryMenu: React.FC = observer(() => {
 			reset: () => setNagbarUseActual(control),
 		}));
 	const backendPremiumOverrideActive = user?.premiumEnabledOverride === true;
-	const backendPremiumPerksDisabledActive = user?.premiumPerksDisabled === true;
-	const activeCount =
-		developerEntries.length +
-		nagbarEntries.length +
-		(backendPremiumOverrideActive ? 1 : 0) +
-		(backendPremiumPerksDisabledActive ? 1 : 0);
+	const activeCount = developerEntries.length + nagbarEntries.length + (backendPremiumOverrideActive ? 1 : 0);
 	const activeHint =
 		activeCount === 0
 			? i18n._(NO_ACTIVE_OVERRIDES_DESCRIPTOR)
@@ -80,9 +65,6 @@ export const DeveloperStateSummaryMenu: React.FC = observer(() => {
 		NagbarCommands.resetAllNagbars();
 		if (backendPremiumOverrideActive) {
 			void UserCommands.update({premium_enabled_override: false});
-		}
-		if (backendPremiumPerksDisabledActive) {
-			void PremiumCommands.setPremiumPerksDisabled(false);
 		}
 	};
 	return (
@@ -134,13 +116,6 @@ export const DeveloperStateSummaryMenu: React.FC = observer(() => {
 								label={i18n._(BACKEND_PREMIUM_OVERRIDE_DESCRIPTOR)}
 								hint={i18n._(BACKEND_PREMIUM_OVERRIDE_ENABLED_DESCRIPTOR)}
 								data-flx="channel.channel-header-components.developer-tools-context-menu.developer-state-summary-menu.backend-premium-override-menu-group"
-							/>
-						)}
-						{backendPremiumPerksDisabledActive && (
-							<BackendPremiumPerksDisabledMenuGroup
-								label={i18n._(BACKEND_PREMIUM_PERKS_DISABLED_DESCRIPTOR)}
-								hint={i18n._(PREMIUM_PERKS_DISABLED_DESCRIPTOR)}
-								data-flx="channel.channel-header-components.developer-tools-context-menu.developer-state-summary-menu.backend-premium-perks-disabled-menu-group"
 							/>
 						)}
 					</>

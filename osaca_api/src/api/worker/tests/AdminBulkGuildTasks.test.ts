@@ -96,7 +96,6 @@ function installWorkerDependencies(): void {
 		deletionQueueService: getKVAccountDeletionQueue(),
 		bulkMessageDeletionQueueService: getKVBulkMessageDeletionQueue(),
 		guildService: guildStack.guildService,
-		stripe: null,
 	});
 }
 

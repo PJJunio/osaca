@@ -4,7 +4,6 @@ import {Routes} from '@app/app/Routes';
 import {UserSettingsModal} from '@app/features/app/components/dialogs/LoadableSettingsModals';
 import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
 import Authentication from '@app/features/auth/state/Authentication';
-import * as GiftCommands from '@app/features/gift/commands/GiftCommands';
 import * as InviteCommands from '@app/features/invite/commands/InviteCommands';
 import {setPathQueryParams} from '@app/features/messaging/utils/MessagingUrlUtils';
 import {type AppPageId, navigateToAppPage, parseAppPagePath} from '@app/features/navigation/utils/AppPageLinks';
@@ -13,8 +12,6 @@ import {isDesktopLocalAppDocument} from '@app/features/platform/DesktopLocalAppR
 import {currentInstanceTarget} from '@app/features/platform/transport/InstanceHTTP';
 import {Logger} from '@app/features/platform/utils/AppLogger';
 import {ComponentBus} from '@app/features/platform/utils/ComponentBus';
-import * as PlutoniumPageCommands from '@app/features/premium/commands/PlutoniumPageCommands';
-import {shouldShowPremiumFeatures} from '@app/features/premium/utils/PremiumUtils';
 import * as ModalCommands from '@app/features/ui/commands/ModalCommands';
 import {APP_PROTOCOL_SCHEME, isAppProtocolUrl} from '@app/features/ui/utils/AppProtocol';
 import {getElectronAPI} from '@app/features/ui/utils/NativeUtils';
@@ -34,11 +31,6 @@ const ROUTE_PATH_BLOCKLIST = /["'<>\\|\t\r\n]/;
 type DeepLinkTarget =
 	| {
 			type: 'invite';
-			code: string;
-			preferLogin: boolean;
-	  }
-	| {
-			type: 'gift';
 			code: string;
 			preferLogin: boolean;
 	  }
@@ -80,7 +72,6 @@ function isRoutableDeepLinkPath(path: string): boolean {
 		path === Routes.ME ||
 		path.startsWith('/channels/') ||
 		path.startsWith('/invite/') ||
-		path.startsWith('/gift/') ||
 		path.startsWith('/theme/') ||
 		path.startsWith('/users/')
 	);
@@ -102,9 +93,6 @@ const parseDeepLink = (rawUrl: string): DeepLinkTarget | null => {
 		const preferLogin = third === 'login' || search?.includes('login=1') || search?.includes('action=login') || false;
 		if (first === 'invite' && second) {
 			return {type: 'invite', code: second, preferLogin};
-		}
-		if (first === 'gift' && second) {
-			return {type: 'gift', code: second, preferLogin};
 		}
 		if (first === 'users' && second) {
 			return {type: 'user', userId: second};
@@ -132,10 +120,6 @@ const parseDeepLink = (rawUrl: string): DeepLinkTarget | null => {
 };
 
 function openUserSettingsDeepLink(target: UserSettingsDeepLinkTarget): void {
-	if (target.tab === 'plutonium') {
-		PlutoniumPageCommands.openPlutoniumPage();
-		return;
-	}
 	ModalCommands.push(
 		ModalCommands.modal(
 			() =>
@@ -151,16 +135,10 @@ function openUserSettingsDeepLink(target: UserSettingsDeepLinkTarget): void {
 
 const navigateForTarget = (target: DeepLinkTarget) => {
 	const isAuthenticated = Authentication.isAuthenticated;
-	if (target.type === 'gift' && RuntimeConfig.getSnapshotOrNull() !== null && !shouldShowPremiumFeatures()) {
-		return;
-	}
 	if (isAuthenticated) {
 		const instanceTarget = currentInstanceTarget();
 		if (target.type === 'invite') {
 			void InviteCommands.openAcceptModal(target.code, instanceTarget);
-			RouterUtils.transitionTo(Routes.ME);
-		} else if (target.type === 'gift') {
-			void GiftCommands.openAcceptModal(target.code, instanceTarget);
 			RouterUtils.transitionTo(Routes.ME);
 		} else if (target.type === 'user') {
 			navigateToLinkedUserProfile(target.userId);
@@ -188,10 +166,7 @@ const navigateForTarget = (target: DeepLinkTarget) => {
 	}
 	if (target.type === 'route') {
 		RouterUtils.transitionTo(target.path);
-		return;
 	}
-	const dest = target.preferLogin ? Routes.giftLogin(target.code) : Routes.giftRegister(target.code);
-	RouterUtils.transitionTo(dest);
 };
 
 export function isAppDeepLink(rawUrl: string): boolean {

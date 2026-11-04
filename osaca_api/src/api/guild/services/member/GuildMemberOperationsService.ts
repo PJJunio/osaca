@@ -40,7 +40,6 @@ import type {GuildMember} from '@app/api/models/GuildMember';
 import type {User} from '@app/api/models/User';
 import type {UserGuildSettings} from '@app/api/models/UserGuildSettings';
 import type {UserSettings} from '@app/api/models/UserSettings';
-import {resolveOperatorPassJoinRoleIds} from '@app/api/operator_pass/OperatorPassLabsRole';
 import {assertAccountNotLimited} from '@app/api/user/AccountLimit';
 import type {TierContext} from '@app/api/user/AccountTier';
 import {assertTierAllows, NO_TIER_CONTEXT} from '@app/api/user/AccountTier';
@@ -480,7 +479,6 @@ export class GuildMemberOperationsService {
 			metadata?.communication_disabled_until && metadata.communication_disabled_until.getTime() > Date.now()
 				? metadata.communication_disabled_until
 				: null;
-		const joinRoleIds = await resolveOperatorPassJoinRoleIds(guildId, user, this.guildRepository);
 		const guildMember = await this.guildRepository.upsertMember({
 			guild_id: guildId,
 			user_id: userId,
@@ -497,7 +495,7 @@ export class GuildMemberOperationsService {
 			deaf: false,
 			mute: false,
 			communication_disabled_until: restoredTimeout,
-			role_ids: joinRoleIds,
+			role_ids: null,
 			is_premium_sanitized: null,
 			temporary: isTemporary,
 			profile_flags: null,

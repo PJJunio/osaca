@@ -184,7 +184,6 @@ export default defineConfig({
 						'topics/captcha',
 						'topics/uploads',
 						'topics/locales',
-						'http-api/deployment-availability',
 					],
 				},
 				{
@@ -213,7 +212,6 @@ export default defineConfig({
 						'http-api/users/private-channels',
 						'http-api/users/push-notifications',
 						'http-api/users/content',
-						'http-api/users/gifts',
 						'http-api/users/data-harvest',
 					],
 				},
@@ -247,10 +245,6 @@ export default defineConfig({
 				{
 					label: 'Discovery and content',
 					items: ['http-api/discovery', 'http-api/invites', 'http-api/search', 'http-api/unfurl'],
-				},
-				{
-					label: 'Commerce',
-					items: ['http-api/billing', 'http-api/premium', 'http-api/gifts'],
 				},
 				{
 					label: 'Client surfaces',
@@ -313,7 +307,6 @@ export default defineConfig({
 						'admin-api/discovery',
 						'admin-api/system-dms',
 						'admin-api/instance',
-						'admin-api/gift-codes',
 						'admin-api/gateway',
 						'admin-api/voice',
 						'admin-api/jobs',
@@ -347,10 +340,6 @@ export default defineConfig({
 		'/admin-api/payment-disputes': '/admin-api/',
 		'/api-reference': '/http-api/',
 		'/api-reference/[...path]': '/http-api/',
-		'/http-api/donations': '/http-api/billing/',
-		'/http-api/in-app-purchases': '/http-api/premium/',
-		'/http-api/operator-pass': '/http-api/premium/',
-		'/http-api/operator-pass-waitlist': '/http-api/premium/',
 		'/operator/configuration': '/operator/running/',
 		'/operator/get-started': '/operator/',
 		'/operator/operator-pass': '/operator/',

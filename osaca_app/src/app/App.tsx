@@ -37,7 +37,6 @@ import {Logger} from '@app/features/platform/utils/AppLogger';
 import {ensureAutostartDefaultEnabled} from '@app/features/platform/utils/Autostart';
 import {startDesktopJumpListBridge} from '@app/features/platform/utils/DesktopJumpListBridge';
 import {startDesktopLocaleBridge} from '@app/features/platform/utils/DesktopLocaleBridge';
-import {PremiumCheckoutReturnWatcher} from '@app/features/premium/components/PremiumCheckoutReturnWatcher';
 import {QUICK_SWITCHER_PORTAL_ID} from '@app/features/search/components/quick_switcher/QuickSwitcherConstants';
 import {useCustomThemeStyle, useInstanceCustomCss} from '@app/features/theme/hooks/useCustomThemeStyle';
 import {useRemScaleTracking} from '@app/features/theme/hooks/useRemScaleTracking';
@@ -72,10 +71,10 @@ import {startScreenSharePiPController} from '@app/features/voice/state/ScreenSha
 import {useNativeTitleBar} from '@app/features/window/hooks/useNativeTitleBar';
 import {useStopFlashFrameOnFocus} from '@app/features/window/hooks/useStopFlashFrameOnFocus';
 import {useWindowEventListeners} from '@app/features/window/hooks/useWindowEventListeners';
-import {ThemeTypes} from '@osaca/constants/src/UserConstants';
 import {i18n} from '@lingui/core';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
+import {ThemeTypes} from '@osaca/constants/src/UserConstants';
 import {IconContext} from '@phosphor-icons/react';
 import {reaction} from 'mobx';
 import {observer} from 'mobx-react-lite';
@@ -308,7 +307,6 @@ export const App = observer((): React.ReactElement => {
 	return (
 		<AppI18nProvider i18n={i18n}>
 			<IconContext.Provider value={{color: 'currentColor', weight: 'fill'}}>
-				<PremiumCheckoutReturnWatcher data-flx="app.app.premium-checkout-return-watcher" />
 				<DndContext data-flx="app.app.dnd-context">
 					<RouterProvider router={router}>
 						<AppWrapper data-flx="app.app.app-wrapper">

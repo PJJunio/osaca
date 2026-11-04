@@ -49,8 +49,6 @@ function createUser(params?: {emailVerified?: boolean}): User {
 		premium_billing_cycle: null,
 		premium_lifetime_sequence: null,
 		premium_grace_ends_at: null,
-		stripe_subscription_id: null,
-		stripe_customer_id: null,
 		has_ever_purchased: false,
 		terms_agreed_at: null,
 		privacy_agreed_at: null,

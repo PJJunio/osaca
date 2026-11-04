@@ -54,12 +54,6 @@ import {enqueueRegistrationApprovalNotice} from '@app/api/instance/RegistrationA
 import {isSetupTokenEnforced} from '@app/api/instance/SetupToken';
 import {Logger} from '@app/api/Logger';
 import {isStoredLimitConfig} from '@app/api/limits/LimitConfigValidation';
-import {
-	getEffectiveBillingConfig,
-	isBillingActive,
-	isStripeServiceable,
-	setStoredBillingConfig,
-} from '@app/api/stripe/BillingConfigCache';
 import {AdminAuditLogs, InstanceConfiguration, Users} from '@app/api/Tables';
 import {DEFAULT_DECAY_CONSTANTS, DEFAULT_RENEWAL_CONSTANTS} from '@app/api/utils/AttachmentDecay';
 import {isJsonRecord} from '@app/api/utils/JsonBoundaryUtils';
@@ -141,11 +135,6 @@ import {
 	GuildVisitsConfigSchema,
 	type GuildVisitsConfigUpdateRequest,
 } from '@osaca/schema/src/domains/admin/GuildVisitsSchemas';
-import {
-	type BillingCatalogMode,
-	type StoredBillingConfig,
-	StoredBillingConfigSchema,
-} from '@osaca/schema/src/domains/admin/InstanceBillingSchemas';
 import {type VoiceP2pConfig, VoiceP2pConfigSchema} from '@osaca/schema/src/domains/admin/VoiceP2pSchemas';
 import {
 	type ExperimentDeliveryConfig,
@@ -187,7 +176,6 @@ const INSTANCE_POLICY_CONFIG_KEY = 'instance_policy_config';
 const LIMIT_CONFIG_KEY = 'limit_config';
 const INSTANCE_INTEGRATIONS_CONFIG_KEY = 'instance_integrations_config';
 const INSTANCE_MEDIA_CONFIG_KEY = 'instance_media_config';
-const INSTANCE_BILLING_CONFIG_KEY = 'instance_billing_config';
 const ACCOUNT_IDENTITY_CONFIG_KEY = 'account_identity_config';
 const INSTANCE_NOTICE_KEY = 'instance_notice';
 const CUSTOM_BADGES_CONFIG_KEY = 'custom_badges';
@@ -231,49 +219,6 @@ interface AppPublicConfigPatch {
 	branding?: InstanceBrandingPatch;
 	setup?: Partial<InstanceAppPublicConfig['setup']>;
 	legal?: Partial<InstanceAppPublicConfig['legal']>;
-}
-
-export type InstanceBillingConfig = StoredBillingConfig;
-
-type InstanceBillingPriceSetPatch = Partial<NonNullable<StoredBillingConfig['prices']>[string]>;
-
-export interface InstanceBillingConfigPatch {
-	enabled?: boolean | null;
-	stripe_secret_key?: string | null;
-	stripe_webhook_secret?: string | null;
-	automatic_tax?: boolean | null;
-	tax_id_collection?: boolean | null;
-	terms_consent_required?: boolean | null;
-	billing_emails?: boolean | null;
-	default_currency?: string | null;
-	prices?: Record<string, InstanceBillingPriceSetPatch> | null;
-	country_currencies?: Record<string, string> | null;
-	legacy_prices?: Record<string, Array<string>> | null;
-}
-
-export interface InstanceBillingAdminConfig {
-	enabled: boolean | null;
-	effective_enabled: boolean;
-	stripe_secret_key_set: boolean;
-	stripe_webhook_secret_set: boolean;
-	stripe_secret_key_stored: boolean;
-	stripe_webhook_secret_stored: boolean;
-	automatic_tax: boolean | null;
-	tax_id_collection: boolean | null;
-	terms_consent_required: boolean | null;
-	billing_emails: boolean | null;
-	effective_automatic_tax: boolean;
-	effective_tax_id_collection: boolean;
-	effective_terms_consent_required: boolean;
-	effective_billing_emails: boolean;
-	default_currency: string | null;
-	prices: StoredBillingConfig['prices'];
-	country_currencies: StoredBillingConfig['country_currencies'];
-	legacy_prices: StoredBillingConfig['legacy_prices'];
-	billing_active: boolean;
-	stripe_serviceable: boolean;
-	catalog_mode: BillingCatalogMode;
-	webhook_url: string;
 }
 
 export type InstancePremiumMode = 'mirror' | 'everyone';
@@ -531,7 +476,6 @@ type StoredConfigSection =
 	| 'instance policy'
 	| 'integrations'
 	| 'media'
-	| 'billing'
 	| 'registration'
 	| 'registration URLs'
 	| 'pending registrations'
@@ -1133,30 +1077,6 @@ function parseStoredInstanceIntegrationsConfig(raw: string | null): InstanceInte
 	);
 }
 
-function decodeInstanceBillingConfig(value: unknown): InstanceBillingConfig {
-	return validateStoredConfig(StoredBillingConfigSchema, value, 'billing');
-}
-
-function parseStoredInstanceBillingConfig(raw: string | null): InstanceBillingConfig {
-	return salvageStoredConfig(StoredBillingConfigSchema, readStoredConfigValue(raw, 'billing'), 'billing');
-}
-
-function normalizeBillingPrices(
-	prices: Record<string, InstanceBillingPriceSetPatch> | null,
-): Record<string, InstanceBillingPriceSetPatch> | null {
-	if (prices === null) return null;
-	const entries = Object.entries(prices).map(([currency, set]): [string, InstanceBillingPriceSetPatch] => [
-		currency,
-		{
-			monthly: set.monthly ?? null,
-			yearly: set.yearly ?? null,
-			gift_1_month: set.gift_1_month ?? null,
-			gift_1_year: set.gift_1_year ?? null,
-		},
-	]);
-	return entries.length === 0 ? null : Object.fromEntries(entries);
-}
-
 function secretIsSet(value: unknown): boolean {
 	return typeof value === 'string' && value.trim().length > 0;
 }
@@ -1563,7 +1483,6 @@ export class InstanceConfigRepository {
 			parseStoredInstanceIntegrationsConfig(snapshot.get(INSTANCE_INTEGRATIONS_CONFIG_KEY) ?? null),
 		);
 		checkStoredConfig('media', () => parseStoredInstanceMediaConfig(snapshot.get(INSTANCE_MEDIA_CONFIG_KEY) ?? null));
-		setStoredBillingConfig(parseStoredInstanceBillingConfig(snapshot.get(INSTANCE_BILLING_CONFIG_KEY) ?? null));
 		const appPublic = parseStoredAppPublicConfig(snapshot.get(APP_PUBLIC_CONFIG_KEY) ?? null);
 		setCachedConfiguredLegalUrls(appPublic.legal);
 		setCachedProductName(appPublic.branding.product_name);
@@ -2632,74 +2551,6 @@ export class InstanceConfigRepository {
 				policy_uri: bluesky.policy_uri || null,
 				key_count: bluesky.keys.length,
 			},
-		};
-	}
-
-	async getInstanceBillingConfig(): Promise<InstanceBillingConfig> {
-		const raw = await this.getConfig(INSTANCE_BILLING_CONFIG_KEY);
-		const config = parseStoredInstanceBillingConfig(raw);
-		setStoredBillingConfig(config);
-		return config;
-	}
-
-	async readStoredInstanceBillingConfig(): Promise<InstanceBillingConfig> {
-		const cache = this.configCache;
-		cache.assertActive();
-		const raw = await this.fetchConfigFromDatabase(INSTANCE_BILLING_CONFIG_KEY);
-		cache.assertActive();
-		return parseStoredInstanceBillingConfig(raw);
-	}
-
-	async setInstanceBillingConfig(patch: InstanceBillingConfigPatch): Promise<InstanceBillingConfig> {
-		const next = await this.updateStoredConfig(INSTANCE_BILLING_CONFIG_KEY, (raw) => {
-			const current = parseStoredInstanceBillingConfig(raw);
-			return decodeInstanceBillingConfig({
-				enabled: patch.enabled === undefined ? current.enabled : patch.enabled,
-				stripe_secret_key: patch.stripe_secret_key === undefined ? current.stripe_secret_key : patch.stripe_secret_key,
-				stripe_webhook_secret:
-					patch.stripe_webhook_secret === undefined ? current.stripe_webhook_secret : patch.stripe_webhook_secret,
-				automatic_tax: patch.automatic_tax === undefined ? current.automatic_tax : patch.automatic_tax,
-				tax_id_collection: patch.tax_id_collection === undefined ? current.tax_id_collection : patch.tax_id_collection,
-				terms_consent_required:
-					patch.terms_consent_required === undefined ? current.terms_consent_required : patch.terms_consent_required,
-				billing_emails: patch.billing_emails === undefined ? current.billing_emails : patch.billing_emails,
-				default_currency: patch.default_currency === undefined ? current.default_currency : patch.default_currency,
-				prices: patch.prices === undefined ? current.prices : normalizeBillingPrices(patch.prices),
-				country_currencies:
-					patch.country_currencies === undefined ? current.country_currencies : patch.country_currencies,
-				legacy_prices: patch.legacy_prices === undefined ? current.legacy_prices : patch.legacy_prices,
-			});
-		});
-		setStoredBillingConfig(next);
-		return next;
-	}
-
-	async getInstanceBillingAdminConfig(): Promise<InstanceBillingAdminConfig> {
-		const stored = await this.getInstanceBillingConfig();
-		const effective = getEffectiveBillingConfig();
-		return {
-			enabled: stored.enabled,
-			effective_enabled: effective.enabled,
-			stripe_secret_key_set: effective.secretKey !== null,
-			stripe_webhook_secret_set: effective.webhookSecret !== null,
-			stripe_secret_key_stored: secretIsSet(stored.stripe_secret_key),
-			stripe_webhook_secret_stored: secretIsSet(stored.stripe_webhook_secret),
-			automatic_tax: stored.automatic_tax,
-			tax_id_collection: stored.tax_id_collection,
-			terms_consent_required: stored.terms_consent_required,
-			billing_emails: stored.billing_emails,
-			effective_automatic_tax: effective.automaticTax,
-			effective_tax_id_collection: effective.taxIdCollection,
-			effective_terms_consent_required: effective.termsConsentRequired,
-			effective_billing_emails: effective.billingEmails,
-			default_currency: stored.default_currency,
-			prices: stored.prices,
-			country_currencies: stored.country_currencies,
-			legacy_prices: stored.legacy_prices,
-			billing_active: isBillingActive(effective),
-			stripe_serviceable: isStripeServiceable(effective),
-			catalog_mode: effective.catalogMode,
-			webhook_url: `${Config.endpoints.apiPublic.replace(/\/+$/, '')}/stripe/webhook`,
 		};
 	}
 

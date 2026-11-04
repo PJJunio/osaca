@@ -5,7 +5,6 @@ import {SpoilerOverlay} from '@app/features/app/components/shared/SpoilerOverlay
 import {Attachment} from '@app/features/channel/components/embeds/attachments/Attachment';
 import {AttachmentMosaic} from '@app/features/channel/components/embeds/attachments/AttachmentMosaic';
 import {Embed} from '@app/features/channel/components/embeds/ChannelEmbed';
-import {GiftEmbed} from '@app/features/channel/components/GiftEmbed';
 import {InviteEmbed} from '@app/features/channel/components/InviteEmbed';
 import {getAttachmentRenderingState} from '@app/features/channel/components/MessageAttachmentStateUtils';
 import styles from '@app/features/channel/components/MessageAttachments.module.css';
@@ -25,7 +24,6 @@ import {
 	EXPRESSION_INFO_SURFACE_OPEN_IS_INTERACTION,
 	STICKER_PREVIEW_SIZE,
 } from '@app/features/expressions/utils/ExpressionPreviewConstants';
-import * as GiftCodeUtils from '@app/features/gift/utils/GiftCodeUtils';
 import {GuildIcon} from '@app/features/guild/components/popouts/GuildIcon';
 import * as InviteUtils from '@app/features/invite/utils/InviteUtils';
 import {SafeMarkdown} from '@app/features/messaging/components/markdown';
@@ -51,6 +49,7 @@ import {ArrowBendUpRightIcon, CaretRightIcon} from '@app/features/ui/icons/Direc
 import MobileLayout from '@app/features/ui/state/MobileLayout';
 import UserSettings from '@app/features/user/state/UserSettings';
 import * as AvatarUtils from '@app/features/user/utils/AvatarUtils';
+import {Trans, useLingui} from '@lingui/react/macro';
 import {ChannelTypes} from '@osaca/constants/src/ChannelConstants';
 import type {MessageEmbed} from '@osaca/schema/src/domains/message/EmbedSchemas';
 import type {
@@ -58,7 +57,6 @@ import type {
 	MessageSnapshot,
 	MessageStickerItem,
 } from '@osaca/schema/src/domains/message/MessageResponseSchemas';
-import {Trans, useLingui} from '@lingui/react/macro';
 import {NotePencilIcon} from '@phosphor-icons/react';
 import {clsx} from 'clsx';
 import {observer} from 'mobx-react-lite';
@@ -601,7 +599,6 @@ export const MessageAttachments = observer(() => {
 		return {
 			invites: buildSpoileredCodeLinkMap(InviteUtils.findSpoileredInvites(embeddableCodeLinkContent), 'invite'),
 			themes: buildSpoileredCodeLinkMap(ThemeUtils.findSpoileredThemes(embeddableCodeLinkContent), 'theme'),
-			gifts: buildSpoileredCodeLinkMap(GiftCodeUtils.findSpoileredGifts(embeddableCodeLinkContent), 'gift'),
 		};
 	}, [message.content]);
 	return (
@@ -641,18 +638,6 @@ export const MessageAttachments = observer(() => {
 				>
 					<FocusRing data-flx="channel.message-attachments.focus-ring--2">
 						<ThemeEmbed themeId={themeId} data-flx="channel.message-attachments.theme-embed" />
-					</FocusRing>
-				</SpoileredUrlEmbed>
-			))}
-			{message.gifts.map((code) => (
-				<SpoileredUrlEmbed
-					key={code}
-					channelId={message.channelId}
-					spoilerKeys={spoileredUrlEmbeds.gifts.get(code)}
-					data-flx="channel.message-attachments.spoilered-url-embed--3"
-				>
-					<FocusRing data-flx="channel.message-attachments.focus-ring--3">
-						<GiftEmbed code={code} data-flx="channel.message-attachments.gift-embed" />
 					</FocusRing>
 				</SpoileredUrlEmbed>
 			))}

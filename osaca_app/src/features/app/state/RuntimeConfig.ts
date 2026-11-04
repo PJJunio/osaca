@@ -682,8 +682,6 @@ class RuntimeConfig {
 				...current.features,
 				self_hosted: config.self_hosted,
 				premium_enabled: !config.self_hosted || config.policy.premium_mode === 'mirror',
-				stripe_enabled: config.billing.billing_active,
-				stripe_serviceable: config.billing.stripe_serviceable,
 				...emailFeaturesForIdentity(config.account_identity.mode, current.features),
 				account_identity: config.account_identity.mode,
 				tag_style: config.account_identity.tag_style,
@@ -744,14 +742,6 @@ class RuntimeConfig {
 
 	get premiumEnabled(): boolean {
 		return this.features.premium_enabled;
-	}
-
-	get stripeEnabled(): boolean {
-		return this.features.stripe_enabled;
-	}
-
-	get stripeServiceable(): boolean {
-		return this.features.stripe_serviceable;
 	}
 
 	get emailsEnabled(): boolean {

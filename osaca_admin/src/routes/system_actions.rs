@@ -148,7 +148,6 @@ enum UpdateFeedback {
     Standard,
     Field(&'static str, &'static str),
     Premium,
-    Billing,
 }
 
 pub async fn instance_config_post(
@@ -209,9 +208,6 @@ pub async fn instance_config_post(
             "update_app_legal" => Ok(app_public::build_app_legal_update(&form)),
             "update_policy" => Ok(policy::build_policy_update(&form)),
             "update_media" => Ok(build_media_update(&form)),
-            "update_billing" => {
-                super::billing_actions::build_billing_update(&form).map_err(FlashData::error)
-            }
             "update_domain_migration" => {
                 experiments::build_domain_migration_update(&form).map_err(FlashData::error)
             }
@@ -264,11 +260,10 @@ pub async fn instance_config_post(
                 UpdateFeedback::Field("app_public.branding.custom_css", CUSTOM_CSS_FIELD)
             }
             "update_policy" => UpdateFeedback::Premium,
-            "update_billing" => UpdateFeedback::Billing,
             _ => UpdateFeedback::Standard,
         };
         let result = client.update_instance_config(&update).await;
-        if matches!(feedback, UpdateFeedback::Premium | UpdateFeedback::Billing) {
+        if matches!(feedback, UpdateFeedback::Premium) {
             remember_premium_branding(&state, &result);
         }
         let warnings = result
@@ -277,7 +272,6 @@ pub async fn instance_config_post(
             .unwrap_or_default();
         let flash = match feedback {
             UpdateFeedback::Field(api_path, field) => field_result(result, api_path, field),
-            UpdateFeedback::Billing => super::billing_actions::billing_result(result),
             UpdateFeedback::Standard | UpdateFeedback::Premium => instance_config_result(result),
         };
         with_save_warnings(flash, &warnings)

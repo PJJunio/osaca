@@ -14,20 +14,6 @@ function runAccountReadyWork(userId: string): void {
 		.catch((error) => {
 			logger.warn('Failed to start experiment assignments after READY', error);
 		});
-	void import('@app/features/premium/commands/PremiumCommands')
-		.then((module) => module.refreshPremiumState())
-		.catch((error) => {
-			logger.warn('Failed to refresh premium state after READY', error);
-		});
-	void import('@app/features/premium/utils/OperatorPassUtils')
-		.then(async (utils) => {
-			if (!utils.isOperatorPassAvailable()) return;
-			const commands = await import('@app/features/premium/commands/OperatorPassCommands');
-			await commands.loadPassesForAccount(userId);
-		})
-		.catch((error) => {
-			logger.warn('Failed to load Operator Passes after READY', error);
-		});
 	void import('@app/features/user/commands/OwnProfileBadgesCommands')
 		.then((module) => module.refresh())
 		.catch((error) => {

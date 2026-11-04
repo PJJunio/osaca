@@ -5,15 +5,13 @@ import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
 import {DIRECT_MESSAGES_DESCRIPTOR, FAVORITES_DESCRIPTOR} from '@app/features/i18n/utils/CommonMessageDescriptors';
 import Navigation from '@app/features/navigation/state/Navigation';
 import {isInternalChannelHost} from '@app/features/navigation/utils/DeepLinkUtils';
-import * as PlutoniumPageCommands from '@app/features/premium/commands/PlutoniumPageCommands';
-import {getPremiumProductFullName, shouldShowPremiumFeatures} from '@app/features/premium/utils/PremiumUtils';
 import {APP_PROTOCOL_SCHEME, isAppProtocolUrl} from '@app/features/ui/utils/AppProtocol';
-import {OFFICIAL_WEB_APP_HOSTS} from '@osaca/instance_bootstrap/src/OfficialWebAppHosts';
 import type {I18n} from '@lingui/core';
 import {msg} from '@lingui/core/macro';
-import {AtomIcon, ChatsCircleIcon, CompassIcon, type Icon, StarIcon} from '@phosphor-icons/react';
+import {OFFICIAL_WEB_APP_HOSTS} from '@osaca/instance_bootstrap/src/OfficialWebAppHosts';
+import {ChatsCircleIcon, CompassIcon, type Icon, StarIcon} from '@phosphor-icons/react';
 
-export type AppPageId = 'discovery' | 'plutonium' | 'favorites' | 'direct_messages';
+export type AppPageId = 'discovery' | 'favorites' | 'direct_messages';
 
 interface AppPageDefinition {
 	id: AppPageId;
@@ -29,7 +27,6 @@ const DISCOVERY_PAGE_DESCRIPTOR = msg({
 
 const APP_PAGES: ReadonlyArray<AppPageDefinition> = [
 	{id: 'discovery', paths: [Routes.DISCOVER, Routes.LEGACY_DISCOVER], icon: CompassIcon, appHostOnly: false},
-	{id: 'plutonium', paths: [Routes.PLUTONIUM], icon: AtomIcon, appHostOnly: true},
 	{id: 'favorites', paths: [Routes.FAVORITES], icon: StarIcon, appHostOnly: false},
 	{id: 'direct_messages', paths: [Routes.ME], icon: ChatsCircleIcon, appHostOnly: false},
 ];
@@ -55,7 +52,6 @@ function isWebAppHost(host: string): boolean {
 }
 
 function isPageAvailable(page: AppPageDefinition): boolean {
-	if (page.id === 'plutonium') return shouldShowPremiumFeatures();
 	if (page.id === 'discovery') return RuntimeConfig.discoveryAvailable;
 	if (page.id === 'direct_messages') return !RuntimeConfig.directMessagesDisabled;
 	return true;
@@ -95,8 +91,6 @@ export function getAppPageLabel(i18n: I18n, page: AppPageId): string {
 	switch (page) {
 		case 'discovery':
 			return i18n._(DISCOVERY_PAGE_DESCRIPTOR);
-		case 'plutonium':
-			return getPremiumProductFullName();
 		case 'favorites':
 			return i18n._(FAVORITES_DESCRIPTOR);
 		case 'direct_messages':
@@ -112,9 +106,6 @@ export function navigateToAppPage(page: AppPageId): void {
 	switch (page) {
 		case 'discovery':
 			Navigation.navigateToDiscover();
-			return;
-		case 'plutonium':
-			PlutoniumPageCommands.openPlutoniumPage();
 			return;
 		case 'favorites':
 			Navigation.navigateToFavorites();

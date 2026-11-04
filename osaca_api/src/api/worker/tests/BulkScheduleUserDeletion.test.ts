@@ -34,7 +34,6 @@ import {ReportStatus} from '@app/api/report/ReportModels';
 import {ReportRepository} from '@app/api/report/ReportRepository';
 import {getReportSearchService} from '@app/api/SearchFactory';
 import {drainSearchTasks} from '@app/api/search/SearchTaskTracker';
-import {createTestStoreEntitlementService} from '@app/api/store_billing/tests/StoreBillingTestUtils';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {createTestWorkerHelpers} from '@app/api/test/SyncTaskWorkerService';
 import {HTTP_STATUS} from '@app/api/test/TestConstants';
@@ -76,8 +75,6 @@ function installWorkerDependencies(): void {
 		limitConfigService: getLimitConfigService(),
 		deletionQueueService: getKVAccountDeletionQueue(),
 		bulkMessageDeletionQueueService: getKVBulkMessageDeletionQueue(),
-		stripe: null,
-		storeEntitlementService: createTestStoreEntitlementService(),
 	});
 }
 

@@ -27,17 +27,7 @@ type ExternallySetVariable =
 	| 'sudoModeToken'
 	| 'user';
 
-type ConfigurationDependentService =
-	| 'donationService'
-	| 'operatorPassCheckoutService'
-	| 'operatorPassEntitlementService';
-
-export type RequestScopedServices = Omit<
-	RequestVariables,
-	EagerlySetVariable | ExternallySetVariable | ConfigurationDependentService
-> & {
-	readonly [Key in ConfigurationDependentService]: RequestVariables[Key] | undefined;
-};
+export type RequestScopedServices = Omit<RequestVariables, EagerlySetVariable | ExternallySetVariable>;
 
 export type LazyServiceProvider = {
 	readonly [Key in keyof RequestVariables]?: RequestVariables[Key];

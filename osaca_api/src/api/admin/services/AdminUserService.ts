@@ -20,10 +20,8 @@ import type {EntityAssetService} from '@app/api/infrastructure/EntityAssetServic
 import type {KVAccountDeletionQueueService} from '@app/api/infrastructure/KVAccountDeletionQueueService';
 import type {KVBulkMessageDeletionQueueService} from '@app/api/infrastructure/KVBulkMessageDeletionQueueService';
 import type {UserCacheService} from '@app/api/infrastructure/UserCacheService';
-import {getBillingRepository} from '@app/api/middleware/ServiceRegistry';
 import {OAuth2TokenRepository} from '@app/api/oauth/repositories/OAuth2TokenRepository';
 import type {ReportService} from '@app/api/report/ReportService';
-import type {StoreEntitlementService} from '@app/api/store_billing/StoreEntitlementService';
 import type {UserRepository} from '@app/api/user/repositories/UserRepository';
 import type {PartialUserChangePropagationDeps} from '@app/api/user/services/PartialUserChangePropagation';
 import type {UserContactChangeLogService} from '@app/api/user/services/UserContactChangeLogService';
@@ -35,7 +33,6 @@ import type {
 	ListUserGroupDmChannelsRequest,
 } from '@osaca/schema/src/domains/admin/AdminUserSchemas';
 import type {ICacheService} from '@pkgs/cache/src/ICacheService';
-import type Stripe from 'stripe';
 
 interface AdminUserServiceDeps {
 	apiContext: ApiContext;
@@ -48,9 +45,7 @@ interface AdminUserServiceDeps {
 	banManagementService: AdminBanManagementService;
 	kvDeletionQueue: KVAccountDeletionQueueService;
 	bulkMessageDeletionQueue: KVBulkMessageDeletionQueueService;
-	stripe: Stripe | null;
 	reportService: ReportService;
-	storeEntitlementService: StoreEntitlementService;
 	reporterResolutionNotifier: ReporterResolutionNotifier;
 	enforcement: EnforcementDecisionService;
 	delivery: EnforcementNoticeDelivery;
@@ -115,10 +110,7 @@ export class AdminUserService {
 			reportService: deps.reportService,
 			userUpdateDeps: this.userUpdateDeps,
 			kvDeletionQueue: deps.kvDeletionQueue,
-			stripe: deps.stripe,
-			billingRepository: getBillingRepository(),
 			oauth2Tokens: new OAuth2TokenRepository(),
-			storeEntitlementService: deps.storeEntitlementService,
 			reporterResolutionNotifier: deps.reporterResolutionNotifier,
 			enforcement: deps.enforcement,
 			delivery: deps.delivery,

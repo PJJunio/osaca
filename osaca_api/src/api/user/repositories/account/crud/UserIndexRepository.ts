@@ -3,15 +3,7 @@
 import type {UserID} from '@app/api/BrandedTypes';
 import {BatchBuilder} from '@app/api/database/CassandraQueryExecution';
 import type {UserRow} from '@app/api/database/types/UserTypes';
-import {
-	UserByAcl,
-	UserByEmail,
-	UserByLastActiveIp,
-	UserByLastActiveIpTrustKey,
-	UserByStripeCustomerId,
-	UserByStripeSubscriptionId,
-	UserByUsername,
-} from '@app/api/Tables';
+import {UserByAcl, UserByEmail, UserByLastActiveIp, UserByLastActiveIpTrustKey, UserByUsername} from '@app/api/Tables';
 import {getSameIpDecisionKey} from '@osaca/ip_utils/src/IpAddress';
 
 export class UserIndexRepository {
@@ -56,38 +48,6 @@ export class UserIndexRepository {
 			batch.addPrepared(
 				UserByEmail.deleteByPk({
 					email_lower: oldData.email.toLowerCase(),
-					user_id: oldData.user_id,
-				}),
-			);
-		}
-		if (data.stripe_subscription_id) {
-			batch.addPrepared(
-				UserByStripeSubscriptionId.upsertAll({
-					stripe_subscription_id: data.stripe_subscription_id,
-					user_id: data.user_id,
-				}),
-			);
-		}
-		if (oldData?.stripe_subscription_id && oldData.stripe_subscription_id !== data.stripe_subscription_id) {
-			batch.addPrepared(
-				UserByStripeSubscriptionId.deleteByPk({
-					stripe_subscription_id: oldData.stripe_subscription_id,
-					user_id: oldData.user_id,
-				}),
-			);
-		}
-		if (data.stripe_customer_id) {
-			batch.addPrepared(
-				UserByStripeCustomerId.upsertAll({
-					stripe_customer_id: data.stripe_customer_id,
-					user_id: data.user_id,
-				}),
-			);
-		}
-		if (oldData?.stripe_customer_id && oldData.stripe_customer_id !== data.stripe_customer_id) {
-			batch.addPrepared(
-				UserByStripeCustomerId.deleteByPk({
-					stripe_customer_id: oldData.stripe_customer_id,
 					user_id: oldData.user_id,
 				}),
 			);
@@ -189,8 +149,6 @@ export class UserIndexRepository {
 		username: string,
 		discriminator: number,
 		email?: string | null,
-		stripeCustomerId?: string | null,
-		stripeSubscriptionId?: string | null,
 		lastActiveIp?: string | null,
 		acls?: ReadonlySet<string> | null,
 	): Promise<void> {
@@ -209,22 +167,6 @@ export class UserIndexRepository {
 			batch.addPrepared(
 				UserByEmail.deleteByPk({
 					email_lower: email.toLowerCase(),
-					user_id: userId,
-				}),
-			);
-		}
-		if (stripeCustomerId) {
-			batch.addPrepared(
-				UserByStripeCustomerId.deleteByPk({
-					stripe_customer_id: stripeCustomerId,
-					user_id: userId,
-				}),
-			);
-		}
-		if (stripeSubscriptionId) {
-			batch.addPrepared(
-				UserByStripeSubscriptionId.deleteByPk({
-					stripe_subscription_id: stripeSubscriptionId,
 					user_id: userId,
 				}),
 			);

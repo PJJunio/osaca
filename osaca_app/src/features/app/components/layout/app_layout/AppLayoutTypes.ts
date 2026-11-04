@@ -12,12 +12,6 @@ export const NagbarType = {
 	EMAIL_VERIFICATION: 'email-verification',
 	ACCOUNT_LIMITED: 'account-limited',
 	DESKTOP_NOTIFICATION: 'desktop-notification',
-	PREMIUM_GRACE_PERIOD: 'premium-grace-period',
-	PREMIUM_EXPIRED: 'premium-expired',
-	PREMIUM_ONBOARDING: 'premium-onboarding',
-	PRICE_ANNOUNCEMENT: 'price-announcement',
-	LEGACY_PRICE_OPT_IN: 'legacy-price-opt-in',
-	GIFT_INVENTORY: 'gift-inventory',
 	DESKTOP_DOWNLOAD: 'desktop-download',
 	GUILD_MEMBERSHIP_CTA: 'guild-membership-cta',
 	VISIONARY_MFA: 'visionary-mfa',
@@ -53,12 +47,6 @@ export interface NagbarConditions {
 	userNeedsVerification: boolean;
 	canShowAccountLimited: boolean;
 	canShowDesktopNotification: boolean;
-	canShowPremiumGracePeriod: boolean;
-	canShowPremiumExpired: boolean;
-	canShowPremiumOnboarding: boolean;
-	canShowPriceAnnouncement: boolean;
-	canShowLegacyPriceOptIn: boolean;
-	canShowGiftInventory: boolean;
 	canShowDesktopDownload: boolean;
 	canShowGuildMembershipCta: boolean;
 	canShowVisionaryMfa: boolean;

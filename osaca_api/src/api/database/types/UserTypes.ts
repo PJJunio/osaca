@@ -55,8 +55,6 @@ export interface UserRow {
 	premium_billing_cycle: string | null;
 	premium_lifetime_sequence: number | null;
 	premium_grace_ends_at: Date | null;
-	stripe_subscription_id: string | null;
-	stripe_customer_id: string | null;
 	has_ever_purchased: boolean | null;
 	terms_agreed_at: Date | null;
 	privacy_agreed_at: Date | null;
@@ -122,8 +120,6 @@ export const USER_COLUMNS = [
 	'premium_billing_cycle',
 	'premium_lifetime_sequence',
 	'premium_grace_ends_at',
-	'stripe_subscription_id',
-	'stripe_customer_id',
 	'has_ever_purchased',
 	'terms_agreed_at',
 	'privacy_agreed_at',
@@ -188,8 +184,6 @@ export const EMPTY_USER_ROW: UserRow = {
 	premium_billing_cycle: null,
 	premium_lifetime_sequence: null,
 	premium_grace_ends_at: null,
-	stripe_subscription_id: null,
-	stripe_customer_id: null,
 	has_ever_purchased: null,
 	terms_agreed_at: null,
 	privacy_agreed_at: null,
@@ -579,16 +573,6 @@ export interface UserEmailOwnerRow {
 	claimed: boolean;
 }
 
-export interface UserByStripeCustomerIdRow {
-	stripe_customer_id: string;
-	user_id: UserID;
-}
-
-export interface UserByStripeSubscriptionIdRow {
-	stripe_subscription_id: string;
-	user_id: UserID;
-}
-
 export interface UserByAclRow {
 	acl: string;
 	user_id: UserID;
@@ -616,13 +600,6 @@ export const USER_EMAIL_OWNER_COLUMNS = [
 	'claimed_at',
 	'claimed',
 ] as const satisfies ReadonlyArray<keyof UserEmailOwnerRow>;
-export const USER_BY_STRIPE_CUSTOMER_ID_COLUMNS = ['stripe_customer_id', 'user_id'] as const satisfies ReadonlyArray<
-	keyof UserByStripeCustomerIdRow
->;
-export const USER_BY_STRIPE_SUBSCRIPTION_ID_COLUMNS = [
-	'stripe_subscription_id',
-	'user_id',
-] as const satisfies ReadonlyArray<keyof UserByStripeSubscriptionIdRow>;
 export const USER_BY_ACL_COLUMNS = ['acl', 'user_id'] as const satisfies ReadonlyArray<keyof UserByAclRow>;
 export const USER_BY_LAST_ACTIVE_IP_COLUMNS = [
 	'last_active_ip',

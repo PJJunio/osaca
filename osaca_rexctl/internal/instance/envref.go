@@ -65,7 +65,6 @@ var envSections = []envSection{
 	{"app", "Web app", "", ""},
 	{"api", "API and worker", "", ""},
 	{"instance", "Instance and branding", "OSACA uses the product name, images, theme colour and status page links set here only until the setup wizard finishes or someone saves branding in the admin panel. After that it uses the saved values and ignores these. Make later changes in the admin panel or with `rexctl config set`.", ""},
-	{"billing", "Billing", "The admin panel can also save whether billing is on, the Stripe keys and the prices. A value saved there is used first, and a saved price list replaces all of OSACA_STRIPE_PRICES.", ""},
 	{"integrations", "Integrations", "The admin panel can also save the Bluesky settings and keys. A value saved there is used first.", ""},
 	{"tuning", "Memory and performance", "rexctl sets some of these from the machine's memory and CPU on every start. A value you set wins.", ""},
 	{"bundled", "Bundled services", "These change how the bundled Valkey, Meilisearch and SeaweedFS run.", ""},
@@ -83,7 +82,6 @@ var envSections = []envSection{
 
 var envInternalGroups = []envSection{
 	{"hosted", "Hosted service only", "Only OSACA's hosted service uses these.", ""},
-	{"prices", "Stripe price IDs", "Set prices with OSACA_STRIPE_PRICES or in the admin panel.", ""},
 	{"cluster", "Gateway clustering", "The stack runs the gateway as one node.", ""},
 	{"cassandra", "Cassandra", "The stack runs Postgres only.", ""},
 	{"docs", "Docs site", "The docs site isn't part of the compose stack.", ""},

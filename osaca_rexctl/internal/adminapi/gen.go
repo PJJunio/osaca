@@ -131,7 +131,6 @@ const (
 	EnforcementView               AdminAclType = "enforcement:view"
 	GatewayMemoryStats            AdminAclType = "gateway:memory_stats"
 	GatewayReloadAll              AdminAclType = "gateway:reload_all"
-	GiftCodesGenerate             AdminAclType = "gift_codes:generate"
 	GuildAuditLogView             AdminAclType = "guild:audit_log:view"
 	GuildBanMember                AdminAclType = "guild:ban_member"
 	GuildDelete                   AdminAclType = "guild:delete"
@@ -303,8 +302,6 @@ func (e AdminAclType) Valid() bool {
 		return true
 	case GatewayReloadAll:
 		return true
-	case GiftCodesGenerate:
-		return true
 	case GuildAuditLogView:
 		return true
 	case GuildBanMember:
@@ -432,24 +429,6 @@ func (e AdminAclType) Valid() bool {
 	case VoiceServerList:
 		return true
 	case VoiceServerUpdate:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for BillingCatalogModeSchema.
-const (
-	Env      BillingCatalogModeSchema = "env"
-	Operator BillingCatalogModeSchema = "operator"
-)
-
-// Valid indicates whether the value is a known member of the BillingCatalogModeSchema enum.
-func (e BillingCatalogModeSchema) Valid() bool {
-	switch e {
-	case Env:
-		return true
-	case Operator:
 		return true
 	default:
 		return false
@@ -1630,31 +1609,6 @@ type AuthConfigUpdateRequest_IdentifierFirst struct {
 	union json.RawMessage
 }
 
-// BillingCatalogModeSchema defines model for BillingCatalogModeSchema.
-type BillingCatalogModeSchema string
-
-// BillingCountryCurrenciesSchema defines model for BillingCountryCurrenciesSchema.
-type BillingCountryCurrenciesSchema map[string]PremiumCurrency
-
-// BillingLegacyPricesSchema defines model for BillingLegacyPricesSchema.
-type BillingLegacyPricesSchema map[string][]StripePriceIdSchema
-
-// BillingPriceSetResponse defines model for BillingPriceSetResponse.
-type BillingPriceSetResponse struct {
-	Gift1Month *StripePriceIdSchema `json:"gift_1_month"`
-	Gift1Year  *StripePriceIdSchema `json:"gift_1_year"`
-	Monthly    *StripePriceIdSchema `json:"monthly"`
-	Yearly     *StripePriceIdSchema `json:"yearly"`
-}
-
-// BillingPriceSetUpdateRequest defines model for BillingPriceSetUpdateRequest.
-type BillingPriceSetUpdateRequest struct {
-	Gift1Month *StripePriceIdSchema `json:"gift_1_month,omitempty"`
-	Gift1Year  *StripePriceIdSchema `json:"gift_1_year,omitempty"`
-	Monthly    *StripePriceIdSchema `json:"monthly,omitempty"`
-	Yearly     *StripePriceIdSchema `json:"yearly,omitempty"`
-}
-
 // BrandingAssetUploadRequest defines model for BrandingAssetUploadRequest.
 type BrandingAssetUploadRequest struct {
 	Image *string                        `json:"image,omitempty"`
@@ -2103,47 +2057,6 @@ type HexString16Type = string
 // IdentifierFirstModeSchema Whether clients show the single sign-in entry that starts with an email
 type IdentifierFirstModeSchema string
 
-// InstanceBillingResponse defines model for InstanceBillingResponse.
-type InstanceBillingResponse struct {
-	AutomaticTax                  *bool                               `json:"automatic_tax"`
-	BillingActive                 bool                                `json:"billing_active"`
-	BillingEmails                 *bool                               `json:"billing_emails"`
-	CatalogMode                   BillingCatalogModeSchema            `json:"catalog_mode"`
-	CountryCurrencies             *map[string]string                  `json:"country_currencies"`
-	DefaultCurrency               *PremiumCurrency                    `json:"default_currency"`
-	EffectiveAutomaticTax         bool                                `json:"effective_automatic_tax"`
-	EffectiveBillingEmails        bool                                `json:"effective_billing_emails"`
-	EffectiveEnabled              bool                                `json:"effective_enabled"`
-	EffectiveTaxIdCollection      bool                                `json:"effective_tax_id_collection"`
-	EffectiveTermsConsentRequired bool                                `json:"effective_terms_consent_required"`
-	Enabled                       *bool                               `json:"enabled"`
-	LegacyPrices                  *map[string][]string                `json:"legacy_prices"`
-	Prices                        *map[string]BillingPriceSetResponse `json:"prices"`
-	StripeSecretKeySet            bool                                `json:"stripe_secret_key_set"`
-	StripeSecretKeyStored         bool                                `json:"stripe_secret_key_stored"`
-	StripeServiceable             bool                                `json:"stripe_serviceable"`
-	StripeWebhookSecretSet        bool                                `json:"stripe_webhook_secret_set"`
-	StripeWebhookSecretStored     bool                                `json:"stripe_webhook_secret_stored"`
-	TaxIdCollection               *bool                               `json:"tax_id_collection"`
-	TermsConsentRequired          *bool                               `json:"terms_consent_required"`
-	WebhookUrl                    string                              `json:"webhook_url"`
-}
-
-// InstanceBillingUpdateRequest defines model for InstanceBillingUpdateRequest.
-type InstanceBillingUpdateRequest struct {
-	AutomaticTax         *bool                                    `json:"automatic_tax,omitempty"`
-	BillingEmails        *bool                                    `json:"billing_emails,omitempty"`
-	CountryCurrencies    *BillingCountryCurrenciesSchema          `json:"country_currencies,omitempty"`
-	DefaultCurrency      *PremiumCurrency                         `json:"default_currency,omitempty"`
-	Enabled              *bool                                    `json:"enabled,omitempty"`
-	LegacyPrices         *BillingLegacyPricesSchema               `json:"legacy_prices,omitempty"`
-	Prices               *map[string]BillingPriceSetUpdateRequest `json:"prices,omitempty"`
-	StripeSecretKey      *string                                  `json:"stripe_secret_key,omitempty"`
-	StripeWebhookSecret  *string                                  `json:"stripe_webhook_secret,omitempty"`
-	TaxIdCollection      *bool                                    `json:"tax_id_collection,omitempty"`
-	TermsConsentRequired *bool                                    `json:"terms_consent_required,omitempty"`
-}
-
 // InstanceConfigResponse defines model for InstanceConfigResponse.
 type InstanceConfigResponse struct {
 	AccountIdentity struct {
@@ -2199,7 +2112,6 @@ type InstanceConfigResponse struct {
 			PowEscalationPerHour int `json:"pow_escalation_per_hour"`
 		} `json:"instant_accounts"`
 	} `json:"auth"`
-	Billing            InstanceBillingResponse          `json:"billing"`
 	Captcha            CaptchaConfigResponse            `json:"captcha"`
 	DomainMigration    DomainMigrationConfigResponse    `json:"domain_migration"`
 	ExperimentDelivery ExperimentDeliveryConfigResponse `json:"experiment_delivery"`
@@ -2384,7 +2296,6 @@ type InstanceConfigUpdateRequest struct {
 		} `json:"setup,omitempty"`
 	} `json:"app_public,omitempty"`
 	Auth               *AuthConfigUpdateRequest               `json:"auth,omitempty"`
-	Billing            *InstanceBillingUpdateRequest          `json:"billing,omitempty"`
 	Captcha            *CaptchaConfigUpdateRequest            `json:"captcha,omitempty"`
 	DomainMigration    *DomainMigrationConfigUpdateRequest    `json:"domain_migration,omitempty"`
 	ExperimentDelivery *ExperimentDeliveryConfigUpdateRequest `json:"experiment_delivery,omitempty"`
@@ -2737,9 +2648,6 @@ type PendingRegistrationResponse struct {
 	Username          string              `json:"username"`
 }
 
-// PremiumCurrency defines model for PremiumCurrency.
-type PremiumCurrency = string
-
 // PremiumFlags User premium-related flags (32-bit)
 type PremiumFlags = int32
 
@@ -2773,9 +2681,6 @@ type SnowflakeType0 = string
 
 // SnowflakeType1 defines model for .
 type SnowflakeType1 = int
-
-// StripePriceIdSchema defines model for StripePriceIdSchema.
-type StripePriceIdSchema = string
 
 // TagStyleSchema How usernames are tagged
 type TagStyleSchema string

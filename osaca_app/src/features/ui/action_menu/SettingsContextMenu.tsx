@@ -100,7 +100,6 @@ export const SettingsContextMenu: React.FC<SettingsContextMenuProps> = observer(
 		});
 	}, [i18n.locale, isDeveloperModeEnabled]);
 	const userSettingsTabs = accessibleTabs.filter((tab) => tab.category === 'user_settings');
-	const billingTabs = accessibleTabs.filter((tab) => tab.category === 'billing');
 	const appSettingsTabs = accessibleTabs.filter((tab) => tab.category === 'app_settings');
 	const developerTabs = accessibleTabs.filter((tab) => tab.category === 'developer');
 	return (
@@ -108,11 +107,6 @@ export const SettingsContextMenu: React.FC<SettingsContextMenuProps> = observer(
 			{userSettingsTabs.length > 0 && (
 				<MenuGroup data-flx="ui.action-menu.settings-context-menu.menu-group">
 					{userSettingsTabs.map(renderSettingsMenuItem)}
-				</MenuGroup>
-			)}
-			{billingTabs.length > 0 && (
-				<MenuGroup data-flx="ui.action-menu.settings-context-menu.menu-group--billing">
-					{billingTabs.map(renderSettingsMenuItem)}
 				</MenuGroup>
 			)}
 			{appSettingsTabs.length > 0 && (

@@ -11,7 +11,6 @@ import type {KVAccountDeletionQueueService} from '@app/api/infrastructure/KVAcco
 import type {KVActivityTracker} from '@app/api/infrastructure/KVActivityTracker';
 import {Logger} from '@app/api/Logger';
 import type {User} from '@app/api/models/User';
-import {followOperatorPassWallStanding} from '@app/api/operator_pass/OperatorPassWallStanding';
 import {scheduleSystemDeletion} from '@app/api/user/AccountCleanup';
 import {hasWayBackIn} from '@app/api/user/AccountTier';
 import type {UserRepository} from '@app/api/user/repositories/UserRepository';
@@ -58,7 +57,7 @@ async function scheduleDeletion(
 ): Promise<void> {
 	const gracePeriodMs = Config.deletionGracePeriodHours * ms('1 hour');
 	const pendingDeletionAt = new Date(Date.now() + gracePeriodMs);
-	const updated = await userRepository.updateDeletionSchedule(user, {
+	await userRepository.updateDeletionSchedule(user, {
 		flags: user.flags | UserFlags.SELF_DELETED,
 		pending_deletion_at: pendingDeletionAt,
 		deletion_reason_code: DeletionReasons.INACTIVITY,
@@ -73,7 +72,6 @@ async function scheduleDeletion(
 		deletionQueue: deletionQueueService,
 	});
 	await revokeAllAuthSessions({users: userRepository, gateway: gatewayService}, userId);
-	await followOperatorPassWallStanding(user, updated);
 	Logger.debug({userId, pendingDeletionAt, reason: 'INACTIVITY'}, 'Scheduled inactive user for deletion');
 }
 

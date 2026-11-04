@@ -3,7 +3,6 @@
 import {Config} from '@app/api/Config';
 import type {TrustedCallerConfig} from '@app/api/config/APIConfig';
 import {RateLimitMiddleware, type RouteRateLimitConfig} from '@app/api/middleware/RateLimitMiddleware';
-import {DonationRateLimitConfigs} from '@app/api/rate_limit_configs/DonationRateLimitConfig';
 import {OAuthRateLimitConfigs} from '@app/api/rate_limit_configs/OAuthRateLimitConfig';
 import type {HonoEnv} from '@app/api/types/HonoEnv';
 import type {
@@ -63,15 +62,9 @@ const CALLER_IP = '192.0.2.50';
 const FORWARDED_IP = '203.0.113.77';
 const OTHER_FORWARDED_IP = '203.0.113.78';
 const BUGS_KEY = 'bugs-key-0123456789abcdefghijklmnopqrstuv';
-const DONATION_KEY = 'donation-key-0123456789abcdefghijklmnopq';
 
 const TRUSTED_CALLERS: Array<TrustedCallerConfig> = [
 	{name: 'bugs', key: BUGS_KEY, buckets: ['oauth:token', 'oauth:revoke']},
-	{
-		name: 'donation',
-		key: DONATION_KEY,
-		buckets: ['donation:request_link', 'donation:manage', 'donation:checkout'],
-	},
 ];
 
 function buildTrustedHarness(routeConfig: RouteRateLimitConfig): Harness {
@@ -132,53 +125,6 @@ describe('RateLimitMiddleware trusted callers', () => {
 		await callTrustedRoute(harness, {'x-osaca-internal-key': BUGS_KEY, 'x-osaca-client-ip': FORWARDED_IP});
 
 		expect(harness.service.buckets).toEqual([`ip:${FORWARDED_IP}:oauth:revoke`]);
-	});
-
-	test('ignores the bugs key on a donation route', async () => {
-		const harness = buildTrustedHarness(DonationRateLimitConfigs.DONATION_MANAGE);
-
-		await callTrustedRoute(harness, {'x-osaca-internal-key': BUGS_KEY, 'x-osaca-client-ip': FORWARDED_IP});
-		await callTrustedRoute(harness, {'x-osaca-internal-key': BUGS_KEY, 'x-osaca-donor-ip': FORWARDED_IP});
-
-		expect(harness.service.globalIdentifiers).toEqual([`ip:${CALLER_IP}`, `ip:${CALLER_IP}`]);
-		expect(harness.service.buckets).toEqual([`ip:${CALLER_IP}:donation:manage`, `ip:${CALLER_IP}:donation:manage`]);
-	});
-
-	test('ignores the donation key on oauth:token', async () => {
-		const harness = buildTrustedHarness(OAuthRateLimitConfigs.OAUTH_TOKEN);
-
-		await callTrustedRoute(harness, {'x-osaca-internal-key': DONATION_KEY, 'x-osaca-client-ip': FORWARDED_IP});
-
-		expect(harness.service.buckets).toEqual([`ip:${CALLER_IP}:oauth:token`]);
-	});
-
-	test('accepts the donation key on its routes with the new and the old address header', async () => {
-		for (const routeConfig of Object.values(DonationRateLimitConfigs)) {
-			const harness = buildTrustedHarness(routeConfig);
-
-			await callTrustedRoute(harness, {'x-osaca-internal-key': DONATION_KEY, 'x-osaca-client-ip': FORWARDED_IP});
-			await callTrustedRoute(harness, {
-				'x-osaca-internal-key': DONATION_KEY,
-				'x-osaca-donor-ip': OTHER_FORWARDED_IP,
-			});
-
-			expect(harness.service.buckets).toEqual([
-				`ip:${FORWARDED_IP}:${routeConfig.bucket}`,
-				`ip:${OTHER_FORWARDED_IP}:${routeConfig.bucket}`,
-			]);
-		}
-	});
-
-	test('prefers the new address header when both are sent', async () => {
-		const harness = buildTrustedHarness(DonationRateLimitConfigs.DONATION_MANAGE);
-
-		await callTrustedRoute(harness, {
-			'x-osaca-internal-key': DONATION_KEY,
-			'x-osaca-client-ip': FORWARDED_IP,
-			'x-osaca-donor-ip': OTHER_FORWARDED_IP,
-		});
-
-		expect(harness.service.buckets).toEqual([`ip:${FORWARDED_IP}:donation:manage`]);
 	});
 
 	test('ignores a wrong key of the same or a different length, and a missing key', async () => {

@@ -147,7 +147,6 @@ interface EnforcementDecisionServiceDeps extends ClosureStateDeps {
 	guildRepository: GuildRepository;
 	reportService: ReportService;
 	adminReportService: AdminReportService;
-	onClosureEnded?: (subjectId: UserID) => Promise<void>;
 }
 
 const EVIDENCE_LIMIT = 50;
@@ -674,24 +673,6 @@ export class EnforcementDecisionService {
 				['subject_id', decision.subject_id.toString()],
 			]),
 		});
-		if (decision.kind === 'closure' && inForce) {
-			await this.notifyClosureEnded(decision);
-		}
-	}
-
-	private async notifyClosureEnded(decision: EnforcementDecisionRow): Promise<void> {
-		const {onClosureEnded} = this.deps;
-		if (!onClosureEnded) {
-			return;
-		}
-		try {
-			await onClosureEnded(createUserID(decision.subject_id));
-		} catch (error) {
-			Logger.error(
-				{decisionId: decision.decision_id.toString(), error},
-				'Failed to act on the end of a closure decision',
-			);
-		}
 	}
 
 	private async undo(

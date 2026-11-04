@@ -121,7 +121,6 @@ function projectFeatures(features: Readonly<Partial<InstanceFeatures>>): Instanc
 	return {
 		...features,
 		voice_enabled: requireDefined(features.voice_enabled, 'features.voice_enabled'),
-		stripe_enabled: requireDefined(features.stripe_enabled, 'features.stripe_enabled'),
 		self_hosted: requireDefined(features.self_hosted, 'features.self_hosted'),
 		presigned_attachment_uploads: requireDefined(
 			features.presigned_attachment_uploads,
@@ -129,7 +128,6 @@ function projectFeatures(features: Readonly<Partial<InstanceFeatures>>): Instanc
 		),
 		emails_enabled: requireDefined(features.emails_enabled, 'features.emails_enabled'),
 		premium_enabled: features.premium_enabled ?? !features.self_hosted,
-		stripe_serviceable: features.stripe_serviceable ?? false,
 		phone_verification_enabled: false,
 	};
 }

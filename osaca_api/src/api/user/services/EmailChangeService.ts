@@ -8,7 +8,6 @@ import * as AuthPassword from '@app/api/auth/AuthPassword';
 import {assertInstanceAcceptsEmailDomain} from '@app/api/auth/AuthRegistration';
 import {assertEmailNotBlocklisted} from '@app/api/auth/EmailBlocklist';
 import type {User} from '@app/api/models/User';
-import {enqueueStripeCustomerEmailSync} from '@app/api/stripe/StripeCustomer';
 import {getAccountTier} from '@app/api/user/AccountTier';
 import type {EmailChangeRepository} from '@app/api/user/repositories/auth/EmailChangeRepository';
 import {
@@ -321,7 +320,7 @@ export class EmailChangeService {
 	}
 
 	async verifyBouncedNew(user: User, ticket: string, code: string): Promise<User> {
-		const {users, worker} = this.apiContext.services;
+		const {users} = this.apiContext.services;
 		this.ensureBouncedEmailRecoveryAllowed(user);
 		const row = await getActiveChangeTicketForUser(this.repo, ticket, user.id);
 		if (row.require_original || !row.original_proof) {
@@ -335,7 +334,6 @@ export class EmailChangeService {
 			user.toRow(),
 		);
 		await this.deleteToken(emailToken);
-		await enqueueStripeCustomerEmailSync(worker, user, updatedUser);
 		return updatedUser;
 	}
 

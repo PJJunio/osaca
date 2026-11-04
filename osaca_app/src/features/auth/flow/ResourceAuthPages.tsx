@@ -37,7 +37,7 @@ interface ResourceAuthState<T> {
 	resource: T | null;
 }
 export interface ResourceAuthPageConfig<T> {
-	kind: 'gift' | 'theme';
+	kind: 'theme';
 	dataFlxPrefix: (mode: ResourceAuthMode) => string;
 	useResource: (id: string, snapshot: RuntimeConfigSnapshot) => ResourceAuthState<T>;
 	renderHeader: (resource: T, mode: ResourceAuthMode) => ReactNode;

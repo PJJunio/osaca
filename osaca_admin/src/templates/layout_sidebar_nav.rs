@@ -258,42 +258,4 @@ pub const NAV_SECTIONS: &[NavSection] = &[
             ),
         ],
     },
-    NavSection {
-        title: "Premium",
-        items: &[
-            item!(
-                "Gift Codes",
-                "/gift-codes",
-                "gift-codes",
-                [acl::GIFT_CODES_GENERATE]
-            ),
-            item!(
-                "Operators' Wall",
-                "/operator-pass-wall",
-                "operator-pass-wall",
-                [acl::USER_LOOKUP],
-                hosted
-            ),
-            item!(
-                "Operators' Wall Tools",
-                "/operator-pass-wall/tools",
-                "operator-pass-wall-tools",
-                [acl::USER_LOOKUP],
-                hosted
-            ),
-            item!(
-                "Operators Release List",
-                "/operator-pass-releases",
-                "operator-pass-releases",
-                [acl::USER_LOOKUP],
-                hosted
-            ),
-            item!(
-                "Payment Disputes",
-                "/payment-disputes",
-                "payment-disputes",
-                [acl::USER_LOOKUP]
-            ),
-        ],
-    },
 ];

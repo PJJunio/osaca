@@ -13,7 +13,6 @@ import * as AuthRegistration from '@app/api/auth/AuthRegistration';
 import * as AuthSession from '@app/api/auth/AuthSession';
 import {getTokenIdHash} from '@app/api/auth/AuthUtility';
 import type {DesktopHandoffService} from '@app/api/auth/services/DesktopHandoffService';
-import type {SsoService} from '@app/api/auth/services/SsoService';
 import {createUserID} from '@app/api/BrandedTypes';
 import {Logger} from '@app/api/Logger';
 import type {RequestCache} from '@app/api/middleware/RequestCacheMiddleware';
@@ -59,9 +58,6 @@ import type {
 	RecoverAccountResponse,
 	RegisterRequest,
 	ResetPasswordRequest,
-	SsoCompleteRequest,
-	SsoCompleteResponse,
-	SsoStartRequest,
 	UsernameAvailabilityResponse,
 	UsernameSuggestionsResponse,
 	VerifyEmailRequest,
@@ -158,31 +154,10 @@ interface AuthHandoffStatusRequest {
 export class AuthRequestService {
 	constructor(
 		private apiContext: ApiContext,
-		private ssoService: SsoService,
 		private desktopHandoffService: DesktopHandoffService,
 		private registrationDependencies: AuthRegistration.RegistrationDependencies,
 		private loginDependencies: AuthLogin.LoginDependencies,
 	) {}
-
-	startSso(data: SsoStartRequest) {
-		return this.ssoService.startLogin({
-			redirectTo: data.redirect_to ?? undefined,
-			redirectUri: data.redirect_uri ?? undefined,
-		});
-	}
-
-	completeSso(data: SsoCompleteRequest, request: Request, requestCache: RequestCache, clientIp: string) {
-		return this.toSsoCompleteResponse(
-			this.ssoService.completeLogin({
-				code: data.code,
-				state: data.state,
-				clientBinding: data.client_binding ?? undefined,
-				request,
-				requestCache,
-				clientIp,
-			}),
-		);
-	}
 
 	async register({data, request, requestCache, tierContext}: AuthRegisterRequest): Promise<AuthRegisterResponse> {
 		const result = await AuthRegistration.register(this.apiContext, this.registrationDependencies, {
@@ -200,7 +175,7 @@ export class AuthRequestService {
 	}
 
 	async loginMfaTotp({code, ticket, request}: AuthLoginMfaRequest): Promise<AuthTokenWithUserIdResponse> {
-		const result = await AuthLogin.loginMfaTotp(this.apiContext, {code, ticket, request, ssoLinks: this.ssoService});
+		const result = await AuthLogin.loginMfaTotp(this.apiContext, {code, ticket, request});
 		return await this.toAuthTokenResponse(result);
 	}
 
@@ -289,7 +264,6 @@ export class AuthRequestService {
 			challenge: data.challenge,
 			ticket: data.ticket,
 			request,
-			ssoLinks: this.ssoService,
 		});
 		return await this.toAuthTokenResponse(result);
 	}
@@ -521,16 +495,6 @@ export class AuthRequestService {
 			...result,
 			user: await this.getUserPartial(result.user_id),
 		};
-	}
-
-	private async toSsoCompleteResponse(
-		resultPromise: ReturnType<SsoService['completeLogin']>,
-	): Promise<SsoCompleteResponse> {
-		const {redirect_to, ...result} = await resultPromise;
-		if ('linked' in result) {
-			return {linked: true, redirect_to};
-		}
-		return {...(await this.toAuthLoginResponse(result)), redirect_to};
 	}
 
 	private async toAuthLoginResponse(

@@ -55,7 +55,6 @@ import type {
 	InstanceHiddenBuiltInGuildBadges,
 	InstanceNotice,
 	InstanceServices,
-	InstanceSso as InstanceSsoConfig,
 } from '@osaca/instance_bootstrap/src/Types';
 import type {LimitConfigSnapshot} from '@osaca/limits/src/LimitTypes';
 import type {InstanceConfigResponse} from '@osaca/schema/src/domains/admin/AdminSchemas';
@@ -93,7 +92,7 @@ export {
 	runtimeConfigSnapshotsAreSameInstance,
 	runtimeInstanceKey,
 } from '@app/features/app/state/InstanceSnapshotStore';
-export type {InstanceSsoConfig, RuntimeConfigSnapshot};
+export type {RuntimeConfigSnapshot};
 
 interface ApplyRuntimeConfigSnapshotRequest {
 	snapshot: RuntimeConfigSnapshot;

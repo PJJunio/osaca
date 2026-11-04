@@ -25,7 +25,6 @@ export const AppStorageKey = Object.freeze({
 	QUICK_CSS_EDITOR_PANEL_LAYOUT: 'QuickCssEditor:panelLayout',
 	QUICK_CSS_EDITOR_PLACEMENT: 'QuickCssEditor:placement',
 	QUICK_CSS_EDITOR_PREFERENCES: 'QuickCssEditor:preferences',
-	SSO_PENDING_CONTEXT_PREFIX: 'osaca:sso:pending-context',
 	THEME: 'Theme',
 	THEME_LIBRARY_ACCOUNT_ENABLED_IDS: 'osaca:theme-library:account-enabled-ids',
 	THEME_LIBRARY_ENABLED_IDS: 'osaca:theme-library:enabled-ids',
@@ -79,18 +78,6 @@ const GLOBAL_APP_STORAGE_KEY_LOOKUP: Readonly<Record<string, true>> = Object.fre
 	[AppStorageKey.WINDOWS_FONT]: true,
 });
 
-function keyStartsWithPrefix(key: string, prefix: AppStorageKey): boolean {
-	return key.startsWith(`${prefix}:`);
-}
-
-export function ssoPendingContextKey(state: string): string {
-	return `${AppStorageKey.SSO_PENDING_CONTEXT_PREFIX}:${encodeURIComponent(state)}`;
-}
-
-export function isSsoPendingContextKey(key: string): boolean {
-	return keyStartsWithPrefix(key, AppStorageKey.SSO_PENDING_CONTEXT_PREFIX);
-}
-
 export function isGlobalAppStorageKey(key: string): boolean {
-	return Object.hasOwn(GLOBAL_APP_STORAGE_KEY_LOOKUP, key) || isSsoPendingContextKey(key);
+	return Object.hasOwn(GLOBAL_APP_STORAGE_KEY_LOOKUP, key);
 }

@@ -41,8 +41,8 @@ export const giftAuthPageConfig: ResourceAuthPageConfig<Gift> = {
 		}, [code, target]);
 		return {loading: !state || state.loading, error: Boolean(state?.error), resource: state?.data ?? null};
 	},
-	renderHeader: (gift, mode, sso) => (
-		<GiftHeader gift={gift} variant={mode} data-flx={`expressions.gift-${mode}-page.gift-header${sso ? '.sso' : ''}`} />
+	renderHeader: (gift, mode) => (
+		<GiftHeader gift={gift} variant={mode} data-flx={`expressions.gift-${mode}-page.gift-header`} />
 	),
 	renderBlockingState: (gift, prefix) =>
 		gift.redeemed ? (

@@ -186,7 +186,7 @@ An account is limited while `account_limited` is true. It can still read, join v
 
 ## Account tiers
 
-An account is unclaimed while it has no email address, unverified while its email address isn't confirmed and verified otherwise. When the `account_identity` [feature](/http-api/instance/#instance-features-object) is `username`, an account with a password or a passkey is verified and one without is unclaimed. On an instance that sends no email, or whose `verification_basis` is `local_credential`, an account with an email address follows the same rule. Bots, system accounts and single sign-on accounts are always verified.
+An account is unclaimed while it has no email address, unverified while its email address isn't confirmed and verified otherwise. When the `account_identity` [feature](/http-api/instance/#instance-features-object) is `username`, an account with a password or a passkey is verified and one without is unclaimed. On an instance that sends no email, or whose `verification_basis` is `local_credential`, an account with an email address follows the same rule. Bots and system accounts are always verified.
 
 `interaction_tier` in the [accounts configuration](/admin-api/instance/#accounts-configuration-object) sets how strict the tiers are. When it is `enforced`, an account that isn't verified can read, edit its own profile and settings, write personal notes and join communities, but can't do most things that involve other people.
 

@@ -6,7 +6,6 @@ import {AuthBottomLink} from '@app/features/auth/flow/AuthBottomLink';
 import sharedStyles from '@app/features/auth/flow/AuthPageStyles.module.css';
 import {AuthRegisterFormCore} from '@app/features/auth/flow/AuthRegisterFormCore';
 import {AuthRuntimeTargetGate} from '@app/features/auth/flow/AuthRuntimeTargetGate';
-import {AuthSsoPanel, isSsoLoginEnforced, resolveAuthPanelSso} from '@app/features/auth/flow/AuthSsoPanel';
 import {AUTH_LOGIN_METHOD_QUERY_PARAM} from '@app/features/auth/flow/auth_login_core/AuthLoginStepTypes';
 import {AuthClientPermissionStep} from '@app/features/auth/flow/client_intro/AuthClientPermissionStep';
 import {AuthClientPreferencesStep} from '@app/features/auth/flow/client_intro/AuthClientPreferencesStep';
@@ -53,11 +52,6 @@ function selectRegisterPageStep(showPreferences: boolean, permission: Permission
 	return RegisterPageStep.FORM;
 }
 
-function isSsoEnforcedForSnapshot(runtimeSnapshot: RuntimeConfigSnapshot): boolean {
-	const ssoConfig = resolveAuthPanelSso(runtimeSnapshot);
-	return isSsoLoginEnforced(ssoConfig);
-}
-
 interface RegisterPageContentProps {
 	readonly runtimeSnapshot: RuntimeConfigSnapshot;
 }
@@ -77,18 +71,6 @@ const RegisterPageContent = observer(function RegisterPageContent({runtimeSnapsh
 	const clientIntro = useDesktopClientIntroFlow(isDesktop(), {skipWelcome: true});
 	const registerStep = selectRegisterPageStep(clientIntro.showPreferences, clientIntro.permission);
 	const usernameSignIn = usesUsernameSignIn(runtimeSnapshot.features);
-	if (isSsoEnforcedForSnapshot(runtimeSnapshot)) {
-		return (
-			<div className={sharedStyles.container} data-flx="auth.register-page.register-page-content.sso-container">
-				<AuthSsoPanel
-					redirectPath={redirectTo}
-					runtimeSnapshot={runtimeSnapshot}
-					dataFlx="auth.register-page.register-page-content.sso-panel"
-					data-flx="auth.register-page.register-page-content.auth-sso-panel"
-				/>
-			</div>
-		);
-	}
 	const renderRegistrationStep = (): ReactNode => {
 		if (registerStep === RegisterPageStep.PREFERENCES) {
 			return (

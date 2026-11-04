@@ -39,7 +39,6 @@ mod experiments;
 mod integrations;
 mod media;
 mod policy;
-mod sso;
 
 use self::{
     accounts::{AccountsSectionInput, account_identity_section, accounts_section},
@@ -48,7 +47,6 @@ use self::{
     integrations::integrations_config_section,
     media::{HostingMode, media_config_section},
     policy::policy_config_section,
-    sso::sso_config_section,
 };
 
 pub const LOADED_CONFIG_FIELD: &str = "loaded_config";
@@ -69,7 +67,6 @@ impl ConfigForm<'_> {
 }
 
 pub const REGISTRATION_ALLOWED_EMAIL_DOMAINS_FIELD: &str = "registration_allowed_email_domains";
-pub const SSO_ALLOWED_DOMAINS_FIELD: &str = "sso_allowed_domains";
 
 fn inherit_select(name: &str, label: &str, override_value: Option<bool>) -> Markup {
     let selected = match override_value {
@@ -172,12 +169,6 @@ pub fn instance_config_page(
                             &instance_config.registration,
                             instance_config.account_identity.mode,
                         ))
-                        (sso_config_section(
-                            base,
-                            config_form,
-                            &instance_config.sso,
-                            instance_config.account_identity.mode,
-                        ))
                         (accounts_section(
                             base,
                             config_form,
@@ -189,8 +180,6 @@ pub fn instance_config_page(
                                     tag_style: instance_config.account_identity.tag_style,
                                     emails_enabled: instance_config.integrations.email.delivery_state
                                         == EmailDeliveryState::On,
-                                    username_from_provider: instance_config.sso.enabled
-                                        && instance_config.sso.username_from_provider,
                                 },
                                 delivery_state: instance_config.integrations.email.delivery_state,
                                 captcha_provider: instance_config.captcha.provider,

@@ -14,7 +14,7 @@ Limits such as attachment counts differ between instances, and [instance discove
 | --- | --- |
 | [Errors](/http-api/errors/) | Error responses, status codes and every error code |
 | [Deployment availability](/http-api/deployment-availability/) | Routes served only while premium or billing is on |
-| [Authentication operations](/http-api/authentication/) | Registration, login, MFA, WebAuthn, SSO, recovery, sessions |
+| [Authentication operations](/http-api/authentication/) | Registration, login, MFA, WebAuthn, recovery, sessions |
 | [Gateway](/http-api/gateway/) | Gateway endpoint discovery and the session start budget |
 | [Instance](/http-api/instance/) | Instance discovery, limit keys, the OpenAPI document |
 | [Experiments](/http-api/experiments/) | Experiment assignments and how to poll for them |

@@ -10,7 +10,6 @@ import type {
 	InstancePush,
 	InstanceRegistration,
 	InstanceServices,
-	InstanceSso,
 } from '@osaca/instance_bootstrap/src/Types';
 import type {LimitConfigSnapshot, LimitConfigWireFormat} from '@osaca/limits/src/LimitTypes';
 
@@ -24,7 +23,6 @@ export interface DiscoveryStaticInput {
 }
 
 export interface DiscoveryDynamicInput {
-	sso: InstanceSso;
 	registration: InstanceRegistration;
 	community: InstanceCommunity;
 	services: InstanceServices;
@@ -40,7 +38,6 @@ export function buildDiscoveryResponse(
 		endpoints: staticInput.endpoints,
 		captcha: staticInput.captcha,
 		features: staticInput.features,
-		sso: dynamicInput.sso,
 		registration: dynamicInput.registration,
 		community: dynamicInput.community,
 		services: dynamicInput.services,

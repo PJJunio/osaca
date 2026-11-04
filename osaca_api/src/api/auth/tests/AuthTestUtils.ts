@@ -332,57 +332,6 @@ export async function unclaimAccount(harness: ApiTestHarness, userId: string): P
 	await createBuilder(harness, '').post(`/test/users/${userId}/unclaim`).body(null).execute();
 }
 
-interface SsoConfig {
-	enabled: boolean;
-	enforced: boolean;
-	issuer?: string;
-	authorization_url: string;
-	token_url: string;
-	client_id: string;
-	client_secret: string;
-	scope: string;
-	allowed_domains: Array<string>;
-	auto_provision: boolean;
-	username_from_provider?: boolean;
-	redirect_uri: string;
-	display_name?: string;
-	button_label?: string;
-	groups_claim?: string | null;
-	group_role_mappings?: Array<{group: string; role_id: string}>;
-}
-
-export async function enableSso(
-	harness: ApiTestHarness,
-	token: string,
-	overrides: Partial<SsoConfig> = {},
-): Promise<void> {
-	const ssoConfig: SsoConfig = {
-		enabled: true,
-		enforced: true,
-		authorization_url: 'test',
-		token_url: 'test',
-		client_id: 'itest-client',
-		client_secret: '',
-		scope: 'openid email profile',
-		allowed_domains: ['example.com'],
-		auto_provision: true,
-		redirect_uri: '',
-		...overrides,
-	};
-	await createBuilder(harness, token).patch('/admin/instance/config').body({sso: ssoConfig}).execute();
-}
-
-export async function disableSso(harness: ApiTestHarness, token: string): Promise<void> {
-	await createBuilder(harness, token)
-		.patch('/admin/instance/config')
-		.body({
-			sso: {
-				enabled: false,
-			},
-		})
-		.execute();
-}
-
 export async function createSessionFromLogin(harness: ApiTestHarness, account: TestAccount): Promise<string> {
 	const login = await loginUser(harness, {email: account.email, password: account.password});
 	if ('mfa' in login && login.mfa) {

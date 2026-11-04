@@ -5,7 +5,6 @@ import type {ApiContext} from '@app/api/ApiContext';
 import {AdminService} from '@app/api/admin/AdminService';
 import {AuthRequestService} from '@app/api/auth/AuthRequestService';
 import {DesktopHandoffService} from '@app/api/auth/services/DesktopHandoffService';
-import {SsoService} from '@app/api/auth/services/SsoService';
 import type {IBlueskyOAuthService} from '@app/api/bluesky/IBlueskyOAuthService';
 import {Config} from '@app/api/Config';
 import {createApiContext} from '@app/api/CreateApiContext';
@@ -219,7 +218,6 @@ class RequestServices implements RequestScopedServices {
 	private cachedAdminService: AdminService | undefined;
 	private cachedApplicationService: ApplicationService | undefined;
 	private cachedAuthRequestService: AuthRequestService | undefined;
-	private cachedSsoService: SsoService | undefined;
 	private cachedDesktopHandoffService: DesktopHandoffService | undefined;
 	private cachedChannelRequestService: ChannelRequestService | undefined;
 	private cachedThreadService: ThreadService | undefined;
@@ -530,26 +528,6 @@ class RequestServices implements RequestScopedServices {
 		return this.cachedApplicationService;
 	}
 
-	get ssoService(): SsoService {
-		this.cachedSsoService ??= new SsoService(
-			this.context,
-			getInstanceConfigRepository(),
-			getDiscriminatorService(),
-			getKVActivityTracker(),
-			this.singleCommunityService,
-			this.inviteService,
-			this.guildService.members,
-			{
-				userCacheService: getUserCacheService(),
-				userRepository: getUserRepository(),
-				guildRepository: getGuildRepository(),
-				gatewayService: this.gatewayService,
-			},
-			getGuildRepository(),
-		);
-		return this.cachedSsoService;
-	}
-
 	get desktopHandoffService(): DesktopHandoffService {
 		this.cachedDesktopHandoffService ??= new DesktopHandoffService(this.context);
 		return this.cachedDesktopHandoffService;
@@ -559,7 +537,6 @@ class RequestServices implements RequestScopedServices {
 		if (!this.cachedAuthRequestService) {
 			this.cachedAuthRequestService = new AuthRequestService(
 				this.context,
-				this.ssoService,
 				this.desktopHandoffService,
 				{
 					inviteService: this.inviteService,

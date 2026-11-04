@@ -9,7 +9,6 @@ import {
 	REGISTRATION_PENDING_APPROVAL_TRAIT,
 	REGISTRATION_REJECTED_TRAIT,
 } from '@app/api/instance/InstanceConfigRepository';
-import {Logger} from '@app/api/Logger';
 import {getKVAccountDeletionQueue} from '@app/api/middleware/ServiceSingletons';
 import type {AuthSession} from '@app/api/models/AuthSession';
 import type {User} from '@app/api/models/User';
@@ -35,8 +34,6 @@ export interface SessionOrigin {
 interface CreateAuthSessionParams {
 	user: User;
 	origin: SessionOrigin;
-	authMethod?: 'sso';
-	signedInAt?: Date;
 }
 
 interface LogoutAuthSessionsParams {
@@ -79,7 +76,7 @@ export function resolveSessionOrigin(ctx: ApiContext, request: Request): Session
 
 export async function createAuthSession(
 	ctx: ApiContext,
-	{user, origin, authMethod, signedInAt}: CreateAuthSessionParams,
+	{user, origin}: CreateAuthSessionParams,
 ): Promise<[token: string, AuthSession]> {
 	const {users} = ctx.services;
 	if (user.isBot) throw new BotUserAuthSessionCreationDeniedError();
@@ -92,7 +89,7 @@ export async function createAuthSession(
 	const authSession = await users.createAuthSession({
 		user_id: user.id,
 		session_id_hash: Buffer.from(AuthUtility.getTokenIdHash(ctx, token)),
-		created_at: signedInAt ?? now,
+		created_at: now,
 		approx_last_used_at: now,
 		client_ip: origin.ip,
 		client_user_agent: origin.userAgent,
@@ -103,14 +100,10 @@ export async function createAuthSession(
 		app_release_channel: null,
 		app_build_number: null,
 		app_beta_number: null,
-		auth_method: authMethod ?? null,
+		auth_method: null,
 		version: 1,
 	});
 	return [token, authSession];
-}
-
-function sameSsoSignIn(session: AuthSession): Pick<CreateAuthSessionParams, 'authMethod' | 'signedInAt'> {
-	return session.authMethod === 'sso' ? {authMethod: 'sso', signedInAt: session.createdAt} : {};
 }
 
 export async function createAdditionalAuthSessionFromToken(
@@ -129,17 +122,12 @@ export async function createAdditionalAuthSessionFromToken(
 	if (expectedUserId && user.id.toString() !== expectedUserId) {
 		throw new SessionTokenMismatchError();
 	}
-	const [newToken] = await createAuthSession(ctx, {user, origin, ...sameSsoSignIn(existingSession)});
+	const [newToken] = await createAuthSession(ctx, {user, origin});
 	return {token: newToken, userId: user.id.toString()};
 }
 
 export async function getAuthSessionByToken(ctx: ApiContext, token: string): Promise<AuthSession | null> {
-	const session = await ctx.services.users.getAuthSessionByToken(Buffer.from(AuthUtility.getTokenIdHash(ctx, token)));
-	if (!session?.isExpiredSsoSession()) return session;
-	void deleteAndTerminateAuthSessions(ctx, session.userId, [session]).catch((error: unknown) => {
-		Logger.warn({error, userId: session.userId}, 'Failed to revoke an expired SSO session');
-	});
-	return null;
+	return await ctx.services.users.getAuthSessionByToken(Buffer.from(AuthUtility.getTokenIdHash(ctx, token)));
 }
 
 export async function getAuthSessions(
@@ -148,7 +136,7 @@ export async function getAuthSessions(
 	currentSessionIdHash?: Uint8Array,
 ): Promise<Array<AuthSessionResponse>> {
 	const {users} = ctx.services;
-	const authSessions = (await users.listAuthSessions(userId)).filter((session) => !session.isExpiredSsoSession());
+	const authSessions = await users.listAuthSessions(userId);
 	return await mapAuthSessionsToResponse({authSessions, currentSessionIdHash});
 }
 
@@ -199,7 +187,6 @@ export async function replaceCurrentAuthSession(
 	const [newToken, newAuthSession] = await createAuthSession(ctx, {
 		user,
 		origin: resolveSessionOrigin(ctx, request),
-		...sameSsoSignIn(currentAuthSession),
 	});
 	const newAuthSessionIdHash = encodeSessionIdHash(newAuthSession.sessionIdHash);
 	await deleteAndTerminateAuthSessions(ctx, user.id, [currentAuthSession]);

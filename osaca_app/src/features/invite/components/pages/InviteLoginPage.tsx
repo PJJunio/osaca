@@ -21,8 +21,8 @@ import {
 import {ACCEPT_INVITE_DESCRIPTOR} from '@app/features/invite/utils/InviteMessageDescriptors';
 import {setPathQueryParams} from '@app/features/messaging/utils/MessagingUrlUtils';
 import {useLocation, useParams} from '@app/features/platform/components/router/RouterReact';
-import type {Invite} from '@osaca/schema/src/domains/invite/InviteSchemas';
 import {useLingui} from '@lingui/react/macro';
+import type {Invite} from '@osaca/schema/src/domains/invite/InviteSchemas';
 import {observer} from 'mobx-react-lite';
 import {useMemo} from 'react';
 
@@ -68,7 +68,6 @@ const InviteLoginPage = observer(function InviteLoginPage({code, invite}: Invite
 			forceCredentials={false}
 			startWithAddAccount={false}
 			runtimeTarget={runtimeTarget}
-			ssoRedirectPath={null}
 			suppressInlineBackButtons={false}
 			initialIdentifier={null}
 			registerLink={

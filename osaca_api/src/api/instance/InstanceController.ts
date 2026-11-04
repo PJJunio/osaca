@@ -231,7 +231,6 @@ export function InstanceController(app: Hono<HonoEnv>) {
 		async (ctx) => {
 			ctx.header('Access-Control-Allow-Origin', '*');
 			const limits = ctx.get('limitConfigService').getConfigWireFormat();
-			const sso = await ctx.get('ssoService').getPublicStatus();
 			const instanceConfigRepository = ctx.get('instanceConfigRepository');
 			const [
 				registration,
@@ -300,7 +299,6 @@ export function InstanceController(app: Hono<HonoEnv>) {
 					},
 				),
 				{
-					sso,
 					registration,
 					community,
 					services,

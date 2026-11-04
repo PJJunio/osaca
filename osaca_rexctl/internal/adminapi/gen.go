@@ -1604,6 +1604,9 @@ type AdminUserMessageDeleteRequest struct {
 	Basis *ModerationBasis `json:"basis,omitempty"`
 }
 
+// AllowedEmailDomainsSchema defines model for AllowedEmailDomainsSchema.
+type AllowedEmailDomainsSchema = []string
+
 // AuthConfigUpdateRequest defines model for AuthConfigUpdateRequest.
 type AuthConfigUpdateRequest struct {
 	IdentifierFirst *AuthConfigUpdateRequest_IdentifierFirst `json:"identifier_first,omitempty"`
@@ -2308,7 +2311,7 @@ type InstanceConfigResponse struct {
 		AdminRegistrationUrlsEnabled bool `json:"admin_registration_urls_enabled"`
 
 		// AllowedEmailDomains Email domains that public sign-ups and email changes must use. Empty allows any domain
-		AllowedEmailDomains []string                       `json:"allowed_email_domains"`
+		AllowedEmailDomains AllowedEmailDomainsSchema      `json:"allowed_email_domains"`
 		Mode                InstanceRegistrationModeSchema `json:"mode"`
 		Urls                []struct {
 			ApprovalRequired bool                `json:"approval_required"`
@@ -2327,40 +2330,8 @@ type InstanceConfigResponse struct {
 			UseCount         int                  `json:"use_count"`
 		} `json:"urls"`
 	} `json:"registration"`
-	SelfHosted bool `json:"self_hosted"`
-	Sso        struct {
-		AllowedDomains   []string `json:"allowed_domains"`
-		AuthorizationUrl *string  `json:"authorization_url"`
-		AutoProvision    bool     `json:"auto_provision"`
-		ButtonLabel      *string  `json:"button_label"`
-		ClientId         *string  `json:"client_id"`
-		ClientSecretSet  bool     `json:"client_secret_set"`
-		DisplayName      *string  `json:"display_name"`
-		Enabled          bool     `json:"enabled"`
-		Enforced         bool     `json:"enforced"`
-
-		// GroupRoleMappings Groups whose members get a role in the single community. Every listed role is managed by single sign-on, and is added or removed to match the groups at each sign-in
-		GroupRoleMappings []struct {
-			// Group A group name exactly as the provider sends it in the groups claim, such as `staff` or `/engineering/devs`
-			Group string `json:"group"`
-
-			// RoleId The role in the single community that members of the group get
-			RoleId SnowflakeStringType `json:"role_id"`
-		} `json:"group_role_mappings"`
-
-		// GroupsClaim The claim that lists the groups of a member. Empty or null uses `groups`
-		GroupsClaim *string `json:"groups_claim"`
-		Issuer      *string `json:"issuer"`
-		JwksUrl     *string `json:"jwks_url"`
-		RedirectUri *string `json:"redirect_uri"`
-		Scope       *string `json:"scope"`
-		TokenUrl    *string `json:"token_url"`
-		UserinfoUrl *string `json:"userinfo_url"`
-
-		// UsernameFromProvider Each SSO sign-in sets the username from the provider, and people can't change it in OSACA. Only on username instances
-		UsernameFromProvider bool `json:"username_from_provider"`
-	} `json:"sso"`
-	VoiceP2p VoiceP2pConfigResponse `json:"voice_p2p"`
+	SelfHosted bool                   `json:"self_hosted"`
+	VoiceP2p   VoiceP2pConfigResponse `json:"voice_p2p"`
 
 	// Warnings Problems the save found that did not stop it. Always empty outside a save response
 	Warnings []string `json:"warnings"`
@@ -2515,45 +2486,9 @@ type InstanceConfigUpdateRequest struct {
 	} `json:"policy,omitempty"`
 	Registration *struct {
 		AdminRegistrationUrlsEnabled *bool                           `json:"admin_registration_urls_enabled,omitempty"`
-		AllowedEmailDomains          *[]string                       `json:"allowed_email_domains,omitempty"`
+		AllowedEmailDomains          *AllowedEmailDomainsSchema      `json:"allowed_email_domains,omitempty"`
 		Mode                         *InstanceRegistrationModeSchema `json:"mode,omitempty"`
 	} `json:"registration,omitempty"`
-	Sso *struct {
-		AllowedDomains   *[]string `json:"allowed_domains,omitempty"`
-		AuthorizationUrl *string   `json:"authorization_url,omitempty"`
-		AutoProvision    *bool     `json:"auto_provision,omitempty"`
-
-		// ButtonLabel Text for the sign-in button. Trimmed, then up to 64 UTF-16 code units with at least one visible character and no control characters, line breaks or bidirectional formatting characters. Empty or null uses the default label
-		ButtonLabel  *string `json:"button_label,omitempty"`
-		ClientId     *string `json:"client_id,omitempty"`
-		ClientSecret *string `json:"client_secret,omitempty"`
-		DisplayName  *string `json:"display_name,omitempty"`
-		Enabled      *bool   `json:"enabled,omitempty"`
-		Enforced     *bool   `json:"enforced,omitempty"`
-
-		// GroupRoleMappings Groups whose members get a role in the single community. Every listed role is managed by single sign-on, and is added or removed to match the groups at each sign-in
-		GroupRoleMappings *[]struct {
-			// Group A group name exactly as the provider sends it in the groups claim, such as `staff` or `/engineering/devs`
-			Group string `json:"group"`
-
-			// RoleId The role in the single community that members of the group get
-			RoleId SnowflakeStringType `json:"role_id"`
-		} `json:"group_role_mappings,omitempty"`
-
-		// GroupsClaim The claim that lists the groups of a member. Empty or null uses `groups`
-		GroupsClaim *string `json:"groups_claim,omitempty"`
-		Issuer      *string `json:"issuer,omitempty"`
-		JwksUrl     *string `json:"jwks_url,omitempty"`
-
-		// MigrateIdentities Only for a save that changes the issuer while accounts are linked to the old one. True moves those links to the new issuer, false leaves them on the old one. Applies to this save only and is never stored
-		MigrateIdentities *bool   `json:"migrate_identities,omitempty"`
-		Scope             *string `json:"scope,omitempty"`
-		TokenUrl          *string `json:"token_url,omitempty"`
-		UserinfoUrl       *string `json:"userinfo_url,omitempty"`
-
-		// UsernameFromProvider Each SSO sign-in sets the username from the provider, and people can't change it in OSACA. Only on username instances
-		UsernameFromProvider *bool `json:"username_from_provider,omitempty"`
-	} `json:"sso,omitempty"`
 	VoiceP2p *VoiceP2pConfigUpdateRequest `json:"voice_p2p,omitempty"`
 }
 

@@ -127,7 +127,7 @@ interface WayBackDeps {
 const recoveryKits = new RecoveryKitRepository();
 
 export async function hasWayBackIn(deps: WayBackDeps, user: GatedUser): Promise<boolean> {
-	if (user.isBot || user.isSystem || user.traits.has(UserTraits.SSO)) return true;
+	if (user.isBot || user.isSystem) return true;
 	const localCredential = getLocalCredential(user);
 	if (
 		localCredential === LocalCredentialKinds.PASSKEY ||

@@ -34,12 +34,6 @@ const REGISTER_ACCOUNT_DESCRIPTOR = msg({
 	comment: 'Link label on the authentication method picker.',
 });
 
-export interface AuthLoginSsoAction {
-	readonly isStarting: boolean;
-	readonly label: ReactNode;
-	readonly onStart: () => void;
-}
-
 function resolveShowPasskeyAction(showPasskeyOption: boolean, passkeyAvailableForInstance: boolean): boolean {
 	return showPasskeyOption && passkeyAvailableForInstance;
 }
@@ -54,7 +48,6 @@ interface AuthLoginMethodStepProps {
 	readonly showBrowserOption: boolean;
 	readonly showPasskeyOption: boolean;
 	readonly showTitle: boolean;
-	readonly ssoAction: AuthLoginSsoAction | null;
 	readonly switchError: string | null;
 	readonly title: ReactNode;
 	readonly onBrowserLogin: () => void;
@@ -73,7 +66,6 @@ export function AuthLoginMethodStep({
 	showBrowserOption,
 	showPasskeyOption,
 	showTitle,
-	ssoAction,
 	switchError,
 	title,
 	onBrowserLogin,
@@ -127,20 +119,6 @@ export function AuthLoginMethodStep({
 			onSelect: onBrowserLogin,
 			stepFocus: false,
 			submitting: false,
-		});
-	}
-	if (ssoAction != null) {
-		secondaryActions.push({
-			disabled,
-			id: 'sso',
-			label: ssoAction.label,
-			icon: (
-				<BrowserIcon size={remFromPx(16)} data-flx="auth.flow.auth-login-core.auth-login-method-step.browser-icon" />
-			),
-			variant: ButtonVariant.SECONDARY,
-			onSelect: ssoAction.onStart,
-			stepFocus: false,
-			submitting: ssoAction.isStarting,
 		});
 	}
 	const renderSwitchError = () => {

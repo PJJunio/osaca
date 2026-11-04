@@ -76,7 +76,6 @@ export const RootComponent: React.FC<{children?: React.ReactNode}> = observer(({
 			pathname.startsWith(Routes.AUTHORIZE_IP) ||
 			pathname.startsWith(Routes.EMAIL_REVERT) ||
 			pathname.startsWith(Routes.OAUTH_AUTHORIZE) ||
-			pathname.startsWith(Routes.SSO_CALLBACK) ||
 			pathname.startsWith(Routes.REPORT) ||
 			pathname.startsWith(Routes.PREMIUM_CALLBACK) ||
 			pathname.startsWith(Routes.CONNECTION_CALLBACK) ||

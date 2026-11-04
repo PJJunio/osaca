@@ -22,7 +22,6 @@ import {OperatorPassAdminController} from '@app/api/admin/controllers/OperatorPa
 import {PaymentDisputeAdminController} from '@app/api/admin/controllers/PaymentDisputeAdminController';
 import {ReportAdminController} from '@app/api/admin/controllers/ReportAdminController';
 import {SearchAdminController} from '@app/api/admin/controllers/SearchAdminController';
-import {SsoIdentityAdminController} from '@app/api/admin/controllers/SsoIdentityAdminController';
 import {StoreBillingAdminController} from '@app/api/admin/controllers/StoreBillingAdminController';
 import {SystemDmAdminController} from '@app/api/admin/controllers/SystemDmAdminController';
 import {ThreadAdminController} from '@app/api/admin/controllers/ThreadAdminController';
@@ -55,7 +54,6 @@ export function registerAdminControllers(app: HonoApp) {
 	VoiceAdminController(app);
 	GatewayAdminController(app);
 	SearchAdminController(app);
-	SsoIdentityAdminController(app);
 	DiscoveryAdminController(app);
 	SystemDmAdminController(app);
 	JobsAdminController(app);

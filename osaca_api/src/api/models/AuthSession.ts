@@ -3,8 +3,6 @@
 import type {UserID} from '@app/api/BrandedTypes';
 import type {AuthSessionRow, AuthSessionTombstoneRow} from '@app/api/database/types/AuthTypes';
 
-const SSO_SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
-
 export class AuthSession {
 	readonly userId: UserID;
 	readonly sessionIdHash: Buffer;
@@ -38,10 +36,6 @@ export class AuthSession {
 		this.appBetaNumber = row.app_beta_number ?? null;
 		this.authMethod = row.auth_method ?? null;
 		this.version = row.version;
-	}
-
-	isExpiredSsoSession(now: number = Date.now()): boolean {
-		return this.authMethod === 'sso' && now - this.createdAt.getTime() > SSO_SESSION_MAX_AGE_MS;
 	}
 
 	toRow(): AuthSessionRow {

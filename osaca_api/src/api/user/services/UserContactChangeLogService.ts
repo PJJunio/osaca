@@ -7,7 +7,7 @@ import type {UserContactChangeLogRepository} from '@app/api/user/repositories/Us
 import {formatUserTag} from '@app/api/user/UserTag';
 import {awaitAll} from '@app/api/utils/ConcurrencyUtils';
 
-export type ContactChangeReason = 'user_requested' | 'admin_action' | 'sso_sync';
+export type ContactChangeReason = 'user_requested' | 'admin_action';
 
 interface ContactChange {
 	field: 'email' | 'osaca_tag';

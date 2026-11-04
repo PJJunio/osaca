@@ -6,7 +6,6 @@ import type {AdminApiKeyService} from '@app/api/admin/services/AdminApiKeyServic
 import type {AdminArchiveService} from '@app/api/admin/services/AdminArchiveService';
 import type {AuthRequestService} from '@app/api/auth/AuthRequestService';
 import type {DesktopHandoffService} from '@app/api/auth/services/DesktopHandoffService';
-import type {SsoService} from '@app/api/auth/services/SsoService';
 import type {ApplicationID, UserID} from '@app/api/BrandedTypes';
 import type {IBlueskyOAuthService} from '@app/api/bluesky/IBlueskyOAuthService';
 import type {ChannelRepository} from '@app/api/channel/ChannelRepository';
@@ -107,7 +106,6 @@ export interface HonoEnv {
 		oauthBearerScopes?: Set<string>;
 		auditLogReason: string | null;
 		authRequestService: AuthRequestService;
-		ssoService: SsoService;
 		authSession: AuthSession;
 		desktopHandoffService: DesktopHandoffService;
 		cacheService: ICacheService;

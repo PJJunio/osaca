@@ -10,7 +10,6 @@ import {
 	startPasskeyBridgeSudo,
 } from '@app/api/auth/services/PasskeyBridgeService';
 import {DefaultUserOnly, LoginRequired} from '@app/api/middleware/AuthMiddleware';
-import {LocalAuthMiddleware} from '@app/api/middleware/LocalAuthMiddleware';
 import {RateLimitMiddleware} from '@app/api/middleware/RateLimitMiddleware';
 import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
 import {RateLimitConfigs} from '@app/api/RateLimitConfig';
@@ -32,7 +31,6 @@ import {
 export function PasskeyBridgeController(app: HonoApp) {
 	app.post(
 		'/auth/passkey-bridge',
-		LocalAuthMiddleware,
 		RateLimitMiddleware(RateLimitConfigs.AUTH_PASSKEY_BRIDGE_START),
 		Validator('json', PasskeyBridgeLoginStartRequest),
 		OpenAPI({
@@ -144,7 +142,6 @@ export function PasskeyBridgeController(app: HonoApp) {
 	);
 	app.post(
 		'/auth/passkey-bridge/:ceremony_id/redeem',
-		LocalAuthMiddleware,
 		RateLimitMiddleware(RateLimitConfigs.AUTH_PASSKEY_BRIDGE_REDEEM),
 		Validator('param', PasskeyBridgeCeremonyIdParam),
 		Validator('json', PasskeyBridgeRedeemRequest),
@@ -167,7 +164,6 @@ export function PasskeyBridgeController(app: HonoApp) {
 					ctx.req.header('origin'),
 					ctx.req.valid('json'),
 					ctx.req.raw,
-					ctx.get('ssoService'),
 				),
 			);
 		},

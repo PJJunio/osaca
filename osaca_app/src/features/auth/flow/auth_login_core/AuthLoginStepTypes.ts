@@ -43,7 +43,6 @@ export const AuthLoginStep = Object.freeze({
 	CLIENT_PERMISSION_SCREEN: 'client_permission_screen',
 	CLIENT_PERMISSION_INPUT_MONITORING: 'client_permission_input_monitoring',
 	INSTANCE: 'instance',
-	SSO: 'sso',
 	METHOD: 'method',
 	BROWSER: 'browser',
 	CREDENTIALS: 'credentials',
@@ -72,7 +71,6 @@ export interface AuthLoginStepSelection {
 	handoffMode: DesktopHandoffMode;
 	hasIpAuthorizationChallenge: boolean;
 	hasStoredAccounts: boolean;
-	isSsoEnforced: boolean;
 	shouldShowBrowserStep: boolean;
 	clientPermission: PermissionKind | null;
 	shouldShowClientPreferencesStep: boolean;
@@ -86,7 +84,6 @@ export function selectAuthLoginStep({
 	handoffMode,
 	hasIpAuthorizationChallenge,
 	hasStoredAccounts,
-	isSsoEnforced,
 	shouldShowBrowserStep,
 	clientPermission,
 	shouldShowClientPreferencesStep,
@@ -101,7 +98,6 @@ export function selectAuthLoginStep({
 	if (shouldShowClientPreferencesStep) return AuthLoginStep.CLIENT_PREFERENCES;
 	if (clientPermission != null) return CLIENT_PERMISSION_STEPS[clientPermission];
 	if (shouldShowInstanceStep) return AuthLoginStep.INSTANCE;
-	if (isSsoEnforced && !shouldShowBrowserStep) return AuthLoginStep.SSO;
 	if (shouldShowMethodStep) return AuthLoginStep.METHOD;
 	if (shouldShowBrowserStep) return AuthLoginStep.BROWSER;
 	return AuthLoginStep.CREDENTIALS;

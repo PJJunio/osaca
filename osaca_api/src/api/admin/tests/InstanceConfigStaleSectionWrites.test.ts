@@ -44,17 +44,6 @@ describe('instance config admin PATCH against state another node changed', () =>
 	const patchConfig = (admin: TestAccount, body: Record<string, unknown>) =>
 		createBuilder<InstanceConfigResponse>(harness, admin.token).patch('/admin/instance/config').body(body);
 
-	it('keeps an SSO field another node changed when a patch changes a different one', async () => {
-		const admin = await createAdmin();
-		await patchConfig(admin, {sso: {display_name: 'Before', client_id: 'client-before'}}).execute();
-		await executor.writeDirectly('sso_display_name', 'Changed on another node');
-
-		await patchConfig(admin, {sso: {client_id: 'client-after'}}).execute();
-
-		expect(await executor.readDirectly('sso_display_name')).toBe('Changed on another node');
-		expect(await executor.readDirectly('sso_client_id')).toBe('client-after');
-	});
-
 	it('refuses to disable direct messages when their lock lands between the read and the write', async () => {
 		const admin = await createAdmin();
 		await patchConfig(admin, {policy: {services: {youtube_enabled: true}}}).execute();

@@ -15,28 +15,19 @@ const SHARED_THEME_DESCRIPTOR = msg({
 	comment:
 		'Button or menu action label in the theme login and register pages. Keep it concise. Keep the tone plain and specific.',
 });
-export function ThemeHeader({prefix, sso = false}: {prefix: string; sso?: boolean}) {
+export function ThemeHeader({prefix}: {prefix: string}) {
 	const {i18n} = useLingui();
-	let iconSpotSuffix = 'div';
-	if (sso) {
-		iconSpotSuffix = 'div.sso';
-	} else if (prefix.includes('register')) {
-		iconSpotSuffix = 'div--2';
-	}
+	const iconSpotSuffix = prefix.includes('register') ? 'div--2' : 'div';
 	return (
 		<AuthPageHeader
 			icon={
 				<div className={sharedStyles.themeIconSpot} data-flx={`${prefix}.${iconSpotSuffix}`}>
-					<PaletteIcon
-						className={sharedStyles.themeIcon}
-						weight="fill"
-						data-flx={`${prefix}.palette-icon${sso ? '.sso' : ''}`}
-					/>
+					<PaletteIcon className={sharedStyles.themeIcon} weight="fill" data-flx={`${prefix}.palette-icon`} />
 				</div>
 			}
 			title={i18n._(YOU_VE_GOT_CSS_DESCRIPTOR)}
 			subtitle={i18n._(SHARED_THEME_DESCRIPTOR)}
-			data-flx={`${prefix}.auth-page-header${sso ? '.sso' : ''}`}
+			data-flx={`${prefix}.auth-page-header`}
 		/>
 	);
 }

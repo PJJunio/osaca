@@ -3,9 +3,7 @@
 import type {ApiContext} from '@app/api/ApiContext';
 import * as AuthMfa from '@app/api/auth/AuthMfa';
 import {hasOwnedEmail} from '@app/api/auth/services/SudoEmailCode';
-import {getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
 import type {User} from '@app/api/models/User';
-import {isSsoLinkedUser} from '@app/api/user/UserHelpers';
 import {UserAuthenticatorTypes} from '@osaca/constants/src/UserConstants';
 import {type SudoModeMethods, SudoModeRequiredError} from '@osaca/errors/src/domains/auth/SudoModeRequiredError';
 
@@ -59,7 +57,6 @@ export function deriveSudoMethods(
 	user: User,
 	hasPasskeyCredentials: boolean,
 	hasBackupCodes: boolean,
-	ssoEnabled: boolean,
 ): SudoModeMethods {
 	return {
 		totp: hasTotpEnrolled(user),
@@ -67,10 +64,6 @@ export function deriveSudoMethods(
 		backup_codes: hasBackupCodes,
 		email_code: emailCodeSudoAvailable(user, hasPasskeyCredentials),
 		password: (user.passwordHash ?? null) !== null && !userHasUsableMfa(user, hasPasskeyCredentials),
-		sso_reauth:
-			ssoEnabled &&
-			isSsoLinkedUser(user) &&
-			hasNoVerifiableCredential(user, userHasUsableMfa(user, hasPasskeyCredentials), hasPasskeyCredentials),
 	};
 }
 
@@ -81,9 +74,8 @@ export async function createSudoModeRequiredError(
 ): Promise<SudoModeRequiredError> {
 	const hasPasskeys = hasPasskeyCredentials ?? (await ctx.services.users.listWebAuthnCredentials(user.id)).length > 0;
 	const hasBackupCodes = await AuthMfa.hasUnconsumedBackupCodes(ctx, user.id);
-	const ssoEnabled = (await getInstanceConfigRepository().getSsoConfig()).enabled;
 	return new SudoModeRequiredError(
 		userHasSudoCapability(user, hasPasskeys),
-		deriveSudoMethods(user, hasPasskeys, hasBackupCodes, ssoEnabled),
+		deriveSudoMethods(user, hasPasskeys, hasBackupCodes),
 	);
 }

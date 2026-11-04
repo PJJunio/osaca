@@ -128,8 +128,6 @@ In `enforced` mode an unclaimed account on an `email` instance that sends `new_p
 
 A [limited account](/http-api/users/#account-limitation) can't change profile fields and gets 403 [`ACCOUNT_LIMITED`](/http-api/errors/).
 
-While the instance [enforces single sign-on](/authentication/#single-sign-on-enforcement), an account linked to the provider that sends `new_password` or `email_token` gets 403 [`SSO_REQUIRED`](/http-api/errors/).
-
 ### Images and blocklists
 
 Avatars and banners can be PNG, JPEG, WebP, GIF, APNG, AVIF, HEIC, HEIF, JPEG XL or SVG, up to the `avatar_max_size` limit (10485760 bytes by default). Other formats return `INVALID_IMAGE_FORMAT` and larger images return `IMAGE_SIZE_EXCEEDS_LIMIT`. An animated avatar needs the animated avatar entitlement or returns `ANIMATED_AVATARS_REQUIRE_PREMIUM`.

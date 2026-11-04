@@ -50,7 +50,6 @@ export const InstanceConfigAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase
 					body: {
 						registration: {mode: 'approval'},
 						experiment_delivery: {poll_interval_seconds: 600},
-						sso: null,
 					},
 				},
 				expected: {

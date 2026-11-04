@@ -6,7 +6,6 @@ import {
 	EscalatingCaptchaMiddleware,
 	verifyCaptchaToken,
 } from '@app/api/middleware/CaptchaMiddleware';
-import {LocalAuthMiddleware} from '@app/api/middleware/LocalAuthMiddleware';
 import {getTrustedForwardedClientIp, RateLimitMiddleware} from '@app/api/middleware/RateLimitMiddleware';
 import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
 import {RateLimitConfigs} from '@app/api/RateLimitConfig';
@@ -55,7 +54,6 @@ async function handoffCaptchaSteps(ctx: Context<HonoEnv>): Promise<number> {
 export function AccountEntryController(app: HonoApp) {
 	app.post(
 		'/auth/identify',
-		LocalAuthMiddleware,
 		RateLimitMiddleware(RateLimitConfigs.AUTH_IDENTIFY),
 		Validator('json', IdentifyRequest),
 		OpenAPI({
@@ -92,7 +90,6 @@ export function AccountEntryController(app: HonoApp) {
 	);
 	app.post(
 		'/auth/email-code/send',
-		LocalAuthMiddleware,
 		RateLimitMiddleware(RateLimitConfigs.AUTH_EMAIL_CODE_SEND),
 		Validator('json', EmailCodeSendRequest),
 		OpenAPI({
@@ -120,7 +117,6 @@ export function AccountEntryController(app: HonoApp) {
 	);
 	app.post(
 		'/auth/email-code/verify',
-		LocalAuthMiddleware,
 		RateLimitMiddleware(RateLimitConfigs.AUTH_EMAIL_CODE_VERIFY),
 		Validator('json', EmailCodeVerifyRequest),
 		OpenAPI({
@@ -169,7 +165,6 @@ export function AccountEntryController(app: HonoApp) {
 	);
 	app.post(
 		'/auth/register/handoff',
-		LocalAuthMiddleware,
 		RateLimitMiddleware(RateLimitConfigs.AUTH_REGISTER_HANDOFF),
 		Validator('json', AccountHandoffRequest),
 		EscalatingCaptchaMiddleware(handoffCaptchaSteps),
@@ -192,7 +187,6 @@ export function AccountEntryController(app: HonoApp) {
 	);
 	app.post(
 		'/auth/register/handoff/redeem',
-		LocalAuthMiddleware,
 		RateLimitMiddleware(RateLimitConfigs.AUTH_ACCOUNT_HANDOFF_REDEEM),
 		Validator('json', AccountHandoffRedeemRequest),
 		OpenAPI({

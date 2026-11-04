@@ -36,7 +36,7 @@ import {
 	TierGatedActions,
 } from '@osaca/constants/src/AccountTierConstants';
 import {type CaptchaProvider, CaptchaProviders} from '@osaca/constants/src/CaptchaConstants';
-import {hasUserTrait, type UserTraitSet, UserTraits} from '@osaca/constants/src/UserTraitConstants';
+import type {UserTraitSet} from '@osaca/constants/src/UserTraitConstants';
 
 export function resolveEffectiveVerificationBasis(params: {
 	identityMode: AccountIdentityMode;
@@ -60,7 +60,7 @@ export interface AccountTierInput {
 }
 
 export function resolveAccountTier(input: AccountTierInput): AccountTier {
-	if (input.isBot || input.isSystem || hasUserTrait(input.traits, UserTraits.SSO)) return AccountTiers.VERIFIED;
+	if (input.isBot || input.isSystem) return AccountTiers.VERIFIED;
 	const hasCredential = input.localCredential !== LocalCredentialKinds.NONE;
 	if (input.identityMode === AccountIdentityModes.USERNAME) {
 		return hasCredential ? AccountTiers.VERIFIED : AccountTiers.UNCLAIMED;

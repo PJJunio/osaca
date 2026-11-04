@@ -14,7 +14,6 @@ import {AuthRegisterFormCore} from '@app/features/auth/flow/AuthRegisterFormCore
 import {AuthRouterLink} from '@app/features/auth/flow/AuthRouterLink';
 import {AuthRuntimeTargetGate} from '@app/features/auth/flow/AuthRuntimeTargetGate';
 import {AuthRuntimeTargetResetAction} from '@app/features/auth/flow/AuthRuntimeTargetResetAction';
-import {AuthSsoPanel, isSsoLoginEnforced, resolveAuthPanelSso} from '@app/features/auth/flow/AuthSsoPanel';
 import {isHandoffRequest} from '@app/features/auth/flow/auth_login_core/useDesktopHandoffFlow';
 import {DesktopDeepLinkPrompt} from '@app/features/auth/flow/DesktopDeepLinkPrompt';
 import {linkRegisterFields, readRegistrationUrlCode} from '@app/features/auth/flow/RegisterFormFields';
@@ -41,7 +40,7 @@ export interface ResourceAuthPageConfig<T> {
 	kind: 'gift' | 'theme';
 	dataFlxPrefix: (mode: ResourceAuthMode) => string;
 	useResource: (id: string, snapshot: RuntimeConfigSnapshot) => ResourceAuthState<T>;
-	renderHeader: (resource: T, mode: ResourceAuthMode, sso: boolean) => ReactNode;
+	renderHeader: (resource: T, mode: ResourceAuthMode) => ReactNode;
 	renderBlockingState?: (resource: T, prefix: string) => ReactNode;
 	documentTitle: (i18n: I18n) => string;
 	errorTitle: (i18n: I18n) => ReactNode;
@@ -136,7 +135,7 @@ const ResourceAuthContent = observer(function ResourceAuthContent<T>({
 								preferLogin={config.preferLogin}
 								data-flx={`${prefix}.desktop-deep-link-prompt`}
 							/>
-							{config.renderHeader(state.resource, 'login', false)}
+							{config.renderHeader(state.resource, 'login')}
 						</div>
 					}
 					forgotPasswordAction={null}
@@ -147,7 +146,6 @@ const ResourceAuthContent = observer(function ResourceAuthContent<T>({
 					forceCredentials={false}
 					startWithAddAccount={false}
 					runtimeTarget={runtimeTarget}
-					ssoRedirectPath={null}
 					suppressInlineBackButtons={false}
 					initialIdentifier={null}
 					registerLink={
@@ -164,47 +162,28 @@ const ResourceAuthContent = observer(function ResourceAuthContent<T>({
 				/>
 			</AuthLoginStepCarousel>
 		);
-	const runtimeSso = resolveAuthPanelSso(runtimeSnapshot);
-	const sso = isSsoLoginEnforced(runtimeSso);
 	const usernameSignIn = usesUsernameSignIn(runtimeSnapshot.features);
 	const header = (
 		<>
-			<DesktopDeepLinkPrompt
-				code={id}
-				kind={config.kind}
-				data-flx={`${prefix}.desktop-deep-link-prompt${sso ? '.sso' : ''}`}
-			/>
-			{config.renderHeader(state.resource, 'register', sso)}
+			<DesktopDeepLinkPrompt code={id} kind={config.kind} data-flx={`${prefix}.desktop-deep-link-prompt`} />
+			{config.renderHeader(state.resource, 'register')}
 		</>
 	);
 	const form = (
-		<div className={sharedStyles.container} data-flx={`${prefix}.${sso ? 'sso-container' : 'div'}`}>
+		<div className={sharedStyles.container} data-flx={`${prefix}.div`}>
 			{config.headerOutsideForm ? null : header}
-			{sso ? (
-				<AuthSsoPanel
-					redirectPath={config.redirectPath(id, safeRedirect)}
-					runtimeSnapshot={runtimeSnapshot}
-					dataFlx={`${prefix}.sso-panel`}
-					data-flx={`${prefix}.auth-sso-panel`}
-				/>
-			) : (
-				<AuthRegisterFormCore
-					fields={linkRegisterFields(runtimeSnapshot, readRegistrationUrlCode(params))}
-					submitLabel={config.submitLabel}
-					redirectPath={config.registerRedirectPath(id, safeRedirect)}
-					offerRecoveryKit={usernameSignIn}
-					onRegister={onRegisterComplete}
-					runtimeSnapshot={runtimeSnapshot}
-					onAuthenticated={runtimeTarget.reset}
-					extraContent={config.extraContent}
-					data-flx={`${prefix}.auth-minimal-register-form-core`}
-				/>
-			)}
-			<AuthBottomLink
-				variant="login"
-				to={config.loginPath(id, safeRedirect)}
-				data-flx={`${prefix}.auth-bottom-link${sso ? '.sso' : ''}`}
+			<AuthRegisterFormCore
+				fields={linkRegisterFields(runtimeSnapshot, readRegistrationUrlCode(params))}
+				submitLabel={config.submitLabel}
+				redirectPath={config.registerRedirectPath(id, safeRedirect)}
+				offerRecoveryKit={usernameSignIn}
+				onRegister={onRegisterComplete}
+				runtimeSnapshot={runtimeSnapshot}
+				onAuthenticated={runtimeTarget.reset}
+				extraContent={config.extraContent}
+				data-flx={`${prefix}.auth-minimal-register-form-core`}
 			/>
+			<AuthBottomLink variant="login" to={config.loginPath(id, safeRedirect)} data-flx={`${prefix}.auth-bottom-link`} />
 		</div>
 	);
 	return config.headerOutsideForm ? (

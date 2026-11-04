@@ -23,7 +23,6 @@ import {
 } from '@app/api/middleware/AccountIdentityMiddleware';
 import {DefaultUserOnly, LoginRequired} from '@app/api/middleware/AuthMiddleware';
 import {CaptchaMiddleware, EscalatingCaptchaMiddleware} from '@app/api/middleware/CaptchaMiddleware';
-import {LocalAuthMiddleware, MfaTicketAuthMiddleware} from '@app/api/middleware/LocalAuthMiddleware';
 import {RateLimitMiddleware} from '@app/api/middleware/RateLimitMiddleware';
 import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
 import {SudoModeMiddleware} from '@app/api/middleware/SudoModeMiddleware';
@@ -63,11 +62,6 @@ import {
 	ResetPasswordRequest,
 	ResetPasswordTokenParam,
 	SignInLinkRequest,
-	SsoCompleteRequest,
-	SsoCompleteResponse,
-	SsoStartRequest,
-	SsoStartResponse,
-	SsoStatusResponse,
 	UsernameAvailabilityQuery,
 	UsernameAvailabilityResponse,
 	UsernameInstanceLoginRequest,
@@ -109,66 +103,8 @@ async function registrationCaptchaSteps(ctx: Context<HonoEnv>): Promise<number> 
 }
 
 export function AuthController(app: HonoApp) {
-	app.get(
-		'/auth/sso/status',
-		RateLimitMiddleware(RateLimitConfigs.AUTH_SSO_START),
-		OpenAPI({
-			operationId: 'get_sso_status',
-			summary: 'Get SSO status',
-			responseSchema: SsoStatusResponse,
-			statusCode: 200,
-			security: [],
-			tags: ['Auth'],
-			description: 'Retrieve the current status of the SSO authentication session without authentication required.',
-		}),
-		async (ctx) => {
-			const status = await ctx.get('ssoService').getPublicStatus();
-			return ctx.json(status);
-		},
-	);
-	app.post(
-		'/auth/sso/start',
-		RateLimitMiddleware(RateLimitConfigs.AUTH_SSO_START),
-		Validator('json', SsoStartRequest),
-		OpenAPI({
-			operationId: 'start_sso',
-			summary: 'Start SSO',
-			responseSchema: SsoStartResponse,
-			statusCode: 200,
-			security: [],
-			tags: ['Auth'],
-			description:
-				'Initiate a new Single Sign-On (SSO) session. Returns a session URL to be completed with SSO provider credentials.',
-		}),
-		async (ctx) => {
-			const result = await ctx.get('authRequestService').startSso(ctx.req.valid('json'));
-			return ctx.json(result);
-		},
-	);
-	app.post(
-		'/auth/sso/complete',
-		RateLimitMiddleware(RateLimitConfigs.AUTH_SSO_COMPLETE),
-		Validator('json', SsoCompleteRequest),
-		OpenAPI({
-			operationId: 'complete_sso',
-			summary: 'Complete SSO',
-			responseSchema: SsoCompleteResponse,
-			statusCode: 200,
-			security: [],
-			tags: ['Auth'],
-			description:
-				'Complete the SSO authentication flow with the authorization code from the SSO provider. Returns authentication token and user information, or linked when the flow was started from account settings.',
-		}),
-		async (ctx) => {
-			const result = await ctx
-				.get('authRequestService')
-				.completeSso(ctx.req.valid('json'), ctx.req.raw, ctx.get('requestCache'), requireRequestClientIp(ctx));
-			return ctx.json(result);
-		},
-	);
 	app.post(
 		'/auth/register',
-		LocalAuthMiddleware,
 		RateLimitMiddleware(RateLimitConfigs.AUTH_REGISTER),
 		Validator('json', RegisterRequest, {schemaFor: onUsernameInstance(UsernameInstanceRegisterRequest)}),
 		EscalatingCaptchaMiddleware(registrationCaptchaSteps),
@@ -194,7 +130,6 @@ export function AuthController(app: HonoApp) {
 	);
 	app.post(
 		'/auth/login',
-		LocalAuthMiddleware,
 		RateLimitMiddleware(RateLimitConfigs.AUTH_LOGIN),
 		CaptchaMiddleware,
 		Validator('json', LoginRequest, {schemaFor: onUsernameInstance(UsernameInstanceLoginRequest)}),
@@ -221,7 +156,6 @@ export function AuthController(app: HonoApp) {
 		'/auth/login/mfa/totp',
 		RateLimitMiddleware(RateLimitConfigs.AUTH_LOGIN_MFA),
 		Validator('json', MfaTotpRequest),
-		MfaTicketAuthMiddleware,
 		OpenAPI({
 			operationId: 'login_with_totp',
 			summary: 'Login with TOTP',
@@ -263,7 +197,6 @@ export function AuthController(app: HonoApp) {
 	);
 	app.post(
 		'/auth/verify',
-		LocalAuthMiddleware,
 		RequireEmailAccountIdentity,
 		RateLimitMiddleware(RateLimitConfigs.AUTH_VERIFY_EMAIL),
 		Validator('json', VerifyEmailRequest),
@@ -284,7 +217,6 @@ export function AuthController(app: HonoApp) {
 	);
 	app.post(
 		'/auth/verify/resend',
-		LocalAuthMiddleware,
 		RequireEmailAccountIdentity,
 		RateLimitMiddleware(RateLimitConfigs.AUTH_RESEND_VERIFICATION),
 		LoginRequired,
@@ -306,7 +238,6 @@ export function AuthController(app: HonoApp) {
 	);
 	app.post(
 		'/auth/forgot',
-		LocalAuthMiddleware,
 		RequireEmailAccountIdentity,
 		RateLimitMiddleware(RateLimitConfigs.AUTH_FORGOT_PASSWORD),
 		CaptchaMiddleware,
@@ -331,7 +262,6 @@ export function AuthController(app: HonoApp) {
 	);
 	app.get(
 		'/auth/reset/:token',
-		LocalAuthMiddleware,
 		RateLimitMiddleware(RateLimitConfigs.AUTH_VALIDATE_RESET_TOKEN),
 		Validator('param', ResetPasswordTokenParam),
 		OpenAPI({
@@ -351,7 +281,6 @@ export function AuthController(app: HonoApp) {
 	);
 	app.post(
 		'/auth/reset',
-		LocalAuthMiddleware,
 		RateLimitMiddleware(RateLimitConfigs.AUTH_RESET_PASSWORD),
 		Validator('json', ResetPasswordRequest),
 		OpenAPI({
@@ -374,7 +303,6 @@ export function AuthController(app: HonoApp) {
 	);
 	app.post(
 		'/auth/recover',
-		LocalAuthMiddleware,
 		RateLimitMiddleware(RateLimitConfigs.AUTH_RECOVER_ACCOUNT),
 		RequireUsernameAccountIdentity,
 		CaptchaMiddleware,
@@ -399,7 +327,6 @@ export function AuthController(app: HonoApp) {
 	);
 	app.post(
 		'/auth/email-revert',
-		LocalAuthMiddleware,
 		RequireEmailAccountIdentity,
 		RateLimitMiddleware(RateLimitConfigs.AUTH_EMAIL_REVERT),
 		Validator('json', EmailRevertRequest),
@@ -468,7 +395,6 @@ export function AuthController(app: HonoApp) {
 	);
 	app.post(
 		'/auth/authorize-ip',
-		LocalAuthMiddleware,
 		RequireEmailAccountIdentity,
 		RateLimitMiddleware(RateLimitConfigs.AUTH_AUTHORIZE_IP),
 		Validator('json', AuthorizeIpRequest),
@@ -511,7 +437,6 @@ export function AuthController(app: HonoApp) {
 	);
 	app.post(
 		'/auth/ip-authorization/resend',
-		LocalAuthMiddleware,
 		RequireEmailAccountIdentity,
 		RateLimitMiddleware(RateLimitConfigs.AUTH_IP_AUTHORIZATION_RESEND),
 		Validator('json', MfaTicketRequest),
@@ -532,7 +457,6 @@ export function AuthController(app: HonoApp) {
 	);
 	app.get(
 		'/auth/ip-authorization/poll',
-		LocalAuthMiddleware,
 		RateLimitMiddleware(RateLimitConfigs.AUTH_IP_AUTHORIZATION_POLL),
 		Validator('query', IpAuthorizationPollQuery),
 		OpenAPI({
@@ -552,7 +476,6 @@ export function AuthController(app: HonoApp) {
 	);
 	app.post(
 		'/auth/webauthn/authentication-options',
-		LocalAuthMiddleware,
 		RateLimitMiddleware(RateLimitConfigs.AUTH_WEBAUTHN_OPTIONS),
 		OpenAPI({
 			operationId: 'get_webauthn_authentication_options',
@@ -575,7 +498,6 @@ export function AuthController(app: HonoApp) {
 	);
 	app.post(
 		'/auth/webauthn/authenticate',
-		LocalAuthMiddleware,
 		RateLimitMiddleware(RateLimitConfigs.AUTH_WEBAUTHN_AUTHENTICATE),
 		Validator('json', WebAuthnAuthenticateRequest),
 		OpenAPI({
@@ -601,7 +523,6 @@ export function AuthController(app: HonoApp) {
 		'/auth/login/mfa/webauthn/authentication-options',
 		RateLimitMiddleware(RateLimitConfigs.AUTH_LOGIN_MFA),
 		Validator('json', MfaTicketRequest),
-		MfaTicketAuthMiddleware,
 		OpenAPI({
 			operationId: 'get_webauthn_mfa_options',
 			summary: 'Get WebAuthn MFA options',
@@ -626,7 +547,6 @@ export function AuthController(app: HonoApp) {
 		'/auth/login/mfa/webauthn',
 		RateLimitMiddleware(RateLimitConfigs.AUTH_LOGIN_MFA),
 		Validator('json', WebAuthnMfaRequest),
-		MfaTicketAuthMiddleware,
 		OpenAPI({
 			operationId: 'login_with_webauthn_mfa',
 			summary: 'Login with WebAuthn MFA',
@@ -647,7 +567,6 @@ export function AuthController(app: HonoApp) {
 	);
 	app.post(
 		'/auth/username-suggestions',
-		LocalAuthMiddleware,
 		RateLimitMiddleware(RateLimitConfigs.AUTH_REGISTER),
 		Validator('json', UsernameSuggestionsRequest),
 		OpenAPI({
@@ -668,7 +587,6 @@ export function AuthController(app: HonoApp) {
 	);
 	app.get(
 		'/auth/username-availability',
-		LocalAuthMiddleware,
 		RateLimitMiddleware(RateLimitConfigs.AUTH_USERNAME_AVAILABILITY),
 		RequireUsernameLookup,
 		Validator('query', UsernameAvailabilityQuery),

@@ -20,14 +20,6 @@ import {
 import {MS_PER_DAY} from '@osaca/date_utils/src/DateConstants';
 import {snowflakeToDate} from '@osaca/snowflake/src/Snowflake';
 
-export function isSsoUserWithoutPassword(user: Pick<User, 'traits' | 'passwordHash'>): boolean {
-	return user.passwordHash === null && user.traits.has('sso');
-}
-
-export function isSsoLinkedUser(user: Pick<User, 'traits'>): boolean {
-	return user.traits.has('sso');
-}
-
 export function isEnforcementDeletion(user: Pick<User, 'enforcementDecisionId' | 'deletionReasonCode'>): boolean {
 	return user.enforcementDecisionId !== null || isEnforcementReasonCode(user.deletionReasonCode);
 }

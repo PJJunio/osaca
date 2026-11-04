@@ -21,8 +21,6 @@ An instance reports how people sign in as `account_identity` in its [instance fe
 - [Authorize an IP address](#authorize-an-ip-address)
 - [Resend IP authorization](#resend-ip-authorization)
 
-When the instance enforces SSO, the password, passkey, email code, registration, email verification, password reset, recovery, IP authorization and username routes return 403 `SSO_REQUIRED`. The SSO routes, logout, the session routes, [redeem a sign-in link](#redeem-a-sign-in-link), the desktop and origin handoff routes and the MFA routes for a ticket from [complete SSO](#complete-sso) keep working.
-
 Each sign-in creates one session, and a session lasts until it is revoked. When a session is revoked, its Gateway connection gets [Invalid Session](/gateway/overview/#invalid-session) with `d: false`.
 
 <a id="authentication-token-response"></a>
@@ -44,51 +42,6 @@ A new session token and the account it belongs to. Every route that signs someon
 <sup>1</sup> Returned only by registration, and null when no invite applied
 
 When a route can return this object or a different one, check for `token`.
-
-## SSO status object
-
-The public single sign-on state. The [instance discovery document](/http-api/instance/#instance-discovery-object) has the same object.
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| enabled | boolean | Whether SSO is turned on and its provider is fully configured |
-| enforced | boolean | Whether every user has to sign in with SSO |
-| username_from_provider | boolean | Whether each SSO sign-in sets the username from the provider, so SSO accounts can't change it |
-| display_name | ?string | The provider display name |
-| button_label | ?string | The text for the SSO sign-in button, or null to use the app's default |
-| redirect_uri | string | The default redirect URI for the provider callback |
-| available? | boolean | Not sent by the API. Check `enabled` |
-
-## SSO start object
-
-Where to send the user to sign in with the identity provider.
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| authorization_url | string | The provider URL to send the user to, unchanged |
-| state | string | The one-use state to pass to [complete SSO](#complete-sso), valid for 10 minutes |
-| redirect_uri | string | The callback URI for this state |
-| client_binding | string | A one-use secret to send back to [complete SSO](#complete-sso) with this state |
-
-## SSO completion response object
-
-The result of [complete SSO](#complete-sso). It extends an [authentication token response](#authentication-token-response) or an [MFA challenge response](#mfa-challenge-response) with the redirect bound to the state. A flow from [start connecting SSO](#start-connecting-sso) returns only `linked` and `redirect_to`.
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| token | string | The new user session token |
-| user_id | snowflake | The authenticated user ID |
-| user | [partial user](/http-api/users/#partial-user-object) object | The authenticated account |
-| redirect_to | string | The `redirect_to` given to [start SSO](#start-sso), or an empty string |
-| linked? | boolean | `true` when the identity was connected to the account that started [start connecting SSO](#start-connecting-sso). No session is created |
-
-When `mfa` is `true`, finish the sign-in with the ticket the same way as after [password login](#log-in-with-a-password).
 
 ## Registration pending approval response object
 
@@ -115,7 +68,7 @@ A request from a blocked network returns 403 `GLOBAL_IP_BANNED` or `GLOBAL_IP_TE
 | `reason` | The rule behind the block as `title` and `url`, or `null` |
 | `product_name` | The instance name used in `message` |
 
-A blocked network can still load `GET /.well-known/osaca`, which the app uses to show the block message. Password, passkey, MFA and SSO sign-in still respond from a blocked network, and a suspended or closed account sees its [enforcement notice](#enforcement-notice-object). Every other result is the same network block error.
+A blocked network can still load `GET /.well-known/osaca`, which the app uses to show the block message. Password, passkey and MFA sign-in still respond from a blocked network, and a suspended or closed account sees its [enforcement notice](#enforcement-notice-object). Every other result is the same network block error.
 
 ## Enforcement notice object
 
@@ -369,100 +322,6 @@ An unknown code reports `expired`.
 | Field | Type | Description |
 | --- | --- | --- |
 | payload | string | The string stored by [create origin handoff](#create-origin-handoff), unchanged |
-
-## Get SSO status
-
-<RouteHeader method="GET" path="/v1/auth/sso/status" unauthenticated />
-
-Returns the [SSO status](#sso-status-object) of the instance.
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | [SSO status](#sso-status-object) object | The SSO state was returned |
-
-The rate limit is 10 requests per 10 seconds, on the shared `auth:sso:start` bucket.
-
-## Start SSO
-
-<RouteHeader method="POST" path="/v1/auth/sso/start" unauthenticated />
-
-Starts single sign-on and returns an [SSO start](#sso-start-object) object. Send the user to `authorization_url`.
-
-### JSON body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| redirect_to?<sup>1</sup> | ?string | The path to open after sign-in |
-| redirect_uri?<sup>2</sup> | ?string | The callback URI for the result |
-
-<sup>1</sup> Kept only when it is a path on this instance that starts with a single `/`, is at most 2,048 characters and has no backslash or control character
-
-<sup>2</sup> Must be the instance default from [get SSO status](#get-sso-status) or `osaca://auth/sso/callback` for the mobile apps. Any other value returns the field code `INVALID_URL_FORMAT`
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | [SSO start](#sso-start-object) object | The state was created |
-| 403 | [error response](/http-api/#error-response) | `FEATURE_TEMPORARILY_DISABLED` when SSO is off or not fully configured |
-| 503 | [error response](/http-api/#error-response) | `SSO_PROVIDER_UNAVAILABLE` when SSO is on but the provider's discovery document can't be fetched |
-
-The rate limit is 10 requests per 10 seconds, on the `auth:sso:start` bucket.
-
-## Complete SSO
-
-<RouteHeader method="POST" path="/v1/auth/sso/complete" unauthenticated />
-
-Signs in or creates the account linked to the provider identity and returns an [SSO completion response](#sso-completion-response-object). The state works once, and after any failure you start again with [start SSO](#start-sso).
-
-An unlinked identity is linked to the account with the same verified email only when the instance sends email and that account's email is confirmed. Otherwise it returns `SSO_ACCOUNT_LINK_REQUIRES_SIGN_IN`, and the person connects the account with [start connecting SSO](#start-connecting-sso). An account with a second factor or a passkey is asked for it on every SSO sign-in, except a sign-in to an already linked account from a state started with the mobile `redirect_uri`. A new account has no password and accepts no invite, and it joins the instance's single community when the instance has one. On an `email` instance it gets the provider's verified email, and when SSO is enforced each sign-in sets the account email to it.
-
-:::caution[A verified provider email signs in to a matching confirmed account]
-Turn on SSO only for a provider that controls the email addresses it asserts.
-:::
-
-### JSON body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| code | string | The authorization code from the provider (1-4096 characters) |
-| state | string | The state from [start SSO](#start-sso) (1-4096 characters) |
-| client_binding? | ?string | The `client_binding` from [start SSO](#start-sso). Required unless the state was started with the mobile `redirect_uri` (1-128 characters) |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | [SSO completion response](#sso-completion-response-object) | The account was signed in, or its second factor is needed |
-| 400 | [error response](/http-api/#error-response) | `INVALID_OR_EXPIRED_SSO_STATE`, `SSO_EMAIL_NOT_VERIFIED` or another provider or linking code |
-| 400 | [error response](/http-api/#error-response) | `INVALID_OR_EXPIRED_SSO_STATE` also when `client_binding` is missing or does not match the state |
-| 403 | [error response](/http-api/#error-response) | `SSO_REQUIRED` when the account is unknown and new accounts are off |
-| 403 | [error response](/http-api/#error-response) | `REGISTRATION_PENDING_APPROVAL`, `REGISTRATION_REJECTED` or a suspension code |
-| 503 | [error response](/http-api/#error-response) | `SSO_PROVIDER_UNAVAILABLE` when the provider didn't respond or its token or keys URL returned a 5xx |
-
-The rate limit is 15 requests per 10 seconds, on the `auth:sso:complete` bucket.
-
-## Start connecting SSO
-
-<RouteHeader method="POST" path="/v1/users/@me/sso/link/start" mfa />
-
-Starts connecting the instance's SSO provider to the current account after [sudo mode](/http-api/users/mfa/#sudo-mode) and returns an [SSO start](#sso-start-object) object. Send the user to `authorization_url`, then finish with [complete SSO](#complete-sso), which returns `linked` and creates no new session. It works while the instance enforces SSO. The session that started it has to stay signed in until it finishes, and an identity another account holds returns `SSO_IDENTITY_LINKED_TO_ANOTHER_ACCOUNT`.
-
-### JSON body
-
-The body is the [sudo verification object](/http-api/users/mfa/#sudo-verification-object).
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | [SSO start](#sso-start-object) object | The state was created |
-| 403 | [error response](/http-api/#error-response) | `SUDO_MODE_REQUIRED` without a valid sudo proof |
-| 403 | [error response](/http-api/#error-response) | `FEATURE_TEMPORARILY_DISABLED` when SSO is off or not fully configured |
-
-The rate limit is 10 requests per 10 seconds, on the shared `auth:sso:start` bucket.
 
 ## Register an account
 
@@ -728,7 +587,7 @@ Finishes a sign-in with an authenticator code or a backup code and returns an [a
 | Field | Type | Description |
 | --- | --- | --- |
 | code | string | The authenticator code or an unused backup code |
-| ticket | string | The ticket from [password login](#log-in-with-a-password) or [complete SSO](#complete-sso) |
+| ticket | string | The ticket from [password login](#log-in-with-a-password) |
 
 ### Response
 
@@ -749,7 +608,7 @@ Returns [WebAuthn authentication options](#webauthn-authentication-options) for 
 
 | Field | Type | Description |
 | --- | --- | --- |
-| ticket | string | The ticket from [password login](#log-in-with-a-password) or [complete SSO](#complete-sso) (1-256 characters) |
+| ticket | string | The ticket from [password login](#log-in-with-a-password) (1-256 characters) |
 
 ### Response
 
@@ -772,7 +631,7 @@ Finishes a sign-in with a passkey and returns an [authentication token response]
 | --- | --- | --- |
 | response | [WebAuthn assertion](#webauthn-assertion) object | The browser credential result |
 | challenge | string | The challenge from [get WebAuthn MFA options](#get-webauthn-mfa-options) |
-| ticket | string | The ticket from [password login](#log-in-with-a-password) or [complete SSO](#complete-sso) |
+| ticket | string | The ticket from [password login](#log-in-with-a-password) |
 
 ### Response
 

@@ -45,7 +45,6 @@ const ONE_SHOT_ROUTE_PREFIXES: ReadonlyArray<string> = [
 	'/authorize-ip',
 	'/wasntme',
 	'/oauth2/authorize',
-	'/auth/sso/callback',
 	'/premium-callback',
 	'/connection-callback',
 ];
@@ -62,11 +61,7 @@ function hasUnsafeNextPathCharacter(value: string): boolean {
 	return false;
 }
 
-const DENIED_LOCAL_STORAGE_KEYS: ReadonlySet<string> = new Set([
-	'osaca.lastPushEndpoint',
-	'__test__',
-	'runtimeConfig',
-]);
+const DENIED_LOCAL_STORAGE_KEYS: ReadonlySet<string> = new Set(['osaca.lastPushEndpoint', '__test__', 'runtimeConfig']);
 const PUSH_SUBSCRIPTION_KEY_PATTERN = /push[-_.:]?(?:subscription|endpoint)/iu;
 
 export interface StorageLike {

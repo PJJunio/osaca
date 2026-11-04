@@ -63,26 +63,6 @@ A credential on an unauthenticated operation selects account-based [rate limits]
 
 Repeated authentication failures can get your IP banned, and retrying a rejected credential counts as one.
 
-## Single sign-on enforcement
-
-When an instance enforces single sign-on, these [login and registration routes](/http-api/authentication/) and account operations return 403 `SSO_REQUIRED`. Turning on enforcement doesn't end existing sessions or revoke tokens and keys.
-
-| Group | Operations |
-| --- | --- |
-| Sign-in | Identify an account, password login, discoverable WebAuthn options, WebAuthn login |
-| Email code sign-in | Send and verify an email code |
-| Registration | Register, start and create a website account |
-| Multi-factor login | TOTP, WebAuthn MFA options, WebAuthn MFA |
-| Email | Verify, resend verification, revert an email change |
-| Recovery | Request, validate and reset a password, recover an account |
-| IP authorization | Authorize, resend, poll |
-| Account | Change password, create a recovery kit |
-| Other | Get username suggestions, check username availability |
-
-The single sign-on callback returns the same code when the provider claims match no account and the instance doesn't create accounts automatically.
-
-An account linked to the provider can't change its email or password while enforcement is active. [Email and password](/http-api/users/email-and-password/) operations return 403 `SSO_REQUIRED`, and so does [Update current user](/http-api/users/current-user/) when the body sets `new_password` or `email_token`.
-
 ## Account restrictions
 
 A [limited account](/http-api/users/#account-limitation) gets 403 `ACCOUNT_LIMITED` on the operations listed there. An unverified account can be refused operations that involve other people, as [account tiers](/http-api/users/#account-tiers) describe.
@@ -93,7 +73,7 @@ Sudo mode is a recent proof that the account holder re-verified a credential. An
 
 After a TOTP, passkey or emailed-code proof, the response returns a token in the `X-OSACA-Sudo-Mode-JWT` header. Send it in that request header for five minutes to skip the proof. An account that proves sudo mode with its password gets no token and sends the password each time.
 
-A bot account, or an account with no password, TOTP secret, WebAuthn credential or confirmed email, passes sudo mode without a proof. If that account is connected to SSO, it passes only from a session that signed in with SSO in the last 10 minutes. While the instance has SSO turned off, such an account can't pass sudo mode, and the person needs a password set before SSO goes off. An account with only a confirmed email proves it with an [emailed code](/http-api/users/mfa/#send-a-sudo-email-code). [Multi-factor authentication](/http-api/users/mfa/#sudo-mode) covers the accepted proofs and the [sudo mode methods object](/http-api/users/mfa/#sudo-mode-methods-object).
+A bot account, or an account with no password, TOTP secret, WebAuthn credential or confirmed email, passes sudo mode without a proof. An account with only a confirmed email proves it with an [emailed code](/http-api/users/mfa/#send-a-sudo-email-code). [Multi-factor authentication](/http-api/users/mfa/#sudo-mode) covers the accepted proofs and the [sudo mode methods object](/http-api/users/mfa/#sudo-mode-methods-object).
 
 ## Gateway authentication
 

@@ -18,7 +18,6 @@ import type {
 	InstancePush,
 	InstanceRegistration,
 	InstanceServices,
-	InstanceSso,
 } from '@osaca/instance_bootstrap/src/Types';
 import type {LimitConfigSnapshot, LimitConfigWireFormat} from '@osaca/limits/src/LimitTypes';
 
@@ -52,7 +51,6 @@ export interface ClientRuntimeDiscovery {
 	readonly apiCodeVersion: number;
 	readonly endpoints: ClientRuntimeDiscoveryEndpoints;
 	readonly features: InstanceFeatures;
-	readonly sso: InstanceSso | null;
 	readonly registration: InstanceRegistration;
 	readonly community: InstanceCommunity;
 	readonly services: InstanceServices;
@@ -74,7 +72,6 @@ export function projectClientRuntimeDiscovery(document: InstanceDiscoveryDocumen
 		apiCodeVersion: requireValue(document.apiCodeVersion, 'api_code_version'),
 		endpoints: projectEndpoints(document),
 		features: projectFeatures(document.features),
-		sso: document.sso,
 		registration: requireValue(document.registration, 'registration'),
 		community: requireValue(document.community, 'community'),
 		services: requireValue(document.services, 'services'),

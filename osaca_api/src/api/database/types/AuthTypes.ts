@@ -83,13 +83,6 @@ export interface IpAuthorizationTokenRow {
 	email: string;
 }
 
-export interface UserSsoIdentityRow {
-	provider_id: string;
-	subject: string;
-	user_id: UserID;
-	claimed_at: Date;
-}
-
 export interface AuthorizedIpRow {
 	user_id: UserID;
 	ip: string;
@@ -194,12 +187,6 @@ export const EMAIL_REVERT_TOKEN_COLUMNS = ['token_', 'user_id', 'email'] as cons
 export const IP_AUTHORIZATION_TOKEN_COLUMNS = ['token_', 'user_id', 'email'] as const satisfies ReadonlyArray<
 	keyof IpAuthorizationTokenRow
 >;
-export const USER_SSO_IDENTITY_COLUMNS = [
-	'provider_id',
-	'subject',
-	'user_id',
-	'claimed_at',
-] as const satisfies ReadonlyArray<keyof UserSsoIdentityRow>;
 export const AUTHORIZED_IP_COLUMNS = ['user_id', 'ip'] as const satisfies ReadonlyArray<keyof AuthorizedIpRow>;
 export const AUTHORIZED_IP_TRUST_KEY_COLUMNS = ['user_id', 'trust_key'] as const satisfies ReadonlyArray<
 	keyof AuthorizedIpTrustKeyRow

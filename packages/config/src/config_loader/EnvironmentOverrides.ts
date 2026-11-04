@@ -134,7 +134,6 @@ const NAMED_OSACA_ENV_OVERRIDES: Record<string, NamedEnvOverride> = {
 	OSACA_SUDO_MODE_SECRET: {path: ['auth', 'sudo_mode_secret']},
 	OSACA_CONNECTION_INITIATION_SECRET: {path: ['auth', 'connection_initiation_secret']},
 	OSACA_PROFILE_PSEUDONYM_SECRET: {path: ['auth', 'profile_pseudonym_secret']},
-	OSACA_SSO_ALLOW_PRIVATE_ADDRESSES: {path: ['auth', 'sso_allow_private_addresses'], parse: parseBoolean},
 	OSACA_VAPID_PUBLIC_KEY: {path: ['auth', 'vapid', 'public_key']},
 	OSACA_VAPID_PRIVATE_KEY: {path: ['auth', 'vapid', 'private_key']},
 	OSACA_VAPID_EMAIL: {path: ['auth', 'vapid', 'email']},

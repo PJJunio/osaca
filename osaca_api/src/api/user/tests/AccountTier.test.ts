@@ -90,10 +90,9 @@ describe('getAccountTier', () => {
 		expect(getAccountTier(createUser({email: null, password_hash: 'hash'}))).toBe('unclaimed');
 	});
 
-	it('treats bots, system accounts and SSO accounts as verified', () => {
+	it('treats bots and system accounts as verified', () => {
 		expect(getAccountTier(createUser({email: null, bot: true}))).toBe('verified');
 		expect(getAccountTier(createUser({email: null, system: true}))).toBe('verified');
-		expect(getAccountTier(createUser({email: null, traits: new Set(['sso'])}))).toBe('verified');
 	});
 
 	it('needs a password or passkey next to the email when the instance cannot send email', () => {
@@ -171,7 +170,7 @@ describe('hasWayBackIn', () => {
 		};
 	}
 
-	it('counts a confirmed email, a password, a passkey and SSO', async () => {
+	it('counts a confirmed email, a password and a passkey', async () => {
 		expect(await hasWayBackIn(deps(), VERIFIED)).toBe(true);
 		expect(await hasWayBackIn(deps(), createUser({email_verified: false, password_hash: 'hash'}))).toBe(true);
 		const credential = new WebAuthnCredential({
@@ -188,7 +187,6 @@ describe('hasWayBackIn', () => {
 			superseded_by: null,
 		});
 		expect(await hasWayBackIn(deps([credential]), UNCLAIMED)).toBe(true);
-		expect(await hasWayBackIn(deps(), createUser({email: null, traits: new Set(['sso'])}))).toBe(true);
 	});
 
 	it('counts an unconfirmed address when the instance sends email', async () => {

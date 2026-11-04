@@ -83,9 +83,7 @@ export function AccountSwitcherLoginStep({
 			onStepTitleChange={onStepTitleChange}
 			startWithAddAccount={purpose.type === AccountSwitcherAuthPurposeType.ADD}
 			registerLink={registerAction}
-			ssoRedirectPath={null}
 			suppressInlineBackButtons={true}
-			allowSsoAutoStart={false}
 			onLoginComplete={onLoginComplete}
 			data-flx="auth.accounts.account-switcher-modal.account-switcher-login-step.auth-login-layout"
 		/>

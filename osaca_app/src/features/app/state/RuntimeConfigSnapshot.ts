@@ -36,7 +36,6 @@ import {
 	type InstanceNotice,
 	type InstanceRegistration,
 	type InstanceServices,
-	type InstanceSso,
 	REGISTRATION_MODES,
 } from '@osaca/instance_bootstrap/src/Types';
 import type {LimitConfigSnapshot, LimitFilter, LimitRule} from '@osaca/limits/src/LimitTypes';
@@ -61,7 +60,6 @@ export interface RuntimeConfigSnapshot extends RuntimeConfigIdentity {
 	readonly uploadRelayEndpoint: string | null;
 	readonly apiCodeVersion: number;
 	readonly features: InstanceFeatures;
-	readonly sso: InstanceSso | null;
 	readonly registration: InstanceRegistration;
 	readonly community: InstanceCommunity;
 	readonly services: InstanceServices;
@@ -269,12 +267,7 @@ function readFeatures(value: unknown): InstanceFeatures {
 	if (desktopModulesEnabled !== undefined) {
 		features.desktop_modules_enabled = desktopModulesEnabled;
 	}
-	for (const key of [
-		'identifier_first',
-		'instant_accounts',
-		'email_codes',
-		'discovery_enabled',
-	] as const) {
+	for (const key of ['identifier_first', 'instant_accounts', 'email_codes', 'discovery_enabled'] as const) {
 		const value = readOptionalBoolean(source, key, `features.${key}`);
 		if (value !== undefined) {
 			features[key] = value;
@@ -319,27 +312,6 @@ function readFeatures(value: unknown): InstanceFeatures {
 	});
 	if (verificationBasis !== undefined) features.verification_basis = verificationBasis;
 	return features;
-}
-
-function readSso(value: unknown): InstanceSso | null {
-	if (value === null) {
-		return null;
-	}
-	const source = readRecord(value, 'sso');
-	const sso: InstanceSso = {
-		enabled: readBoolean(source, 'enabled', 'sso.enabled'),
-		enforced: readBoolean(source, 'enforced', 'sso.enforced'),
-		username_from_provider:
-			readOptionalBoolean(source, 'username_from_provider', 'sso.username_from_provider') ?? false,
-		display_name: readNullableNonEmptyString(source, 'display_name', 'sso.display_name'),
-		button_label: readOptionalText(source, 'button_label'),
-		redirect_uri: readEndpoint(source, 'redirect_uri', 'sso.redirect_uri', InstanceEndpointKind.SERVICE),
-	};
-	const available = readOptionalBoolean(source, 'available', 'sso.available');
-	if (available !== undefined) {
-		sso.available = available;
-	}
-	return sso;
 }
 
 function readRegistration(value: unknown): InstanceRegistration {
@@ -594,7 +566,6 @@ export function requireRuntimeConfigSnapshot(value: unknown): RuntimeConfigSnaps
 		uploadRelayEndpoint: readNullableEndpoint(source, 'uploadRelayEndpoint', 'uploadRelayEndpoint'),
 		apiCodeVersion: readPositiveInteger(source, 'apiCodeVersion', 'apiCodeVersion'),
 		features: readFeatures(source.features),
-		sso: readSso(source.sso),
 		registration: readRegistration(source.registration),
 		community: readCommunity(source.community),
 		services: readServices(source.services),

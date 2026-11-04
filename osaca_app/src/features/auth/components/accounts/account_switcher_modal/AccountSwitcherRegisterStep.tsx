@@ -6,10 +6,8 @@ import type * as AuthenticationCommands from '@app/features/auth/commands/Authen
 import authStyles from '@app/features/auth/components/accounts/account_switcher_modal/AccountSwitcherAuthFlow.module.css';
 import pageStyles from '@app/features/auth/flow/AuthPageStyles.module.css';
 import {AuthRegisterFormCore} from '@app/features/auth/flow/AuthRegisterFormCore';
-import {AuthSsoPanel, isSsoLoginEnforced, resolveAuthPanelSso} from '@app/features/auth/flow/AuthSsoPanel';
 import {credentialRegisterFields} from '@app/features/auth/flow/RegisterFormFields';
 import {type StepTitleChangeHandler, useReportStepTitle} from '@app/features/auth/flow/useReportStepTitle';
-import type {LoginSuccessPayload} from '@app/features/auth/state/AuthFlow';
 import ThemeProfile from '@app/features/theme/state/ThemeProfile';
 import {flxElementClassName} from '@app/lib/react';
 import {msg} from '@lingui/core/macro';
@@ -26,31 +24,16 @@ interface AccountSwitcherRegisterStepProps {
 	readonly runtimeSnapshot: RuntimeConfigSnapshot;
 	readonly onStepTitleChange: StepTitleChangeHandler | null;
 	readonly onRegister: (response: AuthenticationCommands.TokenResponse) => Promise<void>;
-	readonly onBrowserLogin: (payload: LoginSuccessPayload) => Promise<void>;
 }
 
 export const AccountSwitcherRegisterStep = observer(function AccountSwitcherRegisterStep({
 	runtimeSnapshot,
 	onStepTitleChange,
 	onRegister,
-	onBrowserLogin,
 }: AccountSwitcherRegisterStepProps): React.ReactElement {
 	const {i18n} = useLingui();
-	const ssoConfig = resolveAuthPanelSso(runtimeSnapshot);
-	const ssoEnforced = isSsoLoginEnforced(ssoConfig);
-	useReportStepTitle(ssoEnforced ? null : onStepTitleChange, i18n._(CREATE_AN_ACCOUNT_DESCRIPTOR));
+	useReportStepTitle(onStepTitleChange, i18n._(CREATE_AN_ACCOUNT_DESCRIPTOR));
 	const showTitle = onStepTitleChange == null;
-	if (ssoEnforced) {
-		return (
-			<AuthSsoPanel
-				runtimeSnapshot={runtimeSnapshot}
-				onBrowserLoginSuccess={onBrowserLogin}
-				onStepTitleChange={onStepTitleChange}
-				dataFlx="auth.accounts.account-switcher-modal.account-switcher-register-step.sso-panel"
-				data-flx="auth.accounts.account-switcher-modal.account-switcher-register-step.auth-sso-panel"
-			/>
-		);
-	}
 	const usernameSignIn = usesUsernameSignIn(runtimeSnapshot.features);
 	return (
 		<>

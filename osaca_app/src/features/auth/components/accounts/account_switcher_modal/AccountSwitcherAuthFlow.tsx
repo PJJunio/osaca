@@ -35,11 +35,11 @@ import {
 	SIGN_IN_DESCRIPTOR,
 } from '@app/features/i18n/utils/CommonMessageDescriptors';
 import {flxElementClassName} from '@app/lib/react';
-import type {GuildSplashCardAlignmentValue} from '@osaca/constants/src/GuildConstants';
-import {GuildSplashCardAlignment} from '@osaca/constants/src/GuildConstants';
 import type {I18n} from '@lingui/core';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
+import type {GuildSplashCardAlignmentValue} from '@osaca/constants/src/GuildConstants';
+import {GuildSplashCardAlignment} from '@osaca/constants/src/GuildConstants';
 import {observer} from 'mobx-react-lite';
 import type React from 'react';
 import {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
@@ -203,14 +203,6 @@ export const AccountSwitcherAuthFlow = observer(function AccountSwitcherAuthFlow
 	const handleMfaCancel = useCallback(() => {
 		AuthenticationCommands.clearMfaTicket();
 	}, []);
-	const handleBrowserLoginComplete = useCallback(
-		async (payload: LoginSuccessPayload) => {
-			const runtimeSnapshot = requireSelectedRuntimeSnapshot(authRuntimeTarget);
-			await AuthenticationCommands.completeLogin({...payload, runtimeSnapshot}, {redirectPath: redirectAfterLogin});
-			await onLoginComplete(payload);
-		},
-		[authRuntimeTarget, onLoginComplete, redirectAfterLogin],
-	);
 	const handleAccountRecovered = useCallback(
 		async (payload: LoginSuccessPayload) => {
 			const runtimeSnapshot = requireSelectedRuntimeSnapshot(authRuntimeTarget);
@@ -294,7 +286,6 @@ export const AccountSwitcherAuthFlow = observer(function AccountSwitcherAuthFlow
 						runtimeSnapshot={requireSelectedRuntimeSnapshot(authRuntimeTarget)}
 						onStepTitleChange={stepTitleChange}
 						onRegister={handleRegisterComplete}
-						onBrowserLogin={handleBrowserLoginComplete}
 						data-flx="auth.accounts.account-switcher-modal.account-switcher-auth-flow.register-step"
 					/>
 				);

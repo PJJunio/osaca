@@ -5,8 +5,6 @@ import {
 	clearTestEmails,
 	createUniqueEmail,
 	createUniqueUsername,
-	disableSso,
-	enableSso,
 	findLastTestEmail,
 	listTestEmails,
 } from '@app/api/auth/tests/AuthTestUtils';
@@ -135,13 +133,6 @@ describe('Setup token on every way to create an account', () => {
 		return json.user_id!;
 	}
 
-	async function completeSso(prefix: string): Promise<{status: number; json: GateResponse}> {
-		const started = await post('/auth/sso/start', {});
-		expect(started.status).toBe(HTTP_STATUS.OK);
-		const {state, client_binding} = started.json as GateResponse & {state?: string; client_binding?: string};
-		return post('/auth/sso/complete', {code: `${prefix}-${Date.now()}@example.com`, state, client_binding});
-	}
-
 	it('sends no sign-up code before the first admin exists', async () => {
 		openSetupTokenGate();
 		const email = createUniqueEmail('gatedcode');
@@ -225,21 +216,5 @@ describe('Setup token on every way to create an account', () => {
 		expect(results.find(({status}) => status === HTTP_STATUS.FORBIDDEN)?.json.code).toBe(
 			APIErrorCodes.REGISTRATION_CLOSED,
 		);
-	});
-
-	it('creates no SSO account until setup finishes', async () => {
-		openSetupTokenGate();
-		const admin = await registerWithSetupToken();
-		expect(admin.status).toBe(HTTP_STATUS.OK);
-		await enableSso(harness, admin.json.token!, {enforced: false});
-		try {
-			const beforeFinish = await completeSso('ssobeforesetup');
-			expect(beforeFinish.status).toBe(HTTP_STATUS.FORBIDDEN);
-			expect(beforeFinish.json.code).toBe(APIErrorCodes.REGISTRATION_CLOSED);
-			await getInstanceConfigRepository().setAppPublicConfig({setup: {configured: true}});
-			expect((await completeSso('ssoaftersetup')).status).toBe(HTTP_STATUS.OK);
-		} finally {
-			await disableSso(harness, admin.json.token!);
-		}
 	});
 });

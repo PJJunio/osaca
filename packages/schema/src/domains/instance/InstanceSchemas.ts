@@ -23,7 +23,6 @@ import {
 } from '@osaca/schema/src/domains/account/AccountTierSchemas';
 import {CustomBadgeCursorType, CustomBadgePositionType} from '@osaca/schema/src/domains/admin/AdminBadgeSchemas';
 import {DomainMigrationDiscoveryResponse} from '@osaca/schema/src/domains/admin/DomainMigrationSchemas';
-import {SsoStatusResponse} from '@osaca/schema/src/domains/auth/AuthSchemas';
 import {createQueryIntegerType} from '@osaca/schema/src/primitives/QueryValidators';
 import {
 	createNamedStringLiteralUnion,
@@ -270,11 +269,6 @@ export const InstanceFeaturesSchema = z
 	.describe('Feature flags for this instance');
 export type InstanceFeatures = z.infer<typeof InstanceFeaturesSchema>;
 
-export const InstanceSsoSchema = SsoStatusResponse.extend({
-	available: z.boolean().optional().describe('Whether an SSO provider is configured for this instance'),
-}).describe('Single sign-on configuration');
-export type InstanceSso = z.infer<typeof InstanceSsoSchema>;
-
 export const InstanceRegistrationModeSchema = createNamedStringLiteralUnion(
 	[
 		[RegistrationModes.OPEN, 'open', 'Anyone can register'],
@@ -435,7 +429,6 @@ export const WellKnownOsacaResponse = z.object({
 	endpoints: InstanceEndpointsSchema,
 	captcha: InstanceCaptchaSchema,
 	features: InstanceFeaturesSchema,
-	sso: InstanceSsoSchema,
 	registration: InstanceRegistrationSchema,
 	community: InstanceCommunitySchema,
 	services: InstanceServicesSchema,

@@ -33,7 +33,6 @@ import {
 import {
 	getCacheService,
 	getCustomBadgeCatalog,
-	getInstanceConfigRepository,
 	getKVAccountDeletionQueue,
 	getReportRepository,
 	getUserRepository,
@@ -297,20 +296,6 @@ export function createInitializer(
 				const visionarySlotInitializer = new VisionarySlotInitializer();
 				await visionarySlotInitializer.initialize();
 				logger.info('Stripe visionary slots initialized');
-			}
-			if (config.dev.testModeEnabled) {
-				const instanceConfigRepository = getInstanceConfigRepository();
-				try {
-					await instanceConfigRepository.setSsoConfig({
-						enabled: false,
-						authorizationUrl: null,
-						tokenUrl: null,
-						clientId: null,
-					});
-					logger.info('Reset SSO config to disabled for test mode');
-				} catch (error) {
-					logger.warn({error}, 'Failed to reset SSO config for test mode');
-				}
 			}
 			logger.info('API service initialization complete');
 		} catch (error) {

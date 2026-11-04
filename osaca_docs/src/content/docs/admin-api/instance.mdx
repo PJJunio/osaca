@@ -18,7 +18,6 @@ The full runtime configuration. A setting that was never saved uses the default 
 
 | Field | Type | Description |
 | --- | --- | --- |
-| sso | [SSO configuration](#sso-configuration-object) object | Single sign-on settings |
 | gateway_rollout | [Gateway rollout configuration](#gateway-rollout-configuration-object) object | Gateway admission and dispatch tuning |
 | voice_p2p | [peer-to-peer voice configuration](#peer-to-peer-voice-configuration-object) object | Peer-to-peer voice rollout |
 | captcha | [captcha configuration](#captcha-configuration-object) object | ALTCHA proof-of-work settings |
@@ -49,48 +48,6 @@ How people sign in. It is read-only here, and the setup wizard sets it through [
 | locked | boolean | Whether the mode is fixed, with the reason in `lock_reason` |
 | tag_style | string | One of the [tag styles](/http-api/instance/#tag-styles) |
 | lock_reason | ?string | One of the [account identity lock reasons](/http-api/instance/#account-identity-lock-reasons), or null |
-
-## SSO configuration object
-
-Settings for the instance's OpenID Connect provider.
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| enabled | boolean | Whether single sign-on is offered |
-| enforced | boolean | Whether single sign-on is the only way to sign in |
-| display_name | ?string | Provider name shown on the sign-in screen |
-| button_label | ?string | Text on the sign-in button, or null for the default (up to 64 characters) |
-| issuer | ?string | OpenID Connect issuer. Required while `enabled` is true |
-| authorization_url | ?string | Authorization endpoint |
-| token_url | ?string | Token endpoint |
-| userinfo_url | ?string | Userinfo endpoint |
-| jwks_url | ?string | JWKS endpoint |
-| client_id | ?string | Registered client ID |
-| client_secret_set | boolean | Whether a client secret is stored |
-| scope | ?string | Space-separated scopes |
-| allowed_domains | array[string] | Email domains allowed to sign in (up to 100 entries) |
-| auto_provision | boolean | Whether a first sign-in creates an account |
-| username_from_provider | boolean | Whether SSO accounts get their username from the provider and can't change it, on `username` instances only |
-| redirect_uri<sup>1</sup> | ?string | Redirect URI to register with the provider |
-| groups_claim | ?string | The claim that lists a person's groups, or null for `groups` (up to 128 characters) |
-| group_role_mappings<sup>2</sup> | array[[SSO group role mapping](#sso-group-role-mapping-object) object] | Groups whose members get a role in the single community (up to 100 entries) |
-
-<sup>1</sup> The web app URL followed by `/auth/sso/callback`, which mobile sign-in also uses. It is read-only
-
-<sup>2</sup> Used only in single-community mode. At each sign-in, OSACA adds or removes each mapped role to match the person's groups and leaves other roles alone. If the groups claim is missing, the person loses every mapped role. Keycloak leaves the claim out when someone is in no groups
-
-## SSO group role mapping object
-
-One provider group and the community role its members get.
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| group | string | The group name exactly as the provider sends it, such as `staff` (1-256 characters) |
-| role_id | snowflake | A role in the single community, other than the everyone role |
 
 ## Gateway rollout configuration object
 
@@ -187,7 +144,7 @@ What accounts have to do before they can interact with other people, and which a
 
 <sup>3</sup> Whether joining a community needs a verified account. It applies to people assigned [guild visits](#guild-visits-configuration-object) while `interaction_tier` is `enforced`, and `visits_capable` checks only clients that send `X-OSACA-Capabilities: guild_visits`
 
-<sup>4</sup> Bot, system and single sign-on accounts are never deleted this way. `on_last_session_end` set to `after_grace` also schedules the deletion when the account signs out of its last session. Each deletion is scheduled 24 hours ahead, and signing in cancels it
+<sup>4</sup> Bot and system accounts are never deleted this way. `on_last_session_end` set to `after_grace` also schedules the deletion when the account signs out of its last session. Each deletion is scheduled 24 hours ahead, and signing in cancels it
 
 <sup>5</sup> OSACA emails a warning first and deletes the account `warning_lead_days` later unless it is used. An account that never got the warning, such as one with no email, is never deleted this way
 
@@ -614,31 +571,28 @@ Merges the body into the saved configuration and returns the [instance configura
 
 | Field | Type | Description |
 | --- | --- | --- |
-| sso?<sup>1</sup> | object | [SSO configuration](#sso-configuration-object) fields except `client_secret_set` and `redirect_uri`, plus `client_secret` and `migrate_identities` |
 | gateway_rollout? | object | Any [Gateway rollout configuration](#gateway-rollout-configuration-object) fields |
 | voice_p2p? | object | Any [peer-to-peer voice](#peer-to-peer-voice-configuration-object) fields |
 | captcha? | object | Any [captcha configuration](#captcha-configuration-object) fields |
 | experiment_delivery? | object | Any [experiment delivery](#experiment-delivery-configuration-object) fields |
 | registration? | object | `mode`, `admin_registration_urls_enabled` and `allowed_email_domains` |
-| app_public?<sup>2</sup> | object | `branding`, `setup`, `legal` and `registration` objects, each merged field by field |
-| integrations?<sup>3</sup> | object | `gif`, `youtube`, `email` and `bluesky` objects, and `bluesky.keys` |
+| app_public?<sup>1</sup> | object | `branding`, `setup` and `legal` objects, each merged field by field |
+| integrations?<sup>2</sup> | object | `gif`, `youtube`, `email` and `bluesky` objects, and `bluesky.keys` |
 | media? | object | `attachment_decay` overrides, null to restore a default |
 | policy? | [instance policy update](#instance-policy-update-structure) object | Community, direct message, premium and gating policy |
-| billing?<sup>4</sup> | object | [Instance billing](#instance-billing-object) fields, plus `stripe_secret_key` and `stripe_webhook_secret` |
+| billing?<sup>3</sup> | object | [Instance billing](#instance-billing-object) fields, plus `stripe_secret_key` and `stripe_webhook_secret` |
 | auth? | object | `identifier_first` and any `instant_accounts` fields from the [auth configuration](#auth-configuration-object) |
 | accounts? | object | Any [accounts configuration](#accounts-configuration-object) fields |
 | guild_visits? | object | Any [guild visits configuration](#guild-visits-configuration-object) fields |
-| notice?<sup>5</sup> | object | `message`, `url`, `starts_at` and `ends_at` of the [instance notice](/http-api/instance/#instance-notice-object) |
+| notice?<sup>4</sup> | object | `message`, `url`, `starts_at` and `ends_at` of the [instance notice](/http-api/instance/#instance-notice-object) |
 
-<sup>1</sup> While `enabled` is true, a save without an `issuer` fails with `SSO_ISSUER_REQUIRED`, and endpoint URLs must use `https` and point at a public address unless `OSACA_SSO_ALLOW_PRIVATE_ADDRESSES` is true. Turning on both `enabled` and `enforced` fails with `SSO_MISCONFIGURED` without a `client_id`. When endpoints come from the `issuer`, OSACA fetches the provider's discovery document. If that fails, turning on `enforced` fails with `SSO_DISCOVERY_FAILED`, and a save without `enforced` goes through with a line in `warnings`. A save that changes the provider ID while accounts are linked to the old one moves those links itself when only a trailing `/` changed, or when it adds an `issuer` whose authorization endpoint is the one already in use. Otherwise it fails with `SSO_ISSUER_CHANGE_HAS_IDENTITIES` unless it sends `migrate_identities`. True moves the links to the new issuer, and false leaves them on the old one. Each move writes a `migrate_sso_identities` audit log entry. `migrate_identities` applies to that save only and is never stored
+<sup>1</sup> `branding.product_name` is 1-80 characters, `branding.premium_product_name` 1-40, `branding.custom_css` up to 32,768 and `branding.upload_limit_message` up to 500. `branding.trusted_domains` holds up to 50 hostnames, each optionally starting with `*.`, and null clears it. URLs are up to 2048 characters and `branding.theme_color` is a hex color. Setting `setup.configured` to true finishes setup, and accounts that register after that don't get the wildcard Admin ACL
 
-<sup>2</sup> `branding.product_name` is 1-80 characters, `branding.premium_product_name` 1-40, `branding.custom_css` up to 32,768 and `branding.upload_limit_message` up to 500. `branding.trusted_domains` holds up to 50 hostnames, each optionally starting with `*.`, and null clears it. URLs are up to 2048 characters and `branding.theme_color` is a hex color. Setting `setup.configured` to true finishes setup, and accounts that register after that don't get the wildcard Admin ACL
+<sup>2</sup> A secret such as `api_key` or the SMTP `password` is saved when sent and kept when left out. `email.smtp` takes `host`, `port`, `username`, `password` and `tls_mode`. `bluesky.keys` replaces the signing keys with up to 8 entries of `kid` and `private_key`
 
-<sup>3</sup> A secret such as `api_key` or the SMTP `password` is saved when sent and kept when left out. `email.smtp` takes `host`, `port`, `username`, `password` and `tls_mode`. `bluesky.keys` replaces the signing keys with up to 8 entries of `kid` and `private_key`
+<sup>3</sup> `prices`, `country_currencies` and `legacy_prices` replace the saved value, and an empty `prices` object goes back to the environment prices. Billing can't be on while the premium mode is `everyone`
 
-<sup>4</sup> `prices`, `country_currencies` and `legacy_prices` replace the saved value, and an empty `prices` object goes back to the environment prices. Billing can't be on while the premium mode is `everyone`
-
-<sup>5</sup> `message` is up to 1000 characters, and null or an empty string removes the notice. A request replaces the whole notice
+<sup>4</sup> `message` is up to 1000 characters, and null or an empty string removes the notice. A request replaces the whole notice
 
 OSACA checks the merged settings before it writes anything, and refuses these combinations with 400 `INVALID_FORM_BODY`.
 
@@ -648,8 +602,6 @@ OSACA checks the merged settings before it writes anything, and refuses these co
 - `EMAIL_DELIVERY_REQUIRES_EMAIL_IDENTITY` when email delivery is set to `smtp` on a `username` instance
 - `SMTP_HOST_REQUIRED` when email delivery is set to `smtp` with no SMTP host saved or in the environment
 - `VERIFICATION_BASIS_REQUIRES_EMAIL_DELIVERY` when `verification_basis` is `confirmed_email` while the instance doesn't send email
-
-It also refuses `sso.username_from_provider` set to true on an instance that isn't a `username` instance.
 
 #### Instance policy update structure
 

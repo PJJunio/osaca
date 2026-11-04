@@ -13,29 +13,20 @@ import {
 	RequireUsernameAccountIdentity,
 } from '@app/api/middleware/AccountIdentityMiddleware';
 import {DefaultUserOnly, LoginRequired} from '@app/api/middleware/AuthMiddleware';
-import {LocalAuthMiddleware} from '@app/api/middleware/LocalAuthMiddleware';
 import {requireOAuth2ScopeForBearer} from '@app/api/middleware/OAuth2ScopeMiddleware';
 import {RateLimitMiddleware} from '@app/api/middleware/RateLimitMiddleware';
 import {jsonAssetBodyLimit, RequestBodyLimit} from '@app/api/middleware/RequestBodyLimitMiddleware';
 import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
-import {
-	assertCredentialsNotSsoManaged,
-	assertUsernameNotSsoManaged,
-	SsoManagedCredentialsMiddleware,
-} from '@app/api/middleware/SsoManagedCredentialsMiddleware';
 import {SudoModeMiddleware} from '@app/api/middleware/SudoModeMiddleware';
 import {RateLimitConfigs} from '@app/api/RateLimitConfig';
 import type {HonoApp} from '@app/api/types/HonoEnv';
 import {classifyWebPushOrigin} from '@app/api/user/services/WebPushOriginReplacement';
 import {gateChannelOverrideFlags, mapUserGuildSettingsForViewer} from '@app/api/user/UserGuildSettingsThreadView';
-import {isSsoUserWithoutPassword} from '@app/api/user/UserHelpers';
 import {dispatchUserUpdate, mapUserSettingsToResponse, mapUserToPrivateResponse} from '@app/api/user/UserMappers';
 import {CHANNEL_THREADS_CLIENT_FEATURE} from '@app/api/utils/featureUtils';
 import {requireRequestClientIp} from '@app/api/utils/RequestClientIp';
 import {Validator} from '@app/api/Validator';
 import {UserFlags} from '@osaca/constants/src/UserConstants';
-import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
-import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
 import {MissingAccessError} from '@osaca/errors/src/domains/core/MissingAccessError';
 import {UnknownUserError} from '@osaca/errors/src/domains/user/UnknownUserError';
 import {SudoVerificationSchema} from '@osaca/schema/src/domains/auth/AuthSchemas';
@@ -153,10 +144,6 @@ export function UserAccountController(app: HonoApp) {
 			const userAccountRequestService = ctx.get('userAccountRequestService');
 			const user = ctx.get('user');
 			const rawBody: UserUpdateWithVerificationRequest = ctx.req.valid('json');
-			if (rawBody.new_password !== undefined || rawBody.email_token !== undefined) {
-				await assertCredentialsNotSsoManaged(ctx.get('ssoService'), user);
-			}
-			await assertUsernameNotSsoManaged(ctx.get('ssoService'), user, rawBody);
 			return ctx.json(
 				await userAccountRequestService.updateCurrentUser({
 					ctx,
@@ -173,7 +160,6 @@ export function UserAccountController(app: HonoApp) {
 		LoginRequired,
 		DefaultUserOnly,
 		RequireEmailAccountIdentity,
-		SsoManagedCredentialsMiddleware,
 		RequireEmailCodesAvailable,
 		Validator('json', EmptyBodyRequest),
 		OpenAPI({
@@ -198,7 +184,6 @@ export function UserAccountController(app: HonoApp) {
 		LoginRequired,
 		DefaultUserOnly,
 		RequireEmailAccountIdentity,
-		SsoManagedCredentialsMiddleware,
 		RequireEmailCodesAvailable,
 		Validator('json', EmailChangeTicketRequest),
 		OpenAPI({
@@ -224,7 +209,6 @@ export function UserAccountController(app: HonoApp) {
 		LoginRequired,
 		DefaultUserOnly,
 		RequireEmailAccountIdentity,
-		SsoManagedCredentialsMiddleware,
 		Validator('json', EmailChangeVerifyOriginalRequest),
 		OpenAPI({
 			operationId: 'verify_original_email_address',
@@ -249,7 +233,6 @@ export function UserAccountController(app: HonoApp) {
 		LoginRequired,
 		DefaultUserOnly,
 		RequireEmailAccountIdentity,
-		SsoManagedCredentialsMiddleware,
 		Validator('json', EmailChangeRequestNewRequest),
 		OpenAPI({
 			operationId: 'request_new_email_address',
@@ -283,7 +266,6 @@ export function UserAccountController(app: HonoApp) {
 		LoginRequired,
 		DefaultUserOnly,
 		RequireEmailAccountIdentity,
-		SsoManagedCredentialsMiddleware,
 		Validator('json', EmailChangeTicketRequest),
 		OpenAPI({
 			operationId: 'resend_new_email_confirmation',
@@ -308,7 +290,6 @@ export function UserAccountController(app: HonoApp) {
 		LoginRequired,
 		DefaultUserOnly,
 		RequireEmailAccountIdentity,
-		SsoManagedCredentialsMiddleware,
 		Validator('json', EmailChangeVerifyNewRequest),
 		OpenAPI({
 			operationId: 'verify_new_email_address',
@@ -335,7 +316,6 @@ export function UserAccountController(app: HonoApp) {
 		LoginRequired,
 		DefaultUserOnly,
 		RequireEmailAccountIdentity,
-		SsoManagedCredentialsMiddleware,
 		SudoModeMiddleware,
 		Validator('json', EmailChangeApplyRequest),
 		OpenAPI({
@@ -368,7 +348,6 @@ export function UserAccountController(app: HonoApp) {
 		LoginRequired,
 		DefaultUserOnly,
 		RequireEmailAccountIdentity,
-		SsoManagedCredentialsMiddleware,
 		Validator('json', EmailChangeBouncedRequestNewRequest),
 		OpenAPI({
 			operationId: 'request_bounced_email_replacement',
@@ -395,7 +374,6 @@ export function UserAccountController(app: HonoApp) {
 		LoginRequired,
 		DefaultUserOnly,
 		RequireEmailAccountIdentity,
-		SsoManagedCredentialsMiddleware,
 		Validator('json', EmailChangeTicketRequest),
 		OpenAPI({
 			operationId: 'resend_bounced_email_replacement_code',
@@ -420,7 +398,6 @@ export function UserAccountController(app: HonoApp) {
 		LoginRequired,
 		DefaultUserOnly,
 		RequireEmailAccountIdentity,
-		SsoManagedCredentialsMiddleware,
 		Validator('json', EmailChangeBouncedVerifyNewRequest),
 		OpenAPI({
 			operationId: 'verify_bounced_email_replacement',
@@ -452,7 +429,6 @@ export function UserAccountController(app: HonoApp) {
 		LoginRequired,
 		DefaultUserOnly,
 		RequireEmailAccountIdentity,
-		SsoManagedCredentialsMiddleware,
 		Validator('json', EmptyBodyRequest),
 		OpenAPI({
 			operationId: 'start_password_change',
@@ -476,7 +452,6 @@ export function UserAccountController(app: HonoApp) {
 		LoginRequired,
 		DefaultUserOnly,
 		RequireEmailAccountIdentity,
-		SsoManagedCredentialsMiddleware,
 		Validator('json', PasswordChangeTicketRequest),
 		OpenAPI({
 			operationId: 'resend_password_change_code',
@@ -501,7 +476,6 @@ export function UserAccountController(app: HonoApp) {
 		LoginRequired,
 		DefaultUserOnly,
 		RequireEmailAccountIdentity,
-		SsoManagedCredentialsMiddleware,
 		Validator('json', PasswordChangeVerifyRequest),
 		OpenAPI({
 			operationId: 'verify_password_change_code',
@@ -526,7 +500,6 @@ export function UserAccountController(app: HonoApp) {
 		LoginRequired,
 		DefaultUserOnly,
 		RequireEmailAccountIdentity,
-		SsoManagedCredentialsMiddleware,
 		SudoModeMiddleware,
 		Validator('json', PasswordChangeCompleteRequest),
 		OpenAPI({
@@ -561,7 +534,6 @@ export function UserAccountController(app: HonoApp) {
 	app.post(
 		'/users/@me/password',
 		RateLimitMiddleware(RateLimitConfigs.USER_PASSWORD_UPDATE),
-		LocalAuthMiddleware,
 		LoginRequired,
 		DefaultUserOnly,
 		RequireUsernameAccountIdentity,
@@ -580,9 +552,6 @@ export function UserAccountController(app: HonoApp) {
 		async (ctx) => {
 			const user = ctx.get('user');
 			const body = ctx.req.valid('json');
-			if (isSsoUserWithoutPassword(user)) {
-				throw InputValidationError.fromCode('new_password', ValidationErrorCodes.PASSWORD_NOT_SET);
-			}
 			await requireSudoMode(ctx, user, body, {issueSudoToken: false});
 			const updatedUser = await ctx.get('passwordChangeService').setPassword(user, body.new_password);
 			await ctx.get('userRepository').deleteAllPasswordResetTokens(user.id);

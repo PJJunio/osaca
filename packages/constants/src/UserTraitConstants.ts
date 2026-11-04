@@ -3,7 +3,6 @@
 import type {ValueOf} from '@osaca/constants/src/ValueOf';
 
 export const UserTraits = {
-	SSO: 'sso',
 	PASSKEY: 'passkey',
 } as const;
 

@@ -47,8 +47,6 @@ export const Endpoints = {
 		const params = new URLSearchParams({ticket});
 		return `/auth/ip-authorization/poll?${params}`;
 	},
-	AUTH_SSO_START: '/auth/sso/start',
-	AUTH_SSO_COMPLETE: '/auth/sso/complete',
 	ADMIN_INSTANCE_CONFIG: '/admin/instance/config',
 	ADMIN_INSTANCE_CONFIG_BRANDING_ASSETS: '/admin/instance/config/branding-assets',
 	ADMIN_INSTANCE_CONFIG_SMTP_TESTS: '/admin/instance/config/smtp-tests',
@@ -234,7 +232,6 @@ export const Endpoints = {
 	USER_PASSWORD_CHANGE_COMPLETE: '/users/@me/password-change/complete',
 	USER_PASSWORD: '/users/@me/password',
 	USER_RECOVERY_KIT: '/users/@me/recovery-kit',
-	USER_SSO_LINK_START: '/users/@me/sso/link/start',
 	USER_DISABLE: '/users/@me/disable',
 	USER_DELETE: '/users/@me/delete',
 	USER_BULK_DELETE_MY_MESSAGES: '/users/@me/messages/bulk-delete-mine',

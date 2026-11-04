@@ -11,10 +11,8 @@ import {
 } from '@app/api/auth/services/SudoMethods';
 import {getSudoModeService} from '@app/api/auth/services/SudoModeService';
 import {SUDO_MODE_HEADER} from '@app/api/middleware/SudoModeMiddleware';
-import type {AuthSession} from '@app/api/models/AuthSession';
 import type {User} from '@app/api/models/User';
 import type {HonoEnv} from '@app/api/types/HonoEnv';
-import {isSsoLinkedUser} from '@app/api/user/UserHelpers';
 import {verifyPassword} from '@app/api/utils/PasswordUtils';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
@@ -32,12 +30,6 @@ export interface SudoVerificationBody {
 }
 
 type SudoVerificationMethod = 'password' | 'mfa' | 'sudo_token' | 'email_code';
-
-const SSO_SIGN_IN_SUDO_WINDOW_MS = 10 * 60 * 1000;
-
-function isRecentSsoSignIn(session: AuthSession | undefined): boolean {
-	return session?.authMethod === 'sso' && Date.now() - session.createdAt.getTime() < SSO_SIGN_IN_SUDO_WINDOW_MS;
-}
 
 export interface SudoVerificationResult {
 	verified: boolean;
@@ -98,10 +90,7 @@ async function verifySudoMode(
 		const sudoToken = issueSudoToken ? await sudoModeService.generateSudoToken(user.id) : undefined;
 		return {verified: true, sudoToken, method: 'mfa'};
 	}
-	if (
-		hasNoVerifiableCredential(user, hasUsableMfa, hasPasskeyCredentials) &&
-		(!isSsoLinkedUser(user) || isRecentSsoSignIn(ctx.get('authSession')))
-	) {
+	if (hasNoVerifiableCredential(user, hasUsableMfa, hasPasskeyCredentials)) {
 		return {verified: true, method: 'password'};
 	}
 	if (body.password && !hasUsableMfa) {

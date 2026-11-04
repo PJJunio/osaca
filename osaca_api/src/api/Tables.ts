@@ -66,9 +66,7 @@ import {
 	type PasswordChangeTicketRow,
 	type PasswordResetTokenRow,
 	USER_RECOVERY_KIT_COLUMNS,
-	USER_SSO_IDENTITY_COLUMNS,
 	type UserRecoveryKitRow,
-	type UserSsoIdentityRow,
 	WEBAUTHN_CREDENTIAL_COLUMNS,
 	type WebAuthnCredentialRow,
 } from '@app/api/database/types/AuthTypes';
@@ -377,22 +375,6 @@ export const UserEmailOwners = defineTable<UserEmailOwnerRow, 'email_lower'>({
 	name: 'user_email_owners',
 	columns: USER_EMAIL_OWNER_COLUMNS,
 	primaryKey: ['email_lower'],
-});
-export const UserSsoIdentities = defineTable<UserSsoIdentityRow, 'provider_id' | 'subject', 'provider_id'>({
-	name: 'user_sso_identities',
-	columns: USER_SSO_IDENTITY_COLUMNS,
-	primaryKey: ['provider_id', 'subject'],
-	partitionKey: ['provider_id'],
-});
-export const UserSsoIdentitiesByUser = defineTable<
-	UserSsoIdentityRow,
-	'user_id' | 'provider_id' | 'subject',
-	'user_id'
->({
-	name: 'user_sso_identities_by_user',
-	columns: USER_SSO_IDENTITY_COLUMNS,
-	primaryKey: ['user_id', 'provider_id', 'subject'],
-	partitionKey: ['user_id'],
 });
 export const UserByAcl = defineTable<UserByAclRow, 'acl' | 'user_id', 'acl'>({
 	name: 'users_by_acl',

@@ -638,10 +638,6 @@ The path of a PEM file of CA certificates that the api and worker trust for outg
 
 ## Sign-in
 
-### `OSACA_SSO_ALLOW_PRIVATE_ADDRESSES`
-
-Whether single sign-on can use a provider on a private or local network address. Use `true` or `false`. When it's empty, OSACA uses `false`. With rexctl, use `rexctl config set sso.allow_private_addresses`.
-
 ### `OSACA_PASSKEY_RP_ID`
 
 The relying party ID that passkeys are tied to, a domain such as `chat.example.com`. When it's empty, OSACA uses `OSACA_DOMAIN`. Changing it makes every passkey registered against the old value stop working. With rexctl, use `rexctl config set OSACA_PASSKEY_RP_ID`.

@@ -26,7 +26,6 @@ interface SudoErrorPayload {
 		backup_codes?: boolean;
 		email_code?: boolean;
 		password?: boolean;
-		sso_reauth?: boolean;
 	};
 }
 
@@ -56,7 +55,6 @@ interface AvailableMethods {
 	totp: boolean;
 	webauthn: boolean;
 	backupCodes: boolean;
-	ssoReauth: boolean;
 	hasMfa: boolean;
 }
 
@@ -77,7 +75,6 @@ const EMPTY_METHODS: AvailableMethods = {
 	totp: false,
 	webauthn: false,
 	backupCodes: false,
-	ssoReauth: false,
 	hasMfa: false,
 };
 
@@ -98,7 +95,6 @@ function deriveMethodsFromCurrentUser(): AvailableMethods {
 		totp,
 		webauthn,
 		backupCodes: false,
-		ssoReauth: false,
 		hasMfa,
 	};
 }
@@ -199,7 +195,6 @@ class SudoPrompt {
 			totp,
 			webauthn,
 			backupCodes,
-			ssoReauth: methods.sso_reauth === true,
 			hasMfa,
 		};
 	}

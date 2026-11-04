@@ -57,7 +57,7 @@ var envSections = []envSection{
 	{"database", "Database", "Leave these unset to use the bundled Postgres.", ""},
 	{"services", "Cache, queue and search", "Leave these unset to use the bundled Valkey, NATS and Meilisearch.", ""},
 	{envNetworkSection, "Outgoing proxy", "These settings are for OSACA's services. rexctl and the Linux and macOS install script take HTTPS_PROXY, HTTP_PROXY and NO_PROXY from the shell you run them from.", ""},
-	{"sso", "Sign-in", "", ""},
+	{"sign_in", "Sign-in", "", ""},
 	{"email", "Email", "The admin panel can also save the delivery mode, the sender and the SMTP server. A value saved there is used first.", ""},
 	{"push", "Push notifications", "", ""},
 	{"media", "Media", "", ""},

@@ -105,7 +105,7 @@ Each route needs one or more ACLs, and the caller needs at least one of them. Th
 | guild:update:name | Updates a guild name |
 | guild:update:settings | Updates general guild settings and clears guild fields |
 | guild:update:vanity | Updates a guild custom invite code |
-| instance:config:update | Updates [instance](/admin-api/instance/) configuration and branding, tests SMTP, manages registration URLs and migrates SSO subjects |
+| instance:config:update | Updates [instance](/admin-api/instance/) configuration and branding, tests SMTP, and manages registration URLs |
 | instance:config:view | Reads instance configuration |
 | instance:limit_config:update | Replaces the instance-wide limit configuration |
 | instance:limit_config:view | Reads the instance-wide limit configuration |
@@ -135,7 +135,7 @@ Each route needs one or more ACLs, and the caller needs at least one of them. Th
 | user:temp_ban | Suspends accounts and lifts suspensions |
 | user:update:badges | Replaces the custom badges of an account |
 | user:update:bot_status | Updates bot and system account state |
-| user:update:email | Updates the email address, verifies it, resends verification, sends a password reset and binds SSO subjects |
+| user:update:email | Updates the email address, verifies it, resends verification, and sends a password reset |
 | user:update:flags | Updates account flags and premium flags, and ends every login session of an account |
 | user:update:mfa | Reads and removes a user's WebAuthn credentials, and removes MFA state |
 | user:update:profile | Clears profile fields |
@@ -355,12 +355,10 @@ These entries have `access` set to `read`.
 | list_user_guilds | The guild memberships of an account were read |
 | list_user_relationships | The relationships of an account were read |
 | list_user_sessions | An account's login sessions were read |
-| list_user_sso_identities | The single sign-on identities of an account were read |
 | list_voice_join_tokens | Voice join tokens were listed |
 | list_voice_regions | Voice regions were listed |
 | list_voice_servers | The voice servers of a region were listed |
 | list_webauthn_credentials | An account's WebAuthn credentials were read |
-| lookup_sso_identity | The account holding a single sign-on subject was looked up |
 | search_audit_logs | The Admin audit log was searched |
 | search_guilds | Guilds were listed or searched |
 | search_messages | The messages of a channel were searched, or one message was looked up |
@@ -430,8 +428,6 @@ These entries have `access` set to `write`.
 | hide_built_in_badge | A built-in community badge was hidden on this instance |
 | kick_member | A member was removed from a guild |
 | limit_features | A feature limit decision was recorded for an account |
-| link_sso_identity | A single sign-on subject was bound to an account by hand |
-| migrate_sso_identities | Single sign-on subjects were moved from an earlier provider ID to the provider in use |
 | move_badge | One custom badge was moved in the display order |
 | preview_message_shred | The messages a shred would delete were listed |
 | purge_asset | A stored media asset was purged |
@@ -484,7 +480,6 @@ These entries have `access` set to `write`.
 | unban_profile_substring | A substring was removed from the profile substring blocklist |
 | unban_url | A URL was removed from the URL blocklist |
 | unban_url_domain | A domain was removed from the URL domain blocklist |
-| unlink_sso_identities | The single sign-on subjects of an account were released |
 | update_admin_api_key | An Admin API key was renamed or its ACLs were replaced |
 | update_badge | A custom badge was updated |
 | update_badge_settings | The limits on how many custom badges an account or guild can have were changed |

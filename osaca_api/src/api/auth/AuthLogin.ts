@@ -6,7 +6,6 @@ import {applyPendingRecovery} from '@app/api/auth/AuthRecoveryKit';
 import * as AuthSession from '@app/api/auth/AuthSession';
 import * as AuthUtility from '@app/api/auth/AuthUtility';
 import {getLocalPartAtInstance, usernameFromInstanceLocalPart} from '@app/api/auth/InstanceAddress';
-import type {SsoService} from '@app/api/auth/services/SsoService';
 import {resolveWebAuthnSecondFactor} from '@app/api/auth/services/WebAuthnSecondFactor';
 import {
 	createInviteCode,
@@ -59,13 +58,10 @@ interface LoginParams {
 	captchaVerified?: boolean;
 }
 
-export type SsoPendingLinks = Pick<SsoService, 'completePendingLink'>;
-
 interface LoginMfaTotpParams {
 	code: string;
 	ticket: string;
 	request: Request;
-	ssoLinks: SsoPendingLinks;
 }
 
 interface LoginMfaWebAuthnParams {
@@ -73,7 +69,6 @@ interface LoginMfaWebAuthnParams {
 	challenge: string;
 	ticket: string;
 	request: Request;
-	ssoLinks: SsoPendingLinks;
 }
 
 export interface LoginDependencies {
@@ -482,7 +477,7 @@ export async function consumeMfaAttempt(
 
 export async function loginMfaTotp(
 	ctx: ApiContext,
-	{code, ticket, request, ssoLinks}: LoginMfaTotpParams,
+	{code, ticket, request}: LoginMfaTotpParams,
 ): Promise<LoginTokenResult> {
 	const user = await requireMfaTicketUser(ctx, ticket);
 	const hasTotp = Boolean(user.totpSecret) && user.authenticatorTypes.has(UserAuthenticatorTypes.TOTP);
@@ -499,7 +494,7 @@ export async function loginMfaTotp(
 	if (!isValid) {
 		throw InputValidationError.fromCode('code', ValidationErrorCodes.INVALID_CODE);
 	}
-	const [token] = await completeMfaLogin(ctx, user, ticket, request, ssoLinks);
+	const [token] = await completeMfaLogin(ctx, user, ticket, request);
 	return {user_id: user.id.toString(), token};
 }
 
@@ -507,9 +502,8 @@ export async function createLoginSession(
 	ctx: ApiContext,
 	user: User,
 	request: Request,
-	authMethod?: 'sso',
 ): Promise<[token: string, AuthSessionModel]> {
-	return AuthSession.createAuthSession(ctx, {user, origin: AuthSession.resolveSessionOrigin(ctx, request), authMethod});
+	return AuthSession.createAuthSession(ctx, {user, origin: AuthSession.resolveSessionOrigin(ctx, request)});
 }
 
 export async function completeMfaLogin(
@@ -517,13 +511,9 @@ export async function completeMfaLogin(
 	user: User,
 	ticket: string,
 	request: Request,
-	ssoLinks: SsoPendingLinks,
 ): Promise<[token: string, AuthSessionModel]> {
 	const {cache, rateLimit} = ctx.services;
-	const {user: sessionUser, authMethod} = await ssoLinks.completePendingLink(
-		await applyPendingRecovery(ctx, user, ticket),
-		ticket,
-	);
+	const sessionUser = await applyPendingRecovery(ctx, user, ticket);
 	if (await cache.get<boolean>(mfaTicketNetworkKey(ticket))) {
 		await cache.delete(mfaTicketNetworkKey(ticket));
 		await ctx.services.users.createAuthorizedIp(
@@ -534,14 +524,14 @@ export async function completeMfaLogin(
 	await cache.delete(`mfa-ticket:${ticket}`);
 	await rateLimit.resetLimit(`mfa:ticket:${ticket}`);
 	await rateLimit.resetLimit(`mfa:user:${user.id}`);
-	const session = await createLoginSession(ctx, sessionUser, request, authMethod);
+	const session = await createLoginSession(ctx, sessionUser, request);
 	emitLogin(sessionUser, true, {mfa: true});
 	return session;
 }
 
 export async function loginMfaWebAuthn(
 	ctx: ApiContext,
-	{response, challenge, ticket, request, ssoLinks}: LoginMfaWebAuthnParams,
+	{response, challenge, ticket, request}: LoginMfaWebAuthnParams,
 ): Promise<LoginTokenResult> {
 	const user = await requireMfaTicketUser(ctx, ticket);
 	if (!(await resolveWebAuthnSecondFactor(ctx, user))) {
@@ -549,7 +539,7 @@ export async function loginMfaWebAuthn(
 	}
 	await consumeMfaAttempt(ctx, {userId: user.id.toString(), ticket, field: 'ticket'});
 	await AuthMfa.verifyWebAuthnAuthentication(ctx, user.id, response, challenge, 'mfa', ticket);
-	const [token] = await completeMfaLogin(ctx, user, ticket, request, ssoLinks);
+	const [token] = await completeMfaLogin(ctx, user, ticket, request);
 	return {user_id: user.id.toString(), token};
 }
 

@@ -24,10 +24,6 @@ describe('UserTraits', () => {
 	});
 
 	it('recognises every trait shape the server manages', () => {
-		expect(isServerManagedTrait('sso')).toBe(true);
-		expect(isServerManagedTrait('sso:acme')).toBe(true);
-		expect(isServerManagedTrait('sso_provider:0123456789abcdef')).toBe(true);
-		expect(isServerManagedTrait('sso_identity:0123456789abcdef')).toBe(true);
 		expect(isServerManagedTrait('registration_pending_approval')).toBe(true);
 		expect(isServerManagedTrait('registration_rejected')).toBe(true);
 		expect(isServerManagedTrait('beta-tester')).toBe(false);
@@ -49,10 +45,10 @@ describe('UserTraits', () => {
 
 	it('preserves server managed traits the operator did not send', () => {
 		const resolved = resolveAssignedTraits(
-			['sso', 'sso:acme', 'sso_identity:0123456789abcdef', 'beta-tester'],
+			['passkey', 'registration_pending_approval', 'beta-tester'],
 			['experimental'],
 		);
-		expect([...resolved].sort()).toEqual(['experimental', 'sso', 'sso:acme', 'sso_identity:0123456789abcdef']);
+		expect([...resolved].sort()).toEqual(['experimental', 'passkey', 'registration_pending_approval']);
 	});
 
 	it('keeps a pending approval user pending when their traits are cleared', () => {
@@ -62,7 +58,7 @@ describe('UserTraits', () => {
 	});
 
 	it('refuses to let an operator forge a server managed trait', () => {
-		expect([...resolveAssignedTraits([], ['sso', 'sso_identity:forged'])]).toEqual([]);
+		expect([...resolveAssignedTraits([], ['passkey', 'registration_rejected'])]).toEqual([]);
 	});
 
 	it('ignores empty trait names', () => {

@@ -37,10 +37,10 @@ import {ArrowLeftIcon} from '@app/features/ui/icons/DirectionalIcons';
 import {SteppedCarousel, SteppedCarouselActions} from '@app/features/ui/stepped_carousel/SteppedCarousel';
 import {isDesktop} from '@app/features/ui/utils/NativeUtils';
 import {flxElementClassName} from '@app/lib/react';
-import {DesktopHandoffReturnMethod} from '@osaca/desktop_ipc/src/BrowserHandoffContract';
-import {isOfficialInstanceHost, OFFICIAL_INSTANCE_NAME} from '@osaca/instance_bootstrap/src/OfficialInstance';
 import {msg} from '@lingui/core/macro';
 import {Trans, useLingui} from '@lingui/react/macro';
+import {DesktopHandoffReturnMethod} from '@osaca/desktop_ipc/src/BrowserHandoffContract';
+import {isOfficialInstanceHost, OFFICIAL_INSTANCE_NAME} from '@osaca/instance_bootstrap/src/OfficialInstance';
 import {
 	ArrowClockwiseIcon,
 	ArrowSquareOutIcon,
@@ -400,7 +400,6 @@ interface AuthLoginBrowserStepProps {
 	readonly onChangeInstance: (() => void) | null;
 	readonly onSuccess: (payload: LoginSuccessPayload) => Promise<void> | void;
 	readonly showBackButton?: boolean;
-	readonly startSso?: boolean;
 }
 
 export const AuthLoginBrowserStep = observer(function AuthLoginBrowserStep({
@@ -414,7 +413,6 @@ export const AuthLoginBrowserStep = observer(function AuthLoginBrowserStep({
 	onChangeInstance,
 	onSuccess,
 	showBackButton = true,
-	startSso = false,
 }: AuthLoginBrowserStepProps) {
 	const {i18n} = useLingui();
 	const [step, setStep] = useState<BrowserHandoffStep>(BrowserHandoffStep.WAITING);
@@ -427,7 +425,6 @@ export const AuthLoginBrowserStep = observer(function AuthLoginBrowserStep({
 	const handoff = useBrowserLoginHandoff({
 		runtimeSnapshot,
 		prefillIdentifier,
-		startSso,
 		onEnded: handleEnded,
 		onSuccess,
 	});

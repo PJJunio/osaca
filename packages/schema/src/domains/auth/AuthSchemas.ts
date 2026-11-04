@@ -170,33 +170,6 @@ export const SudoVerificationSchema = z.object({
 	webauthn_response: WebAuthnAuthenticationResponse.optional().describe('WebAuthn authentication response'),
 	webauthn_challenge: createStringType().optional().describe('WebAuthn challenge string'),
 });
-export const SsoStatusResponse = z.object({
-	enabled: z.boolean().describe('Whether SSO is enabled for this instance'),
-	enforced: z.boolean().describe('Whether SSO is required for all users'),
-	username_from_provider: z
-		.boolean()
-		.describe('Whether each SSO sign-in sets the username from the provider, so SSO accounts cannot change it'),
-	display_name: z.string().nullable().describe('Display name of the SSO provider'),
-	button_label: z
-		.string()
-		.nullable()
-		.describe('Text for the SSO sign-in button, or null when the client shows its default label'),
-	redirect_uri: z.string().describe('OAuth redirect URI for SSO'),
-});
-
-export type SsoStatusResponse = z.infer<typeof SsoStatusResponse>;
-
-export const SsoStartResponse = z.object({
-	authorization_url: z.string().describe('URL to redirect user to for SSO authentication'),
-	state: z.string().describe('State parameter for CSRF protection'),
-	redirect_uri: z.string().describe('OAuth redirect URI used for the SSO provider callback'),
-	client_binding: z
-		.string()
-		.describe('Secret the client keeps and sends back with the code and state to complete this sign-in'),
-});
-
-export type SsoStartResponse = z.infer<typeof SsoStartResponse>;
-
 export const AuthTokenWithUserIdResponse = z.object({
 	token: z.string().describe('Authentication token for API requests'),
 	user_id: SnowflakeStringType.describe('ID of the authenticated user'),
@@ -230,22 +203,6 @@ const AuthMfaRequiredResponse = z.object({
 export const AuthLoginResponse = z.union([AuthTokenWithUserIdResponse, AuthMfaRequiredResponse]);
 
 export type AuthLoginResponse = z.infer<typeof AuthLoginResponse>;
-
-const SsoRedirectField = {
-	redirect_to: z.string().describe('URL to redirect the user to after completion'),
-};
-
-export const SsoCompleteResponse = z.union([
-	AuthTokenWithUserIdResponse.extend(SsoRedirectField),
-	AuthMfaRequiredResponse.extend(SsoRedirectField),
-	z
-		.object({
-			linked: z.literal(true).describe('The SSO identity is now connected to the account that started the link'),
-		})
-		.extend(SsoRedirectField),
-]);
-
-export type SsoCompleteResponse = z.infer<typeof SsoCompleteResponse>;
 
 export const RecoverAccountRequest = z.object({
 	login: LoginIdentifierType.describe('Username of the account to recover'),
@@ -383,23 +340,6 @@ export const HandoffStatusResponse = z.object({
 });
 
 export type HandoffStatusResponse = z.infer<typeof HandoffStatusResponse>;
-
-export const SsoStartRequest = z.object({
-	redirect_to: createStringType(0, 2048).nullish().describe('URL to redirect to after SSO completion'),
-	redirect_uri: createStringType(0, 2048).nullish().describe('OAuth redirect URI to use for the SSO provider callback'),
-});
-
-export type SsoStartRequest = z.infer<typeof SsoStartRequest>;
-
-export const SsoCompleteRequest = z.object({
-	code: createStringType(1, 4096).describe('Authorization code from the SSO provider'),
-	state: createStringType(1, 4096).describe('State parameter for CSRF protection'),
-	client_binding: createStringType(1, 128)
-		.nullish()
-		.describe('The client_binding returned by SSO start. Required except for the mobile app callback'),
-});
-
-export type SsoCompleteRequest = z.infer<typeof SsoCompleteRequest>;
 
 export const MfaTotpRequest = z.object({
 	code: createStringType().describe('The TOTP code from the authenticator app'),

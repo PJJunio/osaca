@@ -3,8 +3,6 @@
 import type {RuntimeConfigSnapshot} from '@app/features/app/state/InstanceSnapshotStore';
 import * as AuthenticationCommands from '@app/features/auth/commands/AuthenticationCommands';
 import type {UserData} from '@app/features/auth/state/AccountStorageContract';
-import {isValidOAuthState, storeSsoPendingContext} from '@app/features/auth/state/SsoPendingContext';
-import {safeRedirectTarget} from '@app/features/auth/utils/SafeRedirect';
 import {type InstanceHTTPTarget, instanceTargetFromSnapshot} from '@app/features/platform/transport/InstanceHTTP';
 import type {AuthenticationResponseJSON, PublicKeyCredentialRequestOptionsJSON} from '@simplewebauthn/browser';
 
@@ -159,85 +157,6 @@ export async function authenticateWithWebAuthn({
 		target: instanceTargetFromSnapshot(runtimeSnapshot),
 	});
 	return toLoginSuccessPayload(result);
-}
-
-function ssoStateFromAuthorizationUrl(authorizationUrl: string): string | null {
-	try {
-		return new URL(authorizationUrl).searchParams.get('state');
-	} catch {
-		return null;
-	}
-}
-
-export interface StartSsoLoginRequest {
-	redirectTo?: string | null;
-	redirectUri?: string;
-	runtimeSnapshot: RuntimeConfigSnapshot;
-}
-
-export interface StartSsoLoginResult {
-	authorizationUrl: string;
-	redirectUri: string;
-	state: string | null;
-}
-
-export async function startSsoLogin({
-	redirectTo,
-	redirectUri,
-	runtimeSnapshot,
-}: StartSsoLoginRequest): Promise<StartSsoLoginResult> {
-	const safeRedirectTo = safeRedirectTarget(redirectTo);
-	const result = await AuthenticationCommands.startSso({
-		redirectTo: safeRedirectTo ?? undefined,
-		redirectUri,
-		target: instanceTargetFromSnapshot(runtimeSnapshot),
-	});
-	const state = result.state ?? ssoStateFromAuthorizationUrl(result.authorization_url);
-	if (state != null && isValidOAuthState(state)) {
-		await storeSsoPendingContext(state, {
-			redirectTo: safeRedirectTo,
-			runtimeSnapshot,
-			clientBinding: result.client_binding ?? null,
-		});
-	}
-	return {authorizationUrl: result.authorization_url, redirectUri: result.redirect_uri, state};
-}
-
-export type SsoLoginResult =
-	| {type: 'success'; payload: LoginSuccessPayload}
-	| {type: 'mfa'; challenge: MfaChallenge; redirectTo: string}
-	| {type: 'linked'; redirectTo: string};
-
-export async function completeSsoLogin({
-	code,
-	state,
-	clientBinding,
-	runtimeSnapshot,
-}: {
-	code: string;
-	state: string;
-	clientBinding: string | null;
-	runtimeSnapshot: RuntimeConfigSnapshot;
-}): Promise<SsoLoginResult> {
-	const result = await AuthenticationCommands.completeSso({
-		code,
-		state,
-		clientBinding,
-		target: instanceTargetFromSnapshot(runtimeSnapshot),
-	});
-	if ('mfa' in result) {
-		return {type: 'mfa', challenge: mfaChallengeFromResponse(result), redirectTo: result.redirect_to};
-	}
-	if ('linked' in result) {
-		return {type: 'linked', redirectTo: result.redirect_to};
-	}
-	return {
-		type: 'success',
-		payload: {
-			...toLoginSuccessPayload(result),
-			redirect_to: result.redirect_to,
-		},
-	};
 }
 
 export type PasswordResetResult =

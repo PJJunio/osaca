@@ -2,7 +2,6 @@
 
 import {Endpoints} from '@app/features/app/constants/Endpoints';
 import type {RuntimeConfigSnapshot} from '@app/features/app/state/InstanceSnapshotStore';
-import {markSsoAutoStartSpent} from '@app/features/auth/flow/SsoAutoStart';
 import {parseAccountRestriction} from '@app/features/auth/state/AccountRestriction';
 import type {UserData} from '@app/features/auth/state/AccountStorageContract';
 import Accounts from '@app/features/auth/state/Accounts';
@@ -19,10 +18,6 @@ import type {
 	AuthRegistrationPendingApprovalResponse,
 	DesktopHandoffReturnMethod,
 	RegisterRequest,
-	SsoCompleteRequest,
-	SsoCompleteResponse,
-	SsoStartRequest,
-	SsoStartResponse,
 	UsernameAvailabilityResponse,
 	UsernameSuggestionsResponse,
 } from '@osaca/schema/src/domains/auth/AuthSchemas';
@@ -621,7 +616,6 @@ export async function resendVerificationEmail(target: InstanceHTTPTarget): Promi
 
 export async function logout(options: {notifyServer?: boolean} = {}): Promise<void> {
 	forgetPurchaseIntent();
-	markSsoAutoStartSpent();
 	await Accounts.logout(options);
 }
 
@@ -826,51 +820,6 @@ export async function completeLogin(
 		runtimeSnapshot,
 		redirectPath: options.redirectPath,
 	});
-}
-
-export async function startSso({
-	redirectTo,
-	redirectUri,
-	target,
-}: {
-	redirectTo?: string;
-	redirectUri?: string;
-	target: InstanceHTTPTarget;
-}): Promise<SsoStartResponse> {
-	const body: SsoStartRequest = {
-		redirect_to: redirectTo,
-		redirect_uri: redirectUri,
-	};
-	const response = await instanceRequest<SsoStartResponse>({
-		method: 'POST',
-		path: Endpoints.AUTH_SSO_START,
-		target,
-		body,
-		headers: withAuthLocaleHeader(),
-	});
-	return response.body;
-}
-
-export async function completeSso({
-	code,
-	state,
-	clientBinding,
-	target,
-}: {
-	code: string;
-	state: string;
-	clientBinding: string | null;
-	target: InstanceHTTPTarget;
-}): Promise<SsoCompleteResponse> {
-	const body: SsoCompleteRequest = {code, state, client_binding: clientBinding};
-	const response = await instanceRequest<SsoCompleteResponse>({
-		method: 'POST',
-		path: Endpoints.AUTH_SSO_COMPLETE,
-		target,
-		body,
-		headers: withAuthLocaleHeader(),
-	});
-	return response.body;
 }
 
 interface SetMfaTicketPayload {

@@ -480,20 +480,12 @@ func newConfigSetCmd(app *App) *cobra.Command {
 			return nil
 		},
 	}
-	var migrate, noMigrate bool
-	set.Flags().BoolVar(&migrate, "migrate-identities", false, "when sso.issuer changes, move SSO links to the new issuer")
-	set.Flags().BoolVar(&noMigrate, "no-migrate-identities", false, "when sso.issuer changes, leave SSO links on the old issuer")
-	set.MarkFlagsMutuallyExclusive("migrate-identities", "no-migrate-identities")
 	set.RunE = func(c *cobra.Command, args []string) error {
 		changes, err := parseSetArgs(app, args)
 		if err != nil {
 			return err
 		}
-		var extra map[string]any
-		if migrate || noMigrate {
-			extra = map[string]any{"sso": map[string]any{"migrate_identities": migrate}}
-		}
-		return runConfigChange(c.Context(), app, changes, extra)
+		return runConfigChange(c.Context(), app, changes)
 	}
 	return set
 }
@@ -514,12 +506,12 @@ func newConfigUnsetCmd(app *App) *cobra.Command {
 		for _, a := range args {
 			changes = append(changes, configChange{name: strings.TrimSpace(a)})
 		}
-		return runConfigChange(c.Context(), app, changes, nil)
+		return runConfigChange(c.Context(), app, changes)
 	}
 	return unset
 }
 
-func runConfigChange(ctx context.Context, app *App, changes []configChange, extra map[string]any) error {
+func runConfigChange(ctx context.Context, app *App, changes []configChange) error {
 	typed := make([]string, 0, len(changes))
 	for _, ch := range changes {
 		typed = append(typed, ch.name)
@@ -546,7 +538,7 @@ func runConfigChange(ctx context.Context, app *App, changes []configChange, extr
 		admin = append(admin, ac)
 	}
 	finish := func(change *deploy.Change) error {
-		sent, err := applyAdminChanges(ctx, app, v.inst, admin, extra)
+		sent, err := applyAdminChanges(ctx, app, v.inst, admin)
 		if err != nil {
 			return err
 		}
@@ -657,7 +649,7 @@ func parseAdminChange(schema []adminapi.ConfigKey, name string, raw *string) (ad
 	return adminChange{key: k, value: value, patch: adminapi.ConfigPatch(k.Key, value)}, nil
 }
 
-func applyAdminChanges(ctx context.Context, app *App, inst *instance.Instance, changes []adminChange, extra map[string]any) ([]adminChange, error) {
+func applyAdminChanges(ctx context.Context, app *App, inst *instance.Instance, changes []adminChange) ([]adminChange, error) {
 	pendingImport := inst.State.AdminImport != nil && inst.State.AdminImport.SentAt == ""
 	if len(changes) == 0 && !pendingImport {
 		return nil, nil
@@ -695,7 +687,6 @@ func applyAdminChanges(ctx context.Context, app *App, inst *instance.Instance, c
 	if len(sent) == 0 {
 		return nil, nil
 	}
-	adminapi.MergePatch(patch, extra)
 	warnings, err := api.PatchConfigWithWarnings(ctx, patch)
 	if err != nil {
 		return nil, adminapi.Explain(err)

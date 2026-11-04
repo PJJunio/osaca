@@ -23,7 +23,6 @@ pub use generated_types::{
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct InstanceConfigResponse {
-    pub sso: SsoConfigResponse,
     pub gateway_rollout: GatewayRolloutConfigResponse,
     #[serde(default)]
     pub registration: InstanceRegistrationResponse,
@@ -137,7 +136,6 @@ pub struct AccountIdentitySettings {
     pub mode: AccountIdentityMode,
     pub tag_style: TagStyle,
     pub emails_enabled: bool,
-    pub username_from_provider: bool,
 }
 
 impl Default for AccountIdentitySettings {
@@ -146,16 +144,11 @@ impl Default for AccountIdentitySettings {
             mode: AccountIdentityMode::default(),
             tag_style: TagStyle::default(),
             emails_enabled: true,
-            username_from_provider: false,
         }
     }
 }
 
 impl AccountIdentitySettings {
-    pub fn sso_manages_usernames(self) -> bool {
-        self.username_from_provider && self.mode.is_username()
-    }
-
     pub fn admin_reset_links_available(self) -> bool {
         self.mode.is_username() || !self.emails_enabled
     }
@@ -165,14 +158,6 @@ impl AccountIdentitySettings {
 pub struct InstanceAccountIdentityDiscovery {
     #[serde(default)]
     pub features: InstanceAccountIdentityDiscoveryFeatures,
-    #[serde(default)]
-    pub sso: InstanceSsoDiscovery,
-}
-
-#[derive(Clone, Debug, Default, Deserialize)]
-pub struct InstanceSsoDiscovery {
-    #[serde(default)]
-    pub username_from_provider: bool,
 }
 
 #[derive(Clone, Debug, Default, Deserialize)]
@@ -496,43 +481,6 @@ pub struct AppLegalConfigResponse {
     pub privacy_url: Option<String>,
     #[serde(default)]
     pub guidelines_url: Option<String>,
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct SsoConfigResponse {
-    #[serde(default)]
-    pub enabled: bool,
-    #[serde(default)]
-    pub enforced: bool,
-    pub display_name: Option<String>,
-    #[serde(default)]
-    pub button_label: Option<String>,
-    pub issuer: Option<String>,
-    pub authorization_url: Option<String>,
-    pub token_url: Option<String>,
-    pub userinfo_url: Option<String>,
-    pub jwks_url: Option<String>,
-    pub client_id: Option<String>,
-    #[serde(default)]
-    pub client_secret_set: bool,
-    pub scope: Option<String>,
-    #[serde(default)]
-    pub allowed_domains: Vec<String>,
-    #[serde(default)]
-    pub auto_provision: bool,
-    #[serde(default)]
-    pub username_from_provider: bool,
-    pub redirect_uri: Option<String>,
-    #[serde(default)]
-    pub groups_claim: Option<String>,
-    #[serde(default)]
-    pub group_role_mappings: Vec<SsoGroupRoleMapping>,
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
-pub struct SsoGroupRoleMapping {
-    pub group: String,
-    pub role_id: String,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -919,8 +867,6 @@ pub struct InstanceConfigUpdateRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub registration: Option<InstanceRegistrationConfigUpdateRequest>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub sso: Option<SsoConfigUpdateRequest>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub app_public: Option<AppPublicConfigUpdateRequest>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub policy: Option<InstancePolicyUpdateRequest>,
@@ -1157,48 +1103,6 @@ pub struct InstanceRegistrationConfigUpdateRequest {
     pub admin_registration_urls_enabled: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub allowed_email_domains: Option<Vec<String>>,
-}
-
-#[derive(Clone, Debug, Default, Serialize)]
-pub struct SsoConfigUpdateRequest {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub enabled: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub enforced: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub display_name: Option<Option<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub button_label: Option<Option<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub issuer: Option<Option<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub authorization_url: Option<Option<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub token_url: Option<Option<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub userinfo_url: Option<Option<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub jwks_url: Option<Option<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub client_id: Option<Option<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub client_secret: Option<Option<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub scope: Option<Option<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub allowed_domains: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub auto_provision: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub username_from_provider: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub redirect_uri: Option<Option<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub groups_claim: Option<Option<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub group_role_mappings: Option<Vec<SsoGroupRoleMapping>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub migrate_identities: Option<bool>,
 }
 
 #[derive(Clone, Debug, Default, Serialize)]

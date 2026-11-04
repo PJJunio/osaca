@@ -21,48 +21,6 @@ const REGISTRATION_URLS_KEY = 'registration_urls';
 const REGISTRATION_PENDING_APPROVALS_KEY = 'registration_pending_approvals';
 const SETUP_TOKEN_HASH_KEY = 'setup_token_hash';
 const ENV_SETUP_TOKEN = 'setup-token-for-tests-0123456789-abcdefghijklmnopqrstuvwxyz';
-describe('InstanceConfigRepository', () => {
-	const repositories: Array<InstanceConfigRepository> = [];
-
-	afterEach(() => {
-		for (const repository of repositories) {
-			repository.shutdown();
-		}
-		repositories.length = 0;
-	});
-
-	function createRepository(kvProvider: MockKVProvider): InstanceConfigRepository {
-		const repository = new InstanceConfigRepository(kvProvider);
-		repositories.push(repository);
-		return repository;
-	}
-
-	it('clears an invalid allowed domain list only while SSO is disabled', async () => {
-		const executor = new InMemoryCassandraQueryExecutor();
-		setCassandraQueryExecutorForTesting(executor);
-		const kvProvider = new MockKVProvider();
-		const repository = createRepository(kvProvider);
-
-		const cleared = await repository.setSsoConfig({enabled: false, allowedEmailDomains: ['nope@example.com']});
-		expect(cleared.allowedEmailDomains).toEqual([]);
-
-		await expect(repository.setSsoConfig({enabled: true, allowedEmailDomains: ['nope@example.com']})).rejects.toThrow();
-	});
-
-	it('keeps an all-invalid stored allowed domain list non-empty so SSO still rejects every domain', async () => {
-		const executor = new InMemoryCassandraQueryExecutor();
-		setCassandraQueryExecutorForTesting(executor);
-		const kvProvider = new MockKVProvider();
-		const repository = createRepository(kvProvider);
-
-		await repository.setConfig('sso_allowed_domains', JSON.stringify(['nope@example.com', 'bad/domain']));
-
-		const domains = (await repository.getSsoConfig()).allowedEmailDomains;
-		expect(domains.length).toBeGreaterThan(0);
-		expect(domains).not.toContain('example.com');
-	});
-});
-
 function describeConcurrentInstanceConfigWrites(prepareBase: () => Promise<CassandraQueryExecutorForTesting>): void {
 	const pods: Array<InstanceConfigRepository> = [];
 	let executor: InstanceConfigWriteRaceExecutor;
@@ -401,38 +359,6 @@ function describeConcurrentInstanceConfigWrites(prepareBase: () => Promise<Cassa
 			use_count: 3,
 			max_uses: 3,
 		});
-	});
-
-	it('keeps an SSO field another pod changed while this pod held a stale snapshot', async () => {
-		const first = createPod();
-		const second = createPod();
-		await first.getSsoConfig();
-		await second.getSsoConfig();
-
-		await first.setSsoConfig({displayName: 'Set by the first pod'});
-		await second.setSsoConfig({clientId: 'set-by-the-second-pod'});
-
-		expect(await createPod().getSsoConfig()).toMatchObject({
-			displayName: 'Set by the first pod',
-			clientId: 'set-by-the-second-pod',
-		});
-	});
-
-	it('leaves an SSO row alone when another pod wrote it between this pod reading and writing it', async () => {
-		const pod = createPod();
-		await pod.getSsoConfig();
-		executor.watch('sso_enforced');
-		let competed = false;
-		executor.competeBeforeEachWrite(async () => {
-			if (competed) return;
-			competed = true;
-			await executor.writeDirectly('sso_enforced', 'true');
-		});
-
-		await pod.setSsoConfig({displayName: 'Only the display name'});
-
-		expect(await executor.readDirectly('sso_enforced')).toBe('true');
-		expect(await executor.readDirectly('sso_display_name')).toBe('Only the display name');
 	});
 }
 

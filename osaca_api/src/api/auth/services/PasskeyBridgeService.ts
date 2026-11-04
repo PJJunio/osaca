@@ -374,7 +374,6 @@ export async function redeemPasskeyBridgeLogin(
 	origin: string | undefined,
 	data: PasskeyBridgeRedeemRequest,
 	request: Request,
-	ssoLinks: AuthLogin.SsoPendingLinks,
 ): Promise<PasskeyBridgeLoginRedeemResponse> {
 	const completed = await redeemPasskeyBridge(ctx, ceremonyId, origin, data, ['login', 'login_mfa'], null);
 	if (!completed) {
@@ -388,7 +387,7 @@ export async function redeemPasskeyBridgeLogin(
 		if (!(await resolveWebAuthnSecondFactor(ctx, user))) {
 			throw new MfaNotEnabledError();
 		}
-		[token, authSession] = await AuthLogin.completeMfaLogin(ctx, user, completed.record.ticket!, request, ssoLinks);
+		[token, authSession] = await AuthLogin.completeMfaLogin(ctx, user, completed.record.ticket!, request);
 	} else {
 		user = await ctx.services.users.findUniqueAssert(completed.userId);
 		[token, authSession] = await AuthLogin.createLoginSession(ctx, user, request);

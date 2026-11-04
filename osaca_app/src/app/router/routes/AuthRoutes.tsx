@@ -42,10 +42,6 @@ const ResetPasswordPage = createAuthRoutePage(
 	'ResetPasswordPage',
 	() => import('@app/features/auth/components/pages/ResetPasswordPage'),
 );
-const SSOCallbackPage = createAuthRoutePage(
-	'SSOCallbackPage',
-	() => import('@app/features/auth/components/pages/SsoCallbackPage'),
-);
 const VerifyEmailPage = createAuthRoutePage(
 	'VerifyEmailPage',
 	() => import('@app/features/auth/components/pages/VerifyEmailPage'),
@@ -207,12 +203,6 @@ const loginRoute = createAuthPageRoute({
 	dataFlx: 'app.router.auth-routes.login-page',
 	onEnter: AuthRouteRedirectPolicy.whenAuthenticated(AuthRouteRedirectPolicy.resolveAuthenticatedLoginEntry),
 });
-const ssoCallbackRoute = createAuthPageRoute({
-	id: 'ssoCallback',
-	path: Routes.SSO_CALLBACK,
-	page: SSOCallbackPage,
-	dataFlx: 'app.router.auth-routes.sso-callback-page',
-});
 const inviteBaseRoute = createAuthRedirectRoute('inviteBase', '/invite');
 const giftBaseRoute = createAuthRedirectRoute('giftBase', '/gift');
 const themeBaseRoute = createAuthRedirectRoute('themeBase', '/theme');
@@ -327,7 +317,6 @@ const themeLoginRoute = createAuthPageRoute({
 
 export const authRouteTree = authLayoutRoute.addChildren([
 	loginRoute,
-	ssoCallbackRoute,
 	registerRoute,
 	oauthAuthorizeRoute,
 	inviteBaseRoute,

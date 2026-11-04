@@ -44,7 +44,6 @@ type key struct {
 
 var skip = map[string]bool{
 	"app_public.setup.configured": true,
-	"sso.migrate_identities":      true,
 }
 
 type gen struct {
@@ -194,7 +193,7 @@ func (g *gen) walk(s *schema, path []string) {
 
 var acronyms = map[string]string{
 	"url": "URL", "urls": "URLs", "uri": "URI", "id": "ID", "ids": "IDs", "mb": "MB", "css": "CSS",
-	"sso": "SSO", "smtp": "SMTP", "api": "API", "ip": "IP", "rpc": "RPC", "jwks": "JWKS", "gif": "GIF",
+	"smtp": "SMTP", "api": "API", "ip": "IP", "rpc": "RPC", "jwks": "JWKS", "gif": "GIF",
 	"e2ee": "E2EE", "p2p": "P2P", "tos": "terms",
 }
 

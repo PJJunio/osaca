@@ -24,10 +24,9 @@ export const themeAuthPageConfig: ResourceAuthPageConfig<string> = {
 		const status = useThemeExists(id, snapshot);
 		return {loading: status === 'loading', error: status === 'error', resource: status === 'ready' ? id : null};
 	},
-	renderHeader: (_id, mode, sso) => (
+	renderHeader: (_id, mode) => (
 		<ThemeHeader
 			prefix={`theme.theme-${mode}-page`}
-			sso={sso}
 			data-flx="theme.theme-auth-page-config.render-header.theme-header"
 		/>
 	),

@@ -26,7 +26,6 @@ export const Routes = {
 	EMAIL_REVERT: '/wasntme',
 	PENDING: '/pending',
 	OAUTH_AUTHORIZE: '/oauth2/authorize',
-	SSO_CALLBACK: '/auth/sso/callback',
 	INVITE_REGISTER: '/invite/:code',
 	INVITE_LOGIN: '/invite/:code/login',
 	GIFT_REGISTER: '/gift/:code',

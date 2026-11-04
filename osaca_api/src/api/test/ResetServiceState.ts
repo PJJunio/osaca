@@ -2,7 +2,6 @@
 
 import {resetSudoModeServiceForTesting} from '@app/api/auth/services/SudoModeService';
 import {resetIpBanExemptionsForTesting} from '@app/api/ban/IpBanExemptions';
-import {resetSsoRequestUrlPolicyForTesting} from '@app/api/instance/SsoConfigValidation';
 import {resetGlobalLimitConfigServiceForTesting} from '@app/api/limits/LimitConfigService';
 import {bannedAvatarHashCache} from '@app/api/middleware/BannedAvatarHashCache';
 import {fileShaCache} from '@app/api/middleware/FileShaCache';
@@ -23,7 +22,6 @@ export async function resetServiceStateForTesting(): Promise<void> {
 	resetIpBanExemptionsForTesting();
 	resetGlobalLimitConfigServiceForTesting();
 	resetSudoModeServiceForTesting();
-	resetSsoRequestUrlPolicyForTesting();
 	resetAdminSecretHashForTesting();
 	setThemeCssMaxBytesForTesting(undefined);
 	await ipBanCache.shutdown();

@@ -6,11 +6,7 @@ import {
 	RegistrationModes,
 	VerificationBases,
 } from '@osaca/constants/src/AccountConfigConstants';
-import {
-	AccountIdentityModes,
-	normalizeAccountIdentity,
-	TagStyles,
-} from '@osaca/constants/src/AccountIdentityConstants';
+import {AccountIdentityModes, normalizeAccountIdentity, TagStyles} from '@osaca/constants/src/AccountIdentityConstants';
 import {
 	AccountTiers,
 	AccountVerificationNeeds,
@@ -36,7 +32,6 @@ import {
 	type TierGateInput,
 } from '@osaca/constants/src/AccountTierRules';
 import {CaptchaProviders} from '@osaca/constants/src/CaptchaConstants';
-import {UserTraits} from '@osaca/constants/src/UserTraitConstants';
 import {describe, expect, it} from 'vitest';
 
 const ALL_ACTIONS = Object.values(TierGatedActions);
@@ -432,13 +427,11 @@ describe('resolveAccountTier', () => {
 		localCredential: LocalCredentialKinds.NONE,
 	};
 
-	it('treats bots, system accounts and SSO accounts as verified everywhere', () => {
+	it('treats bots and system accounts as verified everywhere', () => {
 		for (const identityMode of ALL_IDENTITY_MODES) {
 			const anon = {...base, identityMode, hasEmail: false, emailVerified: false};
 			expect(resolveAccountTier({...anon, isBot: true})).toBe(AccountTiers.VERIFIED);
 			expect(resolveAccountTier({...anon, isSystem: true})).toBe(AccountTiers.VERIFIED);
-			expect(resolveAccountTier({...anon, traits: new Set([UserTraits.SSO])})).toBe(AccountTiers.VERIFIED);
-			expect(resolveAccountTier({...anon, traits: [UserTraits.SSO]})).toBe(AccountTiers.VERIFIED);
 		}
 	});
 

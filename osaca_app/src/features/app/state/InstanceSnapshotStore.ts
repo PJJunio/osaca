@@ -107,7 +107,6 @@ export function runtimeSnapshotFromDiscovery(document: InstanceDiscoveryDocument
 		uploadRelayEndpoint: endpoints.uploadRelayEndpoint,
 		apiCodeVersion: discovery.apiCodeVersion,
 		features: discovery.features,
-		sso: discovery.sso,
 		registration: discovery.registration,
 		community: discovery.community,
 		services: discovery.services,

@@ -12,14 +12,6 @@ export const AuthRateLimitConfigs = {
 		bucket: 'auth:login',
 		config: {limit: 10, windowMs: ms('10 seconds')},
 	} as RouteRateLimitConfig,
-	AUTH_SSO_START: {
-		bucket: 'auth:sso:start',
-		config: {limit: 10, windowMs: ms('10 seconds')},
-	} as RouteRateLimitConfig,
-	AUTH_SSO_COMPLETE: {
-		bucket: 'auth:sso:complete',
-		config: {limit: 15, windowMs: ms('10 seconds')},
-	} as RouteRateLimitConfig,
 	AUTH_LOGIN_MFA: {
 		bucket: 'auth:login:mfa',
 		config: {limit: 5, windowMs: ms('1 minute')},

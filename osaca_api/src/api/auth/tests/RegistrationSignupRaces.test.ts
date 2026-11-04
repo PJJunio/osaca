@@ -5,7 +5,6 @@ import {
 	createTestAccount,
 	createUniqueEmail,
 	createUniqueUsername,
-	enableSso,
 	setUserACLs,
 	type TestAccount,
 } from '@app/api/auth/tests/AuthTestUtils';
@@ -167,25 +166,6 @@ describe('signups racing on registration URLs and pending approvals', () => {
 				.execute()
 		).pending_registrations;
 
-	const completeSso = (prefix: string) => {
-		const email = createUniqueEmail(prefix);
-		if (writeFailure) {
-			failureEmail = email;
-		}
-		const operation = (async () => {
-			const start = await createBuilderWithoutAuth<{state: string; client_binding: string}>(harness)
-				.post('/auth/sso/start')
-				.body({redirect_to: '/me'})
-				.execute();
-			return createBuilderWithoutAuth(harness)
-				.post('/auth/sso/complete')
-				.body({code: email, state: start.state, client_binding: start.client_binding})
-				.executeRaw();
-		})();
-		requests.add(operation);
-		return operation;
-	};
-
 	async function expectStoredPendingEmpty(): Promise<void> {
 		expect(await readPendingRegistrations()).toEqual([]);
 		const stored = await fetchOne<{value: string}>(
@@ -338,53 +318,6 @@ describe('signups racing on registration URLs and pending approvals', () => {
 		expect(failed.response.status).toBe(HTTP_STATUS.INTERNAL_SERVER_ERROR);
 		await expectOnePendingAccount();
 		await expectFailedWriteRowPresent();
-	});
-
-	it('lists an SSO account provisioned in approval mode whose provisioning failed after the account was created', async () => {
-		await enableSso(harness, admin.token, {enforced: false});
-		await getInstanceConfigRepository().setRegistrationConfig({mode: 'approval'});
-		failWrite({table: 'user_settings', timing: 'before'});
-
-		const failed = await completeSso('ssopendingstranded');
-
-		expect(failed.response.status).toBe(HTTP_STATUS.INTERNAL_SERVER_ERROR);
-		await expectOnePendingAccount();
-		await expectFailedWriteRowPresent();
-	});
-
-	it('lists an SSO account provisioned in approval mode whose row was written before its creation failed', async () => {
-		await enableSso(harness, admin.token, {enforced: false});
-		await getInstanceConfigRepository().setRegistrationConfig({mode: 'approval'});
-		failWrite({table: 'users', timing: 'after'});
-
-		const failed = await completeSso('ssopendingrowwritten');
-
-		expect(failed.response.status).toBe(HTTP_STATUS.INTERNAL_SERVER_ERROR);
-		await expectOnePendingAccount();
-		await expectFailedWriteRowPresent();
-	});
-
-	it('keeps the pending approval of an SSO signup in approval mode whose account create failed', async () => {
-		await enableSso(harness, admin.token, {enforced: false});
-		await getInstanceConfigRepository().setRegistrationConfig({mode: 'approval'});
-		failWrite({table: 'users', timing: 'before'});
-
-		const failed = await completeSso('ssopendingkept');
-
-		expect(failed.response.status).toBe(HTTP_STATUS.INTERNAL_SERVER_ERROR);
-		await expectFailedWriteRowAbsent();
-		expect(await readPendingRegistrations()).toHaveLength(1);
-	});
-
-	it('lists no pending approval for an SSO signup in approval mode that failed before the account was created', async () => {
-		await enableSso(harness, admin.token, {enforced: false});
-		await getInstanceConfigRepository().setRegistrationConfig({mode: 'approval'});
-		failWrite({table: 'instance_configuration', timing: 'after'});
-
-		const failed = await completeSso('ssopendingnever');
-
-		expect(failed.response.status).toBe(HTTP_STATUS.INTERNAL_SERVER_ERROR);
-		await expectStoredPendingEmpty();
 	});
 
 	it('keeps a stored pending approval listed until an admin decides it', async () => {

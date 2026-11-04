@@ -22,6 +22,7 @@ import {
 	setCachedAccountsConfig,
 	setCachedEmailDeliveryState,
 } from '@app/api/instance/AccountsConfigCache';
+import {normalizeAllowedEmailDomains} from '@app/api/instance/DomainListValidation';
 import {
 	describeIncompleteSmtpConfig,
 	type EffectiveSmtpConfig,
@@ -51,7 +52,6 @@ import {setCachedConfiguredLegalUrls} from '@app/api/instance/LegalUrls';
 import {getDefaultProductName, setCachedProductName} from '@app/api/instance/ProductName';
 import {enqueueRegistrationApprovalNotice} from '@app/api/instance/RegistrationApprovalNotice';
 import {isSetupTokenEnforced} from '@app/api/instance/SetupToken';
-import {normalizeAllowedEmailDomains} from '@app/api/instance/SsoConfigValidation';
 import {Logger} from '@app/api/Logger';
 import {isStoredLimitConfig} from '@app/api/limits/LimitConfigValidation';
 import {
@@ -535,8 +535,6 @@ type StoredConfigSection =
 	| 'registration'
 	| 'registration URLs'
 	| 'pending registrations'
-	| 'SSO flags'
-	| 'SSO allowed domains'
 	| 'account identity'
 	| 'instance notice'
 	| 'custom badges'
@@ -788,7 +786,13 @@ function parseStoredAuthConfig(raw: string | null): AuthConfig {
 }
 
 function migrateStoredAccountsConfig(stored: Record<string, unknown>): Record<string, unknown> {
-	const {date_of_birth_enforcement: _legacyEnforcement, date_of_birth: _legacyPolicy, dob_missing_cleanup: _legacyCleanup, abandoned_account_cleanup, ...migrated} = stored;
+	const {
+		date_of_birth_enforcement: _legacyEnforcement,
+		date_of_birth: _legacyPolicy,
+		dob_missing_cleanup: _legacyCleanup,
+		abandoned_account_cleanup,
+		...migrated
+	} = stored;
 	if (typeof abandoned_account_cleanup === 'boolean') {
 		const cleanup = abandonedAccountCleanupDefaults(abandoned_account_cleanup);
 		if (!Object.hasOwn(stored, 'unclaimed_account_cleanup')) {
@@ -1370,201 +1374,6 @@ function redactRegistrationUrl(registrationUrl: InstanceRegistrationUrl): Instan
 	return redacted;
 }
 
-interface InstanceSsoFlags {
-	enabled: boolean;
-	enforced: boolean;
-	autoProvision: boolean;
-	usernameFromProvider: boolean;
-}
-
-export interface InstanceSsoConfig extends InstanceSsoFlags {
-	displayName: string | null;
-	buttonLabel: string | null;
-	issuer: string | null;
-	authorizationUrl: string | null;
-	tokenUrl: string | null;
-	userInfoUrl: string | null;
-	jwksUrl: string | null;
-	clientId: string | null;
-	clientSecret?: string | null;
-	clientSecretSet?: boolean;
-	scope: string | null;
-	allowedEmailDomains: Array<string>;
-	redirectUri: string | null;
-	groupsClaim: string | null;
-	groupRoleMappings: Array<SsoGroupRoleMapping>;
-}
-
-export interface SsoGroupRoleMapping {
-	group: string;
-	roleId: string;
-}
-
-const MAX_SSO_ALLOWED_DOMAINS = 100;
-
-function parseStoredSsoGroupRoleMappings(raw: string | undefined): Array<SsoGroupRoleMapping> {
-	if (!raw) return [];
-	let value: unknown;
-	try {
-		value = JSON.parse(raw);
-	} catch {
-		Logger.warn('Ignoring unreadable stored SSO group role mappings');
-		return [];
-	}
-	if (!Array.isArray(value)) return [];
-	return value.flatMap((entry): Array<SsoGroupRoleMapping> => {
-		if (typeof entry !== 'object' || entry === null) return [];
-		const {group, role_id: roleId} = entry as Record<string, unknown>;
-		return typeof group === 'string' && typeof roleId === 'string' && /^\d{1,20}$/.test(roleId)
-			? [{group, roleId}]
-			: [];
-	});
-}
-
-function formatSsoGroupRoleMappings(value: Array<SsoGroupRoleMapping>): string {
-	return JSON.stringify(value.map(({group, roleId}) => ({group, role_id: roleId})));
-}
-
-function readStoredSsoBoolean(
-	configs: ReadonlyMap<string, string>,
-	key: 'sso_enabled' | 'sso_enforced' | 'sso_auto_provision' | 'sso_username_from_provider',
-	fallback: boolean,
-	options?: {invalidFallback?: boolean; log?: boolean},
-): boolean {
-	const value = configs.get(key);
-	if (value === undefined) return fallback;
-	if (value === 'true') return true;
-	if (value === 'false') return false;
-	if (options?.log) {
-		Logger.warn({key}, 'Invalid stored SSO flag, falling back to its default');
-	}
-	return options?.invalidFallback ?? fallback;
-}
-
-function readStoredSsoFlags(configs: ReadonlyMap<string, string>, log = false): InstanceSsoFlags {
-	const enabled = readStoredSsoBoolean(configs, 'sso_enabled', false, {log});
-	return {
-		enabled,
-		enforced: readStoredSsoBoolean(configs, 'sso_enforced', enabled, {invalidFallback: false, log}),
-		autoProvision: readStoredSsoBoolean(configs, 'sso_auto_provision', true, {log}),
-		usernameFromProvider: readStoredSsoBoolean(configs, 'sso_username_from_provider', false, {log}),
-	};
-}
-
-function parseStoredSsoAllowedEmailDomains(raw: string | undefined, log = false): Array<string> {
-	if (raw === undefined || raw.trim().length === 0) return [];
-	let value: unknown;
-	try {
-		value = JSON.parse(raw);
-	} catch {
-		value = null;
-	}
-	const entries: ReadonlyArray<unknown> = Array.isArray(value) ? value : raw.split(',');
-	const domains = new Set<string>();
-	const unusable = new Set<string>();
-	for (const entry of entries) {
-		try {
-			for (const domain of normalizeAllowedEmailDomains([entry])) {
-				domains.add(domain);
-			}
-		} catch {
-			const text = String(entry).trim();
-			if (text.length > 0) unusable.add(text);
-		}
-	}
-	if (domains.size === 0 && unusable.size > 0) {
-		if (log) {
-			Logger.error(
-				{unusable: unusable.size},
-				'Every stored SSO allowed email domain is invalid, keeping them so the allowlist still matches nothing',
-			);
-		}
-		return Array.from(unusable).slice(0, MAX_SSO_ALLOWED_DOMAINS);
-	}
-	if (log && unusable.size > 0) {
-		Logger.warn({dropped: unusable.size}, 'Dropped invalid stored SSO allowed email domains');
-	}
-	if (log && domains.size > MAX_SSO_ALLOWED_DOMAINS) {
-		Logger.warn(
-			{dropped: domains.size - MAX_SSO_ALLOWED_DOMAINS},
-			'Truncated the stored SSO allowed email domain list to its maximum length',
-		);
-	}
-	return Array.from(domains).slice(0, MAX_SSO_ALLOWED_DOMAINS);
-}
-
-function readStoredSsoConfig(
-	configs: ReadonlyMap<string, string>,
-	options?: {includeSecret?: boolean},
-): InstanceSsoConfig {
-	const flags = readStoredSsoFlags(configs);
-	const read = (key: string): string | null => {
-		const v = configs.get(key);
-		if (!v) return null;
-		const trimmed = v.trim();
-		return trimmed.length === 0 ? null : trimmed;
-	};
-	const allowedDomains = parseStoredSsoAllowedEmailDomains(configs.get('sso_allowed_domains'));
-	const clientSecret = read('sso_client_secret');
-	return {
-		...flags,
-		displayName: read('sso_display_name'),
-		buttonLabel: read('sso_button_label'),
-		issuer: read('sso_issuer'),
-		authorizationUrl: read('sso_authorization_url'),
-		tokenUrl: read('sso_token_url'),
-		userInfoUrl: read('sso_userinfo_url'),
-		jwksUrl: read('sso_jwks_url'),
-		clientId: read('sso_client_id'),
-		clientSecret: options?.includeSecret ? clientSecret : undefined,
-		clientSecretSet: Boolean(clientSecret),
-		scope: read('sso_scope'),
-		allowedEmailDomains: allowedDomains,
-		redirectUri: null,
-		groupsClaim: read('sso_groups_claim'),
-		groupRoleMappings: parseStoredSsoGroupRoleMappings(configs.get('sso_group_role_mappings')),
-	};
-}
-
-interface SsoRowWrite {
-	key: string;
-	value: string | undefined;
-	unset: string;
-}
-
-function ssoRow<T>(key: string, value: T | undefined, current: T, format: (value: T) => string): SsoRowWrite {
-	return {key, value: value === undefined ? undefined : format(value), unset: format(current)};
-}
-
-function nextSsoRowValue(row: SsoRowWrite, raw: string | null): string | null {
-	const value = row.value ?? raw ?? row.unset;
-	return value === raw ? null : value;
-}
-
-function formatSsoBoolean(value: boolean): string {
-	return value ? 'true' : 'false';
-}
-
-function formatSsoString(value: string | null): string {
-	return value ?? '';
-}
-
-function formatSsoDomains(value: Array<string>): string {
-	return JSON.stringify(value);
-}
-
-function normalizeSsoAllowedEmailDomainsForWrite(domains: Array<string>, enabled: boolean): Array<string> {
-	try {
-		return normalizeAllowedEmailDomains(domains);
-	} catch (error) {
-		if (enabled) {
-			throw error;
-		}
-		Logger.warn({error}, 'Clearing invalid SSO allowed domain config while SSO is disabled');
-		return [];
-	}
-}
-
 export class InstanceConfigRepository {
 	private readonly kvClient: IKVProvider | null;
 	private configCache: InstanceConfigCache;
@@ -1725,9 +1534,7 @@ export class InstanceConfigRepository {
 		parseStoredVoiceP2pConfig(snapshot.get(VOICE_P2P_CONFIG_KEY) ?? null);
 		parseStoredCaptchaConfig(snapshot.get(CAPTCHA_CONFIG_KEY) ?? null);
 		parseStoredAuthConfig(snapshot.get(AUTH_CONFIG_KEY) ?? null);
-		setCachedAccountsConfig(
-			parseStoredAccountsConfig(snapshot.get(ACCOUNTS_CONFIG_KEY) ?? null),
-		);
+		setCachedAccountsConfig(parseStoredAccountsConfig(snapshot.get(ACCOUNTS_CONFIG_KEY) ?? null));
 		setCachedGuildVisitsConfig(parseStoredGuildVisitsConfig(snapshot.get(GUILD_VISITS_CONFIG_KEY) ?? null));
 		syncChannelThreadsConfig(snapshot.get(CHANNEL_THREADS_CONFIG_KEY) ?? null, parseStoredChannelThreadsConfig);
 		parseStoredExperimentDeliveryConfig(snapshot.get(EXPERIMENT_DELIVERY_CONFIG_KEY) ?? null);
@@ -1751,10 +1558,6 @@ export class InstanceConfigRepository {
 				snapshot.get(REGISTRATION_PENDING_APPROVALS_KEY) ?? null,
 				'pending registrations',
 			),
-		);
-		checkStoredConfig('SSO flags', () => readStoredSsoFlags(snapshot, true));
-		checkStoredConfig('SSO allowed domains', () =>
-			parseStoredSsoAllowedEmailDomains(snapshot.get('sso_allowed_domains'), true),
 		);
 		checkStoredConfig('integrations', () =>
 			parseStoredInstanceIntegrationsConfig(snapshot.get(INSTANCE_INTEGRATIONS_CONFIG_KEY) ?? null),
@@ -3158,66 +2961,6 @@ export class InstanceConfigRepository {
 				(entry) => entry.user_id !== userId,
 			),
 		);
-	}
-
-	async getSsoConfig(options?: {includeSecret?: boolean}): Promise<InstanceSsoConfig> {
-		return readStoredSsoConfig(await this.getAllConfigs(), options);
-	}
-
-	async setSsoConfig(config: Partial<InstanceSsoConfig>): Promise<InstanceSsoConfig> {
-		const configs = await this.getAllConfigs();
-		const current = readStoredSsoConfig(configs, {includeSecret: true});
-		const enabled = config.enabled ?? current.enabled;
-		const allowedEmailDomains =
-			config.allowedEmailDomains === undefined
-				? undefined
-				: normalizeSsoAllowedEmailDomainsForWrite(config.allowedEmailDomains, enabled);
-		const rows: Array<SsoRowWrite> = [
-			ssoRow('sso_enabled', config.enabled, current.enabled, formatSsoBoolean),
-			ssoRow('sso_enforced', config.enforced, current.enforced, formatSsoBoolean),
-			ssoRow('sso_display_name', config.displayName, current.displayName, formatSsoString),
-			ssoRow('sso_button_label', config.buttonLabel, current.buttonLabel, formatSsoString),
-			ssoRow('sso_issuer', config.issuer, current.issuer, formatSsoString),
-			ssoRow('sso_authorization_url', config.authorizationUrl, current.authorizationUrl, formatSsoString),
-			ssoRow('sso_token_url', config.tokenUrl, current.tokenUrl, formatSsoString),
-			ssoRow('sso_userinfo_url', config.userInfoUrl, current.userInfoUrl, formatSsoString),
-			ssoRow('sso_jwks_url', config.jwksUrl, current.jwksUrl, formatSsoString),
-			ssoRow('sso_client_id', config.clientId, current.clientId, formatSsoString),
-			ssoRow('sso_scope', config.scope, current.scope, formatSsoString),
-			ssoRow('sso_allowed_domains', allowedEmailDomains, current.allowedEmailDomains, formatSsoDomains),
-			ssoRow('sso_auto_provision', config.autoProvision, current.autoProvision, formatSsoBoolean),
-			ssoRow('sso_username_from_provider', config.usernameFromProvider, current.usernameFromProvider, formatSsoBoolean),
-			ssoRow('sso_redirect_uri', undefined, null, formatSsoString),
-			ssoRow('sso_groups_claim', config.groupsClaim, current.groupsClaim, formatSsoString),
-			ssoRow(
-				'sso_group_role_mappings',
-				config.groupRoleMappings,
-				current.groupRoleMappings,
-				formatSsoGroupRoleMappings,
-			),
-		];
-		if (config.clientSecret !== undefined) {
-			rows.push(ssoRow('sso_client_secret', config.clientSecret, current.clientSecret ?? null, formatSsoString));
-		}
-		const cache = this.configCache;
-		const results = await Promise.allSettled(
-			rows
-				.filter((row) => row.value !== undefined || !configs.has(row.key))
-				.map((row) =>
-					this.compareAndSetStoredValue(cache, row.key, (raw) => ({value: nextSsoRowValue(row, raw), result: null})),
-				),
-		);
-		const errors: Array<unknown> = results.flatMap((result) => (result.status === 'rejected' ? [result.reason] : []));
-		if (results.some((result) => result.status === 'fulfilled' && result.value.written)) {
-			try {
-				await this.publishRefresh(cache.sourceId);
-			} catch (error) {
-				errors.push(error);
-			}
-		}
-		if (errors.length === 1) throw errors[0];
-		if (errors.length > 1) throw new AggregateError(errors, 'Failed to write or publish the SSO config');
-		return this.getSsoConfig({includeSecret: true});
 	}
 
 	private async fetchRegistrationUrlDefinitions(): Promise<Array<InstanceRegistrationUrl>> {

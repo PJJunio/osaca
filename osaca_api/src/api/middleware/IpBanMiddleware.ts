@@ -328,8 +328,6 @@ const SIGN_IN_ROUTES: ReadonlySet<string> = new Set([
 	'/auth/login/mfa/webauthn',
 	'/auth/webauthn/authentication-options',
 	'/auth/webauthn/authenticate',
-	'/auth/sso/start',
-	'/auth/sso/complete',
 ]);
 
 function findNetworkBlock(clientIp: string | null): NetworkBlock | null {

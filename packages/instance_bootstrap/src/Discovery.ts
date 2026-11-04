@@ -33,7 +33,6 @@ import {
 	type InstanceRegistration,
 	type InstanceServices,
 	type InstanceSetup,
-	type InstanceSso,
 	PUSH_DELIVERY_MODES,
 	REGISTRATION_MODES,
 } from '@osaca/instance_bootstrap/src/Types';
@@ -129,7 +128,6 @@ export interface InstanceDiscoveryDocument {
 	readonly apiCodeVersion: number | null;
 	readonly endpoints: InstanceDiscoveryEndpoints;
 	readonly features: Readonly<Partial<InstanceFeatures>>;
-	readonly sso: InstanceSso | null;
 	readonly registration: InstanceRegistration | null;
 	readonly community: InstanceCommunity | null;
 	readonly services: InstanceServices | null;
@@ -294,7 +292,6 @@ export function parseInstanceDiscoveryDocument(payload: unknown): InstanceDiscov
 		apiCodeVersion,
 		endpoints: parseEndpoints(source.endpoints),
 		features: parseFeatures(source.features),
-		sso: parseSso(source.sso),
 		registration: parseRegistration(source.registration),
 		community: parseCommunity(source.community),
 		services: parseServices(source.services),
@@ -599,32 +596,6 @@ function parseFeatures(value: unknown): Readonly<Partial<InstanceFeatures>> {
 		features.account_deletion_grace_period_hours = gracePeriodHours;
 	}
 	return features;
-}
-
-function parseSso(value: unknown): InstanceSso | null {
-	const source = asRecord(value);
-	if (source == null) {
-		return null;
-	}
-	const enabled = readBoolean(source, 'enabled');
-	const enforced = readBoolean(source, 'enforced');
-	const redirectUri = readAbsoluteHTTPURL(source, 'redirect_uri');
-	if (enabled == null || enforced == null || redirectUri == null) {
-		return null;
-	}
-	const sso: InstanceSso = {
-		enabled,
-		enforced,
-		username_from_provider: readBoolean(source, 'username_from_provider') ?? false,
-		display_name: readNonEmptyString(source, 'display_name'),
-		button_label: readNonEmptyString(source, 'button_label'),
-		redirect_uri: redirectUri,
-	};
-	const available = readBoolean(source, 'available');
-	if (available != null) {
-		sso.available = available;
-	}
-	return sso;
 }
 
 function parseRegistration(value: unknown): InstanceRegistration | null {

@@ -15,7 +15,6 @@ import styles from '@app/features/user/components/modals/tabs/my_profile_tab/MyP
 import type {User} from '@app/features/user/models/User';
 import {accountGateReason} from '@app/features/user/utils/AccountGatePresentation';
 import type {AccountGateResult} from '@app/features/user/utils/AccountGates';
-import {hasUserTrait, UserTraits} from '@osaca/constants/src/UserTraitConstants';
 import type {I18n} from '@lingui/core';
 import {msg} from '@lingui/core/macro';
 import {Trans, useLingui} from '@lingui/react/macro';
@@ -32,25 +31,7 @@ const GET_TO_CUSTOMIZE_YOUR_TAG_DESCRIPTOR = msg({
 	comment:
 		'Label in the username section. Preserve {premiumProductName}; it is inserted by code. Keep the tone plain and specific.',
 });
-const USERNAME_FROM_SIGN_IN_PROVIDER_DESCRIPTOR = msg({
-	message: 'Your username comes from your sign-in provider.',
-	comment:
-		'Tooltip on the disabled Change username button when the sign-in provider sets usernames. Keep the tone plain and specific.',
-});
-
-function signInProviderSetsUsername(user: User): boolean {
-	const sso = RuntimeConfig.getSnapshot().sso;
-	return (
-		RuntimeConfig.usesUsernameSignIn &&
-		sso?.enabled === true &&
-		sso.username_from_provider &&
-		!user.bot &&
-		hasUserTrait(user.traits, UserTraits.SSO)
-	);
-}
-
-function usernameChangeBlockedReason(i18n: I18n, user: User, profileGate: AccountGateResult): string | null {
-	if (signInProviderSetsUsername(user)) return i18n._(USERNAME_FROM_SIGN_IN_PROVIDER_DESCRIPTOR);
+function usernameChangeBlockedReason(i18n: I18n, profileGate: AccountGateResult): string | null {
 	if (!profileGate.allowed) return accountGateReason(i18n, profileGate);
 	return null;
 }
@@ -67,7 +48,7 @@ export const UsernameSection = observer(({profileGate, user}: UsernameSectionPro
 		'feature_custom_discriminator',
 	);
 	const discriminatorLabel = `#${user.discriminator}`;
-	const disabledReason = usernameChangeBlockedReason(i18n, user, profileGate);
+	const disabledReason = usernameChangeBlockedReason(i18n, profileGate);
 	return (
 		<div data-flx="user.my-profile-tab.username-section.div">
 			<div className={styles.label} data-flx="user.my-profile-tab.username-section.label">

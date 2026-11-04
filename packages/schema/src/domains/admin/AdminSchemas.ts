@@ -499,66 +499,12 @@ export const GenerateGiftCodesRequest = z.object({
 
 export type GenerateGiftCodesRequest = z.infer<typeof GenerateGiftCodesRequest>;
 
-const SsoAllowedDomainsSchema = z.array(z.string()).max(100);
-
-const SSO_BUTTON_LABEL_MAX_LENGTH = 64;
-
-const SSO_GROUP_ROLE_MAPPINGS_MAX = 100;
-
-const SsoGroupRoleMappingSchema = z.object({
-	group: z
-		.string()
-		.trim()
-		.min(1)
-		.max(256)
-		.describe(
-			'A group name exactly as the provider sends it in the groups claim, such as `staff` or `/engineering/devs`',
-		),
-	role_id: SnowflakeStringType.describe('The role in the single community that members of the group get'),
-});
-
-const SsoGroupRoleMappingsSchema = z
-	.array(SsoGroupRoleMappingSchema)
-	.max(SSO_GROUP_ROLE_MAPPINGS_MAX)
-	.describe(
-		'Groups whose members get a role in the single community. Every listed role is managed by single sign-on, and is added or removed to match the groups at each sign-in',
-	);
-
-const SsoGroupsClaimSchema = z
-	.string()
-	.trim()
-	.max(128)
-	.describe('The claim that lists the groups of a member. Empty or null uses `groups`');
-
-const SsoConfigResponse = z.object({
-	enabled: z.boolean(),
-	enforced: z.boolean(),
-	display_name: z.string().nullable(),
-	button_label: z.string().nullable(),
-	issuer: z.string().nullable(),
-	authorization_url: z.string().nullable(),
-	token_url: z.string().nullable(),
-	userinfo_url: z.string().nullable(),
-	jwks_url: z.string().nullable(),
-	client_id: z.string().nullable(),
-	client_secret_set: z.boolean(),
-	scope: z.string().nullable(),
-	allowed_domains: SsoAllowedDomainsSchema,
-	auto_provision: z.boolean(),
-	username_from_provider: z
-		.boolean()
-		.describe(
-			"Each SSO sign-in sets the username from the provider, and people can't change it in OSACA. Only on username instances",
-		),
-	redirect_uri: z.string().nullable(),
-	groups_claim: SsoGroupsClaimSchema.nullable(),
-	group_role_mappings: SsoGroupRoleMappingsSchema,
-});
+export const AllowedEmailDomainsSchema = z.array(z.string()).max(100);
 
 const InstanceRegistrationConfigResponse = z.object({
 	mode: InstanceRegistrationModeSchema,
 	admin_registration_urls_enabled: z.boolean(),
-	allowed_email_domains: SsoAllowedDomainsSchema.describe(
+	allowed_email_domains: AllowedEmailDomainsSchema.describe(
 		'Email domains that public sign-ups and email changes must use. Empty allows any domain',
 	),
 });
@@ -792,7 +738,6 @@ const InstanceAccountIdentityConfigResponse = z.object({
 });
 
 export const InstanceConfigResponse = z.object({
-	sso: SsoConfigResponse,
 	gateway_rollout: GatewayRolloutConfigResponse,
 	domain_migration: DomainMigrationConfigResponse,
 	voice_p2p: VoiceP2pConfigResponse,
@@ -866,46 +811,7 @@ export const InstanceConfigUpdateRequest = z.object({
 		.object({
 			mode: InstanceRegistrationModeSchema.optional(),
 			admin_registration_urls_enabled: z.boolean().optional(),
-			allowed_email_domains: SsoAllowedDomainsSchema.optional(),
-		})
-		.nullish(),
-	sso: z
-		.object({
-			enabled: z.boolean().optional(),
-			enforced: z.boolean().optional(),
-			display_name: z.string().nullish(),
-			button_label: z
-				.string()
-				.trim()
-				.max(SSO_BUTTON_LABEL_MAX_LENGTH)
-				.nullish()
-				.describe(
-					`Text for the sign-in button. Trimmed, then up to ${SSO_BUTTON_LABEL_MAX_LENGTH} UTF-16 code units with at least one visible character and no control characters, line breaks or bidirectional formatting characters. Empty or null uses the default label`,
-				),
-			issuer: z.string().nullish(),
-			authorization_url: z.string().nullish(),
-			token_url: z.string().nullish(),
-			userinfo_url: z.string().nullish(),
-			jwks_url: z.string().nullish(),
-			client_id: z.string().nullish(),
-			client_secret: z.string().nullish(),
-			scope: z.string().nullish(),
-			allowed_domains: SsoAllowedDomainsSchema.optional(),
-			auto_provision: z.boolean().optional(),
-			username_from_provider: z
-				.boolean()
-				.optional()
-				.describe(
-					"Each SSO sign-in sets the username from the provider, and people can't change it in OSACA. Only on username instances",
-				),
-			groups_claim: SsoGroupsClaimSchema.nullish(),
-			group_role_mappings: SsoGroupRoleMappingsSchema.optional(),
-			migrate_identities: z
-				.boolean()
-				.optional()
-				.describe(
-					'Only for a save that changes the issuer while accounts are linked to the old one. True moves those links to the new issuer, false leaves them on the old one. Applies to this save only and is never stored',
-				),
+			allowed_email_domains: AllowedEmailDomainsSchema.optional(),
 		})
 		.nullish(),
 	app_public: AppPublicConfigUpdateRequest.nullish(),

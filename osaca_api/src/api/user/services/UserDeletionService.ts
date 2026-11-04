@@ -4,7 +4,6 @@ import {randomInt} from 'node:crypto';
 import type {AdminRepository} from '@app/api/admin/AdminRepository';
 import {deleteRecoveryKit} from '@app/api/auth/AuthRecoveryKit';
 import {revokeAllAuthSessions} from '@app/api/auth/AuthSessionRevocation';
-import {SsoIdentityRepository} from '@app/api/auth/services/SsoIdentityRepository';
 import {createMessageID, createUserID, type MessageID, type UserID} from '@app/api/BrandedTypes';
 import {BillingDocumentRepository} from '@app/api/billing_documents/BillingDocumentRepository';
 import {Config} from '@app/api/Config';
@@ -36,12 +35,7 @@ import {endOperatorPassesForDeletion} from '@app/api/operator_pass/OperatorPassH
 import type {StoreEntitlementService} from '@app/api/store_billing/StoreEntitlementService';
 import type {UserRepository} from '@app/api/user/repositories/UserRepository';
 import {isPendingDeletionBlocked} from '@app/api/user/services/PendingDeletionCoordinator';
-import {
-	deletedUserIdentity,
-	isEnforcementDeletion,
-	isSsoLinkedUser,
-	personalFieldsToClear,
-} from '@app/api/user/UserHelpers';
+import {deletedUserIdentity, personalFieldsToClear} from '@app/api/user/UserHelpers';
 import type {WorkerTaskName} from '@app/api/worker/WorkerLaneConfig';
 import {ChannelTypes, MessageTypes} from '@osaca/constants/src/ChannelConstants';
 import * as BucketUtils from '@osaca/snowflake/src/SnowflakeBuckets';
@@ -51,7 +45,6 @@ import {ms} from 'itty-time';
 import type Stripe from 'stripe';
 
 const CHUNK_SIZE = 100;
-const ssoIdentityRepository = new SsoIdentityRepository();
 
 interface UserDeletionDependencies {
 	operatorPassServices: Pick<OperatorPassServices, 'repository' | 'wallService' | 'holdingService'>;
@@ -73,15 +66,6 @@ interface UserDeletionDependencies {
 	storeEntitlementService: StoreEntitlementService;
 	adminRepository: AdminRepository;
 	cacheService: ICacheService;
-}
-
-async function releaseSsoIdentitiesOf(user: User, deletionReasonCode: number): Promise<void> {
-	if (!isSsoLinkedUser(user)) return;
-	if (isEnforcementDeletion({enforcementDecisionId: user.enforcementDecisionId, deletionReasonCode})) return;
-	const released = await ssoIdentityRepository.releaseIdentitiesForUser(user.id);
-	if (released > 0) {
-		Logger.debug({userId: user.id, released}, 'Released SSO identities');
-	}
 }
 
 async function withdrawPendingRegistrationOf(user: User): Promise<void> {
@@ -216,7 +200,6 @@ export async function processUserDeletion(
 		return;
 	}
 	await removeNetworkBlocksOf(userId, deps);
-	await releaseSsoIdentitiesOf(user, deletionReasonCode);
 	await withdrawPendingRegistrationOf(user);
 	await storeEntitlementService.stopBillingForDeletedUser(userId);
 	await connectionRepository.sealAndDeleteForUser(userId);

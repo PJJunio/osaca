@@ -3,17 +3,13 @@
 import {isDeepStrictEqual} from 'node:util';
 import {AdminAuditReadActions} from '@app/api/admin/AdminAuditActions';
 import {recordAdminRead, recordAdminWrite} from '@app/api/admin/AdminAuditRecorder';
-import {migrateSsoIdentities} from '@app/api/admin/controllers/SsoIdentityAdminController';
 import {startAttachmentDecayReconcile} from '@app/api/attachment/AttachmentDecayReconcileRun';
 import {maybeAutoJoinInvite} from '@app/api/auth/AuthRegistration';
-import {ssoProviderIdOf} from '@app/api/auth/services/SsoIdentityLinks';
-import {SsoIdentityRepository} from '@app/api/auth/services/SsoIdentityRepository';
-import {legacySsoDiscoveryCacheKey, ssoDiscoveryCacheKey} from '@app/api/auth/services/SsoService';
-import {tryDiscoverOidcProviderMetadata} from '@app/api/auth/services/SsoUtils';
-import {createGuildID, createInviteCode, createUserID} from '@app/api/BrandedTypes';
+import {createInviteCode, createUserID} from '@app/api/BrandedTypes';
 import {loadSigningKey} from '@app/api/bluesky/BlueskyOAuthService';
 import {Config} from '@app/api/Config';
 import {enqueueEndUnassignedGuildVisits} from '@app/api/guild/visits/GuildVisitLifecycle';
+import {normalizeTrustedDomains} from '@app/api/instance/DomainListValidation';
 import {resolveEffectiveSmtpConfig, type StoredEmailSmtpConfig} from '@app/api/instance/EmailDelivery';
 import {assetStorageKey, resolveBrandingAsset} from '@app/api/instance/InstanceAssetReferences';
 import {
@@ -21,25 +17,16 @@ import {
 	type InstanceConfigRepository,
 	type InstanceIntegrationsConfigPatch,
 	type InstancePolicyConfig,
-	type InstanceSsoConfig,
 	REGISTRATION_PENDING_APPROVAL_TRAIT,
 	REGISTRATION_REJECTED_TRAIT,
-	type SsoGroupRoleMapping,
 } from '@app/api/instance/InstanceConfigRepository';
 import {clearUsedSetupToken} from '@app/api/instance/SetupToken';
-import {
-	deriveSsoRedirectUri,
-	normalizeAndValidateSsoConfig,
-	normalizeSsoButtonLabel,
-	normalizeTrustedDomains,
-} from '@app/api/instance/SsoConfigValidation';
 import {requireAdminACL} from '@app/api/middleware/AdminMiddleware';
 import {RateLimitMiddleware} from '@app/api/middleware/RateLimitMiddleware';
 import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
 import {getKVClient, getWorkerService} from '@app/api/middleware/ServiceRegistry';
 import {
 	getAssetDeletionQueue,
-	getGuildRepository,
 	getInstanceConfigRepository,
 	getKVAccountDeletionQueue,
 	getNatsConfigPublisher,
@@ -156,57 +143,6 @@ async function readSavedSmtpConfig(): Promise<StoredEmailSmtpConfig> {
 	return (await getInstanceConfigRepository().getInstanceIntegrationsConfig()).email.smtp;
 }
 
-type SsoProviderKey = Pick<InstanceSsoConfig, 'issuer' | 'authorizationUrl'>;
-
-async function isSameSsoProvider(current: SsoProviderKey, next: SsoProviderKey): Promise<boolean> {
-	const withoutTrailingSlash = (id: string) => id.replace(/\/+$/, '');
-	if (withoutTrailingSlash(ssoProviderIdOf(current)) === withoutTrailingSlash(ssoProviderIdOf(next))) return true;
-	if (current.issuer || !current.authorizationUrl || !next.issuer) return false;
-	const discovered = await tryDiscoverOidcProviderMetadata(next.issuer);
-	return discovered?.authorization_endpoint === current.authorizationUrl;
-}
-
-async function shouldMoveSsoIdentities(
-	current: SsoProviderKey,
-	next: SsoProviderKey,
-	choice: boolean | undefined,
-): Promise<boolean> {
-	const fromProviderId = ssoProviderIdOf(current);
-	if (!next.issuer || fromProviderId === ssoProviderIdOf(next)) return false;
-	const linked = (await new SsoIdentityRepository().listForProvider(fromProviderId)).length;
-	if (linked === 0) return false;
-	if (choice !== undefined) return choice;
-	if (await isSameSsoProvider(current, next)) return true;
-	throw InputValidationError.fromCode('issuer', ValidationErrorCodes.SSO_ISSUER_CHANGE_HAS_IDENTITIES, {
-		count: linked,
-	});
-}
-
-async function validateSsoGroupRoleMappings(
-	mappings: Array<{group: string; role_id: string}> | undefined,
-): Promise<Array<SsoGroupRoleMapping> | undefined> {
-	if (mappings === undefined) return undefined;
-	const policy = await getInstanceConfigRepository().getInstancePolicyConfig();
-	if (policy.single_community_guild_id !== null && mappings.length > 0) {
-		const roles = await getGuildRepository().listRoles(createGuildID(BigInt(policy.single_community_guild_id)));
-		const roleIds = new Set(
-			roles.map((role) => role.id.toString()).filter((roleId) => roleId !== policy.single_community_guild_id),
-		);
-		const unknown = mappings.find((mapping) => !roleIds.has(mapping.role_id));
-		if (unknown) {
-			throw InputValidationError.create(
-				'sso.group_role_mappings',
-				`Role ${unknown.role_id} is the everyone role or not a role of the single community`,
-			);
-		}
-	}
-	return mappings.map(({group, role_id: roleId}) => ({group, roleId}));
-}
-
-function mergeOptionalField<T>(currentValue: T, nextValue: T | undefined): T {
-	return nextValue === undefined ? currentValue : nextValue;
-}
-
 function omitUndefinedFields<T extends object>(value: T): Partial<T> {
 	return Object.fromEntries(Object.entries(value).filter(([, entry]) => entry !== undefined)) as Partial<T>;
 }
@@ -220,7 +156,6 @@ function nonEmptyPatch<T extends object>(value: T | null | undefined): Partial<T
 async function buildInstanceConfigResponse(warnings: Array<string> = []): Promise<InstanceConfigResponse> {
 	const instanceConfigRepository = getInstanceConfigRepository();
 	const [
-		ssoConfig,
 		gatewayRollout,
 		domainMigration,
 		voiceP2p,
@@ -232,7 +167,6 @@ async function buildInstanceConfigResponse(warnings: Array<string> = []): Promis
 		accountsConfig,
 		guildVisitsConfig,
 	] = await Promise.all([
-		instanceConfigRepository.getSsoConfig(),
 		instanceConfigRepository.getGatewayRolloutConfig(),
 		instanceConfigRepository.getDomainMigrationConfig(),
 		instanceConfigRepository.getVoiceP2pConfig(),
@@ -268,26 +202,6 @@ async function buildInstanceConfigResponse(warnings: Array<string> = []): Promis
 		instanceConfigRepository.getInstanceNotice(),
 	]);
 	return {
-		sso: {
-			enabled: ssoConfig.enabled,
-			enforced: ssoConfig.enforced,
-			display_name: ssoConfig.displayName,
-			button_label: ssoConfig.buttonLabel,
-			issuer: ssoConfig.issuer,
-			authorization_url: ssoConfig.authorizationUrl,
-			token_url: ssoConfig.tokenUrl,
-			userinfo_url: ssoConfig.userInfoUrl,
-			jwks_url: ssoConfig.jwksUrl,
-			client_id: ssoConfig.clientId,
-			client_secret_set: ssoConfig.clientSecretSet ?? false,
-			scope: ssoConfig.scope,
-			allowed_domains: ssoConfig.allowedEmailDomains,
-			auto_provision: ssoConfig.autoProvision,
-			username_from_provider: ssoConfig.usernameFromProvider,
-			redirect_uri: deriveSsoRedirectUri(Config.endpoints.webApp),
-			groups_claim: ssoConfig.groupsClaim,
-			group_role_mappings: ssoConfig.groupRoleMappings.map(({group, roleId}) => ({group, role_id: roleId})),
-		},
 		gateway_rollout: gatewayRollout,
 		domain_migration: domainMigration,
 		voice_p2p: voiceP2p,
@@ -503,12 +417,6 @@ async function assertConsistentInstanceConfig(
 			ValidationErrorCodes.IDENTIFIER_FIRST_REQUIRES_EMAIL_IDENTITY,
 		);
 	}
-	if (!usernameMode && data.sso?.username_from_provider === true) {
-		throw InputValidationError.create(
-			'sso.username_from_provider',
-			'Usernames can only come from your sign-in provider when people sign in with a username',
-		);
-	}
 	const deliveryField = emailDeliveryPatchField(integrationsPatch?.email);
 	if (usernameMode && deliveryField !== null) {
 		throw InputValidationError.fromCode(deliveryField, ValidationErrorCodes.EMAIL_DELIVERY_REQUIRES_EMAIL_IDENTITY);
@@ -671,70 +579,6 @@ const INSTANCE_CONFIG_SECTION_APPLIERS = {
 			);
 		},
 	),
-	sso: createInstanceConfigSectionApplier(
-		({data}) => data.sso,
-		async (sso, {ctx, instanceConfigRepository, warnings}) => {
-			const suppliedButtonLabel = readOptionalField(sso, 'button_label');
-			const buttonLabel = suppliedButtonLabel === undefined ? undefined : normalizeSsoButtonLabel(suppliedButtonLabel);
-			const current = await instanceConfigRepository.getSsoConfig({includeSecret: true});
-			const next = {
-				enabled: mergeOptionalField(current.enabled, readOptionalField(sso, 'enabled')),
-				enforced: mergeOptionalField(current.enforced, readOptionalField(sso, 'enforced')),
-				displayName: mergeOptionalField(current.displayName, readOptionalField(sso, 'display_name')),
-				issuer: mergeOptionalField(current.issuer, readOptionalField(sso, 'issuer')),
-				authorizationUrl: mergeOptionalField(current.authorizationUrl, readOptionalField(sso, 'authorization_url')),
-				tokenUrl: mergeOptionalField(current.tokenUrl, readOptionalField(sso, 'token_url')),
-				userInfoUrl: mergeOptionalField(current.userInfoUrl, readOptionalField(sso, 'userinfo_url')),
-				jwksUrl: mergeOptionalField(current.jwksUrl, readOptionalField(sso, 'jwks_url')),
-				clientId: mergeOptionalField(current.clientId, readOptionalField(sso, 'client_id')),
-				scope: mergeOptionalField(current.scope, readOptionalField(sso, 'scope')),
-				allowedEmailDomains: mergeOptionalField(current.allowedEmailDomains, readOptionalField(sso, 'allowed_domains')),
-				autoProvision: mergeOptionalField(current.autoProvision, readOptionalField(sso, 'auto_provision')),
-			};
-			const validated = await normalizeAndValidateSsoConfig(next, {
-				testModeEnabled: Config.dev.testModeEnabled,
-			});
-			const moveIdentities = await shouldMoveSsoIdentities(
-				current,
-				validated,
-				readOptionalField(sso, 'migrate_identities'),
-			);
-			const supplied = <T>(field: keyof typeof sso, value: T): T | undefined =>
-				readOptionalField(sso, field) === undefined ? undefined : value;
-			await instanceConfigRepository.setSsoConfig({
-				enabled: supplied('enabled', validated.enabled),
-				enforced: supplied('enforced', validated.enforced),
-				displayName: supplied('display_name', next.displayName),
-				buttonLabel,
-				issuer: supplied('issuer', validated.issuer),
-				authorizationUrl: supplied('authorization_url', validated.authorizationUrl),
-				tokenUrl: supplied('token_url', validated.tokenUrl),
-				userInfoUrl: supplied('userinfo_url', validated.userInfoUrl),
-				jwksUrl: supplied('jwks_url', validated.jwksUrl),
-				clientId: supplied('client_id', validated.clientId),
-				clientSecret: readOptionalField(sso, 'client_secret'),
-				scope: supplied('scope', next.scope),
-				allowedEmailDomains: supplied('allowed_domains', validated.allowedEmailDomains),
-				autoProvision: supplied('auto_provision', next.autoProvision),
-				usernameFromProvider: readOptionalField(sso, 'username_from_provider'),
-				groupsClaim: readOptionalField(sso, 'groups_claim'),
-				groupRoleMappings: await validateSsoGroupRoleMappings(readOptionalField(sso, 'group_role_mappings')),
-			});
-			if (moveIdentities) {
-				await migrateSsoIdentities(ctx, ssoProviderIdOf(current), ssoProviderIdOf(validated));
-			}
-			for (const issuer of new Set([current.issuer, validated.issuer])) {
-				if (!issuer) continue;
-				await ctx.get('cacheService').delete(ssoDiscoveryCacheKey(issuer));
-				await ctx.get('cacheService').delete(legacySsoDiscoveryCacheKey(issuer));
-			}
-			if (validated.providerUnreachable) {
-				warnings.push(
-					"Couldn't connect to the sign-in provider at its issuer URL. The SSO button stays hidden until the provider answers.",
-				);
-			}
-		},
-	),
 	registration: createInstanceConfigSectionApplier(
 		({data}) => data.registration,
 		async (registration, {instanceConfigRepository}) => {
@@ -886,7 +730,7 @@ export function InstanceConfigAdminController(app: HonoApp) {
 			operationId: 'get_admin_instance_config',
 			summary: 'Get instance configuration',
 			description:
-				'Retrieves instance-wide configuration including webhooks and SSO configuration. Requires INSTANCE_CONFIG_VIEW permission.',
+				'Retrieves instance-wide configuration including webhooks. Requires INSTANCE_CONFIG_VIEW permission.',
 			responseSchema: InstanceConfigResponse,
 			statusCode: 200,
 			security: 'adminApiKey',
@@ -912,7 +756,7 @@ export function InstanceConfigAdminController(app: HonoApp) {
 			operationId: 'update_admin_instance_config',
 			summary: 'Update instance configuration',
 			description:
-				'Updates instance configuration settings including webhook URLs and SSO parameters. Changes apply immediately. Requires INSTANCE_CONFIG_UPDATE permission.',
+				'Updates instance configuration settings including webhook URLs. Changes apply immediately. Requires INSTANCE_CONFIG_UPDATE permission.',
 			responseSchema: InstanceConfigResponse,
 			statusCode: 200,
 			security: 'adminApiKey',

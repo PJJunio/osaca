@@ -16,9 +16,9 @@ import {failureValidationErrors} from '@app/features/platform/utils/ResponseInsp
 import {Spinner} from '@app/features/ui/components/Spinner';
 import * as FormUtils from '@app/lib/forms';
 import {flxElementClassName} from '@app/lib/react';
-import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {msg} from '@lingui/core/macro';
 import {Trans, useLingui} from '@lingui/react/macro';
+import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {observer} from 'mobx-react-lite';
 import {useState} from 'react';
 
@@ -88,13 +88,13 @@ const SignInLinkContent = observer(function SignInLinkContent({
 					{error}
 				</flx-auth-sign-in-link-page-notice>
 				<flx-auth-sign-in-link-page-actions
-					className={flxElementClassName(styles.ssoCallbackActions)}
+					className={flxElementClassName(styles.callbackActions)}
 					data-flx="auth.sign-in-link-page.actions"
 				>
 					<button
 						type="button"
 						onClick={onBack}
-						className={styles.ssoBackButton}
+						className={styles.callbackBackButton}
 						data-flx="auth.sign-in-link-page.back-button"
 					>
 						{i18n._(BACK_TO_SIGN_IN_DESCRIPTOR)}
@@ -111,7 +111,7 @@ const SignInLinkContent = observer(function SignInLinkContent({
 			<h1 className={styles.title} data-flx="auth.sign-in-link-page.title--2">
 				<Trans>Completing sign-in…</Trans>
 			</h1>
-			<p className={styles.ssoProcessingHint} role="status" data-flx="auth.sign-in-link-page.processing-hint">
+			<p className={styles.processingHint} role="status" data-flx="auth.sign-in-link-page.processing-hint">
 				<Spinner data-flx="auth.sign-in-link-page.spinner" />
 			</p>
 		</flx-auth-sign-in-link-page>

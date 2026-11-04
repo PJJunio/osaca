@@ -9,7 +9,6 @@ import {AuthBottomLink} from '@app/features/auth/flow/AuthBottomLink';
 import sharedStyles from '@app/features/auth/flow/AuthPageStyles.module.css';
 import {AuthRegisterFormCore} from '@app/features/auth/flow/AuthRegisterFormCore';
 import {AuthRuntimeTargetGate} from '@app/features/auth/flow/AuthRuntimeTargetGate';
-import {AuthSsoPanel, isSsoLoginEnforced, resolveAuthPanelSso} from '@app/features/auth/flow/AuthSsoPanel';
 import {DesktopDeepLinkPrompt} from '@app/features/auth/flow/DesktopDeepLinkPrompt';
 import {
 	InstantAccountForm,
@@ -111,9 +110,6 @@ const InviteRegisterPageContent = observer(function InviteRegisterPageContent({
 	const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
 	const rawRedirect = params['get']('redirect_to');
 	const safeRedirect = safeRedirectTarget(rawRedirect);
-	const ssoRedirectPath = useMemo(() => {
-		return setPathQueryParams(Routes.inviteRegister(code), {redirect_to: safeRedirect});
-	}, [code, safeRedirect]);
 	const loginPath = safeRedirect
 		? setPathQueryParams(Routes.inviteLogin(code), {redirect_to: safeRedirect})
 		: Routes.inviteLogin(code);
@@ -142,32 +138,9 @@ const InviteRegisterPageContent = observer(function InviteRegisterPageContent({
 			/>
 		);
 
-	const runtimeSso = resolveAuthPanelSso(runtimeSnapshot);
-	if (isSsoLoginEnforced(runtimeSso)) {
-		return (
-			<>
-				<DesktopDeepLinkPrompt
-					code={code}
-					kind="invite"
-					data-flx="invite.invite-register-page.desktop-deep-link-prompt.sso"
-				/>
-				<InviteHeader invite={invite} data-flx="invite.invite-register-page.invite-header.sso" />
-				<div className={sharedStyles.container} data-flx="invite.invite-register-page.sso-container">
-					<AuthSsoPanel
-						redirectPath={ssoRedirectPath}
-						runtimeSnapshot={runtimeSnapshot}
-						dataFlx="invite.invite-register-page.sso-panel"
-						data-flx="invite.invite-register-page.auth-sso-panel"
-					/>
-					<AuthBottomLink variant="login" to={loginPath} data-flx="invite.invite-register-page.auth-bottom-link.sso" />
-				</div>
-			</>
-		);
-	}
 	const usernameSignIn = usesUsernameSignIn(runtimeSnapshot.features);
 	const registrationUrlCode = readRegistrationUrlCode(params);
-	const instantAccount =
-		guildInvite !== null && offersInstantAccount(runtimeSnapshot.features, null);
+	const instantAccount = guildInvite !== null && offersInstantAccount(runtimeSnapshot.features, null);
 	return (
 		<>
 			<DesktopDeepLinkPrompt

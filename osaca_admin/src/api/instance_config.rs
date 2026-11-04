@@ -28,7 +28,6 @@ impl AdminApiClient {
             mode,
             tag_style: discovery.features.tag_style,
             emails_enabled: discovery.features.emails_enabled,
-            username_from_provider: discovery.sso.username_from_provider,
         })
     }
 

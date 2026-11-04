@@ -5515,7 +5515,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Retrieves instance-wide configuration including webhooks and SSO configuration. Requires INSTANCE_CONFIG_VIEW permission.",
+				"description": "Retrieves instance-wide configuration including webhooks. Requires INSTANCE_CONFIG_VIEW permission.",
 				"security": [{"adminApiKey": []}]
 			},
 			"patch": {
@@ -5566,7 +5566,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Updates instance configuration settings including webhook URLs and SSO parameters. Changes apply immediately. Requires INSTANCE_CONFIG_UPDATE permission.",
+				"description": "Updates instance configuration settings including webhook URLs. Changes apply immediately. Requires INSTANCE_CONFIG_UPDATE permission.",
 				"security": [{"adminApiKey": []}],
 				"requestBody": {
 					"required": false,
@@ -8407,144 +8407,6 @@
 				"requestBody": {
 					"required": false,
 					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/RefreshSearchIndexRequest"}}}
-				}
-			}
-		},
-		"/admin/sso-identities": {
-			"get": {
-				"operationId": "lookup_admin_sso_identity",
-				"summary": "Look up an SSO identity",
-				"tags": ["Admin"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/AdminSsoIdentityLookupResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Find the user a single sign-on provider subject is bound to. Returns null when no account holds the subject. Requires USER_LOOKUP permission.",
-				"security": [{"adminApiKey": []}],
-				"parameters": [
-					{
-						"name": "provider_id",
-						"in": "query",
-						"required": true,
-						"schema": {
-							"type": "string",
-							"minLength": 1,
-							"maxLength": 2048,
-							"description": "The provider ID, as returned in `provider_id`"
-						},
-						"description": "The provider ID, as returned in `provider_id`"
-					},
-					{
-						"name": "subject",
-						"in": "query",
-						"required": true,
-						"schema": {
-							"type": "string",
-							"minLength": 1,
-							"maxLength": 1024,
-							"description": "The provider subject (`sub` claim), matched exactly"
-						},
-						"description": "The provider subject (`sub` claim), matched exactly"
-					}
-				]
-			}
-		},
-		"/admin/sso-identities/migrate": {
-			"post": {
-				"operationId": "migrate_admin_sso_identities",
-				"summary": "Move SSO subjects to the provider in use",
-				"tags": ["Admin"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {
-							"application/json": {"schema": {"$ref": "#/components/schemas/AdminSsoIdentityMigrateResponse"}}
-						}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Move every subject bound under from_provider_id to the provider in use, keeping each on its account. Use it after the issuer changed while the provider still sends the same subjects, so people keep their accounts. A subject that another account already holds under the provider in use is left where it was and counted in skipped_count. Reads every subject of the old provider, so run it once after the change. Creates audit log entry. Requires INSTANCE_CONFIG_UPDATE permission.",
-				"security": [{"adminApiKey": []}],
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/AdminSsoIdentityMigrateRequest"}}}
 				}
 			}
 		},
@@ -11930,198 +11792,6 @@
 				]
 			}
 		},
-		"/admin/users/{user_id}/sso-identities": {
-			"get": {
-				"operationId": "list_admin_user_sso_identities",
-				"summary": "List user SSO identities",
-				"tags": ["Admin"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {
-							"application/json": {"schema": {"$ref": "#/components/schemas/AdminUserSsoIdentityListResponse"}}
-						}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "List the single sign-on provider subjects bound to a user, with the provider each belongs to and when it was bound. Requires USER_LOOKUP permission.",
-				"security": [{"adminApiKey": []}],
-				"parameters": [
-					{
-						"name": "user_id",
-						"in": "path",
-						"required": true,
-						"schema": {"description": "The ID of the user", "allOf": [{"$ref": "#/components/schemas/SnowflakeType"}]},
-						"description": "The ID of the user"
-					}
-				]
-			},
-			"put": {
-				"operationId": "link_admin_user_sso_identity",
-				"summary": "Bind an SSO subject to a user",
-				"tags": ["Admin"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {
-							"application/json": {"schema": {"$ref": "#/components/schemas/AdminUserSsoIdentityListResponse"}}
-						}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Bind a provider subject under the provider in use to the account, replacing every subject bound to it before. Use it when the provider started sending another subject for the same person. Refused with SSO_IDENTITY_LINKED_TO_ANOTHER_ACCOUNT when another account that is not deleted holds the subject. Creates audit log entry. Requires USER_UPDATE_EMAIL permission.",
-				"security": [{"adminApiKey": []}],
-				"parameters": [
-					{
-						"name": "user_id",
-						"in": "path",
-						"required": true,
-						"schema": {"description": "The ID of the user", "allOf": [{"$ref": "#/components/schemas/SnowflakeType"}]},
-						"description": "The ID of the user"
-					}
-				],
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/AdminSsoIdentityLinkRequest"}}}
-				}
-			},
-			"delete": {
-				"operationId": "unlink_admin_user_sso_identities",
-				"summary": "Unbind the SSO subjects of a user",
-				"tags": ["Admin"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {
-							"application/json": {"schema": {"$ref": "#/components/schemas/AdminUserSsoIdentityListResponse"}}
-						}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Release every provider subject bound to the account and sign it out on every device. On an instance that stores email addresses, the next single sign-on with the same verified email binds the account again. A released subject of a deleted account can sign in to a new account. Creates audit log entry. Requires USER_UPDATE_EMAIL permission.",
-				"security": [{"adminApiKey": []}],
-				"parameters": [
-					{
-						"name": "user_id",
-						"in": "path",
-						"required": true,
-						"schema": {"description": "The ID of the user", "allOf": [{"$ref": "#/components/schemas/SnowflakeType"}]},
-						"description": "The ID of the user"
-					}
-				]
-			}
-		},
 		"/admin/users/{user_id}/store-purchases": {
 			"get": {
 				"operationId": "list_admin_user_store_purchases",
@@ -14451,31 +14121,6 @@
 				"required": ["purchases"],
 				"additionalProperties": false
 			},
-			"AdminUserSsoIdentityListResponse": {
-				"type": "object",
-				"properties": {
-					"sso_identities": {
-						"maxItems": 100,
-						"type": "array",
-						"items": {"$ref": "#/components/schemas/AdminSsoIdentityResponse"},
-						"description": "Every provider subject bound to the account, across every provider it has signed in with"
-					}
-				},
-				"required": ["sso_identities"],
-				"additionalProperties": false
-			},
-			"AdminSsoIdentityLinkRequest": {
-				"type": "object",
-				"properties": {
-					"subject": {
-						"type": "string",
-						"minLength": 1,
-						"maxLength": 1024,
-						"description": "The provider subject (`sub` claim) to bind under the provider in use, matched exactly"
-					}
-				},
-				"required": ["subject"]
-			},
 			"AdminSignInLinkResponse": {
 				"type": "object",
 				"properties": {
@@ -15806,53 +15451,6 @@
 					}
 				},
 				"required": ["recipient_count"],
-				"additionalProperties": false
-			},
-			"AdminSsoIdentityMigrateRequest": {
-				"type": "object",
-				"properties": {
-					"from_provider_id": {
-						"type": "string",
-						"minLength": 1,
-						"maxLength": 2048,
-						"description": "The provider ID the subjects are bound under now, such as the issuer URL used before a change"
-					}
-				},
-				"required": ["from_provider_id"]
-			},
-			"AdminSsoIdentityMigrateResponse": {
-				"type": "object",
-				"properties": {
-					"to_provider_id": {
-						"type": "string",
-						"description": "The provider ID in use, which the subjects were moved to"
-					},
-					"moved_count": {
-						"type": "integer",
-						"minimum": 0,
-						"maximum": 9007199254740991,
-						"description": "Subjects now bound under the provider in use"
-					},
-					"skipped_count": {
-						"type": "integer",
-						"minimum": 0,
-						"maximum": 9007199254740991,
-						"description": "Subjects left where they were, because another account already holds them under the provider in use or their account no longer exists"
-					}
-				},
-				"required": ["to_provider_id", "moved_count", "skipped_count"],
-				"additionalProperties": false
-			},
-			"AdminSsoIdentityLookupResponse": {
-				"type": "object",
-				"properties": {
-					"sso_identity": {
-						"nullable": true,
-						"description": "The bound identity, or null when no account holds it",
-						"allOf": [{"$ref": "#/components/schemas/AdminSsoIdentityResponse"}]
-					}
-				},
-				"required": ["sso_identity"],
 				"additionalProperties": false
 			},
 			"RefreshSearchIndexRequest": {
@@ -17397,79 +16995,6 @@
 			"InstanceConfigResponse": {
 				"type": "object",
 				"properties": {
-					"sso": {
-						"type": "object",
-						"properties": {
-							"enabled": {"type": "boolean"},
-							"enforced": {"type": "boolean"},
-							"display_name": {"nullable": true, "type": "string"},
-							"button_label": {"nullable": true, "type": "string"},
-							"issuer": {"nullable": true, "type": "string"},
-							"authorization_url": {"nullable": true, "type": "string"},
-							"token_url": {"nullable": true, "type": "string"},
-							"userinfo_url": {"nullable": true, "type": "string"},
-							"jwks_url": {"nullable": true, "type": "string"},
-							"client_id": {"nullable": true, "type": "string"},
-							"client_secret_set": {"type": "boolean"},
-							"scope": {"nullable": true, "type": "string"},
-							"allowed_domains": {"maxItems": 100, "type": "array", "items": {"type": "string"}},
-							"auto_provision": {"type": "boolean"},
-							"username_from_provider": {
-								"type": "boolean",
-								"description": "Each SSO sign-in sets the username from the provider, and people can't change it in OSACA. Only on username instances"
-							},
-							"redirect_uri": {"nullable": true, "type": "string"},
-							"groups_claim": {
-								"nullable": true,
-								"type": "string",
-								"maxLength": 128,
-								"description": "The claim that lists the groups of a member. Empty or null uses `groups`"
-							},
-							"group_role_mappings": {
-								"maxItems": 100,
-								"type": "array",
-								"items": {
-									"type": "object",
-									"properties": {
-										"group": {
-											"type": "string",
-											"minLength": 1,
-											"maxLength": 256,
-											"description": "A group name exactly as the provider sends it in the groups claim, such as `staff` or `/engineering/devs`"
-										},
-										"role_id": {
-											"description": "The role in the single community that members of the group get",
-											"allOf": [{"$ref": "#/components/schemas/SnowflakeStringType"}]
-										}
-									},
-									"required": ["group", "role_id"],
-									"additionalProperties": false
-								},
-								"description": "Groups whose members get a role in the single community. Every listed role is managed by single sign-on, and is added or removed to match the groups at each sign-in"
-							}
-						},
-						"required": [
-							"enabled",
-							"enforced",
-							"display_name",
-							"button_label",
-							"issuer",
-							"authorization_url",
-							"token_url",
-							"userinfo_url",
-							"jwks_url",
-							"client_id",
-							"client_secret_set",
-							"scope",
-							"allowed_domains",
-							"auto_provision",
-							"username_from_provider",
-							"redirect_uri",
-							"groups_claim",
-							"group_role_mappings"
-						],
-						"additionalProperties": false
-					},
 					"gateway_rollout": {"$ref": "#/components/schemas/GatewayRolloutConfigResponse"},
 					"domain_migration": {"$ref": "#/components/schemas/DomainMigrationConfigResponse"},
 					"voice_p2p": {"$ref": "#/components/schemas/VoiceP2pConfigResponse"},
@@ -17512,10 +17037,8 @@
 							"mode": {"allOf": [{"$ref": "#/components/schemas/InstanceRegistrationModeSchema"}]},
 							"admin_registration_urls_enabled": {"type": "boolean"},
 							"allowed_email_domains": {
-								"maxItems": 100,
-								"type": "array",
-								"items": {"type": "string"},
-								"description": "Email domains that public sign-ups and email changes must use. Empty allows any domain"
+								"description": "Email domains that public sign-ups and email changes must use. Empty allows any domain",
+								"allOf": [{"$ref": "#/components/schemas/AllowedEmailDomainsSchema"}]
 							},
 							"urls": {
 								"type": "array",
@@ -17954,7 +17477,6 @@
 					}
 				},
 				"required": [
-					"sso",
 					"gateway_rollout",
 					"domain_migration",
 					"voice_p2p",
@@ -18183,67 +17705,7 @@
 						"properties": {
 							"mode": {"allOf": [{"$ref": "#/components/schemas/InstanceRegistrationModeSchema"}]},
 							"admin_registration_urls_enabled": {"type": "boolean"},
-							"allowed_email_domains": {"maxItems": 100, "type": "array", "items": {"type": "string"}}
-						}
-					},
-					"sso": {
-						"nullable": true,
-						"type": "object",
-						"properties": {
-							"enabled": {"type": "boolean"},
-							"enforced": {"type": "boolean"},
-							"display_name": {"nullable": true, "type": "string"},
-							"button_label": {
-								"description": "Text for the sign-in button. Trimmed, then up to 64 UTF-16 code units with at least one visible character and no control characters, line breaks or bidirectional formatting characters. Empty or null uses the default label",
-								"nullable": true,
-								"type": "string",
-								"maxLength": 64
-							},
-							"issuer": {"nullable": true, "type": "string"},
-							"authorization_url": {"nullable": true, "type": "string"},
-							"token_url": {"nullable": true, "type": "string"},
-							"userinfo_url": {"nullable": true, "type": "string"},
-							"jwks_url": {"nullable": true, "type": "string"},
-							"client_id": {"nullable": true, "type": "string"},
-							"client_secret": {"nullable": true, "type": "string"},
-							"scope": {"nullable": true, "type": "string"},
-							"allowed_domains": {"maxItems": 100, "type": "array", "items": {"type": "string"}},
-							"auto_provision": {"type": "boolean"},
-							"username_from_provider": {
-								"description": "Each SSO sign-in sets the username from the provider, and people can't change it in OSACA. Only on username instances",
-								"type": "boolean"
-							},
-							"groups_claim": {
-								"nullable": true,
-								"type": "string",
-								"maxLength": 128,
-								"description": "The claim that lists the groups of a member. Empty or null uses `groups`"
-							},
-							"group_role_mappings": {
-								"maxItems": 100,
-								"type": "array",
-								"items": {
-									"type": "object",
-									"properties": {
-										"group": {
-											"type": "string",
-											"minLength": 1,
-											"maxLength": 256,
-											"description": "A group name exactly as the provider sends it in the groups claim, such as `staff` or `/engineering/devs`"
-										},
-										"role_id": {
-											"description": "The role in the single community that members of the group get",
-											"allOf": [{"$ref": "#/components/schemas/SnowflakeStringType"}]
-										}
-									},
-									"required": ["group", "role_id"]
-								},
-								"description": "Groups whose members get a role in the single community. Every listed role is managed by single sign-on, and is added or removed to match the groups at each sign-in"
-							},
-							"migrate_identities": {
-								"description": "Only for a save that changes the issuer while accounts are linked to the old one. True moves those links to the new issuer, false leaves them on the old one. Applies to this save only and is never stored",
-								"type": "boolean"
-							}
+							"allowed_email_domains": {"allOf": [{"$ref": "#/components/schemas/AllowedEmailDomainsSchema"}]}
 						}
 					},
 					"app_public": {
@@ -23771,6 +23233,7 @@
 				"enum": ["off", "smtp"],
 				"type": "string"
 			},
+			"AllowedEmailDomainsSchema": {"maxItems": 100, "type": "array", "items": {"type": "string"}},
 			"InstanceRegistrationModeSchema": {
 				"description": "Registration mode",
 				"x-enumNames": ["open", "approval", "closed"],
@@ -24767,31 +24230,6 @@
 				"format": "int32",
 				"x-enumNames": ["PENDING", "RESOLVED"],
 				"x-enumDescriptions": ["Report is pending review", "Report has been resolved"]
-			},
-			"AdminSsoIdentityResponse": {
-				"type": "object",
-				"properties": {
-					"provider_id": {
-						"type": "string",
-						"description": "The provider the identity belongs to: the issuer URL, or the authorization URL when no issuer is set"
-					},
-					"subject": {
-						"type": "string",
-						"description": "The provider subject (`sub` claim) bound to the account, exactly as the provider sent it"
-					},
-					"user_id": {
-						"description": "The account the subject is bound to",
-						"allOf": [{"$ref": "#/components/schemas/SnowflakeStringType"}]
-					},
-					"claimed_at": {
-						"type": "string",
-						"format": "date-time",
-						"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
-						"description": "ISO 8601 timestamp when the subject was bound to the account"
-					}
-				},
-				"required": ["provider_id", "subject", "user_id", "claimed_at"],
-				"additionalProperties": false
 			},
 			"UserAdminResponseSchema": {
 				"type": "object",
@@ -26461,8 +25899,6 @@
 					"INSTANCE_POLICY_TRANSITION_NOT_ALLOWED",
 					"SLOWMODE_RATE_LIMITED",
 					"SEARCH_INDEX_NOT_READY",
-					"SSO_PROVIDER_UNAVAILABLE",
-					"SSO_REQUIRED",
 					"STORE_BILLING_UNAVAILABLE",
 					"STORE_NOTIFICATION_UNAUTHORIZED",
 					"STORE_PURCHASE_INVALID",
@@ -26831,8 +26267,6 @@
 					"This instance policy change is not allowed.",
 					"Slowmode rate limited.",
 					"The search index isn't ready yet. Try again in a moment.",
-					"Your sign-in provider didn't respond. Try again in a moment.",
-					"{reason, select, managed_credentials {This instance requires single sign-on, so your SSO provider manages your email and password.} no_account {This instance only lets existing accounts sign in with SSO, and there's no account for you yet. Ask an admin of this instance for access.} managed_username {This instance requires single sign-on, so your username comes from your SSO provider.} other {This instance requires single sign-on. Sign in with the SSO button on the sign-in page.}}",
 					"In-app purchases are unavailable right now. Try again later.",
 					"The notification signature is invalid.",
 					"This purchase could not be verified.",

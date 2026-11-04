@@ -15,7 +15,6 @@ import {
 	handoffReachedServer,
 	resolveHandoffErrorMessage,
 } from '@app/features/auth/flow/browser_handoff/HandoffErrorMessages';
-import {SSO_START_QUERY_PARAM} from '@app/features/auth/flow/SsoAutoStart';
 import {getAuthErrorMessage} from '@app/features/auth/hooks/useAuthForm';
 import type {LoginSuccessPayload} from '@app/features/auth/state/AuthFlow';
 import {type LoginIdentifierField, loginIdentifierField} from '@app/features/auth/utils/AccountSignInIdentifier';
@@ -24,9 +23,9 @@ import {HttpError} from '@app/features/platform/types/EndpointError';
 import {Logger} from '@app/features/platform/utils/AppLogger';
 import * as TextCopyCommands from '@app/features/ui/commands/TextCopyCommands';
 import {navigateToExternalURL} from '@app/features/ui/utils/NativeUtils';
+import {useLingui} from '@lingui/react/macro';
 import {DesktopHandoffReturnMethod, DesktopHandoffStatus} from '@osaca/desktop_ipc/src/BrowserHandoffContract';
 import {formatDesktopHandoffCode} from '@osaca/schema/src/domains/auth/DesktopHandoffCode';
-import {useLingui} from '@lingui/react/macro';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 const BROWSER_LOGIN_HANDOFF_POLL_INTERVAL_MS = 2000;
@@ -55,7 +54,6 @@ type BrowserLoginHandoffPendingAction = BrowserLoginHandoffAction | null;
 export interface UseBrowserLoginHandoffOptions {
 	readonly runtimeSnapshot: RuntimeConfigSnapshot;
 	readonly prefillIdentifier?: string | null;
-	readonly startSso?: boolean;
 	readonly onEnded: () => void;
 	readonly onSuccess: (payload: LoginSuccessPayload) => Promise<void> | void;
 }
@@ -99,14 +97,12 @@ interface BrowserLoginHandoffURLRequest {
 	readonly session: BrowserLoginHandoffSession;
 	readonly prefillIdentifier: string | null | undefined;
 	readonly prefillField: LoginIdentifierField;
-	readonly startSso: boolean;
 }
 
 function buildBrowserLoginHandoffURL({
 	session,
 	prefillIdentifier,
 	prefillField,
-	startSso,
 }: BrowserLoginHandoffURLRequest): string {
 	const params = new URLSearchParams({
 		handoff: '1',
@@ -115,9 +111,6 @@ function buildBrowserLoginHandoffURL({
 	});
 	if (prefillIdentifier != null && prefillIdentifier.length > 0) {
 		params.set(prefillField, prefillIdentifier);
-	}
-	if (startSso) {
-		params.set(SSO_START_QUERY_PARAM, '1');
 	}
 	return `${session.target.webAppEndpoint}/login?${params.toString()}`;
 }
@@ -152,7 +145,6 @@ function useBrowserLoginHandoffCountdown(expiresAt: string | null): number | nul
 export function useBrowserLoginHandoff({
 	runtimeSnapshot,
 	prefillIdentifier,
-	startSso = false,
 	onEnded,
 	onSuccess,
 }: UseBrowserLoginHandoffOptions): BrowserLoginHandoffController {
@@ -272,7 +264,6 @@ export function useBrowserLoginHandoff({
 					session: currentSession,
 					prefillIdentifier,
 					prefillField: loginIdentifierField(runtimeSnapshot),
-					startSso,
 				}),
 			);
 			return true;
@@ -282,7 +273,7 @@ export function useBrowserLoginHandoff({
 		} finally {
 			setPendingAction(null);
 		}
-	}, [getCurrentSession, i18n, prefillIdentifier, runtimeSnapshot, startSso]);
+	}, [getCurrentSession, i18n, prefillIdentifier, runtimeSnapshot]);
 	const showManualCode = useCallback(async (): Promise<boolean> => {
 		setPendingAction(BrowserLoginHandoffAction.SHOW_CODE);
 		try {

@@ -307,8 +307,6 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `SINGLE_COMMUNITY_CANNOT_DELETE` | The community for this instance cannot be deleted |
 | `SINGLE_COMMUNITY_CANNOT_LEAVE` | You cannot leave the community for this instance |
 | `SLOWMODE_RATE_LIMITED` | Slowmode rate limited |
-| `SSO_PROVIDER_UNAVAILABLE` | Your sign-in provider didn't respond. Try again in a moment |
-| `SSO_REQUIRED` | This instance requires single sign-on |
 | `STREAM_KEY_CHANNEL_MISMATCH` | Stream key channel mismatch |
 | `STREAM_KEY_SCOPE_MISMATCH` | Stream key scope mismatch |
 | `STRIPE_BILLING_CYCLE_CHANGE_NEEDS_RESUBSCRIBE` | A Pix or UPI subscription can't switch between monthly and yearly |
@@ -466,7 +464,6 @@ These are the values of `code` inside `errors`.
 | `EMAIL_ALREADY_IN_USE` | Email is already in use |
 | `EMAIL_DELIVERY_REQUIRES_EMAIL_IDENTITY` | Email delivery only works when people sign in with an email |
 | `EMAIL_DOMAIN_NOT_ALLOWED` | This instance only accepts email addresses from certain domains |
-| `EMAIL_DOMAIN_NOT_ALLOWED_FOR_SSO` | This email domain isn't allowed for single sign-on |
 | `EMAIL_IS_REQUIRED` | Email is required |
 | `EMAIL_LENGTH_INVALID` | Email address must be between {min} and {max} characters |
 | `EMAIL_MUST_BE_CHANGED_VIA_TOKEN` | Email must be changed via token |
@@ -502,9 +499,7 @@ These are the values of `code` inside `errors`.
 | `ENTRANCE_SOUND_NOT_FOUND` | Entrance sound not found |
 | `ENTRANCE_SOUND_QUOTA_REACHED` | You can't save more than {max, number} entrance sounds |
 | `ENTRANCE_SOUND_SIZE_EXCEEDS_LIMIT` | Entrance sounds can be at most {max_bytes, number} bytes |
-| `FAILED_TO_FETCH_SSO_USER_INFO` | We couldn't fetch your SSO user info |
 | `FAILED_TO_PARSE_MULTIPART_FORM_DATA` | We couldn't parse the multipart form data |
-| `FAILED_TO_PARSE_SSO_USER_INFO` | We couldn't read the response from your SSO provider |
 | `FAILED_TO_UPLOAD_IMAGE` | We couldn't upload the image |
 | `FAVORITE_MEME_NAME_REQUIRED` | Saved media name is required |
 | `FAVORITE_MEME_NOT_FOUND` | Saved media wasn't found |
@@ -550,7 +545,6 @@ These are the values of `code` inside `errors`.
 | `INVALID_OR_EXPIRED_AUTHORIZATION_TOKEN` | Invalid or expired authorization token |
 | `INVALID_OR_EXPIRED_RESET_TOKEN` | Invalid or expired password reset token |
 | `INVALID_OR_EXPIRED_REVERT_TOKEN` | Invalid or expired revert token |
-| `INVALID_OR_EXPIRED_SSO_STATE` | Invalid or expired SSO state |
 | `INVALID_OR_EXPIRED_TICKET` | Invalid or expired ticket |
 | `INVALID_OR_EXPIRED_VERIFICATION_TOKEN` | Invalid or expired verification token |
 | `INVALID_OR_RESTRICTED_RTC_REGION` | Invalid or restricted RTC region: {region} |
@@ -562,8 +556,6 @@ These are the values of `code` inside `errors`.
 | `INVALID_RTC_REGION` | Invalid RTC region: {region} |
 | `INVALID_SNOWFLAKE` | Invalid snowflake |
 | `INVALID_SNOWFLAKE_FORMAT` | Invalid snowflake |
-| `INVALID_SSO_AUTHORIZATION_CODE` | Invalid SSO authorization code |
-| `INVALID_SSO_TOKEN` | Invalid SSO token |
 | `INVALID_TIMEOUT_VALUE` | Invalid timeout value |
 | `INVALID_TIMEZONE_IDENTIFIER` | Invalid time zone identifier |
 | `INVALID_TRUSTED_DOMAINS` | The wildcard (*) can't be combined with specific domains |
@@ -617,19 +609,6 @@ These are the values of `code` inside `errors`.
 | `SETUP_TOKEN_REQUIRED` | This instance is not set up yet |
 | `SMTP_HOST_REQUIRED` | Enter an SMTP server before turning on email delivery |
 | `SNOWFLAKE_OUT_OF_RANGE` | Invalid snowflake |
-| `SSO_ACCOUNT_LINKED_TO_ANOTHER_IDENTITY` | This account is already linked to a different SSO identity |
-| `SSO_ACCOUNT_LINK_REQUIRES_SIGN_IN` | An account with this email already exists. Sign in to it another way, then connect single sign-on |
-| `SSO_DISCOVERY_FAILED` | Couldn't connect to the sign-in provider at its issuer URL |
-| `SSO_EMAIL_NOT_VERIFIED` | Your SSO provider has not verified your email address |
-| `SSO_IDENTITY_LINKED_TO_ANOTHER_ACCOUNT` | This SSO identity is already linked to a different account |
-| `SSO_IDENTITY_MISMATCH` | SSO identity mismatch between id_token and userinfo |
-| `SSO_ISSUER_CHANGE_HAS_IDENTITIES` | {count} accounts are linked to the old issuer. Choose whether to move those links to the new issuer |
-| `SSO_ISSUER_REQUIRED` | Enter the issuer URL of your sign-in provider |
-| `SSO_MISCONFIGURED` | SSO is misconfigured |
-| `SSO_PROVIDER_DID_NOT_RETURN_EMAIL` | Your SSO provider didn't return an email address |
-| `SSO_TEST_CODE_MISSING_EMAIL` | SSO test code is missing the email payload |
-| `SSO_UNABLE_TO_ALLOCATE_DISCRIMINATOR` | We couldn't allocate a discriminator for your SSO account |
-| `SSO_USER_INFO_SIGNED_RESPONSE_UNSUPPORTED` | Your sign-in provider sent your profile in a signed format that OSACA can't use |
 | `STRING_LENGTH_EXACT` | String must be exactly {length} characters |
 | `STRING_LENGTH_INVALID` | String length must be between {min} and {max} characters |
 | `SYSTEM_CHANNEL_MUST_BE_IN_GUILD` | System channel must be in this community |

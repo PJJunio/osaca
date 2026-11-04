@@ -342,9 +342,8 @@ pub(super) fn accounts_section(
                         }
                         p class="text-xs text-neutral-500" {
                             (format!(
-                                "An account has no way back in when it has none of {}. Accounts that \
-                                 sign in through SSO always have one. Such an account is deleted after \
-                                 {} days without use. Deletion after the last sign-out happens \
+                                "An account has no way back in when it has none of {}. Such an account \
+                                 is deleted after {} days without use. Deletion after the last sign-out happens \
                                  {SCHEDULED_DELETION_GRACE_HOURS} hours after it signs out of its \
                                  last session.",
                                 way_back_in_wording(identity.mode, delivery_state),

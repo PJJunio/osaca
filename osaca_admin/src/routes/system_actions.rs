@@ -20,10 +20,7 @@ use crate::{
     state::AppState,
     templates::pages::{
         instance_branding::CUSTOM_CSS_FIELD,
-        instance_config::{
-            LOADED_CONFIG_FIELD, REGISTRATION_ALLOWED_EMAIL_DOMAINS_FIELD,
-            SSO_ALLOWED_DOMAINS_FIELD,
-        },
+        instance_config::{LOADED_CONFIG_FIELD, REGISTRATION_ALLOWED_EMAIL_DOMAINS_FIELD},
     },
     utils::forms::MultiValueForm,
 };
@@ -43,7 +40,6 @@ mod integrations;
 mod notices;
 mod policy;
 mod registration_urls;
-mod sso;
 
 #[derive(Deserialize)]
 pub(super) struct ActionQuery {
@@ -207,7 +203,6 @@ pub async fn instance_config_post(
             }
         }
         let update = match action {
-            "update_sso" => sso::build_sso_update(&form).map_err(FlashData::error),
             "update_gateway_rollout" => Ok(build_gateway_rollout_update(&form)),
             "update_registration" => Ok(build_registration_update(&form)),
             "update_app_public" => app_public::build_app_public_update(&form),
@@ -261,7 +256,6 @@ pub async fn instance_config_post(
             );
         }
         let feedback = match action {
-            "update_sso" => UpdateFeedback::Field("allowed_domains", SSO_ALLOWED_DOMAINS_FIELD),
             "update_registration" => UpdateFeedback::Field(
                 "allowed_email_domains",
                 REGISTRATION_ALLOWED_EMAIL_DOMAINS_FIELD,

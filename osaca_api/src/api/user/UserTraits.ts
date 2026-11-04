@@ -8,20 +8,17 @@ export {UserTraits};
 const DERIVED_TRAITS = new Set(['premium']);
 
 const SERVER_MANAGED_TRAITS = new Set<string>([
-	UserTraits.SSO,
 	UserTraits.PASSKEY,
 	'registration_pending_approval',
 	'registration_rejected',
 ]);
-
-const SERVER_MANAGED_TRAIT_PREFIXES = ['sso:', 'sso_provider:', 'sso_identity:'];
 
 export function isDerivedTrait(trait: string): boolean {
 	return !Config.instance.selfHosted && DERIVED_TRAITS.has(trait);
 }
 
 export function isServerManagedTrait(trait: string): boolean {
-	return SERVER_MANAGED_TRAITS.has(trait) || SERVER_MANAGED_TRAIT_PREFIXES.some((prefix) => trait.startsWith(prefix));
+	return SERVER_MANAGED_TRAITS.has(trait);
 }
 
 export function resolveAssignedTraits(current: Iterable<string>, requested: Iterable<string>): Set<string> {

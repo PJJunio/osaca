@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
-import {SsoRequiredReasons} from '@osaca/errors/src/domains/auth/SsoRequiredError';
 import {getErrorMessageUnsafe} from '@osaca/errors/src/i18n/ErrorI18n';
 import {ERROR_I18N_LOCALE_MESSAGES} from '@osaca/errors/src/i18n/ErrorI18nLocales';
 import {describe, expect, it} from 'vitest';
@@ -42,21 +40,6 @@ describe('ErrorI18n self-hosted payment error', () => {
 			expect(neutral, locale).not.toMatch(/@|\bnull\b|\{|support/i);
 			if (locale !== 'en-US' && locale !== 'en-GB') {
 				expect(neutral, locale).not.toBe(english);
-			}
-		}
-	});
-});
-
-describe('ErrorI18n single sign-on required', () => {
-	it('has a translated sentence for each reason in every locale', () => {
-		for (const reason of Object.values(SsoRequiredReasons)) {
-			const english = getErrorMessageUnsafe(APIErrorCodes.SSO_REQUIRED, 'en-US', {reason});
-			for (const locale of Object.keys(ERROR_I18N_LOCALE_MESSAGES)) {
-				const message = getErrorMessageUnsafe(APIErrorCodes.SSO_REQUIRED, locale, {reason});
-				expect(message, `${locale} ${reason}`).not.toMatch(/\{|invalid request/i);
-				if (locale !== 'en-US' && locale !== 'en-GB') {
-					expect(message, `${locale} ${reason}`).not.toBe(english);
-				}
 			}
 		}
 	});

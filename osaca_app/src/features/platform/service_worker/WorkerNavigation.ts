@@ -12,7 +12,6 @@ const APP_NAVIGATION_EXACT_PATHS = new Set([
 	'/wasntme',
 	'/pending',
 	'/oauth2/authorize',
-	'/auth/sso/callback',
 	'/bookmarks',
 	'/mentions',
 	'/notifications',

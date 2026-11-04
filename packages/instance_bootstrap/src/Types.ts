@@ -24,7 +24,6 @@ export type {
 	InstanceRegistration,
 	InstanceServices,
 	InstanceSetup,
-	InstanceSso,
 } from '@osaca/schema/src/domains/instance/InstanceSchemas';
 
 export type InstanceLegal = InstanceAppPublic['legal'];

@@ -13,18 +13,13 @@ import {
 	RequireUsernameAccountIdentity,
 } from '@app/api/middleware/AccountIdentityMiddleware';
 import {DefaultUserOnly, LoginRequired} from '@app/api/middleware/AuthMiddleware';
-import {LocalAuthMiddleware} from '@app/api/middleware/LocalAuthMiddleware';
 import {RateLimitMiddleware} from '@app/api/middleware/RateLimitMiddleware';
 import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
 import {SudoModeMiddleware} from '@app/api/middleware/SudoModeMiddleware';
 import {RateLimitConfigs} from '@app/api/RateLimitConfig';
 import type {HonoApp} from '@app/api/types/HonoEnv';
 import {assertValidTotpSetupCode} from '@app/api/user/services/UserAuth';
-import {isSsoUserWithoutPassword} from '@app/api/user/UserHelpers';
 import {Validator} from '@app/api/Validator';
-import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
-import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
-import {UnauthorizedError} from '@osaca/errors/src/domains/core/UnauthorizedError';
 import {
 	DisableTotpRequest,
 	EnableMfaTotpRequest,
@@ -35,7 +30,6 @@ import {
 	MfaBackupCodesChallengeVerifyResponse,
 	MfaBackupCodesRequest,
 	MfaBackupCodesResponse,
-	SsoStartResponse,
 	SudoMfaMethodsResponse,
 	SudoVerificationSchema,
 	WebAuthnChallengeResponse,
@@ -51,10 +45,7 @@ import {
 } from '@osaca/schema/src/domains/auth/PasskeyMigrationSchemas';
 import {CredentialIdParam} from '@osaca/schema/src/domains/common/CommonParamSchemas';
 import {EmptyBodyRequest} from '@osaca/schema/src/domains/user/UserRequestSchemas';
-import {
-	RecoveryKitCreateResponse,
-	RecoveryKitStatusResponse,
-} from '@osaca/schema/src/domains/user/UserResponseSchemas';
+import {RecoveryKitCreateResponse, RecoveryKitStatusResponse} from '@osaca/schema/src/domains/user/UserResponseSchemas';
 
 export function UserAuthController(app: HonoApp) {
 	app.post(
@@ -164,7 +155,6 @@ export function UserAuthController(app: HonoApp) {
 	app.post(
 		'/users/@me/recovery-kit',
 		RateLimitMiddleware(RateLimitConfigs.USER_RECOVERY_KIT_CREATE),
-		LocalAuthMiddleware,
 		LoginRequired,
 		DefaultUserOnly,
 		RequireUsernameAccountIdentity,
@@ -182,38 +172,8 @@ export function UserAuthController(app: HonoApp) {
 		}),
 		async (ctx) => {
 			const user = ctx.get('user');
-			if (isSsoUserWithoutPassword(user)) {
-				throw InputValidationError.fromCode('password', ValidationErrorCodes.PASSWORD_NOT_SET);
-			}
 			await requireSudoMode(ctx, user, ctx.req.valid('json'));
 			return ctx.json(await createRecoveryKit(user.id));
-		},
-	);
-	app.post(
-		'/users/@me/sso/link/start',
-		RateLimitMiddleware(RateLimitConfigs.AUTH_SSO_START),
-		LoginRequired,
-		DefaultUserOnly,
-		SudoModeMiddleware,
-		Validator('json', SudoVerificationSchema),
-		OpenAPI({
-			operationId: 'start_sso_link',
-			summary: 'Start connecting SSO',
-			responseSchema: SsoStartResponse,
-			statusCode: 200,
-			security: ['sessionToken'],
-			tags: ['Users'],
-			description:
-				'Start connecting the instance SSO provider to the current account. Send the user to authorization_url, then finish with complete_sso, which returns linked and creates no new session. Works while SSO is required. Requires sudo mode verification.',
-		}),
-		async (ctx) => {
-			const user = ctx.get('user');
-			const authSession = ctx.get('authSession');
-			if (!authSession) {
-				throw new UnauthorizedError();
-			}
-			await requireSudoMode(ctx, user, ctx.req.valid('json'));
-			return ctx.json(await ctx.get('ssoService').startLink(user, authSession.sessionIdHash));
 		},
 	);
 	app.post(

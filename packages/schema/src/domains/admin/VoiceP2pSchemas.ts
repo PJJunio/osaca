@@ -29,7 +29,6 @@ const voiceP2pConfigFields = {
 	rollout_salt: z.string().trim().min(1).max(64).regex(VOICE_P2P_SALT_PATTERN),
 	included_user_ids: VoiceP2pTargetedUserIdsSchema,
 	included_guild_ids: VoiceP2pTargetedUserIdsSchema,
-	include_premium_users: z.boolean(),
 	excluded_user_ids: VoiceP2pTargetedUserIdsSchema,
 	max_participants: z.number().int().min(VOICE_P2P_MIN_PARTICIPANTS).max(VOICE_P2P_MAX_PARTICIPANTS),
 };
@@ -42,7 +41,6 @@ export const VoiceP2pConfigSchema = z.object({
 	rollout_salt: voiceP2pConfigFields.rollout_salt.default(DEFAULT_VOICE_P2P_SALT),
 	included_user_ids: voiceP2pConfigFields.included_user_ids.default([]),
 	included_guild_ids: voiceP2pConfigFields.included_guild_ids.default([]),
-	include_premium_users: voiceP2pConfigFields.include_premium_users.default(false),
 	excluded_user_ids: voiceP2pConfigFields.excluded_user_ids.default([]),
 	max_participants: voiceP2pConfigFields.max_participants.default(VOICE_P2P_MIN_PARTICIPANTS),
 });

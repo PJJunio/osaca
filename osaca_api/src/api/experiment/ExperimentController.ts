@@ -47,7 +47,6 @@ export function ExperimentController(app: HonoApp) {
 				poll_jitter_percent: delivery.poll_jitter_percent,
 				assignments: {
 					domain_migration: resolveDomainMigrationAssignment(domainMigrationConfig, userId, targeting),
-					plutonium_page: {enabled: true},
 					voice_p2p: resolveVoiceP2pAssignment(voiceP2pConfig, userId, targeting),
 					guild_visits: {enabled: guildVisitsUserActive(guildVisitsConfig, userId)},
 				},

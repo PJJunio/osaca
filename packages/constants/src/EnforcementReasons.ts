@@ -13,8 +13,6 @@ export type EnforcementRuleKey =
 	| 'child_safety'
 	| 'privacy'
 	| 'harassment'
-	| 'payments'
-	| 'operator_pass_payments'
 	| 'unwanted_sexual_content'
 	| 'violent_content'
 	| 'ban_evasion'
@@ -42,7 +40,7 @@ export type EnforcementKind =
 	| 'profile_reset'
 	| 'community_removal';
 
-export type EnforcementLimit = 'direct_messages' | 'reports' | 'purchases';
+export type EnforcementLimit = 'direct_messages' | 'reports';
 
 export type EnforcementReasonCode = Exclude<
 	ValueOf<typeof DeletionReasons>,
@@ -53,7 +51,7 @@ export type EnforcementReasonCode = Exclude<
 >;
 
 interface EnforcementRule {
-	policy: 'guidelines' | 'terms' | 'operator_pass_terms';
+	policy: 'guidelines' | 'terms';
 	anchor: string;
 	barsNewAccounts: boolean;
 	showOnNetworkScreen: boolean;
@@ -89,18 +87,6 @@ export const ENFORCEMENT_RULES: Readonly<Record<EnforcementRuleKey, EnforcementR
 	child_safety: guidelinesRule(SEXUAL_CONTENT_ANCHOR, false),
 	privacy: guidelinesRule(HARASSMENT_ANCHOR, false),
 	harassment: guidelinesRule(HARASSMENT_ANCHOR, false),
-	payments: {
-		policy: 'terms',
-		anchor: '4-4-failed-payments-and-disputes',
-		barsNewAccounts: true,
-		showOnNetworkScreen: false,
-	},
-	operator_pass_payments: {
-		policy: 'operator_pass_terms',
-		anchor: '9-payment-disputes',
-		barsNewAccounts: true,
-		showOnNetworkScreen: false,
-	},
 	unwanted_sexual_content: guidelinesRule(HARASSMENT_ANCHOR, false),
 	violent_content: guidelinesRule(VIOLENCE_ANCHOR, true),
 	ban_evasion: guidelinesRule(SERVICE_ABUSE_ANCHOR, false),
@@ -124,7 +110,6 @@ export const ENFORCEMENT_RULES: Readonly<Record<EnforcementRuleKey, EnforcementR
 };
 
 const RESTRICTED_KINDS: ReadonlyArray<EnforcementKind> = ['suspension', 'content_removal'];
-const PAYMENT_KINDS: ReadonlyArray<EnforcementKind> = ['warning', 'suspension', 'closure', 'feature_limit'];
 
 export const ENFORCEMENT_REASONS: Readonly<Record<EnforcementReasonCode, EnforcementReason>> = {
 	[DeletionReasons.SPAM]: {rule: 'spam', handling: 'standard', kinds: 'any'},
@@ -136,9 +121,7 @@ export const ENFORCEMENT_REASONS: Readonly<Record<EnforcementReasonCode, Enforce
 	[DeletionReasons.CHILD_SEXUAL_CONTENT]: {rule: 'child_safety', handling: 'restricted', kinds: RESTRICTED_KINDS},
 	[DeletionReasons.PRIVACY_VIOLATION_OR_DOXXING]: {rule: 'privacy', handling: 'protected', kinds: 'any'},
 	[DeletionReasons.HARASSMENT_OR_BULLYING]: {rule: 'harassment', handling: 'protected', kinds: 'any'},
-	[DeletionReasons.PAYMENT_FRAUD]: {rule: 'payments', handling: 'standard', kinds: PAYMENT_KINDS},
 	[DeletionReasons.CHILD_SAFETY_VIOLATION]: {rule: 'child_safety', handling: 'restricted', kinds: RESTRICTED_KINDS},
-	[DeletionReasons.BILLING_DISPUTE_OR_ABUSE]: {rule: 'payments', handling: 'standard', kinds: PAYMENT_KINDS},
 	[DeletionReasons.UNSOLICITED_EXPLICIT_CONTENT]: {
 		rule: 'unwanted_sexual_content',
 		handling: 'protected',
@@ -175,11 +158,6 @@ export const ENFORCEMENT_REASONS: Readonly<Record<EnforcementReasonCode, Enforce
 		handling: 'standard',
 		kinds: ['warning', 'content_removal', 'profile_reset', 'community_removal'],
 	},
-	[DeletionReasons.OPERATOR_PASS_PAYMENT_DISPUTE]: {
-		rule: 'operator_pass_payments',
-		handling: 'standard',
-		kinds: PAYMENT_KINDS,
-	},
 };
 
 const ENFORCEMENT_SPAMMER_LIMIT_RULES: ReadonlySet<EnforcementRuleKey> = new Set([
@@ -192,7 +170,6 @@ const ENFORCEMENT_SPAMMER_LIMIT_RULES: ReadonlySet<EnforcementRuleKey> = new Set
 const ENFORCEMENT_LIMIT_RULES: Readonly<Record<EnforcementLimit, ReadonlySet<EnforcementRuleKey>>> = {
 	direct_messages: ENFORCEMENT_SPAMMER_LIMIT_RULES,
 	reports: new Set(['report_abuse']),
-	purchases: new Set(['payments', 'operator_pass_payments']),
 };
 
 const ACCOUNT_KINDS: ReadonlySet<EnforcementKind> = new Set(['suspension', 'closure']);

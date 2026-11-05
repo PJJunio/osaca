@@ -111,7 +111,6 @@ export interface GuildMemberRow {
 	mute: boolean;
 	communication_disabled_until: Date | null;
 	role_ids: Set<RoleID> | null;
-	is_premium_sanitized: boolean | null;
 	temporary: boolean | null;
 	profile_flags: number | null;
 	mention_flags?: MentionReplyPreference | null;
@@ -135,7 +134,6 @@ export const GUILD_MEMBER_COLUMNS = [
 	'mute',
 	'communication_disabled_until',
 	'role_ids',
-	'is_premium_sanitized',
 	'temporary',
 	'profile_flags',
 	'mention_flags',

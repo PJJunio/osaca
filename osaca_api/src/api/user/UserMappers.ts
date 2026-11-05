@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {createGuildID, type UserID} from '@app/api/BrandedTypes';
-import {Config} from '@app/api/Config';
 import {stripAvatarForUser, stripBannerForUser} from '@app/api/infrastructure/AssetEntitlementUtils';
 import type {IGatewayService} from '@app/api/infrastructure/IGatewayService';
 import {resolveEffectiveUserTraits} from '@app/api/limits/EffectiveUserTraits';
@@ -21,7 +20,6 @@ import {
 	isInteractionTierEnforced,
 } from '@app/api/user/AccountTier';
 import {hiddenUserPartial, isProfileHidden} from '@app/api/user/ProfileVisibility';
-import {deprecatedBadgeHideFields} from '@app/api/user/profile_badges/HiddenProfileBadges';
 import {AccountTiers} from '@osaca/constants/src/AccountTierConstants';
 import type {ChannelMessageNotifications} from '@osaca/constants/src/NotificationConstants';
 import {
@@ -30,14 +28,12 @@ import {
 	DELETED_USER_GLOBAL_NAME,
 	DELETED_USER_USERNAME,
 	type GuildFolderIcon,
-	PremiumFlags,
 	PUBLIC_USER_FLAGS,
 	stripHiddenProfileBadgeFlags,
 	UNCATEGORIZED_FOLDER_ID,
 	type UserAuthenticatorType,
 	UserAuthenticatorTypes,
 	UserFlags,
-	UserPremiumTypes,
 } from '@osaca/constants/src/UserConstants';
 import type {WebAuthnCredentialResponse} from '@osaca/schema/src/domains/auth/AuthSchemas';
 import type {
@@ -138,11 +134,9 @@ export function hasPartialUserFieldsChanged(oldUser: User, newUser: User): boole
 export function mapUserToPrivateResponse(user: User): UserPrivateResponse {
 	const isStaff = (user.flags & UserFlags.STAFF) !== 0n;
 	const partialResponse = mapUserToOwnPartialResponse(user);
-	const isActuallyPremium = user.isPremium();
-	const traits = Array.from(resolveEffectiveUserTraits(user.traits, isActuallyPremium)).sort();
+	const traits = Array.from(resolveEffectiveUserTraits(user.traits)).sort();
 	const authenticatorTypes = getActiveAuthenticatorTypes(user);
 	const accountTier = getAccountTier(user);
-	const deprecatedHideFields = deprecatedBadgeHideFields(user, Config.instance.selfHosted);
 	return {
 		...partialResponse,
 		flags: mapUserFlagsToPublicBitfield(user),
@@ -162,34 +156,12 @@ export function mapUserToPrivateResponse(user: User): UserPrivateResponse {
 		mfa_enabled: authenticatorTypes.length > 0,
 		authenticator_types: authenticatorTypes,
 		verified: user.emailVerified,
-		premium_type: isActuallyPremium ? (user.premiumType ?? UserPremiumTypes.NONE) : UserPremiumTypes.NONE,
-		premium_since: isActuallyPremium ? (user.premiumSince?.toISOString() ?? null) : null,
-		premium_until: user.effectivePremiumUntil?.toISOString() ?? null,
-		premium_will_cancel: user.premiumWillCancel ?? false,
-		premium_billing_cycle: user.premiumBillingCycle || null,
-		premium_lifetime_sequence: user.premiumLifetimeSequence ?? null,
-		premium_grace_ends_at: user.premiumGraceEndsAt?.toISOString() ?? null,
-		premium_discriminator: !!(user.premiumFlags & PremiumFlags.DISCRIMINATOR),
 		hidden_profile_badges: [...user.hiddenProfileBadges].sort(),
-		premium_badge_hidden: deprecatedHideFields.premium_badge_hidden,
-		premium_badge_masked: !!(user.premiumFlags & PremiumFlags.BADGE_MASKED),
-		premium_badge_timestamp_hidden: !!(user.premiumFlags & PremiumFlags.BADGE_TIMESTAMP_HIDDEN),
-		premium_badge_sequence_hidden: deprecatedHideFields.premium_badge_sequence_hidden,
-		premium_purchase_disabled: !!(user.premiumFlags & PremiumFlags.PURCHASE_DISABLED),
-		premium_enabled_override: !!(user.premiumFlags & PremiumFlags.ENABLED_OVERRIDE),
-		premium_perks_disabled: !!(user.premiumFlags & PremiumFlags.PERKS_DISABLED),
 		password_last_changed_at: user.passwordLastChangedAt?.toISOString() ?? null,
 		last_voice_activity_sharing_change_at: user.lastVoiceActivitySharingChangeAt?.toISOString() ?? null,
 		required_actions: [],
 		account_limited: isAccountLimited(user),
 		nsfw_allowed: true,
-		has_dismissed_premium_onboarding: isActuallyPremium && user.premiumOnboardingDismissedAt != null,
-		has_ever_purchased: user.hasEverPurchased,
-		has_unread_gift_inventory:
-			user.giftInventoryServerSeq != null &&
-			(user.giftInventoryClientSeq == null || user.giftInventoryClientSeq < user.giftInventoryServerSeq),
-		unread_gift_inventory_count:
-			user.giftInventoryServerSeq != null ? user.giftInventoryServerSeq - (user.giftInventoryClientSeq ?? 0) : 0,
 		age_verified_adult: !!(user.flags & UserFlags.AGE_VERIFIED_ADULT) || undefined,
 		terms_agreed_at: user.termsAgreedAt?.toISOString() ?? null,
 		privacy_agreed_at: user.privacyAgreedAt?.toISOString() ?? null,
@@ -269,14 +241,14 @@ export function mapGuildMemberToProfileResponse(
 		return {
 			bio: null,
 			pronouns: null,
-			banner: guildMember.isPremiumSanitized ? null : guildMember.bannerHash,
+			banner: guildMember.bannerHash,
 			accent_color: guildMember.accentColor,
 		};
 	}
 	return {
 		bio: guildMember.bio,
 		pronouns: guildMember.pronouns,
-		banner: guildMember.isPremiumSanitized ? null : guildMember.bannerHash,
+		banner: guildMember.bannerHash,
 		accent_color: guildMember.accentColor,
 	};
 }

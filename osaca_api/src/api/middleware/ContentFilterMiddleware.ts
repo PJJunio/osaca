@@ -75,7 +75,6 @@ const SKIP_CONTENT_FILTER_PATH_PARTS = [
 	'/admin/blocklists/url/',
 	'/auth/',
 	'/oauth2/',
-	'/premium/store/',
 	'/reports/dsa',
 	'/users/@me/authorized-ips',
 	'/users/@me/email-change/',

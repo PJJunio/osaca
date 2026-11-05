@@ -143,7 +143,6 @@ export const ELASTICSEARCH_INDEX_DEFINITIONS: Record<OsacaSearchIndexName, Elast
 				isBot: bool(),
 				isSystem: bool(),
 				flags: keyword(),
-				premiumType: integer(),
 				emailVerified: bool(),
 				emailBounced: bool(),
 				acls: keyword(),

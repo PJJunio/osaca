@@ -100,16 +100,9 @@ pub struct AdminUser {
     #[serde(default, deserialize_with = "deserialize_string_or_u64")]
     pub flags: u64,
     #[serde(default)]
-    pub premium_flags: i32,
-    #[serde(default)]
     pub bot: bool,
     #[serde(default)]
     pub system: bool,
-    pub premium_type: Option<i32>,
-    pub premium_since: Option<String>,
-    pub premium_until: Option<String>,
-    pub premium_grace_ends_at: Option<String>,
-    pub premium_lifetime_sequence: Option<i32>,
     #[serde(default)]
     pub profile_badges: Vec<AdminProfileBadge>,
     #[serde(default)]

@@ -28,7 +28,7 @@ import {createBuilder} from '@app/api/test/TestRequestBuilder';
 import {AccountIdentityModes} from '@osaca/constants/src/AccountIdentityConstants';
 import {AdminACLs} from '@osaca/constants/src/AdminACLs';
 import {DeletionReasons} from '@osaca/constants/src/Core';
-import {PremiumFlags, UserFlags} from '@osaca/constants/src/UserConstants';
+import {UserFlags} from '@osaca/constants/src/UserConstants';
 import {expect, onTestFinished} from 'vitest';
 
 async function loadUser(account: TestAccount): Promise<User> {
@@ -637,30 +637,6 @@ export const UserWriteAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase> = [
 						add_flags: UserFlags.PARTNER.toString(),
 						remove_flags: UserFlags.SPAMMER.toString(),
 						new_flags: ((flags | UserFlags.PARTNER) & ~UserFlags.SPAMMER).toString(),
-					},
-				},
-			};
-		},
-	},
-	{
-		method: 'PATCH',
-		route: '/admin/users/:user_id/premium-flags',
-		async prepare({harness}) {
-			const target = await createTestAccount(harness);
-			const {premiumFlags} = await loadUser(target);
-			return {
-				request: {
-					path: `/admin/users/${target.userId}/premium-flags`,
-					body: {add_flags: [PremiumFlags.BADGE_MASKED], remove_flags: [PremiumFlags.PURCHASE_DISABLED]},
-				},
-				expected: {
-					action: 'update_premium_flags',
-					targetType: 'user',
-					targetId: target.userId,
-					metadata: {
-						add_flags: PremiumFlags.BADGE_MASKED.toString(),
-						remove_flags: PremiumFlags.PURCHASE_DISABLED.toString(),
-						new_flags: ((premiumFlags | PremiumFlags.BADGE_MASKED) & ~PremiumFlags.PURCHASE_DISABLED).toString(),
 					},
 				},
 			};

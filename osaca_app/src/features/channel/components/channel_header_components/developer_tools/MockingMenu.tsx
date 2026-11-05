@@ -8,7 +8,6 @@ import {
 } from '@app/features/channel/components/channel_header_components/developer_tools/DeveloperToolsMenuComponents';
 import {
 	getCountdownTimerOptions,
-	getGiftDurationOptions,
 	getMatureContentChannelGateOptions,
 	getMatureContentMediaGateOptions,
 	getVerificationBarrierOptions,
@@ -65,14 +64,6 @@ const MOCK_MATURE_CHANNEL_GATE_REASON_DESCRIPTOR = msg({
 });
 const MOCK_MATURE_MEDIA_GATE_REASON_DESCRIPTOR = msg({
 	message: 'Mock mature content media gate reason',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const GIFT_INVENTORY_FLOW_DESCRIPTOR = msg({
-	message: 'Gift inventory flow',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const GIFT_DURATION_DESCRIPTOR = msg({
-	message: 'Gift duration',
 	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
 });
 const MOCKED_PRODUCT_FLOWS_DESCRIPTOR = msg({
@@ -201,52 +192,6 @@ const ContentSafetyGatesMenu: React.FC = () => {
 		/>
 	);
 };
-const GiftInventoryFlowMenu: React.FC = observer(() => {
-	const {i18n} = useLingui();
-	return (
-		<MenuItemSubmenu
-			label={i18n._(GIFT_INVENTORY_FLOW_DESCRIPTOR)}
-			render={() => (
-				<>
-					<DeveloperOptionCheckbox
-						optionKey="mockGiftInventory"
-						checked={DeveloperOptions.mockGiftInventory ?? false}
-						uncheckedValue={null}
-						onAfterChange={(checked) => {
-							if (!checked) {
-								updateOption('mockGiftDurationMonths', 12);
-								updateOption('mockGiftRedeemed', null);
-							}
-						}}
-						data-flx="channel.channel-header-components.developer-tools-context-menu.gift-inventory-flow-menu.developer-option-checkbox"
-					>
-						<Trans>Mock gift inventory</Trans>
-					</DeveloperOptionCheckbox>
-					{DeveloperOptions.mockGiftInventory && (
-						<>
-							<DeveloperOptionRadioSubmenu
-								label={i18n._(GIFT_DURATION_DESCRIPTOR)}
-								optionKey="mockGiftDurationMonths"
-								options={getGiftDurationOptions()}
-								selectedValue={DeveloperOptions.mockGiftDurationMonths ?? 12}
-								data-flx="channel.channel-header-components.developer-tools-context-menu.gift-inventory-flow-menu.developer-option-radio-submenu"
-							/>
-							<DeveloperOptionCheckbox
-								optionKey="mockGiftRedeemed"
-								checked={DeveloperOptions.mockGiftRedeemed ?? false}
-								uncheckedValue={null}
-								data-flx="channel.channel-header-components.developer-tools-context-menu.gift-inventory-flow-menu.developer-option-checkbox--2"
-							>
-								<Trans>Mark as redeemed</Trans>
-							</DeveloperOptionCheckbox>
-						</>
-					)}
-				</>
-			)}
-			data-flx="channel.channel-header-components.developer-tools-context-menu.gift-inventory-flow-menu.menu-item-submenu"
-		/>
-	);
-});
 export const MockingMenu: React.FC = observer(() => {
 	const {i18n} = useLingui();
 	return (
@@ -307,7 +252,6 @@ export const MockingMenu: React.FC = observer(() => {
 					/>
 					<SlowmodeSimulationMenu data-flx="channel.channel-header-components.developer-tools-context-menu.mocking-menu.slowmode-simulation-menu" />
 					<ContentSafetyGatesMenu data-flx="channel.channel-header-components.developer-tools-context-menu.mocking-menu.content-safety-gates-menu" />
-					<GiftInventoryFlowMenu data-flx="channel.channel-header-components.developer-tools-context-menu.mocking-menu.gift-inventory-flow-menu" />
 				</>
 			)}
 			data-flx="channel.channel-header-components.developer-tools-context-menu.mocking-menu.menu-item-submenu"

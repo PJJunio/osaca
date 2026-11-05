@@ -445,7 +445,6 @@
 	"premium_and_plans.custom_stickers_in_dms_require_premium": "Nu poți folosi stickere personalizate în DM-uri fără Premium.",
 	"premium_and_plans.custom_stickers_outside_source_require_premium": "Nu poți folosi stickere personalizate din afara comunităților sursă fără Premium.",
 	"premium_and_plans.discriminator_change_requires_premium": "Schimbarea discriminatorului necesită Premium.",
-	"premium_and_plans.visionary_required_for_discriminator": "Trebuie să ai abonamentul Visionary pe viață pentru a folosi acel discriminator.",
 	"rate_limits.accent_color_changed_too_often": "Ți-ai schimbat culoarea de accent prea des recent. Încearcă din nou peste {minutes, plural, one {# minut} few {# minute} other {# de minute}}.",
 	"rate_limits.avatar_changed_too_often": "Ți-ai schimbat avatarul prea des recent. Încearcă din nou peste {minutes, plural, one {# minut} few {# minute} other {# de minute}}.",
 	"rate_limits.banner_changed_too_often": "Ți-ai schimbat bannerul prea des recent. Încearcă din nou peste {minutes, plural, one {# minut} few {# minute} other {# de minute}}.",

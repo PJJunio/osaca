@@ -445,7 +445,6 @@
 	"premium_and_plans.custom_stickers_in_dms_require_premium": "Без Преміум-підписки ти не можеш використовувати користувацькі стікери в особистих повідомленнях.",
 	"premium_and_plans.custom_stickers_outside_source_require_premium": "Без Преміум-підписки ти не можеш використовувати користувацькі стікери поза їхніми спільнотами.",
 	"premium_and_plans.discriminator_change_requires_premium": "Зміна дискримінатора потребує Преміум-підписки.",
-	"premium_and_plans.visionary_required_for_discriminator": "Ти маєш бути на довічному тарифі Visionary, щоб використовувати цей дискримінатор.",
 	"rate_limits.accent_color_changed_too_often": "Останнім часом ти занадто часто змінюєш акцентний колір. Спробуй ще раз за {minutes} {minutes, plural, one {хвилину} few {хвилини} many {хвилин} other {хвилини}}.",
 	"rate_limits.avatar_changed_too_often": "Останнім часом ти занадто часто змінюєш аватар. Спробуй ще раз за {minutes} {minutes, plural, one {хвилину} few {хвилини} many {хвилин} other {хвилини}}.",
 	"rate_limits.banner_changed_too_often": "Останнім часом ти занадто часто змінюєш банер. Спробуй ще раз за {minutes} {minutes, plural, one {хвилину} few {хвилини} many {хвилин} other {хвилини}}.",

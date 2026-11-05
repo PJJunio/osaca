@@ -40,7 +40,7 @@ import {Permissions, TEXT_BASED_CHANNEL_TYPES} from '@osaca/constants/src/Channe
 import {GuildOperations} from '@osaca/constants/src/GuildConstants';
 import {
 	ATTACHMENT_MAX_SIZE_BOT,
-	ATTACHMENT_MAX_SIZE_NON_PREMIUM,
+	ATTACHMENT_MAX_SIZE,
 	ATTACHMENT_UPLOAD_CHUNK_THRESHOLD,
 	ATTACHMENT_UPLOAD_MAX_CHUNKS,
 	resolveAttachmentUploadPartSize,
@@ -485,7 +485,7 @@ export class AttachmentUploadService {
 		if (!user) {
 			throw new UnknownUserError();
 		}
-		const fallbackMaxSize = ATTACHMENT_MAX_SIZE_NON_PREMIUM;
+		const fallbackMaxSize = ATTACHMENT_MAX_SIZE;
 		const ctx = createLimitMatchContext({user, guildFeatures: guild?.features ?? null});
 		const resolvedMaxFileSize = Math.floor(
 			resolveLimitSafe(this.limitConfigService.getConfigSnapshot(), ctx, 'max_attachment_file_size', fallbackMaxSize),

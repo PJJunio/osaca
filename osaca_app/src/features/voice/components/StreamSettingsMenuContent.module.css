@@ -50,14 +50,6 @@
 	text-overflow: ellipsis;
 }
 
-.premiumBadge {
-	display: inline-flex;
-	align-items: center;
-	gap: 0.25rem;
-	color: var(--plutonium-icon);
-	flex-shrink: 0;
-}
-
 .audioDeviceLabel {
 	display: flex;
 	flex-direction: column;

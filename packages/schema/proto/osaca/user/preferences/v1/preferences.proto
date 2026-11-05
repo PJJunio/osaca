@@ -28,7 +28,8 @@ message SyncedPreferences {
   MentionFrecencyState mention_frecency = 45;
 
   NagbarDismissals nagbars = 60;
-  DismissedUpsells dismissed_upsells = 61;
+  reserved 61;
+  reserved "dismissed_upsells";
   GuildNsfwAgreements guild_nsfw_agreements = 62;
   WhatsNewState whats_new = 63;
 
@@ -147,24 +148,13 @@ message NagbarDismissals {
   bool pwa_install = 2;
   bool push_notification = 3;
   bool desktop_notification = 4;
-  bool premium_grace_period = 5;
-  bool premium_expired = 6;
-  bool premium_onboarding = 7;
-  bool premium_trial_expiring = 8;
-  bool gift_inventory = 9;
+  reserved 5 to 9, 12, 14, 18, 19;
+  reserved "premium_grace_period", "premium_expired", "premium_onboarding", "premium_trial_expiring", "gift_inventory", "visionary_mfa", "price_announcement", "legacy_price_opt_in";
   bool desktop_download = 10;
   bool guild_membership_cta = 11;
-  bool visionary_mfa = 12;
-  reserved 14;
   map<string, bool> pending_bulk_deletion = 15;
   map<string, bool> invites_disabled = 16;
   map<string, bool> guild_mfa_requirement = 17;
-  map<string, bool> price_announcement = 18;
-  map<string, bool> legacy_price_opt_in = 19;
-}
-
-message DismissedUpsells {
-  bool picker_premium = 1;
 }
 
 message GuildNsfwAgreements {

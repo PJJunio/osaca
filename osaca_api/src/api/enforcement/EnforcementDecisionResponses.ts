@@ -55,7 +55,6 @@ export function toDecisionSummary(
 		profile_fields: [...(decision.profile_fields ?? [])].sort(),
 		removed_message_count: decision.removed_message_count,
 		removed_all_messages: decision.removed_all_messages ?? false,
-		payment_at: iso(decision.payment_at),
 		report_ids: hasAdminACL(acls, AdminACLs.REPORT_VIEW)
 			? [...(decision.report_ids ?? [])].map((reportId) => reportId.toString())
 			: [],

@@ -445,7 +445,6 @@
 	"premium_and_plans.custom_stickers_in_dms_require_premium": "No puedes usar stickers personalizados en MD sin un plan premium.",
 	"premium_and_plans.custom_stickers_outside_source_require_premium": "No puedes usar stickers personalizados fuera de sus comunidades de origen sin un plan premium.",
 	"premium_and_plans.discriminator_change_requires_premium": "Cambiar tu discriminador requiere un plan premium.",
-	"premium_and_plans.visionary_required_for_discriminator": "Debes tener el plan vitalicio Visionary para usar ese discriminador.",
 	"rate_limits.accent_color_changed_too_often": "Has cambiado el color de énfasis con demasiada frecuencia últimamente. Inténtalo de nuevo en {minutes} {minutes, plural, one {minuto} other {minutos}}.",
 	"rate_limits.avatar_changed_too_often": "Has cambiado tu avatar con demasiada frecuencia últimamente. Inténtalo de nuevo en {minutes} {minutes, plural, one {minuto} other {minutos}}.",
 	"rate_limits.banner_changed_too_often": "Has cambiado tu banner con demasiada frecuencia últimamente. Inténtalo de nuevo en {minutes} {minutes, plural, one {minuto} other {minutos}}.",

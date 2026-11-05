@@ -76,7 +76,6 @@ const ACTIVE_SUGGESTION_POSITION_DESCRIPTOR = msg({
 	comment:
 		'Screen-reader live-region announcement of the currently highlighted message search suggestion position. Preserve {position} and {total}; they are inserted by code.',
 });
-const noopUpgradeClick = () => {};
 
 export const MessageSearchBar = observer(
 	({
@@ -435,9 +434,6 @@ export const MessageSearchBar = observer(
 							<CharacterCounter
 								currentLength={value.length}
 								maxLength={SEARCH_INPUT_MAX_LENGTH}
-								canUpgrade={false}
-								premiumMaxLength={SEARCH_INPUT_MAX_LENGTH}
-								onUpgradeClick={noopUpgradeClick}
 								data-flx="channel.message-search-bar.message-search-bar.character-counter"
 							/>
 						)}

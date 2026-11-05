@@ -143,7 +143,7 @@ export function limitRequest(
 	userId: string,
 	body: Record<string, unknown>,
 ) {
-	return createBuilder<{user: {flags: string; premium_flags: number}}>(harness, staff.token)
+	return createBuilder<{user: {flags: string}}>(harness, staff.token)
 		.put(`/admin/users/${userId}/feature-limits`)
 		.header('X-Audit-Log-Reason', INTERNAL_NOTE)
 		.body(body);

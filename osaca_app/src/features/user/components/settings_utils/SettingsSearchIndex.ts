@@ -2,7 +2,6 @@
 
 import i18n from '@app/app/I18n';
 import {onLocaleChange} from '@app/features/i18n/utils/LocaleChangeListener';
-import {getPremiumProductFullName, getPremiumProductName} from '@app/features/premium/utils/PremiumUtils';
 import type {SettingsTab} from '@app/features/user/components/settings_utils/SettingsConstants';
 import {
 	getSettingsAudience,
@@ -60,10 +59,7 @@ function translateSearchableKeyword(keyword: SearchableSettingKeyword, activeI18
 	if (typeof keyword === 'function') {
 		return keyword();
 	}
-	return activeI18n._(keyword, {
-		premiumProductName: getPremiumProductName(),
-		premiumProductFullName: getPremiumProductFullName(),
-	});
+	return activeI18n._(keyword);
 }
 
 function translateSearchableDescriptor(item: SearchableSettingDescriptor, activeI18n: I18n): SearchableSettingItem {

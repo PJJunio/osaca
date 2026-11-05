@@ -196,29 +196,6 @@ fn render_overview_tab(
                             }).collect::<Vec<_>>().join(", "))
                         }
                     }))
-                    (detail_row("Premium", html! {
-                        @match user.premium_type {
-                            Some(1) => {
-                                "Subscription"
-                                @if let Some(ref value) = user.premium_since {
-                                    span class="ml-1 text-neutral-500" { " since " (value) }
-                                }
-                                @if let Some(ref value) = user.premium_until {
-                                    span class="ml-1 text-neutral-500" { " until " (value) }
-                                }
-                            }
-                            Some(2) => {
-                                "Lifetime"
-                                @if let Some(value) = user.premium_lifetime_sequence {
-                                    span class="ml-1 text-neutral-500" { " #" (value) }
-                                }
-                            }
-                            _ => { span class="text-neutral-400" { "None" } }
-                        }
-                    }))
-                    @if let Some(ref value) = user.premium_grace_ends_at {
-                        (detail_row("Grace Period Ends", html! { (format_admin_timestamp(value)) }))
-                    }
                     (detail_row("Last Active", html! {
                         (user.last_active_at.as_deref().map_or_else(|| "Never".to_string(), format_admin_timestamp))
                     }))
@@ -338,25 +315,6 @@ fn flags_card(
                             }.render())
                             p class="pl-6 text-xs text-neutral-500" { (flag.help) }
                         }
-                    }
-                },
-            ))
-            (flag_form_shell(
-                config,
-                &user.id,
-                "Premium flags",
-                "update_premium_flags",
-                csrf_token,
-                can_update_flags,
-                html! {
-                    @for flag in admin_flags::PREMIUM_FLAGS {
-                        (Checkbox {
-                            name: "flags[]",
-                            value: &flag.value.to_string(),
-                            label: flag.name,
-                            checked: user.premium_flags & flag.value != 0,
-                            enabled: can_update_flags && admin_flags::premium_flag_is_editable(flag.value),
-                        }.render())
                     }
                 },
             ))
@@ -491,8 +449,8 @@ fn traits_card(
     csrf_token: &str,
     limit_config: Option<&LimitConfigResponse>,
 ) -> Markup {
-    let trait_definitions = parse_trait_definitions(limit_config, config.self_hosted);
-    let custom_traits = custom_traits(user, &trait_definitions, config.self_hosted);
+    let trait_definitions = parse_trait_definitions(limit_config);
+    let custom_traits = custom_traits(user, &trait_definitions);
     let can_edit = acl::has_permission(admin_acls, acl::USER_UPDATE_TRAITS);
     card_with_header(
         "Traits",
@@ -509,7 +467,7 @@ fn traits_card(
                     (assigned_traits(&user.traits))
                     p class="text-sm text-red-700" { "Failed to load limit configuration." }
                 }
-                @if trait_definitions.iter().all(|definition| *definition == PREMIUM_TRAIT) {
+                @if trait_definitions.is_empty() {
                     p class="text-neutral-500 text-xs" {
                         "No trait definitions declared. "
                         a href={(config.base_path) "/instance-config"} class="text-blue-600 underline" {
@@ -569,15 +527,6 @@ fn traits_form(
                         class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20" {
                         (custom_traits.join("\n"))
                     }
-                    p class="text-neutral-500 text-xs" {
-                        @if config.self_hosted {
-                            "The premium trait gives this account premium limits. Accounts with a \
-                             subscription or gift get them without it."
-                        } @else {
-                            "The premium trait follows each member's subscription or gift and cannot be \
-                             assigned here."
-                        }
-                    }
                 }
                 (form_actions(html! {
                     (submit_button("Save Traits"))
@@ -587,48 +536,23 @@ fn traits_form(
     }
 }
 
-const PREMIUM_TRAIT: &str = "premium";
-
-fn parse_trait_definitions(
-    limit_config: Option<&LimitConfigResponse>,
-    self_hosted: bool,
-) -> Vec<&str> {
+fn parse_trait_definitions(limit_config: Option<&LimitConfigResponse>) -> Vec<&str> {
     let Some(response) = limit_config else {
         return Vec::new();
     };
-    assignable_trait_definitions(
-        response
-            .limit_config
-            .trait_definitions
-            .iter()
-            .map(|value| value.trim())
-            .filter(|value| !value.is_empty()),
-        self_hosted,
-    )
+    response
+        .limit_config
+        .trait_definitions
+        .iter()
+        .map(|value| value.trim())
+        .filter(|value| !value.is_empty())
+        .collect()
 }
 
-fn assignable_trait_definitions<'a>(
-    definitions: impl Iterator<Item = &'a str>,
-    self_hosted: bool,
-) -> Vec<&'a str> {
-    let mut assignable: Vec<&str> = definitions
-        .filter(|value| self_hosted || *value != PREMIUM_TRAIT)
-        .collect();
-    if self_hosted && !assignable.contains(&PREMIUM_TRAIT) {
-        assignable.insert(0, PREMIUM_TRAIT);
-    }
-    assignable
-}
-
-fn custom_traits<'a>(
-    user: &'a AdminUser,
-    trait_definitions: &[&str],
-    self_hosted: bool,
-) -> Vec<&'a str> {
+fn custom_traits<'a>(user: &'a AdminUser, trait_definitions: &[&str]) -> Vec<&'a str> {
     user.traits
         .iter()
         .map(String::as_str)
         .filter(|trait_name| !trait_definitions.contains(trait_name))
-        .filter(|trait_name| self_hosted || *trait_name != PREMIUM_TRAIT)
         .collect()
 }

@@ -86,14 +86,6 @@
 	text-decoration: none;
 }
 
-.linkButton {
-	padding: 0;
-	border: 0;
-	background: none;
-	font: inherit;
-	color: inherit;
-}
-
 .details {
 	display: flex;
 	flex-direction: column;

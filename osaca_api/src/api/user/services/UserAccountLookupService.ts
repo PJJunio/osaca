@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type {GuildID, UserID} from '@app/api/BrandedTypes';
-import {Config} from '@app/api/Config';
 import type {ConnectionRepository} from '@app/api/connection/ConnectionRepository';
 import type {UserConnectionRow} from '@app/api/database/types/ConnectionTypes';
 import type {GuildRepository} from '@app/api/guild/repositories/GuildRepository';
@@ -10,7 +9,6 @@ import type {DiscriminatorService} from '@app/api/infrastructure/DiscriminatorSe
 import type {RequestCache} from '@app/api/middleware/RequestCacheMiddleware';
 import type {GuildMember} from '@app/api/models/GuildMember';
 import type {User} from '@app/api/models/User';
-import {applyPremiumBadgeMasking} from '@app/api/user/profile_badges/PremiumBadgeMasking';
 import type {UserRepository} from '@app/api/user/repositories/UserRepository';
 import {isUsernameTaken} from '@app/api/user/UniqueUsernames';
 import {hasFixedDiscriminator} from '@app/api/user/UserTag';
@@ -20,7 +18,6 @@ import {
 	ProfilePrivacyLevels,
 	RelationshipTypes,
 	SMALL_GUILD_MEMBER_THRESHOLD,
-	type UserPremiumType,
 } from '@osaca/constants/src/UserConstants';
 import {MissingAccessError} from '@osaca/errors/src/domains/core/MissingAccessError';
 import type {GuildMemberResponse} from '@osaca/schema/src/domains/guild/GuildMemberSchemas';
@@ -58,9 +55,6 @@ export class UserAccountLookupService {
 		user: User;
 		guildMember?: GuildMemberResponse | null;
 		guildMemberDomain?: GuildMember | null;
-		premiumType?: UserPremiumType;
-		premiumSince?: Date;
-		premiumLifetimeSequence?: number;
 		mutualFriends?: Array<User>;
 		mutualGuilds?: Array<{
 			id: string;
@@ -92,12 +86,6 @@ export class UserAccountLookupService {
 				}
 			}
 		}
-		const {premiumType, premiumSince, premiumLifetimeSequence} = applyPremiumBadgeMasking(user, {
-			premiumFlags: user.premiumFlags,
-			hidden: user.hiddenProfileBadges,
-			selfHosted: Config.instance.selfHosted,
-			restricted: restrictProfile,
-		});
 		const profileFieldPrivacyContext = restrictProfile
 			? null
 			: await this.getProfileFieldPrivacyContext(userId, targetId);
@@ -117,9 +105,6 @@ export class UserAccountLookupService {
 			user,
 			guildMember,
 			guildMemberDomain,
-			premiumType,
-			premiumSince,
-			premiumLifetimeSequence,
 			mutualFriends,
 			mutualGuilds,
 			connections,

@@ -445,7 +445,6 @@
 	"premium_and_plans.custom_stickers_in_dms_require_premium": "Kamu tidak bisa pakai stiker kustom di DM tanpa paket Premium.",
 	"premium_and_plans.custom_stickers_outside_source_require_premium": "Kamu tidak bisa pakai stiker kustom di luar komunitas asalnya tanpa paket Premium.",
 	"premium_and_plans.discriminator_change_requires_premium": "Mengganti diskriminator butuh paket Premium.",
-	"premium_and_plans.visionary_required_for_discriminator": "Kamu harus berlangganan paket seumur hidup Visionary untuk memakai diskriminator itu.",
 	"rate_limits.accent_color_changed_too_often": "Kamu terlalu sering mengubah warna aksen belakangan ini. Coba lagi dalam {minutes} {minutes, plural, other {menit}}.",
 	"rate_limits.avatar_changed_too_often": "Kamu terlalu sering mengubah avatar belakangan ini. Coba lagi dalam {minutes} {minutes, plural, other {menit}}.",
 	"rate_limits.banner_changed_too_often": "Kamu terlalu sering mengubah banner belakangan ini. Coba lagi dalam {minutes} {minutes, plural, other {menit}}.",

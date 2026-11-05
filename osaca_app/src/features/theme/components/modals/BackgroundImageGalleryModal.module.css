@@ -328,33 +328,3 @@
 	font-size: 0.75rem;
 	color: var(--text-primary-muted);
 }
-
-.premiumUpsell {
-	border-radius: 0.5rem;
-	border: 0.0625rem solid var(--background-modifier-accent);
-	background: var(--background-secondary);
-	padding: 1rem;
-}
-
-.premiumHeader {
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-	margin-bottom: 0.5rem;
-}
-
-.premiumIcon {
-	flex-shrink: 0;
-}
-
-.premiumTitle {
-	font-weight: 500;
-	font-size: 0.875rem;
-	color: var(--text-primary);
-}
-
-.premiumDesc {
-	margin-bottom: 0.75rem;
-	font-size: 0.875rem;
-	color: var(--text-primary-muted);
-}

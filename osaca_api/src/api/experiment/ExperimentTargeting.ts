@@ -20,5 +20,5 @@ export async function resolveExperimentTargeting(
 	const memberGuildIds = needsGuilds
 		? new Set((await getUserRepository().getUserGuildIds(user.id)).map((guildId) => guildId.toString()))
 		: NO_GUILDS;
-	return {memberGuildIds, premium: !user.isBot && user.isPremium(), countryCode};
+	return {memberGuildIds, countryCode};
 }

@@ -707,7 +707,6 @@ class RequestServices implements RequestScopedServices {
 			getReadStateService(),
 			this.context,
 			this.gatewayService,
-			getDiscriminatorService(),
 			getFavoriteMemeRepository(),
 			getBotAuthService(),
 			getInviteRepository(),
@@ -762,7 +761,6 @@ class RequestServices implements RequestScopedServices {
 				this.emailChangeService,
 				this.userService.accountService,
 				this.userService.channelService,
-				getUserRepository(),
 				getUserCacheService(),
 			);
 		}

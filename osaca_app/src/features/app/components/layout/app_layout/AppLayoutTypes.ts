@@ -14,7 +14,6 @@ export const NagbarType = {
 	DESKTOP_NOTIFICATION: 'desktop-notification',
 	DESKTOP_DOWNLOAD: 'desktop-download',
 	GUILD_MEMBERSHIP_CTA: 'guild-membership-cta',
-	VISIONARY_MFA: 'visionary-mfa',
 	VOICE_SESSION_RESTORE: 'voice-session-restore',
 	TERMS_ACCEPTANCE: 'terms-acceptance',
 	SOFTWARE_ENCODER: 'software-encoder',
@@ -49,7 +48,6 @@ export interface NagbarConditions {
 	canShowDesktopNotification: boolean;
 	canShowDesktopDownload: boolean;
 	canShowGuildMembershipCta: boolean;
-	canShowVisionaryMfa: boolean;
 	canShowVoiceSessionRestore: boolean;
 	needsTermsAcceptance: boolean;
 	canShowSoftwareEncoder: boolean;

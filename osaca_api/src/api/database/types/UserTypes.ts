@@ -46,16 +46,6 @@ export interface UserRow {
 	timezone_privacy_flags: number | null;
 	locale: string | null;
 	flags: bigint | null;
-	premium_flags?: number | null;
-	premium_type: number | null;
-	premium_since: Date | null;
-	premium_until: Date | null;
-	premium_gift_extension_ends_at: Date | null;
-	premium_will_cancel: boolean | null;
-	premium_billing_cycle: string | null;
-	premium_lifetime_sequence: number | null;
-	premium_grace_ends_at: Date | null;
-	has_ever_purchased: boolean | null;
 	terms_agreed_at: Date | null;
 	privacy_agreed_at: Date | null;
 	last_active_at: Date | null;
@@ -77,10 +67,6 @@ export interface UserRow {
 	traits: Set<string> | null;
 	badge_ids?: Set<bigint> | null;
 	hidden_profile_badges?: Set<string> | null;
-	first_refund_at: Date | null;
-	gift_inventory_server_seq: number | null;
-	gift_inventory_client_seq: number | null;
-	premium_onboarding_dismissed_at: Date | null;
 	mention_flags?: MentionReplyPreference | null;
 	last_voice_activity_sharing_change_at: Date | null;
 	version: number;
@@ -111,16 +97,6 @@ export const USER_COLUMNS = [
 	'timezone_privacy_flags',
 	'locale',
 	'flags',
-	'premium_flags',
-	'premium_type',
-	'premium_since',
-	'premium_until',
-	'premium_gift_extension_ends_at',
-	'premium_will_cancel',
-	'premium_billing_cycle',
-	'premium_lifetime_sequence',
-	'premium_grace_ends_at',
-	'has_ever_purchased',
 	'terms_agreed_at',
 	'privacy_agreed_at',
 	'last_active_at',
@@ -142,10 +118,6 @@ export const USER_COLUMNS = [
 	'traits',
 	'badge_ids',
 	'hidden_profile_badges',
-	'first_refund_at',
-	'gift_inventory_server_seq',
-	'gift_inventory_client_seq',
-	'premium_onboarding_dismissed_at',
 	'mention_flags',
 	'last_voice_activity_sharing_change_at',
 	'version',
@@ -175,16 +147,6 @@ export const EMPTY_USER_ROW: UserRow = {
 	timezone_privacy_flags: null,
 	locale: null,
 	flags: null,
-	premium_flags: null,
-	premium_type: null,
-	premium_since: null,
-	premium_until: null,
-	premium_gift_extension_ends_at: null,
-	premium_will_cancel: null,
-	premium_billing_cycle: null,
-	premium_lifetime_sequence: null,
-	premium_grace_ends_at: null,
-	has_ever_purchased: null,
 	terms_agreed_at: null,
 	privacy_agreed_at: null,
 	last_active_at: null,
@@ -206,10 +168,6 @@ export const EMPTY_USER_ROW: UserRow = {
 	traits: null,
 	badge_ids: null,
 	hidden_profile_badges: null,
-	first_refund_at: null,
-	gift_inventory_server_seq: null,
-	gift_inventory_client_seq: null,
-	premium_onboarding_dismissed_at: null,
 	mention_flags: null,
 	last_voice_activity_sharing_change_at: null,
 	version: 1,

@@ -30,7 +30,6 @@ export interface EnforcementDecisionRow {
 	profile_fields: Set<string> | null;
 	removed_message_count: number | null;
 	removed_all_messages: boolean | null;
-	payment_at: Date | null;
 	report_ids: Set<bigint> | null;
 	decided_by: bigint;
 	created_at: Date;
@@ -64,7 +63,6 @@ export const ENFORCEMENT_DECISION_COLUMNS = [
 	'profile_fields',
 	'removed_message_count',
 	'removed_all_messages',
-	'payment_at',
 	'report_ids',
 	'decided_by',
 	'created_at',

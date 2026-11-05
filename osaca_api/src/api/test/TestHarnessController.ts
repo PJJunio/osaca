@@ -49,7 +49,7 @@ import {processInactivityDeletionsCore} from '@app/api/worker/tasks/ProcessInact
 import {setWorkerDependencies} from '@app/api/worker/WorkerContext';
 import {initializeWorkerDependencies} from '@app/api/worker/WorkerDependencies';
 import {MAX_GUILD_MEMBERS_VERY_LARGE_GUILD} from '@osaca/constants/src/LimitConstants';
-import {PremiumFlags, UserFlags} from '@osaca/constants/src/UserConstants';
+import {UserFlags} from '@osaca/constants/src/UserConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {EmailServiceNotTestableError} from '@osaca/errors/src/domains/auth/EmailServiceNotTestableError';
 import {AclsMustBeNonEmptyError} from '@osaca/errors/src/domains/core/AclsMustBeNonEmptyError';
@@ -146,7 +146,6 @@ async function initializeWorkerDepsWithHarnessEmail(ctx: Context<HonoEnv>, snowf
 }
 
 const userFlagEntries = Object.entries(UserFlags);
-const premiumFlagEntries = Object.entries(PremiumFlags);
 
 function parseUserFlagNames(names: Array<string>): bigint | null {
 	let mask = 0n;
@@ -156,16 +155,6 @@ function parseUserFlagNames(names: Array<string>): bigint | null {
 			return null;
 		}
 		mask |= entry[1];
-	}
-	return mask;
-}
-
-function parsePremiumFlagNames(names: Array<string>): number | null {
-	let mask = 0;
-	for (const name of names) {
-		const entry = premiumFlagEntries.find(([flagName]) => flagName === name);
-		if (!entry) return null;
-		mask |= entry[1] as number;
 	}
 	return mask;
 }
@@ -217,27 +206,6 @@ export function TestHarnessController(app: HonoApp) {
 			throw new UnknownUserError();
 		}
 		await userRepository.patchUpsert(userId, {flags: BigInt(flags)}, user.toRow());
-		return ctx.json({success: true});
-	});
-	app.patch('/test/users/:userId/premium-flags', async (ctx) => {
-		ensureHarnessAccess(ctx);
-		const params = ctx.req.param() as {userId?: string};
-		const userIdParam = typeof params === 'object' && params !== null ? params.userId : undefined;
-		if (!userIdParam || userIdParam === 'undefined') {
-			throw new Error('Missing userId parameter');
-		}
-		const userId = createUserID(BigInt(userIdParam));
-		const body = await ctx.req.json();
-		const {premium_flags: premiumFlags} = body;
-		if (typeof premiumFlags !== 'string' && typeof premiumFlags !== 'number') {
-			throw new InvalidFlagsFormatError();
-		}
-		const userRepository = ctx.get('userRepository');
-		const user = await userRepository.findUnique(userId);
-		if (!user) {
-			throw new UnknownUserError();
-		}
-		await userRepository.patchUpsert(userId, {premium_flags: Number(premiumFlags)}, user.toRow());
 		return ctx.json({success: true});
 	});
 	app.patch('/test/users/:userId/discriminator', async (ctx) => {
@@ -332,15 +300,11 @@ export function TestHarnessController(app: HonoApp) {
 		const {
 			set_flags: setFlags,
 			clear_flags: clearFlags,
-			set_premium_flags: setPremiumFlags,
-			clear_premium_flags: clearPremiumFlags,
 			email_bounced: emailBounced,
 			email_verified: emailVerified,
 		} = body as {
 			set_flags?: Array<string>;
 			clear_flags?: Array<string>;
-			set_premium_flags?: Array<string>;
-			clear_premium_flags?: Array<string>;
 			email_bounced?: boolean;
 			email_verified?: boolean;
 		};
@@ -365,20 +329,6 @@ export function TestHarnessController(app: HonoApp) {
 		}
 		if (setFlags || clearFlags) {
 			pendingUpdates['flags'] = nextFlags;
-		}
-		let nextPremiumFlags = user.premiumFlags ?? 0;
-		const applyPremiumFlagList = (names: Array<string> | undefined, op: 'set' | 'clear') => {
-			if (!names) return true;
-			const mask = parsePremiumFlagNames(names);
-			if (mask === null) return false;
-			nextPremiumFlags = op === 'set' ? nextPremiumFlags | mask : nextPremiumFlags & ~mask;
-			return true;
-		};
-		if (!applyPremiumFlagList(setPremiumFlags, 'set') || !applyPremiumFlagList(clearPremiumFlags, 'clear')) {
-			throw new UnknownUserFlagError();
-		}
-		if (setPremiumFlags || clearPremiumFlags) {
-			pendingUpdates['premium_flags'] = nextPremiumFlags;
 		}
 		if (emailBounced !== undefined) {
 			if (typeof emailBounced !== 'boolean') {
@@ -623,92 +573,6 @@ export function TestHarnessController(app: HonoApp) {
 			},
 			200,
 		);
-	});
-	app.post('/test/users/:userId/premium', async (ctx) => {
-		ensureHarnessAccess(ctx);
-		const params = ctx.req.param() as {
-			userId?: string;
-		};
-		const userIdParam = params.userId;
-		if (!userIdParam) {
-			throw new Error('Missing userId parameter');
-		}
-		const userId = createUserID(BigInt(userIdParam));
-		const body = await ctx.req.json();
-		const {
-			premium_type: premiumType,
-			premium_until: premiumUntil,
-			premium_gift_extension_ends_at: premiumGiftExtensionEndsAt,
-			premium_since: premiumSince,
-			premium_will_cancel: premiumWillCancel,
-			premium_billing_cycle: premiumBillingCycle,
-			premium_lifetime_sequence: premiumLifetimeSequence,
-			first_refund_at: firstRefundAt,
-			has_ever_purchased: hasEverPurchased,
-		} = body as {
-			premium_type?: number | null;
-			premium_until?: string | null;
-			premium_gift_extension_ends_at?: string | null;
-			premium_since?: string | null;
-			premium_will_cancel?: boolean | null;
-			premium_billing_cycle?: string | null;
-			premium_lifetime_sequence?: number | null;
-			first_refund_at?: string | null;
-			has_ever_purchased?: boolean | null;
-		};
-		const userRepository = ctx.get('userRepository');
-		const user = await userRepository.findUnique(userId);
-		if (!user) {
-			throw new UnknownUserError();
-		}
-		const updates: Record<string, unknown> = {};
-		if (premiumType !== undefined) {
-			updates['premium_type'] = premiumType;
-		}
-		if (premiumUntil !== undefined) {
-			updates['premium_until'] = premiumUntil ? new Date(premiumUntil) : null;
-		}
-		if (premiumGiftExtensionEndsAt !== undefined) {
-			updates['premium_gift_extension_ends_at'] = premiumGiftExtensionEndsAt
-				? new Date(premiumGiftExtensionEndsAt)
-				: null;
-		}
-		if (premiumSince !== undefined) {
-			updates['premium_since'] = premiumSince ? new Date(premiumSince) : null;
-		}
-		if (premiumWillCancel !== undefined) {
-			updates['premium_will_cancel'] = premiumWillCancel;
-		}
-		if (premiumBillingCycle !== undefined) {
-			updates['premium_billing_cycle'] = premiumBillingCycle;
-		}
-		if (premiumLifetimeSequence !== undefined) {
-			updates['premium_lifetime_sequence'] = premiumLifetimeSequence;
-		}
-		if (firstRefundAt !== undefined) {
-			updates['first_refund_at'] = firstRefundAt ? new Date(firstRefundAt) : null;
-		}
-		if (hasEverPurchased !== undefined) {
-			updates['has_ever_purchased'] = hasEverPurchased;
-		}
-		if (premiumType !== null && premiumType !== undefined && premiumType > 0) {
-			if (!user.premiumSince && updates['premium_since'] === undefined) {
-				updates['premium_since'] = new Date();
-			}
-		}
-		if (Object.keys(updates).length === 0) {
-			return ctx.json({success: true, updated: false});
-		}
-		await userRepository.patchUpsert(userId, updates, user.toRow());
-		return ctx.json({
-			success: true,
-			updated: true,
-			premium_type: updates['premium_type'] ?? user.premiumType,
-			premium_until: updates['premium_until']
-				? (updates['premium_until'] as Date).toISOString()
-				: (user.premiumUntil?.toISOString() ?? null),
-			has_ever_purchased: updates['has_ever_purchased'] ?? user.hasEverPurchased,
-		});
 	});
 	app.post('/test/guilds/:guildId/features', async (ctx) => {
 		ensureHarnessAccess(ctx);

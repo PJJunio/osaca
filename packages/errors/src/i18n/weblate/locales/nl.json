@@ -445,7 +445,6 @@
 	"premium_and_plans.custom_stickers_in_dms_require_premium": "Je kunt geen aangepaste stickers gebruiken in DM’s zonder Premium.",
 	"premium_and_plans.custom_stickers_outside_source_require_premium": "Je kunt aangepaste stickers niet buiten hun oorspronkelijke communities gebruiken zonder Premium.",
 	"premium_and_plans.discriminator_change_requires_premium": "Je hebt Premium nodig om je discriminator te wijzigen.",
-	"premium_and_plans.visionary_required_for_discriminator": "Je hebt het levenslange Visionary-abonnement nodig om die discriminator te gebruiken.",
 	"rate_limits.accent_color_changed_too_often": "Je hebt je accentkleur de laatste tijd te vaak gewijzigd. Probeer het over {minutes, plural, one {# minuut} other {# minuten}} opnieuw.",
 	"rate_limits.avatar_changed_too_often": "Je hebt je avatar de laatste tijd te vaak gewijzigd. Probeer het over {minutes, plural, one {# minuut} other {# minuten}} opnieuw.",
 	"rate_limits.banner_changed_too_often": "Je hebt je banner de laatste tijd te vaak gewijzigd. Probeer het over {minutes, plural, one {# minuut} other {# minuten}} opnieuw.",

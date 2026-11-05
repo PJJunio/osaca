@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {getActiveDeveloperOptionEntries} from '@app/features/channel/components/channel_header_components/developer_tools/DeveloperOptionLabels';
-import {
-	ActiveOverrideMenuGroup,
-	BackendPremiumOverrideMenuGroup,
-} from '@app/features/channel/components/channel_header_components/developer_tools/DeveloperToolsMenuComponents';
+import {ActiveOverrideMenuGroup} from '@app/features/channel/components/channel_header_components/developer_tools/DeveloperToolsMenuComponents';
 import {
 	ACTIVE_DESCRIPTOR,
 	humanizeDeveloperStateKey,
@@ -18,8 +15,6 @@ import {SubMenu as MenuItemSubmenu} from '@app/features/ui/action_menu/ContextMe
 import {MenuItem} from '@app/features/ui/action_menu/MenuItem';
 import * as NagbarCommands from '@app/features/ui/commands/NagbarCommands';
 import Nagbar from '@app/features/ui/state/Nagbar';
-import * as UserCommands from '@app/features/user/commands/UserCommands';
-import Users from '@app/features/user/state/Users';
 import {msg, plural} from '@lingui/core/macro';
 import {Trans, useLingui} from '@lingui/react/macro';
 import {BellRingingIcon, TrashIcon, WarningCircleIcon} from '@phosphor-icons/react';
@@ -34,17 +29,8 @@ const REVIEW_ACTIVE_OVERRIDES_DESCRIPTOR = msg({
 	message: 'Review active overrides',
 	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
 });
-const BACKEND_PREMIUM_OVERRIDE_DESCRIPTOR = msg({
-	message: 'Backend premium override',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const BACKEND_PREMIUM_OVERRIDE_ENABLED_DESCRIPTOR = msg({
-	message: 'Backend premium override enabled',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
 export const DeveloperStateSummaryMenu: React.FC = observer(() => {
 	const {i18n} = useLingui();
-	const user = Users.currentUser;
 	const developerEntries = getActiveDeveloperOptionEntries(i18n);
 	const nagbarEntries = getNagbarControls()
 		.filter((control) => !(control.useActualDisabled?.(Nagbar) ?? false))
@@ -54,8 +40,7 @@ export const DeveloperStateSummaryMenu: React.FC = observer(() => {
 			value: nonEmptyText(i18n._(control.status(Nagbar)), i18n._(ACTIVE_DESCRIPTOR)),
 			reset: () => setNagbarUseActual(control),
 		}));
-	const backendPremiumOverrideActive = user?.premiumEnabledOverride === true;
-	const activeCount = developerEntries.length + nagbarEntries.length + (backendPremiumOverrideActive ? 1 : 0);
+	const activeCount = developerEntries.length + nagbarEntries.length;
 	const activeHint =
 		activeCount === 0
 			? i18n._(NO_ACTIVE_OVERRIDES_DESCRIPTOR)
@@ -63,9 +48,6 @@ export const DeveloperStateSummaryMenu: React.FC = observer(() => {
 	const handleClearAll = () => {
 		resetAllDeveloperOptions();
 		NagbarCommands.resetAllNagbars();
-		if (backendPremiumOverrideActive) {
-			void UserCommands.update({premium_enabled_override: false});
-		}
 	};
 	return (
 		<>
@@ -111,13 +93,6 @@ export const DeveloperStateSummaryMenu: React.FC = observer(() => {
 							)}
 							data-flx="channel.channel-header-components.developer-tools-context-menu.developer-state-summary-menu.active-override-menu-group--2"
 						/>
-						{backendPremiumOverrideActive && (
-							<BackendPremiumOverrideMenuGroup
-								label={i18n._(BACKEND_PREMIUM_OVERRIDE_DESCRIPTOR)}
-								hint={i18n._(BACKEND_PREMIUM_OVERRIDE_ENABLED_DESCRIPTOR)}
-								data-flx="channel.channel-header-components.developer-tools-context-menu.developer-state-summary-menu.backend-premium-override-menu-group"
-							/>
-						)}
 					</>
 				)}
 				data-flx="channel.channel-header-components.developer-tools-context-menu.developer-state-summary-menu.menu-item-submenu"

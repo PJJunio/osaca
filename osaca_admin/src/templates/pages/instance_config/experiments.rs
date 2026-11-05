@@ -135,19 +135,6 @@ pub(super) fn domain_migration_section(
                              digits. Invalid entries prevent the save. Blank entries and duplicate \
                              IDs are ignored.",
                     ))
-                    div class="flex flex-col gap-2" {
-                        (Checkbox {
-                            name: "domain_migration_include_premium_users",
-                            value: "true",
-                            label: "Include premium users",
-                            checked: domain_migration.include_premium_users,
-                            enabled: true,
-                        }.render())
-                        p class="text-xs text-neutral-500" {
-                            "Includes every account with active premium perks, regardless of the \
-                             percentage above. The never-on list still wins."
-                        }
-                    }
                     (targeted_ids_field(
                         textarea_input(
                             "domain_migration_included_guild_ids",
@@ -285,19 +272,6 @@ pub(super) fn voice_p2p_section(
                              digits. Invalid entries prevent the save. Blank entries and duplicate \
                              IDs are ignored.",
                     ))
-                    div class="flex flex-col gap-2" {
-                        (Checkbox {
-                            name: "voice_p2p_include_premium_users",
-                            value: "true",
-                            label: "Include premium users",
-                            checked: voice_p2p.include_premium_users,
-                            enabled: true,
-                        }.render())
-                        p class="text-xs text-neutral-500" {
-                            "Includes every account with active premium perks, regardless of the \
-                             percentage above. The never-on list still wins."
-                        }
-                    }
                     (targeted_ids_field(
                         textarea_input(
                             "voice_p2p_included_guild_ids",

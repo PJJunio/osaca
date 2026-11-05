@@ -269,9 +269,6 @@ export const BioEditor = observer(
 										<CharacterCounter
 											currentLength={actualLength}
 											maxLength={actualMaxLength}
-											canUpgrade={false}
-											premiumMaxLength={actualMaxLength}
-											onUpgradeClick={() => undefined}
 											data-flx="user.my-profile-tab.bio-editor.character-counter"
 										/>
 									</div>

@@ -41,7 +41,7 @@ import {RateLimitError} from '@osaca/errors/src/domains/core/RateLimitError';
 import {BannedFromGuildError} from '@osaca/errors/src/domains/guild/BannedFromGuildError';
 import {IpBannedFromGuildError} from '@osaca/errors/src/domains/guild/IpBannedFromGuildError';
 import {getSameIpDecisionKey} from '@osaca/ip_utils/src/IpAddress';
-import {DEFAULT_STOCK_LIMITS} from '@osaca/limits/src/LimitDefaults';
+import {DEFAULT_LIMITS} from '@osaca/limits/src/LimitDefaults';
 import type {IRateLimitService} from '@pkgs/rate_limit/src/IRateLimitService';
 import type {Context} from 'hono';
 import {createMiddleware} from 'hono/factory';
@@ -166,7 +166,7 @@ function guildVisitHistoryDays(user: User): number {
 		getLimitConfigService().getConfigSnapshot(),
 		createLimitMatchContext({user}),
 		'guild_visit_history_days_unverified',
-		DEFAULT_STOCK_LIMITS.guild_visit_history_days_unverified,
+		DEFAULT_LIMITS.guild_visit_history_days_unverified,
 	);
 }
 

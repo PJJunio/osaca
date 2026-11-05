@@ -78,7 +78,7 @@ function mapCustomBadgeToAdminResponse(badge: CustomBadge): AdminCustomBadgeResp
 }
 
 function builtInBadgeAsset(kind: BuiltInBadgeKind): string | null {
-	return kind === 'staff' || kind === 'premium' ? PROFILE_BADGE_ASSETS[kind] : null;
+	return kind === 'staff' ? PROFILE_BADGE_ASSETS[kind] : null;
 }
 
 function mapBuiltInBadgeImages(

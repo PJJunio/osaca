@@ -4,7 +4,6 @@ use super::parse_tristate;
 use crate::{
     api::types::{
         InstanceConfigUpdateRequest, InstancePolicyUpdateRequest, InstanceServicesUpdateRequest,
-        PremiumMode,
     },
     utils::forms::MultiValueForm,
 };
@@ -31,11 +30,6 @@ pub(super) fn build_policy_update(form: &MultiValueForm) -> InstanceConfigUpdate
     let guild_create_access = form
         .first("policy_guild_create_access")
         .map(|value| value == "true");
-    let premium_mode = match form.first("policy_premium_mode") {
-        Some("mirror") => Some(PremiumMode::Mirror),
-        Some("everyone") => Some(PremiumMode::Everyone),
-        _ => None,
-    };
     let services = {
         let youtube_enabled = parse_tristate(form, "policy_service_youtube");
         let bluesky_enabled = parse_tristate(form, "policy_service_bluesky");
@@ -55,7 +49,6 @@ pub(super) fn build_policy_update(form: &MultiValueForm) -> InstanceConfigUpdate
             friends_disabled,
             personal_notes_enabled,
             guild_create_access,
-            premium_mode,
             services,
             ..Default::default()
         }),

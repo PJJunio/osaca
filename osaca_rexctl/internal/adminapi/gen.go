@@ -523,7 +523,6 @@ func (e DeleteAllUserMessagesResponseSuccess) Valid() bool {
 const (
 	DeletionReasonCodeAUTOMATIONORSELFBOT          DeletionReasonCode = 6
 	DeletionReasonCodeBANEVASION                   DeletionReasonCode = 17
-	DeletionReasonCodeBILLINGDISPUTEORABUSE        DeletionReasonCode = 14
 	DeletionReasonCodeCHEATINGOREXPLOITATION       DeletionReasonCode = 4
 	DeletionReasonCodeCHILDSAFETYVIOLATION         DeletionReasonCode = 13
 	DeletionReasonCodeCHILDSEXUALCONTENT           DeletionReasonCode = 9
@@ -538,9 +537,7 @@ const (
 	DeletionReasonCodeINACTIVITY                   DeletionReasonCode = 19
 	DeletionReasonCodeMALICIOUSLINKSORMALWARE      DeletionReasonCode = 21
 	DeletionReasonCodeNONCONSENSUALSEXUALCONTENT   DeletionReasonCode = 7
-	DeletionReasonCodeOPERATORPASSPAYMENTDISPUTE   DeletionReasonCode = 34
 	DeletionReasonCodeOTHER                        DeletionReasonCode = 2
-	DeletionReasonCodePAYMENTFRAUD                 DeletionReasonCode = 12
 	DeletionReasonCodePRIVACYVIOLATIONORDOXXING    DeletionReasonCode = 10
 	DeletionReasonCodeREPORTINGABUSE               DeletionReasonCode = 29
 	DeletionReasonCodeSCAMORSOCIALENGINEERING      DeletionReasonCode = 8
@@ -562,8 +559,6 @@ func (e DeletionReasonCode) Valid() bool {
 	case DeletionReasonCodeAUTOMATIONORSELFBOT:
 		return true
 	case DeletionReasonCodeBANEVASION:
-		return true
-	case DeletionReasonCodeBILLINGDISPUTEORABUSE:
 		return true
 	case DeletionReasonCodeCHEATINGOREXPLOITATION:
 		return true
@@ -593,11 +588,7 @@ func (e DeletionReasonCode) Valid() bool {
 		return true
 	case DeletionReasonCodeNONCONSENSUALSEXUALCONTENT:
 		return true
-	case DeletionReasonCodeOPERATORPASSPAYMENTDISPUTE:
-		return true
 	case DeletionReasonCodeOTHER:
-		return true
-	case DeletionReasonCodePAYMENTFRAUD:
 		return true
 	case DeletionReasonCodePRIVACYVIOLATIONORDOXXING:
 		return true
@@ -730,7 +721,6 @@ func (e EnforcementDecisionInputSource) Valid() bool {
 const (
 	EnforcementReasonCodeTypeAUTOMATIONORSELFBOT          EnforcementReasonCodeType = 6
 	EnforcementReasonCodeTypeBANEVASION                   EnforcementReasonCodeType = 17
-	EnforcementReasonCodeTypeBILLINGDISPUTEORABUSE        EnforcementReasonCodeType = 14
 	EnforcementReasonCodeTypeCHEATINGOREXPLOITATION       EnforcementReasonCodeType = 4
 	EnforcementReasonCodeTypeCHILDSAFETYVIOLATION         EnforcementReasonCodeType = 13
 	EnforcementReasonCodeTypeCHILDSEXUALCONTENT           EnforcementReasonCodeType = 9
@@ -744,8 +734,6 @@ const (
 	EnforcementReasonCodeTypeIMPERSONATIONORFAKEIDENTITY  EnforcementReasonCodeType = 22
 	EnforcementReasonCodeTypeMALICIOUSLINKSORMALWARE      EnforcementReasonCodeType = 21
 	EnforcementReasonCodeTypeNONCONSENSUALSEXUALCONTENT   EnforcementReasonCodeType = 7
-	EnforcementReasonCodeTypeOPERATORPASSPAYMENTDISPUTE   EnforcementReasonCodeType = 34
-	EnforcementReasonCodeTypePAYMENTFRAUD                 EnforcementReasonCodeType = 12
 	EnforcementReasonCodeTypePRIVACYVIOLATIONORDOXXING    EnforcementReasonCodeType = 10
 	EnforcementReasonCodeTypeREPORTINGABUSE               EnforcementReasonCodeType = 29
 	EnforcementReasonCodeTypeSCAMORSOCIALENGINEERING      EnforcementReasonCodeType = 8
@@ -765,8 +753,6 @@ func (e EnforcementReasonCodeType) Valid() bool {
 	case EnforcementReasonCodeTypeAUTOMATIONORSELFBOT:
 		return true
 	case EnforcementReasonCodeTypeBANEVASION:
-		return true
-	case EnforcementReasonCodeTypeBILLINGDISPUTEORABUSE:
 		return true
 	case EnforcementReasonCodeTypeCHEATINGOREXPLOITATION:
 		return true
@@ -793,10 +779,6 @@ func (e EnforcementReasonCodeType) Valid() bool {
 	case EnforcementReasonCodeTypeMALICIOUSLINKSORMALWARE:
 		return true
 	case EnforcementReasonCodeTypeNONCONSENSUALSEXUALCONTENT:
-		return true
-	case EnforcementReasonCodeTypeOPERATORPASSPAYMENTDISPUTE:
-		return true
-	case EnforcementReasonCodeTypePAYMENTFRAUD:
 		return true
 	case EnforcementReasonCodeTypePRIVACYVIOLATIONORDOXXING:
 		return true
@@ -1023,24 +1005,6 @@ func (e InstanceConfigResponseIntegrationsEmailSmtpTlsMode) Valid() bool {
 	}
 }
 
-// Defines values for InstanceConfigResponsePolicyPremiumMode.
-const (
-	InstanceConfigResponsePolicyPremiumModeEveryone InstanceConfigResponsePolicyPremiumMode = "everyone"
-	InstanceConfigResponsePolicyPremiumModeMirror   InstanceConfigResponsePolicyPremiumMode = "mirror"
-)
-
-// Valid indicates whether the value is a known member of the InstanceConfigResponsePolicyPremiumMode enum.
-func (e InstanceConfigResponsePolicyPremiumMode) Valid() bool {
-	switch e {
-	case InstanceConfigResponsePolicyPremiumModeEveryone:
-		return true
-	case InstanceConfigResponsePolicyPremiumModeMirror:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for InstanceConfigUpdateRequestIntegrationsEmailProvider.
 const (
 	InstanceConfigUpdateRequestIntegrationsEmailProviderNone InstanceConfigUpdateRequestIntegrationsEmailProvider = "none"
@@ -1092,24 +1056,6 @@ const (
 func (e InstanceConfigUpdateRequestPolicyDirectMessagesLocked) Valid() bool {
 	switch e {
 	case False:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for InstanceConfigUpdateRequestPolicyPremiumMode.
-const (
-	InstanceConfigUpdateRequestPolicyPremiumModeEveryone InstanceConfigUpdateRequestPolicyPremiumMode = "everyone"
-	InstanceConfigUpdateRequestPolicyPremiumModeMirror   InstanceConfigUpdateRequestPolicyPremiumMode = "mirror"
-)
-
-// Valid indicates whether the value is a known member of the InstanceConfigUpdateRequestPolicyPremiumMode enum.
-func (e InstanceConfigUpdateRequestPolicyPremiumMode) Valid() bool {
-	switch e {
-	case InstanceConfigUpdateRequestPolicyPremiumModeEveryone:
-		return true
-	case InstanceConfigUpdateRequestPolicyPremiumModeMirror:
 		return true
 	default:
 		return false
@@ -1500,7 +1446,7 @@ type AdminProfileBadgeResponse struct {
 	// Key Stable identity of the badge. It equals kind for built-in badges and is custom:{id} for custom badges, so use it as the list key
 	Key string `json:"key"`
 
-	// Kind Badge type. Known values: staff, partner, bug_hunter, operator_pass, visionary, visionary_number, plutonium, custom, and premium on self-hosted instances. Clients must render unknown values from the other fields.
+	// Kind Badge type. Known values: staff, partner, bug_hunter and custom. Clients must render unknown values from the other fields.
 	Kind string `json:"kind"`
 
 	// Label Full badge description, localized for the viewer. Use it as the tooltip, and as alt text when there is no caption
@@ -1865,7 +1811,6 @@ type DomainMigrationConfigResponse struct {
 	ConfigVersion               int                                 `json:"config_version"`
 	Enabled                     bool                                `json:"enabled"`
 	ExcludedUserIds             []string                            `json:"excluded_user_ids"`
-	IncludePremiumUsers         bool                                `json:"include_premium_users"`
 	IncludedGuildIds            []string                            `json:"included_guild_ids"`
 	IncludedUserIds             []string                            `json:"included_user_ids"`
 	RolloutBasisPoints          int                                 `json:"rollout_basis_points"`
@@ -1879,7 +1824,6 @@ type DomainMigrationConfigUpdateRequest struct {
 	AnonymousRolloutBasisPoints *int                                 `json:"anonymous_rollout_basis_points,omitempty"`
 	Enabled                     *bool                                `json:"enabled,omitempty"`
 	ExcludedUserIds             *[]string                            `json:"excluded_user_ids,omitempty"`
-	IncludePremiumUsers         *bool                                `json:"include_premium_users,omitempty"`
 	IncludedGuildIds            *[]string                            `json:"included_guild_ids,omitempty"`
 	IncludedUserIds             *[]string                            `json:"included_user_ids,omitempty"`
 	RolloutBasisPoints          *int                                 `json:"rollout_basis_points,omitempty"`
@@ -2078,8 +2022,6 @@ type InstanceConfigResponse struct {
 			FaviconUrl                   *string  `json:"favicon_url"`
 			IconUrl                      *string  `json:"icon_url"`
 			LogoUrl                      *string  `json:"logo_url"`
-			PremiumInfoUrl               *string  `json:"premium_info_url"`
-			PremiumProductName           string   `json:"premium_product_name"`
 			ProductName                  string   `json:"product_name"`
 			SignInBackdropUrl            *string  `json:"sign_in_backdrop_url"`
 			StatusPageIncidentHistoryUrl *string  `json:"status_page_incident_history_url"`
@@ -2202,8 +2144,7 @@ type InstanceConfigResponse struct {
 		GuildCreateAccess bool `json:"guild_create_access"`
 
 		// PersonalNotesEnabled Whether people can use personal notes
-		PersonalNotesEnabled bool                                    `json:"personal_notes_enabled"`
-		PremiumMode          InstanceConfigResponsePolicyPremiumMode `json:"premium_mode"`
+		PersonalNotesEnabled bool `json:"personal_notes_enabled"`
 		Services             struct {
 			BlueskyEnabled *bool `json:"bluesky_enabled"`
 			YoutubeEnabled *bool `json:"youtube_enabled"`
@@ -2261,9 +2202,6 @@ type InstanceConfigResponseIntegrationsEmailSmtpEffectiveTlsMode string
 // InstanceConfigResponseIntegrationsEmailSmtpTlsMode Saved TLS mode, or null to pick one from the port
 type InstanceConfigResponseIntegrationsEmailSmtpTlsMode string
 
-// InstanceConfigResponsePolicyPremiumMode defines model for InstanceConfigResponse.Policy.PremiumMode.
-type InstanceConfigResponsePolicyPremiumMode string
-
 // InstanceConfigUpdateRequest defines model for InstanceConfigUpdateRequest.
 type InstanceConfigUpdateRequest struct {
 	Accounts  *AccountsConfigUpdateRequest `json:"accounts,omitempty"`
@@ -2274,8 +2212,6 @@ type InstanceConfigUpdateRequest struct {
 			FaviconUrl                   *string   `json:"favicon_url,omitempty"`
 			IconUrl                      *string   `json:"icon_url,omitempty"`
 			LogoUrl                      *string   `json:"logo_url,omitempty"`
-			PremiumInfoUrl               *string   `json:"premium_info_url,omitempty"`
-			PremiumProductName           *string   `json:"premium_product_name,omitempty"`
 			ProductName                  *string   `json:"product_name,omitempty"`
 			SignInBackdropUrl            *string   `json:"sign_in_backdrop_url,omitempty"`
 			StatusPageIncidentHistoryUrl *string   `json:"status_page_incident_history_url,omitempty"`
@@ -2380,8 +2316,7 @@ type InstanceConfigUpdateRequest struct {
 		GuildCreateAccess *bool `json:"guild_create_access,omitempty"`
 
 		// PersonalNotesEnabled Whether people can use personal notes. Off by default on self-hosted instances
-		PersonalNotesEnabled *bool                                         `json:"personal_notes_enabled,omitempty"`
-		PremiumMode          *InstanceConfigUpdateRequestPolicyPremiumMode `json:"premium_mode,omitempty"`
+		PersonalNotesEnabled *bool `json:"personal_notes_enabled,omitempty"`
 		Services             *struct {
 			BlueskyEnabled *bool `json:"bluesky_enabled,omitempty"`
 			YoutubeEnabled *bool `json:"youtube_enabled,omitempty"`
@@ -2411,9 +2346,6 @@ type InstanceConfigUpdateRequestIntegrationsEmailSmtpTlsMode string
 
 // InstanceConfigUpdateRequestPolicyDirectMessagesLocked defines model for InstanceConfigUpdateRequest.Policy.DirectMessagesLocked.
 type InstanceConfigUpdateRequestPolicyDirectMessagesLocked bool
-
-// InstanceConfigUpdateRequestPolicyPremiumMode defines model for InstanceConfigUpdateRequest.Policy.PremiumMode.
-type InstanceConfigUpdateRequestPolicyPremiumMode string
 
 // InstanceEmailSmtpTestRequest defines model for InstanceEmailSmtpTestRequest.
 type InstanceEmailSmtpTestRequest struct {
@@ -2648,9 +2580,6 @@ type PendingRegistrationResponse struct {
 	Username          string              `json:"username"`
 }
 
-// PremiumFlags User premium-related flags (32-bit)
-type PremiumFlags = int32
-
 // SearchUsersResponse defines model for SearchUsersResponse.
 type SearchUsersResponse struct {
 	Total float32                   `json:"total"`
@@ -2817,12 +2746,6 @@ type UserAdminResponseSchema struct {
 	Locale                       *string             `json:"locale"`
 	PendingBulkMessageDeletionAt *string             `json:"pending_bulk_message_deletion_at"`
 	PendingDeletionAt            *string             `json:"pending_deletion_at"`
-	PremiumFlags                 PremiumFlags        `json:"premium_flags"`
-	PremiumGraceEndsAt           *string             `json:"premium_grace_ends_at"`
-	PremiumLifetimeSequence      *Int32Type          `json:"premium_lifetime_sequence"`
-	PremiumSince                 *string             `json:"premium_since"`
-	PremiumType                  *Int32Type          `json:"premium_type"`
-	PremiumUntil                 *string             `json:"premium_until"`
 
 	// ProfileBadges Every badge the account qualifies for in display order, including ones hidden from the public
 	ProfileBadges   []AdminProfileBadgeResponse `json:"profile_badges"`
@@ -2904,7 +2827,6 @@ type VoiceP2pConfigResponse struct {
 	ConfigVersion       int                                 `json:"config_version"`
 	Enabled             bool                                `json:"enabled"`
 	ExcludedUserIds     []string                            `json:"excluded_user_ids"`
-	IncludePremiumUsers bool                                `json:"include_premium_users"`
 	IncludedGuildIds    []string                            `json:"included_guild_ids"`
 	IncludedUserIds     []string                            `json:"included_user_ids"`
 	MaxParticipants     int                                 `json:"max_participants"`
@@ -2917,7 +2839,6 @@ type VoiceP2pConfigResponse struct {
 type VoiceP2pConfigUpdateRequest struct {
 	Enabled             *bool                                `json:"enabled,omitempty"`
 	ExcludedUserIds     *[]string                            `json:"excluded_user_ids,omitempty"`
-	IncludePremiumUsers *bool                                `json:"include_premium_users,omitempty"`
 	IncludedGuildIds    *[]string                            `json:"included_guild_ids,omitempty"`
 	IncludedUserIds     *[]string                            `json:"included_user_ids,omitempty"`
 	MaxParticipants     *int                                 `json:"max_participants,omitempty"`

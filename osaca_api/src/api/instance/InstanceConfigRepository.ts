@@ -211,21 +211,12 @@ interface InstanceAppPublicConfig extends Omit<InstanceAppPublic, 'setup' | 'bra
 	setup: Pick<InstanceSetup, 'configured'>;
 }
 
-type InstanceBrandingPatch = Partial<Omit<InstanceBrandingConfig, 'premium_product_name'>> & {
-	premium_product_name?: string | null;
-};
+type InstanceBrandingPatch = Partial<InstanceBrandingConfig>;
 
 interface AppPublicConfigPatch {
 	branding?: InstanceBrandingPatch;
 	setup?: Partial<InstanceAppPublicConfig['setup']>;
 	legal?: Partial<InstanceAppPublicConfig['legal']>;
-}
-
-export type InstancePremiumMode = 'mirror' | 'everyone';
-
-interface LimitConfigInputs {
-	config: StoredLimitConfig | null;
-	premiumMode: InstancePremiumMode;
 }
 
 export interface InstancePolicyConfig {
@@ -235,7 +226,6 @@ export interface InstancePolicyConfig {
 	direct_messages_locked: boolean;
 	friends_disabled: boolean;
 	personal_notes_enabled: boolean;
-	premium_mode: InstancePremiumMode;
 	guild_create_access: boolean;
 	youtube_enabled: boolean | null;
 	bluesky_enabled: boolean | null;
@@ -425,10 +415,6 @@ function normalizeOptionalPublicString(value: string | null | undefined, fallbac
 	return value === undefined ? fallback : normalizeOptionalString(value);
 }
 
-function getDefaultPremiumProductName(): string {
-	return Config.instance.selfHosted ? 'Premium' : 'Plutonium';
-}
-
 function getDefaultAppPublicConfig(): InstanceAppPublicConfig {
 	return {
 		branding: {
@@ -444,8 +430,6 @@ function getDefaultAppPublicConfig(): InstanceAppPublicConfig {
 			theme_color: normalizeThemeColor(Config.instance.branding.themeColor),
 			status_page_url: normalizeOptionalString(Config.instance.branding.statusPageUrl),
 			status_page_incident_history_url: normalizeOptionalString(Config.instance.branding.statusPageIncidentHistoryUrl),
-			premium_product_name: getDefaultPremiumProductName(),
-			premium_info_url: null,
 			sign_in_backdrop_url: normalizeOptionalString(Config.instance.branding.signInBackdropUrl),
 			custom_css: null,
 			upload_limit_message: null,
@@ -856,11 +840,7 @@ function parseStoredCollection<T>(schema: z.ZodType<T>, raw: string | null, sect
 }
 
 const StoredInstanceAppPublicSchema = InstanceAppPublicSchema.extend({
-	branding: InstanceAppPublicSchema.shape.branding
-		.omit({status_page_instatus: true})
-		.extend({premium_product_name: z.string().max(40).nullable()})
-		.partial()
-		.optional(),
+	branding: InstanceAppPublicSchema.shape.branding.omit({status_page_instatus: true}).partial().optional(),
 	setup: InstanceAppPublicSchema.shape.setup.pick({configured: true}).partial().optional(),
 	legal: InstanceAppPublicSchema.shape.legal.partial().optional(),
 });
@@ -905,9 +885,6 @@ function buildAppPublicConfig(config: z.infer<typeof StoredInstanceAppPublicSche
 				branding.status_page_incident_history_url,
 				defaults.branding.status_page_incident_history_url,
 			),
-			premium_product_name:
-				normalizeOptionalString(branding.premium_product_name) ?? defaults.branding.premium_product_name,
-			premium_info_url: normalizeOptionalPublicString(branding.premium_info_url, defaults.branding.premium_info_url),
 			sign_in_backdrop_url: normalizeOptionalPublicString(
 				branding.sign_in_backdrop_url,
 				defaults.branding.sign_in_backdrop_url,
@@ -945,7 +922,6 @@ const StoredInstancePolicySchema = z
 		direct_messages_locked: z.boolean().default(false),
 		friends_disabled: z.boolean().nullable().default(null),
 		personal_notes_enabled: z.boolean().nullable().default(null),
-		premium_mode: InstancePolicyUpdateSchema.shape.premium_mode.default('everyone'),
 		guild_create_access: InstancePolicyUpdateSchema.shape.guild_create_access.default(true),
 		youtube_enabled: InstancePolicyServiceUpdateSchema.shape.youtube_enabled.default(null),
 		bluesky_enabled: InstancePolicyServiceUpdateSchema.shape.bluesky_enabled.default(null),
@@ -2111,20 +2087,14 @@ export class InstanceConfigRepository {
 		);
 	}
 
-	async readLimitConfigInputs(): Promise<LimitConfigInputs> {
+	async readStoredLimitConfig(): Promise<StoredLimitConfig | null> {
 		const cache = this.configCache;
 		cache.assertActive();
 		const rows = await fetchMany<InstanceConfigurationRow>(FETCH_LIMIT_CONFIG_INPUTS_QUERY, {
-			keys: [LIMIT_CONFIG_KEY, INSTANCE_POLICY_CONFIG_KEY],
+			keys: [LIMIT_CONFIG_KEY],
 		});
 		cache.assertActive();
-		const values = new Map(rows.map((row) => [row.key, row.value]));
-		const policyRaw = values.get(INSTANCE_POLICY_CONFIG_KEY) ?? null;
-		const policy = parseStoredInstancePolicyConfig(policyRaw);
-		return {
-			config: parseStoredLimitConfig(values.get(LIMIT_CONFIG_KEY) ?? null),
-			premiumMode: policy.premium_mode,
-		};
+		return parseStoredLimitConfig(rows.find((row) => row.key === LIMIT_CONFIG_KEY)?.value ?? null);
 	}
 
 	async setLimitConfig(config: StoredLimitConfig): Promise<void> {
@@ -2155,17 +2125,12 @@ export class InstanceConfigRepository {
 				'app public',
 			);
 			const current = buildAppPublicConfig(stored);
-			const premiumProductName =
-				config.branding?.premium_product_name !== undefined
-					? config.branding.premium_product_name
-					: normalizeOptionalString(stored.branding?.premium_product_name);
 			const merged = validateStoredConfig(
 				StoredInstanceAppPublicSchema,
 				{
 					branding: {
 						...toStoredBranding(current.branding),
 						...toStoredBranding(config.branding ?? {}),
-						premium_product_name: premiumProductName,
 					},
 					setup: {
 						...current.setup,

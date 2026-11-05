@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {DEFAULT_RESTRICTED_LIMITS, DEFAULT_STOCK_LIMITS} from '@osaca/limits/src/LimitDefaults';
+import {DEFAULT_LIMITS} from '@osaca/limits/src/LimitDefaults';
 
 function simpleHash(str: string): string {
 	let hash = 0;
@@ -13,9 +13,5 @@ function simpleHash(str: string): string {
 }
 
 export function computeDefaultsHash(): string {
-	const combined = {
-		free: DEFAULT_RESTRICTED_LIMITS,
-		premium: DEFAULT_STOCK_LIMITS,
-	};
-	return simpleHash(JSON.stringify(combined));
+	return simpleHash(JSON.stringify(DEFAULT_LIMITS));
 }

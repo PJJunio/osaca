@@ -2,15 +2,12 @@
 
 import type {UserID} from '@app/api/BrandedTypes';
 import type {UserRow} from '@app/api/database/types/UserTypes';
-import {checkIsPremium, getEffectivePremiumUntil} from '@app/api/user/UserHelpers';
 import {isProfileBadgeKey, type ProfileBadgeKey} from '@osaca/constants/src/BadgeConstants';
 import {
-	extractPremiumFlagsFromLegacyUserFlags,
 	legacyHiddenProfileBadges,
 	type MentionReplyPreference,
 	ProfileFieldPrivacyFlags,
 	type UserAuthenticatorType,
-	type UserPremiumType,
 } from '@osaca/constants/src/UserConstants';
 
 export class User {
@@ -38,16 +35,6 @@ export class User {
 	readonly timezonePrivacyFlags: number;
 	readonly locale: string | null;
 	readonly flags: bigint;
-	readonly premiumFlags: number;
-	readonly premiumType: UserPremiumType | null;
-	readonly premiumSince: Date | null;
-	readonly premiumUntil: Date | null;
-	readonly premiumGiftExtensionEndsAt: Date | null;
-	readonly premiumWillCancel: boolean;
-	readonly premiumBillingCycle: string | null;
-	readonly premiumLifetimeSequence: number | null;
-	readonly premiumGraceEndsAt: Date | null;
-	readonly hasEverPurchased: boolean;
 	readonly termsAgreedAt: Date | null;
 	readonly privacyAgreedAt: Date | null;
 	readonly lastActiveAt: Date | null;
@@ -69,10 +56,6 @@ export class User {
 	private readonly _traits: Set<string>;
 	readonly badgeIds: ReadonlySet<bigint>;
 	readonly hiddenProfileBadges: ReadonlySet<ProfileBadgeKey>;
-	readonly lastRefundAt: Date | null;
-	readonly giftInventoryServerSeq: number | null;
-	readonly giftInventoryClientSeq: number | null;
-	readonly premiumOnboardingDismissedAt: Date | null;
 	readonly mentionFlags: MentionReplyPreference;
 	readonly lastVoiceActivitySharingChangeAt: Date | null;
 	readonly version: number;
@@ -103,16 +86,6 @@ export class User {
 		this.locale = row.locale ?? null;
 		const rawFlags = row.flags ?? 0n;
 		this.flags = rawFlags;
-		this.premiumFlags = (row.premium_flags ?? 0) | extractPremiumFlagsFromLegacyUserFlags(rawFlags);
-		this.premiumType = (row.premium_type ?? null) as UserPremiumType | null;
-		this.premiumSince = row.premium_since ?? null;
-		this.premiumUntil = row.premium_until ?? null;
-		this.premiumGiftExtensionEndsAt = row.premium_gift_extension_ends_at ?? null;
-		this.premiumWillCancel = row.premium_will_cancel ?? false;
-		this.premiumBillingCycle = row.premium_billing_cycle ?? null;
-		this.premiumLifetimeSequence = row.premium_lifetime_sequence ?? null;
-		this.premiumGraceEndsAt = row.premium_grace_ends_at ?? null;
-		this.hasEverPurchased = row.has_ever_purchased ?? false;
 		this.termsAgreedAt = row.terms_agreed_at ?? null;
 		this.privacyAgreedAt = row.privacy_agreed_at ?? null;
 		this.lastActiveAt = row.last_active_at ?? null;
@@ -135,12 +108,8 @@ export class User {
 		this.badgeIds = row.badge_ids ?? new Set();
 		this.hiddenProfileBadges = new Set([
 			...[...(row.hidden_profile_badges ?? [])].filter(isProfileBadgeKey),
-			...legacyHiddenProfileBadges(rawFlags, this.premiumFlags),
+			...legacyHiddenProfileBadges(rawFlags),
 		]);
-		this.lastRefundAt = row.first_refund_at ?? null;
-		this.giftInventoryServerSeq = row.gift_inventory_server_seq ?? null;
-		this.giftInventoryClientSeq = row.gift_inventory_client_seq ?? null;
-		this.premiumOnboardingDismissedAt = row.premium_onboarding_dismissed_at ?? null;
 		this.mentionFlags = row.mention_flags ?? 0;
 		this.lastVoiceActivitySharingChangeAt = row.last_voice_activity_sharing_change_at ?? null;
 		this.version = row.version;
@@ -148,14 +117,6 @@ export class User {
 
 	get traits(): Set<string> {
 		return new Set(this._traits);
-	}
-
-	isPremium(): boolean {
-		return checkIsPremium(this);
-	}
-
-	get effectivePremiumUntil(): Date | null {
-		return getEffectivePremiumUntil(this);
 	}
 
 	toRow(): UserRow {
@@ -184,16 +145,6 @@ export class User {
 			timezone_privacy_flags: this.timezonePrivacyFlags,
 			locale: this.locale,
 			flags: this.flags,
-			premium_flags: this.premiumFlags,
-			premium_type: this.premiumType,
-			premium_since: this.premiumSince,
-			premium_until: this.premiumUntil,
-			premium_gift_extension_ends_at: this.premiumGiftExtensionEndsAt,
-			premium_will_cancel: this.premiumWillCancel,
-			premium_billing_cycle: this.premiumBillingCycle,
-			premium_lifetime_sequence: this.premiumLifetimeSequence,
-			premium_grace_ends_at: this.premiumGraceEndsAt,
-			has_ever_purchased: this.hasEverPurchased,
 			terms_agreed_at: this.termsAgreedAt,
 			privacy_agreed_at: this.privacyAgreedAt,
 			last_active_at: this.lastActiveAt,
@@ -215,10 +166,6 @@ export class User {
 			traits: this._traits.size > 0 ? this._traits : null,
 			badge_ids: this.badgeIds.size > 0 ? new Set(this.badgeIds) : null,
 			hidden_profile_badges: this.hiddenProfileBadges.size > 0 ? new Set(this.hiddenProfileBadges) : null,
-			first_refund_at: this.lastRefundAt,
-			gift_inventory_server_seq: this.giftInventoryServerSeq,
-			gift_inventory_client_seq: this.giftInventoryClientSeq,
-			premium_onboarding_dismissed_at: this.premiumOnboardingDismissedAt,
 			mention_flags: this.mentionFlags,
 			last_voice_activity_sharing_change_at: this.lastVoiceActivitySharingChangeAt,
 			version: this.version,

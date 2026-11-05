@@ -18,16 +18,12 @@ const TAG_DEFINITIONS: ReadonlyArray<TagDefinition> = [
 	{name: 'Gateway', description: 'WebSocket gateway information'},
 	{name: 'Search', description: 'Search functionality'},
 	{name: 'Read States', description: 'Message read state tracking'},
-	{name: 'KLIPY', description: 'GIF search via KLIPY'},
 	{name: 'Saved Media', description: 'User saved media management'},
 	{name: 'Themes', description: 'User interface themes'},
 	{name: 'Downloads', description: 'App downloads'},
 	{name: 'Reports', description: 'Content reporting'},
 	{name: 'Instance', description: 'Instance configuration and info'},
 	{name: 'Admin', description: 'Administrative operations for instance management'},
-	{name: 'Billing', description: 'Subscription and payment management via Stripe'},
-	{name: 'Premium', description: 'Premium subscription features and benefits'},
-	{name: 'Gifts', description: 'Gift codes and redemption'},
 	{name: 'RPC', description: 'Remote procedure call endpoints for internal operations'},
 ] as const;
 const TAG_DESCRIPTIONS = Object.fromEntries(TAG_DEFINITIONS.map(({name, description}) => [name, description]));

@@ -16,22 +16,12 @@ let pendingRefresh: Promise<void> | null = null;
 let refreshAgain = false;
 
 export function profileBadgeSettingsKey(settings: ProfileBadgePreviewRequest): string {
-	return JSON.stringify([
-		(settings.hidden_profile_badges ?? []).filter(isProfileBadgeKey).sort(),
-		settings.premium_badge_timestamp_hidden ?? false,
-		settings.premium_badge_masked ?? false,
-		settings.operator_pass_badge_timestamp_hidden ?? false,
-		settings.operator_pass_badge_count_hidden ?? false,
-	]);
+	return JSON.stringify([(settings.hidden_profile_badges ?? []).filter(isProfileBadgeKey).sort()]);
 }
 
 export function savedProfileBadgeSettingsKey(user: User): string {
 	return profileBadgeSettingsKey({
 		hidden_profile_badges: (user.hiddenProfileBadges ?? []).filter(isProfileBadgeKey),
-		premium_badge_timestamp_hidden: user.premiumBadgeTimestampHidden,
-		premium_badge_masked: user.premiumBadgeMasked,
-		operator_pass_badge_timestamp_hidden: user.operatorPassBadgeTimestampHidden,
-		operator_pass_badge_count_hidden: user.operatorPassBadgeCountHidden,
 	});
 }
 

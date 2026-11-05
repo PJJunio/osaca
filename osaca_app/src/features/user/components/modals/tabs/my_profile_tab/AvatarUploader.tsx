@@ -2,14 +2,12 @@
 
 import {GenericErrorModal} from '@app/features/app/components/alerts/GenericErrorModal';
 import {showGenericErrorModal} from '@app/features/app/components/alerts/GenericErrorModalCommands';
-import {ConfirmModal} from '@app/features/app/components/dialogs/ConfirmModal';
 import {
 	ANIMATED_AVATAR_FORMATS,
 	ANIMATED_IMAGE_FORMATS,
 	AVATAR_RECOMMENDED_SIZE_LABEL,
 	STATIC_IMAGE_FORMATS,
 } from '@app/features/app/config/I18nDisplayConstants';
-import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
 import {GlobalLimits} from '@app/features/app/utils/GlobalLimits';
 import {LimitResolver} from '@app/features/app/utils/LimitResolverAdapter';
 import {isLimitToggleEnabled} from '@app/features/app/utils/LimitUtils';
@@ -18,23 +16,16 @@ import {openAssetSourceModal} from '@app/features/expressions/components/modals/
 import {showAnimatedAvifUnsupportedModal} from '@app/features/expressions/utils/AnimatedAvifModalUtils';
 import {inspectImageFile} from '@app/features/expressions/utils/AnimatedImageUtils';
 import {getAssetFormatErrorMessage} from '@app/features/expressions/utils/AssetFormatCopy';
-import {
-	formatImageUploadRecommendedHint,
-	formatImageUploadRecommendedHintWithNote,
-} from '@app/features/expressions/utils/AssetUploadHintCopy';
+import {formatImageUploadRecommendedHint} from '@app/features/expressions/utils/AssetUploadHintCopy';
 import {isSvgFile, readImageFileAsUploadDataUrl} from '@app/features/expressions/utils/ImageUploadFileUtils';
 import {
-	CANCEL_DESCRIPTOR,
 	FAILED_TO_PROCESS_CROPPED_IMAGE_DESCRIPTOR,
-	GET_PREMIUM_DESCRIPTOR,
 	INVALID_IMAGE_TRY_ANOTHER_DESCRIPTOR,
 } from '@app/features/i18n/utils/CommonMessageDescriptors';
 import {openFilePicker} from '@app/features/messaging/utils/FilePickerUtils';
 import {formatFileSize} from '@app/features/messaging/utils/FileUtils';
 import {readBlobAsDataUrl} from '@app/features/platform/utils/BlobDataUrl';
 import {canDecodeAnimatedAvif} from '@app/features/platform/utils/ImageDecoderInterop';
-import * as PremiumModalCommands from '@app/features/premium/commands/PremiumModalCommands';
-import {getPremiumProductName, shouldShowPremiumFeatures} from '@app/features/premium/utils/PremiumUtils';
 import {Button} from '@app/features/ui/button/Button';
 import * as ModalCommands from '@app/features/ui/commands/ModalCommands';
 import {modal} from '@app/features/ui/commands/ModalCommands';
@@ -72,11 +63,6 @@ const AVATAR_FILE_IS_TOO_LARGE_PLEASE_CHOOSE_A_DESCRIPTOR = msg({
 	message: 'Avatar file is too large. Choose a file smaller than {imageMaxSizeLabel}.',
 	comment: 'Error message in the avatar uploader. Preserve {imageMaxSizeLabel}; it is inserted by code.',
 });
-const ANIMATED_AVATARS_REQUIRE_DESCRIPTOR = msg({
-	message: 'Animated avatars require {premiumProductName}',
-	comment:
-		'Label in the avatar uploader. Preserve {premiumProductName}; it is inserted by code. Keep the tone plain and specific.',
-});
 const ANIMATED_AVATARS_NOT_AVAILABLE_DESCRIPTOR = msg({
 	message: 'Animated avatars not available',
 	comment: 'Error message in the avatar uploader.',
@@ -92,11 +78,6 @@ const COULDN_T_UPLOAD_AVATAR_DESCRIPTOR = msg({
 const CHANGE_AVATAR_DESCRIPTOR = msg({
 	message: 'Change avatar',
 	comment: 'Title of the modal where the user picks an avatar source. Keep it concise.',
-});
-const ANIMATED_AVATARS_REQUIRE_PREMIUM_NOTE_DESCRIPTOR = msg({
-	message: 'Animated avatars ({animatedAvatarFormats}) require {premiumProductName}.',
-	comment:
-		'Extra note in the avatar asset upload source modal. Preserve {animatedAvatarFormats} and {premiumProductName}; they are inserted by code.',
 });
 
 export type AvatarMode = ProfileAssetMode;
@@ -124,7 +105,6 @@ export function useChangeAvatarAction({
 	requireAnimatedAvatarEntitlement = true,
 }: ChangeAvatarActionOptions) {
 	const {i18n} = useLingui();
-	const PREMIUM_PRODUCT_NAME = getPremiumProductName();
 	const hasAnimatedAvatarEntitlement = isLimitToggleEnabled(
 		{feature_animated_avatar: LimitResolver.resolve({key: 'feature_animated_avatar', fallback: 0})},
 		'feature_animated_avatar',
@@ -153,65 +133,21 @@ export function useChangeAvatarAction({
 			}
 			const {format, animated} = svg ? {format: 'unknown', animated: false} : await inspectImageFile(file);
 			if (animated && !canUploadAnimatedAvatar) {
-				if (shouldShowPremiumFeatures()) {
-					ModalCommands.push(
-						modal(() => (
-							<ConfirmModal
-								title={i18n._(ANIMATED_AVATARS_REQUIRE_DESCRIPTOR, {premiumProductName: getPremiumProductName()})}
-								description={
-									<>
-										<p data-flx="user.my-profile-tab.avatar-uploader.handle-avatar-upload.p">
-											<Trans>
-												Animated avatars ({ANIMATED_AVATAR_FORMATS}) are exclusively available to {PREMIUM_PRODUCT_NAME}{' '}
-												subscribers.
-											</Trans>
-										</p>
-										<p
-											className={styles.spacedParagraph}
-											data-flx="user.my-profile-tab.avatar-uploader.handle-avatar-upload.spaced-paragraph"
-										>
-											{RuntimeConfig.usesUniqueUsernames ? (
-												<Trans>
-													With {PREMIUM_PRODUCT_NAME}, you can use animated avatars ({ANIMATED_AVATAR_FORMATS}) and
-													profile banners, and unlock many other {PREMIUM_PRODUCT_NAME} perks.
-												</Trans>
-											) : (
-												<Trans>
-													With {PREMIUM_PRODUCT_NAME}, you can use animated avatars ({ANIMATED_AVATAR_FORMATS}) and
-													profile banners, customize your tag, and unlock many other {PREMIUM_PRODUCT_NAME} perks.
-												</Trans>
-											)}
-										</p>
-									</>
-								}
-								primaryText={i18n._(GET_PREMIUM_DESCRIPTOR, {premiumProductName: getPremiumProductName()})}
-								primaryVariant="primary"
-								secondaryText={i18n._(CANCEL_DESCRIPTOR)}
-								onPrimary={() => {
-									window.setTimeout(() => {
-										PremiumModalCommands.open();
-									}, 0);
-								}}
-								data-flx="user.my-profile-tab.avatar-uploader.handle-avatar-upload.confirm-modal"
-							/>
-						)),
-					);
-				} else {
-					ModalCommands.push(
-						modal(() => (
-							<GenericErrorModal
-								title={i18n._(ANIMATED_AVATARS_NOT_AVAILABLE_DESCRIPTOR)}
-								message={
-									<Trans>
-										Animated avatars ({ANIMATED_AVATAR_FORMATS}) are not available on this instance. Upload a static
-										image instead.
-									</Trans>
-								}
-								data-flx="user.my-profile-tab.avatar-uploader.handle-avatar-upload.confirm-modal--2"
-							/>
-						)),
-					);
-				}
+				ModalCommands.push(
+					modal(() => (
+						<GenericErrorModal
+							title={i18n._(ANIMATED_AVATARS_NOT_AVAILABLE_DESCRIPTOR)}
+							message={
+								<Trans>
+									Animated avatars ({ANIMATED_AVATAR_FORMATS}) are not available on this instance. Upload a static image
+									instead.
+								</Trans>
+							}
+							data-flx="user.my-profile-tab.avatar-uploader.handle-avatar-upload.confirm-modal--2"
+						/>
+					)),
+				);
+
 				return;
 			}
 			const isAnimatedAvif = animated && format === 'avif';
@@ -276,16 +212,6 @@ export function useChangeAvatarAction({
 				formats: ANIMATED_IMAGE_FORMATS,
 				maxSize: formatFileSize(i18n.locale, GlobalLimits.getAvatarMaxSize()),
 				recommendedSize: AVATAR_RECOMMENDED_SIZE_LABEL,
-			});
-		} else if (shouldShowPremiumFeatures()) {
-			uploadHint = formatImageUploadRecommendedHintWithNote(i18n, {
-				formats: STATIC_IMAGE_FORMATS,
-				maxSize: formatFileSize(i18n.locale, GlobalLimits.getAvatarMaxSize()),
-				recommendedSize: AVATAR_RECOMMENDED_SIZE_LABEL,
-				note: i18n._(ANIMATED_AVATARS_REQUIRE_PREMIUM_NOTE_DESCRIPTOR, {
-					animatedAvatarFormats: ANIMATED_AVATAR_FORMATS,
-					premiumProductName: getPremiumProductName(),
-				}),
 			});
 		} else {
 			uploadHint = formatImageUploadRecommendedHint(i18n, {

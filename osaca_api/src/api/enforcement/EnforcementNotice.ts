@@ -28,7 +28,6 @@ import {
 import {toIsoOrNull} from '@osaca/date_utils/src/DateSerialization';
 import type {UserProfileField} from '@osaca/schema/src/domains/admin/AdminUserSchemas';
 import type {EnforcementNotice} from '@osaca/schema/src/domains/auth/EnforcementNoticeSchemas';
-import {getOperatorPassTermsUrl} from '@pkgs/email/src/operator_pass_terms/OperatorPassTerms';
 import {ms} from 'itty-time';
 
 type EnforcementContentKey = Extract<ContentI18nKey, `enforcement.${string}`>;
@@ -89,9 +88,6 @@ function text<K extends EnforcementContentKey>(ctx: NoticeContext, key: K, ...ar
 
 function ruleUrl(ctx: NoticeContext, rule: EnforcementRuleKey): string | null {
 	const {policy, anchor} = ENFORCEMENT_RULES[rule];
-	if (policy === 'operator_pass_terms') {
-		return ctx.hosted ? `${getOperatorPassTermsUrl(Config.endpoints.marketing)}#${anchor}` : null;
-	}
 	const legal = getLegalUrls();
 	const base = policy === 'terms' ? legal.termsUrl : legal.guidelinesUrl;
 	if (!base) {
@@ -255,10 +251,6 @@ function kindEffect(ctx: NoticeContext, decision: EnforcementDecisionRow, target
 						safety_route: ctx.hosted ? 'yes' : 'no',
 						url: `${Config.endpoints.marketing}/company-information`,
 					});
-				case 'purchases':
-					return text(ctx, 'enforcement.effect.limit_purchases', {
-						review: decision.automation === 'automated' ? 'yes' : 'no',
-					});
 				default:
 					return text(ctx, 'enforcement.effect.limit_direct_messages');
 			}
@@ -326,9 +318,6 @@ function decisionFacts(
 	}
 	if (decision.kind === 'profile_reset') {
 		facts.push(text(ctx, 'enforcement.facts.profile', {fields: profileFieldList(ctx, decision.profile_fields)}));
-	}
-	if (decision.payment_at) {
-		facts.push(text(ctx, 'enforcement.facts.payment', {date: formatNoticeDate(decision.payment_at, ctx.locale)}));
 	}
 	if (decision.rights_holder) {
 		facts.push(text(ctx, 'enforcement.facts.copyright', {rights_holder: decision.rights_holder}));

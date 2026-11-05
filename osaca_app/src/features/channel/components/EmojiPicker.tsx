@@ -16,9 +16,7 @@ import {EmojiPickerInspector} from '@app/features/channel/components/emoji_picke
 import {EmojiPickerSearchBar} from '@app/features/channel/components/emoji_picker/EmojiPickerSearchBar';
 import {useEmojiCategories} from '@app/features/channel/components/emoji_picker/hooks/useEmojiCategories';
 import {getPickerRowItems, useVirtualRows} from '@app/features/channel/components/emoji_picker/hooks/useVirtualRows';
-import {renderEmojiPickerPreviewItem} from '@app/features/channel/components/emoji_picker/PickerPreviewItem';
 import {VirtualizedRow} from '@app/features/channel/components/emoji_picker/VirtualRow';
-import {PremiumUpsellBanner} from '@app/features/channel/components/PremiumUpsellBanner';
 import {
 	buildRowOffsets,
 	PICKER_CATEGORY_HEADER_GAP,
@@ -40,17 +38,14 @@ import {
 import {
 	checkEmojiAvailability,
 	checkRoleIconEmojiAvailability,
-	shouldShowEmojiPremiumUpsell,
 } from '@app/features/expressions/utils/ExpressionPermissionUtils';
 
 import Permission from '@app/features/permissions/state/Permission';
 import {ComponentBus} from '@app/features/platform/utils/ComponentBus';
-import {usePremiumUpsellData} from '@app/features/premium/hooks/usePremiumUpsellData';
-import {getPremiumProductName, shouldShowPremiumFeatures} from '@app/features/premium/utils/PremiumUtils';
 import {Scroller, type ScrollerHandle} from '@app/features/ui/components/Scroller';
 import {getAppRemScale} from '@app/features/ui/utils/AppZoomUtils';
 import {msg} from '@lingui/core/macro';
-import {Plural, Trans, useLingui} from '@lingui/react/macro';
+import {useLingui} from '@lingui/react/macro';
 import {SmileySadIcon} from '@phosphor-icons/react';
 import {observer} from 'mobx-react-lite';
 import type React from 'react';
@@ -70,7 +65,6 @@ export const EmojiPicker = observer(
 		roleIconGuildId?: string;
 		handleSelect: (emoji: FlatEmoji, shiftKey?: boolean) => void;
 	}) => {
-		const PREMIUM_PRODUCT_NAME = getPremiumProductName();
 		const headerContext = useContext(ExpressionPickerHeaderContext);
 		if (!headerContext) {
 			throw new Error(
@@ -100,11 +94,6 @@ export const EmojiPicker = observer(
 					: checkEmojiAvailability(i18n, emoji, channel),
 			[channel, i18n, permissionVersion, roleIconGuildId],
 		);
-		const getEmojiGuildId = useCallback((emoji: FlatEmoji) => emoji.guildId, []);
-		const renderEmojiPreviewItem = useCallback(
-			(emoji: FlatEmoji) => renderEmojiPickerPreviewItem(emoji, skinTone, shouldAnimateEmoji),
-			[skinTone, shouldAnimateEmoji],
-		);
 		useEffect(() => {
 			const handleEmojiDataUpdated = () => {
 				setEmojiDataVersion((version) => version + 1);
@@ -120,25 +109,21 @@ export const EmojiPicker = observer(
 				).slice(),
 			[channel, normalizedSearchTerm, emojiDataVersion, roleIconGuildId],
 		);
-		const searchUpsell = usePremiumUpsellData({
-			items: searchItems,
-			getAvailability: getEmojiAvailability,
-			getGuildId: getEmojiGuildId,
-		});
-		const renderedEmojis = searchUpsell.accessibleItems;
+		const accessibleSearchItems = useMemo(
+			() => searchItems.filter((item) => getEmojiAvailability(item).canUse),
+			[searchItems, getEmojiAvailability],
+		);
+		const renderedEmojis = accessibleSearchItems;
 		const allItems = useMemo(
 			() => (roleIconGuildId ? Emoji.getAllEmojisForRoleIcon(roleIconGuildId) : Emoji.getAllEmojis(channel)).slice(),
 			[channel, emojiDataVersion, roleIconGuildId],
 		);
-		const allUpsell = usePremiumUpsellData({
-			items: allItems,
-			getAvailability: getEmojiAvailability,
-			getGuildId: getEmojiGuildId,
-			renderPreviewItem: renderEmojiPreviewItem,
-			previewLimit: 4,
-		});
+		const accessibleItems = useMemo(
+			() => allItems.filter((item) => getEmojiAvailability(item).canUse),
+			[allItems, getEmojiAvailability],
+		);
 		const {favoriteEmojis, frequentlyUsedEmojis, customEmojisByGuildId, unicodeEmojisByCategory} = useEmojiCategories(
-			allUpsell.accessibleItems,
+			accessibleItems,
 			renderedEmojis,
 		);
 		const showFrequentlyUsedButton = frequentlyUsedEmojis.length > 0 && !normalizedSearchTerm;
@@ -151,33 +136,6 @@ export const EmojiPicker = observer(
 			unicodeEmojisByCategory,
 			gridColumns,
 		);
-		const lockedEmojiCount = allUpsell.summary.lockedItems.length;
-		const communityCount = allUpsell.summary.communityCount;
-		const previewContent = allUpsell.previewContent;
-		const emojiUpsellMessage = (
-			<Trans>
-				Unlock{' '}
-				<Plural
-					value={lockedEmojiCount}
-					one="# custom emoji"
-					other="# custom emojis"
-					data-flx="channel.emoji-picker.plural"
-				/>{' '}
-				from{' '}
-				<Plural
-					value={communityCount}
-					one="# community"
-					other="# communities"
-					data-flx="channel.emoji-picker.plural--2"
-				/>{' '}
-				with {PREMIUM_PRODUCT_NAME}.
-			</Trans>
-		);
-		const showPremiumUpsell =
-			shouldShowPremiumFeatures() &&
-			shouldShowEmojiPremiumUpsell(channel) &&
-			!normalizedSearchTerm &&
-			lockedEmojiCount > 0;
 
 		const zoomLevel = Accessibility.zoomLevel;
 		const remScale = getAppRemScale();
@@ -267,15 +225,6 @@ export const EmojiPicker = observer(
 								onResize={handleResize}
 								data-flx="channel.emoji-picker.list"
 							>
-								{showPremiumUpsell && (
-									<PremiumUpsellBanner
-										message={emojiUpsellMessage}
-										communityIds={allUpsell.summary.lockedCommunityIds}
-										communityCount={communityCount}
-										previewContent={previewContent}
-										data-flx="channel.emoji-picker.premium-upsell-banner"
-									/>
-								)}
 								<div
 									ref={rowListRef}
 									style={{position: 'relative', flexShrink: 0, height: `${contentHeight}px`}}

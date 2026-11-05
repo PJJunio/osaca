@@ -24,8 +24,6 @@ import * as NavigationCommands from '@app/features/navigation/commands/Navigatio
 import SelectedChannel from '@app/features/navigation/state/SelectedChannel';
 import {useLocation} from '@app/features/platform/components/router/RouterReact';
 import {Logger} from '@app/features/platform/utils/AppLogger';
-import * as PremiumModalCommands from '@app/features/premium/commands/PremiumModalCommands';
-import {getPremiumProductName, shouldShowPremiumFeatures} from '@app/features/premium/utils/PremiumUtils';
 import {AddFriendSheet} from '@app/features/relationship/components/modals/AddFriendSheet';
 import Relationships from '@app/features/relationship/state/Relationships';
 import QuickSwitcher from '@app/features/search/state/QuickSwitcher';
@@ -53,7 +51,6 @@ import {Trans, useLingui} from '@lingui/react/macro';
 import {ME} from '@osaca/constants/src/AppConstants';
 import {RelationshipTypes} from '@osaca/constants/src/UserConstants';
 import {
-	AtomIcon,
 	MagnifyingGlassIcon,
 	NotePencilIcon,
 	PaperPlaneIcon,
@@ -262,8 +259,6 @@ export const DMList = observer(() => {
 	const shouldHighlightPersonalNotes =
 		currentUserId != null &&
 		(routeDmChannelId === currentUserId || (isMobileDmIndexRoute && lastSelectedDmChannelId === currentUserId));
-	const showPremiumFeatures = shouldShowPremiumFeatures();
-	const showMobilePlutoniumButton = showPremiumFeatures && !isMobile;
 	const personalNotesVisible = currentUserId != null && RuntimeConfig.personalNotesEnabled;
 	const displayedDmChannelCount = filteredDmChannels.length;
 	const dmRowsContainerRef = useRef<HTMLDivElement | null>(null);
@@ -273,7 +268,6 @@ export const DMList = observer(() => {
 		isMobile,
 		friendsDisabled,
 		personalNotesVisible,
-		showMobilePlutoniumButton,
 		filteredDmChannels.map((channel) => channel.id).join(','),
 		dmSidebarSkeletonSubtextFlags.map((flag) => (flag ? '1' : '0')).join(''),
 	].join(':');
@@ -282,7 +276,6 @@ export const DMList = observer(() => {
 			isMobile,
 			friendsVisible: !isMobile && !friendsDisabled,
 			personalNotesVisible,
-			premiumVisible: showMobilePlutoniumButton,
 			sectionVisible: !isMobile,
 			channelRowCount: displayedDmChannelCount,
 			channelSubtextFlags: dmSidebarSkeletonSubtextFlags,
@@ -420,43 +413,6 @@ export const DMList = observer(() => {
 										</div>
 									</div>
 								</LongPressable>
-							</FocusRing>
-						)}
-						{showMobilePlutoniumButton && (
-							<FocusRing offset={-2} data-flx="channel.direct-message.dm-list.focus-ring--4">
-								<button
-									type="button"
-									onClick={() => PremiumModalCommands.open()}
-									className={styles.mobilePlutoniumButton}
-									data-flx="channel.direct-message.dm-list.mobile-plutonium-button.open"
-								>
-									<div
-										className={styles.mobileSpecialButtonContent}
-										data-flx="channel.direct-message.dm-list.mobile-special-button-content--2"
-									>
-										<div
-											className={styles.mobileSpecialButtonIcon}
-											data-flx="channel.direct-message.dm-list.mobile-special-button-icon--2"
-										>
-											<AtomIcon
-												weight="fill"
-												className={styles.iconSize5}
-												data-flx="channel.direct-message.dm-list.icon-size5--3"
-											/>
-										</div>
-										<div
-											className={styles.mobileSpecialButtonText}
-											data-flx="channel.direct-message.dm-list.mobile-special-button-text--2"
-										>
-											<span
-												className={styles.mobileSpecialButtonLabel}
-												data-flx="channel.direct-message.dm-list.mobile-special-button-label--2"
-											>
-												{getPremiumProductName()}
-											</span>
-										</div>
-									</div>
-								</button>
 							</FocusRing>
 						)}
 						{filteredDmChannels.map((channel) => {
@@ -598,35 +554,6 @@ export const DMList = observer(() => {
 									data-flx="channel.direct-message.dm-list.clickable-item-text--2"
 								>
 									{i18n._(PERSONAL_NOTES_DESCRIPTOR)}
-								</span>
-							</div>
-						</ClickableItem>
-					)}
-					{showPremiumFeatures && (
-						<ClickableItem
-							isSelected={false}
-							onClick={() => PremiumModalCommands.open()}
-							data-flx="channel.direct-message.dm-list.clickable-item.open"
-						>
-							<div
-								className={styles.clickableItemContent}
-								data-flx="channel.direct-message.dm-list.clickable-item-content--3"
-							>
-								<div
-									className={styles.clickableItemIcon}
-									data-flx="channel.direct-message.dm-list.clickable-item-icon--3"
-								>
-									<AtomIcon
-										weight="fill"
-										className={styles.iconSize5}
-										data-flx="channel.direct-message.dm-list.icon-size5--6"
-									/>
-								</div>
-								<span
-									className={styles.clickableItemText}
-									data-flx="channel.direct-message.dm-list.clickable-item-text--3"
-								>
-									{getPremiumProductName()}
 								</span>
 							</div>
 						</ClickableItem>

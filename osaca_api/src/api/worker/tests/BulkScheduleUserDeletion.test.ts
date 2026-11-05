@@ -445,7 +445,7 @@ describe('bulkScheduleUserDeletion', () => {
 	});
 	test.each([
 		['housekeeping', {type: 'housekeeping'}],
-		['PAYMENT_FRAUD', enforcementBasis(DeletionReasons.PAYMENT_FRAUD)],
+		['GRAPHIC_VIOLENCE', enforcementBasis(DeletionReasons.GRAPHIC_VIOLENCE)],
 	])('a %s deletion leaves reports open', async (_label, basis) => {
 		const admin = await createTestAccount(harness);
 		await setUserACLs(harness, admin, ['admin:authenticate', 'bulk:delete:users']);
@@ -493,7 +493,7 @@ describe('bulkScheduleUserDeletion', () => {
 		const target = await createTestAccount(harness);
 		const reportId = await reportUser(harness, reporter, target.userId);
 		await clearTestEmails(harness);
-		const result = await runBulkJob([target.userId], admin.userId, enforcementBasis(DeletionReasons.PAYMENT_FRAUD));
+		const result = await runBulkJob([target.userId], admin.userId, enforcementBasis(DeletionReasons.GRAPHIC_VIOLENCE));
 		expect(result.successful_count).toBe(1);
 		expect(await getReportStatus(reportId)).toBe(ReportStatus.PENDING);
 		expect(await reportResolvedEmails(harness, reporter)).toEqual([]);

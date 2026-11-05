@@ -13,7 +13,7 @@ export type AssetKind =
 	| 'attachment';
 type AssetExtension = 'png' | 'jpeg' | 'webp' | 'gif' | 'apng' | 'avif' | 'heic' | 'heif' | 'jxl' | 'svg';
 type CanonicalExtension = 'png' | 'jpeg' | 'webp' | 'gif' | 'apng';
-type AnimationPolicy = 'never' | 'always' | 'premium';
+type AnimationPolicy = 'never' | 'always' | 'entitled';
 type AssetExtensionLabelStyle = 'display' | 'extension';
 
 interface AssetDimensionPolicy {
@@ -107,7 +107,7 @@ export const ASSET_FORMAT_POLICY: Readonly<Record<AssetKind, AssetFormatPolicyEn
 		upload: RASTER_FULL,
 		mimes: pickMimes(RASTER_FULL),
 		storeAs: STORE_ANIMATED,
-		animated: 'premium',
+		animated: 'entitled',
 		maxBytes: 10 * 1024 * 1024,
 		dims: {min: 128, max: 1024},
 	},
@@ -115,7 +115,7 @@ export const ASSET_FORMAT_POLICY: Readonly<Record<AssetKind, AssetFormatPolicyEn
 		upload: RASTER_FULL,
 		mimes: pickMimes(RASTER_FULL),
 		storeAs: STORE_ANIMATED,
-		animated: 'premium',
+		animated: 'entitled',
 		maxBytes: 10 * 1024 * 1024,
 		dims: {min: 128, max: 1024},
 	},
@@ -123,7 +123,7 @@ export const ASSET_FORMAT_POLICY: Readonly<Record<AssetKind, AssetFormatPolicyEn
 		upload: RASTER_FULL,
 		mimes: pickMimes(RASTER_FULL),
 		storeAs: STORE_ANIMATED,
-		animated: 'premium',
+		animated: 'entitled',
 		maxBytes: 10 * 1024 * 1024,
 		dims: {min: 480, max: 2400},
 	},

@@ -98,30 +98,11 @@ The current account as its owner sees it, returned by [Get current user](/http-a
 | authenticator_types?<sup>1</sup> | array[integer] | [Authenticator types](#authenticator-types) set up for the account |
 | verified<sup>2</sup> | boolean | Whether the email address is confirmed |
 | account_limited?<sup>1</sup> | boolean | Whether the account is [limited](#account-limitation) |
-| premium_type<sup>1</sup> | ?integer | [Premium type](#premium-types), `0` while premium is not active |
-| premium_since<sup>1</sup> | ?ISO8601 timestamp | When premium started, or null while premium is not active |
-| premium_until<sup>1</sup> | ?ISO8601 timestamp | When the current premium period ends, or null |
-| premium_will_cancel<sup>1</sup> | boolean | Whether the premium subscription cancels at the end of the period |
-| premium_billing_cycle<sup>1</sup> | ?string | The premium billing cycle, or null |
-| premium_lifetime_sequence<sup>1</sup> | ?integer | The lifetime premium sequence number, or null |
-| premium_grace_ends_at<sup>1</sup> | ?ISO8601 timestamp | When premium access ends after `premium_until` passes, or null |
-| premium_discriminator<sup>1</sup> <sup>3</sup> | boolean | Whether the discriminator was picked with premium |
 | hidden_profile_badges<sup>1</sup> | array[string] | The [badge keys](#hiding-badges) hidden from other people, sorted |
-| premium_badge_hidden<sup>1</sup> | boolean | Deprecated. Whether the premium badge the account holds is in the hidden list |
-| premium_badge_masked<sup>1</sup> | boolean | Whether a lifetime badge shows as a subscription badge |
-| premium_badge_timestamp_hidden<sup>1</sup> | boolean | Whether the premium start date is hidden from the profile |
-| premium_badge_sequence_hidden<sup>1</sup> | boolean | Deprecated. Whether the Visionary ID is in the hidden list |
-| premium_purchase_disabled<sup>1</sup> | boolean | Whether buying premium is turned off for the account |
-| premium_enabled_override<sup>1</sup> | boolean | Whether an admin override grants premium |
-| premium_perks_disabled<sup>1</sup> | boolean | Whether premium is suspended for the account |
 | password_last_changed_at<sup>1</sup> | ?ISO8601 timestamp | When the password last changed, or null |
 | last_voice_activity_sharing_change_at<sup>1</sup> | ?ISO8601 timestamp | When voice activity sharing last changed for all friends (24-hour cooldown), or null |
 | required_actions<sup>1</sup> | array[string] | Deprecated. Always empty |
 | nsfw_allowed<sup>1</sup> | boolean | Whether the account can see age-restricted content |
-| has_dismissed_premium_onboarding<sup>1</sup> | boolean | Whether premium onboarding was dismissed, false while premium is not active |
-| has_ever_purchased<sup>1</sup> | boolean | Whether the account has bought anything |
-| has_unread_gift_inventory<sup>1</sup> | boolean | Whether the gift inventory has unread items |
-| unread_gift_inventory_count<sup>1</sup> | integer | The number of unread gift inventory items |
 | pending_bulk_message_deletion<sup>1</sup> | ?[pending bulk message deletion](#pending-bulk-message-deletion-object) object | The scheduled deletion of all the account's messages, or null |
 | age_verified_adult?<sup>1</sup> | boolean | Whether adult age verification is done, omitted when false |
 | terms_agreed_at<sup>1</sup> | ?ISO8601 timestamp | When the account last accepted the terms, or null |
@@ -132,11 +113,10 @@ The current account as its owner sees it, returned by [Get current user](/http-a
 | has_password?<sup>1</sup> | boolean | Whether the account has a password |
 | profile_restricted?<sup>1</sup> | boolean | Whether other accounts see only the username and discriminator |
 
-<sup>1</sup> With an OAuth2 bearer token on [Get current user](/http-api/users/current-user/#get-current-user), arrays are empty, optional fields are left out, booleans are false, nullable fields are null and `unread_gift_inventory_count` is `0`
+<sup>1</sup> With an OAuth2 bearer token on [Get current user](/http-api/users/current-user/#get-current-user), arrays are empty, optional fields are left out, booleans are false, and nullable fields are null
 
 <sup>2</sup> With an OAuth2 bearer token that lacks the `email` [scope](/http-api/oauth2/#oauth2-scopes), `email` is null and `verified` is false
 
-<sup>3</sup> After premium ends, a `random` tag-style instance gives the account a new discriminator at its next Gateway session
 
 ## Pending bulk message deletion object
 
@@ -158,14 +138,6 @@ These are the values in `authenticator_types`. `WEBAUTHN` appears only after [Se
 | --- | --- | --- |
 | 0 | TOTP | Time-based one-time password authenticator |
 | 2 | WEBAUTHN | WebAuthn authenticator |
-
-## Premium types
-
-| Value | Name | Description |
-| --- | --- | --- |
-| 0 | NONE | No premium |
-| 1 | SUBSCRIPTION | Premium subscription |
-| 2 | LIFETIME | Lifetime premium |
 
 ## Account limitation
 
@@ -484,9 +456,6 @@ Returned by [Get user profile](#get-user-profile). When profile privacy restrict
 | user_profile | [user profile](#user-profile-object) object | The account-wide profile |
 | guild_member?<sup>1</sup> | [guild member](/http-api/guild-members/#guild-member-object) object | The target's membership in the requested guild |
 | guild_member_profile?<sup>1</sup> | [guild member profile](#guild-member-profile-object) object | The target's profile in the requested guild |
-| premium_type?<sup>2</sup> | integer | The target's [premium type](#premium-types) |
-| premium_since?<sup>2</sup> | ISO8601 timestamp | When the target's premium started |
-| premium_lifetime_sequence?<sup>2</sup> | integer | The target's lifetime premium sequence number |
 | profile_badges | array[[profile badge](#profile-badge-object) object] | The badges to show, in order |
 | hidden_profile_badge_count?<sup>5</sup> | integer | How many badges you hold that are [hidden](#hiding-badges) |
 | mutual_friends?<sup>3</sup> | array[[partial user](#partial-user-object) object] | Your mutual friends with the target |
@@ -497,7 +466,6 @@ Returned by [Get user profile](#get-user-profile). When profile privacy restrict
 
 <sup>1</sup> Only with `guild_id` when both you and the target are members of that guild
 
-<sup>2</sup> Left out when the profile is restricted or the target hides the badge, date or sequence. Use `profile_badges` to show badges
 
 <sup>3</sup> Only when the matching `with_` query parameter is true, and never for your own profile
 
@@ -526,7 +494,7 @@ One badge on a [full user profile](#full-user-profile-object). The API picks the
 | accessible_label? | ?string | The label for screen readers, used in place of `label` |
 | details?<sup>4</sup> | ?[badge details](#badge-details-object) object | A richer tooltip with the badge art, `title` and `lines`. Without it, `label` is the tooltip |
 
-<sup>1</sup> Known values are `staff`, `premium` and `custom`. Render any other kind from its other fields
+<sup>1</sup> Known values are `staff`, `partner`, `bug_hunter` and `custom`. Render any other kind from its other fields
 
 <sup>2</sup> The image is at `{static_cdn}/badges/{asset}.webp`, with `static_cdn` from [instance discovery](/http-api/instance/), and square badges also have a `.png`. Hashed files never change
 
@@ -550,7 +518,6 @@ Your own profile follows the same rules and shows what other people see. `label`
 | The target is hidden or under enforcement | The list is empty |
 | The profile is restricted for you | Only `staff` and custom badges remain |
 | The target [hides a badge](#hiding-badges) | That badge is dropped |
-| The target hides the premium start date | The premium label has no date |
 
 ### Hiding badges
 
@@ -561,14 +528,9 @@ Every badge an account holds can be hidden from other people. The account's `hid
 | `staff` | Staff |
 | `partner` | Partner |
 | `bug_hunter` | Bug Hunter |
-| `operator_pass` | Operator Pass |
-| `visionary` | Visionary |
-| `visionary_number` | Visionary ID, which also needs `visionary` shown |
-| `plutonium` | Plutonium subscription |
-| `premium` | Premium on a self-hosted instance |
 | `custom:{id}` | A custom badge |
 
-A hidden badge is dropped from `profile_badges`. Hiding `staff`, `partner` or `bug_hunter` also clears that bit from the account's `flags` in every user object other people get. Hiding the key of the premium badge the account holds drops that badge even when a Visionary badge is masked as a subscription, and leaves the premium fields out of the full profile.
+A hidden badge is dropped from `profile_badges`. Hiding `staff`, `partner` or `bug_hunter` also clears that bit from the account's `flags` in every user object other people get.
 
 Staff in the [Admin API](/admin-api/users/#admin-profile-badge-object) still see every badge, with hidden ones marked.
 

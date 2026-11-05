@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use crate::{
-    api::types::PremiumBranding,
+    api::types::AdminBranding,
     config::AdminConfig,
     templates::{
         layout::{admin_title, favicon_links, product_name},
@@ -12,7 +12,7 @@ use maud::{DOCTYPE, Markup, PreEscaped, html};
 
 pub fn login_page(
     config: &AdminConfig,
-    branding: Option<&PremiumBranding>,
+    branding: Option<&AdminBranding>,
     error_message: Option<&str>,
 ) -> Markup {
     let base = &config.base_path;

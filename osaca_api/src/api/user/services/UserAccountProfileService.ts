@@ -15,19 +15,17 @@ import {
 	hiddenCustomBadgeIds,
 	resolveHiddenProfileBadges,
 } from '@app/api/user/profile_badges/HiddenProfileBadges';
-import {applyProfileBadgeSettings} from '@app/api/user/profile_badges/PremiumBadgeMasking';
 import type {UserRepository} from '@app/api/user/repositories/UserRepository';
 import {isProfileSubstringExempt} from '@app/api/user/UserHelpers';
 import {deriveDominantAvatarColor} from '@app/api/utils/AvatarColorUtils';
 import * as EmojiUtils from '@app/api/utils/EmojiUtils';
 import {CustomBadgeTypes} from '@osaca/constants/src/BadgeConstants';
 import {MAX_BIO_LENGTH} from '@osaca/constants/src/LimitConstants';
-import {PremiumFlags, ProfileFieldPrivacyFlags, UserFlags} from '@osaca/constants/src/UserConstants';
+import {ProfileFieldPrivacyFlags} from '@osaca/constants/src/UserConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {isSupportedTimeZoneId} from '@osaca/date_utils/src/TimeZoneUtils';
 import {ContentBlockedError} from '@osaca/errors/src/domains/content/ContentBlockedError';
 import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
-import {MissingAccessError} from '@osaca/errors/src/domains/core/MissingAccessError';
 import type {UserUpdateRequest} from '@osaca/schema/src/domains/user/UserRequestSchemas';
 import type {IRateLimitService} from '@pkgs/rate_limit/src/IRateLimitService';
 import {ms} from 'itty-time';
@@ -96,7 +94,6 @@ export class UserAccountProfileService {
 			});
 		}
 		if (!user.isBot) {
-			this.processPremiumBadgeFlags({user, data, updates});
 			await this.processHiddenProfileBadges({user, data, updates});
 		}
 		if (data.avatar !== undefined) {
@@ -111,10 +108,6 @@ export class UserAccountProfileService {
 				}
 				throw error;
 			}
-		}
-		if (!user.isBot) {
-			this.processPremiumOnboardingDismissal({data, updates});
-			this.processGiftInventoryRead({user, data, updates});
 		}
 		if (data.mention_flags !== undefined) {
 			updates.mention_flags = data.mention_flags;
@@ -368,30 +361,13 @@ export class UserAccountProfileService {
 		return null;
 	}
 
-	private processPremiumBadgeFlags(params: {user: User; data: UserUpdateRequest; updates: UserFieldUpdates}): void {
-		const {user, data, updates} = params;
-		if (data.premium_enabled_override !== undefined && !(user.flags & UserFlags.STAFF)) {
-			throw new MissingAccessError();
-		}
-		const current = updates.premium_flags ?? user.premiumFlags;
-		let flags = applyProfileBadgeSettings(current, data);
-		if (data.premium_enabled_override !== undefined) {
-			flags = data.premium_enabled_override
-				? flags | PremiumFlags.ENABLED_OVERRIDE
-				: flags & ~PremiumFlags.ENABLED_OVERRIDE;
-		}
-		if (flags !== current) {
-			updates.premium_flags = flags;
-		}
-	}
-
 	private async processHiddenProfileBadges(params: {
 		user: User;
 		data: UserUpdateRequest;
 		updates: UserFieldUpdates;
 	}): Promise<void> {
 		const {user, data, updates} = params;
-		const requested = resolveHiddenProfileBadges(user.hiddenProfileBadges, data);
+		const requested = resolveHiddenProfileBadges(data);
 		if (!requested) return;
 		const known = await getCustomBadgeCatalog().getByIds(hiddenCustomBadgeIds(requested), CustomBadgeTypes.USER);
 		const next = dropUndefinedCustomBadgeKeys(requested, new Set(known.map((badge) => badge.id)));
@@ -399,19 +375,5 @@ export class UserAccountProfileService {
 			return;
 		}
 		updates.hidden_profile_badges = next.size > 0 ? next : null;
-	}
-
-	private processPremiumOnboardingDismissal(params: {data: UserUpdateRequest; updates: UserFieldUpdates}): void {
-		const {data, updates} = params;
-		if (data.has_dismissed_premium_onboarding) {
-			updates.premium_onboarding_dismissed_at = new Date();
-		}
-	}
-
-	private processGiftInventoryRead(params: {user: User; data: UserUpdateRequest; updates: UserFieldUpdates}): void {
-		const {user, data, updates} = params;
-		if (data.has_unread_gift_inventory === false) {
-			updates.gift_inventory_client_seq = user.giftInventoryServerSeq;
-		}
 	}
 }

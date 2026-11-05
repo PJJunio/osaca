@@ -30,9 +30,7 @@ import {
 import {UserAccountSettingsService} from '@app/api/user/services/UserAccountSettingsService';
 import {UserAccountUpdatePropagator} from '@app/api/user/services/UserAccountUpdatePropagator';
 import type {UserContactChangeLogService} from '@app/api/user/services/UserContactChangeLogService';
-import {createPremiumClearPatch} from '@app/api/user/UserHelpers';
 import {runAllInOrder} from '@app/api/utils/ConcurrencyUtils';
-import {PremiumFlags} from '@osaca/constants/src/UserConstants';
 import type {UserUpdateRequest} from '@osaca/schema/src/domains/user/UserRequestSchemas';
 
 interface UpdateUserParams {
@@ -139,11 +137,6 @@ export class UserAccountService {
 			...securityResult.updates,
 			...profileResult.updates,
 		};
-		const securityPremiumFlags = securityResult.updates.premium_flags;
-		if (securityPremiumFlags !== undefined && securityPremiumFlags !== null) {
-			const profilePremiumFlags = profileResult.updates.premium_flags ?? user.premiumFlags;
-			updates.premium_flags = profilePremiumFlags | (securityPremiumFlags & ~user.premiumFlags);
-		}
 		const emailChanged = data.email !== undefined;
 		if (emailChanged) {
 			updates.email_verified = !!emailVerifiedViaToken;
@@ -210,19 +203,5 @@ export class UserAccountService {
 		} catch (error) {
 			Logger.error({userId: updatedUser.id.toString(), error}, 'Failed to reindex guild members after user update');
 		}
-	}
-
-	async resetCurrentUserPremiumState(user: User): Promise<void> {
-		const updates = {
-			...createPremiumClearPatch(),
-			premium_lifetime_sequence: null,
-			has_ever_purchased: null,
-			first_refund_at: null,
-			gift_inventory_server_seq: null,
-			gift_inventory_client_seq: null,
-			premium_flags: user.premiumFlags & ~PremiumFlags.ENABLED_OVERRIDE,
-		};
-		const updatedUser = await this.userAccountRepository.patchUpsert(user.id, updates, user.toRow());
-		await propagateUserUpdate(this.userUpdateDeps, user, updatedUser);
 	}
 }

@@ -72,7 +72,7 @@ export const BuiltInBadgeKindSchema = withOpenApiType(
 	z
 		.enum(BUILT_IN_BADGE_KINDS)
 		.describe(
-			'A built-in badge whose image can be replaced: the staff or premium profile badge, or a community badge starting with guild_',
+			'A built-in badge whose image can be replaced: the staff profile badge, or a community badge starting with guild_',
 		),
 	'BuiltInBadgeKind',
 );

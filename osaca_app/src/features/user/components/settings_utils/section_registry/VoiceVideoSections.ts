@@ -5,7 +5,6 @@ import type {SectionDefinition} from '@app/features/user/components/settings_uti
 import {
 	AUDIO_2_DESCRIPTOR,
 	KEYBIND_DESCRIPTOR,
-	PREMIUM_PRODUCT_NAME_KEYWORD,
 	PUSH_TO_TALK_DESCRIPTOR,
 	STREAMING_DESCRIPTOR as SCREEN_SHARING_DESCRIPTOR,
 	SHORTCUT_DESCRIPTOR,
@@ -327,7 +326,6 @@ export const voiceVideoSections = [
 			MESSAGE_1080P_DESCRIPTOR,
 			MESSAGE_1440P_DESCRIPTOR,
 			SOURCE_QUALITY_DESCRIPTOR,
-			PREMIUM_PRODUCT_NAME_KEYWORD,
 		],
 		isAdvanced: false,
 	},

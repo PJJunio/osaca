@@ -22,7 +22,7 @@ interface HiddenProfileBadgesBackfillSummary {
 }
 
 function hasLegacyBadgeHideBits(user: User): boolean {
-	return legacyHiddenProfileBadges(user.flags, user.premiumFlags).length > 0;
+	return legacyHiddenProfileBadges(user.flags).length > 0;
 }
 
 export async function backfillHiddenProfileBadges(

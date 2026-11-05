@@ -529,8 +529,6 @@ const AppPublicConfigResponse = z.object({
 		theme_color: z.string().nullable(),
 		status_page_url: z.string().nullable(),
 		status_page_incident_history_url: z.string().nullable(),
-		premium_product_name: z.string(),
-		premium_info_url: z.string().nullable(),
 		sign_in_backdrop_url: z.string().nullable(),
 		custom_css: z.string().nullable(),
 		upload_limit_message: z.string().nullable(),
@@ -574,8 +572,6 @@ const AppPublicConfigUpdateRequest = z.object({
 			theme_color: z.string().trim().regex(HEX_THEME_COLOR_PATTERN).nullish(),
 			status_page_url: z.string().trim().max(2048).nullish(),
 			status_page_incident_history_url: z.string().trim().max(2048).nullish(),
-			premium_product_name: z.string().trim().min(1).max(40).nullable().optional(),
-			premium_info_url: z.string().trim().max(2048).refine(isAbsoluteHttpUrl).nullish(),
 			sign_in_backdrop_url: z.string().trim().max(2048).nullish(),
 			custom_css: z.string().trim().max(32_768).nullish(),
 			upload_limit_message: z.string().trim().max(UPLOAD_LIMIT_MESSAGE_MAX_LENGTH).nullish(),
@@ -606,7 +602,6 @@ const InstancePolicyResponse = z.object({
 	friends_disabled: z.boolean().describe('Whether friend requests are disabled instance-wide'),
 	personal_notes_enabled: z.boolean().describe('Whether people can use personal notes'),
 	guild_create_access: z.boolean(),
-	premium_mode: z.enum(['mirror', 'everyone']),
 	services: z.object({
 		youtube_enabled: z.boolean().nullable(),
 		bluesky_enabled: z.boolean().nullable(),
@@ -757,7 +752,6 @@ const InstancePolicyUpdateSchema = z.object({
 		.boolean()
 		.optional()
 		.describe('Whether people can use personal notes. Off by default on self-hosted instances'),
-	premium_mode: z.enum(['mirror', 'everyone']).optional(),
 	guild_create_access: z.boolean().optional(),
 	services: z
 		.object({

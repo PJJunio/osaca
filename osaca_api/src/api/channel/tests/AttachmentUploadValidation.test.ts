@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {createTestAccount} from '@app/api/auth/tests/AuthTestUtils';
+import {createTestAccount, setUserACLs} from '@app/api/auth/tests/AuthTestUtils';
 import {
 	createChannel,
 	createGuild,
@@ -12,8 +12,16 @@ import {setInjectedMediaService} from '@app/api/middleware/ServiceRegistry';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {HTTP_STATUS} from '@app/api/test/TestConstants';
 import {TestMediaService} from '@app/api/test/TestMediaService';
+import {createBuilder} from '@app/api/test/TestRequestBuilder';
+import {AdminACLs} from '@osaca/constants/src/AdminACLs';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
+import type {LimitConfigGetResponse} from '@osaca/schema/src/domains/admin/AdminSchemas';
 import {beforeAll, beforeEach, describe, expect, it} from 'vitest';
+import type {z} from 'zod';
+
+type LimitConfigResponse = z.infer<typeof LimitConfigGetResponse>;
+
+const SMALL_ATTACHMENT_LIMIT = 25 * 1024 * 1024;
 
 class NullUploadMetadataService extends TestMediaService {
 	override async getMetadata(request: MediaProxyMetadataRequest) {
@@ -36,11 +44,33 @@ describe('Attachment Upload Validation', () => {
 	describe('File Validation', () => {
 		describe('size limits', () => {
 			it('should reject files exceeding size limits', async () => {
+				const admin = await setUserACLs(harness, await createTestAccount(harness), [
+					AdminACLs.AUTHENTICATE,
+					AdminACLs.INSTANCE_LIMIT_CONFIG_VIEW,
+					AdminACLs.INSTANCE_LIMIT_CONFIG_UPDATE,
+				]);
+				const {limit_config: current} = await createBuilder<LimitConfigResponse>(harness, admin.token)
+					.get('/admin/limit-config')
+					.execute();
+				await createBuilder(harness, admin.token)
+					.put('/admin/limit-config')
+					.body({
+						limit_config: {
+							traitDefinitions: current.traitDefinitions,
+							rules: current.rules.map(({modifiedFields: _modifiedFields, ...rule}) =>
+								rule.id === 'default'
+									? {...rule, limits: {...rule.limits, max_attachment_file_size: SMALL_ATTACHMENT_LIMIT}}
+									: rule,
+							),
+						},
+					})
+					.expect(HTTP_STATUS.OK)
+					.execute();
 				const account = await createTestAccount(harness);
 				const guild = await createGuild(harness, account.token, 'Too Large File Test Guild');
 				const channel = await createChannel(harness, account.token, guild.id, 'test-channel');
 				const channelId = guild.system_channel_id ?? channel.id;
-				const largeFileData = Buffer.alloc(26 * 1024 * 1024);
+				const largeFileData = Buffer.alloc(SMALL_ATTACHMENT_LIMIT + 1024 * 1024);
 				const payload = {
 					content: 'Large file test',
 					attachments: [{id: 0, filename: 'large.bin'}],

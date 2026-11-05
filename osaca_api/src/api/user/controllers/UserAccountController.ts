@@ -26,8 +26,6 @@ import {dispatchUserUpdate, mapUserSettingsToResponse, mapUserToPrivateResponse}
 import {CHANNEL_THREADS_CLIENT_FEATURE} from '@app/api/utils/featureUtils';
 import {requireRequestClientIp} from '@app/api/utils/RequestClientIp';
 import {Validator} from '@app/api/Validator';
-import {UserFlags} from '@osaca/constants/src/UserConstants';
-import {MissingAccessError} from '@osaca/errors/src/domains/core/MissingAccessError';
 import {UnknownUserError} from '@osaca/errors/src/domains/user/UnknownUserError';
 import {SudoVerificationSchema} from '@osaca/schema/src/domains/auth/AuthSchemas';
 import {
@@ -1314,30 +1312,6 @@ export function UserAccountController(app: HonoApp) {
 			});
 			await dispatchUserUpdate(ctx.get('gatewayService'), updatedUser);
 			return ctx.json(mapUserToPrivateResponse(updatedUser));
-		},
-	);
-	app.post(
-		'/users/@me/premium/reset',
-		RateLimitMiddleware(RateLimitConfigs.USER_UPDATE_SELF),
-		LoginRequired,
-		DefaultUserOnly,
-		OpenAPI({
-			operationId: 'reset_current_user_premium_state',
-			summary: 'Reset current user premium state',
-			responseSchema: null,
-			statusCode: 204,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				'Staff-only endpoint that clears premium status and related premium metadata for the current user account.',
-		}),
-		async (ctx) => {
-			const user = ctx.get('user');
-			if (!(user.flags & UserFlags.STAFF)) {
-				throw new MissingAccessError();
-			}
-			await ctx.get('userService').accountService.resetCurrentUserPremiumState(user);
-			return ctx.body(null, 204);
 		},
 	);
 }

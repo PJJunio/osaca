@@ -445,7 +445,6 @@
 	"premium_and_plans.custom_stickers_in_dms_require_premium": "Δεν μπορείς να χρησιμοποιήσεις προσαρμοσμένα sticker στα DM χωρίς Premium.",
 	"premium_and_plans.custom_stickers_outside_source_require_premium": "Δεν μπορείς να χρησιμοποιήσεις προσαρμοσμένα sticker εκτός των κοινοτήτων προέλευσής τους χωρίς Premium.",
 	"premium_and_plans.discriminator_change_requires_premium": "Η αλλαγή του διακριτικού σου απαιτεί Premium.",
-	"premium_and_plans.visionary_required_for_discriminator": "Πρέπει να έχεις το ισόβιο πρόγραμμα Visionary για να χρησιμοποιήσεις αυτό το διακριτικό.",
 	"rate_limits.accent_color_changed_too_often": "Άλλαξες το χρώμα έμφασής σου πολύ συχνά πρόσφατα. Δοκίμασε ξανά μετά από {minutes} {minutes, plural, one {λεπτό} other {λεπτά}}.",
 	"rate_limits.avatar_changed_too_often": "Άλλαξες το avatar σου πολύ συχνά πρόσφατα. Δοκίμασε ξανά μετά από {minutes} {minutes, plural, one {λεπτό} other {λεπτά}}.",
 	"rate_limits.banner_changed_too_often": "Άλλαξες το banner σου πολύ συχνά πρόσφατα. Δοκίμασε ξανά μετά από {minutes} {minutes, plural, one {λεπτό} other {λεπτά}}.",

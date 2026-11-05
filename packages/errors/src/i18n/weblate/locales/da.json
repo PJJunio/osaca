@@ -445,7 +445,6 @@
 	"premium_and_plans.custom_stickers_in_dms_require_premium": "Du kan ikke bruge brugerdefinerede klistermærker i direkte beskeder uden Premium.",
 	"premium_and_plans.custom_stickers_outside_source_require_premium": "Du kan ikke bruge brugerdefinerede klistermærker uden for de fællesskaber, de stammer fra, uden Premium.",
 	"premium_and_plans.discriminator_change_requires_premium": "Ændring af dit tag kræver Premium.",
-	"premium_and_plans.visionary_required_for_discriminator": "Du skal have Visionary-livstidsplanen for at bruge dette tag.",
 	"rate_limits.accent_color_changed_too_often": "Du har ændret din accentfarve for ofte for nylig. Prøv igen om {minutes} {minutes, plural, one {minut} other {minutter}}.",
 	"rate_limits.avatar_changed_too_often": "Du har ændret din avatar for ofte for nylig. Prøv igen om {minutes} {minutes, plural, one {minut} other {minutter}}.",
 	"rate_limits.banner_changed_too_often": "Du har ændret dit banner for ofte for nylig. Prøv igen om {minutes} {minutes, plural, one {minut} other {minutter}}.",

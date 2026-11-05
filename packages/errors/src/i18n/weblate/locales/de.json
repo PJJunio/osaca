@@ -445,7 +445,6 @@
 	"premium_and_plans.custom_stickers_in_dms_require_premium": "Du kannst benutzerdefinierte Sticker in DMs nicht ohne Premium verwenden.",
 	"premium_and_plans.custom_stickers_outside_source_require_premium": "Du kannst benutzerdefinierte Sticker außerhalb ihrer Quell-Communitys nicht ohne Premium verwenden.",
 	"premium_and_plans.discriminator_change_requires_premium": "Das Ändern deines Discriminators erfordert Premium.",
-	"premium_and_plans.visionary_required_for_discriminator": "Du musst den lebenslangen Visionary-Plan haben, um diesen Discriminator zu verwenden.",
 	"rate_limits.accent_color_changed_too_often": "Du hast deine Akzentfarbe in letzter Zeit zu oft geändert. Bitte versuche es in {minutes, plural, one {# Minute} other {# Minuten}} erneut.",
 	"rate_limits.avatar_changed_too_often": "Du hast deinen Avatar in letzter Zeit zu oft geändert. Bitte versuche es in {minutes, plural, one {# Minute} other {# Minuten}} erneut.",
 	"rate_limits.banner_changed_too_often": "Du hast dein Banner in letzter Zeit zu oft geändert. Bitte versuche es in {minutes, plural, one {# Minute} other {# Minuten}} erneut.",

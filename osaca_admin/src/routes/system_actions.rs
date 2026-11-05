@@ -147,7 +147,6 @@ pub async fn search_index_post(
 enum UpdateFeedback {
     Standard,
     Field(&'static str, &'static str),
-    Premium,
 }
 
 pub async fn instance_config_post(
@@ -259,20 +258,16 @@ pub async fn instance_config_post(
             "update_app_public" => {
                 UpdateFeedback::Field("app_public.branding.custom_css", CUSTOM_CSS_FIELD)
             }
-            "update_policy" => UpdateFeedback::Premium,
             _ => UpdateFeedback::Standard,
         };
         let result = client.update_instance_config(&update).await;
-        if matches!(feedback, UpdateFeedback::Premium) {
-            remember_premium_branding(&state, &result);
-        }
         let warnings = result
             .as_ref()
             .map(|saved| saved.warnings.clone())
             .unwrap_or_default();
         let flash = match feedback {
             UpdateFeedback::Field(api_path, field) => field_result(result, api_path, field),
-            UpdateFeedback::Standard | UpdateFeedback::Premium => instance_config_result(result),
+            UpdateFeedback::Standard => instance_config_result(result),
         };
         with_save_warnings(flash, &warnings)
     };
@@ -296,7 +291,7 @@ fn instance_config_response(
     )
 }
 
-fn remember_premium_branding(
+fn remember_branding(
     state: &AppState,
     result: &Result<crate::api::types::InstanceConfigResponse, crate::api::client::ApiError>,
 ) {

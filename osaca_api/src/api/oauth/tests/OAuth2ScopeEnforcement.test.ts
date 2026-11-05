@@ -28,7 +28,6 @@ interface UserMeResponse {
 	username: string;
 	email?: string | null;
 	verified?: boolean;
-	premium_type?: number | null;
 	terms_agreed_at?: string | null;
 }
 
@@ -215,7 +214,6 @@ describe('OAuth2 Scope Enforcement', () => {
 				.execute();
 			expect(json.email).toBeNull();
 			expect(json.verified).toBe(false);
-			expect(json.premium_type).toBeNull();
 			expect(json.terms_agreed_at).toBeNull();
 			expect(json).not.toHaveProperty('timezone');
 			expect(json).not.toHaveProperty('account_tier');

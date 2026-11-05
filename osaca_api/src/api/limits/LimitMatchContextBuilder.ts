@@ -2,7 +2,6 @@
 
 import {resolveEffectiveUserTraits} from '@app/api/limits/EffectiveUserTraits';
 import type {User} from '@app/api/models/User';
-import {checkIsPremium} from '@app/api/user/UserHelpers';
 import type {LimitMatchContext} from '@osaca/limits/src/LimitTypes';
 
 export function createLimitMatchContext({
@@ -12,7 +11,7 @@ export function createLimitMatchContext({
 	user?: User | null;
 	guildFeatures?: Iterable<string> | null;
 }): LimitMatchContext {
-	const traits = resolveEffectiveUserTraits(user?.traits, user != null && checkIsPremium(user));
+	const traits = resolveEffectiveUserTraits(user?.traits);
 	const guildFeatureSet = new Set<string>();
 	if (guildFeatures) {
 		for (const feature of guildFeatures) {

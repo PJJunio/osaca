@@ -445,7 +445,6 @@
 	"premium_and_plans.custom_stickers_in_dms_require_premium": "没有高级会员，无法在私信中使用自定义贴纸。",
 	"premium_and_plans.custom_stickers_outside_source_require_premium": "没有高级会员，无法在来源社区之外使用自定义贴纸。",
 	"premium_and_plans.discriminator_change_requires_premium": "修改识别码需要高级会员。",
-	"premium_and_plans.visionary_required_for_discriminator": "你必须拥有 Visionary 终身计划才能使用该识别码。",
 	"rate_limits.accent_color_changed_too_often": "你最近修改强调色过于频繁。请在 {minutes, plural, other {# 分钟}}后重试。",
 	"rate_limits.avatar_changed_too_often": "你最近修改头像过于频繁。请在 {minutes, plural, other {# 分钟}}后重试。",
 	"rate_limits.banner_changed_too_often": "你最近修改横幅过于频繁。请在 {minutes, plural, other {# 分钟}}后重试。",

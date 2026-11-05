@@ -61,24 +61,6 @@ class LimitContextClass {
 		const guild = Guilds.getGuild(guildId);
 		return guild?.features ?? null;
 	}
-
-	premium(): LimitMatchContext {
-		return this.build({traits: ['premium']});
-	}
-
-	stock(): LimitMatchContext {
-		return this.premium();
-	}
-
-	free(): LimitMatchContext {
-		const currentUser = Users.getCurrentUser();
-		const traits = currentUser?.traits ? Array.from(currentUser.traits).filter((t) => t !== 'premium') : [];
-		return this.build({traits});
-	}
-
-	restricted(): LimitMatchContext {
-		return this.free();
-	}
 }
 
 export const LimitContext = new LimitContextClass();

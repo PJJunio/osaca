@@ -11,11 +11,8 @@ import {
 	loginUser,
 	type TestAccount,
 } from '@app/api/auth/tests/AuthTestUtils';
-import {resetApiServicesForTesting} from '@app/api/CreateApiContext';
-import {setInjectedWorkerService} from '@app/api/middleware/ServiceRegistry';
 import {getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
 import type {ApiTestHarness} from '@app/api/test/ApiTestHarness';
-import {RecordingWorkerService} from '@app/api/test/RecordingWorkerService';
 import {createBuilder, createBuilderWithoutAuth} from '@app/api/test/TestRequestBuilder';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {afterAll, beforeAll, beforeEach, describe, expect, it} from 'vitest';
@@ -54,7 +51,6 @@ interface UserPrivateResponse {
 	mfa_enabled: boolean;
 	authenticator_types: Array<number>;
 	password_last_changed_at?: string;
-	has_ever_purchased: boolean;
 }
 
 async function startEmailChange(
@@ -369,56 +365,6 @@ describe('Email change flow', () => {
 		]);
 	});
 
-	it('applies email changes for users who have ever purchased and syncs their Stripe customer', async () => {
-		const account = await createTestAccount(harness);
-		await createBuilderWithoutAuth(harness)
-			.post(`/test/users/${account.userId}/premium`)
-			.body({has_ever_purchased: true})
-			.expect(200)
-			.execute();
-		const worker = new RecordingWorkerService();
-		setInjectedWorkerService(worker);
-		resetApiServicesForTesting();
-		const startResp = await startEmailChange(harness, account, account.password);
-		let originalProof: string;
-		if (startResp.require_original) {
-			const emails = await listTestEmails(harness, {recipient: account.email});
-			const originalEmail = findLastTestEmail(emails, 'email_change_original');
-			expect(originalEmail?.metadata?.code).toBeDefined();
-			originalProof = await verifyOriginalEmailChange(
-				harness,
-				account,
-				startResp.ticket,
-				originalEmail!.metadata!.code!,
-				account.password,
-			);
-		} else {
-			originalProof = startResp.original_proof!;
-		}
-		const newEmail = `integration-purchased-${Date.now()}@trusted.beauty`;
-		await requestNewEmailChange(harness, account, startResp.ticket, newEmail, originalProof, account.password);
-		const newEmails = await listTestEmails(harness, {recipient: newEmail});
-		const newEmailData = findLastTestEmail(newEmails, 'email_change_new');
-		expect(newEmailData?.metadata?.code).toBeDefined();
-		const token = await verifyNewEmailChange(
-			harness,
-			account,
-			startResp.ticket,
-			newEmailData!.metadata!.code!,
-			originalProof,
-			account.password,
-		);
-		const updated = await createBuilder<UserPrivateResponse>(harness, account.token)
-			.patch('/users/@me')
-			.body({
-				email_token: token,
-				password: account.password,
-			})
-			.expect(200)
-			.execute();
-		expect(updated.email).toBe(newEmail);
-		expect(updated.has_ever_purchased).toBe(true);
-	});
 	it('requires MFA (not password) for email_token apply when user has TOTP enabled', async () => {
 		const account = await createTestAccount(harness);
 		const secret = createTotpSecret();

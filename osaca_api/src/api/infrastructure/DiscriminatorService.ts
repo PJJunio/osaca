@@ -3,7 +3,6 @@
 import {randomInt} from 'node:crypto';
 import {Config} from '@app/api/Config';
 import {Logger} from '@app/api/Logger';
-import {isPremiumTieringActive} from '@app/api/limits/InstancePremiumModeCache';
 import type {LimitConfigService} from '@app/api/limits/LimitConfigService';
 import {resolveLimitSafe} from '@app/api/limits/LimitConfigUtils';
 import {createLimitMatchContext} from '@app/api/limits/LimitMatchContextBuilder';
@@ -60,9 +59,6 @@ export class DiscriminatorService {
 	) {}
 
 	private async canUseCustomDiscriminator(user?: User | null): Promise<boolean> {
-		if (Config.instance.selfHosted && !isPremiumTieringActive()) {
-			return true;
-		}
 		if (!user) {
 			return false;
 		}

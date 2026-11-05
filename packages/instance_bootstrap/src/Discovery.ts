@@ -64,7 +64,6 @@ const FEATURE_FLAG_KEYS = Object.freeze([
 	'self_hosted',
 	'presigned_attachment_uploads',
 	'emails_enabled',
-	'premium_enabled',
 	'phone_verification_enabled',
 	'discovery_enabled',
 	'desktop_modules_enabled',
@@ -82,7 +81,6 @@ const BRANDING_URL_KEYS = Object.freeze([
 	'favicon_dark_url',
 	'status_page_url',
 	'status_page_incident_history_url',
-	'premium_info_url',
 	'sign_in_backdrop_url',
 ] as const) satisfies ReadonlyArray<keyof InstanceBranding>;
 
@@ -840,10 +838,6 @@ function parseBranding(value: unknown): Readonly<Partial<InstanceBranding>> {
 	const productName = readNonEmptyString(source, 'product_name');
 	if (productName != null) {
 		branding.product_name = productName;
-	}
-	const premiumProductName = readNonEmptyString(source, 'premium_product_name');
-	if (premiumProductName != null) {
-		branding.premium_product_name = premiumProductName;
 	}
 	for (const key of BRANDING_URL_KEYS) {
 		if (Object.hasOwn(source, key)) {

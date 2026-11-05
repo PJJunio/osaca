@@ -26,7 +26,6 @@ function decisionRow(decisionId: bigint, overrides: Partial<EnforcementDecisionR
 		profile_fields: null,
 		removed_message_count: null,
 		removed_all_messages: null,
-		payment_at: null,
 		report_ids: new Set([7n, 8n]),
 		decided_by: 1n,
 		created_at: new Date('2026-10-14T10:00:00.000Z'),

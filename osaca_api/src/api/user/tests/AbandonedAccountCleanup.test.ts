@@ -8,7 +8,7 @@ import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHa
 import {createBuilder, createBuilderWithoutAuth} from '@app/api/test/TestRequestBuilder';
 import {CleanupModes} from '@osaca/constants/src/AccountConfigConstants';
 import {DeletionReasons} from '@osaca/constants/src/Core';
-import {UserFlags, UserPremiumTypes} from '@osaca/constants/src/UserConstants';
+import {UserFlags} from '@osaca/constants/src/UserConstants';
 import {afterAll, beforeAll, beforeEach, describe, expect, it} from 'vitest';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -122,14 +122,9 @@ describe('Abandoned account cleanup', () => {
 		expect(await deletionReason(recent)).toBeNull();
 	});
 
-	it('leaves lifetime members and suspended accounts alone', async () => {
+	it('leaves suspended accounts alone', async () => {
 		await getInstanceConfigRepository().updateAccountsConfig({abandoned_account_cleanup: true});
-		const lifetime = await register({});
 		const suspended = await register({});
-		await createBuilderWithoutAuth(harness)
-			.post(`/test/users/${lifetime}/premium`)
-			.body({premium_type: UserPremiumTypes.LIFETIME})
-			.execute();
 		const users = getUserRepository();
 		const banned = await users.findUniqueAssert(createUserID(BigInt(suspended)));
 		await users.patchUpsert(
@@ -137,11 +132,8 @@ describe('Abandoned account cleanup', () => {
 			{flags: banned.flags | UserFlags.DISABLED, temp_banned_until: new Date(Date.now() + 30 * DAY_MS)},
 			banned.toRow(),
 		);
-		for (const userId of [lifetime, suspended]) {
-			await idleFor(userId, 120);
-		}
+		await idleFor(suspended, 120);
 		await sweep();
-		expect(await deletionReason(lifetime)).toBeNull();
 		expect(await deletionReason(suspended)).toBeNull();
 	});
 });

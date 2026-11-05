@@ -6,7 +6,6 @@ import {ChannelRateLimitConfigs} from '@app/api/rate_limit_configs/ChannelRateLi
 import {DiscoveryRateLimitConfigs} from '@app/api/rate_limit_configs/DiscoveryRateLimitConfig';
 import {GuildRateLimitConfigs} from '@app/api/rate_limit_configs/GuildRateLimitConfig';
 import {GuildVisitRateLimitConfigs} from '@app/api/rate_limit_configs/GuildVisitRateLimitConfig';
-import {IntegrationRateLimitConfigs} from '@app/api/rate_limit_configs/IntegrationRateLimitConfig';
 import {InviteRateLimitConfigs} from '@app/api/rate_limit_configs/InviteRateLimitConfig';
 import {MiscRateLimitConfigs} from '@app/api/rate_limit_configs/MiscRateLimitConfig';
 import {OAuthRateLimitConfigs} from '@app/api/rate_limit_configs/OAuthRateLimitConfig';
@@ -25,7 +24,6 @@ const rateLimitSections = [
 	GuildVisitRateLimitConfigs,
 	InviteRateLimitConfigs,
 	WebhookRateLimitConfigs,
-	IntegrationRateLimitConfigs,
 	AdminRateLimitConfigs,
 	MiscRateLimitConfigs,
 ] satisfies ReadonlyArray<RateLimitSection>;

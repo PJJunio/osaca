@@ -3,14 +3,14 @@
 import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
 import {LimitResolver} from '@app/features/app/utils/LimitResolverAdapter';
 import {Logger} from '@app/features/platform/utils/AppLogger';
-import {ATTACHMENT_MAX_SIZE_NON_PREMIUM} from '@osaca/constants/src/LimitConstants';
+import {ATTACHMENT_MAX_SIZE} from '@osaca/constants/src/LimitConstants';
 
 const logger = new Logger('AttachmentUtils');
 
 function getMaxAttachmentFileSize(): number {
 	return LimitResolver.resolve({
 		key: 'max_attachment_file_size',
-		fallback: ATTACHMENT_MAX_SIZE_NON_PREMIUM,
+		fallback: ATTACHMENT_MAX_SIZE,
 	});
 }
 

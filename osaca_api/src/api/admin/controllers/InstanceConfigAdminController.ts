@@ -228,7 +228,6 @@ async function buildInstanceConfigResponse(warnings: Array<string> = []): Promis
 			friends_disabled: policy.friends_disabled,
 			personal_notes_enabled: policy.personal_notes_enabled,
 			guild_create_access: policy.guild_create_access,
-			premium_mode: policy.premium_mode,
 			services: {
 				youtube_enabled: policy.youtube_enabled,
 				bluesky_enabled: policy.bluesky_enabled,
@@ -260,8 +259,6 @@ function assertSelfHostedBrandingSections(data: InstanceConfigUpdateRequest): vo
 		return;
 	}
 	for (const field of [
-		'premium_product_name',
-		'premium_info_url',
 		'sign_in_backdrop_url',
 		'favicon_dark_url',
 		'custom_css',
@@ -534,8 +531,6 @@ const INSTANCE_CONFIG_SECTION_APPLIERS = {
 								appPublic.branding,
 								'status_page_incident_history_url',
 							),
-							premium_product_name: readOptionalField(appPublic.branding, 'premium_product_name'),
-							premium_info_url: readOptionalField(appPublic.branding, 'premium_info_url'),
 							sign_in_backdrop_url: readOptionalField(appPublic.branding, 'sign_in_backdrop_url'),
 							custom_css: readOptionalField(appPublic.branding, 'custom_css'),
 							upload_limit_message: readOptionalField(appPublic.branding, 'upload_limit_message'),
@@ -986,9 +981,6 @@ async function applyInstancePolicyUpdate(
 			);
 		}
 		await startSingleCommunityJoin(getKVClient(), getWorkerService(), guildId.toString());
-	}
-	if (policy.premium_mode !== undefined) {
-		await ctx.get('limitConfigService').updatePolicyConfig({premium_mode: policy.premium_mode});
 	}
 }
 

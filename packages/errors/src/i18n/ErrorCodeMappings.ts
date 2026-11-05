@@ -438,7 +438,6 @@ export const ErrorCodeToI18nKey = {
 	[ValidationErrorCodes.USERNAME_ALREADY_TAKEN]: 'usernames_and_tags.username_already_taken',
 	[ValidationErrorCodes.USERNAME_LENGTH_INVALID]: 'usernames_and_tags.username_length_invalid',
 	[ValidationErrorCodes.USERNAME_RESERVED_VALUE]: 'usernames_and_tags.username_reserved_value',
-	[ValidationErrorCodes.VISIONARY_REQUIRED_FOR_DISCRIMINATOR]: 'premium_and_plans.visionary_required_for_discriminator',
 	[ValidationErrorCodes.BOT_DISCRIMINATOR_CANNOT_BE_CHANGED]: 'bots.bot_discriminator_cannot_be_changed',
 	[ValidationErrorCodes.BOT_SEARCH_SCOPE_UNAVAILABLE]: 'bots.search_scope_unavailable',
 	[ValidationErrorCodes.USER_MUST_BE_A_BOT_TO_BE_MARKED_AS_A_SYSTEM_USER]:

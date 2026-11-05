@@ -119,7 +119,6 @@ pub(super) fn build_domain_migration_update(
                     .unwrap_or_default(),
                 "Included guild IDs",
             )?),
-            include_premium_users: Some(form.bool_value("domain_migration_include_premium_users")),
             excluded_user_ids: Some(parse_experiment_user_ids(
                 form.first("domain_migration_excluded_user_ids")
                     .unwrap_or_default(),
@@ -166,7 +165,6 @@ pub(super) fn build_voice_p2p_update(
                     .unwrap_or_default(),
                 "Included guild IDs",
             )?),
-            include_premium_users: Some(form.bool_value("voice_p2p_include_premium_users")),
             excluded_user_ids: Some(parse_experiment_user_ids(
                 form.first("voice_p2p_excluded_user_ids")
                     .unwrap_or_default(),

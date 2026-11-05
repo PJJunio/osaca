@@ -290,7 +290,6 @@ function matchesUserFilters(doc: SearchableUser, filters: UserSearchFilters): bo
 	if (filters.isSystem !== undefined && doc.isSystem !== filters.isSystem) return false;
 	if (filters.emailVerified !== undefined && doc.emailVerified !== filters.emailVerified) return false;
 	if (filters.emailBounced !== undefined && doc.emailBounced !== filters.emailBounced) return false;
-	if (filters.hasPremium !== undefined && (doc.premiumType !== null) !== filters.hasPremium) return false;
 	if (filters.isTempBanned !== undefined && (doc.tempBannedUntil !== null) !== filters.isTempBanned) return false;
 	if (filters.isPendingDeletion !== undefined && (doc.pendingDeletionAt !== null) !== filters.isPendingDeletion) {
 		return false;

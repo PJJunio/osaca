@@ -4,22 +4,6 @@ import {makePersistent} from '@app/features/platform/utils/MobXPersistence';
 import {initializeStore} from '@app/features/platform/utils/StoreInitialization';
 import {makeAutoObservable} from 'mobx';
 
-export type PremiumScenarioOverride =
-	| 'free_no_purchases'
-	| 'free_with_history'
-	| 'active_monthly'
-	| 'active_monthly_cancelled'
-	| 'active_yearly'
-	| 'active_yearly_cancelled'
-	| 'gift_active_no_history'
-	| 'gift_active_with_history'
-	| 'gift_expiring_soon'
-	| 'gift_grace_period_active'
-	| 'gift_expired_recent'
-	| 'grace_period_active'
-	| 'expired_recent'
-	| 'expired_old'
-	| 'visionary';
 export type DeveloperOptionsState = Readonly<{
 	bypassLoadingSkeleton: boolean;
 	forceLoadingSkeleton: boolean;
@@ -34,16 +18,6 @@ export type DeveloperOptionsState = Readonly<{
 	forceUnknownMessageType: boolean;
 	selfHostedModeOverride: boolean;
 	forceShowVanityURLDisclaimer: boolean;
-	premiumScenarioOverride: PremiumScenarioOverride | null;
-	premiumTypeOverride: number | null;
-	premiumLifetimeSequenceOverride: number | null;
-	premiumSinceOverride: Date | null;
-	premiumUntilOverride: Date | null;
-	premiumBillingCycleOverride: string | null;
-	premiumWillCancelOverride: boolean | null;
-	hasEverPurchasedOverride: boolean | null;
-	hasUnreadGiftInventoryOverride: boolean | null;
-	unreadGiftInventoryCountOverride: number | null;
 	emailVerifiedOverride: boolean | null;
 	unclaimedAccountOverride: boolean | null;
 	mockVerificationBarrier:
@@ -63,9 +37,6 @@ export type DeveloperOptionsState = Readonly<{
 	forceNoAttachFiles: boolean;
 	mockSlowmodeActive: boolean;
 	mockSlowmodeRemaining: number;
-	mockGiftInventory: boolean | null;
-	mockGiftDurationMonths: number | null;
-	mockGiftRedeemed: boolean | null;
 	mockTitlebarPlatformOverride: 'auto' | 'macos' | 'windows' | 'linux';
 	mockAttachmentStates: Record<
 		string,
@@ -95,16 +66,6 @@ class DeveloperOptions implements DeveloperOptionsState {
 	forceUnknownMessageType = false;
 	selfHostedModeOverride = false;
 	forceShowVanityURLDisclaimer = false;
-	premiumScenarioOverride: PremiumScenarioOverride | null = null;
-	premiumTypeOverride: number | null = null;
-	premiumLifetimeSequenceOverride: number | null = null;
-	premiumSinceOverride: Date | null = null;
-	premiumUntilOverride: Date | null = null;
-	premiumBillingCycleOverride: string | null = null;
-	premiumWillCancelOverride: boolean | null = null;
-	hasEverPurchasedOverride: boolean | null = null;
-	hasUnreadGiftInventoryOverride: boolean | null = null;
-	unreadGiftInventoryCountOverride: number | null = null;
 	emailVerifiedOverride: boolean | null = null;
 	unclaimedAccountOverride: boolean | null = null;
 	mockVerificationBarrier:
@@ -132,9 +93,6 @@ class DeveloperOptions implements DeveloperOptionsState {
 			expiresAt?: string | null;
 		}
 	> = {};
-	mockGiftInventory: boolean | null = null;
-	mockGiftDurationMonths: number | null = 12;
-	mockGiftRedeemed: boolean | null = null;
 	mockTitlebarPlatformOverride: DeveloperOptionsState['mockTitlebarPlatformOverride'] = 'auto';
 	noOpInAppReports = false;
 	disableTranslationDomGuard = false;
@@ -159,16 +117,6 @@ class DeveloperOptions implements DeveloperOptionsState {
 			'forceUnknownMessageType',
 			'selfHostedModeOverride',
 			'forceShowVanityURLDisclaimer',
-			'premiumScenarioOverride',
-			'premiumTypeOverride',
-			'premiumLifetimeSequenceOverride',
-			'premiumSinceOverride',
-			'premiumUntilOverride',
-			'premiumBillingCycleOverride',
-			'premiumWillCancelOverride',
-			'hasEverPurchasedOverride',
-			'hasUnreadGiftInventoryOverride',
-			'unreadGiftInventoryCountOverride',
 			'emailVerifiedOverride',
 			'unclaimedAccountOverride',
 			'mockVerificationBarrier',
@@ -181,9 +129,6 @@ class DeveloperOptions implements DeveloperOptionsState {
 			'forceNoAttachFiles',
 			'mockSlowmodeActive',
 			'mockSlowmodeRemaining',
-			'mockGiftInventory',
-			'mockGiftDurationMonths',
-			'mockGiftRedeemed',
 			'mockTitlebarPlatformOverride',
 			'mockAttachmentStates',
 			'noOpInAppReports',

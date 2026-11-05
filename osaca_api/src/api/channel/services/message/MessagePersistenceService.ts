@@ -42,7 +42,7 @@ import type {User} from '@app/api/models/User';
 import type {ReadStateService} from '@app/api/read_state/ReadStateService';
 import type {UserRepository} from '@app/api/user/repositories/UserRepository';
 import {MessageFlags, Permissions, SENDABLE_MESSAGE_FLAGS} from '@osaca/constants/src/ChannelConstants';
-import {ATTACHMENT_MAX_SIZE_NON_PREMIUM} from '@osaca/constants/src/LimitConstants';
+import {ATTACHMENT_MAX_SIZE} from '@osaca/constants/src/LimitConstants';
 import {UserFlags} from '@osaca/constants/src/UserConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
@@ -485,7 +485,7 @@ export class MessagePersistenceService {
 							this.limitConfigService.getConfigSnapshot(),
 							createLimitMatchContext({user: uploader, guildFeatures}),
 							'max_attachment_file_size',
-							ATTACHMENT_MAX_SIZE_NON_PREMIUM,
+							ATTACHMENT_MAX_SIZE,
 							guildFeatures ? 'guild' : 'user',
 						),
 					);

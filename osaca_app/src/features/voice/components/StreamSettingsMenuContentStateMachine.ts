@@ -218,21 +218,17 @@ export function selectStreamSettingsAudioMenuState(
 	};
 }
 
-export type StreamSettingsQualityWrite =
-	| {kind: 'none'}
-	| {kind: 'premium'}
-	| {kind: 'write'; patch: ScreenShareQualityPatch};
+export type StreamSettingsQualityWrite = {kind: 'none'} | {kind: 'write'; patch: ScreenShareQualityPatch};
 
 interface StreamSettingsQualitySignals {
 	quality: ScreenShareQualityInput;
 	pick: ScreenShareQualityPick;
-	premiumOption: boolean;
-	showPremiumFeatures: boolean;
+	needsEntitlement: boolean;
 }
 
 function selectStreamSettingsQualityWrite(signals: StreamSettingsQualitySignals): StreamSettingsQualityWrite {
-	if (signals.premiumOption && !signals.quality.entitled) {
-		return signals.showPremiumFeatures ? {kind: 'premium'} : {kind: 'none'};
+	if (signals.needsEntitlement && !signals.quality.entitled) {
+		return {kind: 'none'};
 	}
 	const patch = resolveScreenShareQualityPick(signals.quality, signals.pick);
 	return patch === null ? {kind: 'none'} : {kind: 'write', patch};
@@ -252,14 +248,17 @@ export function offeredScreenShareResolution(resolution: ScreenshareResolution):
 	return resolution === 'low_240p' ? 'low_480p' : resolution;
 }
 
-const STREAM_SETTINGS_FREE_RESOLUTIONS: ReadonlyArray<OfferedScreenShareResolution> = ['low_480p', 'medium'];
-const STREAM_SETTINGS_PREMIUM_RESOLUTIONS: ReadonlyArray<OfferedScreenShareResolution> = ['high', 'ultra', 'source'];
-const STREAM_SETTINGS_FREE_FRAME_RATES: ReadonlyArray<SupportedScreenShareFrameRate> = [15, 30];
-const STREAM_SETTINGS_PREMIUM_FRAME_RATES: ReadonlyArray<SupportedScreenShareFrameRate> = [60];
+const STREAM_SETTINGS_BASE_RESOLUTIONS: ReadonlyArray<OfferedScreenShareResolution> = ['low_480p', 'medium'];
+const STREAM_SETTINGS_HIGHER_QUALITY_RESOLUTIONS: ReadonlyArray<OfferedScreenShareResolution> = [
+	'high',
+	'ultra',
+	'source',
+];
+const STREAM_SETTINGS_BASE_FRAME_RATES: ReadonlyArray<SupportedScreenShareFrameRate> = [15, 30];
+const STREAM_SETTINGS_HIGHER_QUALITY_FRAME_RATES: ReadonlyArray<SupportedScreenShareFrameRate> = [60];
 
 interface StreamSettingsQualityOption<T> {
 	value: T;
-	premium: boolean;
 	selected: boolean;
 	write: StreamSettingsQualityWrite;
 }
@@ -272,7 +271,6 @@ export interface StreamSettingsQualityMenuViewState {
 export interface StreamSettingsQualityMenuSignals {
 	quality: ScreenShareQualityInput;
 	target: ScreenShareTarget;
-	showPremiumFeatures: boolean;
 }
 
 export function contextAllowsScreenShareResolution(
@@ -285,34 +283,28 @@ export function contextAllowsScreenShareResolution(
 export function selectStreamSettingsQualityMenuState(
 	signals: StreamSettingsQualityMenuSignals,
 ): StreamSettingsQualityMenuViewState {
-	const offersPremium = signals.quality.entitled || signals.showPremiumFeatures;
+	const entitled = signals.quality.entitled;
 	const selectedResolution = offeredScreenShareResolution(signals.target.resolution);
 	const buildOption = <T>(
 		value: T,
-		premium: boolean,
+		needsEntitlement: boolean,
 		selected: boolean,
 		pick: ScreenShareQualityPick,
 	): StreamSettingsQualityOption<T> => ({
 		value,
-		premium,
 		selected,
-		write: selectStreamSettingsQualityWrite({
-			quality: signals.quality,
-			pick,
-			premiumOption: premium,
-			showPremiumFeatures: signals.showPremiumFeatures,
-		}),
+		write: selectStreamSettingsQualityWrite({quality: signals.quality, pick, needsEntitlement}),
 	});
 	return {
 		resolutions: OFFERED_SCREEN_SHARE_RESOLUTIONS.filter(
 			(value) =>
 				value === selectedResolution ||
-				STREAM_SETTINGS_FREE_RESOLUTIONS.includes(value) ||
-				(offersPremium &&
-					STREAM_SETTINGS_PREMIUM_RESOLUTIONS.includes(value) &&
+				STREAM_SETTINGS_BASE_RESOLUTIONS.includes(value) ||
+				(entitled &&
+					STREAM_SETTINGS_HIGHER_QUALITY_RESOLUTIONS.includes(value) &&
 					contextAllowsScreenShareResolution(value, signals.quality.context)),
 		).map((value) =>
-			buildOption(value, STREAM_SETTINGS_PREMIUM_RESOLUTIONS.includes(value), value === selectedResolution, {
+			buildOption(value, STREAM_SETTINGS_HIGHER_QUALITY_RESOLUTIONS.includes(value), value === selectedResolution, {
 				axis: 'resolution',
 				resolution: value,
 			}),
@@ -320,10 +312,10 @@ export function selectStreamSettingsQualityMenuState(
 		frameRates: SUPPORTED_SCREEN_SHARE_FRAME_RATES.filter(
 			(value) =>
 				value === signals.target.frameRate ||
-				STREAM_SETTINGS_FREE_FRAME_RATES.includes(value) ||
-				(offersPremium && STREAM_SETTINGS_PREMIUM_FRAME_RATES.includes(value)),
+				STREAM_SETTINGS_BASE_FRAME_RATES.includes(value) ||
+				(entitled && STREAM_SETTINGS_HIGHER_QUALITY_FRAME_RATES.includes(value)),
 		).map((value) =>
-			buildOption(value, !STREAM_SETTINGS_FREE_FRAME_RATES.includes(value), value === signals.target.frameRate, {
+			buildOption(value, !STREAM_SETTINGS_BASE_FRAME_RATES.includes(value), value === signals.target.frameRate, {
 				axis: 'frameRate',
 				frameRate: value,
 			}),

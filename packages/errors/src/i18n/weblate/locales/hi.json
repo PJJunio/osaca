@@ -445,7 +445,6 @@
 	"premium_and_plans.custom_stickers_in_dms_require_premium": "आप प्रीमियम के बिना DM में कस्टम स्टीकर इस्तेमाल नहीं कर सकते।",
 	"premium_and_plans.custom_stickers_outside_source_require_premium": "आप प्रीमियम के बिना कस्टम स्टीकर अपनी सोर्स कम्युनिटी के बाहर इस्तेमाल नहीं कर सकते।",
 	"premium_and_plans.discriminator_change_requires_premium": "डिस्क्रिमिनेटर बदलने के लिए प्रीमियम ज़रूरी है।",
-	"premium_and_plans.visionary_required_for_discriminator": "वह डिस्क्रिमिनेटर इस्तेमाल करने के लिए आपको Visionary लाइफटाइम प्लान पर होना ज़रूरी है।",
 	"rate_limits.accent_color_changed_too_often": "आपने हाल ही में अपना एक्सेंट कलर बहुत बार बदला है। कृपया {minutes} {minutes, plural, one {मिनट} other {मिनट}} में फिर से प्रयास करें।",
 	"rate_limits.avatar_changed_too_often": "आपने हाल ही में अपना अवतार बहुत बार बदला है। कृपया {minutes} {minutes, plural, one {मिनट} other {मिनट}} में फिर से प्रयास करें।",
 	"rate_limits.banner_changed_too_often": "आपने हाल ही में अपना बैनर बहुत बार बदला है। कृपया {minutes} {minutes, plural, one {मिनट} other {मिनट}} में फिर से प्रयास करें।",

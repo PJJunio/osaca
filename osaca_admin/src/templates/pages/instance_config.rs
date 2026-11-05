@@ -114,7 +114,7 @@ fn experiment_rollout_country_codes_field(name: &str, country_codes: &[String]) 
                 "Two-letter ISO 3166-1 country codes, separated by commas or spaces. When set, \
                  the user rollout percentage only applies to requests from these countries, and \
                  a request with an unknown country is left out. Leave empty to apply the \
-                 percentage everywhere. The always-on lists, the premium switch and the \
+                 percentage everywhere. The always-on lists and the \
                  never-on list ignore the country. Invalid entries prevent the save."
             }
         }
@@ -202,12 +202,11 @@ pub fn instance_config_page(
                 @if instance_config.self_hosted {
                     (config_group(
                         "Community & policy",
-                        "Community shape, direct messaging, the premium model, and optional embed services.",
+                        "Community shape, direct messaging, and optional embed services.",
                         policy_config_section(
                                 base,
                                 config_form,
                                 &instance_config.policy,
-                                &instance_config.app_public.branding.premium_product_name,
                             ),
                     ))
                 }
@@ -752,7 +751,7 @@ pub(super) fn allowed_domains_input(name: &str, value: &str, hint: &str) -> Mark
 
 fn limit_config_section(base: &str, limit_config: &LimitConfigResponse) -> Markup {
     let description = if limit_config.self_hosted.unwrap_or(false) {
-        "Self-hosted instance with all premium features enabled by default. Configure user and guild limits."
+        "Self-hosted instance. Configure user and guild limits."
     } else {
         "Configure limit rules that control user and guild restrictions based on traits and features."
     };

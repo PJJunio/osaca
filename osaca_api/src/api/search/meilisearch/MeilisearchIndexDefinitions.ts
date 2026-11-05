@@ -68,7 +68,6 @@ export const MEILISEARCH_INDEX_DEFINITIONS: Record<OsacaSearchIndexName, Meilise
 			'isSystem',
 			'emailVerified',
 			'emailBounced',
-			'premiumType',
 			'tempBannedUntil',
 			'pendingDeletionAt',
 			'acls',

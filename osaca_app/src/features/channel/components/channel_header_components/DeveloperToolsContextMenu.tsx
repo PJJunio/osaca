@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {AccountPremiumMenu} from '@app/features/channel/components/channel_header_components/developer_tools/AccountPremiumMenu';
 import {GeneralDeveloperOptionsMenu} from '@app/features/channel/components/channel_header_components/developer_tools/GeneralOptionsMenu';
 import {MockingMenu} from '@app/features/channel/components/channel_header_components/developer_tools/MockingMenu';
 import {NagbarsMenu} from '@app/features/channel/components/channel_header_components/developer_tools/NagbarsMenu';
@@ -36,7 +35,6 @@ export const DeveloperToolsContextMenu: React.FC<{onClose: () => void}> = observ
 			</MenuGroup>
 			<MenuGroup data-flx="channel.channel-header-components.developer-tools-context-menu.menu-group--3">
 				<GeneralDeveloperOptionsMenu data-flx="channel.channel-header-components.developer-tools-context-menu.general-developer-options-menu" />
-				<AccountPremiumMenu data-flx="channel.channel-header-components.developer-tools-context-menu.account-premium-menu" />
 				<MockingMenu data-flx="channel.channel-header-components.developer-tools-context-menu.mocking-menu" />
 			</MenuGroup>
 			<MenuGroup data-flx="channel.channel-header-components.developer-tools-context-menu.menu-group--4">

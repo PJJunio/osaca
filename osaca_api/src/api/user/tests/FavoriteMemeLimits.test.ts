@@ -13,7 +13,7 @@ import {
 	createMessageWithImageAttachment,
 	listFavoriteMemes,
 } from '@app/api/user/tests/FavoriteMemeTestUtils';
-import {MAX_FAVORITE_MEMES_NON_PREMIUM} from '@osaca/constants/src/LimitConstants';
+import {MAX_FAVORITE_MEMES} from '@osaca/constants/src/LimitConstants';
 import {afterEach, beforeEach, describe, expect, test} from 'vitest';
 
 describe('Favorite Meme Limits', () => {
@@ -26,14 +26,14 @@ describe('Favorite Meme Limits', () => {
 	});
 	test('should enforce maximum favorite memes limit for non-premium users', async () => {
 		const account = await createTestAccountForAttachmentTests(harness);
-		for (let i = 0; i < MAX_FAVORITE_MEMES_NON_PREMIUM; i++) {
+		for (let i = 0; i < MAX_FAVORITE_MEMES; i++) {
 			await createFavoriteMemeFromUrl(harness, account.token, {
 				url: `https://cdn.example.test/memes/${i + 1}.png`,
 				name: `Meme ${i + 1}`,
 			});
 		}
 		const memes = await listFavoriteMemes(harness, account.token);
-		expect(memes.length).toBe(MAX_FAVORITE_MEMES_NON_PREMIUM);
+		expect(memes.length).toBe(MAX_FAVORITE_MEMES);
 		await createBuilder(harness, account.token)
 			.post('/users/@me/memes')
 			.body({

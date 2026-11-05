@@ -9,9 +9,7 @@
 		[9, "child_safety", "restricted", ["suspension", "content_removal"]],
 		[10, "privacy", "protected", "any"],
 		[11, "harassment", "protected", "any"],
-		[12, "payments", "standard", ["warning", "suspension", "closure", "feature_limit"]],
 		[13, "child_safety", "restricted", ["suspension", "content_removal"]],
-		[14, "payments", "standard", ["warning", "suspension", "closure", "feature_limit"]],
 		[15, "unwanted_sexual_content", "protected", "any"],
 		[16, "violent_content", "standard", "any"],
 		[17, "ban_evasion", "standard", ["warning", "suspension", "closure"]],
@@ -27,8 +25,7 @@
 		[28, "harmful_deception", "standard", "any"],
 		[29, "report_abuse", "standard", ["warning", "feature_limit", "suspension"]],
 		[30, "age_requirement", "standard", ["closure"]],
-		[31, "copyright", "standard", ["warning", "content_removal", "profile_reset", "community_removal"]],
-		[34, "operator_pass_payments", "standard", ["warning", "suspension", "closure", "feature_limit"]]
+		[31, "copyright", "standard", ["warning", "content_removal", "profile_reset", "community_removal"]]
 	],
-	"limits": [["direct_messages", [3, 6, 8, 18, 21]], ["reports", [29]], ["purchases", [12, 14, 34]]]
+	"limits": [["direct_messages", [3, 6, 8, 18, 21]], ["reports", [29]]]
 }

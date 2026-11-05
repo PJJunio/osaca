@@ -7,23 +7,16 @@ import {BACKGROUND_MEDIA_MAX_SIZE_BYTES} from '@app/features/app/config/I18nDisp
 import {useAnimatedMediaVideoPlayback} from '@app/features/app/hooks/useAnimatedMediaPlayback';
 import {useShouldAnimate} from '@app/features/app/hooks/useShouldAnimate';
 import {LimitResolver} from '@app/features/app/utils/LimitResolverAdapter';
-import {
-	GET_PREMIUM_DESCRIPTOR,
-	SOMETHING_WENT_WRONG_DESCRIPTOR,
-	TRY_AGAIN_DESCRIPTOR,
-} from '@app/features/i18n/utils/CommonMessageDescriptors';
+import {SOMETHING_WENT_WRONG_DESCRIPTOR, TRY_AGAIN_DESCRIPTOR} from '@app/features/i18n/utils/CommonMessageDescriptors';
 import {isKeyboardActivationKey} from '@app/features/input/utils/KeyboardUtils';
 import {NearViewportSurfaceContext, useNearViewport} from '@app/features/messaging/hooks/useNearViewport';
 import {openFilePicker} from '@app/features/messaging/utils/FilePickerUtils';
 import {formatFileSize} from '@app/features/messaging/utils/FileUtils';
 import {Logger} from '@app/features/platform/utils/AppLogger';
-import * as PremiumModalCommands from '@app/features/premium/commands/PremiumModalCommands';
-import {getPremiumProductName, shouldShowPremiumFeatures} from '@app/features/premium/utils/PremiumUtils';
 import styles from '@app/features/theme/components/modals/BackgroundImageGalleryModal.module.css';
 import {remFromPx} from '@app/features/theme/layout/RemFromPx';
 import * as BackgroundImageDB from '@app/features/theme/utils/BackgroundImageDB';
 import {MenuItem} from '@app/features/ui/action_menu/MenuItem';
-import {Button} from '@app/features/ui/button/Button';
 import * as ContextMenuCommands from '@app/features/ui/commands/ContextMenuCommands';
 import * as ModalCommands from '@app/features/ui/commands/ModalCommands';
 import {modal} from '@app/features/ui/commands/ModalCommands';
@@ -39,7 +32,6 @@ import {Trans, useLingui} from '@lingui/react/macro';
 import type {IconProps} from '@phosphor-icons/react';
 import {
 	ArrowsClockwiseIcon,
-	AtomIcon,
 	CheckIcon,
 	EyeSlashIcon,
 	PlusIcon,
@@ -64,10 +56,6 @@ const REMOVE_BACKGROUND_DESCRIPTOR = msg({
 const NO_BACKGROUND_DESCRIPTOR = msg({
 	message: 'No background',
 	comment: 'Empty-state text in the background image gallery modal.',
-});
-const UNLOCK_MORE_BACKGROUNDS_DESCRIPTOR = msg({
-	message: 'Unlock more backgrounds with {premiumProductName}',
-	comment: 'Premium upsell title in the background gallery.',
 });
 const BLUR_DESCRIPTOR = msg({
 	message: 'Blur',
@@ -893,35 +881,6 @@ const BackgroundImageGalleryModal: React.FC = observer(() => {
 								BACKGROUND_MEDIA_MAX_SIZE_LABEL: formatFileSize(i18n.locale, BACKGROUND_MEDIA_MAX_SIZE_BYTES),
 							})}
 						</div>
-						{maxBackgroundImages === 1 && shouldShowPremiumFeatures() && (
-							<div className={styles.premiumUpsell} data-flx="theme.background-image-gallery-modal.premium-upsell">
-								<div className={styles.premiumHeader} data-flx="theme.background-image-gallery-modal.premium-header">
-									<AtomIcon
-										weight="fill"
-										size={remFromPx(18)}
-										className={styles.premiumIcon}
-										data-flx="theme.background-image-gallery-modal.premium-icon"
-									/>
-									<span className={styles.premiumTitle} data-flx="theme.background-image-gallery-modal.premium-title">
-										{i18n._(UNLOCK_MORE_BACKGROUNDS_DESCRIPTOR, {premiumProductName: getPremiumProductName()})}
-									</span>
-								</div>
-								<p className={styles.premiumDesc} data-flx="theme.background-image-gallery-modal.premium-desc">
-									<Trans>
-										Upgrade to store up to 15 custom backgrounds and unlock HD video quality, higher frame rates, and
-										more.
-									</Trans>
-								</p>
-								<Button
-									variant="secondary"
-									small={true}
-									onClick={() => PremiumModalCommands.open()}
-									data-flx="theme.background-image-gallery-modal.button.open"
-								>
-									{i18n._(GET_PREMIUM_DESCRIPTOR, {premiumProductName: getPremiumProductName()})}
-								</Button>
-							</div>
-						)}
 					</section>
 				</NearViewportSurfaceContext.Provider>
 			</Modal.Content>

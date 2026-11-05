@@ -26,7 +26,7 @@ const ALL_KINDS: ReadonlyArray<EnforcementKind> = [
 	'community_removal',
 ];
 
-const ALL_LIMITS: ReadonlyArray<EnforcementLimit> = ['direct_messages', 'reports', 'purchases'];
+const ALL_LIMITS: ReadonlyArray<EnforcementLimit> = ['direct_messages', 'reports'];
 
 const RULE_TABLE = [
 	['spam', 'guidelines', '6-spam-and-service-abuse', true, true],
@@ -38,8 +38,6 @@ const RULE_TABLE = [
 	['child_safety', 'guidelines', '4-sexual-content-and-protection-of-minors', true, false],
 	['privacy', 'guidelines', '1-harassment-threats-and-privacy', true, false],
 	['harassment', 'guidelines', '1-harassment-threats-and-privacy', true, false],
-	['payments', 'terms', '4-4-failed-payments-and-disputes', true, false],
-	['operator_pass_payments', 'operator_pass_terms', '9-payment-disputes', true, false],
 	['unwanted_sexual_content', 'guidelines', '1-harassment-threats-and-privacy', true, false],
 	['violent_content', 'guidelines', '3-violence-extremism-and-self-harm', true, true],
 	['ban_evasion', 'guidelines', '6-spam-and-service-abuse', true, false],

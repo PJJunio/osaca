@@ -4,7 +4,7 @@ import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHa
 import {HTTP_STATUS} from '@app/api/test/TestConstants';
 import {createBuilderWithoutAuth} from '@app/api/test/TestRequestBuilder';
 import type {LimitKey} from '@osaca/constants/src/LimitConfigMetadata';
-import {DEFAULT_RESTRICTED_LIMITS, DEFAULT_STOCK_LIMITS} from '@osaca/limits/src/LimitDefaults';
+import {DEFAULT_LIMITS} from '@osaca/limits/src/LimitDefaults';
 import {expandWireFormat} from '@osaca/limits/src/LimitDiffer';
 import {computeDefaultsHash} from '@osaca/limits/src/LimitHashing';
 import {resolveLimits} from '@osaca/limits/src/LimitResolver';
@@ -66,7 +66,7 @@ describe('Limit Wire Format', () => {
 		expect(defaultRule.overrides).toBeDefined();
 		expect(new Set(Object.keys(defaultRule.overrides) as Array<LimitKey>)).toEqual(WIRE_COMPATIBILITY_LIMIT_KEYS);
 		for (const key of WIRE_COMPATIBILITY_LIMIT_KEYS) {
-			expect(defaultRule.overrides[key]).toBe(DEFAULT_RESTRICTED_LIMITS[key]);
+			expect(defaultRule.overrides[key]).toBe(DEFAULT_LIMITS[key]);
 		}
 	});
 	test('wire format roundtrip preserves limit resolution behavior', async () => {
@@ -86,11 +86,11 @@ describe('Limit Wire Format', () => {
 		};
 		const expandedFree = resolveLimits(expanded, freeContext);
 		const expandedPremium = resolveLimits(expanded, premiumContext);
-		for (const key of Object.keys(DEFAULT_RESTRICTED_LIMITS) as Array<LimitKey>) {
-			expect(expandedFree.limits[key]).toBe(DEFAULT_RESTRICTED_LIMITS[key]);
+		for (const key of Object.keys(DEFAULT_LIMITS) as Array<LimitKey>) {
+			expect(expandedFree.limits[key]).toBe(DEFAULT_LIMITS[key]);
 		}
-		for (const key of Object.keys(DEFAULT_STOCK_LIMITS) as Array<LimitKey>) {
-			expect(expandedPremium.limits[key]).toBe(DEFAULT_STOCK_LIMITS[key]);
+		for (const key of Object.keys(DEFAULT_LIMITS) as Array<LimitKey>) {
+			expect(expandedPremium.limits[key]).toBe(DEFAULT_LIMITS[key]);
 		}
 	});
 });

@@ -1,28 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {getConfig} from '@app/api/Config';
-import {isDerivedTrait, isServerManagedTrait, resolveAssignedTraits} from '@app/api/user/UserTraits';
-import {afterEach, describe, expect, it} from 'vitest';
+import {isServerManagedTrait, resolveAssignedTraits} from '@app/api/user/UserTraits';
+import {describe, expect, it} from 'vitest';
 
 describe('UserTraits', () => {
-	const selfHosted = getConfig().instance.selfHosted;
-
-	afterEach(() => {
-		getConfig().instance.selfHosted = selfHosted;
-	});
-
-	it('lets a self-hosted admin assign premium', () => {
-		getConfig().instance.selfHosted = true;
-		expect(isDerivedTrait('premium')).toBe(false);
-		expect([...resolveAssignedTraits([], ['beta-tester', 'premium'])]).toEqual(['beta-tester', 'premium']);
-	});
-
-	it('treats premium as derived rather than assignable', () => {
-		getConfig().instance.selfHosted = false;
-		expect(isDerivedTrait('premium')).toBe(true);
-		expect(isDerivedTrait('beta-tester')).toBe(false);
-	});
-
 	it('recognises every trait shape the server manages', () => {
 		expect(isServerManagedTrait('registration_pending_approval')).toBe(true);
 		expect(isServerManagedTrait('registration_rejected')).toBe(true);
@@ -31,16 +12,6 @@ describe('UserTraits', () => {
 
 	it('keeps the operator traits it was given', () => {
 		expect([...resolveAssignedTraits([], ['beta-tester', 'experimental'])]).toEqual(['beta-tester', 'experimental']);
-	});
-
-	it('drops premium on the hosted instance because nothing reads the stored value', () => {
-		getConfig().instance.selfHosted = false;
-		expect([...resolveAssignedTraits([], ['premium'])]).toEqual([]);
-		expect([...resolveAssignedTraits([], ['beta-tester', 'premium'])]).toEqual(['beta-tester']);
-	});
-
-	it('keeps a premium user premium when the operator saves other traits', () => {
-		expect([...resolveAssignedTraits(['premium'], ['beta-tester'])]).toEqual(['beta-tester']);
 	});
 
 	it('preserves server managed traits the operator did not send', () => {

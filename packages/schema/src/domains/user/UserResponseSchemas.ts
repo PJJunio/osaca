@@ -46,7 +46,6 @@ import {
 	TimeFormatTypesSchema,
 	UserAuthenticatorTypesSchema,
 	UserNotificationSettingsSchema,
-	UserPremiumTypesSchema,
 } from '@osaca/schema/src/primitives/UserSettingsValidators';
 import {z} from 'zod';
 
@@ -105,65 +104,9 @@ export const UserPrivateResponse = UserPartialResponse.extend({
 		.describe('The types of authenticators configured for MFA'),
 	verified: z.boolean().describe('Whether the email address has been verified'),
 	account_limited: z.boolean().optional().describe('Whether the account is limited'),
-	premium_type: withFieldDescription(UserPremiumTypesSchema, 'The type of premium subscription').nullable(),
-	premium_since: z.string().nullable().describe('ISO8601 timestamp of when premium was first activated'),
-	premium_until: z
-		.string()
-		.nullable()
-		.describe('ISO8601 timestamp of when premium access ends, including stacked gift time'),
-	premium_will_cancel: z.boolean().describe('Whether premium is set to cancel at the end of the billing period'),
-	premium_billing_cycle: z.string().nullable().describe('The billing cycle for the premium subscription'),
-	premium_lifetime_sequence: Int32Type.nullable().describe('The sequence number for lifetime premium subscribers'),
-	premium_grace_ends_at: z
-		.string()
-		.nullable()
-		.describe(
-			'ISO8601 timestamp at which grace access ends after premium_until passes: after a failed renewal payment (7 days from the renewal for monthly plans, 14 for yearly), after a subscription ends (3 days), or during an App Store or Google Play grace period. Perks stay active and the original premium_since is kept on resubscribe until this timestamp passes. Null when no grace is recorded, in which case access lasts 3 days after premium_until.',
-		),
-	premium_discriminator: z
-		.boolean()
-		.describe(
-			'Whether the user selected a premium-only discriminator that will be rerolled when non-lifetime premium access ends',
-		),
 	hidden_profile_badges: z
 		.array(z.string())
 		.describe('Keys of the badges hidden from other people, as in the key field of a profile badge'),
-	premium_badge_hidden: z
-		.boolean()
-		.describe('Deprecated, use hidden_profile_badges. Whether the premium badge held is in that list'),
-	premium_badge_masked: z.boolean().describe('Whether the premium badge shows a masked appearance'),
-	premium_badge_timestamp_hidden: z.boolean().describe('Whether the premium start timestamp is hidden'),
-	premium_badge_sequence_hidden: z
-		.boolean()
-		.describe('Deprecated, use hidden_profile_badges. Whether visionary_number is in that list'),
-	premium_purchase_disabled: z.boolean().describe('Whether premium purchases are disabled for this account'),
-	premium_enabled_override: z.boolean().describe('Whether premium features are enabled via override'),
-	premium_perks_disabled: z.boolean().describe('Whether premium perks are temporarily disabled for this account'),
-	operator_pass_badge_hidden: z
-		.boolean()
-		.optional()
-		.describe(
-			'Deprecated, use hidden_profile_badges. Whether operator_pass is in that list. Only present on the current user response. Older servers omit it',
-		),
-	operator_pass_badge_timestamp_hidden: z
-		.boolean()
-		.optional()
-		.describe(
-			'Whether the month and year the Operator Pass was first held are hidden from other people. Only present on the current user response. Older servers omit it',
-		),
-	operator_pass_badge_count_hidden: z
-		.boolean()
-		.optional()
-		.describe(
-			"Whether the number of Operator Passes held is hidden from other people, on the badge and the Operators' wall. Only present on the current user response. Older servers omit it",
-		),
-	operator_pass_since: z
-		.string()
-		.nullable()
-		.optional()
-		.describe(
-			'ISO8601 timestamp of when the account got the Operator Pass, or null without one. Only present on the current user response.',
-		),
 	password_last_changed_at: z.string().nullable().describe('ISO8601 timestamp of the last password change'),
 	last_voice_activity_sharing_change_at: z
 		.string()
@@ -173,10 +116,6 @@ export const UserPrivateResponse = UserPartialResponse.extend({
 		),
 	required_actions: z.array(z.string()).describe('Deprecated. Always empty.'),
 	nsfw_allowed: z.boolean().describe('Whether the user is allowed to view NSFW content'),
-	has_dismissed_premium_onboarding: z.boolean().describe('Whether the user has dismissed the premium onboarding flow'),
-	has_ever_purchased: z.boolean().describe('Whether the user has ever made a purchase'),
-	has_unread_gift_inventory: z.boolean().describe('Whether there are unread items in the gift inventory'),
-	unread_gift_inventory_count: Int32Type.describe('The number of unread gift inventory items'),
 	pending_bulk_message_deletion: z
 		.object({
 			scheduled_at: z.string().describe('ISO8601 timestamp of when the deletion was scheduled'),
@@ -539,26 +478,7 @@ export interface UserPrivate extends UserPartial, UserProfile {
 	readonly authenticator_types: ReadonlyArray<number>;
 	readonly verified: boolean;
 	readonly account_limited?: boolean;
-	readonly premium_type: number | null;
-	readonly premium_since: string | null;
-	readonly premium_until: string | null;
-	readonly premium_will_cancel: boolean;
-	readonly premium_billing_cycle: string | null;
-	readonly premium_lifetime_sequence: number | null;
-	readonly premium_grace_ends_at: string | null;
-	readonly premium_discriminator: boolean;
 	readonly hidden_profile_badges?: ReadonlyArray<string>;
-	readonly premium_badge_hidden: boolean;
-	readonly premium_badge_masked: boolean;
-	readonly premium_badge_timestamp_hidden: boolean;
-	readonly premium_badge_sequence_hidden: boolean;
-	readonly premium_purchase_disabled: boolean;
-	readonly premium_enabled_override: boolean;
-	readonly premium_perks_disabled: boolean;
-	readonly operator_pass_badge_hidden?: boolean;
-	readonly operator_pass_badge_timestamp_hidden?: boolean;
-	readonly operator_pass_badge_count_hidden?: boolean;
-	readonly operator_pass_since?: string | null;
 	readonly timezone?: string | null;
 	readonly timezone_privacy_flags?: number;
 	readonly password_last_changed_at: string | null;
@@ -566,10 +486,6 @@ export interface UserPrivate extends UserPartial, UserProfile {
 	readonly required_actions: ReadonlyArray<string>;
 	readonly nsfw_allowed: boolean;
 	readonly pending_bulk_message_deletion: PendingBulkMessageDeletion | null;
-	readonly has_dismissed_premium_onboarding: boolean;
-	readonly has_ever_purchased: boolean;
-	readonly has_unread_gift_inventory: boolean;
-	readonly unread_gift_inventory_count: number;
 	readonly age_verified_adult?: boolean;
 	readonly terms_agreed_at?: string | null;
 	readonly privacy_agreed_at?: string | null;
@@ -656,26 +572,9 @@ export const UserProfileFullResponse = z.object({
 		.optional()
 		.describe('The guild member data if guild_id was provided'),
 	guild_member_profile: GuildMemberProfileDataResponse.describe('Guild-specific profile data'),
-	premium_type: withFieldDescription(
-		UserPremiumTypesSchema,
-		'The type of premium subscription. Deprecated for badge display, use profile_badges',
-	).optional(),
-	premium_since: z
-		.string()
-		.optional()
-		.describe('ISO8601 timestamp of when premium was activated. Deprecated for badge display, use profile_badges'),
-	premium_lifetime_sequence: Int32Type.optional().describe(
-		'Sequence number for lifetime premium. Deprecated for badge display, use profile_badges',
-	),
 	profile_badges: ProfileBadgeListResponse.optional().describe(
 		'Profile badges in display order. Empty when there is nothing to show. Older servers omit it',
 	),
-	operator_pass_since: z
-		.string()
-		.nullish()
-		.describe(
-			'ISO8601 timestamp of when the user got the Operator Pass, or null when absent or hidden. Older servers omit it',
-		),
 	hidden_profile_badge_count: z
 		.number()
 		.int()
@@ -691,7 +590,7 @@ export const UserProfileFullResponse = z.object({
 		.boolean()
 		.optional()
 		.describe(
-			'True when the target user has restricted their profile and the viewer does not meet the visibility tier. Bio, pronouns, connected accounts, and the premium and Operator Pass badges have been stripped. Staff, partner, and bug hunter badges remain.',
+			'True when the target user has restricted their profile and the viewer does not meet the visibility tier. Bio, pronouns and connected accounts have been stripped. Staff, partner, and bug hunter badges remain.',
 		),
 });
 

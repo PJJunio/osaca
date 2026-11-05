@@ -6,7 +6,6 @@ import * as AuthSession from '@app/api/auth/AuthSession';
 import {assertEmailNotBlocklisted} from '@app/api/auth/EmailBlocklist';
 import {createSudoModeRequiredError} from '@app/api/auth/services/SudoMethods';
 import type {SudoVerificationResult} from '@app/api/auth/services/SudoVerificationService';
-import {Config} from '@app/api/Config';
 import type {UserRow} from '@app/api/database/types/UserTypes';
 import type {DiscriminatorService} from '@app/api/infrastructure/DiscriminatorService';
 import type {LimitConfigService} from '@app/api/limits/LimitConfigService';
@@ -23,9 +22,8 @@ import {assertNoDiscriminatorChange, reserveUsername, type UsernameReservation} 
 import {isProfileSubstringExempt} from '@app/api/user/UserHelpers';
 import {USERNAME_MODE_DISCRIMINATOR} from '@app/api/user/UserTag';
 import {hashPassword} from '@app/api/utils/PasswordUtils';
-import {AccountIdentityModes, TagStyles} from '@osaca/constants/src/AccountIdentityConstants';
+import {TagStyles} from '@osaca/constants/src/AccountIdentityConstants';
 import {AccountTiers} from '@osaca/constants/src/AccountTierConstants';
-import {PremiumFlags, UserPremiumTypes} from '@osaca/constants/src/UserConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {ContentBlockedError} from '@osaca/errors/src/domains/content/ContentBlockedError';
 import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
@@ -82,7 +80,6 @@ export class UserAccountSecurityService {
 		const normalizedEmail = rawEmail?.toLowerCase();
 		const tagChangeRequested = data.username !== undefined || data.discriminator !== undefined;
 		const accountIdentity = tagChangeRequested ? await getInstanceConfigRepository().getAccountIdentity() : null;
-		const usernameSignIn = accountIdentity?.mode === AccountIdentityModes.USERNAME;
 		const uniqueUsernames = !user.isBot && accountIdentity?.tagStyle === TagStyles.NONE;
 		if (uniqueUsernames) {
 			assertNoDiscriminatorChange(data.discriminator, user.discriminator);
@@ -141,15 +138,6 @@ export class UserAccountSecurityService {
 		const usernameRealChange =
 			data.username !== undefined && data.username.toLowerCase() !== user.username.toLowerCase();
 		const discriminatorChanged = updates.discriminator !== user.discriminator;
-		const shouldMarkPremiumDiscriminator =
-			!usernameSignIn &&
-			(accountIdentity?.tagStyle ?? TagStyles.RANDOM) === TagStyles.RANDOM &&
-			(discriminatorChanged || usernameRealChange) &&
-			user.isPremium() &&
-			user.premiumType !== UserPremiumTypes.LIFETIME;
-		if (shouldMarkPremiumDiscriminator && (user.premiumFlags & PremiumFlags.DISCRIMINATOR) === 0) {
-			updates.premium_flags = user.premiumFlags | PremiumFlags.DISCRIMINATOR;
-		}
 		if (user.isBot) {
 			updates.global_name = null;
 		} else if (data.global_name !== undefined) {
@@ -261,9 +249,6 @@ export class UserAccountSecurityService {
 			};
 		}
 		const discriminatorToUse = normalizedRequestedDiscriminator ?? user.discriminator;
-		if (this.requiresVisionaryForDiscriminator0000(user, discriminatorToUse)) {
-			throw InputValidationError.fromCode('discriminator', ValidationErrorCodes.VISIONARY_REQUIRED_FOR_DISCRIMINATOR);
-		}
 		const discriminatorResult = await this.deps.discriminatorService.generateDiscriminator({
 			username,
 			requestedDiscriminator: discriminatorToUse,
@@ -297,9 +282,6 @@ export class UserAccountSecurityService {
 				ValidationErrorCodes.CHANGING_DISCRIMINATOR_REQUIRES_PREMIUM,
 			);
 		}
-		if (this.requiresVisionaryForDiscriminator0000(user, discriminator)) {
-			throw InputValidationError.fromCode('discriminator', ValidationErrorCodes.VISIONARY_REQUIRED_FOR_DISCRIMINATOR);
-		}
 		const discriminatorResult = await this.deps.discriminatorService.generateDiscriminator({
 			username: user.username,
 			requestedDiscriminator: discriminator,
@@ -309,13 +291,6 @@ export class UserAccountSecurityService {
 			throw InputValidationError.fromCode('discriminator', ValidationErrorCodes.TAG_ALREADY_TAKEN);
 		}
 		return discriminator;
-	}
-
-	private requiresVisionaryForDiscriminator0000(user: User, discriminator: number): boolean {
-		if (Config.instance.selfHosted) {
-			return false;
-		}
-		return discriminator === 0 && user.premiumType !== UserPremiumTypes.LIFETIME;
 	}
 
 	private async enforceOsacaTagChangeRateLimit(params: {

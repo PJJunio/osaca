@@ -4,8 +4,7 @@ import {createTestAccount} from '@app/api/auth/tests/AuthTestUtils';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {HTTP_STATUS} from '@app/api/test/TestConstants';
 import {createBuilder} from '@app/api/test/TestRequestBuilder';
-import {fetchUserMe, grantPremium, updateUserProfile} from '@app/api/user/tests/UserTestUtils';
-import {UserPremiumTypes} from '@osaca/constants/src/UserConstants';
+import {fetchUserMe, updateUserProfile} from '@app/api/user/tests/UserTestUtils';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {afterEach, beforeEach, describe, expect, test} from 'vitest';
 
@@ -39,7 +38,6 @@ describe('User OsacaTag rate limit', () => {
 	});
 	test('blocks the sixth discriminator-only change within the cooldown window', async () => {
 		const account = await createTestAccount(harness);
-		await grantPremium(harness, account.userId, UserPremiumTypes.SUBSCRIPTION);
 		const {json: me} = await fetchUserMe(harness, account.token);
 		const targets = Array.from({length: 20}, (_, i) => String(67 + i).padStart(4, '0'))
 			.filter((value) => value !== me.discriminator)

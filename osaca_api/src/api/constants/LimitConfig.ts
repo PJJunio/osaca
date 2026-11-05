@@ -5,97 +5,50 @@ import {GuildFeatures} from '@osaca/constants/src/GuildConstants';
 import type {LimitKey} from '@osaca/constants/src/LimitConfigMetadata';
 import {LIMIT_KEY_METADATA, LIMIT_KEYS} from '@osaca/constants/src/LimitConfigMetadata';
 import {MAX_GUILD_MEMBERS_VERY_LARGE_GUILD} from '@osaca/constants/src/LimitConstants';
-import {DEFAULT_RESTRICTED_LIMITS, DEFAULT_STOCK_LIMITS} from '@osaca/limits/src/LimitDefaults';
+import {DEFAULT_LIMITS} from '@osaca/limits/src/LimitDefaults';
 import type {LimitConfigSnapshot, LimitRule} from '@osaca/limits/src/LimitTypes';
 
 const LIMIT_RULE_IDS = {
 	DEFAULT: 'default',
-	HOSTED_UPGRADE: 'premium',
 	VERY_LARGE_GUILD: 'very_large_guild',
 } as const;
 
 export const LIMIT_CONFIG_REFRESH_CHANNEL = 'limit-config-refresh';
 
 export interface LimitBuildOptions {
-	selfHosted?: boolean;
-	premiumMode?: 'mirror' | 'everyone';
+	selfHosted: boolean;
 }
 
 export interface StoredLimitConfig extends LimitConfigSnapshot {
 	overridesOnly?: boolean;
 }
 
-function cloneLimitConfigSnapshot(config: LimitConfigSnapshot): LimitConfigSnapshot {
-	return structuredClone(config);
-}
-
-export function sanitizeLimitConfigForInstance(
-	config: LimitConfigSnapshot,
-	options?: LimitBuildOptions,
-): LimitConfigSnapshot {
-	const selfHosted = options?.selfHosted ?? false;
-	const premiumMode = options?.premiumMode ?? 'everyone';
-	const normalized: LimitConfigSnapshot = {
+export function normalizeLimitConfig(config: LimitConfigSnapshot): LimitConfigSnapshot {
+	return {
 		traitDefinitions: Array.isArray(config.traitDefinitions) ? config.traitDefinitions : [],
 		rules: Array.isArray(config.rules) ? config.rules : [],
 	};
-	if (!selfHosted || premiumMode === 'mirror') {
-		return normalized;
-	}
-	const isPremiumTrait = (trait: string) => trait.toLowerCase() === 'premium';
-	const traitDefinitions = normalized.traitDefinitions.filter((t) => !isPremiumTrait(t));
-	const rules = normalized.rules.filter((rule) => !(rule.filters?.traits ?? []).some(isPremiumTrait));
+}
+
+export function createDefaultLimitConfig(): LimitConfigSnapshot {
 	return {
-		traitDefinitions,
-		rules,
+		traitDefinitions: [],
+		rules: [
+			{
+				id: LIMIT_RULE_IDS.DEFAULT,
+				limits: {...DEFAULT_LIMITS},
+			},
+			{
+				id: LIMIT_RULE_IDS.VERY_LARGE_GUILD,
+				filters: {guildFeatures: [GuildFeatures.VERY_LARGE_GUILD]},
+				limits: {max_guild_members: MAX_GUILD_MEMBERS_VERY_LARGE_GUILD},
+			},
+		],
 	};
 }
 
-export function createDefaultLimitConfig(options?: LimitBuildOptions): LimitConfigSnapshot {
-	const selfHosted = options?.selfHosted ?? false;
-	const premiumMode = options?.premiumMode ?? 'everyone';
-	const useTiers = !selfHosted || premiumMode === 'mirror';
-	const hostedDefault: LimitConfigSnapshot = {
-		traitDefinitions: useTiers ? ['premium'] : [],
-		rules: useTiers
-			? [
-					{
-						id: LIMIT_RULE_IDS.HOSTED_UPGRADE,
-						filters: {traits: ['premium']},
-						limits: {...DEFAULT_STOCK_LIMITS},
-					},
-					{
-						id: LIMIT_RULE_IDS.DEFAULT,
-						limits: {...DEFAULT_RESTRICTED_LIMITS},
-					},
-					{
-						id: LIMIT_RULE_IDS.VERY_LARGE_GUILD,
-						filters: {guildFeatures: [GuildFeatures.VERY_LARGE_GUILD]},
-						limits: {max_guild_members: MAX_GUILD_MEMBERS_VERY_LARGE_GUILD},
-					},
-				]
-			: [
-					{
-						id: LIMIT_RULE_IDS.DEFAULT,
-						limits: {...DEFAULT_STOCK_LIMITS},
-					},
-					{
-						id: LIMIT_RULE_IDS.VERY_LARGE_GUILD,
-						filters: {guildFeatures: [GuildFeatures.VERY_LARGE_GUILD]},
-						limits: {max_guild_members: MAX_GUILD_MEMBERS_VERY_LARGE_GUILD},
-					},
-				],
-	};
-	return sanitizeLimitConfigForInstance(cloneLimitConfigSnapshot(hostedDefault), {selfHosted, premiumMode});
-}
-
-export function mergeWithCurrentDefaults(
-	stored: LimitConfigSnapshot,
-	options?: LimitBuildOptions,
-): LimitConfigSnapshot {
-	const selfHosted = options?.selfHosted ?? false;
-	const premiumMode = options?.premiumMode ?? 'everyone';
-	const newDefaults = createDefaultLimitConfig({selfHosted, premiumMode});
+export function mergeWithCurrentDefaults(stored: LimitConfigSnapshot): LimitConfigSnapshot {
+	const newDefaults = createDefaultLimitConfig();
 	const defaultBaseRule = newDefaults.rules.find((rule) => rule.id === LIMIT_RULE_IDS.DEFAULT);
 	assert(defaultBaseRule, 'Limit configuration defaults must include a default rule');
 	const mergedRules: Array<LimitRule> = [];
@@ -140,29 +93,20 @@ export function mergeWithCurrentDefaults(
 	};
 }
 
-export function readStoredLimitOverrides(
-	stored: StoredLimitConfig,
-	options: Required<LimitBuildOptions>,
-): StoredLimitConfig {
+export function readStoredLimitOverrides(stored: StoredLimitConfig, options: LimitBuildOptions): StoredLimitConfig {
 	if (!options.selfHosted || stored.overridesOnly) {
 		return stored;
 	}
-	const currentDefaults = builtInRuleLimits(options);
-	const otherDefaults = builtInRuleLimits({
-		selfHosted: true,
-		premiumMode: options.premiumMode === 'mirror' ? 'everyone' : 'mirror',
-	});
+	const defaults = builtInRuleLimits();
 	return {
 		overridesOnly: true,
 		traitDefinitions: stored.traitDefinitions,
 		rules: stored.rules.map((rule) => {
-			const current = currentDefaults.get(rule.id);
-			const other = otherDefaults.get(rule.id);
-			const savedUnder = current && !(other && wasSavedUnderOtherDefaults(rule, current, other)) ? current : other;
+			const ruleDefaults = defaults.get(rule.id);
 			return {
 				id: rule.id,
 				filters: rule.filters,
-				limits: savedUnder ? pickModifiedLimits(rule.limits, savedUnder) : rule.limits,
+				limits: ruleDefaults ? pickModifiedLimits(rule.limits, ruleDefaults) : rule.limits,
 			};
 		}),
 	};
@@ -171,15 +115,15 @@ export function readStoredLimitOverrides(
 export function buildStoredLimitConfig(
 	submitted: LimitConfigSnapshot,
 	previous: StoredLimitConfig | null,
-	options: Required<LimitBuildOptions>,
+	options: LimitBuildOptions,
 ): StoredLimitConfig {
-	const visible = sanitizeLimitConfigForInstance(submitted, options);
+	const visible = normalizeLimitConfig(submitted);
 	if (!options.selfHosted) {
-		return mergeWithCurrentDefaults(visible, options);
+		return mergeWithCurrentDefaults(visible);
 	}
 	const kept = previous === null ? null : readStoredLimitOverrides(previous, options);
 	const keptRules = new Map((kept?.rules ?? []).map((rule) => [rule.id, rule]));
-	const defaults = builtInRuleLimits(options);
+	const defaults = builtInRuleLimits();
 	const rules: Array<LimitRule> = visible.rules.map((rule) => {
 		const ruleDefaults = defaults.get(rule.id);
 		const keptLimits = keptRules.get(rule.id)?.limits ?? {};
@@ -191,45 +135,15 @@ export function buildStoredLimitConfig(
 				: rule.limits,
 		};
 	});
-	const hidden = kept === null ? null : hiddenFromInstance(kept, options);
-	const visibleRuleIds = new Set(rules.map((rule) => rule.id));
 	return {
 		overridesOnly: true,
-		traitDefinitions: [
-			...(hidden?.traitDefinitions ?? []).filter((trait) => !visible.traitDefinitions.includes(trait)),
-			...visible.traitDefinitions,
-		],
-		rules: [...(hidden?.rules ?? []).filter((rule) => !visibleRuleIds.has(rule.id)), ...rules],
+		traitDefinitions: visible.traitDefinitions,
+		rules,
 	};
 }
 
-function hiddenFromInstance(config: LimitConfigSnapshot, options: Required<LimitBuildOptions>): LimitConfigSnapshot {
-	const visible = sanitizeLimitConfigForInstance(config, options);
-	return {
-		traitDefinitions: config.traitDefinitions.filter((trait) => !visible.traitDefinitions.includes(trait)),
-		rules: config.rules.filter((rule) => !visible.rules.includes(rule)),
-	};
-}
-
-function builtInRuleLimits(options?: LimitBuildOptions): Map<string, Partial<Record<LimitKey, number>>> {
-	return new Map(createDefaultLimitConfig(options).rules.map((rule) => [rule.id, rule.limits]));
-}
-
-function wasSavedUnderOtherDefaults(
-	rule: LimitRule,
-	currentDefaults: Partial<Record<LimitKey, number>>,
-	otherDefaults: Partial<Record<LimitKey, number>>,
-): boolean {
-	const modeKeys = LIMIT_KEYS.filter((key) => currentDefaults[key] !== otherDefaults[key]);
-	const edited = new Set<string>(rule.modifiedFields ?? []);
-	const untouchedModeKeys = modeKeys.filter((key) => !edited.has(key));
-	if (untouchedModeKeys.length > 0) {
-		return untouchedModeKeys.every((key) => rule.limits[key] === otherDefaults[key]);
-	}
-	return (
-		modeKeys.some((key) => rule.limits[key] === otherDefaults[key]) &&
-		modeKeys.every((key) => rule.limits[key] !== undefined && rule.limits[key] !== currentDefaults[key])
-	);
+function builtInRuleLimits(): Map<string, Partial<Record<LimitKey, number>>> {
+	return new Map(createDefaultLimitConfig().rules.map((rule) => [rule.id, rule.limits]));
 }
 
 function readKnownLimits(limits: Partial<Record<LimitKey, number>>): Partial<Record<LimitKey, number>> {

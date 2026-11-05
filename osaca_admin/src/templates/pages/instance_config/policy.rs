@@ -16,18 +16,15 @@ pub(super) fn policy_config_section(
     base: &str,
     config_form: ConfigForm<'_>,
     policy: &InstancePolicyResponse,
-    premium_name: &str,
 ) -> Markup {
     section_card_with_description(
         "Community & Policy",
         "Control whether this instance runs as a single community, whether direct messages and \
-         friends are available, which premium model applies, and which optional embed services \
-         are enabled.",
+         friends are available, and which optional embed services are enabled.",
         html! {
             div class="space-y-8" {
                 (single_community_form(base, config_form, policy))
                 (direct_messages_form(base, config_form, policy))
-                (premium_mode_form(base, config_form, policy, premium_name))
                 (community_creation_form(base, config_form, policy))
                 (services_form(base, config_form, policy))
             }
@@ -168,37 +165,6 @@ fn direct_messages_form(
                     }
                     (form_actions(html! {
                         (submit_button("Save direct message, friend and personal notes settings"))
-                    }))
-                }
-            }
-        }
-    }
-}
-
-fn premium_mode_form(
-    base: &str,
-    config_form: ConfigForm<'_>,
-    policy: &InstancePolicyResponse,
-    premium_name: &str,
-) -> Markup {
-    let mirror_label = format!("Mirror (Free and {premium_name} tiers)");
-    let everyone_label = format!("Everyone (every member gets {premium_name} limits)");
-    html! {
-        div class="space-y-4 border-t border-neutral-200 pt-6" {
-            h3 class="text-sm font-semibold text-neutral-900" { "Premium model" }
-            form method="post" action={(base) "/instance-config?action=update_policy"} {
-                (config_form.fields())
-                div class="space-y-4" {
-                    (select_input("policy_premium_mode", "Premium model", &[
-                        ("mirror", mirror_label.as_str()),
-                        ("everyone", everyone_label.as_str()),
-                    ], policy.premium_mode.as_str()))
-                    p class="text-xs text-neutral-500" {
-                        "Limits you have not edited follow the model. Limits you changed under Limit \
-                         Config keep your values in both models."
-                    }
-                    (form_actions(html! {
-                        (submit_button("Save premium model"))
                     }))
                 }
             }

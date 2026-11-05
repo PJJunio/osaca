@@ -43,7 +43,6 @@ import {
 	AdminUserFlagsUpdateRequest,
 	AdminUserGuildListQuery,
 	AdminUserListQuery,
-	AdminUserPremiumFlagsUpdateRequest,
 	AdminUserRelationshipCategoryQuery,
 	AdminUserRelationshipParam,
 	AdminUserSystemStatusRequest,
@@ -1290,40 +1289,6 @@ export function UserAdminController(app: HonoApp) {
 				await adminService.userService.securityService.updateUserFlags({
 					userId,
 					data: {addFlags, removeFlags},
-					adminUserId,
-					auditLogReason,
-					acls: adminUserAcls,
-				}),
-			);
-		},
-	);
-	app.patch(
-		'/admin/users/:user_id/premium-flags',
-		RateLimitMiddleware(RateLimitConfigs.ADMIN_USER_MODIFY),
-		requireAdminACL(AdminACLs.USER_UPDATE_FLAGS),
-		Validator('param', UserIdParam),
-		Validator('json', AdminUserPremiumFlagsUpdateRequest),
-		OpenAPI({
-			operationId: 'update_admin_user_premium_flags',
-			summary: 'Update user premium flags',
-			responseSchema: UserMutationResponse,
-			statusCode: 200,
-			security: 'adminApiKey',
-			tags: 'Admin',
-			description:
-				'Add or remove premium-related flags on a user account (badge visibility, override, purchase block, etc). Adding PURCHASE_DISABLED returns 400, because a purchase limit is recorded through the feature limits route, and removing it while an enforcement decision holds it returns 409 with the decision ID. Creates audit log entry. Requires USER_UPDATE_FLAGS permission.',
-		}),
-		async (ctx) => {
-			const adminService = ctx.get('adminService');
-			const adminUserId = ctx.get('adminUserId');
-			const auditLogReason = ctx.get('auditLogReason');
-			const adminUserAcls = ctx.get('adminUserAcls');
-			const body = ctx.req.valid('json');
-			const userId = createUserID(ctx.req.valid('param').user_id);
-			return ctx.json(
-				await adminService.userService.securityService.updatePremiumFlags({
-					userId,
-					data: {addFlags: body.add_flags, removeFlags: body.remove_flags},
 					adminUserId,
 					auditLogReason,
 					acls: adminUserAcls,

@@ -1,10 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {
-	PREMIUM_PROFILE_BADGE_KINDS,
-	type ProfileBadgeKey,
-	type ProfileBadgeKind,
-} from '@osaca/constants/src/BadgeConstants';
+import type {ProfileBadgeKey, ProfileBadgeKind} from '@osaca/constants/src/BadgeConstants';
 import type {ValueOf} from '@osaca/constants/src/ValueOf';
 
 export const UNCATEGORIZED_FOLDER_ID = -1;
@@ -38,22 +34,6 @@ export const UserAuthenticatorTypesDescriptions: Record<keyof typeof UserAuthent
 	TOTP: 'Time-based one-time password authenticator',
 	WEBAUTHN: 'WebAuthn authenticator',
 };
-export const UserPremiumTypes = {
-	NONE: 0,
-	SUBSCRIPTION: 1,
-	LIFETIME: 2,
-} as const;
-
-export type UserPremiumType = ValueOf<typeof UserPremiumTypes>;
-
-export const PREMIUM_GRACE_PERIOD_DAYS = 3;
-export const PREMIUM_PAYMENT_RECOVERY_GRACE_DAYS = {monthly: 7, yearly: 14} as const;
-
-export const UserPremiumTypesDescriptions: Record<keyof typeof UserPremiumTypes, string> = {
-	NONE: 'No premium subscription',
-	SUBSCRIPTION: 'Active premium subscription',
-	LIFETIME: 'Lifetime premium subscription',
-};
 export const UserFlags = {
 	STAFF: 1n << 0n,
 	PARTNER: 1n << 2n,
@@ -71,7 +51,6 @@ export const UserFlags = {
 	REPORT_BANNED: 1n << 48n,
 	VERIFIED_NOT_UNDERAGE: 1n << 49n,
 	ACCOUNT_LIMITED: 1n << 50n,
-	HAS_DISMISSED_PREMIUM_ONBOARDING: 1n << 51n,
 	APP_STORE_REVIEWER: 1n << 53n,
 	AGE_VERIFIED_ADULT: 1n << 60n,
 	LIMIT_EXEMPT: 1n << 62n,
@@ -93,90 +72,38 @@ export const UserFlagsDescriptions: Record<keyof typeof UserFlags, string> = {
 	REPORT_BANNED: 'User is banned from reporting',
 	VERIFIED_NOT_UNDERAGE: 'User is verified as not underage',
 	ACCOUNT_LIMITED: 'User account is limited',
-	HAS_DISMISSED_PREMIUM_ONBOARDING: 'User has dismissed premium onboarding',
 	APP_STORE_REVIEWER: 'User is an app store reviewer',
 	AGE_VERIFIED_ADULT: 'User has verified their age as an adult',
 	LIMIT_EXEMPT: 'User is permanently exempt from account limitation',
 };
-export const PremiumFlags = {
-	DISCRIMINATOR: 1 << 0,
-	BADGE_MASKED: 1 << 2,
-	BADGE_TIMESTAMP_HIDDEN: 1 << 3,
-	PERKS_SANITIZED: 1 << 5,
-	PURCHASE_DISABLED: 1 << 6,
-	ENABLED_OVERRIDE: 1 << 7,
-	PERKS_DISABLED: 1 << 8,
-	OPERATOR_PASS_BADGE_TIMESTAMP_HIDDEN: 1 << 11,
-	OPERATOR_PASS_BADGE_COUNT_HIDDEN: 1 << 12,
-} as const;
-export const PremiumFlagsDescriptions: Record<keyof typeof PremiumFlags, string> = {
-	DISCRIMINATOR: 'User has a premium discriminator',
-	BADGE_MASKED: 'User has masked their premium badge',
-	BADGE_TIMESTAMP_HIDDEN: 'User has hidden their premium badge timestamp',
-	PERKS_SANITIZED: 'User premium perks are sanitized',
-	PURCHASE_DISABLED: 'Premium purchase is disabled for this user',
-	ENABLED_OVERRIDE: 'Premium status is enabled via override',
-	PERKS_DISABLED: 'User has temporarily disabled premium perks',
-	OPERATOR_PASS_BADGE_TIMESTAMP_HIDDEN: 'User has hidden when they first got the Operator Pass',
-	OPERATOR_PASS_BADGE_COUNT_HIDDEN: 'User has hidden how many Operator Passes they hold',
-};
-const LEGACY_PREMIUM_BADGE_HIDDEN = 1 << 1;
-const LEGACY_PREMIUM_BADGE_SEQUENCE_HIDDEN = 1 << 4;
-const LEGACY_OPERATOR_PASS_BADGE_HIDDEN = 1 << 9;
 const LEGACY_STAFF_HIDDEN = 1n << 57n;
-const LEGACY_PREMIUM_FLAG_BITS_TO_NEW: ReadonlyArray<readonly [bigint, number]> = [
-	[1n << 37n, PremiumFlags.DISCRIMINATOR],
-	[1n << 40n, LEGACY_PREMIUM_BADGE_HIDDEN],
-	[1n << 41n, PremiumFlags.BADGE_MASKED],
-	[1n << 42n, PremiumFlags.BADGE_TIMESTAMP_HIDDEN],
-	[1n << 43n, LEGACY_PREMIUM_BADGE_SEQUENCE_HIDDEN],
-	[1n << 44n, PremiumFlags.PERKS_SANITIZED],
-	[1n << 45n, PremiumFlags.PURCHASE_DISABLED],
-	[1n << 46n, PremiumFlags.ENABLED_OVERRIDE],
-];
-export const LEGACY_PREMIUM_FLAGS_MASK: bigint = LEGACY_PREMIUM_FLAG_BITS_TO_NEW.reduce(
-	(mask, [legacy]) => mask | legacy,
-	0n,
-);
+const LEGACY_PREMIUM_USER_FLAGS_MASK: bigint =
+	(1n << 37n) |
+	(1n << 40n) |
+	(1n << 41n) |
+	(1n << 42n) |
+	(1n << 43n) |
+	(1n << 44n) |
+	(1n << 45n) |
+	(1n << 46n) |
+	(1n << 51n);
 export const LEGACY_DEAD_USER_FLAGS_MASK: bigint =
-	(1n << 35n) | (1n << 52n) | (1n << 54n) | (1n << 55n) | (1n << 56n) | (1n << 58n) | (1n << 61n);
-
-export function extractPremiumFlagsFromLegacyUserFlags(legacyFlags: bigint): number {
-	let result = 0;
-	for (const [legacy, modern] of LEGACY_PREMIUM_FLAG_BITS_TO_NEW) {
-		if ((legacyFlags & legacy) !== 0n) {
-			result |= modern;
-		}
-	}
-	return result;
-}
-
-const LEGACY_PREMIUM_BADGE_HIDE_BITS: ReadonlyArray<readonly [number, ReadonlyArray<ProfileBadgeKind>]> = [
-	[LEGACY_PREMIUM_BADGE_HIDDEN, PREMIUM_PROFILE_BADGE_KINDS],
-	[LEGACY_PREMIUM_BADGE_SEQUENCE_HIDDEN, ['visionary_number']],
-	[LEGACY_OPERATOR_PASS_BADGE_HIDDEN, ['operator_pass']],
-];
-export const LEGACY_BADGE_HIDE_PREMIUM_FLAGS_MASK: number =
-	LEGACY_PREMIUM_BADGE_HIDDEN | LEGACY_PREMIUM_BADGE_SEQUENCE_HIDDEN | LEGACY_OPERATOR_PASS_BADGE_HIDDEN;
+	LEGACY_PREMIUM_USER_FLAGS_MASK |
+	(1n << 35n) |
+	(1n << 52n) |
+	(1n << 54n) |
+	(1n << 55n) |
+	(1n << 56n) |
+	(1n << 58n) |
+	(1n << 61n);
 export const LEGACY_BADGE_HIDE_USER_FLAGS_MASK: bigint = LEGACY_STAFF_HIDDEN;
 
-export function legacyHiddenProfileBadges(flags: bigint, premiumFlags: number): Array<ProfileBadgeKind> {
-	const hidden = new Set<ProfileBadgeKind>();
-	if ((flags & LEGACY_STAFF_HIDDEN) !== 0n) hidden.add('staff');
-	const folded = premiumFlags | extractPremiumFlagsFromLegacyUserFlags(flags);
-	for (const [bit, kinds] of LEGACY_PREMIUM_BADGE_HIDE_BITS) {
-		if ((folded & bit) === 0) continue;
-		for (const kind of kinds) hidden.add(kind);
-	}
-	return [...hidden];
+export function legacyHiddenProfileBadges(flags: bigint): Array<ProfileBadgeKind> {
+	return (flags & LEGACY_STAFF_HIDDEN) !== 0n ? ['staff'] : [];
 }
 
-export function clearLegacyBadgeHideBits(flags: bigint, premiumFlags: number): {flags: bigint; premiumFlags: number} {
-	return {
-		flags: flags & ~LEGACY_PREMIUM_FLAGS_MASK & ~LEGACY_DEAD_USER_FLAGS_MASK & ~LEGACY_BADGE_HIDE_USER_FLAGS_MASK,
-		premiumFlags:
-			(premiumFlags | extractPremiumFlagsFromLegacyUserFlags(flags)) & ~LEGACY_BADGE_HIDE_PREMIUM_FLAGS_MASK,
-	};
+export function clearLegacyBadgeHideBits(flags: bigint): bigint {
+	return flags & ~LEGACY_DEAD_USER_FLAGS_MASK & ~LEGACY_BADGE_HIDE_USER_FLAGS_MASK;
 }
 
 export const PUBLIC_USER_FLAGS =

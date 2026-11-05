@@ -18,11 +18,8 @@ import {UserSearchRepository} from '@app/api/user/repositories/account/crud/User
 import {personalFieldsToClear} from '@app/api/user/UserHelpers';
 import {
 	clearLegacyBadgeHideBits,
-	extractPremiumFlagsFromLegacyUserFlags,
-	LEGACY_BADGE_HIDE_PREMIUM_FLAGS_MASK,
 	LEGACY_BADGE_HIDE_USER_FLAGS_MASK,
 	LEGACY_DEAD_USER_FLAGS_MASK,
-	LEGACY_PREMIUM_FLAGS_MASK,
 	legacyHiddenProfileBadges,
 } from '@osaca/constants/src/UserConstants';
 import type {IKVProvider} from '@pkgs/kv_client/src/IKVProvider';
@@ -37,7 +34,6 @@ export interface UserDeletionScheduleUpdate {
 	deletion_scheduled_at?: Date | null;
 	temp_banned_until?: Date | null;
 	enforcement_decision_id?: bigint | null;
-	first_refund_at?: Date | null;
 }
 
 const USER_FLAGS_WRITE_ATTEMPTS = 3;
@@ -86,7 +82,7 @@ export class UserAccountRepository {
 		if (oldData === undefined) {
 			oldData = (await this.findUnique(userId))?.toRow() ?? null;
 		}
-		this.applyPremiumFlagsMigration(data, oldData);
+		this.applyLegacyFlagsMigration(data);
 		const claimedNewEmail = this.didEmailChange(oldData, data);
 		let emailClaim: EmailClaimReservation | null = null;
 		if (claimedNewEmail && data.email) {
@@ -148,16 +144,15 @@ export class UserAccountRepository {
 		for (let attempt = 0; attempt < USER_FLAGS_WRITE_ATTEMPTS; attempt++) {
 			const row = await this.dataRepo.findRow(userId);
 			if (!row) return null;
-			const legacyHidden = legacyHiddenProfileBadges(row.flags ?? 0n, row.premium_flags ?? 0);
+			const legacyHidden = legacyHiddenProfileBadges(row.flags ?? 0n);
 			if (legacyHidden.length === 0) return null;
-			const cleared = clearLegacyBadgeHideBits(row.flags ?? 0n, row.premium_flags ?? 0);
+			const cleared = clearLegacyBadgeHideBits(row.flags ?? 0n);
 			const hidden = new Set(row.hidden_profile_badges ?? []);
 			if (options.mergeIntoHiddenList) {
 				for (const key of legacyHidden) hidden.add(key);
 			}
 			const updatedData = await this.dataRepo.compareAndSetBadgeHideState(row, {
-				flags: cleared.flags,
-				premium_flags: cleared.premiumFlags,
+				flags: cleared,
 				hidden_profile_badges: hidden.size > 0 ? hidden : null,
 			});
 			if (!updatedData) continue;
@@ -219,7 +214,7 @@ export class UserAccountRepository {
 			const existingUser = await this.findUniqueAssert(userId);
 			oldData = existingUser.toRow();
 		}
-		patchData = this.migrateBadgeHideBitsInPatch(this.migratePremiumFlagsInPatch(patchData, oldData), oldData);
+		patchData = this.migrateBadgeHideBitsInPatch(this.migrateDeadFlagsInPatch(patchData, oldData), oldData);
 		const userPatch: Record<string, DbOp<unknown>> = {};
 		for (const [key, value] of Object.entries(patchData)) {
 			if (key === 'user_id' || value === undefined) continue;
@@ -255,7 +250,7 @@ export class UserAccountRepository {
 				await this.indexRepo.syncIndices(updatedData, previousData);
 			}
 			await this.searchRepo.updateUser(updatedUser);
-			if (legacyHiddenProfileBadges(updatedData.flags ?? 0n, updatedData.premium_flags ?? 0).length > 0) {
+			if (legacyHiddenProfileBadges(updatedData.flags ?? 0n).length > 0) {
 				return (await this.moveLegacyBadgeHideBits(userId, {mergeIntoHiddenList: false})) ?? updatedUser;
 			}
 			return updatedUser;
@@ -303,58 +298,40 @@ export class UserAccountRepository {
 		return this.dataRepo.getActivityTracking(userId);
 	}
 
-	private applyPremiumFlagsMigration(data: UserRow, oldData: UserRow | null | undefined): void {
+	private applyLegacyFlagsMigration(data: UserRow): void {
 		const rawFlags = data.flags ?? 0n;
-		const legacyPremiumBits = extractPremiumFlagsFromLegacyUserFlags(rawFlags);
-		const sanitizedFlags = rawFlags & ~LEGACY_PREMIUM_FLAGS_MASK & ~LEGACY_DEAD_USER_FLAGS_MASK;
+		const sanitizedFlags = rawFlags & ~LEGACY_DEAD_USER_FLAGS_MASK;
 		if (sanitizedFlags !== rawFlags) {
 			data.flags = sanitizedFlags;
 		}
-		if (legacyPremiumBits !== 0) {
-			const basePremiumFlags = data.premium_flags ?? oldData?.premium_flags ?? 0;
-			data.premium_flags = basePremiumFlags | legacyPremiumBits;
-		}
-		const legacyHidden = legacyHiddenProfileBadges(rawFlags, data.premium_flags ?? 0);
+		const legacyHidden = legacyHiddenProfileBadges(rawFlags);
 		if (legacyHidden.length === 0) return;
 		data.hidden_profile_badges = new Set([...(data.hidden_profile_badges ?? []), ...legacyHidden]);
 		data.flags = (data.flags ?? 0n) & ~LEGACY_BADGE_HIDE_USER_FLAGS_MASK;
-		data.premium_flags = (data.premium_flags ?? 0) & ~LEGACY_BADGE_HIDE_PREMIUM_FLAGS_MASK;
 	}
 
 	private migrateBadgeHideBitsInPatch(patchData: Partial<UserRow>, oldData: UserRow): Partial<UserRow> {
 		const flags = patchData.flags !== undefined ? (patchData.flags ?? 0n) : (oldData.flags ?? 0n);
-		const premiumFlags =
-			patchData.premium_flags !== undefined ? (patchData.premium_flags ?? 0) : (oldData.premium_flags ?? 0);
-		const legacyHidden = legacyHiddenProfileBadges(flags, premiumFlags);
+		const legacyHidden = legacyHiddenProfileBadges(flags);
 		if (legacyHidden.length === 0) return patchData;
 		const migrated = {...patchData};
 		if (migrated.hidden_profile_badges === undefined) {
 			migrated.hidden_profile_badges = new Set([...(oldData.hidden_profile_badges ?? []), ...legacyHidden]);
 		}
 		if (migrated.flags != null) migrated.flags &= ~LEGACY_BADGE_HIDE_USER_FLAGS_MASK;
-		if (migrated.premium_flags != null) migrated.premium_flags &= ~LEGACY_BADGE_HIDE_PREMIUM_FLAGS_MASK;
 		return migrated;
 	}
 
-	private migratePremiumFlagsInPatch(patchData: Partial<UserRow>, oldData: UserRow): Partial<UserRow> {
-		const oldRawFlags = oldData.flags ?? 0n;
-		const oldLegacyPremiumBits = extractPremiumFlagsFromLegacyUserFlags(oldRawFlags);
+	private migrateDeadFlagsInPatch(patchData: Partial<UserRow>, oldData: UserRow): Partial<UserRow> {
 		const flagsInPatch = patchData.flags;
-		let migratedPatch = patchData;
 		if (flagsInPatch !== undefined && flagsInPatch !== null) {
-			const inboundLegacyPremium = extractPremiumFlagsFromLegacyUserFlags(flagsInPatch);
-			const sanitizedFlags = flagsInPatch & ~LEGACY_PREMIUM_FLAGS_MASK & ~LEGACY_DEAD_USER_FLAGS_MASK;
-			migratedPatch = {...patchData, flags: sanitizedFlags};
-			if (inboundLegacyPremium !== 0) {
-				const basePremiumFlags = patchData.premium_flags ?? oldData.premium_flags ?? 0;
-				migratedPatch.premium_flags = basePremiumFlags | inboundLegacyPremium;
-			}
-		} else if (oldLegacyPremiumBits !== 0) {
-			migratedPatch = {...patchData, flags: oldRawFlags & ~LEGACY_PREMIUM_FLAGS_MASK & ~LEGACY_DEAD_USER_FLAGS_MASK};
-			const basePremiumFlags = patchData.premium_flags ?? oldData.premium_flags ?? 0;
-			migratedPatch.premium_flags = basePremiumFlags | oldLegacyPremiumBits;
+			return {...patchData, flags: flagsInPatch & ~LEGACY_DEAD_USER_FLAGS_MASK};
 		}
-		return migratedPatch;
+		const oldRawFlags = oldData.flags ?? 0n;
+		if ((oldRawFlags & LEGACY_DEAD_USER_FLAGS_MASK) !== 0n) {
+			return {...patchData, flags: oldRawFlags & ~LEGACY_DEAD_USER_FLAGS_MASK};
+		}
+		return patchData;
 	}
 
 	private didEmailChange(oldData: Pick<UserRow, 'email'> | null | undefined, newData: Pick<UserRow, 'email'>): boolean {

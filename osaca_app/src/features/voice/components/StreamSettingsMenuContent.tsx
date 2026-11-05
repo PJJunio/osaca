@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {Logger} from '@app/features/platform/utils/AppLogger';
-import * as PremiumModalCommands from '@app/features/premium/commands/PremiumModalCommands';
-import {shouldShowPremiumFeatures} from '@app/features/premium/utils/PremiumUtils';
-import {remFromPx} from '@app/features/theme/layout/RemFromPx';
 import {CheckboxItem, MenuGroupLabel, SubMenu as MenuItemSubmenu} from '@app/features/ui/action_menu/ContextMenu';
 import {MenuGroup} from '@app/features/ui/action_menu/MenuGroup';
 import {MenuItemRadio} from '@app/features/ui/action_menu/MenuItemRadio';
@@ -82,7 +79,7 @@ import type {NativeAudioAvailability, NativeAudioPlaybackDevice} from '@app/type
 import type {I18n} from '@lingui/core';
 import {msg} from '@lingui/core/macro';
 import {Trans, useLingui} from '@lingui/react/macro';
-import {AtomIcon, MicrophoneIcon, WaveformIcon} from '@phosphor-icons/react';
+import {MicrophoneIcon, WaveformIcon} from '@phosphor-icons/react';
 import type {Track} from 'livekit-client';
 import {observer} from 'mobx-react-lite';
 import {useCallback, useEffect, useMemo, useState} from 'react';
@@ -172,23 +169,8 @@ interface PushActiveStreamSettingsOptions {
 interface Option<T> {
 	value: T;
 	label: string;
-	isPremium: boolean;
 	description?: string;
 }
-
-const PremiumBadge = () => (
-	<span
-		aria-hidden={true}
-		className={styles.premiumBadge}
-		data-flx="voice.stream-settings-menu-content.premium-badge.premium-badge"
-	>
-		<AtomIcon
-			weight="fill"
-			size={remFromPx(12)}
-			data-flx="voice.stream-settings-menu-content.premium-badge.atom-icon"
-		/>
-	</span>
-);
 
 export function useHasHigherVideoQuality(): boolean {
 	useMediaEngineVersion();
@@ -337,7 +319,6 @@ export const StreamSettingsMenuContent = observer(
 		const {i18n} = useLingui();
 		useMediaEngineVersion();
 		const hasHigherVideoQuality = useHasHigherVideoQuality();
-		const showPremiumFeatures = shouldShowPremiumFeatures();
 		const isDeviceShare = shareContext === 'device';
 		const isAppShare = shareContext === 'app';
 		const {inputDevices} = useMediaDevices({autoRefresh: true, requestPermissions: false});
@@ -422,7 +403,6 @@ export const StreamSettingsMenuContent = observer(
 					description: hasHigherVideoQuality
 						? i18n._(SMOOTH_60_FPS_AT_UP_TO_1440P_DESCRIPTOR)
 						: i18n._(SMOOTH_30_FPS_AT_UP_TO_720P_DESCRIPTOR),
-					isPremium: false,
 				},
 			];
 			if (!isDeviceShare) {
@@ -432,18 +412,16 @@ export const StreamSettingsMenuContent = observer(
 					description: hasHigherVideoQuality
 						? i18n._(SHARP_TEXT_AT_UP_TO_4K_DESCRIPTOR)
 						: i18n._(SHARP_TEXT_AT_720P_DESCRIPTOR),
-					isPremium: false,
 				});
 			}
 			modes.push({
 				value: 'custom',
 				label: i18n._(CUSTOM_DESCRIPTOR),
 				description: i18n._(DIAL_IN_YOUR_OWN_NUMBERS_DESCRIPTOR),
-				isPremium: false,
 			});
 			return modes;
 		}, [isDeviceShare, hasHigherVideoQuality, i18n.locale]);
-		const qualityMenuState = selectStreamSettingsQualityMenuState({quality, target, showPremiumFeatures});
+		const qualityMenuState = selectStreamSettingsQualityMenuState({quality, target});
 		const audioDeviceOptions = useMemo(() => {
 			const real = inputDevices.filter((d) => d.deviceId && d.deviceId !== 'default');
 			return real;
@@ -459,10 +437,6 @@ export const StreamSettingsMenuContent = observer(
 		);
 		const applyQualityWrite = useCallback(
 			(write: StreamSettingsQualityWrite) => {
-				if (write.kind === 'premium') {
-					PremiumModalCommands.open();
-					return;
-				}
 				if (write.kind === 'none') return;
 				VoiceSettingsCommands.update(write.patch);
 				runApply();
@@ -493,17 +467,11 @@ export const StreamSettingsMenuContent = observer(
 		);
 		const handleModeSelect = useCallback(
 			(option: Option<StreamingMode>) => {
-				if (option.isPremium && !hasHigherVideoQuality) {
-					if (showPremiumFeatures) {
-						PremiumModalCommands.open();
-					}
-					return;
-				}
 				if (target.mode === option.value) return;
 				VoiceSettingsCommands.update({streamingMode: option.value});
 				runApply();
 			},
-			[hasHigherVideoQuality, runApply, showPremiumFeatures, target.mode],
+			[runApply, target.mode],
 		);
 		const handleCaptureAudioToggle = useCallback(
 			(checked: boolean) => {
@@ -557,7 +525,6 @@ export const StreamSettingsMenuContent = observer(
 										{i18n._(FRAMERATE_DESCRIPTOR)}
 									</MenuGroupLabel>
 									{qualityMenuState.frameRates.map((option) => {
-										const isPlutoniumReserved = showPremiumFeatures && option.premium;
 										return (
 											<MenuItemRadio
 												key={option.value}
@@ -575,9 +542,6 @@ export const StreamSettingsMenuContent = observer(
 													>
 														{i18n._(FPS_DESCRIPTOR, {frameRate: option.value})}
 													</span>
-													{isPlutoniumReserved && (
-														<PremiumBadge data-flx="voice.stream-settings-menu-content.compact-live.frame-rate-premium-badge" />
-													)}
 												</span>
 											</MenuItemRadio>
 										);
@@ -591,7 +555,6 @@ export const StreamSettingsMenuContent = observer(
 										{i18n._(RESOLUTION_DESCRIPTOR)}
 									</MenuGroupLabel>
 									{qualityMenuState.resolutions.map((option) => {
-										const isPlutoniumReserved = showPremiumFeatures && option.premium;
 										return (
 											<MenuItemRadio
 												key={option.value}
@@ -609,9 +572,6 @@ export const StreamSettingsMenuContent = observer(
 													>
 														{getScreenShareResolutionLabel(i18n, option.value)}
 													</span>
-													{isPlutoniumReserved && (
-														<PremiumBadge data-flx="voice.stream-settings-menu-content.compact-live.resolution-premium-badge" />
-													)}
 												</span>
 											</MenuItemRadio>
 										);
@@ -646,7 +606,6 @@ export const StreamSettingsMenuContent = observer(
 						{i18n._(STREAMING_MODE_DESCRIPTOR)}
 					</MenuGroupLabel>
 					{modeOptions.map((option) => {
-						const isPlutoniumReserved = showPremiumFeatures && option.isPremium;
 						return (
 							<MenuItemRadio
 								key={option.value}
@@ -679,7 +638,6 @@ export const StreamSettingsMenuContent = observer(
 											</span>
 										)}
 									</span>
-									{isPlutoniumReserved && <PremiumBadge data-flx="voice.stream-settings-menu-content.premium-badge" />}
 								</span>
 							</MenuItemRadio>
 						);
@@ -692,7 +650,6 @@ export const StreamSettingsMenuContent = observer(
 							render={() => (
 								<MenuGroup data-flx="voice.stream-settings-menu-content.menu-group--3">
 									{qualityMenuState.resolutions.map((option) => {
-										const isPlutoniumReserved = showPremiumFeatures && option.premium;
 										return (
 											<MenuItemRadio
 												key={option.value}
@@ -704,9 +661,6 @@ export const StreamSettingsMenuContent = observer(
 													<span className={styles.rowLabel} data-flx="voice.stream-settings-menu-content.row-label">
 														{getScreenShareResolutionLabel(i18n, option.value)}
 													</span>
-													{isPlutoniumReserved && (
-														<PremiumBadge data-flx="voice.stream-settings-menu-content.premium-badge--2" />
-													)}
 												</span>
 											</MenuItemRadio>
 										);
@@ -720,7 +674,6 @@ export const StreamSettingsMenuContent = observer(
 							render={() => (
 								<MenuGroup data-flx="voice.stream-settings-menu-content.menu-group--4">
 									{qualityMenuState.frameRates.map((option) => {
-										const isPlutoniumReserved = showPremiumFeatures && option.premium;
 										return (
 											<MenuItemRadio
 												key={option.value}
@@ -732,9 +685,6 @@ export const StreamSettingsMenuContent = observer(
 													<span className={styles.rowLabel} data-flx="voice.stream-settings-menu-content.row-label--2">
 														{i18n._(FPS_DESCRIPTOR, {frameRate: option.value})}
 													</span>
-													{isPlutoniumReserved && (
-														<PremiumBadge data-flx="voice.stream-settings-menu-content.premium-badge--3" />
-													)}
 												</span>
 											</MenuItemRadio>
 										);

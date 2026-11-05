@@ -101,18 +101,6 @@
     "nullable": true
   },
   {
-    "key": "app_public.branding.premium_info_url",
-    "type": "string",
-    "help": "Branding premium info URL",
-    "nullable": true
-  },
-  {
-    "key": "app_public.branding.premium_product_name",
-    "type": "string",
-    "help": "Branding premium product name",
-    "nullable": true
-  },
-  {
     "key": "app_public.branding.product_name",
     "type": "string",
     "help": "Branding product name"
@@ -236,11 +224,6 @@
     "key": "domain_migration.excluded_user_ids",
     "type": "list",
     "help": "Domain migration excluded user IDs"
-  },
-  {
-    "key": "domain_migration.include_premium_users",
-    "type": "boolean",
-    "help": "Domain migration include premium users"
   },
   {
     "key": "domain_migration.included_guild_ids",
@@ -559,15 +542,6 @@
     "help": "Whether people can use personal notes. Off by default on self-hosted instances"
   },
   {
-    "key": "policy.premium_mode",
-    "type": "string",
-    "help": "Policy premium mode",
-    "options": [
-      "mirror",
-      "everyone"
-    ]
-  },
-  {
     "key": "policy.services.bluesky_enabled",
     "type": "boolean",
     "help": "Services bluesky enabled",
@@ -628,11 +602,6 @@
     "key": "voice_p2p.excluded_user_ids",
     "type": "list",
     "help": "Voice P2P excluded user IDs"
-  },
-  {
-    "key": "voice_p2p.include_premium_users",
-    "type": "boolean",
-    "help": "Voice P2P include premium users"
   },
   {
     "key": "voice_p2p.included_guild_ids",

@@ -72,7 +72,6 @@ Each feature limit decision limits one feature, and ending one never touches ano
 | --- | --- | --- |
 | `direct_messages` | `SPAMMER` | 3, 6, 8, 18, 21 |
 | `reports` | `REPORT_BANNED` | 29 |
-| `purchases` | `PURCHASE_DISABLED` | 12, 14 |
 
 Only a `reports` limit ends, after 90 days by default and at most 365. The next report from the account after a reports limit's `ends_at` clears `REPORT_BANNED` and is accepted.
 
@@ -185,11 +184,10 @@ A person's suspension or closure notice is sent by email only. Every other notic
 | rights_holder | ?string | The rights holder or the right concerned |
 | ends_at | ?ISO8601 timestamp | When a suspension or feature limit ends, null when permanent |
 | deletion_at | ?ISO8601 timestamp | When a closed account is deleted |
-| limit | ?string | `direct_messages`, `reports` or `purchases` for a feature limit |
+| limit | ?string | `direct_messages` or `reports` for a feature limit |
 | profile_fields | array[string] | The fields a profile reset cleared |
 | removed_message_count | ?integer | Messages the decision removed |
 | removed_all_messages | boolean | Whether every message of the account was removed |
-| payment_at | ?ISO8601 timestamp | The charge a payment decision is about |
 | report_ids<sup>1</sup> | array[snowflake] | Linked reports |
 | decided_by | snowflake | The staff member who decided, or 0 for an automated decision |
 | created_at | ISO8601 timestamp | When the decision was made |

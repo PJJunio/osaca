@@ -49,36 +49,6 @@
 	color: var(--text-primary-muted);
 }
 
-.premiumCard {
-	padding: 0.875rem;
-	border-radius: 0.5rem;
-	border: 0.0625rem solid var(--background-modifier-accent);
-	background-color: var(--background-secondary);
-}
-
-.premiumHeader {
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-	margin-bottom: 0.5rem;
-}
-
-.premiumIcon {
-	flex-shrink: 0;
-}
-
-.premiumTitle {
-	font-size: 0.875rem;
-	font-weight: 500;
-	color: var(--text-primary);
-}
-
-.premiumDescription {
-	margin-bottom: 0.75rem;
-	font-size: 0.875rem;
-	color: var(--text-primary-muted);
-}
-
 .frameRateNote {
 	display: flex;
 	align-items: center;
@@ -87,10 +57,6 @@
 	margin-bottom: 0.5rem;
 	font-size: 0.8125rem;
 	color: var(--text-primary-muted);
-}
-
-.frameRateIcon {
-	color: var(--text-tertiary);
 }
 
 .actionButton {

@@ -107,7 +107,6 @@ export const GuildFeatureSchema = withOpenApiType(
 				'Guild is unavailable except for staff',
 			],
 			[GuildFeatures.UNAVAILABLE_HIDDEN, 'UNAVAILABLE_HIDDEN', 'Guild is hidden when it is force unavailable'],
-			[GuildFeatures.VISIONARY, 'VISIONARY', 'Guild is a visionary guild'],
 			[GuildFeatures.LARGE_GUILD_OVERRIDE, 'LARGE_GUILD_OVERRIDE', 'Guild has large guild overrides enabled'],
 			[GuildFeatures.VERY_LARGE_GUILD, 'VERY_LARGE_GUILD', 'Guild has increased member capacity enabled'],
 			[

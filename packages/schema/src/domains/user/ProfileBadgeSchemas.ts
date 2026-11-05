@@ -25,7 +25,7 @@ export const ProfileBadgeResponse = z.object({
 	kind: z
 		.string()
 		.describe(
-			'Badge type. Known values: staff, partner, bug_hunter, operator_pass, visionary, visionary_number, plutonium, custom, and premium on self-hosted instances. Clients must render unknown values from the other fields.',
+			'Badge type. Known values: staff, partner, bug_hunter and custom. Clients must render unknown values from the other fields.',
 		),
 	label: z
 		.string()
@@ -94,19 +94,6 @@ export type OwnProfileBadgeResponse = z.infer<typeof OwnProfileBadgeResponse>;
 
 export const ProfileBadgePreviewRequest = z.object({
 	hidden_profile_badges: HiddenProfileBadgesType.optional(),
-	premium_badge_masked: z.boolean().optional().describe('Preview with the premium badge masked'),
-	premium_badge_timestamp_hidden: z.boolean().optional().describe('Preview with the premium badge date hidden'),
-	operator_pass_badge_timestamp_hidden: z
-		.boolean()
-		.optional()
-		.describe('Preview with the month and year the Operator Pass was first held hidden'),
-	operator_pass_badge_count_hidden: z
-		.boolean()
-		.optional()
-		.describe('Preview with the number of Operator Passes held hidden'),
-	premium_badge_hidden: z.boolean().optional().describe('Deprecated, use hidden_profile_badges'),
-	premium_badge_sequence_hidden: z.boolean().optional().describe('Deprecated, use hidden_profile_badges'),
-	operator_pass_badge_hidden: z.boolean().optional().describe('Deprecated, use hidden_profile_badges'),
 });
 
 export type ProfileBadgePreviewRequest = z.infer<typeof ProfileBadgePreviewRequest>;

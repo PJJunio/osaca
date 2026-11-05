@@ -26,7 +26,7 @@ import {MessageSnapshot as MessageSnapshotModel} from '@app/api/models/MessageSn
 import type {User} from '@app/api/models/User';
 import {S3ServiceException} from '@aws-sdk/client-s3';
 import {MessageFlags, SENDABLE_MESSAGE_FLAGS, TEXT_BASED_CHANNEL_TYPES} from '@osaca/constants/src/ChannelConstants';
-import {ATTACHMENT_MAX_SIZE_NON_PREMIUM} from '@osaca/constants/src/LimitConstants';
+import {ATTACHMENT_MAX_SIZE} from '@osaca/constants/src/LimitConstants';
 import {THREAD_CHANNEL_TYPES} from '@osaca/constants/src/ThreadConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {CannotSendMessageToNonTextChannelError} from '@osaca/errors/src/domains/channel/CannotSendMessageToNonTextChannelError';
@@ -107,7 +107,7 @@ function validateTotalAttachmentSize(
 	user: User | null,
 	limitConfigService: LimitConfigService,
 ): void {
-	const fallbackMaxSize = ATTACHMENT_MAX_SIZE_NON_PREMIUM;
+	const fallbackMaxSize = ATTACHMENT_MAX_SIZE;
 	const ctx = createLimitMatchContext({user});
 	const maxFileSize = Math.floor(
 		resolveLimitSafe(limitConfigService.getConfigSnapshot(), ctx, 'max_attachment_file_size', fallbackMaxSize, 'user'),

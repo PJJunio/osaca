@@ -22,9 +22,6 @@ function buildUserFilters(filters: UserSearchFilters): Array<ElasticsearchFilter
 	if (filters.isSystem !== undefined) clauses.push(esTermFilter('isSystem', filters.isSystem));
 	if (filters.emailVerified !== undefined) clauses.push(esTermFilter('emailVerified', filters.emailVerified));
 	if (filters.emailBounced !== undefined) clauses.push(esTermFilter('emailBounced', filters.emailBounced));
-	if (filters.hasPremium !== undefined) {
-		clauses.push(filters.hasPremium ? esExistsFilter('premiumType') : esNotExistsFilter('premiumType'));
-	}
 	if (filters.isTempBanned !== undefined) {
 		clauses.push(filters.isTempBanned ? esExistsFilter('tempBannedUntil') : esNotExistsFilter('tempBannedUntil'));
 	}

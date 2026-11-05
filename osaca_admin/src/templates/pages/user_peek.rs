@@ -16,15 +16,6 @@ use crate::{
 };
 use maud::{Markup, html};
 
-fn premium_type_label(pt: i32) -> &'static str {
-    match pt {
-        0 => "None",
-        1 => "Subscription",
-        2 => "Lifetime",
-        _ => "Unknown",
-    }
-}
-
 fn status_badge(user: &AdminUser) -> Markup {
     if user.bot {
         badge("Bot", BadgeVariant::Info)
@@ -85,9 +76,6 @@ pub fn user_peek_fragment(config: &AdminConfig, user: &AdminUser, admin_acls: &[
                 }
                 @if let Some(tier) = user.account_tier {
                     (data_field_text("Account tier", account_tier_label(tier)))
-                }
-                @if let Some(pt) = user.premium_type {
-                    (data_field_text("Premium type", premium_type_label(pt)))
                 }
                 @if user.flags != 0 {
                     (data_field_mono("Flags", &user.flags.to_string()))

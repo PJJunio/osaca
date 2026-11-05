@@ -205,9 +205,9 @@ export const AdminUserWarningResponse = z.object({
 
 export const AdminUserFeatureLimitRequest = z.object({
 	limit: z
-		.enum(['direct_messages', 'reports', 'purchases'])
+		.enum(['direct_messages', 'reports'])
 		.describe(
-			'The one feature this decision limits. Direct messages are for spam, automation, fraud and malware reasons only, reports for misuse of reporting, purchases for payment reasons',
+			'The one feature this decision limits. Direct messages are for spam, automation, fraud and malware reasons only, reports for misuse of reporting',
 		),
 	ends_at: z.iso
 		.datetime()
@@ -269,11 +269,10 @@ const EnforcementDecisionSummary = z.object({
 	rights_holder: z.string().nullable(),
 	ends_at: z.string().nullable(),
 	deletion_at: z.string().nullable(),
-	limit: z.enum(['direct_messages', 'reports', 'purchases']).nullable(),
+	limit: z.enum(['direct_messages', 'reports']).nullable(),
 	profile_fields: z.array(z.string()),
 	removed_message_count: Int32Type.nullable(),
 	removed_all_messages: z.boolean(),
-	payment_at: z.string().nullable(),
 	report_ids: z.array(SnowflakeStringType).describe('Empty without the report view permission'),
 	decided_by: SnowflakeStringType,
 	created_at: z.string(),

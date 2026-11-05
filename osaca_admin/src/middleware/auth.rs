@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use crate::{
-    api::types::{AdminUser, AdminUserMeResponse, PremiumBranding},
+    api::types::{AdminUser, AdminUserMeResponse, AdminBranding},
     middleware::flash,
     session::{self, Session},
     state::AppState,
@@ -17,7 +17,7 @@ pub struct AuthContext {
     pub session: Session,
     pub admin_user: Option<AdminUser>,
     pub pending_registration_count: Option<u32>,
-    pub branding: Option<PremiumBranding>,
+    pub branding: Option<AdminBranding>,
 }
 
 impl AuthContext {

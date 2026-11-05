@@ -39,7 +39,6 @@ const RAIL_BOTTOM_DOWNLOAD_BIT = 4;
 const RAIL_BOTTOM_HELP_BIT = 8;
 const DM_ACTION_FRIENDS_BIT = 1;
 const DM_ACTION_PERSONAL_NOTES_BIT = 2;
-const DM_ACTION_PREMIUM_BIT = 4;
 const MAX_RAIL_INLINE_DM_ROWS = 16;
 const MAX_RAIL_ORGANIZED_ITEMS = 24;
 const MAX_RAIL_COLLAPSED_FOLDER_CHILDREN = 4;
@@ -149,7 +148,6 @@ function seedDMSidebar(hint: Record<string, unknown>, sidebar: unknown): void {
 	let actionMask = 0;
 	if (sidebar.friendsVisible === true) actionMask |= DM_ACTION_FRIENDS_BIT;
 	if (sidebar.personalNotesVisible === true) actionMask |= DM_ACTION_PERSONAL_NOTES_BIT;
-	if (sidebar.premiumVisible === true) actionMask |= DM_ACTION_PREMIUM_BIT;
 	hint.sr = clampRounded(sidebar.channelRowCount, 0, MAX_DM_SIDEBAR_ROWS);
 	hint.sam = actionMask;
 	hint.ss = flag(sidebar.sectionVisible);
@@ -239,7 +237,7 @@ function dmRootShellHint(accountKey: string, now: number): Record<string, unknow
 		gd: 0,
 		gm: 0,
 		sr: 0,
-		sam: DM_ACTION_FRIENDS_BIT | DM_ACTION_PERSONAL_NOTES_BIT | DM_ACTION_PREMIUM_BIT,
+		sam: DM_ACTION_FRIENDS_BIT | DM_ACTION_PERSONAL_NOTES_BIT,
 		ss: 1,
 		cid: '',
 		ch: CHANNEL_KIND_DM_CODE,

@@ -11,7 +11,6 @@ import {
 	type ForwardDestinationOption,
 	useForwardDestinations,
 } from '@app/features/app/components/dialogs/shared/UseForwardDestinations';
-import {Limits} from '@app/features/app/utils/UserLimits';
 import * as PrivateChannelCommands from '@app/features/channel/commands/PrivateChannelCommands';
 import {MessageCharacterCounter} from '@app/features/channel/components/MessageCharacterCounter';
 import type {Channel} from '@app/features/channel/models/Channel';
@@ -45,7 +44,6 @@ import MobileLayout from '@app/features/ui/state/MobileLayout';
 import type {User} from '@app/features/user/models/User';
 import Users from '@app/features/user/state/Users';
 import {blockIfAccountLimited, showAccountLimitedModal} from '@app/features/user/utils/AccountLimitUtils';
-import {MAX_MESSAGE_LENGTH_PREMIUM} from '@osaca/constants/src/LimitConstants';
 import type {I18n} from '@lingui/core';
 import {msg} from '@lingui/core/macro';
 import {Trans, useLingui} from '@lingui/react/macro';
@@ -240,7 +238,6 @@ export const ForwardModal = observer(
 		}, []);
 		const richInputRef = useRef<LexicalRichInputHandle>(null);
 		const commentNoticeId = useId();
-		const premiumMaxLength = Limits.getStockValue('max_message_length', MAX_MESSAGE_LENGTH_PREMIUM);
 		const isMobileLayout = MobileLayout.enabled;
 		const shouldFocusSearch = !shouldDisableAutofocusOnMobile();
 		useEffect(() => {
@@ -515,8 +512,6 @@ export const ForwardModal = observer(
 							<MessageCharacterCounter
 								currentLength={actualOptionalMessage.length}
 								maxLength={user.maxMessageLength}
-								canUpgrade={user.maxMessageLength < premiumMaxLength}
-								premiumMaxLength={premiumMaxLength}
 								data-flx="messaging.forward-modal.message-character-counter"
 							/>
 							{commentNotice != null && (

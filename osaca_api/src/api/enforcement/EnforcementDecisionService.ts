@@ -7,9 +7,7 @@ import type {AdminBanManagementService} from '@app/api/admin/services/AdminBanMa
 import {queueMessageShredJob} from '@app/api/admin/services/AdminMessageShredService';
 import type {AdminReportService} from '@app/api/admin/services/AdminReportService';
 import {createChannelID, createMessageID, createReportID, createUserID, type UserID} from '@app/api/BrandedTypes';
-import {Config} from '@app/api/Config';
 import type {ChannelRepository} from '@app/api/channel/ChannelRepository';
-import {SYSTEM_USER_ID} from '@app/api/constants/Core';
 import type {
 	EnforcementDecisionEvidenceRow,
 	EnforcementDecisionNoteRow,
@@ -35,11 +33,7 @@ import {
 	snapshotEvidenceChannelKinds,
 } from '@app/api/enforcement/EnforcementEvidence';
 import type {EnforcementNoticeDelivery} from '@app/api/enforcement/EnforcementNoticeDelivery';
-import {
-	findHoldingFeatureLimit,
-	listActiveFeatureLimits,
-	setFeatureLimit,
-} from '@app/api/enforcement/FeatureLimitState';
+import {findHoldingFeatureLimit, setFeatureLimit} from '@app/api/enforcement/FeatureLimitState';
 import {
 	latestNetworkBlockExpiry,
 	listNetworkBlockCandidates,
@@ -57,13 +51,11 @@ import type {User} from '@app/api/models/User';
 import {type IARSubmission, ReportStatus} from '@app/api/report/ReportModels';
 import type {ReportService} from '@app/api/report/ReportService';
 import {AdminACLs} from '@osaca/constants/src/AdminACLs';
-import type {DeletionReasons} from '@osaca/constants/src/Core';
 import {
 	ENFORCEMENT_REASONS,
 	ENFORCEMENT_RULES,
 	type EnforcementKind,
 	type EnforcementLimit,
-	type EnforcementReasonCode,
 	isAccountKind,
 	isEnforcementKindAllowed,
 	isEnforcementLimitAllowed,
@@ -115,27 +107,6 @@ export interface RecordedDecision {
 	decision: EnforcementDecisionRow;
 	blockedNetworks: Array<BannedIpEntry>;
 	skippedNetworks: Array<SkippedNetwork>;
-}
-
-interface AutomatedPurchaseLimitParams {
-	subject: User;
-	reasonCode: EnforcementReasonCode;
-	paymentAt: Date;
-	internalNote: string;
-}
-
-export type PaymentDisputeClosureReason =
-	| typeof DeletionReasons.BILLING_DISPUTE_OR_ABUSE
-	| typeof DeletionReasons.OPERATOR_PASS_PAYMENT_DISPUTE;
-
-interface PaymentDisputeClosureParams {
-	subject: User;
-	reasonCode: PaymentDisputeClosureReason;
-	decidedBy: UserID;
-	paymentAt: Date;
-	deletionAt: Date;
-	statement: string | null;
-	internalNote: string;
 }
 
 interface EnforcementDecisionServiceDeps extends ClosureStateDeps {
@@ -229,7 +200,6 @@ type DecisionFields = Pick<
 	| 'profile_fields'
 	| 'removed_message_count'
 	| 'removed_all_messages'
-	| 'payment_at'
 	| 'report_ids'
 	| 'decided_by'
 >;
@@ -303,7 +273,6 @@ export class EnforcementDecisionService {
 				profile_fields: profileReset ? new Set(profileReset.fields) : null,
 				removed_message_count: removedMessageCount,
 				removed_all_messages: removal?.type === 'all_messages' ? true : null,
-				payment_at: null,
 				report_ids: reports.length > 0 ? new Set(reports.map((report) => report.reportId)) : null,
 				decided_by: actor.adminUserId,
 			},
@@ -345,108 +314,6 @@ export class EnforcementDecisionService {
 		};
 	}
 
-	async recordAutomatedPurchaseLimit({
-		subject,
-		reasonCode,
-		paymentAt,
-		internalNote,
-	}: AutomatedPurchaseLimitParams): Promise<EnforcementDecisionRow> {
-		const decision = await this.persist(
-			await this.subjectFields({type: 'user', user: subject}),
-			{
-				kind: 'feature_limit',
-				reason_code: reasonCode,
-				source: 'own_review',
-				automation: 'automated',
-				statement: null,
-				rights_holder: null,
-				ends_at: null,
-				deletion_at: null,
-				feature_limit: 'purchases',
-				profile_fields: null,
-				removed_message_count: null,
-				removed_all_messages: null,
-				payment_at: paymentAt,
-				report_ids: null,
-				decided_by: SYSTEM_USER_ID,
-			},
-			{messages: [], channelKinds: new Map(), profileValues: null},
-			internalNote,
-			async () => {
-				await setFeatureLimit(this.deps, subject, 'purchases', true, SYSTEM_USER_ID);
-			},
-		);
-		return this.deliverNotice(decision, [], new Map(), null);
-	}
-
-	async recordPaymentDisputeClosure(
-		{subject, reasonCode, decidedBy, paymentAt, deletionAt, statement, internalNote}: PaymentDisputeClosureParams,
-		applyState: (decisionId: bigint) => Promise<void>,
-	): Promise<EnforcementDecisionRow> {
-		const replacedDecisionId = subject.enforcementDecisionId;
-		const decision = await this.persist(
-			await this.subjectFields({type: 'user', user: subject}),
-			{
-				kind: 'closure',
-				reason_code: reasonCode,
-				source: 'own_review',
-				automation: 'none',
-				statement,
-				rights_holder: null,
-				ends_at: null,
-				deletion_at: deletionAt,
-				feature_limit: null,
-				profile_fields: null,
-				removed_message_count: null,
-				removed_all_messages: null,
-				payment_at: paymentAt,
-				report_ids: null,
-				decided_by: decidedBy,
-			},
-			{messages: [], channelKinds: new Map(), profileValues: null},
-			internalNote,
-			applyState,
-		);
-		const carried = replacedDecisionId
-			? await this.takeOverNetworkBlocks(replacedDecisionId, decision, {keep: true})
-			: [];
-		await this.banClosedAccountEmail(subject, decidedBy, internalNote);
-		return this.deliverNotice(decision, [], new Map(), latestNetworkBlockExpiry(carried));
-	}
-
-	async resumePaymentDisputeClosure(
-		subject: User,
-		decisionId: bigint,
-		reasonCode: PaymentDisputeClosureReason,
-	): Promise<EnforcementDecisionRow | null> {
-		const decision = await this.deps.repository.get(decisionId);
-		if (
-			decision?.status !== 'active' ||
-			decision.kind !== 'closure' ||
-			decision.reason_code !== reasonCode ||
-			decision.payment_at === null
-		) {
-			return null;
-		}
-		if (decision.notice_status !== 'pending') {
-			return decision;
-		}
-		await this.banClosedAccountEmail(subject, createUserID(decision.decided_by), `Enforcement decision ${decisionId}`);
-		const networkBlocks = await this.deps.banManagementService.listDecisionNetworkBlocks(decisionId);
-		return this.deliverNotice(decision, [], new Map(), latestNetworkBlockExpiry(networkBlocks));
-	}
-
-	private async banClosedAccountEmail(subject: User, bannedBy: UserID, reason: string): Promise<void> {
-		if (!subject.email) {
-			return;
-		}
-		try {
-			await this.deps.banManagementService.banEmail({email: subject.email}, bannedBy, reason);
-		} catch (error) {
-			Logger.warn({error, userId: subject.id.toString()}, 'Failed to ban the email of a closed account');
-		}
-	}
-
 	async end(
 		decisionId: bigint,
 		request: EnforcementDecisionEndRequest,
@@ -462,16 +329,6 @@ export class EnforcementDecisionService {
 		}
 		await this.finish(decision, request, actor.adminUserId, actor.internalNote);
 		return this.get(decisionId, actor.acls);
-	}
-
-	async reverseAutomatedPurchaseLimits(subjectId: UserID, paymentAt: Date, internalNote: string): Promise<void> {
-		const active = await listActiveFeatureLimits(this.deps.repository, subjectId, 'purchases');
-		const matching = active.filter(
-			(decision) => decision.automation === 'automated' && decision.payment_at?.getTime() === paymentAt.getTime(),
-		);
-		for (const decision of matching) {
-			await this.finish(decision, {outcome: 'reversed'}, SYSTEM_USER_ID, internalNote);
-		}
 	}
 
 	async get(decisionId: bigint, acls: ReadonlySet<string>): Promise<EnforcementDecisionResponse> {
@@ -837,7 +694,6 @@ export class EnforcementDecisionService {
 		const reason = ENFORCEMENT_REASONS[input.reason_code];
 		if (
 			!isEnforcementKindAllowed(input.reason_code, kind) ||
-			(Config.instance.selfHosted && ENFORCEMENT_RULES[reason.rule].policy === 'operator_pass_terms') ||
 			(subject.type === 'user' && subject.user.isBot && !isAccountKind(kind)) ||
 			(removal?.type === 'all_messages' && reason.handling === 'restricted')
 		) {

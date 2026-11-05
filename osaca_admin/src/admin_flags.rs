@@ -30,7 +30,6 @@ pub mod user_flag_bits {
     pub const REPORT_BANNED: u64 = 1 << 48;
     pub const VERIFIED_NOT_UNDERAGE: u64 = 1 << 49;
     pub const ACCOUNT_LIMITED: u64 = 1 << 50;
-    pub const HAS_DISMISSED_PREMIUM_ONBOARDING: u64 = 1 << 51;
     pub const APP_STORE_REVIEWER: u64 = 1 << 53;
     pub const AGE_VERIFIED_ADULT: u64 = 1 << 60;
     pub const LIMIT_EXEMPT: u64 = 1 << 62;
@@ -118,11 +117,6 @@ pub const USER_FLAGS: &[U64Flag] = &[
         help: "Limits what a new or suspicious account can do until it is reviewed.",
     },
     U64Flag {
-        name: "HAS_DISMISSED_PREMIUM_ONBOARDING",
-        value: user_flag_bits::HAS_DISMISSED_PREMIUM_ONBOARDING,
-        help: "Set by the app after the person closed the premium introduction.",
-    },
-    U64Flag {
         name: "APP_STORE_REVIEWER",
         value: user_flag_bits::APP_STORE_REVIEWER,
         help: "For accounts used by app store reviewers. Skips new IP checks and blocks direct messages from strangers.",
@@ -143,55 +137,11 @@ const RESTRICTION_USER_FLAGS: u64 = user_flag_bits::DISABLED
     | user_flag_bits::DELETED
     | user_flag_bits::SPAMMER
     | user_flag_bits::REPORT_BANNED;
-const PURCHASE_DISABLED: i32 = 1 << 6;
 
 pub fn user_flag_is_editable(flag: u64, current_flags: u64, suspended: bool) -> bool {
     let self_disabled = flag == user_flag_bits::DISABLED && current_flags & flag != 0 && !suspended;
     flag & RESTRICTION_USER_FLAGS == 0 || self_disabled
 }
-
-pub fn premium_flag_is_editable(flag: i32) -> bool {
-    flag & PURCHASE_DISABLED == 0
-}
-
-pub const PREMIUM_FLAGS: &[I32Flag] = &[
-    I32Flag {
-        name: "DISCRIMINATOR",
-        value: 1 << 0,
-    },
-    I32Flag {
-        name: "BADGE_MASKED",
-        value: 1 << 2,
-    },
-    I32Flag {
-        name: "BADGE_TIMESTAMP_HIDDEN",
-        value: 1 << 3,
-    },
-    I32Flag {
-        name: "PERKS_SANITIZED",
-        value: 1 << 5,
-    },
-    I32Flag {
-        name: "PURCHASE_DISABLED",
-        value: PURCHASE_DISABLED,
-    },
-    I32Flag {
-        name: "ENABLED_OVERRIDE",
-        value: 1 << 7,
-    },
-    I32Flag {
-        name: "PERKS_DISABLED",
-        value: 1 << 8,
-    },
-    I32Flag {
-        name: "OPERATOR_PASS_BADGE_TIMESTAMP_HIDDEN",
-        value: 1 << 11,
-    },
-    I32Flag {
-        name: "OPERATOR_PASS_BADGE_COUNT_HIDDEN",
-        value: 1 << 12,
-    },
-];
 
 const DELETION_REASONS: &[(i32, &str)] = &[
     (1, "User requested"),
@@ -205,9 +155,7 @@ const DELETION_REASONS: &[(i32, &str)] = &[
     (9, "Child sexual content"),
     (10, "Privacy violation or doxxing"),
     (11, "Harassment or bullying"),
-    (12, "Payment fraud"),
     (13, "Child safety violation"),
-    (14, "Billing dispute or abuse"),
     (15, "Unsolicited explicit content"),
     (16, "Graphic violence"),
     (17, "Ban evasion"),
@@ -227,7 +175,6 @@ const DELETION_REASONS: &[(i32, &str)] = &[
     (31, "Copyright"),
     (32, "Below minimum age"),
     (33, "Unclaimed account abandoned"),
-    (34, "Operator Pass payment dispute"),
 ];
 
 pub fn deletion_reason_label(code: i32) -> String {
@@ -279,11 +226,6 @@ pub const ENFORCEMENT_LIMITS: &[EnforcementLimitOption] = &[
         value: "reports",
         label: "Reports",
         codes: &[29],
-    },
-    EnforcementLimitOption {
-        value: "purchases",
-        label: "Purchases",
-        codes: &[12, 14, 34],
     },
 ];
 
@@ -401,7 +343,6 @@ pub const GUILD_FEATURES: &[&str] = &[
     "UNAVAILABLE_FOR_EVERYONE",
     "UNAVAILABLE_FOR_EVERYONE_BUT_STAFF",
     "UNAVAILABLE_HIDDEN",
-    "VISIONARY",
     "LARGE_GUILD_OVERRIDE",
     "VERY_LARGE_GUILD",
     "ANNOUNCEMENT_CHANNELS_DISABLED",

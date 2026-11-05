@@ -5,9 +5,8 @@ import {LimitResolver} from '@app/features/app/utils/LimitResolverAdapter';
 import {isLimitToggleEnabled} from '@app/features/app/utils/LimitUtils';
 import {GuildAcronym} from '@app/features/guild/components/GuildAcronym';
 import Guilds from '@app/features/guild/state/Guilds';
-import {DIRECT_MESSAGES_DESCRIPTOR, GET_PREMIUM_DESCRIPTOR} from '@app/features/i18n/utils/CommonMessageDescriptors';
+import {DIRECT_MESSAGES_DESCRIPTOR} from '@app/features/i18n/utils/CommonMessageDescriptors';
 import {getCachedNumberFormat} from '@app/features/i18n/utils/IntlCache';
-import {formatFileSize} from '@app/features/messaging/utils/FileUtils';
 import SelectedGuild from '@app/features/navigation/state/SelectedGuild';
 import {
 	DMS_ENTRANCE_SOUND_SCOPE,
@@ -17,8 +16,6 @@ import {
 	getEntranceSoundScopeId,
 	parseEntranceSoundScopeId,
 } from '@app/features/notification/utils/EntranceSoundScopes';
-import * as PremiumModalCommands from '@app/features/premium/commands/PremiumModalCommands';
-import {getPremiumProductName, shouldShowPremiumFeatures} from '@app/features/premium/utils/PremiumUtils';
 import {Button} from '@app/features/ui/button/Button';
 import type {ComboboxOption} from '@app/features/ui/components/form/FormCombobox';
 import {Tooltip} from '@app/features/ui/tooltip/Tooltip';
@@ -31,16 +28,11 @@ import {
 	PREVIEW_SOUND_DESCRIPTOR,
 } from '@app/features/user/utils/UserMessageDescriptors';
 import type {EntranceSoundEntry} from '@app/features/voice/state/EntranceSoundLibrary';
-import {
-	ENTRANCE_SOUND_MAX_BYTES,
-	ENTRANCE_SOUND_MAX_DURATION_MS,
-	ENTRANCE_SOUND_MAX_PER_USER,
-} from '@osaca/constants/src/EntranceSoundConstants';
+import {ENTRANCE_SOUND_MAX_PER_USER} from '@osaca/constants/src/EntranceSoundConstants';
 import {MS_PER_SECOND} from '@osaca/date_utils/src/DateConstants';
 import {msg} from '@lingui/core/macro';
 import {Trans, useLingui} from '@lingui/react/macro';
 import {
-	AtomIcon,
 	ChatCircleTextIcon,
 	CheckIcon,
 	GlobeHemisphereWestIcon,
@@ -79,10 +71,6 @@ const USED_IN_COMMUNITIES_THAT_DO_NOT_HAVE_THEIR_DESCRIPTOR = msg({
 const USED_FOR_ALL_DIRECT_MESSAGE_CALLS_DESCRIPTOR = msg({
 	message: 'Used for all direct-message calls.',
 	comment: 'Description text in the entrance sound section.',
-});
-const CUSTOM_ENTRANCE_SOUNDS_PREMIUM_DESCRIPTOR = msg({
-	message: 'Custom entrance sounds with {premiumProductName}',
-	comment: 'Premium upsell title in entrance sound settings.',
 });
 const USED_ONLY_IN_THIS_COMMUNITY_DESCRIPTOR = msg({
 	message: 'Used only in this community.',
@@ -277,11 +265,6 @@ export const EntranceSoundSection: React.FC = observer(() => {
 		[],
 	);
 	const {i18n} = useLingui();
-	const maxDurationSeconds = getCachedNumberFormat(i18n.locale, {
-		minimumFractionDigits: 1,
-		maximumFractionDigits: 1,
-	}).format(ENTRANCE_SOUND_MAX_DURATION_MS / MS_PER_SECOND);
-	const maxSizeLabel = formatFileSize(i18n.locale, ENTRANCE_SOUND_MAX_BYTES);
 	const currentGuildId = SelectedGuild.selectedGuildId;
 	const guilds = Guilds.getGuilds();
 	const [selectedScopeId, setSelectedScopeId] = useState(() =>
@@ -650,41 +633,9 @@ export const EntranceSoundSection: React.FC = observer(() => {
 				) : null}
 			</div>
 		);
-	} else if (shouldShowPremiumFeatures()) {
-		sectionContent = (
-			<div className={styles.premiumCard} data-flx="user.entrance-sound-section.premium-card">
-				<div className={styles.premiumCardHeader} data-flx="user.entrance-sound-section.premium-card-header">
-					<AtomIcon
-						weight="fill"
-						size={18}
-						className={styles.premiumCardIcon}
-						data-flx="user.entrance-sound-section.premium-card-icon"
-					/>
-					<span className={styles.premiumCardTitle} data-flx="user.entrance-sound-section.premium-card-title">
-						{i18n._(CUSTOM_ENTRANCE_SOUNDS_PREMIUM_DESCRIPTOR, {
-							premiumProductName: getPremiumProductName(),
-						})}
-					</span>
-				</div>
-				<p className={styles.premiumCardDescription} data-flx="user.entrance-sound-section.premium-card-description">
-					<Trans>
-						Upload a custom sound that plays automatically when you join a voice channel. Maximum duration:{' '}
-						{maxDurationSeconds} seconds. Max file size: {maxSizeLabel}.
-					</Trans>
-				</p>
-				<Button
-					variant="secondary"
-					small={true}
-					onClick={() => PremiumModalCommands.open()}
-					data-flx="user.entrance-sound-section.button.open"
-				>
-					{i18n._(GET_PREMIUM_DESCRIPTOR, {premiumProductName: getPremiumProductName()})}
-				</Button>
-			</div>
-		);
 	} else {
 		sectionContent = (
-			<p className={styles.premiumCardDescription} data-flx="user.entrance-sound-section.premium-card-description--2">
+			<p className={styles.unavailableDescription} data-flx="user.entrance-sound-section.unavailable-description">
 				<Trans>Custom entrance sounds are not enabled on this instance.</Trans>
 			</p>
 		);

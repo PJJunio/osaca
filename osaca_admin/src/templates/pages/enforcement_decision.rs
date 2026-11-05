@@ -99,8 +99,7 @@ fn notice_channel_label(channel: &str) -> &'static str {
 fn limit_label(limit: &str) -> &'static str {
     match limit {
         "direct_messages" => "Direct messages",
-        "reports" => "Reports",
-        _ => "Purchases",
+        _ => "Reports",
     }
 }
 
@@ -294,9 +293,6 @@ fn summary_section(
                     (field("Removed messages", html! { "All messages" }))
                 } @else if let Some(count) = &decision.removed_message_count {
                     (field("Removed messages", html! { (**count) }))
-                }
-                @if let Some(at) = &decision.payment_at {
-                    (field("Charge date", html! { (format_admin_timestamp(at)) }))
                 }
                 @if let Some(rights_holder) = &decision.rights_holder {
                     (field("Rights holder or right concerned", html! { (rights_holder) }))
@@ -671,7 +667,7 @@ fn review_queue_table(
                 table class="min-w-full divide-y divide-neutral-200 text-sm" data-review-queue="" {
                     thead {
                         tr class="text-left text-xs text-neutral-500" {
-                            @for header in ["ID", "Account", "Reason", "Payment", "Date"] {
+                            @for header in ["ID", "Account", "Reason", "Date"] {
                                 th class="px-3 py-2 font-medium" { (header) }
                             }
                         }
@@ -690,9 +686,6 @@ fn review_queue_table(
                                     }
                                 }
                                 td class="px-3 py-2" { (admin_flags::deletion_reason_label(*decision.reason_code)) }
-                                td class="whitespace-nowrap px-3 py-2" {
-                                    (decision.payment_at.as_deref().map(format_admin_timestamp).unwrap_or_default())
-                                }
                                 td class="whitespace-nowrap px-3 py-2" { (format_admin_timestamp(&decision.created_at)) }
                             }
                         }

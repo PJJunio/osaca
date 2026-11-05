@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {MessageFlags, MessageFlagsDescriptions} from '@osaca/constants/src/ChannelConstants';
-import {MAX_MESSAGE_LENGTH_NON_PREMIUM, MAX_MESSAGE_LENGTH_PREMIUM} from '@osaca/constants/src/LimitConstants';
+import {MAX_MESSAGE_LENGTH} from '@osaca/constants/src/LimitConstants';
 import {
 	ClientAttachmentReferenceRequest,
 	ClientAttachmentRequest,
@@ -320,7 +320,7 @@ export const MessageNonceRequest = z
 
 export type MessageNonceRequest = z.infer<typeof MessageNonceRequest>;
 
-const MESSAGE_CONTENT_LIMIT_DESCRIPTION = `The message content. Non-premium users can send up to ${MAX_MESSAGE_LENGTH_NON_PREMIUM} characters; premium users, bots, and webhooks can send up to ${MAX_MESSAGE_LENGTH_PREMIUM} characters.`;
+const MESSAGE_CONTENT_LIMIT_DESCRIPTION = `The message content, up to the sender's max_message_length limit (${MAX_MESSAGE_LENGTH} characters by default).`;
 
 export const MessageContentRequest = createUnboundedStringType().describe(MESSAGE_CONTENT_LIMIT_DESCRIPTION);
 

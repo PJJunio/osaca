@@ -7,17 +7,14 @@ import {
 	LIMIT_CONFIG_REFRESH_CHANNEL,
 	type LimitBuildOptions,
 	mergeWithCurrentDefaults,
+	normalizeLimitConfig,
 	readStoredLimitOverrides,
-	sanitizeLimitConfigForInstance,
 } from '@app/api/constants/LimitConfig';
 import {
 	INSTANCE_CONFIG_REFRESH_CHANNEL,
 	type InstanceConfigRepository,
-	type InstancePolicyConfig,
-	type InstancePremiumMode,
 } from '@app/api/instance/InstanceConfigRepository';
 import {Logger} from '@app/api/Logger';
-import {setCachedInstancePremiumMode} from '@app/api/limits/InstancePremiumModeCache';
 import {awaitAll} from '@app/api/utils/ConcurrencyUtils';
 import {RefreshSubscription} from '@app/api/utils/RefreshSubscription';
 import {ServiceUnavailableError} from '@osaca/errors/src/domains/core/ServiceUnavailableError';
@@ -31,11 +28,7 @@ const MAX_PENDING_OPERATIONS = 32;
 let globalLimitConfigService: LimitConfigService | null = null;
 
 export class LimitConfigService {
-	private premiumMode: InstancePremiumMode = 'everyone';
-	private config: LimitConfigSnapshot = createDefaultLimitConfig({
-		selfHosted: Config.instance.selfHosted,
-		premiumMode: 'everyone',
-	});
+	private config: LimitConfigSnapshot = createDefaultLimitConfig();
 	private hasLifecycleStarted = false;
 	private lifecycleGeneration = 0;
 	private initialization: Promise<void> | null = null;
@@ -96,7 +89,7 @@ export class LimitConfigService {
 	}
 
 	getDefaultConfigSnapshot(): LimitConfigSnapshot {
-		return createDefaultLimitConfig({selfHosted: Config.instance.selfHosted, premiumMode: this.premiumMode});
+		return createDefaultLimitConfig();
 	}
 
 	getConfigWireFormat(): LimitConfigWireFormat {
@@ -141,60 +134,24 @@ export class LimitConfigService {
 
 	private async refreshConfig(generation: number): Promise<void> {
 		this.assertRefreshActive(generation);
-		const {config: stored, premiumMode} = await this.repository.readLimitConfigInputs();
+		const stored = await this.repository.readStoredLimitConfig();
 		this.assertRefreshActive(generation);
-		const buildOptions: Required<LimitBuildOptions> = {
-			selfHosted: Config.instance.selfHosted,
-			premiumMode,
-		};
+		const buildOptions: LimitBuildOptions = {selfHosted: Config.instance.selfHosted};
 		this.config =
 			stored === null
-				? createDefaultLimitConfig(buildOptions)
-				: mergeWithCurrentDefaults(
-						sanitizeLimitConfigForInstance(readStoredLimitOverrides(stored, buildOptions), buildOptions),
-						buildOptions,
-					);
-		this.premiumMode = premiumMode;
-		setCachedInstancePremiumMode(premiumMode);
+				? createDefaultLimitConfig()
+				: mergeWithCurrentDefaults(normalizeLimitConfig(readStoredLimitOverrides(stored, buildOptions)));
 	}
 
 	updateConfig(config: LimitConfigSnapshot): Promise<void> {
 		return this.runOperation(async (generation) => {
-			const {config: previous, premiumMode} = await this.repository.readLimitConfigInputs();
+			const previous = await this.repository.readStoredLimitConfig();
 			this.assertRefreshActive(generation);
-			const stored = buildStoredLimitConfig(config, previous, {
-				selfHosted: Config.instance.selfHosted,
-				premiumMode,
-			});
+			const stored = buildStoredLimitConfig(config, previous, {selfHosted: Config.instance.selfHosted});
 			await this.repository.setLimitConfig(stored);
 			await this.reloadConfig(generation);
 			Logger.info({ruleCount: stored.rules.length}, 'Limit config updated');
 		});
-	}
-
-	updatePolicyConfig(patch: Partial<InstancePolicyConfig>): Promise<void> {
-		return this.runOperation(async (generation) => {
-			if (patch.premium_mode !== undefined) {
-				await this.detachStoredLimitsFromPremiumMode(generation, patch.premium_mode);
-			}
-			await this.repository.setInstancePolicyConfig(patch);
-			await this.reloadConfig(generation);
-		});
-	}
-
-	private async detachStoredLimitsFromPremiumMode(
-		generation: number,
-		nextPremiumMode: InstancePremiumMode,
-	): Promise<void> {
-		const {config: stored, premiumMode} = await this.repository.readLimitConfigInputs();
-		this.assertRefreshActive(generation);
-		if (stored === null || premiumMode === nextPremiumMode) {
-			return;
-		}
-		const overrides = readStoredLimitOverrides(stored, {selfHosted: Config.instance.selfHosted, premiumMode});
-		if (overrides !== stored) {
-			await this.repository.setLimitConfig(overrides);
-		}
 	}
 
 	private async reloadConfig(generation: number): Promise<void> {

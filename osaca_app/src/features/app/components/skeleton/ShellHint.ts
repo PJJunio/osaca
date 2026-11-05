@@ -41,7 +41,6 @@ import {
 	resolveSkeletonRailProjection,
 	type SkeletonRailProjection,
 } from '@app/features/app/components/skeleton/SkeletonRailProjection';
-import {skeletonSelfHosted} from '@app/features/app/components/skeleton/SkeletonRuntimeConfig';
 import {AppStorageKey} from '@app/features/platform/state/AppStorageKeys';
 import {
 	GATEWAY_PREBOOT_SESSION_STORAGE_KEY,
@@ -117,7 +116,6 @@ const RAIL_BOTTOM_DOWNLOAD_BIT = 4;
 const RAIL_BOTTOM_HELP_BIT = 8;
 const DM_ACTION_FRIENDS_BIT = 1;
 const DM_ACTION_PERSONAL_NOTES_BIT = 2;
-const DM_ACTION_PREMIUM_BIT = 4;
 const GUILD_PATH_SEGMENT_INDEX = 2;
 
 function clampRounded(value: number, min: number, max: number): number {
@@ -206,9 +204,6 @@ function resolveDMActionMask(layout: RememberedSkeletonDMSidebarLayout | null, m
 	}
 	if (layout?.personalNotesVisible ?? true) {
 		mask |= DM_ACTION_PERSONAL_NOTES_BIT;
-	}
-	if (layout?.premiumVisible ?? (!skeletonSelfHosted() && !mobile)) {
-		mask |= DM_ACTION_PREMIUM_BIT;
 	}
 	return mask;
 }

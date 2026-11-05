@@ -18,16 +18,6 @@ const DEFAULT_DEVELOPER_OPTIONS = {
 	forceUnknownMessageType: false,
 	selfHostedModeOverride: false,
 	forceShowVanityURLDisclaimer: false,
-	premiumScenarioOverride: null,
-	premiumTypeOverride: null,
-	premiumLifetimeSequenceOverride: null,
-	premiumSinceOverride: null,
-	premiumUntilOverride: null,
-	premiumBillingCycleOverride: null,
-	premiumWillCancelOverride: null,
-	hasEverPurchasedOverride: null,
-	hasUnreadGiftInventoryOverride: null,
-	unreadGiftInventoryCountOverride: null,
 	emailVerifiedOverride: null,
 	unclaimedAccountOverride: null,
 	mockVerificationBarrier: 'none',
@@ -40,32 +30,14 @@ const DEFAULT_DEVELOPER_OPTIONS = {
 	forceNoAttachFiles: false,
 	mockSlowmodeActive: false,
 	mockSlowmodeRemaining: 10000,
-	mockGiftInventory: null,
-	mockGiftDurationMonths: 12,
-	mockGiftRedeemed: null,
 	mockTitlebarPlatformOverride: 'auto',
 	mockAttachmentStates: {},
 	noOpInAppReports: false,
 	disableTranslationDomGuard: false,
 } satisfies DeveloperOptionsState;
-const PREMIUM_SCENARIO_OVERRIDE_KEYS = new Set<keyof DeveloperOptionsState>([
-	'premiumTypeOverride',
-	'premiumSinceOverride',
-	'premiumUntilOverride',
-	'premiumBillingCycleOverride',
-	'premiumWillCancelOverride',
-	'hasEverPurchasedOverride',
-]);
 export const DEVELOPER_OPTION_KEYS = Object.keys(DEFAULT_DEVELOPER_OPTIONS) as Array<keyof DeveloperOptionsState>;
 export const updateOption = <K extends keyof DeveloperOptionsState>(key: K, value: DeveloperOptionsState[K]): void => {
 	DeveloperOptionsCommands.updateOption(key, value);
-	if (
-		key !== 'premiumScenarioOverride' &&
-		PREMIUM_SCENARIO_OVERRIDE_KEYS.has(key) &&
-		DeveloperOptions.premiumScenarioOverride !== null
-	) {
-		DeveloperOptionsCommands.updateOption('premiumScenarioOverride', null);
-	}
 };
 export const resetDeveloperOption = <K extends keyof DeveloperOptionsState>(key: K): void => {
 	const shouldReload = key === 'selfHostedModeOverride' && DeveloperOptions.selfHostedModeOverride;

@@ -10,16 +10,13 @@ import {
 import {updateOption} from '@app/features/channel/components/channel_header_components/developer_tools/ResetOptions';
 import type {DeveloperOptionsState} from '@app/features/devtools/state/DeveloperOptions';
 import DeveloperOptions from '@app/features/devtools/state/DeveloperOptions';
-import {remFromPx} from '@app/features/theme/layout/RemFromPx';
 import {CheckboxItem, SubMenu as MenuItemSubmenu} from '@app/features/ui/action_menu/ContextMenu';
 import {MenuGroup} from '@app/features/ui/action_menu/MenuGroup';
 import {MenuItem} from '@app/features/ui/action_menu/MenuItem';
 import {MenuItemRadio} from '@app/features/ui/action_menu/MenuItemRadio';
 
 import * as ModalCommands from '@app/features/ui/commands/ModalCommands';
-import * as UserCommands from '@app/features/user/commands/UserCommands';
 import {useLingui} from '@lingui/react/macro';
-import {AtomIcon} from '@phosphor-icons/react';
 import {observer} from 'mobx-react-lite';
 import type React from 'react';
 
@@ -136,27 +133,6 @@ export const ActiveOverrideMenuGroup: React.FC<ActiveOverrideMenuGroupProps> = (
 		</MenuGroup>
 	);
 };
-export const BackendPremiumOverrideMenuGroup: React.FC<{label: string; hint: string}> = ({label, hint}) => (
-	<MenuGroup data-flx="channel.channel-header-components.developer-tools-context-menu.backend-premium-override-menu-group.menu-group">
-		<MenuItem
-			icon={
-				<AtomIcon
-					size={remFromPx(16)}
-					weight="fill"
-					data-flx="channel.channel-header-components.developer-tools-context-menu.backend-premium-override-menu-group.atom-icon"
-				/>
-			}
-			hint={hint}
-			onClick={() => {
-				void UserCommands.update({premium_enabled_override: false});
-			}}
-			closeOnSelect={false}
-			data-flx="channel.channel-header-components.developer-tools-context-menu.backend-premium-override-menu-group.menu-item"
-		>
-			{label}
-		</MenuItem>
-	</MenuGroup>
-);
 interface DangerConfirmationOptions {
 	onClose: () => void;
 	title: string;

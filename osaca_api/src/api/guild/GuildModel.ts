@@ -128,8 +128,8 @@ function mapMemberFields(member: GuildMember, userPartial: UserPartialResponse):
 	return {
 		user: userPartial,
 		nick: member.nickname,
-		avatar: member.isPremiumSanitized ? null : member.avatarHash,
-		banner: member.isPremiumSanitized ? null : member.bannerHash,
+		avatar: member.avatarHash,
+		banner: member.bannerHash,
 		accent_color: member.accentColor,
 		roles: Array.from(member.roleIds).map((id) => id.toString()),
 		joined_at: member.joinedAt.toISOString(),

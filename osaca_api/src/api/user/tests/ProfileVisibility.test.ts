@@ -212,7 +212,6 @@ describe('profile visibility', () => {
 			mute: false,
 			communication_disabled_until: null,
 			role_ids: null,
-			is_premium_sanitized: false,
 			temporary: false,
 			profile_flags: null,
 			version: 1,

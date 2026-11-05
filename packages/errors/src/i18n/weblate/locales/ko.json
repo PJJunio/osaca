@@ -445,7 +445,6 @@
 	"premium_and_plans.custom_stickers_in_dms_require_premium": "프리미엄 없이는 DM에서 커스텀 스티커를 사용할 수 없어요.",
 	"premium_and_plans.custom_stickers_outside_source_require_premium": "프리미엄 없이는 원본 커뮤니티 외부에서 커스텀 스티커를 사용할 수 없어요.",
 	"premium_and_plans.discriminator_change_requires_premium": "식별자를 변경하려면 프리미엄이 필요해요.",
-	"premium_and_plans.visionary_required_for_discriminator": "해당 식별자를 사용하려면 Visionary 평생 요금제를 이용해야 해요.",
 	"rate_limits.accent_color_changed_too_often": "최근에 강조 색상을 너무 자주 변경했어요. {minutes, plural, other {#분}} 후에 다시 시도해 주세요.",
 	"rate_limits.avatar_changed_too_often": "최근에 아바타를 너무 자주 변경했어요. {minutes, plural, other {#분}} 후에 다시 시도해 주세요.",
 	"rate_limits.banner_changed_too_often": "최근에 배너를 너무 자주 변경했어요. {minutes, plural, other {#분}} 후에 다시 시도해 주세요.",

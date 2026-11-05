@@ -199,7 +199,6 @@ export const Endpoints = {
 	USER_DISABLE: '/users/@me/disable',
 	USER_DELETE: '/users/@me/delete',
 	USER_BULK_DELETE_MY_MESSAGES: '/users/@me/messages/bulk-delete-mine',
-	USER_PREMIUM_RESET: '/users/@me/premium/reset',
 	USER_HARVEST: '/users/@me/harvest',
 	USER_HARVEST_FILTERED: '/users/@me/harvest/filtered',
 	USER_HARVEST_LATEST: '/users/@me/harvest/latest',

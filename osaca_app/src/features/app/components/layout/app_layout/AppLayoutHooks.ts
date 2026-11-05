@@ -42,7 +42,6 @@ import {
 } from '@app/features/voice/utils/VoiceSessionRestoreUtils';
 import {ChannelTypes} from '@osaca/constants/src/ChannelConstants';
 import {PRIVACY_POLICY_LAST_UPDATED, TERMS_OF_SERVICE_LAST_UPDATED} from '@osaca/constants/src/PolicyConstants';
-import {UserPremiumTypes} from '@osaca/constants/src/UserConstants';
 import {useEffect, useMemo, useState} from 'react';
 
 function sortNagbarsByPriority(a: NagbarState, b: NagbarState): number {
@@ -116,13 +115,6 @@ export const useNagbarConditions = (): NagbarConditions => {
 		if (nagbarState.forceHideDesktopDownload) return false;
 		if (nagbarState.forceDesktopDownload) return true;
 		return isDesktopBrowser && !nagbarState.desktopDownloadDismissed;
-	})();
-	const canShowVisionaryMfa = (() => {
-		if (isSelfHosted) return false;
-		if (nagbarState.forceHideVisionaryMfa) return false;
-		if (nagbarState.forceVisionaryMfa) return true;
-		if (!user) return false;
-		return user.premiumType === UserPremiumTypes.LIFETIME && !user.mfaEnabled && !nagbarState.visionaryMfaDismissed;
 	})();
 	const canShowGuildMembershipCta = (() => {
 		if (nagbarState.forceHideGuildMembershipCta) return false;
@@ -287,7 +279,6 @@ export const useNagbarConditions = (): NagbarConditions => {
 		canShowDesktopNotification,
 		canShowDesktopDownload,
 		canShowGuildMembershipCta,
-		canShowVisionaryMfa,
 		canShowVoiceSessionRestore,
 		needsTermsAcceptance,
 		canShowSoftwareEncoder,
@@ -364,12 +355,6 @@ export const useActiveNagbars = (conditions: NagbarConditions): Array<NagbarStat
 				type: NagbarType.GUILD_MEMBERSHIP_CTA,
 				priority: 6,
 				visible: conditions.canShowGuildMembershipCta,
-				dismissible: true,
-			},
-			{
-				type: NagbarType.VISIONARY_MFA,
-				priority: 7,
-				visible: conditions.canShowVisionaryMfa,
 				dismissible: true,
 			},
 			{

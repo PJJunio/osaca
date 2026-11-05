@@ -445,7 +445,6 @@
 	"premium_and_plans.custom_stickers_in_dms_require_premium": "Без Премиума нельзя использовать пользовательские стикеры в ЛС.",
 	"premium_and_plans.custom_stickers_outside_source_require_premium": "Без Премиума нельзя использовать пользовательские стикеры за пределами исходных сообществ.",
 	"premium_and_plans.discriminator_change_requires_premium": "Для смены дискриминатора нужен Премиум.",
-	"premium_and_plans.visionary_required_for_discriminator": "Использовать этот дискриминатор можно только с пожизненным тарифом Visionary.",
 	"rate_limits.accent_color_changed_too_often": "Ты слишком часто меняешь акцентный цвет. Попробуй ещё раз через {minutes} {minutes, plural, one {минуту} few {минуты} many {минут} other {минуты}}.",
 	"rate_limits.avatar_changed_too_often": "Ты слишком часто меняешь аватар. Попробуй ещё раз через {minutes} {minutes, plural, one {минуту} few {минуты} many {минут} other {минуты}}.",
 	"rate_limits.banner_changed_too_often": "Ты слишком часто меняешь баннер. Попробуй ещё раз через {minutes} {minutes, plural, one {минуту} few {минуты} many {минут} other {минуты}}.",

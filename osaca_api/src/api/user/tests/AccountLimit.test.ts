@@ -117,11 +117,7 @@ describe('Account limitation', () => {
 				.expect(403)
 				.executeWithResponse(),
 		);
-		await createBuilder(harness, member.token)
-			.patch('/users/@me')
-			.body({has_dismissed_premium_onboarding: true})
-			.expect(200)
-			.execute();
+		await createBuilder(harness, member.token).patch('/users/@me').body({mention_flags: 0}).expect(200).execute();
 	});
 
 	it('never limits exempt accounts', async () => {

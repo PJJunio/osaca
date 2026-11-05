@@ -10,16 +10,12 @@ import type {User} from '@app/api/models/User';
 import {clearNewConversationLimit} from '@app/api/user/NewConversationLimit';
 import {propagateUserUpdate} from '@app/api/user/services/PartialUserChangePropagation';
 import type {EnforcementLimit} from '@osaca/constants/src/EnforcementReasons';
-import {PremiumFlags, UserFlags} from '@osaca/constants/src/UserConstants';
+import {UserFlags} from '@osaca/constants/src/UserConstants';
 import {UnknownUserError} from '@osaca/errors/src/domains/user/UnknownUserError';
 
-export const FEATURE_LIMIT_USER_FLAGS: Readonly<Partial<Record<EnforcementLimit, bigint>>> = {
+export const FEATURE_LIMIT_USER_FLAGS: Readonly<Record<EnforcementLimit, bigint>> = {
 	direct_messages: UserFlags.SPAMMER,
 	reports: UserFlags.REPORT_BANNED,
-};
-
-export const FEATURE_LIMIT_PREMIUM_FLAGS: Readonly<Partial<Record<EnforcementLimit, number>>> = {
-	purchases: PremiumFlags.PURCHASE_DISABLED,
 };
 
 export async function listActiveFeatureLimits(
@@ -52,27 +48,14 @@ export async function setFeatureLimit(
 ): Promise<User> {
 	const {users, cache} = apiContext.services;
 	const userFlag = FEATURE_LIMIT_USER_FLAGS[limit];
-	let updated: User;
-	if (userFlag !== undefined) {
-		const flagged = await users.updateFlags(user.id, (flags) => (enabled ? flags | userFlag : flags & ~userFlag));
-		if (!flagged) {
-			throw new UnknownUserError();
-		}
-		updated = flagged;
-	} else {
-		const premiumFlag = FEATURE_LIMIT_PREMIUM_FLAGS[limit]!;
-		updated = await users.patchUpsert(
-			user.id,
-			{premium_flags: enabled ? user.premiumFlags | premiumFlag : user.premiumFlags & ~premiumFlag},
-			user.toRow(),
-		);
+	const updated = await users.updateFlags(user.id, (flags) => (enabled ? flags | userFlag : flags & ~userFlag));
+	if (!updated) {
+		throw new UnknownUserError();
 	}
 	await propagateUserUpdate(userUpdateDeps, user, updated);
 	if (!enabled) {
 		await clearNewConversationLimit(user.id, {cache});
 	}
-	if (userFlag !== undefined) {
-		await emitAdminAction(actorId, user.id, 'update_flags');
-	}
+	await emitAdminAction(actorId, user.id, 'update_flags');
 	return updated;
 }

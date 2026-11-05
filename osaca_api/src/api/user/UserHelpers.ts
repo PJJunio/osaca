@@ -1,23 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {Config} from '@app/api/Config';
 import type {UserRow} from '@app/api/database/types/UserTypes';
-import {getCachedInstancePremiumMode} from '@app/api/limits/InstancePremiumModeCache';
 import type {User} from '@app/api/models/User';
 import {isEnforcementReasonCode} from '@osaca/constants/src/EnforcementReasons';
 import {
 	DELETED_USER_DISCRIMINATOR,
 	DELETED_USER_GLOBAL_NAME,
 	DELETED_USER_USERNAME,
-	PREMIUM_GRACE_PERIOD_DAYS,
-	PREMIUM_PAYMENT_RECOVERY_GRACE_DAYS,
-	PremiumFlags,
 	ProfileFieldPrivacyFlags,
 	UserFlags,
-	type UserPremiumType,
-	UserPremiumTypes,
 } from '@osaca/constants/src/UserConstants';
-import {MS_PER_DAY} from '@osaca/date_utils/src/DateConstants';
 import {snowflakeToDate} from '@osaca/snowflake/src/Snowflake';
 
 export function isEnforcementDeletion(user: Pick<User, 'enforcementDecisionId' | 'deletionReasonCode'>): boolean {
@@ -48,27 +40,13 @@ const FIELDS_CLEARED_ON_DELETION = [
 	'accent_color',
 	'timezone',
 	'locale',
-	'premium_flags',
 	'hidden_profile_badges',
-	'premium_type',
-	'premium_since',
-	'premium_until',
-	'premium_gift_extension_ends_at',
-	'premium_will_cancel',
-	'premium_billing_cycle',
-	'premium_lifetime_sequence',
-	'premium_grace_ends_at',
-	'has_ever_purchased',
 	'terms_agreed_at',
 	'privacy_agreed_at',
 	'last_active_at',
 	'last_active_ip',
 	'acls',
 	'traits',
-	'first_refund_at',
-	'gift_inventory_server_seq',
-	'gift_inventory_client_seq',
-	'premium_onboarding_dismissed_at',
 	'mention_flags',
 	'last_voice_activity_sharing_change_at',
 ] as const satisfies ReadonlyArray<keyof UserRow>;
@@ -127,132 +105,9 @@ export function isDirectDeliverySuppressed(user: Pick<User, 'isBot' | 'flags'>):
 	return !user.isBot && (user.flags & UserFlags.SPAMMER) === UserFlags.SPAMMER;
 }
 
-interface PremiumCheckable {
-	isBot: boolean;
-	premiumType: number | null;
-	premiumUntil: Date | null;
-	premiumGiftExtensionEndsAt: Date | null;
-
-	premiumGraceEndsAt: Date | null;
-	flags: bigint;
-	premiumFlags: number;
-}
-
-export const PREMIUM_GRACE_PERIOD_MS = PREMIUM_GRACE_PERIOD_DAYS * MS_PER_DAY;
-
-export function getPremiumPaymentRecoveryGraceMs(billingCycle: string | null | undefined): number {
-	const days =
-		billingCycle === 'yearly'
-			? PREMIUM_PAYMENT_RECOVERY_GRACE_DAYS.yearly
-			: PREMIUM_PAYMENT_RECOVERY_GRACE_DAYS.monthly;
-	return days * MS_PER_DAY;
-}
-
-export function getEffectivePremiumUntil(
-	user: Pick<PremiumCheckable, 'premiumUntil' | 'premiumGiftExtensionEndsAt'>,
-): Date | null {
-	const subUntil = user.premiumUntil?.getTime() ?? null;
-	const giftUntil = user.premiumGiftExtensionEndsAt?.getTime() ?? null;
-	if (subUntil == null && giftUntil == null) {
-		return null;
-	}
-	const effectiveMs = Math.max(subUntil ?? 0, giftUntil ?? 0);
-	return new Date(effectiveMs);
-}
-
-export function getPaidPremiumAccessEndsAt(
-	user: Pick<PremiumCheckable, 'premiumUntil' | 'premiumGiftExtensionEndsAt' | 'premiumGraceEndsAt'>,
-): Date | null {
-	const effective = getEffectivePremiumUntil(user);
-	if (effective == null) {
-		return null;
-	}
-	const graceEndsMs = user.premiumGraceEndsAt?.getTime() ?? effective.getTime() + PREMIUM_GRACE_PERIOD_MS;
-	return new Date(Math.max(effective.getTime(), graceEndsMs));
-}
-
-export function checkHasActivePaidPremium(
-	user: Pick<PremiumCheckable, 'premiumType' | 'premiumUntil' | 'premiumGiftExtensionEndsAt' | 'premiumGraceEndsAt'>,
-): boolean {
-	if (user.premiumType == null || user.premiumType <= 0) {
-		return false;
-	}
-	const endsAt = getPaidPremiumAccessEndsAt(user);
-	return endsAt == null || Date.now() <= endsAt.getTime();
-}
-
-export function checkIsPremium(user: PremiumCheckable): boolean {
-	if (Config.instance.selfHosted && getCachedInstancePremiumMode() === 'everyone') {
-		return true;
-	}
-	if (user.isBot) {
-		return true;
-	}
-	if ((user.premiumFlags & PremiumFlags.PERKS_DISABLED) !== 0) {
-		return false;
-	}
-	if ((user.premiumFlags & PremiumFlags.ENABLED_OVERRIDE) !== 0) {
-		return true;
-	}
-	if (checkHasActivePaidPremium(user)) {
-		return true;
-	}
-	return false;
-}
-
-export function getBadgePremiumType(
-	user: Pick<PremiumCheckable, 'premiumType' | 'premiumFlags'>,
-): UserPremiumType | undefined {
-	if (user.premiumType != null && user.premiumType !== UserPremiumTypes.NONE) {
-		return user.premiumType as UserPremiumType;
-	}
-	if (
-		(user.premiumFlags & (PremiumFlags.ENABLED_OVERRIDE | PremiumFlags.PERKS_DISABLED)) ===
-		PremiumFlags.ENABLED_OVERRIDE
-	) {
-		return UserPremiumTypes.SUBSCRIPTION;
-	}
-	return undefined;
-}
-
-const PREMIUM_CLEAR_FIELDS = [
-	'premium_type',
-	'premium_since',
-	'premium_until',
-	'premium_gift_extension_ends_at',
-	'premium_will_cancel',
-	'premium_billing_cycle',
-	'premium_grace_ends_at',
-] as const;
-
-type PremiumClearField = (typeof PREMIUM_CLEAR_FIELDS)[number];
-
-export function shouldStripExpiredPremium(user: PremiumCheckable): boolean {
-	if ((user.premiumType ?? 0) <= 0) {
-		return false;
-	}
-	return !checkHasActivePaidPremium(user);
-}
-
-function mapExpiredPremiumFields<T>(mapper: (field: PremiumClearField) => T): Record<PremiumClearField, T> {
-	const result = {} as Record<PremiumClearField, T>;
-	for (const field of PREMIUM_CLEAR_FIELDS) {
-		result[field] = mapper(field);
-	}
-	return result;
-}
-
-export function createPremiumClearPatch(): Partial<UserRow> {
-	return mapExpiredPremiumFields(() => null) as Partial<UserRow>;
-}
-
-export function clearPerksSanitizedFlag(premiumFlags: number): number {
-	return premiumFlags & ~PremiumFlags.PERKS_SANITIZED;
-}
-
 const PROFILE_SUBSTRING_EXEMPT_FLAGS = UserFlags.STAFF;
 
-export function isProfileSubstringExempt(user: Pick<PremiumCheckable, 'flags'>): boolean {
+export function isProfileSubstringExempt(user: Pick<User, 'flags'>): boolean {
 	return (user.flags & PROFILE_SUBSTRING_EXEMPT_FLAGS) !== 0n;
 }
 

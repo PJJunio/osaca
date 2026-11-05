@@ -334,9 +334,6 @@ export const ChannelOverviewTopicEditor = observer(
 											<CharacterCounter
 												currentLength={actualTopic.length}
 												maxLength={MAX_TOPIC_LENGTH}
-												canUpgrade={false}
-												premiumMaxLength={MAX_TOPIC_LENGTH}
-												onUpgradeClick={() => undefined}
 												data-flx="channel.channel-tabs.channel-overview-tab.channel-overview-topic-editor.character-counter"
 											/>
 										</div>

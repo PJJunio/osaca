@@ -445,7 +445,6 @@
 	"premium_and_plans.custom_stickers_in_dms_require_premium": "Bez tarifu Premium nemůžete používat vlastní samolepky v soukromých konverzacích.",
 	"premium_and_plans.custom_stickers_outside_source_require_premium": "Bez tarifu Premium nemůžete používat vlastní samolepky mimo jejich zdrojové komunity.",
 	"premium_and_plans.discriminator_change_requires_premium": "Změna čtyřmístného identifikátoru vyžaduje tarif Premium.",
-	"premium_and_plans.visionary_required_for_discriminator": "Pro použití tohoto čtyřmístného identifikátoru musíte mít doživotní tarif Visionary.",
 	"rate_limits.accent_color_changed_too_often": "V poslední době jste měnili svou akcentní barvu příliš často. Zkuste to znovu za {minutes, plural, one {# minutu} few {# minuty} many {# minuty} other {# minut}}.",
 	"rate_limits.avatar_changed_too_often": "V poslední době jste měnili svůj avatar příliš často. Zkuste to znovu za {minutes, plural, one {# minutu} few {# minuty} many {# minuty} other {# minut}}.",
 	"rate_limits.banner_changed_too_often": "V poslední době jste měnili svůj banner příliš často. Zkuste to znovu za {minutes, plural, one {# minutu} few {# minuty} many {# minuty} other {# minut}}.",

@@ -1278,7 +1278,6 @@ const SKELETON_NAGBAR_ROW_SHAPES: Record<NagbarType, SkeletonNagbarRowShape> = {
 	[NagbarType.DESKTOP_NOTIFICATION]: {tone: SkeletonNagbarTone.BRAND, hasActions: true},
 	[NagbarType.DESKTOP_DOWNLOAD]: {tone: SkeletonNagbarTone.BRAND, hasActions: true},
 	[NagbarType.GUILD_MEMBERSHIP_CTA]: {tone: SkeletonNagbarTone.BRAND, hasActions: true},
-	[NagbarType.VISIONARY_MFA]: {tone: SkeletonNagbarTone.BRAND, hasActions: true},
 	[NagbarType.VOICE_SESSION_RESTORE]: {tone: SkeletonNagbarTone.VOICE, hasActions: true},
 	[NagbarType.TERMS_ACCEPTANCE]: {tone: SkeletonNagbarTone.LEGAL, hasActions: true},
 	[NagbarType.SOFTWARE_ENCODER]: {tone: SkeletonNagbarTone.ENCODER, hasActions: true},

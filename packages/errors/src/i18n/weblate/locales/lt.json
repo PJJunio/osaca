@@ -445,7 +445,6 @@
 	"premium_and_plans.custom_stickers_in_dms_require_premium": "Be Premium negali naudoti pasirinktinių lipdukų DM pokalbiuose.",
 	"premium_and_plans.custom_stickers_outside_source_require_premium": "Be Premium negali naudoti pasirinktinių lipdukų už jų kilmės bendruomenių ribų.",
 	"premium_and_plans.discriminator_change_requires_premium": "Kad pakeistum diskriminatorių, reikia Premium.",
-	"premium_and_plans.visionary_required_for_discriminator": "Kad galėtum naudoti tą diskriminatorių, turi turėti visam gyvenimui skirtą Visionary planą.",
 	"rate_limits.accent_color_changed_too_often": "Pastaruoju metu per dažnai keitei akcento spalvą. Bandyk dar kartą po {minutes, plural, one {# minutės} few {# minučių} many {# minutės} other {# minučių}}.",
 	"rate_limits.avatar_changed_too_often": "Pastaruoju metu per dažnai keitei avatarą. Bandyk dar kartą po {minutes, plural, one {# minutės} few {# minučių} many {# minutės} other {# minučių}}.",
 	"rate_limits.banner_changed_too_often": "Pastaruoju metu per dažnai keitei banerį. Bandyk dar kartą po {minutes, plural, one {# minutės} few {# minučių} many {# minutės} other {# minučių}}.",

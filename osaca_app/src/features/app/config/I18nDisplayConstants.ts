@@ -7,9 +7,6 @@ import {THE_OTHER_PLATFORM} from '@osaca/constants/src/ExternalPlatformConstants
 
 export {PRODUCT_NAME};
 export const PRODUCT_LABS_COMMUNITY_NAME = `${PRODUCT_NAME} Labs`;
-export const OPERATOR_PASS_NAME = 'Operator Pass';
-export const OPERATOR_PASS_SELLER_ADDRESS = 'c/o Embassy House, Östgötagatan 12, 116 25 Stockholm';
-export const OPERATOR_PASS_SELLER_PHONE = '+46 79 101 18 18';
 export const DESKTOP_ENTRY_NAME = 'OSACA';
 export const CANARY_DESKTOP_ENTRY_NAME = 'OSACA Canary';
 export const PAYMENT_PROVIDER_NAME = 'Stripe';
@@ -40,7 +37,6 @@ export const EXAMPLE_GENERAL_CHANNEL_NAME = 'general';
 export const EXAMPLE_USERNAME_MENTION = '@username';
 export const EXAMPLE_OSACA_TAG_FULL = 'Username#0000';
 export const EXAMPLE_USERNAME = 'Username';
-export const VISIONARY_LIFETIME_BADGE_LABEL = 'Visionary #42';
 export const LINK_PREVIEW_EXAMPLE_URL = 'https://osaca.example';
 export const EXAMPLE_GIF_URLS = `${EXAMPLE_URL}/gif1.gif\n${EXAMPLE_URL}/gif2.gif`;
 export const THE_OTHER_PLATFORM_TEMPLATE_EXAMPLE_URL = `https://${THE_OTHER_PLATFORM.toLowerCase()}.new/abcd1234`;

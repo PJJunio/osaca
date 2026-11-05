@@ -103,7 +103,7 @@ import {BotsCannotCreateGuildsError} from '@osaca/errors/src/domains/guild/BotsC
 import {GuildTemplateInvalidError} from '@osaca/errors/src/domains/guild/GuildTemplateInvalidError';
 import {MaxGuildsError} from '@osaca/errors/src/domains/guild/MaxGuildsError';
 import {UnknownGuildError} from '@osaca/errors/src/domains/guild/UnknownGuildError';
-import {DEFAULT_STOCK_LIMITS} from '@osaca/limits/src/LimitDefaults';
+import {DEFAULT_LIMITS} from '@osaca/limits/src/LimitDefaults';
 import type {GuildCreateRequest, GuildUpdateRequest} from '@osaca/schema/src/domains/guild/GuildRequestSchemas';
 import type {GuildPartialResponse, GuildResponse} from '@osaca/schema/src/domains/guild/GuildResponseSchemas';
 import type {
@@ -340,7 +340,7 @@ export class GuildOperationsService {
 			this.limitConfigService.getConfigSnapshot(),
 			ctx,
 			'max_guilds',
-			DEFAULT_STOCK_LIMITS.max_guilds,
+			DEFAULT_LIMITS.max_guilds,
 		);
 		if (currentGuildCount >= maxGuilds) throw new MaxGuildsError(maxGuilds);
 		const guildId = createGuildID(await this.snowflakeService.generate());
@@ -437,7 +437,6 @@ export class GuildOperationsService {
 				mute: false,
 				communication_disabled_until: null,
 				role_ids: null,
-				is_premium_sanitized: null,
 				temporary: false,
 				profile_flags: null,
 				mention_flags: null,

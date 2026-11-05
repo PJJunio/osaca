@@ -45,7 +45,7 @@ import {UserHarvestRepository} from '@app/api/user/UserHarvestRepository';
 import {dispatchUserUpdate} from '@app/api/user/UserMappers';
 import {serializeSelfMessageFilter} from '@app/api/worker/utils/SelfMessageFilterPayload';
 import type {WorkerTaskName} from '@app/api/worker/WorkerLaneConfig';
-import {MAX_BOOKMARKS_NON_PREMIUM} from '@osaca/constants/src/LimitConstants';
+import {MAX_BOOKMARKS} from '@osaca/constants/src/LimitConstants';
 import {THREAD_CHANNEL_TYPES} from '@osaca/constants/src/ThreadConstants';
 import {UserFlags} from '@osaca/constants/src/UserConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
@@ -426,7 +426,7 @@ export class UserContentService {
 			this.limitConfigService.getConfigSnapshot(),
 			ctx,
 			'max_bookmarks',
-			MAX_BOOKMARKS_NON_PREMIUM,
+			MAX_BOOKMARKS,
 		);
 		if (savedMessageCount >= maxBookmarks) {
 			throw new MaxBookmarksError({maxBookmarks});

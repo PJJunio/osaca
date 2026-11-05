@@ -3,7 +3,7 @@
 import {createLimitMatchContext} from '@app/api/limits/LimitMatchContextBuilder';
 import {GuildFeatures} from '@osaca/constants/src/GuildConstants';
 import {MAX_GUILD_MEMBERS, MAX_GUILD_MEMBERS_VERY_LARGE_GUILD} from '@osaca/constants/src/LimitConstants';
-import {DEFAULT_RESTRICTED_LIMITS} from '@osaca/limits/src/LimitDefaults';
+import {DEFAULT_LIMITS} from '@osaca/limits/src/LimitDefaults';
 import {resolveLimit} from '@osaca/limits/src/LimitResolver';
 import type {LimitConfigSnapshot} from '@osaca/limits/src/LimitTypes';
 
@@ -41,7 +41,7 @@ export function resolveMaxGuildMembersLimit(params: {
 	const resolved = resolveLimit(params.snapshot, ctx, 'max_guild_members', {
 		evaluationContext: 'guild',
 		baseLimits: {
-			...DEFAULT_RESTRICTED_LIMITS,
+			...DEFAULT_LIMITS,
 			max_guild_members: defaultLimit,
 		},
 	});

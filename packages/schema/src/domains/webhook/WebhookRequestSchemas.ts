@@ -6,7 +6,7 @@ import {
 	MessageFlags,
 	MessageFlagsDescriptions,
 } from '@osaca/constants/src/ChannelConstants';
-import {MAX_MESSAGE_LENGTH_PREMIUM} from '@osaca/constants/src/LimitConstants';
+import {MAX_MESSAGE_LENGTH} from '@osaca/constants/src/LimitConstants';
 import {
 	MAX_APPLIED_TAGS_PER_THREAD,
 	THREAD_NAME_MAX_LENGTH,
@@ -156,7 +156,7 @@ export type WebhookMultipartMessageRequest = z.infer<typeof WebhookMultipartMess
 export const WebhookMessageEditRequest = z
 	.object({
 		content: MessageContentRequest.nullish().describe(
-			`The new message content (up to ${MAX_MESSAGE_LENGTH_PREMIUM} characters)`,
+			`The new message content (up to ${MAX_MESSAGE_LENGTH} characters)`,
 		),
 		embeds: z.array(RichEmbedRequest).max(100).optional().describe('Array of embed objects to include in the message'),
 		flags: createBitflagInt32Type(

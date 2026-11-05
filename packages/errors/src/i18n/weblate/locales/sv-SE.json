@@ -445,7 +445,6 @@
 	"premium_and_plans.custom_stickers_in_dms_require_premium": "Du kan inte använda anpassade klistermärken i DM utan Premium.",
 	"premium_and_plans.custom_stickers_outside_source_require_premium": "Du kan inte använda anpassade klistermärken utanför de communities de kommer från utan Premium.",
 	"premium_and_plans.discriminator_change_requires_premium": "Att ändra din diskriminator kräver Premium.",
-	"premium_and_plans.visionary_required_for_discriminator": "Du måste ha livstidsplanen Visionary för att använda den diskriminatorn.",
 	"rate_limits.accent_color_changed_too_often": "Du har ändrat din accentfärg för ofta den senaste tiden. Försök igen om {minutes, plural, one {# minut} other {# minuter}}.",
 	"rate_limits.avatar_changed_too_often": "Du har ändrat din avatar för ofta den senaste tiden. Försök igen om {minutes, plural, one {# minut} other {# minuter}}.",
 	"rate_limits.banner_changed_too_often": "Du har ändrat din banner för ofta den senaste tiden. Försök igen om {minutes, plural, one {# minut} other {# minuter}}.",

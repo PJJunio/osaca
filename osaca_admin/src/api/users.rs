@@ -207,25 +207,6 @@ impl AdminApiClient {
         self.generated_value(response.into_inner())
     }
 
-    pub async fn update_premium_flags(
-        &self,
-        user_id: &str,
-        add_flags: &[i32],
-        remove_flags: &[i32],
-    ) -> ApiResult<AdminUser> {
-        let body = generated_types::AdminUserPremiumFlagsUpdateRequest {
-            add_flags: premium_flags(add_flags),
-            remove_flags: premium_flags(remove_flags),
-        };
-        let response = self
-            .generated()
-            .update_admin_user_premium_flags(&snowflake(user_id), &body)
-            .await
-            .map_err(|e| self.generated_error(e))?;
-        let resp: UserMutationResponse = self.generated_value(response.into_inner())?;
-        Ok(resp.user)
-    }
-
     pub async fn set_user_acls(&self, user_id: &str, acls: &[String]) -> ApiResult<AdminUser> {
         let body = generated_types::AdminUserAclsRequest {
             acls: super::admin_api_keys::parse_acls(acls),
@@ -509,9 +490,3 @@ fn nonempty(value: Option<&str>) -> Option<&str> {
     value.filter(|value| !value.is_empty())
 }
 
-fn premium_flags(values: &[i32]) -> Vec<generated_types::PremiumFlags> {
-    values
-        .iter()
-        .map(|value| generated_types::PremiumFlags::from(*value))
-        .collect()
-}

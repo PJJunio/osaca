@@ -70,18 +70,18 @@ describe('instance config admin PATCH against state another node changed', () =>
 		});
 	});
 
-	it('applies the DM rule and a premium mode change from one request', async () => {
+	it('applies the DM rule and another policy change from one request', async () => {
 		const admin = await createAdmin();
 		await patchConfig(admin, {policy: {direct_messages_disabled: true}}).execute();
 
 		const updated = await patchConfig(admin, {
-			policy: {direct_messages_disabled: false, premium_mode: 'mirror'},
+			policy: {direct_messages_disabled: false, personal_notes_enabled: true},
 		}).execute();
 
 		expect(updated.policy).toMatchObject({
 			direct_messages_disabled: false,
 			direct_messages_locked: true,
-			premium_mode: 'mirror',
+			personal_notes_enabled: true,
 		});
 	});
 });

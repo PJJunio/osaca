@@ -1,29 +1,16 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {
-	NONE_DESCRIPTOR,
-	type RadioMenuOption,
-	USE_ACTUAL_VALUE_DESCRIPTOR,
-} from '@app/features/channel/components/channel_header_components/developer_tools/DeveloperToolsShared';
+import type {RadioMenuOption} from '@app/features/channel/components/channel_header_components/developer_tools/DeveloperToolsShared';
 import {
 	formatDurationMs,
 	NO_TIMER_DESCRIPTOR,
 } from '@app/features/channel/components/channel_header_components/developer_tools/FormatHelpers';
 import type {DeveloperOptionsState} from '@app/features/devtools/state/DeveloperOptions';
-import {UserPremiumTypes} from '@osaca/constants/src/UserConstants';
 import type {I18n} from '@lingui/core';
 import {msg} from '@lingui/core/macro';
 
-const SUBSCRIPTION_DESCRIPTOR = msg({
-	message: 'Subscription',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
 export const LIFETIME_DESCRIPTOR = msg({
 	message: 'Lifetime',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const USE_ACTUAL_PREMIUM_TYPE_DESCRIPTOR = msg({
-	message: 'Use actual premium type',
 	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
 });
 const NONE_NORMAL_BEHAVIOR_DESCRIPTOR = msg({
@@ -66,40 +53,6 @@ const CONSENT_REQUIRED_DESCRIPTOR = msg({
 	message: 'Consent required',
 	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
 });
-const MESSAGE_1_MONTH_DESCRIPTOR = msg({
-	message: '1 month',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const MESSAGE_3_MONTHS_DESCRIPTOR = msg({
-	message: '3 months',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const MESSAGE_6_MONTHS_DESCRIPTOR = msg({
-	message: '6 months',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const MESSAGE_12_MONTHS_1_YEAR_DESCRIPTOR = msg({
-	message: '12 months (1 year)',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-export const getPremiumTypeLabel = (i18n: I18n, premiumType: number | null): string => {
-	switch (premiumType) {
-		case UserPremiumTypes.NONE:
-			return i18n._(NONE_DESCRIPTOR);
-		case UserPremiumTypes.SUBSCRIPTION:
-			return i18n._(SUBSCRIPTION_DESCRIPTOR);
-		case UserPremiumTypes.LIFETIME:
-			return i18n._(LIFETIME_DESCRIPTOR);
-		default:
-			return i18n._(USE_ACTUAL_VALUE_DESCRIPTOR);
-	}
-};
-export const getPremiumTypeOptions = (): Array<RadioMenuOption<DeveloperOptionsState['premiumTypeOverride']>> => [
-	{value: null, label: USE_ACTUAL_PREMIUM_TYPE_DESCRIPTOR},
-	{value: UserPremiumTypes.NONE, label: NONE_DESCRIPTOR},
-	{value: UserPremiumTypes.SUBSCRIPTION, label: SUBSCRIPTION_DESCRIPTOR},
-	{value: UserPremiumTypes.LIFETIME, label: LIFETIME_DESCRIPTOR},
-];
 export const getVerificationBarrierOptions = (): Array<
 	RadioMenuOption<DeveloperOptionsState['mockVerificationBarrier']>
 > => [
@@ -136,11 +89,4 @@ export const getMatureContentMediaGateOptions = (): Array<
 	{value: 'none', label: NONE_NORMAL_BEHAVIOR_DESCRIPTOR},
 	{value: 'geo_restricted', label: GEO_RESTRICTED_DESCRIPTOR},
 	{value: 'mature_content_check_required', label: MATURE_CONTENT_GATE_DESCRIPTOR},
-];
-export const getGiftDurationOptions = (): Array<RadioMenuOption<DeveloperOptionsState['mockGiftDurationMonths']>> => [
-	{value: 1, label: MESSAGE_1_MONTH_DESCRIPTOR},
-	{value: 3, label: MESSAGE_3_MONTHS_DESCRIPTOR},
-	{value: 6, label: MESSAGE_6_MONTHS_DESCRIPTOR},
-	{value: 12, label: MESSAGE_12_MONTHS_1_YEAR_DESCRIPTOR},
-	{value: 0, label: LIFETIME_DESCRIPTOR},
 ];

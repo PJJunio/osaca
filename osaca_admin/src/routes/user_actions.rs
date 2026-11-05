@@ -121,55 +121,6 @@ pub async fn dispatch(
                 "Failed to update user flags",
             )
         }
-        "update_premium_flags" => {
-            if has_legacy_flag_delta_fields(form) {
-                let Ok(add) = form.parse_list_values::<i32>(&["add_flags[]", "add_flags"]) else {
-                    return DispatchOutcome::error("Invalid premium flag value to add");
-                };
-                let Ok(remove) = form.parse_list_values::<i32>(&["remove_flags[]", "remove_flags"])
-                else {
-                    return DispatchOutcome::error("Invalid premium flag value to remove");
-                };
-                return DispatchOutcome::from_result(
-                    client.update_premium_flags(user_id, &add, &remove).await,
-                    "Premium flags updated successfully",
-                    "Failed to update premium flags",
-                );
-            }
-            let Ok(submitted) = form.parse_list_values::<i32>(&["flags[]", "flags"]) else {
-                return DispatchOutcome::error("Invalid premium flag value");
-            };
-            let selected = submitted.iter().copied().collect::<HashSet<_>>();
-            let user = match client.get_user_by_id(user_id).await {
-                Ok(user) => user,
-                Err(error) => {
-                    tracing::warn!(%error, user_id, "admin API request failed: load user for premium flag update");
-                    return DispatchOutcome::error("User not found");
-                }
-            };
-            let current = user.premium_flags;
-            let add = submitted
-                .iter()
-                .copied()
-                .filter(|flag| {
-                    current & *flag != *flag && admin_flags::premium_flag_is_editable(*flag)
-                })
-                .collect::<Vec<_>>();
-            let remove = admin_flags::PREMIUM_FLAGS
-                .iter()
-                .map(|flag| flag.value)
-                .filter(|flag| {
-                    current & *flag == *flag
-                        && !selected.contains(flag)
-                        && admin_flags::premium_flag_is_editable(*flag)
-                })
-                .collect::<Vec<_>>();
-            DispatchOutcome::from_result(
-                client.update_premium_flags(user_id, &add, &remove).await,
-                "Premium flags updated successfully",
-                "Failed to update premium flags",
-            )
-        }
         "update_acls" => {
             let acls = form.list_values_any(&["acls[]", "acls"]);
             DispatchOutcome::from_result(

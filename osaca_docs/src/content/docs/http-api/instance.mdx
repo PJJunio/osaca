@@ -140,7 +140,6 @@ Instance-wide switches to check before you offer a feature.
 | Field | Type | Description |
 | --- | --- | --- |
 | voice_enabled | boolean | Whether voice and video calls are enabled |
-| premium_enabled | boolean | Whether the instance has a premium tier |
 | self_hosted | boolean | Whether the instance is self-hosted |
 | presigned_attachment_uploads | boolean | Whether you can request presigned attachment upload URLs |
 | emails_enabled | boolean | Whether the instance sends email |
@@ -290,8 +289,8 @@ Use the resolved values to show limits in your UI. The API still checks every li
 
 ```json
 {
-  "id": "premium",
-  "filters": {"traits": ["premium"]},
+  "id": "supporter",
+  "filters": {"traits": ["supporter"]},
   "overrides": {
     "max_message_length": 4000,
     "max_guild_emojis": 250
@@ -396,8 +395,6 @@ What a client needs before anyone signs in.
 | status_page_url | ?string | Status page URL, or null |
 | status_page_instatus | boolean | Whether the status page is an Instatus page browsers can read. Clients show its incidents only when this is true |
 | status_page_incident_history_url | ?string | Status page incident history URL, or null |
-| premium_product_name | string | The name of the premium tier, `Premium` unless an admin sets one |
-| premium_info_url | ?string | URL of a page about the premium tier, or null |
 | sign_in_backdrop_url | ?string | Image shown behind the sign-in screens, or null for the default |
 | custom_css | ?string | CSS the web and desktop app apply before the person's own theme, except on sign-in pages, or null |
 | upload_limit_message | ?string | Markdown shown when a file is over the upload limit, or null for the default text |

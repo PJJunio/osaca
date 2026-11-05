@@ -14,8 +14,6 @@ import {
 import type {EntranceSoundScope} from '@app/features/notification/utils/EntranceSoundScopes';
 import {Logger} from '@app/features/platform/utils/AppLogger';
 import {readBlobAsBase64NoPrefix as blobToBase64} from '@app/features/platform/utils/BlobDataUrl';
-import * as PremiumModalCommands from '@app/features/premium/commands/PremiumModalCommands';
-import {shouldShowPremiumFeatures} from '@app/features/premium/utils/PremiumUtils';
 import * as ToastCommands from '@app/features/ui/commands/ToastCommands';
 import {handleAccountLimitedError} from '@app/features/user/utils/AccountLimitUtils';
 import {INVALID_AUDIO_FILE_DESCRIPTOR} from '@app/features/user/utils/UserMessageDescriptors';
@@ -178,15 +176,12 @@ function useEntranceSoundImpl(selectedScope: EntranceSoundScope): UseEntranceSou
 
 	const openUploadDialog = useCallback(async () => {
 		if (!hasEntranceSounds) {
-			if (shouldShowPremiumFeatures()) {
-				PremiumModalCommands.open();
-			} else {
-				showGenericErrorModal({
-					title: i18n._(ENTRANCE_SOUNDS_NOT_ENABLED_TITLE_DESCRIPTOR),
-					message: i18n._(ENTRANCE_SOUNDS_NOT_ENABLED_DESCRIPTOR),
-					dataFlx: 'user.user-error-modal-utils.show-user-error-modal.generic-error-modal',
-				});
-			}
+			showGenericErrorModal({
+				title: i18n._(ENTRANCE_SOUNDS_NOT_ENABLED_TITLE_DESCRIPTOR),
+				message: i18n._(ENTRANCE_SOUNDS_NOT_ENABLED_DESCRIPTOR),
+				dataFlx: 'user.user-error-modal-utils.show-user-error-modal.generic-error-modal',
+			});
+
 			return;
 		}
 		if (libraryFull) {

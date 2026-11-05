@@ -631,7 +631,6 @@ These are the values of `code` inside `errors`.
 | `VERIFICATION_BASIS_REQUIRES_EMAIL_DELIVERY` | Accounts can only be verified by a confirmed email while email delivery is on |
 | `VERIFICATION_CODE_EXPIRED` | Verification code has expired |
 | `VERIFICATION_CODE_NOT_ISSUED` | No verification code has been issued |
-| `VISIONARY_REQUIRED_FOR_DISCRIMINATOR` | You must be on the Visionary lifetime plan to use that discriminator |
 | `VOICE_ACTIVITY_SHARING_ON_COOLDOWN` | You can only update your voice activity sharing default once every 24 hours |
 | `VOICE_CHANNELS_CANNOT_BE_ABOVE_TEXT_CHANNELS` | Voice channels can't be positioned above text channels within the same category |
 | `VOICE_MESSAGES_ATTACHMENT_DURATION_REQUIRED` | Voice message attachments must specify a duration |

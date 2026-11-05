@@ -445,7 +445,6 @@
 	"premium_and_plans.custom_stickers_in_dms_require_premium": "Не можеш да използваш персонализирани стикери в DM-та без Premium.",
 	"premium_and_plans.custom_stickers_outside_source_require_premium": "Не можеш да използваш персонализирани стикери извън техните общности без Premium.",
 	"premium_and_plans.discriminator_change_requires_premium": "Смяната на дискриминатора ти изисква Premium.",
-	"premium_and_plans.visionary_required_for_discriminator": "Трябва да си на доживотния план Visionary, за да използваш този дискриминатор.",
 	"rate_limits.accent_color_changed_too_often": "Сменяш акцентния си цвят твърде често напоследък. Опитай отново след {minutes} {minutes, plural, one {минута} other {минути}}.",
 	"rate_limits.avatar_changed_too_often": "Сменяш аватара си твърде често напоследък. Опитай отново след {minutes} {minutes, plural, one {минута} other {минути}}.",
 	"rate_limits.banner_changed_too_often": "Сменяш банера си твърде често напоследък. Опитай отново след {minutes} {minutes, plural, one {минута} other {минути}}.",

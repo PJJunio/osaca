@@ -46,7 +46,7 @@ const LimitRuleResponse = z.object({
 
 const LimitConfigResponse = z.object({
 	version: z.literal(2).describe('Wire format version'),
-	traitDefinitions: z.array(z.string()).describe('Available trait definitions (e.g., "premium")'),
+	traitDefinitions: z.array(z.string()).describe('Available trait definitions (e.g., "supporter")'),
 	rules: z.array(LimitRuleResponse).describe('Array of limit rules to evaluate'),
 	defaultsHash: z.string().describe('Hash of the default limit values for cache invalidation'),
 });
@@ -74,8 +74,6 @@ export const InstanceBrandingSchema = z
 			.string()
 			.nullable()
 			.describe('Optional public status page incident history URL'),
-		premium_product_name: z.string().describe('Name of the premium tier shown by client applications'),
-		premium_info_url: z.string().nullable().describe('Optional absolute URL of a page describing the premium tier'),
 		sign_in_backdrop_url: z
 			.string()
 			.nullable()
@@ -211,9 +209,6 @@ export const TagStyleSchema = createNamedStringLiteralUnion(
 export const InstanceFeaturesSchema = z
 	.object({
 		voice_enabled: z.boolean().describe('Whether voice/video calling is enabled'),
-		premium_enabled: z
-			.boolean()
-			.describe('Whether this instance has a premium tier, so premium status, gifts and perks apply'),
 		self_hosted: z.boolean().describe('Whether this is a self-hosted instance'),
 		presigned_attachment_uploads: z.boolean().describe('Whether clients can request presigned attachment upload URLs'),
 		emails_enabled: z.boolean().describe('Whether the instance sends emails (verification, password reset, etc.)'),

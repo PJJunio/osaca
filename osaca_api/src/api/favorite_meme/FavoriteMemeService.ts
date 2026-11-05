@@ -21,7 +21,7 @@ import type {Message} from '@app/api/models/Message';
 import type {User} from '@app/api/models/User';
 import {EmbedMediaFlags, MessageAttachmentFlags} from '@osaca/constants/src/ChannelConstants';
 import type {LimitKey} from '@osaca/constants/src/LimitConfigMetadata';
-import {MAX_FAVORITE_MEME_TAGS, MAX_FAVORITE_MEMES_NON_PREMIUM} from '@osaca/constants/src/LimitConstants';
+import {MAX_FAVORITE_MEME_TAGS, MAX_FAVORITE_MEMES} from '@osaca/constants/src/LimitConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {UnknownMessageError} from '@osaca/errors/src/domains/channel/UnknownMessageError';
 import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
@@ -116,7 +116,7 @@ export class FavoriteMemeService {
 		tags?: Array<string>;
 	}): Promise<FavoriteMeme> {
 		const count = await this.favoriteMemeRepository.count(user.id);
-		const fallbackLimit = MAX_FAVORITE_MEMES_NON_PREMIUM;
+		const fallbackLimit = MAX_FAVORITE_MEMES;
 		const maxMemes = this.resolveUserLimit(user, 'max_favorite_memes', fallbackLimit);
 		if (count >= maxMemes) {
 			throw new MaxFavoriteMemesError(maxMemes);
@@ -305,7 +305,7 @@ export class FavoriteMemeService {
 		isGifv?: boolean;
 	}): Promise<FavoriteMeme> {
 		const count = await this.favoriteMemeRepository.count(user.id);
-		const fallbackLimit = MAX_FAVORITE_MEMES_NON_PREMIUM;
+		const fallbackLimit = MAX_FAVORITE_MEMES;
 		const maxMemes = this.resolveUserLimit(user, 'max_favorite_memes', fallbackLimit);
 		if (count >= maxMemes) {
 			throw new MaxFavoriteMemesError(maxMemes);

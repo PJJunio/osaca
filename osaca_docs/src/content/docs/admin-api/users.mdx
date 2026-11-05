@@ -25,7 +25,6 @@ The full admin view of one account, with the flags, lifecycle, contact and netwo
 | bot | boolean | Whether the account is a bot |
 | system | boolean | Whether the account is an official system account |
 | flags | string | [Account flags](#account-flags) as a decimal string |
-| premium_flags | integer | [Premium flags](#premium-flags) |
 | avatar | ?string | The avatar hash |
 | banner | ?string | The profile banner hash |
 | bio | ?string | The profile bio |
@@ -35,11 +34,6 @@ The full admin view of one account, with the flags, lifecycle, contact and netwo
 | email_verified<sup>2</sup> | boolean | Whether the email address is verified |
 | email_bounced<sup>2</sup> | boolean | Whether mail to the address hard bounced |
 | locale | ?string | The saved [locale](/topics/locales/#supported-locales) |
-| premium_type | ?integer | [Premium type](#premium-types) |
-| premium_since | ?ISO8601 timestamp | When premium started |
-| premium_until | ?ISO8601 timestamp | When premium ends |
-| premium_grace_ends_at | ?ISO8601 timestamp | When the payment grace period ends |
-| premium_lifetime_sequence | ?integer | The sequence number of the lifetime purchase |
 | profile_badges | array[[Admin profile badge](#admin-profile-badge-object) object] | Every badge the account qualifies for, including hidden ones |
 | temp_banned_until | ?ISO8601 timestamp | When the current suspension ends, or null when none is in force |
 | pending_deletion_at | ?ISO8601 timestamp | When the scheduled deletion runs |
@@ -80,7 +74,6 @@ The full admin view of one account, with the flags, lifecycle, contact and netwo
   "bot": false,
   "system": false,
   "flags": "8796093022208",
-  "premium_flags": 0,
   "avatar": "a1b2c3d4e5f60718293a4b5c6d7e8f90",
   "email": "subject@example.com",
   "email_verified": true,
@@ -147,30 +140,9 @@ The `flags` field is a 64-bit bitfield sent as a decimal string. It has every st
 | 1 &lt;&lt; 48 | REPORT_BANNED | Account cannot send reports |
 | 1 &lt;&lt; 49 | VERIFIED_NOT_UNDERAGE | Account is verified as not underage |
 | 1 &lt;&lt; 50 | ACCOUNT_LIMITED | Account is [limited](/http-api/users/#account-limitation) |
-| 1 &lt;&lt; 51 | HAS_DISMISSED_PREMIUM_ONBOARDING | Account dismissed premium onboarding |
 | 1 &lt;&lt; 53 | APP_STORE_REVIEWER | Account belongs to an app store reviewer |
 | 1 &lt;&lt; 60 | AGE_VERIFIED_ADULT | Account verified its age as an adult |
 | 1 &lt;&lt; 62 | LIMIT_EXEMPT | Account is never limited |
-
-## Premium flags
-
-| Value | Name | Description |
-| --- | --- | --- |
-| 1 &lt;&lt; 0 | DISCRIMINATOR | Account has a premium discriminator |
-| 1 &lt;&lt; 2 | BADGE_MASKED | Premium badge is masked |
-| 1 &lt;&lt; 3 | BADGE_TIMESTAMP_HIDDEN | Premium badge timestamp is hidden |
-| 1 &lt;&lt; 5 | PERKS_SANITIZED | Premium perks are sanitized |
-| 1 &lt;&lt; 6 | PURCHASE_DISABLED | Premium purchase is blocked |
-| 1 &lt;&lt; 7 | ENABLED_OVERRIDE | Premium is turned on by override |
-| 1 &lt;&lt; 8 | PERKS_DISABLED | Premium perks are paused |
-
-## Premium types
-
-| Value | Name | Description |
-| --- | --- | --- |
-| 0 | NONE | No premium |
-| 1 | SUBSCRIPTION | Premium subscription |
-| 2 | LIFETIME | Lifetime premium |
 
 ## Deletion reasons
 
@@ -862,37 +834,6 @@ OSACA sends [User Update](/gateway/events/#user-update), and [Guild Member Updat
 
 The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
 
-## Update user premium flags
-
-<RouteHeader method="PATCH" path="/v1/admin/users/{user_id}/premium-flags" auditReason />
-
-Adds and removes [premium flags](#premium-flags) and returns the account. You need `user:update:flags`. These flags don't grant or end premium. To block purchases, use [Limit user features](#limit-user-features).
-
-### JSON body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| add_flags? | array[integer] | The flag values to add (at most 64) |
-| remove_flags? | array[integer] | The flag values to remove (at most 64) |
-
-### Response body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| user | [Admin user](#admin-user-object) object | The updated account |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | response body | The premium flags were updated |
-| 400 | [error response](/admin-api/#error-response) | `FLAG_REQUIRES_ENFORCEMENT_ROUTE` when adding `PURCHASE_DISABLED` |
-| 409 | [error response](/admin-api/#error-response) | `ENFORCEMENT_DECISION_OWNS_STATE` when a feature limit set the purchase block |
-
-OSACA sends [User Update](/gateway/events/#user-update).
-
-The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
-
 ## Suspend user
 
 <RouteHeader method="PUT" path="/v1/admin/users/{user_id}/ban" auditReason />
@@ -1020,7 +961,6 @@ Records a decision that limits one feature, sets its account flag and returns th
 
 | Field | Type | Description |
 | --- | --- | --- |
-| limit | string | `direct_messages`, `reports` or `purchases` |
 | ends_at?<sup>1</sup> | ISO8601 timestamp | When a `reports` limit ends |
 | decision | [enforcement decision input](/admin-api/enforcement/#enforcement-decision-input) object | Why the feature is limited |
 

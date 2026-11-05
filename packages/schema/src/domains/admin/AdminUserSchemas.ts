@@ -1,12 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {DeletionReasons} from '@osaca/constants/src/Core';
-import {
-	PremiumFlags,
-	PremiumFlagsDescriptions,
-	UserFlags,
-	UserFlagsDescriptions,
-} from '@osaca/constants/src/UserConstants';
+import {UserFlags, UserFlagsDescriptions} from '@osaca/constants/src/UserConstants';
 import {AccountTierSchema} from '@osaca/schema/src/domains/account/AccountTierSchemas';
 import {ADMIN_ACL_COUNT, AdminAclType} from '@osaca/schema/src/domains/admin/AdminAclType';
 import {CustomBadgeIdListResponse} from '@osaca/schema/src/domains/admin/AdminBadgeSchemas';
@@ -20,7 +15,6 @@ import {AdminProfileBadgeResponse} from '@osaca/schema/src/domains/user/ProfileB
 import {NSFWLevelSchema} from '@osaca/schema/src/primitives/GuildValidators';
 import {createQueryIntegerType, QueryBooleanType} from '@osaca/schema/src/primitives/QueryValidators';
 import {
-	createBitflagInt32Type,
 	createBitflagStringType,
 	createInt32EnumType,
 	createNamedStringLiteralUnion,
@@ -46,12 +40,6 @@ export const UserAdminResponseSchema = z.object({
 	bot: z.boolean(),
 	system: z.boolean(),
 	flags: createBitflagStringType(UserFlags, UserFlagsDescriptions, 'User account flags (64-bit)', 'UserFlags'),
-	premium_flags: createBitflagInt32Type(
-		PremiumFlags,
-		PremiumFlagsDescriptions,
-		'User premium-related flags (32-bit)',
-		'PremiumFlags',
-	),
 	avatar: z.string().nullable(),
 	banner: z.string().nullable(),
 	bio: z.string().nullable(),
@@ -61,11 +49,6 @@ export const UserAdminResponseSchema = z.object({
 	email_verified: z.boolean(),
 	email_bounced: z.boolean(),
 	locale: z.string().nullable(),
-	premium_type: Int32Type.nullable(),
-	premium_since: z.string().nullable(),
-	premium_until: z.string().nullable(),
-	premium_grace_ends_at: z.string().nullable(),
-	premium_lifetime_sequence: Int32Type.nullable(),
 	profile_badges: z
 		.array(AdminProfileBadgeResponse)
 		.describe('Every badge the account qualifies for in display order, including ones hidden from the public'),
@@ -273,22 +256,10 @@ const UserFlagValueType = createBitflagStringType(
 	'A single user flag value to add or remove',
 	'UserFlags',
 );
-const PremiumFlagValueType = createBitflagInt32Type(
-	PremiumFlags,
-	PremiumFlagsDescriptions,
-	'A single premium flag value to add or remove',
-	'PremiumFlags',
-);
 const UpdateUserFlagsRequest = z.object({
 	user_id: SnowflakeType.describe('ID of the user to update'),
 	add_flags: z.array(UserFlagValueType).max(64).default([]).describe('User flags to add'),
 	remove_flags: z.array(UserFlagValueType).max(64).default([]).describe('User flags to remove'),
-});
-
-const UpdatePremiumFlagsRequest = z.object({
-	user_id: SnowflakeType.describe('ID of the user to update'),
-	add_flags: z.array(PremiumFlagValueType).max(64).default([]).describe('Premium flags to add'),
-	remove_flags: z.array(PremiumFlagValueType).max(64).default([]).describe('Premium flags to remove'),
 });
 
 export const DisableMfaRequest = z.object({
@@ -687,10 +658,6 @@ export type AdminUserTraitsRequest = z.infer<typeof AdminUserTraitsRequest>;
 export const AdminUserFlagsUpdateRequest = UpdateUserFlagsRequest.omit({user_id: true});
 
 export type AdminUserFlagsUpdateRequest = z.infer<typeof AdminUserFlagsUpdateRequest>;
-
-export const AdminUserPremiumFlagsUpdateRequest = UpdatePremiumFlagsRequest.omit({user_id: true});
-
-export type AdminUserPremiumFlagsUpdateRequest = z.infer<typeof AdminUserPremiumFlagsUpdateRequest>;
 
 export const AdminUserDmChannelListResponse = z.union([ListUserDmChannelsResponse, ListUserGroupDmChannelsResponse]);
 

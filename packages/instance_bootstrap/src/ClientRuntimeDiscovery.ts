@@ -21,8 +21,6 @@ import type {
 } from '@osaca/instance_bootstrap/src/Types';
 import type {LimitConfigSnapshot, LimitConfigWireFormat} from '@osaca/limits/src/LimitTypes';
 
-const DEFAULT_PREMIUM_PRODUCT_NAME = 'Plutonium';
-
 export const NO_BUILT_IN_GUILD_BADGE_IMAGES: InstanceBuiltInGuildBadgeImages = {
 	verified: null,
 	partnered: null,
@@ -127,7 +125,6 @@ function projectFeatures(features: Readonly<Partial<InstanceFeatures>>): Instanc
 			'features.presigned_attachment_uploads',
 		),
 		emails_enabled: requireDefined(features.emails_enabled, 'features.emails_enabled'),
-		premium_enabled: features.premium_enabled ?? !features.self_hosted,
 		phone_verification_enabled: false,
 	};
 }
@@ -154,8 +151,6 @@ function projectAppPublic(appPublic: InstanceDiscoveryDocument['appPublic']): In
 			status_page_url: value.branding.status_page_url ?? null,
 			status_page_instatus: value.branding.status_page_instatus ?? false,
 			status_page_incident_history_url: value.branding.status_page_incident_history_url ?? null,
-			premium_product_name: value.branding.premium_product_name ?? DEFAULT_PREMIUM_PRODUCT_NAME,
-			premium_info_url: value.branding.premium_info_url ?? null,
 			sign_in_backdrop_url: value.branding.sign_in_backdrop_url ?? null,
 			custom_css: value.branding.custom_css ?? null,
 			upload_limit_message: value.branding.upload_limit_message ?? null,

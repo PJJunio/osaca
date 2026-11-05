@@ -180,8 +180,6 @@ pub struct InstancePolicyResponse {
     pub friends_disabled: bool,
     #[serde(default)]
     pub personal_notes_enabled: bool,
-    #[serde(default)]
-    pub premium_mode: PremiumMode,
     #[serde(default = "default_guild_create_access")]
     pub guild_create_access: bool,
     #[serde(default)]
@@ -205,7 +203,6 @@ impl Default for InstancePolicyResponse {
             direct_messages_locked: false,
             friends_disabled: false,
             personal_notes_enabled: false,
-            premium_mode: PremiumMode::Everyone,
             guild_create_access: default_guild_create_access(),
             services: InstanceServicesOverrides::default(),
             services_resolved: InstanceServicesResolved::default(),
@@ -383,23 +380,6 @@ fn default_attachment_decay_renew_window_days() -> u32 {
     30
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub enum PremiumMode {
-    Mirror,
-    #[default]
-    Everyone,
-}
-
-impl PremiumMode {
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Self::Mirror => "mirror",
-            Self::Everyone => "everyone",
-        }
-    }
-}
-
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct AppPublicConfigResponse {
     #[serde(default)]
@@ -424,9 +404,6 @@ pub struct AppBrandingConfigResponse {
     pub theme_color: Option<String>,
     pub status_page_url: Option<String>,
     pub status_page_incident_history_url: Option<String>,
-    #[serde(default = "default_premium_product_name")]
-    pub premium_product_name: String,
-    pub premium_info_url: Option<String>,
     pub sign_in_backdrop_url: Option<String>,
     pub custom_css: Option<String>,
     #[serde(default)]
@@ -448,8 +425,6 @@ impl Default for AppBrandingConfigResponse {
             theme_color: None,
             status_page_url: None,
             status_page_incident_history_url: None,
-            premium_product_name: default_premium_product_name(),
-            premium_info_url: None,
             sign_in_backdrop_url: None,
             custom_css: None,
             upload_limit_message: None,
@@ -460,10 +435,6 @@ impl Default for AppBrandingConfigResponse {
 
 fn default_product_name() -> String {
     "OSACA".to_owned()
-}
-
-fn default_premium_product_name() -> String {
-    "Premium".to_owned()
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
@@ -541,7 +512,6 @@ pub struct DomainMigrationConfigResponse {
     pub rollout_salt: String,
     pub included_user_ids: Vec<String>,
     pub included_guild_ids: Vec<String>,
-    pub include_premium_users: bool,
     pub excluded_user_ids: Vec<String>,
     pub anonymous_rollout_basis_points: u32,
     pub standalone_forwarding: bool,
@@ -557,7 +527,6 @@ impl Default for DomainMigrationConfigResponse {
             rollout_salt: DOMAIN_MIGRATION_DEFAULT_SALT.to_owned(),
             included_user_ids: Vec::new(),
             included_guild_ids: Vec::new(),
-            include_premium_users: false,
             excluded_user_ids: Vec::new(),
             anonymous_rollout_basis_points: 0,
             standalone_forwarding: false,
@@ -580,8 +549,6 @@ pub struct DomainMigrationConfigUpdateRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub included_guild_ids: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub include_premium_users: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub excluded_user_ids: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub anonymous_rollout_basis_points: Option<u32>,
@@ -599,7 +566,6 @@ pub struct VoiceP2pConfigResponse {
     pub rollout_salt: String,
     pub included_user_ids: Vec<String>,
     pub included_guild_ids: Vec<String>,
-    pub include_premium_users: bool,
     pub excluded_user_ids: Vec<String>,
     pub max_participants: u32,
 }
@@ -614,7 +580,6 @@ impl Default for VoiceP2pConfigResponse {
             rollout_salt: VOICE_P2P_DEFAULT_SALT.to_owned(),
             included_user_ids: Vec::new(),
             included_guild_ids: Vec::new(),
-            include_premium_users: false,
             excluded_user_ids: Vec::new(),
             max_participants: *VOICE_P2P_MAX_PARTICIPANTS_RANGE.start(),
         }
@@ -635,8 +600,6 @@ pub struct VoiceP2pConfigUpdateRequest {
     pub included_user_ids: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub included_guild_ids: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub include_premium_users: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub excluded_user_ids: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -910,8 +873,6 @@ pub struct InstancePolicyUpdateRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_create_access: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub premium_mode: Option<PremiumMode>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub services: Option<InstanceServicesUpdateRequest>,
 }
 
@@ -1060,10 +1021,6 @@ pub struct AppBrandingConfigUpdateRequest {
     pub status_page_url: Option<Option<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub status_page_incident_history_url: Option<Option<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub premium_product_name: Option<Option<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub premium_info_url: Option<Option<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sign_in_backdrop_url: Option<Option<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]

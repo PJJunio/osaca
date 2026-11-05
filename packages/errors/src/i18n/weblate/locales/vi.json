@@ -445,7 +445,6 @@
 	"premium_and_plans.custom_stickers_in_dms_require_premium": "Bạn không thể sử dụng sticker tùy chỉnh trong tin nhắn trực tiếp nếu không có gói Premium.",
 	"premium_and_plans.custom_stickers_outside_source_require_premium": "Bạn không thể sử dụng sticker tùy chỉnh bên ngoài cộng đồng nguồn nếu không có gói Premium.",
 	"premium_and_plans.discriminator_change_requires_premium": "Thay đổi mã phân biệt của bạn yêu cầu gói Premium.",
-	"premium_and_plans.visionary_required_for_discriminator": "Bạn phải sử dụng gói trọn đời Visionary để dùng mã phân biệt đó.",
 	"rate_limits.accent_color_changed_too_often": "Bạn đã thay đổi màu nhấn quá thường xuyên gần đây. Vui lòng thử lại sau {minutes} {minutes, plural, other {phút}}.",
 	"rate_limits.avatar_changed_too_often": "Bạn đã thay đổi ảnh đại diện quá thường xuyên gần đây. Vui lòng thử lại sau {minutes} {minutes, plural, other {phút}}.",
 	"rate_limits.banner_changed_too_often": "Bạn đã thay đổi ảnh bìa quá thường xuyên gần đây. Vui lòng thử lại sau {minutes} {minutes, plural, other {phút}}.",

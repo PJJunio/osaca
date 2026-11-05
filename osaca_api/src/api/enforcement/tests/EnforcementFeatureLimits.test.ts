@@ -22,7 +22,7 @@ import {HTTP_STATUS} from '@app/api/test/TestConstants';
 import {createBuilder} from '@app/api/test/TestRequestBuilder';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {DeletionReasons} from '@osaca/constants/src/Core';
-import {PremiumFlags, UserFlags} from '@osaca/constants/src/UserConstants';
+import {UserFlags} from '@osaca/constants/src/UserConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {ms} from 'itty-time';
 import {afterAll, beforeAll, beforeEach, describe, expect, test} from 'vitest';
@@ -30,10 +30,6 @@ import {afterAll, beforeAll, beforeEach, describe, expect, test} from 'vitest';
 const REPORT_ABUSE = decisionBody({
 	reason_code: DeletionReasons.REPORTING_ABUSE,
 	statement: 'You sent many reports about the same person that were not true.',
-});
-const PAYMENTS = decisionBody({
-	reason_code: DeletionReasons.BILLING_DISPUTE_OR_ABUSE,
-	statement: 'You disputed several charges you had made yourself.',
 });
 
 describe('Enforcement feature limits', () => {
@@ -68,9 +64,9 @@ describe('Enforcement feature limits', () => {
 		);
 	}
 
-	function patchFlags(target: TestAccount, body: Record<string, Array<string | number>>, path = 'flags') {
+	function patchFlags(target: TestAccount, body: Record<string, Array<string>>) {
 		return createBuilder<{decision_id?: string}>(harness, staff.token)
-			.patch(`/admin/users/${target.userId}/${path}`)
+			.patch(`/admin/users/${target.userId}/flags`)
 			.body(body);
 	}
 
@@ -123,9 +119,9 @@ describe('Enforcement feature limits', () => {
 		test('an end date is refused for other limits', async () => {
 			const target = await createTestAccount(harness);
 			const {json} = await limitRequest(harness, staff, target.userId, {
-				limit: 'purchases',
+				limit: 'direct_messages',
 				ends_at: new Date(Date.now() + ms('30 days')).toISOString(),
-				decision: PAYMENTS,
+				decision: decisionBody({reason_code: DeletionReasons.SPAM}),
 			})
 				.expect(HTTP_STATUS.BAD_REQUEST)
 				.executeWithResponse();
@@ -165,17 +161,6 @@ describe('Enforcement feature limits', () => {
 		});
 	});
 
-	test('a purchase limit sets the purchase flag and ending it clears the flag', async () => {
-		const target = await createTestAccount(harness);
-		const decisionId = await limitFeatures(harness, staff, target.userId, 'purchases', PAYMENTS);
-		expect((await loadUser(target)).premiumFlags & PremiumFlags.PURCHASE_DISABLED).toBe(PremiumFlags.PURCHASE_DISABLED);
-		await clearTestEmails(harness);
-		await endDecision(harness, staff, decisionId, 'lifted').expect(HTTP_STATUS.OK).execute();
-		expect((await loadUser(target)).premiumFlags & PremiumFlags.PURCHASE_DISABLED).toBe(0);
-		const [email] = await emailsTo(harness, target, 'enforcement_ended');
-		expect(email?.metadata).toMatchObject({outcome: 'lifted', restores_access: 'no'});
-	});
-
 	test('ending one limit keeps the flag while another decision holds the same limit', async () => {
 		const target = await createTestAccount(harness);
 		const first = await limitFeatures(harness, staff, target.userId, 'direct_messages');
@@ -206,29 +191,13 @@ describe('Enforcement feature limits', () => {
 			expect((await loadUser(target)).flags & flag).toBe(0n);
 		});
 
-		test('adding the purchase flag is refused', async () => {
-			const target = await createTestAccount(harness);
-			await patchFlags(target, {add_flags: [PremiumFlags.PURCHASE_DISABLED]}, 'premium-flags')
-				.expect(HTTP_STATUS.BAD_REQUEST)
-				.execute();
-		});
-
 		test('removing a flag a decision holds is refused with the decision', async () => {
 			const target = await createTestAccount(harness);
 			const spam = await limitFeatures(harness, staff, target.userId, 'direct_messages');
-			const purchases = await limitFeatures(harness, staff, target.userId, 'purchases', PAYMENTS);
 			const spamResponse = await patchFlags(target, {remove_flags: [UserFlags.SPAMMER.toString()]})
 				.expect(HTTP_STATUS.CONFLICT, APIErrorCodes.ENFORCEMENT_DECISION_OWNS_STATE)
 				.execute();
 			expect(spamResponse.decision_id).toBe(spam);
-			const purchaseResponse = await patchFlags(
-				target,
-				{remove_flags: [PremiumFlags.PURCHASE_DISABLED]},
-				'premium-flags',
-			)
-				.expect(HTTP_STATUS.CONFLICT, APIErrorCodes.ENFORCEMENT_DECISION_OWNS_STATE)
-				.execute();
-			expect(purchaseResponse.decision_id).toBe(purchases);
 		});
 
 		test('removing DISABLED from a suspended account and removing DELETED are refused', async () => {

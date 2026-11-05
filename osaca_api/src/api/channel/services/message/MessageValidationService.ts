@@ -17,11 +17,10 @@ import {
 	SENDABLE_MESSAGE_FLAGS,
 } from '@osaca/constants/src/ChannelConstants';
 import {
-	ATTACHMENT_MAX_SIZE_NON_PREMIUM,
+	ATTACHMENT_MAX_SIZE,
 	MAX_ATTACHMENTS_PER_MESSAGE,
 	MAX_EMBEDS_PER_MESSAGE,
-	MAX_MESSAGE_LENGTH_NON_PREMIUM,
-	MAX_MESSAGE_LENGTH_PREMIUM,
+	MAX_MESSAGE_LENGTH,
 	MAX_VOICE_MESSAGE_DURATION,
 } from '@osaca/constants/src/LimitConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
@@ -128,13 +127,13 @@ export class MessageValidationService {
 				this.limitConfigService.getConfigSnapshot(),
 				ctx,
 				'max_message_length',
-				MAX_MESSAGE_LENGTH_NON_PREMIUM,
+				MAX_MESSAGE_LENGTH,
 				evaluationContext,
 			),
 		);
 		const maxLength =
 			user?.isBot || messageAuthorType === 'webhook'
-				? Math.max(resolvedMaxLength, MAX_MESSAGE_LENGTH_PREMIUM)
+				? Math.max(resolvedMaxLength, MAX_MESSAGE_LENGTH)
 				: resolvedMaxLength;
 		if (content.length > maxLength) {
 			throw InputValidationError.fromCode('content', ValidationErrorCodes.CONTENT_EXCEEDS_MAX_LENGTH, {
@@ -163,7 +162,7 @@ export class MessageValidationService {
 	): void {
 		const ctx = createLimitMatchContext({user, guildFeatures});
 		const evaluationContext = guildFeatures ? 'guild' : 'user';
-		const fallbackMaxSize = ATTACHMENT_MAX_SIZE_NON_PREMIUM;
+		const fallbackMaxSize = ATTACHMENT_MAX_SIZE;
 		const maxFileSize = Math.floor(
 			resolveLimitSafe(
 				this.limitConfigService.getConfigSnapshot(),

@@ -3,13 +3,12 @@
 import {LimitResolver} from '@app/features/app/utils/LimitResolverAdapter';
 import type {User} from '@app/features/user/models/User';
 import Users from '@app/features/user/state/Users';
-import type {LimitKey} from '@osaca/constants/src/LimitConfigMetadata';
-import {DEFAULT_STOCK_LIMITS} from '@osaca/limits/src/LimitDefaults';
+import {DEFAULT_LIMITS} from '@osaca/limits/src/LimitDefaults';
 
 const FALLBACKS = {
-	max_message_length: DEFAULT_STOCK_LIMITS.max_message_length,
-	max_attachments_per_message: DEFAULT_STOCK_LIMITS.max_attachments_per_message,
-	max_group_dm_recipients: DEFAULT_STOCK_LIMITS.max_group_dm_recipients,
+	max_message_length: DEFAULT_LIMITS.max_message_length,
+	max_attachments_per_message: DEFAULT_LIMITS.max_attachments_per_message,
+	max_group_dm_recipients: DEFAULT_LIMITS.max_group_dm_recipients,
 } as const;
 
 class LimitsClass {
@@ -33,22 +32,6 @@ class LimitsClass {
 		const user = this.getCurrentUser();
 		if (user?.maxGroupDmRecipients) return user.maxGroupDmRecipients;
 		return LimitResolver.resolve({key: 'max_group_dm_recipients', fallback: FALLBACKS.max_group_dm_recipients});
-	}
-
-	getStockValue(key: LimitKey, fallback: number): number {
-		return LimitResolver.resolveStock(key, fallback);
-	}
-
-	getRestrictedValue(key: LimitKey, fallback: number): number {
-		return LimitResolver.resolveRestricted(key, fallback);
-	}
-
-	hasStockFeature(key: LimitKey, fallback: boolean): boolean {
-		return this.getStockValue(key, fallback ? 1 : 0) > 0;
-	}
-
-	hasRestrictedFeature(key: LimitKey, fallback: boolean): boolean {
-		return this.getRestrictedValue(key, fallback ? 1 : 0) > 0;
 	}
 }
 

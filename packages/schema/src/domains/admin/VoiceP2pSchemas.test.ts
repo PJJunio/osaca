@@ -9,7 +9,7 @@ import {
 import {type ExperimentTargeting, experimentBucket} from '@osaca/schema/src/domains/experiment/ExperimentBucket';
 import {describe, expect, test} from 'vitest';
 
-const NO_TARGETING: ExperimentTargeting = {memberGuildIds: new Set(), premium: false, countryCode: null};
+const NO_TARGETING: ExperimentTargeting = {memberGuildIds: new Set(), countryCode: null};
 
 const TARGETED_USER_ID = '1000000000000000001';
 
@@ -67,7 +67,6 @@ describe('resolveVoiceP2pAssignment guild targeting', () => {
 	const INCLUDED_GUILD_ID = '3000000000000000001';
 	const MEMBER_GUILDS: ExperimentTargeting = {
 		memberGuildIds: new Set(['3000000000000000009', INCLUDED_GUILD_ID]),
-		premium: false,
 		countryCode: null,
 	};
 
@@ -89,26 +88,6 @@ describe('resolveVoiceP2pAssignment guild targeting', () => {
 	test('serves no guild members while disabled', () => {
 		const config = createConfig({included_guild_ids: [INCLUDED_GUILD_ID]});
 		expect(resolveVoiceP2pAssignment(config, TARGETED_USER_ID, MEMBER_GUILDS)).toEqual(UNSELECTED);
-	});
-});
-
-describe('resolveVoiceP2pAssignment premium targeting', () => {
-	const PREMIUM: ExperimentTargeting = {memberGuildIds: new Set(), premium: true, countryCode: null};
-
-	test('serves premium users only when the switch is on', () => {
-		const on = createConfig({enabled: true, include_premium_users: true});
-		expect(resolveVoiceP2pAssignment(on, TARGETED_USER_ID, PREMIUM)).toEqual(SELECTED);
-		expect(resolveVoiceP2pAssignment(on, TARGETED_USER_ID, NO_TARGETING)).toEqual(UNSELECTED);
-		expect(resolveVoiceP2pAssignment(createConfig({enabled: true}), TARGETED_USER_ID, PREMIUM)).toEqual(UNSELECTED);
-	});
-
-	test('keeps user exclusions ahead of the premium switch', () => {
-		const config = createConfig({
-			enabled: true,
-			include_premium_users: true,
-			excluded_user_ids: [TARGETED_USER_ID],
-		});
-		expect(resolveVoiceP2pAssignment(config, TARGETED_USER_ID, PREMIUM)).toEqual(UNSELECTED);
 	});
 });
 
@@ -138,21 +117,19 @@ describe('resolveVoiceP2pAssignment country targeting', () => {
 		}
 	});
 
-	test('keeps included users, included guilds and premium users outside the listed countries', () => {
+	test('keeps included users and included guilds outside the listed countries', () => {
 		const guildId = '3000000000000000001';
 		const config = createConfig({
 			enabled: true,
 			rollout_country_codes: ['SE'],
 			included_user_ids: [TARGETED_USER_ID],
 			included_guild_ids: [guildId],
-			include_premium_users: true,
 		});
 		const otherUserId = '1000000000000000007';
 		expect(resolveVoiceP2pAssignment(config, TARGETED_USER_ID, IN_BRAZIL)).toEqual(SELECTED);
 		expect(resolveVoiceP2pAssignment(config, otherUserId, {...IN_BRAZIL, memberGuildIds: new Set([guildId])})).toEqual(
 			SELECTED,
 		);
-		expect(resolveVoiceP2pAssignment(config, otherUserId, {...IN_BRAZIL, premium: true})).toEqual(SELECTED);
 		expect(resolveVoiceP2pAssignment(config, otherUserId, IN_BRAZIL)).toEqual(UNSELECTED);
 	});
 

@@ -73,7 +73,7 @@ import {UnknownGuildError} from '@osaca/errors/src/domains/guild/UnknownGuildErr
 import {UnknownGuildMemberError} from '@osaca/errors/src/domains/guild/UnknownGuildMemberError';
 import {CommunicationDisabledError} from '@osaca/errors/src/domains/moderation/CommunicationDisabledError';
 import {UserNotInVoiceError} from '@osaca/errors/src/domains/user/UserNotInVoiceError';
-import {DEFAULT_STOCK_LIMITS} from '@osaca/limits/src/LimitDefaults';
+import {DEFAULT_LIMITS} from '@osaca/limits/src/LimitDefaults';
 import type {GuildMemberResponse} from '@osaca/schema/src/domains/guild/GuildMemberSchemas';
 import type {GuildMemberUpdateRequest} from '@osaca/schema/src/domains/guild/GuildRequestSchemas';
 import type {IRateLimitService} from '@pkgs/rate_limit/src/IRateLimitService';
@@ -496,7 +496,6 @@ export class GuildMemberOperationsService {
 			mute: false,
 			communication_disabled_until: restoredTimeout,
 			role_ids: null,
-			is_premium_sanitized: null,
 			temporary: isTemporary,
 			profile_flags: null,
 			mention_flags: null,
@@ -642,7 +641,7 @@ export class GuildMemberOperationsService {
 			this.limitConfigService.getConfigSnapshot(),
 			ctx,
 			'max_guilds',
-			DEFAULT_STOCK_LIMITS.max_guilds,
+			DEFAULT_LIMITS.max_guilds,
 		);
 		if (currentGuildCount >= maxGuilds) throw new MaxGuildsError(maxGuilds);
 	}

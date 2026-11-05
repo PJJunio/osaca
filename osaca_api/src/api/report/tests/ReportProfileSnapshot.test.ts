@@ -25,7 +25,6 @@ import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHa
 import {HTTP_STATUS} from '@app/api/test/TestConstants';
 import {createBuilder, createBuilderWithoutAuth} from '@app/api/test/TestRequestBuilder';
 import {UserRepository} from '@app/api/user/repositories/UserRepository';
-import {grantPremium} from '@app/api/user/tests/UserTestUtils';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {UserFlags} from '@osaca/constants/src/UserConstants';
 import type {GuildMemberResponse} from '@osaca/schema/src/domains/guild/GuildMemberSchemas';
@@ -47,7 +46,6 @@ interface ProfileResponse {
 	pronouns: string | null;
 }
 
-const PREMIUM_TYPE_SUBSCRIPTION = 2;
 const FIRST_IMAGE = getPngDataUrl();
 const SECOND_IMAGE = `data:image/png;base64,${loadFixture('yeah.png').toString('base64')}`;
 
@@ -130,7 +128,6 @@ async function setupProfile(
 	const {owner, members, guild} = await setupTestGuildWithMembers(harness, 1);
 	const target = members[0];
 	await ensureSessionStarted(harness, target.token);
-	await grantPremium(harness, target.userId, PREMIUM_TYPE_SUBSCRIPTION);
 	const profile = await updateProfile(harness, target.token, {
 		avatar: FIRST_IMAGE,
 		bio: 'Original bio',

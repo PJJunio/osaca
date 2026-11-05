@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use crate::{
-    api::types::{FlashLevel, PremiumBranding},
+    api::types::{FlashLevel, AdminBranding},
     config::AdminConfig,
     middleware::auth::AuthContext,
 };
@@ -20,17 +20,17 @@ const DEFAULT_PRODUCT_NAME: &str = "OSACA";
 const LIGHT_SCHEME_MEDIA: &str = "(prefers-color-scheme: light)";
 const DARK_SCHEME_MEDIA: &str = "(prefers-color-scheme: dark)";
 
-pub fn product_name(branding: Option<&PremiumBranding>) -> &str {
+pub fn product_name(branding: Option<&AdminBranding>) -> &str {
     branding
         .and_then(|branding| branding.product_name.as_deref())
         .unwrap_or(DEFAULT_PRODUCT_NAME)
 }
 
-pub fn admin_title(branding: Option<&PremiumBranding>) -> String {
+pub fn admin_title(branding: Option<&AdminBranding>) -> String {
     format!("{} Admin", product_name(branding))
 }
 
-pub fn favicon_links(config: &AdminConfig, branding: Option<&PremiumBranding>) -> Markup {
+pub fn favicon_links(config: &AdminConfig, branding: Option<&AdminBranding>) -> Markup {
     let cdn = &config.static_cdn_endpoint;
     let favicon = branding.and_then(|branding| branding.favicon_url.as_deref());
     let favicon_dark = branding.and_then(|branding| branding.favicon_dark_url.as_deref());

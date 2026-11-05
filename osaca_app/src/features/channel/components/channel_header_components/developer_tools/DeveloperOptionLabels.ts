@@ -15,10 +15,6 @@ import {
 } from '@app/features/channel/components/channel_header_components/developer_tools/DeveloperToolsShared';
 import {formatDurationMs} from '@app/features/channel/components/channel_header_components/developer_tools/FormatHelpers';
 import {
-	getPremiumTypeLabel,
-	LIFETIME_DESCRIPTOR,
-} from '@app/features/channel/components/channel_header_components/developer_tools/OptionPresets';
-import {
 	DEVELOPER_OPTION_KEYS,
 	isDeveloperOptionAtDefault,
 	resetDeveloperOption,
@@ -28,21 +24,13 @@ import DeveloperOptions from '@app/features/devtools/state/DeveloperOptions';
 import type {I18n, MessageDescriptor} from '@lingui/core';
 import {msg} from '@lingui/core/macro';
 
-const ACTIVE_DEVELOPER_OPTION_KEYS = DEVELOPER_OPTION_KEYS.filter((key) => key !== 'premiumScenarioOverride');
+const ACTIVE_DEVELOPER_OPTION_KEYS = DEVELOPER_OPTION_KEYS;
 const ATTACHMENT_MOCKS_DESCRIPTOR = msg({
 	message: 'Attachment mocks',
 	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
 });
 const ATTACHMENTS_PLURAL_DESCRIPTOR = msg({
 	message: '{count, plural, one {# attachment} other {# attachments}}',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const GIFTS_PLURAL_DESCRIPTOR = msg({
-	message: '{count, plural, one {# gift} other {# gifts}}',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const MONTHS_PLURAL_DESCRIPTOR = msg({
-	message: '{months, plural, one {# month} other {# months}}',
 	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
 });
 const BYPASS_LOADING_SKELETON_DESCRIPTOR = msg({
@@ -97,42 +85,6 @@ const VANITY_URL_DISCLAIMER_DESCRIPTOR = msg({
 	message: 'Vanity URL disclaimer',
 	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
 });
-export const PREMIUM_TYPE_DESCRIPTOR = msg({
-	message: 'Premium type',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const VISIONARY_BADGE_ID_DESCRIPTOR = msg({
-	message: 'Visionary badge ID',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const PREMIUM_SINCE_DATE_DESCRIPTOR = msg({
-	message: 'Premium since date',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const PREMIUM_UNTIL_DATE_DESCRIPTOR = msg({
-	message: 'Premium until date',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const BILLING_CYCLE_DESCRIPTOR = msg({
-	message: 'Billing cycle',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const WILL_CANCEL_DESCRIPTOR = msg({
-	message: 'Will cancel',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const HAS_EVER_PURCHASED_DESCRIPTOR = msg({
-	message: 'Has ever purchased',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const UNREAD_GIFT_INVENTORY_DESCRIPTOR = msg({
-	message: 'Unread gift inventory',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-export const UNREAD_GIFT_COUNT_DESCRIPTOR = msg({
-	message: 'Unread gift count',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
 const EMAIL_VERIFIED_DESCRIPTOR = msg({
 	message: 'Email verified',
 	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
@@ -181,18 +133,6 @@ const SLOWMODE_REMAINING_DESCRIPTOR = msg({
 	message: 'Slowmode remaining',
 	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
 });
-const GIFT_INVENTORY_DESCRIPTOR = msg({
-	message: 'Gift inventory',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const GIFT_DURATION_DESCRIPTOR = msg({
-	message: 'Gift duration',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const GIFT_REDEEMED_DESCRIPTOR = msg({
-	message: 'Gift redeemed',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
 const TITLEBAR_PLATFORM_DESCRIPTOR = msg({
 	message: 'Title bar platform',
 	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
@@ -230,10 +170,6 @@ const formatDeveloperOptionValue = <K extends keyof DeveloperOptionsState>(
 	value: DeveloperOptionsState[K],
 ): string => {
 	switch (key) {
-		case 'premiumTypeOverride':
-			return getPremiumTypeLabel(i18n, value as DeveloperOptionsState['premiumTypeOverride']);
-		case 'premiumLifetimeSequenceOverride':
-			return value === null ? i18n._(USE_ACTUAL_VALUE_DESCRIPTOR) : `#${value}`;
 		case 'mockBarrierTimeRemaining':
 		case 'mockSlowmodeRemaining':
 			return typeof value === 'number' ? formatDurationMs(i18n, value) : i18n._(USE_DEFAULT_DESCRIPTOR);
@@ -242,25 +178,6 @@ const formatDeveloperOptionValue = <K extends keyof DeveloperOptionsState>(
 		case 'mockMatureMediaGateReason':
 		case 'mockTitlebarPlatformOverride':
 			return String(value).replace(/_/g, ' ');
-		case 'premiumSinceOverride':
-		case 'premiumUntilOverride':
-			return value instanceof Date ? value.toLocaleDateString() : i18n._(USE_ACTUAL_VALUE_DESCRIPTOR);
-		case 'premiumBillingCycleOverride':
-			return typeof value === 'string' ? value : i18n._(USE_ACTUAL_VALUE_DESCRIPTOR);
-		case 'unreadGiftInventoryCountOverride': {
-			const count = value as number | null;
-			return count === null ? i18n._(USE_ACTUAL_VALUE_DESCRIPTOR) : i18n._(GIFTS_PLURAL_DESCRIPTOR, {count});
-		}
-		case 'mockGiftDurationMonths': {
-			const months = value as number | null;
-			if (months === 0) {
-				return i18n._(LIFETIME_DESCRIPTOR);
-			}
-			if (months === null) {
-				return i18n._(USE_DEFAULT_DESCRIPTOR);
-			}
-			return i18n._(MONTHS_PLURAL_DESCRIPTOR, {months});
-		}
 		case 'mockAttachmentStates': {
 			const count = Object.keys(value as DeveloperOptionsState['mockAttachmentStates']).length;
 			return i18n._(ATTACHMENTS_PLURAL_DESCRIPTOR, {count});
@@ -299,24 +216,6 @@ const getDeveloperOptionLabel = (key: keyof DeveloperOptionsState): MessageDescr
 			return SELF_HOSTED_MODE_DESCRIPTOR;
 		case 'forceShowVanityURLDisclaimer':
 			return VANITY_URL_DISCLAIMER_DESCRIPTOR;
-		case 'premiumTypeOverride':
-			return PREMIUM_TYPE_DESCRIPTOR;
-		case 'premiumLifetimeSequenceOverride':
-			return VISIONARY_BADGE_ID_DESCRIPTOR;
-		case 'premiumSinceOverride':
-			return PREMIUM_SINCE_DATE_DESCRIPTOR;
-		case 'premiumUntilOverride':
-			return PREMIUM_UNTIL_DATE_DESCRIPTOR;
-		case 'premiumBillingCycleOverride':
-			return BILLING_CYCLE_DESCRIPTOR;
-		case 'premiumWillCancelOverride':
-			return WILL_CANCEL_DESCRIPTOR;
-		case 'hasEverPurchasedOverride':
-			return HAS_EVER_PURCHASED_DESCRIPTOR;
-		case 'hasUnreadGiftInventoryOverride':
-			return UNREAD_GIFT_INVENTORY_DESCRIPTOR;
-		case 'unreadGiftInventoryCountOverride':
-			return UNREAD_GIFT_COUNT_DESCRIPTOR;
 		case 'emailVerifiedOverride':
 			return EMAIL_VERIFIED_DESCRIPTOR;
 		case 'unclaimedAccountOverride':
@@ -341,12 +240,6 @@ const getDeveloperOptionLabel = (key: keyof DeveloperOptionsState): MessageDescr
 			return SLOWMODE_ACTIVE_DESCRIPTOR;
 		case 'mockSlowmodeRemaining':
 			return SLOWMODE_REMAINING_DESCRIPTOR;
-		case 'mockGiftInventory':
-			return GIFT_INVENTORY_DESCRIPTOR;
-		case 'mockGiftDurationMonths':
-			return GIFT_DURATION_DESCRIPTOR;
-		case 'mockGiftRedeemed':
-			return GIFT_REDEEMED_DESCRIPTOR;
 		case 'mockTitlebarPlatformOverride':
 			return TITLEBAR_PLATFORM_DESCRIPTOR;
 		case 'mockAttachmentStates':

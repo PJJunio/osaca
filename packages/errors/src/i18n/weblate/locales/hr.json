@@ -445,7 +445,6 @@
 	"premium_and_plans.custom_stickers_in_dms_require_premium": "Ne možeš koristiti prilagođene naljepnice u izravnim porukama bez Premium pretplate.",
 	"premium_and_plans.custom_stickers_outside_source_require_premium": "Ne možeš koristiti prilagođene naljepnice izvan njihovih izvornih zajednica bez Premium pretplate.",
 	"premium_and_plans.discriminator_change_requires_premium": "Promjena diskriminatora zahtijeva Premium pretplatu.",
-	"premium_and_plans.visionary_required_for_discriminator": "Za taj diskriminator moraš biti na doživotnom planu Visionary.",
 	"rate_limits.accent_color_changed_too_often": "U zadnje vrijeme prečesto mijenjaš boju naglaska. Pokušaj ponovno za {minutes, plural, one {# minutu} few {# minute} other {# minuta}}.",
 	"rate_limits.avatar_changed_too_often": "U zadnje vrijeme prečesto mijenjaš avatar. Pokušaj ponovno za {minutes, plural, one {# minutu} few {# minute} other {# minuta}}.",
 	"rate_limits.banner_changed_too_often": "U zadnje vrijeme prečesto mijenjaš banner. Pokušaj ponovno za {minutes, plural, one {# minutu} few {# minute} other {# minuta}}.",

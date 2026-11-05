@@ -45,7 +45,6 @@ A field marked `?` is absent until a client sets it. Every other scalar field is
 | unread_channels? | [unread channels state](#unread-channels-state-object) object | Collapsed unread channels |
 | mention_frecency? | [mention frecency state](#mention-frecency-state-object) object | Mention autocomplete ranking per guild |
 | nagbars? | [nagbar dismissals](#nagbar-dismissals-object) object | Dismissed notices |
-| dismissed_upsells? | [dismissed upsells](#dismissed-upsells-object) object | Dismissed upsells |
 | guild_nsfw_agreements? | [guild mature content agreements](#guild-mature-content-agreements-object) object | Accepted mature content notices |
 | whats_new? | [what's new state](#whats-new-state-object) object | Last dismissed update entry |
 | privacy? | [privacy preferences](#privacy-preferences-object) object | Client privacy preferences |
@@ -403,24 +402,11 @@ Each field is true when the account dismissed that notice. In the map fields, a 
 | pwa_install | bool | Progressive web app install notice |
 | push_notification | bool | Push notification notice |
 | desktop_notification | bool | Desktop notification notice |
-| premium_grace_period | bool | Premium grace period notice |
-| premium_expired | bool | Premium expired notice |
-| premium_onboarding | bool | Premium onboarding notice |
-| premium_trial_expiring | bool | Premium trial expiring notice |
-| gift_inventory | bool | Gift inventory notice |
 | desktop_download | bool | Desktop download notice |
 | guild_membership_cta | bool | Guild membership notice |
 | pending_bulk_deletion | map[string, bool] | Pending bulk deletion notices, keyed by deletion ID |
 | invites_disabled | map[string, bool] | Disabled invites notices, keyed by guild ID |
 | guild_mfa_requirement | map[string, bool] | Guild MFA requirement notices, keyed by guild ID |
-
-## Dismissed upsells object
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| picker_premium | bool | Whether the premium upsell in the picker is dismissed |
 
 ## Guild mature content agreements object
 

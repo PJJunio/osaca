@@ -812,10 +812,6 @@ export const CHANNEL_ADDED_TO_FAVORITES_DESCRIPTOR = msg({
 	message: 'Channel added to favorites',
 	comment: 'Toast confirming a channel was added to the favorites list.',
 });
-export const GET_PREMIUM_DESCRIPTOR = msg({
-	message: 'Get {premiumProductName}',
-	comment: 'Generic upsell CTA button to start the Plutonium purchase flow. Preserve {premiumProductName}.',
-});
 export const MENTION_COUNT_ARIA_DESCRIPTOR = msg({
 	message: '{mentionCount, plural, one {# mention} other {# mentions}}',
 	comment: 'Generic aria-label for an unread-mentions badge. Preserve {mentionCount}.',

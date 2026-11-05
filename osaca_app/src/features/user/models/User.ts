@@ -3,7 +3,6 @@
 import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
 import {LimitResolver} from '@app/features/app/utils/LimitResolverAdapter';
 import DeveloperOptions from '@app/features/devtools/state/DeveloperOptions';
-import {getPremiumGraceEndDate} from '@app/features/premium/utils/PremiumGrace';
 import {formatUserTag} from '@app/features/user/utils/UserTagUtils';
 import {
 	type AccountTier,
@@ -19,10 +18,9 @@ import {
 	ProfileFieldPrivacyFlags,
 	PublicUserFlags,
 	UserAuthenticatorTypes,
-	UserPremiumTypes,
 } from '@osaca/constants/src/UserConstants';
 import {UserTraits} from '@osaca/constants/src/UserTraitConstants';
-import {DEFAULT_STOCK_LIMITS} from '@osaca/limits/src/LimitDefaults';
+import {DEFAULT_LIMITS} from '@osaca/limits/src/LimitDefaults';
 import type {UserPartial, UserPrivate, User as WireUser} from '@osaca/schema/src/domains/user/UserResponseSchemas';
 import * as SnowflakeUtils from '@osaca/snowflake/src/SnowflakeUtils';
 
@@ -159,29 +157,10 @@ export class User {
 	readonly mfaEnabled: boolean | undefined;
 	readonly authenticatorTypes: ReadonlyArray<number> | undefined;
 	private readonly _verified: boolean | undefined;
-	private readonly _premiumType: number | null | undefined;
-	private readonly _premiumSince: Date | null | undefined;
-	private readonly _premiumUntil: Date | null | undefined;
-	private readonly _premiumWillCancel: boolean | undefined;
-	private readonly _premiumBillingCycle: string | null | undefined;
-	private readonly _premiumLifetimeSequence: number | null | undefined;
-	private readonly _premiumGraceEndsAt: Date | null | undefined;
-	private readonly _premiumDiscriminator: boolean | undefined;
 	readonly hiddenProfileBadges: ReadonlyArray<string> | undefined;
-	readonly premiumBadgeMasked: boolean | undefined;
-	readonly premiumBadgeTimestampHidden: boolean | undefined;
-	readonly operatorPassBadgeTimestampHidden: boolean | undefined;
-	readonly operatorPassBadgeCountHidden: boolean | undefined;
-	readonly operatorPassSince: Date | null | undefined;
-	readonly premiumEnabledOverride: boolean | undefined;
-	readonly premiumPerksDisabled: boolean | undefined;
 	readonly passwordLastChangedAt: Date | null | undefined;
 	readonly lastVoiceActivitySharingChangeAt: Date | null | undefined;
 	private readonly _nsfwAllowed: boolean | undefined;
-	readonly hasDismissedPremiumOnboarding: boolean | undefined;
-	private readonly _hasEverPurchased: boolean | undefined;
-	private readonly _hasUnreadGiftInventory: boolean | undefined;
-	private readonly _unreadGiftInventoryCount: number | undefined;
 	private readonly _ageVerifiedAdult: boolean | undefined;
 	private readonly _termsAgreedAt: Date | null | undefined;
 	private readonly _privacyAgreedAt: Date | null | undefined;
@@ -221,38 +200,9 @@ export class User {
 			? Object.freeze(((user.authenticator_types ?? []) as ReadonlyArray<number>).slice())
 			: undefined;
 		this._verified = hasKey(user, 'verified') ? user.verified : undefined;
-		this._premiumType = hasKey(user, 'premium_type') ? (user.premium_type ?? null) : undefined;
-		this._premiumSince = hasKey(user, 'premium_since') ? parseDateOrNull(user.premium_since) : undefined;
-		this._premiumUntil = hasKey(user, 'premium_until') ? parseDateOrNull(user.premium_until) : undefined;
-		this._premiumWillCancel = hasKey(user, 'premium_will_cancel') ? user.premium_will_cancel : undefined;
-		this._premiumBillingCycle = hasKey(user, 'premium_billing_cycle')
-			? (user.premium_billing_cycle ?? null)
-			: undefined;
-		this._premiumGraceEndsAt = hasKey(user, 'premium_grace_ends_at')
-			? parseDateOrNull(user.premium_grace_ends_at)
-			: undefined;
-		this._premiumLifetimeSequence = hasKey(user, 'premium_lifetime_sequence')
-			? (user.premium_lifetime_sequence ?? null)
-			: undefined;
-		this._premiumDiscriminator = hasKey(user, 'premium_discriminator') ? user.premium_discriminator : undefined;
 		this.hiddenProfileBadges = hasKey(user, 'hidden_profile_badges')
 			? Object.freeze([...(user.hidden_profile_badges ?? [])])
 			: undefined;
-		this.premiumBadgeMasked = hasKey(user, 'premium_badge_masked') ? user.premium_badge_masked : undefined;
-		this.premiumBadgeTimestampHidden = hasKey(user, 'premium_badge_timestamp_hidden')
-			? user.premium_badge_timestamp_hidden
-			: undefined;
-		this.operatorPassBadgeTimestampHidden = hasKey(user, 'operator_pass_badge_timestamp_hidden')
-			? user.operator_pass_badge_timestamp_hidden
-			: undefined;
-		this.operatorPassBadgeCountHidden = hasKey(user, 'operator_pass_badge_count_hidden')
-			? user.operator_pass_badge_count_hidden
-			: undefined;
-		this.operatorPassSince = hasKey(user, 'operator_pass_since')
-			? parseDateOrNull(user.operator_pass_since)
-			: undefined;
-		this.premiumEnabledOverride = hasKey(user, 'premium_enabled_override') ? user.premium_enabled_override : undefined;
-		this.premiumPerksDisabled = hasKey(user, 'premium_perks_disabled') ? user.premium_perks_disabled : undefined;
 		this.passwordLastChangedAt = hasKey(user, 'password_last_changed_at')
 			? parseDateOrNull(user.password_last_changed_at)
 			: undefined;
@@ -260,16 +210,6 @@ export class User {
 			? parseDateOrNull(user.last_voice_activity_sharing_change_at)
 			: undefined;
 		this._nsfwAllowed = hasKey(user, 'nsfw_allowed') ? user.nsfw_allowed : undefined;
-		this.hasDismissedPremiumOnboarding = hasKey(user, 'has_dismissed_premium_onboarding')
-			? user.has_dismissed_premium_onboarding
-			: undefined;
-		this._hasEverPurchased = hasKey(user, 'has_ever_purchased') ? user.has_ever_purchased : undefined;
-		this._hasUnreadGiftInventory = hasKey(user, 'has_unread_gift_inventory')
-			? user.has_unread_gift_inventory
-			: undefined;
-		this._unreadGiftInventoryCount = hasKey(user, 'unread_gift_inventory_count')
-			? user.unread_gift_inventory_count
-			: undefined;
 		this._ageVerifiedAdult = hasKey(user, 'age_verified_adult') ? user.age_verified_adult : undefined;
 		this._termsAgreedAt = hasKey(user, 'terms_agreed_at') ? parseDateOrNull(user.terms_agreed_at) : undefined;
 		this._privacyAgreedAt = hasKey(user, 'privacy_agreed_at') ? parseDateOrNull(user.privacy_agreed_at) : undefined;
@@ -301,63 +241,6 @@ export class User {
 			return verifiedOverride;
 		}
 		return this._verified;
-	}
-
-	get premiumType(): number | null {
-		const override = DeveloperOptions.premiumTypeOverride;
-		const raw = override != null ? override : (this._premiumType ?? null);
-		if (raw != null && raw > 0 && raw !== UserPremiumTypes.LIFETIME && this.isPremiumExpiredLocally()) {
-			return UserPremiumTypes.NONE;
-		}
-		return raw;
-	}
-
-	get premiumSince(): Date | null | undefined {
-		const override = DeveloperOptions.premiumSinceOverride;
-		return override != null ? override : this._premiumSince;
-	}
-
-	get premiumUntil(): Date | null | undefined {
-		const override = DeveloperOptions.premiumUntilOverride;
-		return override != null ? override : this._premiumUntil;
-	}
-
-	get premiumBillingCycle(): string | null | undefined {
-		const override = DeveloperOptions.premiumBillingCycleOverride;
-		return override != null ? override : this._premiumBillingCycle;
-	}
-
-	get premiumLifetimeSequence(): number | null | undefined {
-		const override = DeveloperOptions.premiumLifetimeSequenceOverride;
-		return override != null ? override : this._premiumLifetimeSequence;
-	}
-
-	get premiumGraceEndsAt(): Date | null | undefined {
-		return this._premiumGraceEndsAt;
-	}
-
-	get premiumWillCancel(): boolean | undefined {
-		const override = DeveloperOptions.premiumWillCancelOverride;
-		return override != null ? override : this._premiumWillCancel;
-	}
-
-	get premiumDiscriminator(): boolean {
-		return this._premiumDiscriminator ?? false;
-	}
-
-	get hasEverPurchased(): boolean | undefined {
-		const override = DeveloperOptions.hasEverPurchasedOverride;
-		return override != null ? override : this._hasEverPurchased;
-	}
-
-	get hasUnreadGiftInventory(): boolean | undefined {
-		const override = DeveloperOptions.hasUnreadGiftInventoryOverride;
-		return override != null ? override : this._hasUnreadGiftInventory;
-	}
-
-	get unreadGiftInventoryCount(): number | undefined {
-		const override = DeveloperOptions.unreadGiftInventoryCountOverride;
-		return override != null ? override : this._unreadGiftInventoryCount;
 	}
 
 	get matureContentAllowed(): boolean | undefined {
@@ -444,57 +327,8 @@ export class User {
 		}
 		const verified = pickField(this._verified, u, 'verified', opts);
 		if (verified !== undefined) result.verified = verified;
-		const premiumType = pickField(this._premiumType, u, 'premium_type', opts);
-		if (premiumType !== undefined) result.premium_type = premiumType ?? null;
-		const premiumSince = pickDateField(this._premiumSince, u, 'premium_since', opts);
-		if (premiumSince !== undefined) result.premium_since = dateToIsoOrNull(premiumSince);
-		const premiumUntil = pickDateField(this._premiumUntil, u, 'premium_until', opts);
-		if (premiumUntil !== undefined) result.premium_until = dateToIsoOrNull(premiumUntil);
-		const premiumWillCancel = pickField(this._premiumWillCancel, u, 'premium_will_cancel', opts);
-		if (premiumWillCancel !== undefined) result.premium_will_cancel = premiumWillCancel;
-		const premiumBillingCycle = pickField(this._premiumBillingCycle, u, 'premium_billing_cycle', opts);
-		if (premiumBillingCycle !== undefined) result.premium_billing_cycle = premiumBillingCycle;
-		const premiumLifetimeSequence = pickField(this._premiumLifetimeSequence, u, 'premium_lifetime_sequence', opts);
-		if (premiumLifetimeSequence !== undefined) result.premium_lifetime_sequence = premiumLifetimeSequence;
-		const premiumGraceEndsAt = pickDateField(this._premiumGraceEndsAt, u, 'premium_grace_ends_at', opts);
-		if (premiumGraceEndsAt !== undefined) result.premium_grace_ends_at = dateToIsoOrNull(premiumGraceEndsAt);
-		const premiumDiscriminator = pickField(this._premiumDiscriminator, u, 'premium_discriminator', opts);
-		if (premiumDiscriminator !== undefined) result.premium_discriminator = premiumDiscriminator;
 		const hiddenProfileBadges = pickField(this.hiddenProfileBadges, u, 'hidden_profile_badges', opts);
 		if (hiddenProfileBadges !== undefined) result.hidden_profile_badges = hiddenProfileBadges;
-		const premiumBadgeMasked = pickField(this.premiumBadgeMasked, u, 'premium_badge_masked', opts);
-		if (premiumBadgeMasked !== undefined) result.premium_badge_masked = premiumBadgeMasked;
-		const premiumBadgeTimestampHidden = pickField(
-			this.premiumBadgeTimestampHidden,
-			u,
-			'premium_badge_timestamp_hidden',
-			opts,
-		);
-		if (premiumBadgeTimestampHidden !== undefined) result.premium_badge_timestamp_hidden = premiumBadgeTimestampHidden;
-		const operatorPassBadgeTimestampHidden = pickField(
-			this.operatorPassBadgeTimestampHidden,
-			u,
-			'operator_pass_badge_timestamp_hidden',
-			opts,
-		);
-		if (operatorPassBadgeTimestampHidden !== undefined) {
-			result.operator_pass_badge_timestamp_hidden = operatorPassBadgeTimestampHidden;
-		}
-		const operatorPassBadgeCountHidden = pickField(
-			this.operatorPassBadgeCountHidden,
-			u,
-			'operator_pass_badge_count_hidden',
-			opts,
-		);
-		if (operatorPassBadgeCountHidden !== undefined) {
-			result.operator_pass_badge_count_hidden = operatorPassBadgeCountHidden;
-		}
-		const operatorPassSince = pickDateField(this.operatorPassSince, u, 'operator_pass_since', opts);
-		if (operatorPassSince !== undefined) result.operator_pass_since = dateToIsoOrNull(operatorPassSince);
-		const premiumEnabledOverride = pickField(this.premiumEnabledOverride, u, 'premium_enabled_override', opts);
-		if (premiumEnabledOverride !== undefined) result.premium_enabled_override = premiumEnabledOverride;
-		const premiumPerksDisabled = pickField(this.premiumPerksDisabled, u, 'premium_perks_disabled', opts);
-		if (premiumPerksDisabled !== undefined) result.premium_perks_disabled = premiumPerksDisabled;
 		const passwordLastChangedAt = pickDateField(this.passwordLastChangedAt, u, 'password_last_changed_at', opts);
 		if (passwordLastChangedAt !== undefined) result.password_last_changed_at = dateToIsoOrNull(passwordLastChangedAt);
 		const lastVoiceActivitySharingChangeAt = pickDateField(
@@ -508,20 +342,6 @@ export class User {
 		}
 		const nsfwAllowed = pickField(this._nsfwAllowed, u, 'nsfw_allowed', opts);
 		if (nsfwAllowed !== undefined) result.nsfw_allowed = nsfwAllowed;
-		const hasDismissedPremiumOnboarding = pickField(
-			this.hasDismissedPremiumOnboarding,
-			u,
-			'has_dismissed_premium_onboarding',
-			opts,
-		);
-		if (hasDismissedPremiumOnboarding !== undefined)
-			result.has_dismissed_premium_onboarding = hasDismissedPremiumOnboarding;
-		const hasEverPurchased = pickField(this._hasEverPurchased, u, 'has_ever_purchased', opts);
-		if (hasEverPurchased !== undefined) result.has_ever_purchased = hasEverPurchased;
-		const hasUnreadGiftInventory = pickField(this._hasUnreadGiftInventory, u, 'has_unread_gift_inventory', opts);
-		if (hasUnreadGiftInventory !== undefined) result.has_unread_gift_inventory = hasUnreadGiftInventory;
-		const unreadGiftInventoryCount = pickField(this._unreadGiftInventoryCount, u, 'unread_gift_inventory_count', opts);
-		if (unreadGiftInventoryCount !== undefined) result.unread_gift_inventory_count = unreadGiftInventoryCount;
 		const ageVerifiedAdult = pickField(this._ageVerifiedAdult, u, 'age_verified_adult', opts);
 		if (ageVerifiedAdult !== undefined) result.age_verified_adult = ageVerifiedAdult;
 		const termsAgreedAt = pickDateField(this._termsAgreedAt, u, 'terms_agreed_at', opts);
@@ -551,60 +371,47 @@ export class User {
 		return new User(merged, {instanceId: this.instanceId});
 	}
 
-	isPremium(): boolean {
-		if (this.premiumPerksDisabled === true) return false;
-		if (this.premiumType != null && this.premiumType > 0) return true;
-		return this._traits.includes('premium');
-	}
-
-	private isPremiumExpiredLocally(): boolean {
-		const premiumUntil = this._premiumUntil;
-		if (!premiumUntil) return false;
-		if (Number.isNaN(premiumUntil.getTime())) return false;
-		return Date.now() > getPremiumGraceEndDate(premiumUntil, this._premiumGraceEndsAt).getTime();
-	}
-
 	get maxGuilds(): number {
-		return this.resolveRuntimeLimit('max_guilds', DEFAULT_STOCK_LIMITS.max_guilds);
+		return this.resolveRuntimeLimit('max_guilds', DEFAULT_LIMITS.max_guilds);
 	}
 
 	get maxMessageLength(): number {
-		return this.resolveRuntimeLimit('max_message_length', DEFAULT_STOCK_LIMITS.max_message_length);
+		return this.resolveRuntimeLimit('max_message_length', DEFAULT_LIMITS.max_message_length);
 	}
 
 	get maxAttachmentFileSize(): number {
-		return this.resolveRuntimeLimit('max_attachment_file_size', DEFAULT_STOCK_LIMITS.max_attachment_file_size);
+		return this.resolveRuntimeLimit('max_attachment_file_size', DEFAULT_LIMITS.max_attachment_file_size);
 	}
 
 	get maxAttachmentsPerMessage(): number {
-		return this.resolveRuntimeLimit('max_attachments_per_message', DEFAULT_STOCK_LIMITS.max_attachments_per_message);
+		return this.resolveRuntimeLimit('max_attachments_per_message', DEFAULT_LIMITS.max_attachments_per_message);
 	}
 
 	get maxBioLength(): number {
-		return this.resolveRuntimeLimit('max_bio_length', DEFAULT_STOCK_LIMITS.max_bio_length);
+		return this.resolveRuntimeLimit('max_bio_length', DEFAULT_LIMITS.max_bio_length);
 	}
 
 	get maxBookmarks(): number {
-		return this.resolveRuntimeLimit('max_bookmarks', DEFAULT_STOCK_LIMITS.max_bookmarks);
+		return this.resolveRuntimeLimit('max_bookmarks', DEFAULT_LIMITS.max_bookmarks);
 	}
 
 	get maxFavoriteMemes(): number {
-		return this.resolveRuntimeLimit('max_favorite_memes', DEFAULT_STOCK_LIMITS.max_favorite_memes);
+		return this.resolveRuntimeLimit('max_favorite_memes', DEFAULT_LIMITS.max_favorite_memes);
 	}
 
 	get maxFavoriteMemeTags(): number {
-		return this.resolveRuntimeLimit('max_favorite_meme_tags', DEFAULT_STOCK_LIMITS.max_favorite_meme_tags);
+		return this.resolveRuntimeLimit('max_favorite_meme_tags', DEFAULT_LIMITS.max_favorite_meme_tags);
 	}
 
 	get guildVisitHistoryDays(): number {
 		return this.resolveRuntimeLimit(
 			'guild_visit_history_days_unverified',
-			DEFAULT_STOCK_LIMITS.guild_visit_history_days_unverified,
+			DEFAULT_LIMITS.guild_visit_history_days_unverified,
 		);
 	}
 
 	get maxGroupDmRecipients(): number {
-		return this.resolveRuntimeLimit('max_group_dm_recipients', DEFAULT_STOCK_LIMITS.max_group_dm_recipients);
+		return this.resolveRuntimeLimit('max_group_dm_recipients', DEFAULT_LIMITS.max_group_dm_recipients);
 	}
 
 	private resolveRuntimeLimit(key: LimitKey, fallback: number): number {
@@ -700,29 +507,10 @@ export class User {
 			this.mfaEnabled === other.mfaEnabled &&
 			arraysShallowEqual(this.authenticatorTypes, other.authenticatorTypes) &&
 			this._verified === other._verified &&
-			this._premiumType === other._premiumType &&
-			datesEqual(this._premiumSince, other._premiumSince) &&
-			datesEqual(this._premiumUntil, other._premiumUntil) &&
-			datesEqual(this._premiumGraceEndsAt, other._premiumGraceEndsAt) &&
-			this._premiumWillCancel === other._premiumWillCancel &&
-			this._premiumBillingCycle === other._premiumBillingCycle &&
-			this._premiumLifetimeSequence === other._premiumLifetimeSequence &&
-			this._premiumDiscriminator === other._premiumDiscriminator &&
 			arraysShallowEqual(this.hiddenProfileBadges, other.hiddenProfileBadges) &&
-			this.premiumBadgeMasked === other.premiumBadgeMasked &&
-			this.premiumBadgeTimestampHidden === other.premiumBadgeTimestampHidden &&
-			this.operatorPassBadgeTimestampHidden === other.operatorPassBadgeTimestampHidden &&
-			this.operatorPassBadgeCountHidden === other.operatorPassBadgeCountHidden &&
-			datesEqual(this.operatorPassSince, other.operatorPassSince) &&
-			this.premiumEnabledOverride === other.premiumEnabledOverride &&
-			this.premiumPerksDisabled === other.premiumPerksDisabled &&
 			datesEqual(this.passwordLastChangedAt, other.passwordLastChangedAt) &&
 			datesEqual(this.lastVoiceActivitySharingChangeAt, other.lastVoiceActivitySharingChangeAt) &&
 			this._nsfwAllowed === other._nsfwAllowed &&
-			this.hasDismissedPremiumOnboarding === other.hasDismissedPremiumOnboarding &&
-			this._hasEverPurchased === other._hasEverPurchased &&
-			this._hasUnreadGiftInventory === other._hasUnreadGiftInventory &&
-			this._unreadGiftInventoryCount === other._unreadGiftInventoryCount &&
 			this._ageVerifiedAdult === other._ageVerifiedAdult &&
 			datesEqual(this._termsAgreedAt, other._termsAgreedAt) &&
 			datesEqual(this._privacyAgreedAt, other._privacyAgreedAt) &&
@@ -767,28 +555,7 @@ export class User {
 		setOptional('mfa_enabled', this.mfaEnabled);
 		setOptional('authenticator_types', this.authenticatorTypes);
 		setOptional('verified', this._verified);
-		setOptional('premium_type', this._premiumType);
-		setOptional('premium_since', this._premiumSince === undefined ? undefined : dateToIsoOrNull(this._premiumSince));
-		setOptional('premium_until', this._premiumUntil === undefined ? undefined : dateToIsoOrNull(this._premiumUntil));
-		setOptional('premium_will_cancel', this._premiumWillCancel);
-		setOptional('premium_billing_cycle', this._premiumBillingCycle);
-		setOptional('premium_lifetime_sequence', this._premiumLifetimeSequence);
-		setOptional(
-			'premium_grace_ends_at',
-			this._premiumGraceEndsAt === undefined ? undefined : dateToIsoOrNull(this._premiumGraceEndsAt),
-		);
-		setOptional('premium_discriminator', this._premiumDiscriminator);
 		setOptional('hidden_profile_badges', this.hiddenProfileBadges);
-		setOptional('premium_badge_masked', this.premiumBadgeMasked);
-		setOptional('premium_badge_timestamp_hidden', this.premiumBadgeTimestampHidden);
-		setOptional('operator_pass_badge_timestamp_hidden', this.operatorPassBadgeTimestampHidden);
-		setOptional('operator_pass_badge_count_hidden', this.operatorPassBadgeCountHidden);
-		setOptional(
-			'operator_pass_since',
-			this.operatorPassSince === undefined ? undefined : dateToIsoOrNull(this.operatorPassSince),
-		);
-		setOptional('premium_enabled_override', this.premiumEnabledOverride);
-		setOptional('premium_perks_disabled', this.premiumPerksDisabled);
 		setOptional(
 			'password_last_changed_at',
 			this.passwordLastChangedAt === undefined ? undefined : dateToIsoOrNull(this.passwordLastChangedAt),
@@ -800,10 +567,6 @@ export class User {
 				: dateToIsoOrNull(this.lastVoiceActivitySharingChangeAt),
 		);
 		setOptional('nsfw_allowed', this._nsfwAllowed);
-		setOptional('has_dismissed_premium_onboarding', this.hasDismissedPremiumOnboarding);
-		setOptional('has_ever_purchased', this._hasEverPurchased);
-		setOptional('has_unread_gift_inventory', this._hasUnreadGiftInventory);
-		setOptional('unread_gift_inventory_count', this._unreadGiftInventoryCount);
 		setOptional('age_verified_adult', this._ageVerifiedAdult);
 		setOptional(
 			'terms_agreed_at',

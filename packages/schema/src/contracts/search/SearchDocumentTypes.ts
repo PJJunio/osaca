@@ -111,7 +111,6 @@ export interface SearchableUser {
 	isBot: boolean;
 	isSystem: boolean;
 	flags: string;
-	premiumType: number | null;
 	emailVerified: boolean;
 	emailBounced: boolean;
 	acls: Array<string>;
@@ -126,7 +125,6 @@ export interface UserSearchFilters {
 	isSystem?: boolean;
 	emailVerified?: boolean;
 	emailBounced?: boolean;
-	hasPremium?: boolean;
 	isTempBanned?: boolean;
 	isPendingDeletion?: boolean;
 	hasAcl?: Array<string>;

@@ -42,10 +42,6 @@ const DESKTOP_NOTIFICATION_NAGBAR_DESCRIPTOR = msg({
 	message: 'Desktop notification nagbar',
 	comment: 'Developer control label for the desktop-notification banner.',
 });
-const VISIONARY_2FA_NAGBAR_DESCRIPTOR = msg({
-	message: 'Visionary 2FA nagbar',
-	comment: 'Developer control label for the Visionary two-factor-authentication banner.',
-});
 const TERMS_ACCEPTANCE_NAGBAR_DESCRIPTOR = msg({
 	message: 'Terms acceptance nagbar',
 	comment: 'Developer control label for the terms-acceptance banner.',
@@ -174,15 +170,6 @@ export const getNagbarControls = (): Array<NagbarControlDefinition> => [
 		resetKeys: ['forceDesktopNotification', 'desktopNotificationDismissed'],
 		actualStatus: CURRENTLY_SHOWING,
 		dismissedKey: 'desktopNotificationDismissed',
-	}),
-	createNagbarControl({
-		key: 'forceVisionaryMfa',
-		label: VISIONARY_2FA_NAGBAR_DESCRIPTOR,
-		forceKey: 'forceVisionaryMfa',
-		forceHideKey: 'forceHideVisionaryMfa',
-		resetKeys: ['forceVisionaryMfa', 'visionaryMfaDismissed'],
-		actualStatus: USING_ACTUAL_STATE,
-		dismissedKey: 'visionaryMfaDismissed',
 	}),
 	createNagbarControl({
 		key: 'forceTermsAcceptance',

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use super::{instance_config_response, remember_premium_branding, render_fragment_with_toast};
+use super::{instance_config_response, remember_branding, render_fragment_with_toast};
 use crate::{
     api::{
         client::AdminApiClient,
@@ -38,7 +38,7 @@ pub(super) async fn post(
     };
     let client = AdminApiClient::new(state.http_client(), config, &auth.session);
     let result = client.upload_branding_asset(kind, image).await;
-    remember_premium_branding(state, &result);
+    remember_branding(state, &result);
     let instance_config = match result {
         Ok(instance_config) => instance_config,
         Err(error) => {

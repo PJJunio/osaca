@@ -1,11 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
-import {LimitResolver} from '@app/features/app/utils/LimitResolverAdapter';
-import {isLimitToggleEnabled} from '@app/features/app/utils/LimitUtils';
-import * as PremiumModalCommands from '@app/features/premium/commands/PremiumModalCommands';
-import {getPremiumProductName, shouldShowPremiumFeatures} from '@app/features/premium/utils/PremiumUtils';
-import {remFromPx} from '@app/features/theme/layout/RemFromPx';
 import {Button} from '@app/features/ui/button/Button';
 import * as ModalCommands from '@app/features/ui/commands/ModalCommands';
 import {modal} from '@app/features/ui/commands/ModalCommands';
@@ -16,21 +10,9 @@ import type {User} from '@app/features/user/models/User';
 import {accountGateReason} from '@app/features/user/utils/AccountGatePresentation';
 import type {AccountGateResult} from '@app/features/user/utils/AccountGates';
 import type {I18n} from '@lingui/core';
-import {msg} from '@lingui/core/macro';
 import {Trans, useLingui} from '@lingui/react/macro';
-import {AtomIcon} from '@phosphor-icons/react';
 import {observer} from 'mobx-react-lite';
 
-const CUSTOMIZE_YOUR_TAG_TO_YOUR_LIKING_WITH_DESCRIPTOR = msg({
-	message: 'Customize your tag ({discriminatorLabel}) to your liking with {premiumProductName}',
-	comment:
-		'Description text in the username section. Preserve {discriminatorLabel}, {premiumProductName}; they are inserted by code. Keep the tone plain and specific.',
-});
-const GET_TO_CUSTOMIZE_YOUR_TAG_DESCRIPTOR = msg({
-	message: 'Get {premiumProductName} to customize your tag',
-	comment:
-		'Label in the username section. Preserve {premiumProductName}; it is inserted by code. Keep the tone plain and specific.',
-});
 function usernameChangeBlockedReason(i18n: I18n, profileGate: AccountGateResult): string | null {
 	if (!profileGate.allowed) return accountGateReason(i18n, profileGate);
 	return null;
@@ -43,11 +25,6 @@ interface UsernameSectionProps {
 
 export const UsernameSection = observer(({profileGate, user}: UsernameSectionProps) => {
 	const {i18n} = useLingui();
-	const hasCustomDiscriminator = isLimitToggleEnabled(
-		{feature_custom_discriminator: LimitResolver.resolve({key: 'feature_custom_discriminator', fallback: 0})},
-		'feature_custom_discriminator',
-	);
-	const discriminatorLabel = `#${user.discriminator}`;
 	const disabledReason = usernameChangeBlockedReason(i18n, profileGate);
 	return (
 		<div data-flx="user.my-profile-tab.username-section.div">
@@ -81,27 +58,6 @@ export const UsernameSection = observer(({profileGate, user}: UsernameSectionPro
 					>
 						<Trans>Change username</Trans>
 					</Button>
-				)}
-				{!RuntimeConfig.usesUniqueUsernames && !hasCustomDiscriminator && shouldShowPremiumFeatures() && (
-					<Tooltip
-						text={i18n._(CUSTOMIZE_YOUR_TAG_TO_YOUR_LIKING_WITH_DESCRIPTOR, {
-							discriminatorLabel,
-							premiumProductName: getPremiumProductName(),
-						})}
-						data-flx="user.my-profile-tab.username-section.tooltip--3"
-					>
-						<button
-							type="button"
-							onClick={() => {
-								PremiumModalCommands.open();
-							}}
-							className={styles.premiumButton}
-							aria-label={i18n._(GET_TO_CUSTOMIZE_YOUR_TAG_DESCRIPTOR, {premiumProductName: getPremiumProductName()})}
-							data-flx="user.my-profile-tab.username-section.premium-button.open"
-						>
-							<AtomIcon weight="fill" size={remFromPx(18)} data-flx="user.my-profile-tab.username-section.atom-icon" />
-						</button>
-					</Tooltip>
 				)}
 			</div>
 		</div>

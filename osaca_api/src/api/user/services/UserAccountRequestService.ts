@@ -24,15 +24,12 @@ import {
 } from '@app/api/user/AccountTier';
 import {isProfileHidden} from '@app/api/user/ProfileVisibility';
 import {resolveHiddenProfileBadges} from '@app/api/user/profile_badges/HiddenProfileBadges';
-import {applyProfileBadgeSettings} from '@app/api/user/profile_badges/PremiumBadgeMasking';
 import {buildOwnProfileBadges, buildProfileBadges} from '@app/api/user/profile_badges/ProfileBadgeBuilder';
 import {loadProfileBadgeEnvironment} from '@app/api/user/profile_badges/ProfileBadgeEnvironment';
-import type {UserRepository} from '@app/api/user/repositories/UserRepository';
 import type {EmailChangeService} from '@app/api/user/services/EmailChangeService';
 import type {UserAccountService} from '@app/api/user/services/UserAccountService';
 import type {UserChannelService} from '@app/api/user/services/UserChannelService';
 
-import {createPremiumClearPatch, shouldStripExpiredPremium} from '@app/api/user/UserHelpers';
 import {
 	mapGuildMemberToProfileResponse,
 	mapUserToPrivateResponse,
@@ -78,13 +75,6 @@ const PROFILE_CUSTOMIZATION_FIELDS: ReadonlyArray<keyof UserUpdatePayload> = [
 	'timezone',
 	'timezone_privacy_flags',
 	'hidden_profile_badges',
-	'premium_badge_hidden',
-	'premium_badge_masked',
-	'premium_badge_timestamp_hidden',
-	'premium_badge_sequence_hidden',
-	'operator_pass_badge_hidden',
-	'operator_pass_badge_timestamp_hidden',
-	'operator_pass_badge_count_hidden',
 ];
 
 function hasProfileCustomizationUpdate(data: UserUpdatePayload): boolean {
@@ -120,7 +110,6 @@ export class UserAccountRequestService {
 		private readonly emailChangeService: EmailChangeService,
 		private readonly userAccountService: UserAccountService,
 		private readonly userChannelService: UserChannelService,
-		private readonly userRepository: UserRepository,
 		private readonly userCacheService: UserCacheService,
 	) {}
 
@@ -189,7 +178,7 @@ export class UserAccountRequestService {
 		const profileCustomization = hasProfileCustomizationUpdate(userUpdateData);
 		const profileGate = evaluateTierGateFor(user, TierGatedActions.PROFILE_CUSTOMIZE, NO_TIER_CONTEXT);
 		if (isUnclaimed && !profileGate.allowed) {
-			const allowed = new Set(['new_password', 'has_dismissed_premium_onboarding', 'has_unread_gift_inventory']);
+			const allowed = new Set(['new_password']);
 			if (userUpdateData.new_password !== undefined && usernameSignIn) {
 				allowed.add('username');
 			}
@@ -243,7 +232,6 @@ export class UserAccountRequestService {
 				user_id: updatedUser.id.toString(),
 				new_email: updatedUser.email,
 				was_unclaimed: isUnclaimed,
-				has_ever_purchased: updatedUser.hasEverPurchased,
 				origin: 'user',
 			});
 		}
@@ -321,31 +309,7 @@ export class UserAccountRequestService {
 			profileLookup,
 			profileLookup.then((found) => loadProfileBadgeEnvironment(found.user.badgeIds)),
 		]);
-		let profileUser = profile.user;
-		let premiumType = profile.premiumType;
-		let premiumSince = profile.premiumSince;
-		let premiumLifetimeSequence = profile.premiumLifetimeSequence;
-		if (shouldStripExpiredPremium(profileUser)) {
-			try {
-				const sanitizedUser = await this.userRepository.patchUpsert(
-					profileUser.id,
-					createPremiumClearPatch(),
-					profileUser.toRow(),
-				);
-				if (sanitizedUser) {
-					profileUser = sanitizedUser;
-					profile.user = sanitizedUser;
-					premiumType = undefined;
-					premiumSince = undefined;
-					premiumLifetimeSequence = undefined;
-				}
-			} catch (error) {
-				Logger.warn(
-					{userId: profileUser.id.toString(), error},
-					'Failed to sanitize expired premium fields before returning profile',
-				);
-			}
-		}
+		const profileUser = profile.user;
 		const restrictProfile = profile.restrictProfile;
 		const hidden = isProfileHidden(profileUser);
 		const userProfile = mapUserToProfileResponse(profileUser, {
@@ -385,9 +349,6 @@ export class UserAccountRequestService {
 			user_profile: userProfile,
 			guild_member: profile.guildMember ?? undefined,
 			guild_member_profile: guildMemberProfile ?? undefined,
-			premium_type: premiumType,
-			premium_since: premiumSince?.toISOString(),
-			premium_lifetime_sequence: premiumLifetimeSequence,
 			profile_badges: profileBadges,
 			hidden_profile_badge_count: hiddenProfileBadgeCount,
 			mutual_friends: mutualFriends,
@@ -405,16 +366,11 @@ export class UserAccountRequestService {
 	}): Promise<ProfileBadgePreviewResponse> {
 		const {user, settings} = params;
 		const environment = await loadProfileBadgeEnvironment(user.badgeIds);
-		const expired = shouldStripExpiredPremium(user);
 		const input = {
 			user: {
 				flags: user.flags,
-				premiumFlags: applyProfileBadgeSettings(user.premiumFlags, settings),
-				premiumType: expired ? null : user.premiumType,
-				premiumSince: expired ? null : user.premiumSince,
-				premiumLifetimeSequence: expired ? null : user.premiumLifetimeSequence,
 				badgeIds: user.badgeIds,
-				hiddenProfileBadges: resolveHiddenProfileBadges(user.hiddenProfileBadges, settings) ?? user.hiddenProfileBadges,
+				hiddenProfileBadges: resolveHiddenProfileBadges(settings) ?? user.hiddenProfileBadges,
 			},
 			locale: params.requestLocale,
 			environment,
@@ -443,9 +399,6 @@ export class UserAccountRequestService {
 		response.timezone = undefined;
 		response.timezone_privacy_flags = undefined;
 		response.account_limited = undefined;
-		response.premium_type = null;
-		response.premium_grace_ends_at = null;
-		response.premium_discriminator = false;
 		response.last_voice_activity_sharing_change_at = null;
 		response.age_verified_adult = undefined;
 		response.terms_agreed_at = null;
@@ -459,24 +412,7 @@ export class UserAccountRequestService {
 		response.authenticator_types = undefined;
 		response.password_last_changed_at = null;
 		response.nsfw_allowed = false;
-		response.premium_since = null;
-		response.premium_until = null;
-		response.premium_will_cancel = false;
-		response.premium_billing_cycle = null;
-		response.premium_lifetime_sequence = null;
 		response.hidden_profile_badges = [];
-		response.premium_badge_hidden = false;
-		response.premium_badge_masked = false;
-		response.premium_badge_timestamp_hidden = false;
-		response.premium_badge_sequence_hidden = false;
-		response.premium_purchase_disabled = false;
-		response.premium_enabled_override = false;
-		response.premium_perks_disabled = false;
-		response.operator_pass_since = null;
-		response.has_dismissed_premium_onboarding = false;
-		response.has_ever_purchased = false;
-		response.has_unread_gift_inventory = false;
-		response.unread_gift_inventory_count = 0;
 		response.pending_bulk_message_deletion = null;
 	}
 

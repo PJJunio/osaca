@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import * as ImageCacheUtils from '@app/features/messaging/utils/ImageCacheUtils';
-import * as PremiumModalCommands from '@app/features/premium/commands/PremiumModalCommands';
 import * as ModalCommands from '@app/features/ui/commands/ModalCommands';
 import FocusRing from '@app/features/ui/focus_ring/FocusRing';
 import {Tooltip} from '@app/features/ui/tooltip/Tooltip';
@@ -119,11 +118,6 @@ function ProfileBadgeDetailsTooltip({
 	);
 }
 
-function opensPremiumModal(badge: ProfileBadgeResponse): boolean {
-	if (badge.kind === 'premium') return badge.href === null;
-	return badge.kind === 'plutonium';
-}
-
 export const UserProfileBadges: React.FC<UserProfileBadgesProps> = observer(
 	({
 		badges,
@@ -146,18 +140,6 @@ export const UserProfileBadges: React.FC<UserProfileBadgesProps> = observer(
 			: styles.containerPopout;
 		const touch = isModal && isMobile;
 		const renderInteractiveWrapper = (badge: ProfileBadgeResponse, children: React.ReactNode) => {
-			if (!isMobile && opensPremiumModal(badge)) {
-				return (
-					<button
-						type="button"
-						className={clsx(styles.link, styles.linkButton)}
-						onClick={() => PremiumModalCommands.open()}
-						data-flx={`${dataFlx}.button`}
-					>
-						{children}
-					</button>
-				);
-			}
 			const href = badge.href;
 			if (href && !isMobile) {
 				return (

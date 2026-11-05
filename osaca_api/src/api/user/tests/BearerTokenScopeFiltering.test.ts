@@ -48,21 +48,6 @@ describe('Bearer token scope filtering on /users/@me', () => {
 		expect(json.password_last_changed_at).toBeNull();
 		expect(json.email_bounced).toBeUndefined();
 		expect(json.nsfw_allowed).toBe(false);
-		expect(json.premium_since).toBeNull();
-		expect(json.premium_until).toBeNull();
-		expect(json.premium_will_cancel).toBe(false);
-		expect(json.premium_billing_cycle).toBeNull();
-		expect(json.premium_lifetime_sequence).toBeNull();
-		expect(json.premium_badge_hidden).toBe(false);
-		expect(json.premium_badge_masked).toBe(false);
-		expect(json.premium_badge_timestamp_hidden).toBe(false);
-		expect(json.premium_badge_sequence_hidden).toBe(false);
-		expect(json.premium_purchase_disabled).toBe(false);
-		expect(json.premium_enabled_override).toBe(false);
-		expect(json.has_dismissed_premium_onboarding).toBe(false);
-		expect(json.has_ever_purchased).toBe(false);
-		expect(json.has_unread_gift_inventory).toBe(false);
-		expect(json.unread_gift_inventory_count).toBe(0);
 		expect(json.pending_bulk_message_deletion).toBeNull();
 	});
 	test('bearer token with identify and email scope returns email but strips other sensitive fields', async () => {

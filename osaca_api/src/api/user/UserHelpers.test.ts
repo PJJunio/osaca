@@ -1,90 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {
-	canOwnerRunBots,
-	checkIsPremium,
-	getBadgePremiumType,
-	getEffectivePremiumUntil,
-	getPremiumPaymentRecoveryGraceMs,
-	isSignInRefused,
-	isTemporarilyBanned,
-} from '@app/api/user/UserHelpers';
-import {PremiumFlags, UserFlags, UserPremiumTypes} from '@osaca/constants/src/UserConstants';
+import {canOwnerRunBots, isSignInRefused, isTemporarilyBanned} from '@app/api/user/UserHelpers';
+import {UserFlags} from '@osaca/constants/src/UserConstants';
 import {describe, expect, it} from 'vitest';
-
-describe('checkIsPremium', () => {
-	it('uses the later gift extension as the effective premium end', () => {
-		const premiumUntil = new Date(Date.now() + 60_000);
-		const premiumGiftExtensionEndsAt = new Date(Date.now() + 120_000);
-		expect(getEffectivePremiumUntil({premiumUntil, premiumGiftExtensionEndsAt})?.toISOString()).toBe(
-			premiumGiftExtensionEndsAt.toISOString(),
-		);
-	});
-	it('treats a future gift extension as active after the subscription period ended', () => {
-		const user = {
-			isBot: false,
-			premiumType: UserPremiumTypes.SUBSCRIPTION,
-			premiumUntil: new Date(Date.now() - 60_000),
-			premiumGiftExtensionEndsAt: new Date(Date.now() + 60_000),
-			premiumGraceEndsAt: null,
-			premiumWillCancel: false,
-			flags: 0n,
-			premiumFlags: 0,
-		};
-		expect(checkIsPremium(user)).toBe(true);
-	});
-	it('lets the perks-disabled flag override an active paid subscription', () => {
-		const user = {
-			isBot: false,
-			premiumType: UserPremiumTypes.SUBSCRIPTION,
-			premiumUntil: new Date(Date.now() + 60_000),
-			premiumGiftExtensionEndsAt: null,
-			premiumGraceEndsAt: null,
-			premiumWillCancel: false,
-			flags: 0n,
-			premiumFlags: PremiumFlags.PERKS_DISABLED,
-		};
-		expect(checkIsPremium(user)).toBe(false);
-	});
-	it('lets the perks-disabled flag override backend premium override', () => {
-		const user = {
-			isBot: false,
-			premiumType: UserPremiumTypes.NONE,
-			premiumUntil: null,
-			premiumGiftExtensionEndsAt: null,
-			premiumGraceEndsAt: null,
-			premiumWillCancel: false,
-			flags: 0n,
-			premiumFlags: PremiumFlags.ENABLED_OVERRIDE | PremiumFlags.PERKS_DISABLED,
-		};
-		expect(checkIsPremium(user)).toBe(false);
-	});
-});
-
-describe('getBadgePremiumType', () => {
-	it('shows a subscription badge for a backend premium override', () => {
-		expect(getBadgePremiumType({premiumType: null, premiumFlags: PremiumFlags.ENABLED_OVERRIDE})).toBe(
-			UserPremiumTypes.SUBSCRIPTION,
-		);
-		expect(getBadgePremiumType({premiumType: UserPremiumTypes.NONE, premiumFlags: PremiumFlags.ENABLED_OVERRIDE})).toBe(
-			UserPremiumTypes.SUBSCRIPTION,
-		);
-	});
-	it('keeps the stored premium type', () => {
-		expect(
-			getBadgePremiumType({premiumType: UserPremiumTypes.LIFETIME, premiumFlags: PremiumFlags.ENABLED_OVERRIDE}),
-		).toBe(UserPremiumTypes.LIFETIME);
-	});
-	it('shows no badge without premium or while perks are disabled', () => {
-		expect(getBadgePremiumType({premiumType: null, premiumFlags: 0})).toBeUndefined();
-		expect(
-			getBadgePremiumType({
-				premiumType: null,
-				premiumFlags: PremiumFlags.ENABLED_OVERRIDE | PremiumFlags.PERKS_DISABLED,
-			}),
-		).toBeUndefined();
-	});
-});
 
 describe('account standing', () => {
 	const hour = 3_600_000;
@@ -116,15 +34,5 @@ describe('account standing', () => {
 	it('accepts an account in good standing', () => {
 		expect(isSignInRefused(standing(0n))).toBe(false);
 		expect(canOwnerRunBots(standing(0n))).toBe(true);
-	});
-});
-
-describe('premium grace lengths', () => {
-	it('maps billing cycles to payment recovery grace', () => {
-		const day = 24 * 60 * 60 * 1000;
-		expect(getPremiumPaymentRecoveryGraceMs('monthly')).toBe(7 * day);
-		expect(getPremiumPaymentRecoveryGraceMs('yearly')).toBe(14 * day);
-		expect(getPremiumPaymentRecoveryGraceMs(null)).toBe(7 * day);
-		expect(getPremiumPaymentRecoveryGraceMs(undefined)).toBe(7 * day);
 	});
 });

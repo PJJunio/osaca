@@ -6,7 +6,6 @@ import {
 	INERT_DOMAIN_MIGRATION_ASSIGNMENT,
 } from '@osaca/schema/src/domains/admin/DomainMigrationSchemas';
 import {GuildVisitsAssignmentResponse} from '@osaca/schema/src/domains/admin/GuildVisitsSchemas';
-import {PlutoniumPageAssignmentResponse} from '@osaca/schema/src/domains/admin/PlutoniumPageSchemas';
 import {INERT_VOICE_P2P_ASSIGNMENT, VoiceP2pAssignmentResponse} from '@osaca/schema/src/domains/admin/VoiceP2pSchemas';
 import {z} from 'zod';
 
@@ -45,7 +44,6 @@ export type ExperimentDeliveryConfigResponse = z.infer<typeof ExperimentDelivery
 const ExperimentAssignmentsSchema = z.object({
 	domain_migration: DomainMigrationAssignmentResponse.optional(),
 	channel_threads: ChannelThreadsAssignmentResponse.optional(),
-	plutonium_page: PlutoniumPageAssignmentResponse.optional(),
 	voice_p2p: VoiceP2pAssignmentResponse.optional(),
 	guild_visits: GuildVisitsAssignmentResponse.optional(),
 });

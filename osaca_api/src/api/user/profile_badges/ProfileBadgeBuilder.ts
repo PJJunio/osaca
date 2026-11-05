@@ -3,7 +3,6 @@
 import {resolveContentLocale} from '@app/api/content_i18n/ContentI18n';
 import {customBadgeImageUrl} from '@app/api/instance/InstanceAssetReferences';
 import type {User} from '@app/api/models/User';
-import {applyPremiumBadgeMasking} from '@app/api/user/profile_badges/PremiumBadgeMasking';
 import {
 	PROFILE_BADGE_REGISTRY,
 	type ProfileBadgeEnvironment,
@@ -15,23 +14,14 @@ import {
 	type ProfileBadgeKey,
 	type ProfileBadgeKind,
 } from '@osaca/constants/src/BadgeConstants';
-import {PremiumFlags, stripHiddenProfileBadgeFlags} from '@osaca/constants/src/UserConstants';
+import {stripHiddenProfileBadgeFlags} from '@osaca/constants/src/UserConstants';
 import type {
 	AdminProfileBadgeResponse,
 	OwnProfileBadgeResponse,
 	ProfileBadgeResponse,
 } from '@osaca/schema/src/domains/user/ProfileBadgeSchemas';
 
-export type ProfileBadgeSubject = Pick<
-	User,
-	| 'flags'
-	| 'premiumFlags'
-	| 'premiumType'
-	| 'premiumSince'
-	| 'premiumLifetimeSequence'
-	| 'badgeIds'
-	| 'hiddenProfileBadges'
->;
+export type ProfileBadgeSubject = Pick<User, 'flags' | 'badgeIds' | 'hiddenProfileBadges'>;
 
 export interface ProfileBadgeInput {
 	user: ProfileBadgeSubject;
@@ -43,37 +33,22 @@ export interface ProfileBadgeInput {
 
 type ViewSource = Omit<ProfileBadgeView, 'shown'> & {customBadgeIds: ReadonlySet<bigint>};
 
-const NO_HIDDEN_BADGES: ReadonlySet<ProfileBadgeKey> = new Set();
-
 function publicViewSource(input: ProfileBadgeInput): ViewSource | null {
 	if (input.profileHidden) return null;
 	const {user, environment} = input;
 	const hidden = user.hiddenProfileBadges;
-	const restricted = input.restricted === true;
 	return {
 		flags: stripHiddenProfileBadgeFlags(user.flags, hidden),
-		premium: applyPremiumBadgeMasking(user, {
-			premiumFlags: user.premiumFlags,
-			hidden,
-			selfHosted: environment.selfHosted,
-			restricted,
-		}),
 		environment,
 		locale: resolveContentLocale(input.locale),
 		customBadgeIds: new Set([...user.badgeIds].filter((id) => !hidden.has(customProfileBadgeKey(id.toString())))),
 	};
 }
 
-function heldViewSource(input: ProfileBadgeInput, premiumFlags: number): ViewSource {
+function heldViewSource(input: ProfileBadgeInput): ViewSource {
 	const {user, environment} = input;
 	return {
 		flags: user.flags,
-		premium: applyPremiumBadgeMasking(user, {
-			premiumFlags,
-			hidden: NO_HIDDEN_BADGES,
-			selfHosted: environment.selfHosted,
-			restricted: false,
-		}),
 		environment,
 		locale: resolveContentLocale(input.locale),
 		customBadgeIds: user.badgeIds,
@@ -137,7 +112,7 @@ export function buildProfileBadges(input: ProfileBadgeInput): Array<ProfileBadge
 
 export function buildOwnProfileBadges(input: ProfileBadgeInput): Array<OwnProfileBadgeResponse> {
 	const hidden = input.user.hiddenProfileBadges;
-	return render(heldViewSource(input, input.user.premiumFlags & ~PremiumFlags.BADGE_MASKED)).map((badge) => ({
+	return render(heldViewSource(input)).map((badge) => ({
 		...badge,
 		hidden: hidden.has(badge.key),
 	}));
@@ -145,5 +120,5 @@ export function buildOwnProfileBadges(input: ProfileBadgeInput): Array<OwnProfil
 
 export function buildOperatorProfileBadges(input: ProfileBadgeInput): Array<AdminProfileBadgeResponse> {
 	const publicKeys = new Set(render(publicViewSource({...input, restricted: false})).map((badge) => badge.key));
-	return render(heldViewSource(input, 0)).map((badge) => ({...badge, suppressed: !publicKeys.has(badge.key)}));
+	return render(heldViewSource(input)).map((badge) => ({...badge, suppressed: !publicKeys.has(badge.key)}));
 }

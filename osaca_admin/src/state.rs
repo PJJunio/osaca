@@ -4,7 +4,7 @@ use crate::{
     api::{
         client::{AdminApiClient, ApiResultExt},
         types::{
-            AccountIdentityMode, AccountIdentitySettings, InstanceConfigResponse, PremiumBranding,
+            AccountIdentityMode, AccountIdentitySettings, InstanceConfigResponse, AdminBranding,
             ReportReasonEntry,
         },
     },
@@ -15,7 +15,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-const PREMIUM_BRANDING_TTL: Duration = Duration::from_secs(60);
+const BRANDING_TTL: Duration = Duration::from_secs(60);
 const ACCOUNT_IDENTITY_TTL: Duration = Duration::from_secs(60);
 const ACCOUNT_IDENTITY_RETRY_TTL: Duration = Duration::from_secs(10);
 
@@ -27,7 +27,7 @@ pub struct AppState {
 struct AppStateInner {
     pub config: AdminConfig,
     pub http_client: reqwest::Client,
-    premium_branding: Mutex<Option<(Instant, PremiumBranding)>>,
+    branding_cache: Mutex<Option<(Instant, AdminBranding)>>,
     account_identity: Mutex<Option<(Instant, AccountIdentitySettings)>>,
     report_reasons: Mutex<Option<Arc<[ReportReasonEntry]>>>,
 }
@@ -42,7 +42,7 @@ impl AppState {
             inner: Arc::new(AppStateInner {
                 config,
                 http_client,
-                premium_branding: Mutex::new(None),
+                branding_cache: Mutex::new(None),
                 account_identity: Mutex::new(None),
                 report_reasons: Mutex::new(None),
             }),
@@ -57,38 +57,38 @@ impl AppState {
         &self.inner.http_client
     }
 
-    pub fn cached_premium_branding(&self) -> Option<PremiumBranding> {
+    pub fn cached_branding(&self) -> Option<AdminBranding> {
         let cache = self
             .inner
-            .premium_branding
+            .branding_cache
             .lock()
             .unwrap_or_else(|poisoned| poisoned.into_inner());
         cache
             .as_ref()
-            .filter(|(fetched_at, _)| fetched_at.elapsed() < PREMIUM_BRANDING_TTL)
+            .filter(|(fetched_at, _)| fetched_at.elapsed() < BRANDING_TTL)
             .map(|(_, branding)| branding.clone())
     }
 
-    pub fn remember_premium_branding(&self, branding: PremiumBranding) {
+    pub fn remember_branding(&self, branding: AdminBranding) {
         *self
             .inner
-            .premium_branding
+            .branding_cache
             .lock()
             .unwrap_or_else(|poisoned| poisoned.into_inner()) = Some((Instant::now(), branding));
     }
 
     pub fn remember_instance_config_branding(&self, instance_config: &InstanceConfigResponse) {
-        self.merge_instance_config_branding(PremiumBranding::from_instance_config(instance_config));
+        self.merge_instance_config_branding(AdminBranding::from_instance_config(instance_config));
     }
 
-    fn merge_instance_config_branding(&self, branding: PremiumBranding) {
+    fn merge_instance_config_branding(&self, branding: AdminBranding) {
         let mut cache = self
             .inner
-            .premium_branding
+            .branding_cache
             .lock()
             .unwrap_or_else(|poisoned| poisoned.into_inner());
         if let Some((fetched_at, previous)) = cache.as_ref() {
-            let branding = PremiumBranding {
+            let branding = AdminBranding {
                 discovery_enabled: previous.discovery_enabled,
                 ..branding
             };
@@ -96,25 +96,25 @@ impl AppState {
         }
     }
 
-    pub async fn premium_branding(&self, client: &AdminApiClient) -> Option<PremiumBranding> {
-        if let Some(branding) = self.cached_premium_branding() {
+    pub async fn instance_branding(&self, client: &AdminApiClient) -> Option<AdminBranding> {
+        if let Some(branding) = self.cached_branding() {
             return Some(branding);
         }
-        let branding = PremiumBranding::from_discovery(
+        let branding = AdminBranding::from_discovery(
             &client
-                .get_instance_premium_discovery()
+                .get_instance_discovery()
                 .await
-                .log_error("load premium branding")?,
+                .log_error("load instance branding")?,
         );
-        self.remember_premium_branding(branding.clone());
+        self.remember_branding(branding.clone());
         Some(branding)
     }
 
-    pub async fn self_hosted_branding(&self) -> Option<PremiumBranding> {
+    pub async fn self_hosted_branding(&self) -> Option<AdminBranding> {
         if !self.config().self_hosted {
             return None;
         }
-        self.premium_branding(&AdminApiClient::anonymous(
+        self.instance_branding(&AdminApiClient::anonymous(
             self.http_client(),
             self.config(),
         ))
@@ -124,7 +124,7 @@ impl AppState {
     pub fn forget_instance_settings(&self) {
         *self
             .inner
-            .premium_branding
+            .branding_cache
             .lock()
             .unwrap_or_else(|poisoned| poisoned.into_inner()) = None;
         *self

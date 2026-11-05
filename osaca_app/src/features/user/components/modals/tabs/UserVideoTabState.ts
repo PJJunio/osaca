@@ -43,7 +43,6 @@ export interface UserVideoTabScreenShareInput {
 	quality: ScreenShareQualityInput;
 	hintSetting: ScreenShareContentHint;
 	bitrate: ScreenShareBitrateBudget;
-	selfHosted: boolean;
 }
 
 interface UserVideoTabResolutionOption {
@@ -65,16 +64,14 @@ export interface UserVideoTabScreenShareState {
 
 function buildResolutionOptions(
 	entitled: boolean,
-	selfHosted: boolean,
 	context: ScreenShareContext,
 	effective: OfferedScreenShareResolution,
 ): ReadonlyArray<UserVideoTabResolutionOption> {
-	const offersPremium = entitled || !selfHosted;
 	return OFFERED_SCREEN_SHARE_RESOLUTIONS.filter(
 		(value) =>
 			value === effective ||
 			FREE_SCREEN_SHARE_RESOLUTIONS.includes(value) ||
-			(offersPremium &&
+			(entitled &&
 				PREMIUM_SCREEN_SHARE_RESOLUTIONS.includes(value) &&
 				contextAllowsScreenShareResolution(value, context)),
 	).map((value) => ({value, isDisabled: !entitled && PREMIUM_SCREEN_SHARE_RESOLUTIONS.includes(value)}));
@@ -106,12 +103,7 @@ export function resolveUserVideoTabScreenShareState(input: UserVideoTabScreenSha
 	return {
 		resolution,
 		frameRate: target.frameRate,
-		resolutionOptions: buildResolutionOptions(
-			input.quality.entitled,
-			input.selfHosted,
-			input.quality.context,
-			resolution,
-		),
+		resolutionOptions: buildResolutionOptions(input.quality.entitled, input.quality.context, resolution),
 		frameRateOptions: buildFrameRateOptions(input.quality.entitled, target.frameRate),
 		bitrate: input.bitrate.chosenBps,
 		bitrateOptions: buildBitrateOptions(input.bitrate),

@@ -73,7 +73,7 @@ fn render_limit_page(
         .unwrap_or("default");
     let active_rule = rules.iter().find(|rule| rule.id == active_rule_id);
     let description = if response.self_hosted.unwrap_or(false) {
-        "Self-hosted instance with all premium features enabled by default. Configure limits to customize user and guild restrictions."
+        "Self-hosted instance. Configure limits to customize user and guild restrictions."
     } else {
         "Configure limit rules that control user and guild restrictions. Different rules apply based on user traits or guild features."
     };
@@ -262,7 +262,7 @@ fn filter_inputs(rule: &LimitRule) -> Markup {
                         "User Traits (Optional)"
                     }
                     input type="text" id="traits" name="traits" value=(traits)
-                        placeholder="e.g., premium, supporter" class=(FORM_INPUT_CLASS);
+                        placeholder="e.g., supporter, beta" class=(FORM_INPUT_CLASS);
                     p class="text-xs text-neutral-500" { "Separate values with commas; leave blank to disable this filter." }
                 }
                 div class="space-y-2" {
@@ -517,7 +517,7 @@ fn create_rule_section(
                                 "User Traits (Optional)"
                             }
                             input type="text" id="new-rule-traits" name="traits"
-                                placeholder="e.g., premium, supporter" class=(FORM_INPUT_CLASS);
+                                placeholder="e.g., supporter, beta" class=(FORM_INPUT_CLASS);
                         }
                         div class="space-y-2" {
                             label for="new-rule-features" class="font-semibold text-neutral-500 text-xs uppercase tracking-wide" {

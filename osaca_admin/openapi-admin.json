@@ -1358,7 +1358,7 @@
 						"in": "path",
 						"required": true,
 						"schema": {"allOf": [{"$ref": "#/components/schemas/BuiltInBadgeKindSchema"}]},
-						"description": "A built-in badge whose image can be replaced: the staff or premium profile badge, or a community badge starting with guild_"
+						"description": "A built-in badge whose image can be replaced: the staff profile badge, or a community badge starting with guild_"
 					}
 				],
 				"requestBody": {
@@ -1422,7 +1422,7 @@
 						"in": "path",
 						"required": true,
 						"schema": {"allOf": [{"$ref": "#/components/schemas/BuiltInBadgeKindSchema"}]},
-						"description": "A built-in badge whose image can be replaced: the staff or premium profile badge, or a community badge starting with guild_"
+						"description": "A built-in badge whose image can be replaced: the staff profile badge, or a community badge starting with guild_"
 					}
 				]
 			}
@@ -9148,74 +9148,6 @@
 				]
 			}
 		},
-		"/admin/users/{user_id}/premium-flags": {
-			"patch": {
-				"operationId": "update_admin_user_premium_flags",
-				"summary": "Update user premium flags",
-				"tags": ["Admin"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/UserMutationResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Add or remove premium-related flags on a user account (badge visibility, override, purchase block, etc). Adding PURCHASE_DISABLED returns 400, because a purchase limit is recorded through the feature limits route, and removing it while an enforcement decision holds it returns 409 with the decision ID. Creates audit log entry. Requires USER_UPDATE_FLAGS permission.",
-				"security": [{"adminApiKey": []}],
-				"parameters": [
-					{
-						"name": "user_id",
-						"in": "path",
-						"required": true,
-						"schema": {"description": "The ID of the user", "allOf": [{"$ref": "#/components/schemas/SnowflakeType"}]},
-						"description": "The ID of the user"
-					}
-				],
-				"requestBody": {
-					"required": false,
-					"content": {
-						"application/json": {"schema": {"$ref": "#/components/schemas/AdminUserPremiumFlagsUpdateRequest"}}
-					}
-				}
-			}
-		},
 		"/admin/users/{user_id}/profile-fields": {
 			"delete": {
 				"operationId": "clear_admin_user_profile_fields",
@@ -12097,31 +12029,6 @@
 				},
 				"required": ["fields", "basis"]
 			},
-			"AdminUserPremiumFlagsUpdateRequest": {
-				"type": "object",
-				"properties": {
-					"add_flags": {
-						"default": [],
-						"description": "Premium flags to add",
-						"maxItems": 64,
-						"type": "array",
-						"items": {
-							"description": "A single premium flag value to add or remove",
-							"allOf": [{"$ref": "#/components/schemas/PremiumFlags"}]
-						}
-					},
-					"remove_flags": {
-						"default": [],
-						"description": "Premium flags to remove",
-						"maxItems": 64,
-						"type": "array",
-						"items": {
-							"description": "A single premium flag value to add or remove",
-							"allOf": [{"$ref": "#/components/schemas/PremiumFlags"}]
-						}
-					}
-				}
-			},
 			"AdminPasswordResetLinkResponse": {
 				"type": "object",
 				"properties": {
@@ -12335,8 +12242,8 @@
 				"properties": {
 					"limit": {
 						"type": "string",
-						"enum": ["direct_messages", "reports", "purchases"],
-						"description": "The one feature this decision limits. Direct messages are for spam, automation, fraud and malware reasons only, reports for misuse of reporting, purchases for payment reasons"
+						"enum": ["direct_messages", "reports"],
+						"description": "The one feature this decision limits. Direct messages are for spam, automation, fraud and malware reasons only, reports for misuse of reporting"
 					},
 					"ends_at": {
 						"description": "When a reports limit ends, at most 365 days away. Defaults to 90 days. Refused for other limits",
@@ -13983,8 +13890,6 @@
 									"theme_color": {"nullable": true, "type": "string"},
 									"status_page_url": {"nullable": true, "type": "string"},
 									"status_page_incident_history_url": {"nullable": true, "type": "string"},
-									"premium_product_name": {"type": "string"},
-									"premium_info_url": {"nullable": true, "type": "string"},
 									"sign_in_backdrop_url": {"nullable": true, "type": "string"},
 									"custom_css": {"nullable": true, "type": "string"},
 									"upload_limit_message": {"nullable": true, "type": "string"},
@@ -14001,8 +13906,6 @@
 									"theme_color",
 									"status_page_url",
 									"status_page_incident_history_url",
-									"premium_product_name",
-									"premium_info_url",
 									"sign_in_backdrop_url",
 									"custom_css",
 									"upload_limit_message",
@@ -14043,7 +13946,6 @@
 							},
 							"personal_notes_enabled": {"type": "boolean", "description": "Whether people can use personal notes"},
 							"guild_create_access": {"type": "boolean"},
-							"premium_mode": {"type": "string", "enum": ["mirror", "everyone"]},
 							"services": {
 								"type": "object",
 								"properties": {
@@ -14074,7 +13976,6 @@
 							"friends_disabled",
 							"personal_notes_enabled",
 							"guild_create_access",
-							"premium_mode",
 							"services",
 							"services_resolved",
 							"services_available"
@@ -14570,8 +14471,6 @@
 									},
 									"status_page_url": {"nullable": true, "type": "string", "maxLength": 2048},
 									"status_page_incident_history_url": {"nullable": true, "type": "string", "maxLength": 2048},
-									"premium_product_name": {"nullable": true, "type": "string", "minLength": 1, "maxLength": 40},
-									"premium_info_url": {"nullable": true, "type": "string", "maxLength": 2048},
 									"sign_in_backdrop_url": {"nullable": true, "type": "string", "maxLength": 2048},
 									"custom_css": {"nullable": true, "type": "string", "maxLength": 32768},
 									"upload_limit_message": {"nullable": true, "type": "string", "maxLength": 500},
@@ -14744,7 +14643,6 @@
 								"description": "Whether people can use personal notes. Off by default on self-hosted instances",
 								"type": "boolean"
 							},
-							"premium_mode": {"type": "string", "enum": ["mirror", "everyone"]},
 							"guild_create_access": {"type": "boolean"},
 							"services": {
 								"nullable": true,
@@ -15559,11 +15457,10 @@
 					"rights_holder": {"nullable": true, "type": "string"},
 					"ends_at": {"nullable": true, "type": "string"},
 					"deletion_at": {"nullable": true, "type": "string"},
-					"limit": {"nullable": true, "type": "string", "enum": ["direct_messages", "reports", "purchases"]},
+					"limit": {"nullable": true, "type": "string", "enum": ["direct_messages", "reports"]},
 					"profile_fields": {"type": "array", "items": {"type": "string"}},
 					"removed_message_count": {"nullable": true, "allOf": [{"$ref": "#/components/schemas/Int32Type"}]},
 					"removed_all_messages": {"type": "boolean"},
-					"payment_at": {"nullable": true, "type": "string"},
 					"report_ids": {
 						"type": "array",
 						"items": {"$ref": "#/components/schemas/SnowflakeStringType"},
@@ -15749,7 +15646,6 @@
 					"profile_fields",
 					"removed_message_count",
 					"removed_all_messages",
-					"payment_at",
 					"report_ids",
 					"decided_by",
 					"created_at",
@@ -15802,11 +15698,10 @@
 								"rights_holder": {"nullable": true, "type": "string"},
 								"ends_at": {"nullable": true, "type": "string"},
 								"deletion_at": {"nullable": true, "type": "string"},
-								"limit": {"nullable": true, "type": "string", "enum": ["direct_messages", "reports", "purchases"]},
+								"limit": {"nullable": true, "type": "string", "enum": ["direct_messages", "reports"]},
 								"profile_fields": {"type": "array", "items": {"type": "string"}},
 								"removed_message_count": {"nullable": true, "allOf": [{"$ref": "#/components/schemas/Int32Type"}]},
 								"removed_all_messages": {"type": "boolean"},
-								"payment_at": {"nullable": true, "type": "string"},
 								"report_ids": {
 									"type": "array",
 									"items": {"$ref": "#/components/schemas/SnowflakeStringType"},
@@ -15859,7 +15754,6 @@
 								"profile_fields",
 								"removed_message_count",
 								"removed_all_messages",
-								"payment_at",
 								"report_ids",
 								"decided_by",
 								"created_at",
@@ -16528,7 +16422,7 @@
 					},
 					"settings": {"$ref": "#/components/schemas/AdminCustomBadgeSettingsResponse"},
 					"built_in": {
-						"maxItems": 5,
+						"maxItems": 4,
 						"type": "array",
 						"items": {"$ref": "#/components/schemas/AdminBuiltInBadgeImageResponse"},
 						"description": "Every built-in badge and the image this instance shows for it"
@@ -16544,8 +16438,8 @@
 			},
 			"BuiltInBadgeKindSchema": {
 				"type": "string",
-				"enum": ["staff", "premium", "guild_verified", "guild_partnered", "guild_discoverable"],
-				"description": "A built-in badge whose image can be replaced: the staff or premium profile badge, or a community badge starting with guild_"
+				"enum": ["staff", "guild_verified", "guild_partnered", "guild_discoverable"],
+				"description": "A built-in badge whose image can be replaced: the staff profile badge, or a community badge starting with guild_"
 			},
 			"ReplaceBuiltInBadgeImageRequest": {
 				"type": "object",
@@ -17361,7 +17255,7 @@
 				"description": "Why the action is taken"
 			},
 			"GuildFeatureSchema": {
-				"description": "A guild feature flag Known values: ANIMATED_ICON, ANIMATED_BANNER, AUDIO_BITRATE_128_KBPS, AUDIO_BITRATE_256_KBPS, AUDIO_BITRATE_384_KBPS, BANNER, CLONE_EMOJI_DISABLED, CLONE_EMOJI_ENABLED, CLONE_STICKER_DISABLED, CLONE_STICKER_ENABLED, DETACHED_BANNER, INVITE_SPLASH, INVITES_DISABLED, RAID_DETECTED, TEXT_CHANNEL_FLEXIBLE_NAMES, HIDE_OWNER_CROWN, MORE_EMOJI, MORE_STICKERS, UNLIMITED_EMOJI, UNLIMITED_STICKERS, EXPRESSION_PURGE_ALLOWED, VANITY_URL, DISCOVERABLE, PARTNERED, VERIFIED, VIP_VOICE, VOICE_E2EE, UNAVAILABLE_FOR_EVERYONE, UNAVAILABLE_FOR_EVERYONE_BUT_STAFF, UNAVAILABLE_HIDDEN, VISIONARY, LARGE_GUILD_OVERRIDE, VERY_LARGE_GUILD, ANNOUNCEMENT_CHANNELS_DISABLED, VISITS_ENABLED (other values allowed)",
+				"description": "A guild feature flag Known values: ANIMATED_ICON, ANIMATED_BANNER, AUDIO_BITRATE_128_KBPS, AUDIO_BITRATE_256_KBPS, AUDIO_BITRATE_384_KBPS, BANNER, CLONE_EMOJI_DISABLED, CLONE_EMOJI_ENABLED, CLONE_STICKER_DISABLED, CLONE_STICKER_ENABLED, DETACHED_BANNER, INVITE_SPLASH, INVITES_DISABLED, RAID_DETECTED, TEXT_CHANNEL_FLEXIBLE_NAMES, HIDE_OWNER_CROWN, MORE_EMOJI, MORE_STICKERS, UNLIMITED_EMOJI, UNLIMITED_STICKERS, EXPRESSION_PURGE_ALLOWED, VANITY_URL, DISCOVERABLE, PARTNERED, VERIFIED, VIP_VOICE, VOICE_E2EE, UNAVAILABLE_FOR_EVERYONE, UNAVAILABLE_FOR_EVERYONE_BUT_STAFF, UNAVAILABLE_HIDDEN, LARGE_GUILD_OVERRIDE, VERY_LARGE_GUILD, ANNOUNCEMENT_CHANNELS_DISABLED, VISITS_ENABLED (other values allowed)",
 				"x-enumNames": [
 					"ANIMATED_ICON",
 					"ANIMATED_BANNER",
@@ -17393,7 +17287,6 @@
 					"UNAVAILABLE_FOR_EVERYONE",
 					"UNAVAILABLE_FOR_EVERYONE_BUT_STAFF",
 					"UNAVAILABLE_HIDDEN",
-					"VISIONARY",
 					"LARGE_GUILD_OVERRIDE",
 					"VERY_LARGE_GUILD",
 					"ANNOUNCEMENT_CHANNELS_DISABLED",
@@ -17430,7 +17323,6 @@
 					"Guild is unavailable for everyone",
 					"Guild is unavailable except for staff",
 					"Guild is hidden when it is force unavailable",
-					"Guild is a visionary guild",
 					"Guild has large guild overrides enabled",
 					"Guild has increased member capacity enabled",
 					"Guild cannot publish announcement messages or gain new followers",
@@ -17472,11 +17364,6 @@
 						"description": "User is verified as not underage"
 					},
 					{"name": "ACCOUNT_LIMITED", "value": "1125899906842624", "description": "User account is limited"},
-					{
-						"name": "HAS_DISMISSED_PREMIUM_ONBOARDING",
-						"value": "2251799813685248",
-						"description": "User has dismissed premium onboarding"
-					},
 					{"name": "APP_STORE_REVIEWER", "value": "9007199254740992", "description": "User is an app store reviewer"},
 					{
 						"name": "AGE_VERIFIED_ADULT",
@@ -17529,9 +17416,7 @@
 					"CHILD_SEXUAL_CONTENT",
 					"PRIVACY_VIOLATION_OR_DOXXING",
 					"HARASSMENT_OR_BULLYING",
-					"PAYMENT_FRAUD",
 					"CHILD_SAFETY_VIOLATION",
-					"BILLING_DISPUTE_OR_ABUSE",
 					"UNSOLICITED_EXPLICIT_CONTENT",
 					"GRAPHIC_VIOLENCE",
 					"BAN_EVASION",
@@ -17547,12 +17432,9 @@
 					"HARMFUL_DECEPTION",
 					"REPORTING_ABUSE",
 					"UNDERAGE_ACCOUNT",
-					"COPYRIGHT",
-					"OPERATOR_PASS_PAYMENT_DISPUTE"
+					"COPYRIGHT"
 				],
-				"enum": [
-					3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34
-				]
+				"enum": [3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
 			},
 			"MessageResponseSchema": {
 				"type": "object",
@@ -20016,7 +19898,6 @@
 						"type": "array",
 						"items": {"type": "string", "pattern": "^\\d{1,20}$"}
 					},
-					"include_premium_users": {"type": "boolean"},
 					"excluded_user_ids": {
 						"maxItems": 1000,
 						"type": "array",
@@ -20042,7 +19923,6 @@
 						"type": "array",
 						"items": {"type": "string", "pattern": "^\\d{1,20}$"}
 					},
-					"include_premium_users": {"type": "boolean"},
 					"excluded_user_ids": {
 						"maxItems": 1000,
 						"type": "array",
@@ -20401,7 +20281,6 @@
 						"type": "array",
 						"items": {"type": "string", "pattern": "^\\d{1,20}$"}
 					},
-					"include_premium_users": {"default": false, "type": "boolean"},
 					"excluded_user_ids": {
 						"default": [],
 						"maxItems": 1000,
@@ -20418,7 +20297,6 @@
 					"rollout_salt",
 					"included_user_ids",
 					"included_guild_ids",
-					"include_premium_users",
 					"excluded_user_ids",
 					"max_participants"
 				],
@@ -20453,7 +20331,6 @@
 						"type": "array",
 						"items": {"type": "string", "pattern": "^\\d{1,20}$"}
 					},
-					"include_premium_users": {"default": false, "type": "boolean"},
 					"excluded_user_ids": {
 						"default": [],
 						"maxItems": 1000,
@@ -20471,7 +20348,6 @@
 					"rollout_salt",
 					"included_user_ids",
 					"included_guild_ids",
-					"include_premium_users",
 					"excluded_user_ids",
 					"anonymous_rollout_basis_points",
 					"standalone_forwarding"
@@ -20584,7 +20460,6 @@
 					"bot": {"type": "boolean"},
 					"system": {"type": "boolean"},
 					"flags": {"allOf": [{"$ref": "#/components/schemas/UserFlags"}]},
-					"premium_flags": {"allOf": [{"$ref": "#/components/schemas/PremiumFlags"}]},
 					"avatar": {"nullable": true, "type": "string"},
 					"banner": {"nullable": true, "type": "string"},
 					"bio": {"nullable": true, "type": "string"},
@@ -20594,11 +20469,6 @@
 					"email_verified": {"type": "boolean"},
 					"email_bounced": {"type": "boolean"},
 					"locale": {"nullable": true, "type": "string"},
-					"premium_type": {"nullable": true, "allOf": [{"$ref": "#/components/schemas/Int32Type"}]},
-					"premium_since": {"nullable": true, "type": "string"},
-					"premium_until": {"nullable": true, "type": "string"},
-					"premium_grace_ends_at": {"nullable": true, "type": "string"},
-					"premium_lifetime_sequence": {"nullable": true, "allOf": [{"$ref": "#/components/schemas/Int32Type"}]},
 					"profile_badges": {
 						"type": "array",
 						"items": {"$ref": "#/components/schemas/AdminProfileBadgeResponse"},
@@ -20654,7 +20524,6 @@
 					"bot",
 					"system",
 					"flags",
-					"premium_flags",
 					"avatar",
 					"banner",
 					"bio",
@@ -20664,11 +20533,6 @@
 					"email_verified",
 					"email_bounced",
 					"locale",
-					"premium_type",
-					"premium_since",
-					"premium_until",
-					"premium_grace_ends_at",
-					"premium_lifetime_sequence",
 					"profile_badges",
 					"temp_banned_until",
 					"pending_deletion_at",
@@ -20709,8 +20573,7 @@
 				"description": "Reason the account was scheduled for deletion",
 				"type": "integer",
 				"enum": [
-					1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-					31, 33, 34
+					1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 33
 				],
 				"format": "int32",
 				"x-enumNames": [
@@ -20725,9 +20588,7 @@
 					"CHILD_SEXUAL_CONTENT",
 					"PRIVACY_VIOLATION_OR_DOXXING",
 					"HARASSMENT_OR_BULLYING",
-					"PAYMENT_FRAUD",
 					"CHILD_SAFETY_VIOLATION",
-					"BILLING_DISPUTE_OR_ABUSE",
 					"UNSOLICITED_EXPLICIT_CONTENT",
 					"GRAPHIC_VIOLENCE",
 					"BAN_EVASION",
@@ -20745,8 +20606,7 @@
 					"REPORTING_ABUSE",
 					"UNDERAGE_ACCOUNT",
 					"COPYRIGHT",
-					"UNCLAIMED_ACCOUNT_ABANDONED",
-					"OPERATOR_PASS_PAYMENT_DISPUTE"
+					"UNCLAIMED_ACCOUNT_ABANDONED"
 				]
 			},
 			"AdminProfileBadgeResponse": {
@@ -20758,7 +20618,7 @@
 					},
 					"kind": {
 						"type": "string",
-						"description": "Badge type. Known values: staff, partner, bug_hunter, operator_pass, visionary, visionary_number, plutonium, custom, and premium on self-hosted instances. Clients must render unknown values from the other fields."
+						"description": "Badge type. Known values: staff, partner, bug_hunter and custom. Clients must render unknown values from the other fields."
 					},
 					"label": {
 						"type": "string",
@@ -20825,36 +20685,6 @@
 				},
 				"required": ["key", "kind", "label", "asset", "asset_url", "aspect_ratio", "caption", "href", "suppressed"],
 				"additionalProperties": false
-			},
-			"PremiumFlags": {
-				"type": "integer",
-				"minimum": 0,
-				"maximum": 2147483647,
-				"description": "User premium-related flags (32-bit)",
-				"format": "int32",
-				"x-bitflagValues": [
-					{"name": "DISCRIMINATOR", "value": "1", "description": "User has a premium discriminator"},
-					{"name": "BADGE_MASKED", "value": "4", "description": "User has masked their premium badge"},
-					{
-						"name": "BADGE_TIMESTAMP_HIDDEN",
-						"value": "8",
-						"description": "User has hidden their premium badge timestamp"
-					},
-					{"name": "PERKS_SANITIZED", "value": "32", "description": "User premium perks are sanitized"},
-					{"name": "PURCHASE_DISABLED", "value": "64", "description": "Premium purchase is disabled for this user"},
-					{"name": "ENABLED_OVERRIDE", "value": "128", "description": "Premium status is enabled via override"},
-					{"name": "PERKS_DISABLED", "value": "256", "description": "User has temporarily disabled premium perks"},
-					{
-						"name": "OPERATOR_PASS_BADGE_TIMESTAMP_HIDDEN",
-						"value": "2048",
-						"description": "User has hidden when they first got the Operator Pass"
-					},
-					{
-						"name": "OPERATOR_PASS_BADGE_COUNT_HIDDEN",
-						"value": "4096",
-						"description": "User has hidden how many Operator Passes they hold"
-					}
-				]
 			},
 			"HexString16Type": {"type": "string", "pattern": "^[a-f0-9]{16}$"},
 			"UsernameType": {"type": "string"},

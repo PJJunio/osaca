@@ -445,7 +445,6 @@
 	"premium_and_plans.custom_stickers_in_dms_require_premium": "沒有進階方案時，你不能在私訊中使用自訂貼圖。",
 	"premium_and_plans.custom_stickers_outside_source_require_premium": "沒有進階方案時，你不能在來源社群之外使用自訂貼圖。",
 	"premium_and_plans.discriminator_change_requires_premium": "變更識別碼需要進階方案。",
-	"premium_and_plans.visionary_required_for_discriminator": "你必須使用 Visionary 終身方案才能使用該識別碼。",
 	"rate_limits.accent_color_changed_too_often": "你最近太常變更強調色。請在 {minutes, plural, other {# 分鐘}}後再試一次。",
 	"rate_limits.avatar_changed_too_often": "你最近太常變更頭像。請在 {minutes, plural, other {# 分鐘}}後再試一次。",
 	"rate_limits.banner_changed_too_often": "你最近太常變更橫幅。請在 {minutes, plural, other {# 分鐘}}後再試一次。",

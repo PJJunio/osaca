@@ -17,7 +17,7 @@ describe('Message custom emoji sanitization', () => {
 	afterAll(async () => {
 		await harness?.shutdown();
 	});
-	it('preserves guild-local static and animated custom emojis for free users', async () => {
+	it('preserves guild-local static and animated custom emojis', async () => {
 		const account = await createTestAccount(harness);
 		const guild = await createGuild(harness, account.token, 'Local emoji guild');
 		if (!guild.system_channel_id) {
@@ -36,7 +36,7 @@ describe('Message custom emoji sanitization', () => {
 		const message = await sendChannelMessage(harness, account.token, channel.id, content);
 		expect(message.content).toBe(content);
 	});
-	it('strips external custom emojis for free users', async () => {
+	it('keeps custom emojis from another community', async () => {
 		const account = await createTestAccount(harness);
 		const destinationGuild = await createGuild(harness, account.token, 'Destination guild');
 		if (!destinationGuild.system_channel_id) {
@@ -50,6 +50,6 @@ describe('Message custom emoji sanitization', () => {
 		});
 		const content = `External <:${externalEmoji.name}:${externalEmoji.id}>`;
 		const message = await sendChannelMessage(harness, account.token, destinationChannel.id, content);
-		expect(message.content).toBe('External :external_emoji:');
+		expect(message.content).toBe(content);
 	});
 });

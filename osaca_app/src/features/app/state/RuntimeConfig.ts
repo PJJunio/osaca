@@ -681,7 +681,6 @@ class RuntimeConfig {
 			features: {
 				...current.features,
 				self_hosted: config.self_hosted,
-				premium_enabled: !config.self_hosted || config.policy.premium_mode === 'mirror',
 				...emailFeaturesForIdentity(config.account_identity.mode, current.features),
 				account_identity: config.account_identity.mode,
 				tag_style: config.account_identity.tag_style,
@@ -738,10 +737,6 @@ class RuntimeConfig {
 
 	isSelfHosted(): boolean {
 		return DeveloperOptions.selfHostedModeOverride || this.features.self_hosted;
-	}
-
-	get premiumEnabled(): boolean {
-		return this.features.premium_enabled;
 	}
 
 	get emailsEnabled(): boolean {
@@ -890,12 +885,6 @@ class RuntimeConfig {
 
 	get inviteUrlBase(): string {
 		const url = new URL(this.inviteEndpoint);
-		const path = url.pathname === '/' ? '' : url.pathname;
-		return `${url.host}${path}`;
-	}
-
-	get giftUrlBase(): string {
-		const url = new URL(this.giftEndpoint);
 		const path = url.pathname === '/' ? '' : url.pathname;
 		return `${url.host}${path}`;
 	}

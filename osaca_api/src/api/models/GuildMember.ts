@@ -22,7 +22,6 @@ export class GuildMember {
 	readonly isMute: boolean;
 	readonly communicationDisabledUntil: Date | null;
 	readonly roleIds: Set<RoleID>;
-	readonly isPremiumSanitized: boolean;
 	readonly isTemporary: boolean;
 	readonly profileFlags: number;
 	readonly mentionFlags: MentionReplyPreference;
@@ -45,7 +44,6 @@ export class GuildMember {
 		this.isMute = row.mute ?? false;
 		this.communicationDisabledUntil = row.communication_disabled_until ?? null;
 		this.roleIds = row.role_ids ?? new Set();
-		this.isPremiumSanitized = row.is_premium_sanitized ?? false;
 		this.isTemporary = row.temporary ?? false;
 		this.profileFlags = row.profile_flags ?? 0;
 		this.mentionFlags = row.mention_flags ?? 0;
@@ -70,7 +68,6 @@ export class GuildMember {
 			mute: this.isMute,
 			communication_disabled_until: this.communicationDisabledUntil,
 			role_ids: this.roleIds.size > 0 ? this.roleIds : null,
-			is_premium_sanitized: this.isPremiumSanitized,
 			temporary: this.isTemporary,
 			profile_flags: this.profileFlags || null,
 			mention_flags: this.mentionFlags || null,

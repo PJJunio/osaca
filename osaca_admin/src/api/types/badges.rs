@@ -82,7 +82,6 @@ impl BuiltInBadgeImage {
     pub fn label(&self) -> &str {
         match self.kind.as_str() {
             "staff" => "Staff",
-            "premium" => "Premium",
             "guild_verified" => "Verified",
             "guild_partnered" => "Partnered",
             "guild_discoverable" => "Discoverable",

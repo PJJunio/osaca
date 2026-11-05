@@ -43,7 +43,6 @@ import {enqueueEndGuildVisitsForCode} from '@app/api/guild/visits/GuildVisitLife
 import {resolveSessionGuildVisits} from '@app/api/guild/visits/GuildVisitSession';
 import {stripAnimationPrefix} from '@app/api/infrastructure/AssetEntitlementUtils';
 import type {AvatarService} from '@app/api/infrastructure/AvatarService';
-import type {DiscriminatorService} from '@app/api/infrastructure/DiscriminatorService';
 import type {IGatewayService} from '@app/api/infrastructure/IGatewayService';
 import type {IStorageService} from '@app/api/infrastructure/IStorageService';
 import type {UserCacheService} from '@app/api/infrastructure/UserCacheService';
@@ -191,7 +190,6 @@ export class RpcService {
 		private readStateService: ReadStateService,
 		private apiContext: ApiContext,
 		private gatewayService: IGatewayService,
-		private discriminatorService: DiscriminatorService,
 		private favoriteMemeRepository: FavoriteMemeRepository,
 		private botAuthService: BotAuthService,
 		private inviteRepository: InviteRepository,
@@ -210,13 +208,7 @@ export class RpcService {
 			this.guildRepository,
 			this.limitConfigService,
 		);
-		this.sessionStartService = new RpcSessionStartService({
-			userRepository: this.userRepository,
-			guildRepository: this.guildRepository,
-			userCacheService: this.userCacheService,
-			gatewayService: this.gatewayService,
-			discriminatorService: this.discriminatorService,
-		});
+		this.sessionStartService = new RpcSessionStartService({userRepository: this.userRepository});
 	}
 
 	private async ensurePersonalNotesChannel(user: User): Promise<void> {

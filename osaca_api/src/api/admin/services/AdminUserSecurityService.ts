@@ -11,11 +11,7 @@ import {visibleWebAuthnCredentials} from '@app/api/auth/services/PasskeyRelyingP
 import {RecoveryKitRepository} from '@app/api/auth/services/RecoveryKitRepository';
 import {createPasswordResetToken, createUserID, type UserID} from '@app/api/BrandedTypes';
 import {Config} from '@app/api/Config';
-import {
-	FEATURE_LIMIT_PREMIUM_FLAGS,
-	FEATURE_LIMIT_USER_FLAGS,
-	findHoldingFeatureLimit,
-} from '@app/api/enforcement/FeatureLimitState';
+import {FEATURE_LIMIT_USER_FLAGS, findHoldingFeatureLimit} from '@app/api/enforcement/FeatureLimitState';
 import {emitAdminAction} from '@app/api/infrastructure/activity/AccountChangeEvents';
 import {requireGrantedAdminACLs} from '@app/api/middleware/AdminMiddleware';
 import {getEnforcementDecisionRepository, getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
@@ -34,7 +30,7 @@ import * as RandomUtils from '@app/api/utils/RandomUtils';
 import {resolveSessionClientInfo} from '@app/api/utils/SessionClientIdentity';
 import {AdminACLs} from '@osaca/constants/src/AdminACLs';
 import type {EnforcementLimit} from '@osaca/constants/src/EnforcementReasons';
-import {PremiumFlags, UserFlags} from '@osaca/constants/src/UserConstants';
+import {UserFlags} from '@osaca/constants/src/UserConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {AccessDeniedError} from '@osaca/errors/src/domains/core/AccessDeniedError';
 import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
@@ -59,10 +55,6 @@ const RESTRICTION_USER_FLAGS = UserFlags.DISABLED | UserFlags.DELETED | UserFlag
 
 function combineUserFlags(flags: ReadonlyArray<bigint>): bigint {
 	return flags.reduce((combined, flag) => combined | flag, 0n);
-}
-
-function combinePremiumFlags(flags: ReadonlyArray<number>): number {
-	return flags.reduce((combined, flag) => combined | flag, 0);
 }
 
 function refuseFlag(field: 'add_flags' | 'remove_flags'): never {
@@ -97,24 +89,7 @@ async function assertUserFlagUpdateAllowed(
 	await assertNoFeatureLimitHeld(
 		user,
 		(Object.keys(FEATURE_LIMIT_USER_FLAGS) as Array<EnforcementLimit>).filter(
-			(limit) => (removing & FEATURE_LIMIT_USER_FLAGS[limit]!) !== 0n,
-		),
-	);
-}
-
-async function assertPremiumFlagUpdateAllowed(
-	user: User,
-	addFlags: ReadonlyArray<number>,
-	removeFlags: ReadonlyArray<number>,
-): Promise<void> {
-	if ((combinePremiumFlags(addFlags) & PremiumFlags.PURCHASE_DISABLED) !== 0) {
-		refuseFlag('add_flags');
-	}
-	const removing = combinePremiumFlags(removeFlags) & user.premiumFlags;
-	await assertNoFeatureLimitHeld(
-		user,
-		(Object.keys(FEATURE_LIMIT_PREMIUM_FLAGS) as Array<EnforcementLimit>).filter(
-			(limit) => (removing & FEATURE_LIMIT_PREMIUM_FLAGS[limit]!) !== 0,
+			(limit) => (removing & FEATURE_LIMIT_USER_FLAGS[limit]) !== 0n,
 		),
 	);
 }
@@ -191,21 +166,6 @@ function applyBigIntFlagUpdates(
 	return nextFlags;
 }
 
-function applyNumberFlagUpdates(
-	currentFlags: number,
-	addFlags: ReadonlyArray<number>,
-	removeFlags: ReadonlyArray<number>,
-): number {
-	let nextFlags = currentFlags;
-	for (const flag of addFlags) {
-		nextFlags |= flag;
-	}
-	for (const flag of removeFlags) {
-		nextFlags &= ~flag;
-	}
-	return nextFlags;
-}
-
 export class AdminUserSecurityService {
 	constructor(private readonly deps: AdminUserSecurityServiceDeps) {}
 
@@ -257,52 +217,6 @@ export class AdminUserSecurityService {
 			}),
 		});
 		await emitAdminAction(adminUserId, userId, 'update_flags');
-		return {
-			user: await mapUserToAdminResponse(updatedUser, cacheService, acls),
-		};
-	}
-
-	async updatePremiumFlags({
-		userId,
-		data,
-		adminUserId,
-		auditLogReason,
-		acls,
-	}: {
-		userId: UserID;
-		data: {
-			addFlags: Array<number>;
-			removeFlags: Array<number>;
-		};
-		adminUserId: UserID;
-		auditLogReason: string | null;
-		acls: ReadonlySet<string>;
-	}) {
-		const {users: userRepository, cache: cacheService} = this.deps.apiContext.services;
-		const {auditService, userUpdateDeps} = this.deps;
-		const user = await userRepository.findUniqueAssert(userId);
-		await assertPremiumFlagUpdateAllowed(user, data.addFlags, data.removeFlags);
-		const newPremiumFlags = applyNumberFlagUpdates(user.premiumFlags, data.addFlags, data.removeFlags);
-		const updatedUser = await userRepository.patchUpsert(
-			userId,
-			{
-				premium_flags: newPremiumFlags,
-			},
-			user.toRow(),
-		);
-		await propagateUserUpdate(userUpdateDeps, user, updatedUser);
-		await auditService.createAuditLog({
-			adminUserId,
-			targetType: 'user',
-			targetId: BigInt(userId),
-			action: 'update_premium_flags',
-			auditLogReason,
-			metadata: createFlagAuditMetadata({
-				addFlags: data.addFlags,
-				removeFlags: data.removeFlags,
-				newFlags: newPremiumFlags,
-			}),
-		});
 		return {
 			user: await mapUserToAdminResponse(updatedUser, cacheService, acls),
 		};

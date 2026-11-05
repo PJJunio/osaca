@@ -64,11 +64,7 @@ type UserUpdatePayload = Partial<UserPrivate> & {
 	password?: string;
 	new_password?: string;
 	hidden_profile_badges?: ReadonlyArray<string>;
-	premium_badge_masked?: boolean;
-	premium_badge_timestamp_hidden?: boolean;
 	accent_color?: number | null;
-	has_dismissed_premium_onboarding?: boolean;
-	has_unread_gift_inventory?: boolean;
 	email_token?: string;
 	mention_flags?: number;
 };
@@ -334,12 +330,6 @@ export async function bulkDeleteMyMessages(filter: BulkDeleteMyMessagesFilter): 
 		body: filter,
 	});
 	logger.info('Bulk message deletion queued');
-}
-
-export async function resetPremiumState(): Promise<void> {
-	logger.debug('Resetting premium state for current user');
-	await http.post(Endpoints.USER_PREMIUM_RESET);
-	logger.info('Reset premium state for current user');
 }
 
 export async function requestDataHarvest(): Promise<{

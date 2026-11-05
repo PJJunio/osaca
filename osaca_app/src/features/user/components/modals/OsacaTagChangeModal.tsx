@@ -10,11 +10,8 @@ import {isLimitToggleEnabled} from '@app/features/app/utils/LimitUtils';
 import {
 	CANCEL_DESCRIPTOR,
 	CONTINUE_DESCRIPTOR,
-	GET_PREMIUM_DESCRIPTOR,
 	USERNAME_DESCRIPTOR,
 } from '@app/features/i18n/utils/CommonMessageDescriptors';
-import * as PremiumModalCommands from '@app/features/premium/commands/PremiumModalCommands';
-import {getPremiumProductName, shouldShowPremiumFeatures} from '@app/features/premium/utils/PremiumUtils';
 import {Button} from '@app/features/ui/button/Button';
 import * as ModalCommands from '@app/features/ui/commands/ModalCommands';
 import {modal} from '@app/features/ui/commands/ModalCommands';
@@ -22,17 +19,11 @@ import * as ToastCommands from '@app/features/ui/commands/ToastCommands';
 import {Form} from '@app/features/ui/components/form/Form';
 import {Input} from '@app/features/ui/components/form/FormInput';
 import {UsernameValidationRules} from '@app/features/ui/components/form/UsernameValidationRules';
-import FocusRing from '@app/features/ui/focus_ring/FocusRing';
-import {PlutoniumUpsell} from '@app/features/ui/plutonium_upsell/PlutoniumUpsell';
 import {Tooltip} from '@app/features/ui/tooltip/Tooltip';
-import {WarningAlert} from '@app/features/ui/warning_alert/WarningAlert';
 import * as UserCommands from '@app/features/user/commands/UserCommands';
 import styles from '@app/features/user/components/modals/OsacaTagChangeModal.module.css';
 import type {User} from '@app/features/user/models/User';
-import {getFormattedDateTime} from '@app/features/user/utils/DateFormatting';
-import {isVisionaryDiscriminator0000Blocked} from '@app/features/user/utils/OsacaTagDiscriminatorUtils';
 import {CHANGE_YOUR_USERNAME_DESCRIPTOR, TAG_DESCRIPTOR} from '@app/features/user/utils/UserMessageDescriptors';
-import {UserPremiumTypes} from '@osaca/constants/src/UserConstants';
 import {msg} from '@lingui/core/macro';
 import {Trans, useLingui} from '@lingui/react/macro';
 import {observer} from 'mobx-react-lite';
@@ -52,19 +43,9 @@ const CHANGE_USERNAME_FORM_DESCRIPTOR = msg({
 	comment: 'Short label in the OsacaTag change modal. Keep it concise.',
 });
 
-const GET_TO_CUSTOMIZE_YOUR_TAG_OR_KEEP_IT_DESCRIPTOR = msg({
-	message: 'Get {premiumProductName} to customize your tag or keep it when changing your username',
-	comment:
-		'Description text in the OsacaTag change modal. Preserve {premiumProductName}; it is inserted by code. Keep the tone plain and specific.',
-});
-
 const CUSTOM_DISCRIMINATORS_ARE_NOT_AVAILABLE_ON_THIS_INSTANCE_DESCRIPTOR = msg({
 	message: 'Custom discriminators are not available on this instance',
 	comment: 'Error message in the OsacaTag change modal.',
-});
-const THE_0000_TAG_IS_RESERVED_FOR_VISIONARY_SUBSCRIBERS_DESCRIPTOR = msg({
-	message: 'The #0000 tag is reserved for Visionary subscribers. Visionary is no longer available for purchase.',
-	comment: 'Description text in the OsacaTag change modal.',
 });
 
 interface FormInputs {
@@ -77,7 +58,6 @@ interface OsacaTagChangeModalProps {
 }
 
 export const OsacaTagChangeModal = observer(({user}: OsacaTagChangeModalProps) => {
-	const PREMIUM_PRODUCT_NAME = getPremiumProductName();
 	const {i18n} = useLingui();
 	const usernameRef = useRef<HTMLInputElement>(null);
 	const hasCustomDiscriminator = isLimitToggleEnabled(
@@ -85,8 +65,6 @@ export const OsacaTagChangeModal = observer(({user}: OsacaTagChangeModalProps) =
 		'feature_custom_discriminator',
 	);
 	const usernameOnly = RuntimeConfig.usesUniqueUsernames;
-	const isVisionary = user.premiumType === UserPremiumTypes.LIFETIME;
-	const showPremium = shouldShowPremiumFeatures();
 	const skipAvailabilityCheckRef = useRef(false);
 	const resubmitHandlerRef = useRef<(() => Promise<void>) | null>(null);
 	const confirmedRerollRef = useRef(false);
@@ -137,9 +115,8 @@ export const OsacaTagChangeModal = observer(({user}: OsacaTagChangeModalProps) =
 									>
 										<p data-flx="user.osaca-tag-change-modal.on-submit.p">
 											<Trans>
-												The username{' '}
-												<strong data-flx="user.osaca-tag-change-modal.on-submit.strong">{osacaTag}</strong> is already
-												taken. Continuing will reroll your tag automatically.
+												The username <strong data-flx="user.osaca-tag-change-modal.on-submit.strong">{osacaTag}</strong>{' '}
+												is already taken. Continuing will reroll your tag automatically.
 											</Trans>
 										</p>
 										<p
@@ -187,19 +164,9 @@ export const OsacaTagChangeModal = observer(({user}: OsacaTagChangeModalProps) =
 		defaultErrorField: 'username',
 	});
 	resubmitHandlerRef.current = handleSubmit;
-	const selectedDiscriminator = form.watch('discriminator');
-	const hasNonLifetimePremium = !usernameOnly && showPremium && user.isPremium() && !isVisionary;
-	const hasPendingDiscriminatorChange = hasNonLifetimePremium && selectedDiscriminator !== user.discriminator;
-	const shouldShowPremiumDiscriminatorWarning =
-		hasNonLifetimePremium && (user.premiumDiscriminator || hasPendingDiscriminatorChange);
-	const premiumExpiresAtLabel =
-		hasNonLifetimePremium && user.premiumUntil ? getFormattedDateTime(user.premiumUntil) : null;
 	const formLabel = i18n._(CHANGE_USERNAME_FORM_DESCRIPTOR);
 	const header = (
-		<Modal.Header
-			title={i18n._(CHANGE_YOUR_USERNAME_DESCRIPTOR)}
-			data-flx="user.osaca-tag-change-modal.modal-header"
-		/>
+		<Modal.Header title={i18n._(CHANGE_YOUR_USERNAME_DESCRIPTOR)} data-flx="user.osaca-tag-change-modal.modal-header" />
 	);
 	const usernameError = (form.formState.errors.username || form.formState.errors.discriminator) && (
 		<div className={styles.errorBox} role="alert" data-flx="user.osaca-tag-change-modal.error-box">
@@ -229,47 +196,7 @@ export const OsacaTagChangeModal = observer(({user}: OsacaTagChangeModalProps) =
 	);
 	let discriminatorInput: ReactNode = null;
 	if (!usernameOnly) {
-		if (!hasCustomDiscriminator && showPremium) {
-			discriminatorInput = (
-				<Tooltip
-					text={i18n._(GET_TO_CUSTOMIZE_YOUR_TAG_OR_KEEP_IT_DESCRIPTOR, {
-						premiumProductName: PREMIUM_PRODUCT_NAME,
-					})}
-					data-flx="user.osaca-tag-change-modal.tooltip"
-				>
-					<div
-						className={styles.discriminatorInputDisabled}
-						data-flx="user.osaca-tag-change-modal.discriminator-input-disabled"
-					>
-						<Input
-							data-flx="user.osaca-tag-change-modal.input.set-value.text"
-							{...form.register('discriminator')}
-							aria-label={i18n._(TAG_DESCRIPTOR)}
-							maxLength={4}
-							placeholder="0000"
-							required={true}
-							type="text"
-							disabled={true}
-							onChange={(e) => {
-								const value = e.target.value.replace(/\D/g, '');
-								form.setValue('discriminator', value);
-							}}
-						/>
-						<FocusRing offset={-2} data-flx="user.osaca-tag-change-modal.focus-ring">
-							<button
-								type="button"
-								onClick={() => {
-									PremiumModalCommands.open();
-								}}
-								className={styles.discriminatorOverlay}
-								aria-label={i18n._(GET_PREMIUM_DESCRIPTOR, {premiumProductName: PREMIUM_PRODUCT_NAME})}
-								data-flx="user.osaca-tag-change-modal.discriminator-overlay.open.button"
-							/>
-						</FocusRing>
-					</div>
-				</Tooltip>
-			);
-		} else if (!hasCustomDiscriminator) {
+		if (!hasCustomDiscriminator) {
 			discriminatorInput = (
 				<Tooltip
 					text={i18n._(CUSTOM_DISCRIMINATORS_ARE_NOT_AVAILABLE_ON_THIS_INSTANCE_DESCRIPTOR)}
@@ -300,16 +227,7 @@ export const OsacaTagChangeModal = observer(({user}: OsacaTagChangeModalProps) =
 			discriminatorInput = (
 				<Input
 					data-flx="user.osaca-tag-change-modal.input.set-value.text--3"
-					{...form.register('discriminator', {
-						validate: (value) =>
-							isVisionaryDiscriminator0000Blocked({
-								showPremium,
-								isVisionary,
-								discriminator: value,
-							})
-								? i18n._(THE_0000_TAG_IS_RESERVED_FOR_VISIONARY_SUBSCRIBERS_DESCRIPTOR)
-								: true,
-					})}
+					{...form.register('discriminator')}
 					aria-label={i18n._(TAG_DESCRIPTOR)}
 					maxLength={4}
 					placeholder="0000"
@@ -330,39 +248,6 @@ export const OsacaTagChangeModal = observer(({user}: OsacaTagChangeModalProps) =
 			data-flx="user.osaca-tag-change-modal.username-validation-rules"
 		/>
 	);
-	let premiumWarningContent: ReactNode = null;
-	if (shouldShowPremiumDiscriminatorWarning) {
-		if (hasPendingDiscriminatorChange && premiumExpiresAtLabel) {
-			premiumWarningContent = (
-				<Trans>
-					If you save this username, your tag will reroll randomly when your {PREMIUM_PRODUCT_NAME} expires on{' '}
-					<strong data-flx="user.osaca-tag-change-modal.strong">{premiumExpiresAtLabel}</strong>, unless it renews.
-				</Trans>
-			);
-		} else if (hasPendingDiscriminatorChange) {
-			premiumWarningContent = (
-				<Trans>
-					If you save this username, your tag will reroll randomly when your {PREMIUM_PRODUCT_NAME} expires, unless it
-					renews.
-				</Trans>
-			);
-		} else if (premiumExpiresAtLabel) {
-			premiumWarningContent = (
-				<Trans>
-					You changed your tag while on {PREMIUM_PRODUCT_NAME}. It will reroll randomly when your {PREMIUM_PRODUCT_NAME}{' '}
-					expires on <strong data-flx="user.osaca-tag-change-modal.strong--2">{premiumExpiresAtLabel}</strong>, unless
-					it renews.
-				</Trans>
-			);
-		} else {
-			premiumWarningContent = (
-				<Trans>
-					You changed your tag while on {PREMIUM_PRODUCT_NAME}. It will reroll randomly when your {PREMIUM_PRODUCT_NAME}{' '}
-					expires, unless it renews.
-				</Trans>
-			);
-		}
-	}
 
 	return (
 		<Modal.Root size="small" centered initialFocusRef={usernameRef} data-flx="user.osaca-tag-change-modal.modal-root">
@@ -394,10 +279,7 @@ export const OsacaTagChangeModal = observer(({user}: OsacaTagChangeModalProps) =
 									</span>
 								)}
 								{!usernameOnly && (
-									<div
-										className={styles.discriminatorInput}
-										data-flx="user.osaca-tag-change-modal.discriminator-input"
-									>
+									<div className={styles.discriminatorInput} data-flx="user.osaca-tag-change-modal.discriminator-input">
 										{discriminatorInput}
 									</div>
 								)}
@@ -405,22 +287,6 @@ export const OsacaTagChangeModal = observer(({user}: OsacaTagChangeModalProps) =
 							<div className={styles.validationBox} data-flx="user.osaca-tag-change-modal.validation-box">
 								{usernameRules}
 							</div>
-							{shouldShowPremiumDiscriminatorWarning && (
-								<WarningAlert
-									className={styles.premiumDiscriminatorWarning}
-									data-flx="user.osaca-tag-change-modal.premium-discriminator-warning"
-								>
-									{premiumWarningContent}
-								</WarningAlert>
-							)}
-							{!usernameOnly && !hasCustomDiscriminator && (
-								<PlutoniumUpsell
-									className={styles.premiumUpsell}
-									data-flx="user.osaca-tag-change-modal.premium-upsell"
-								>
-									<Trans>Customize your tag or keep it when changing your username</Trans>
-								</PlutoniumUpsell>
-							)}
 						</div>
 					</Modal.ContentLayout>
 				</Modal.Content>

@@ -34,7 +34,6 @@ describe('ExperimentRolloutCountryCodesSchema', () => {
 describe('experimentRolloutCountryIncludes', () => {
 	const targeting = (countryCode: string | null): ExperimentTargeting => ({
 		memberGuildIds: new Set(),
-		premium: false,
 		countryCode,
 	});
 

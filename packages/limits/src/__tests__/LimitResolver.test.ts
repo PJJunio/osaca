@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {DEFAULT_RESTRICTED_LIMITS, DEFAULT_STOCK_LIMITS} from '@osaca/limits/src/LimitDefaults';
+import {DEFAULT_LIMITS} from '@osaca/limits/src/LimitDefaults';
 import {resolveLimit, resolveLimits} from '@osaca/limits/src/LimitResolver';
 import type {LimitConfigSnapshot, LimitMatchContext} from '@osaca/limits/src/LimitTypes';
 import {describe, expect, test} from 'vitest';
@@ -16,7 +16,7 @@ describe('LimitResolver', () => {
 			guildFeatures: new Set(),
 		};
 		const result = resolveLimits(snapshot, ctx);
-		expect(result.limits).toEqual(DEFAULT_RESTRICTED_LIMITS);
+		expect(result.limits).toEqual(DEFAULT_LIMITS);
 	});
 	test('resolveLimits applies premium limits for premium trait', () => {
 		const snapshot: LimitConfigSnapshot = {
@@ -24,12 +24,12 @@ describe('LimitResolver', () => {
 			rules: [
 				{
 					id: 'default',
-					limits: {...DEFAULT_RESTRICTED_LIMITS},
+					limits: {...DEFAULT_LIMITS},
 				},
 				{
 					id: 'premium',
 					filters: {traits: ['premium']},
-					limits: {...DEFAULT_STOCK_LIMITS},
+					limits: {...DEFAULT_LIMITS},
 				},
 			],
 		};

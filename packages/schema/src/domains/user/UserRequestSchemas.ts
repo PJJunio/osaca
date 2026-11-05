@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {MAX_GROUP_DM_OTHER_RECIPIENTS, MAX_GUILDS_PREMIUM} from '@osaca/constants/src/LimitConstants';
+import {MAX_GROUP_DM_OTHER_RECIPIENTS, MAX_GUILDS} from '@osaca/constants/src/LimitConstants';
 import {StatusTypes} from '@osaca/constants/src/StatusConstants';
 import {
 	DEFAULT_GUILD_FOLDER_ICON,
@@ -81,30 +81,6 @@ export const UserUpdateRequest = z
 			'ProfileFieldPrivacyFlags',
 		).describe('Bitfield controlling who can see the profile timezone'),
 		hidden_profile_badges: HiddenProfileBadgesType,
-		premium_badge_hidden: z
-			.boolean()
-			.describe(
-				'Deprecated, use hidden_profile_badges. true adds plutonium, visionary and premium to the list, and false removes them',
-			),
-		premium_badge_masked: z.boolean().describe('Whether to mask the premium badge'),
-		premium_badge_timestamp_hidden: z.boolean().describe('Whether to hide premium badge timestamp'),
-		premium_badge_sequence_hidden: z
-			.boolean()
-			.describe('Deprecated, use hidden_profile_badges. true adds visionary_number to the list, and false removes it'),
-		operator_pass_badge_hidden: z
-			.boolean()
-			.describe('Deprecated, use hidden_profile_badges. true adds operator_pass to the list, and false removes it'),
-		operator_pass_badge_timestamp_hidden: z
-			.boolean()
-			.describe('Whether to hide from other people the month and year the Operator Pass was first held'),
-		operator_pass_badge_count_hidden: z
-			.boolean()
-			.describe(
-				"Whether to hide from other people how many Operator Passes are held, on the badge and the Operators' wall",
-			),
-		premium_enabled_override: z.boolean().describe('Override premium enabled state'),
-		has_dismissed_premium_onboarding: z.boolean().describe('Whether user dismissed premium onboarding'),
-		has_unread_gift_inventory: z.boolean().describe('Whether user has unread gifts'),
 		mention_flags: withFieldDescription(
 			MentionReplyPreferencesSchema,
 			'Account-wide reply mention preference (NO_PREFERENCE, PREFER_MENTION, PREFER_NO_MENTION)',
@@ -293,7 +269,7 @@ const UserSettingsGuildIds = z
 	.array(SnowflakeType)
 	.max(10000)
 	.transform((ids) => [...new Set(ids)])
-	.refine((ids) => ids.length <= MAX_GUILDS_PREMIUM, `Maximum ${MAX_GUILDS_PREMIUM} guilds allowed`);
+	.refine((ids) => ids.length <= MAX_GUILDS, `Maximum ${MAX_GUILDS} guilds allowed`);
 
 const GuildFolderSchema = z.object({
 	id: z.number().int().min(-1).describe('Unique identifier for the folder (-1 for uncategorized)'),

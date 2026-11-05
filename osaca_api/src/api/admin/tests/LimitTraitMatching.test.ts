@@ -3,13 +3,12 @@
 import type {TestAccount} from '@app/api/auth/tests/AuthTestUtils';
 import {createTestAccount, setUserACLs} from '@app/api/auth/tests/AuthTestUtils';
 import {getConfig} from '@app/api/Config';
-import {getCachedInstancePremiumMode, setCachedInstancePremiumMode} from '@app/api/limits/InstancePremiumModeCache';
 import {getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {createBuilder, createBuilderWithoutAuth} from '@app/api/test/TestRequestBuilder';
 import {fetchUserMe} from '@app/api/user/tests/UserTestUtils';
 import {AdminACLs} from '@osaca/constants/src/AdminACLs';
-import {DEFAULT_STOCK_LIMITS} from '@osaca/limits/src/LimitDefaults';
+import {DEFAULT_LIMITS} from '@osaca/limits/src/LimitDefaults';
 import {expandWireFormat} from '@osaca/limits/src/LimitDiffer';
 import {resolveLimits} from '@osaca/limits/src/LimitResolver';
 import type {LimitConfigGetResponse} from '@osaca/schema/src/domains/admin/AdminSchemas';
@@ -23,11 +22,9 @@ describe('limit rules and traits on a self-hosted instance', () => {
 	let harness: ApiTestHarness;
 	let admin: TestAccount;
 	let originalSelfHosted: boolean;
-	let originalPremiumMode: ReturnType<typeof getCachedInstancePremiumMode>;
 
 	beforeAll(async () => {
 		originalSelfHosted = getConfig().instance.selfHosted;
-		originalPremiumMode = getCachedInstancePremiumMode();
 		getConfig().instance.selfHosted = true;
 		harness = await createApiTestHarness();
 	});
@@ -48,15 +45,7 @@ describe('limit rules and traits on a self-hosted instance', () => {
 	afterAll(async () => {
 		await harness.shutdown();
 		getConfig().instance.selfHosted = originalSelfHosted;
-		setCachedInstancePremiumMode(originalPremiumMode);
 	});
-
-	async function setPremiumMode(premiumMode: 'mirror' | 'everyone'): Promise<void> {
-		await createBuilder(harness, admin.token)
-			.patch('/admin/instance/config')
-			.body({policy: {premium_mode: premiumMode}})
-			.execute();
-	}
 
 	async function getLimitConfig(): Promise<LimitConfigResponse> {
 		return await createBuilder<LimitConfigResponse>(harness, admin.token).get('/admin/limit-config').execute();
@@ -96,28 +85,34 @@ describe('limit rules and traits on a self-hosted instance', () => {
 		};
 	}
 
-	it('gives the premium rule to an account that an admin gave the premium trait', async () => {
-		await setPremiumMode('mirror');
-		const member = await createTestAccount(harness);
-		expect(await changeTag(member, '4242')).toBe(400);
-		await setTraits(member, ['premium']);
-		expect(await changeTag(member, '4242')).toBe(200);
-		const {traits, limits} = await clientLimits(member);
-		expect(traits).toContain('premium');
-		expect(limits.feature_custom_discriminator).toBe(1);
-		expect(limits.max_guilds).toBe(DEFAULT_STOCK_LIMITS.max_guilds);
-	});
+	function withoutModifiedFields(config: LimitConfigResponse['limit_config']) {
+		return config.rules.map(({modifiedFields: _modifiedFields, ...rule}) => rule);
+	}
 
-	it('matches trait names without regard to case', async () => {
-		await setPremiumMode('mirror');
+	async function saveSupporterRule(): Promise<void> {
 		await saveConfig((config) => ({
 			traitDefinitions: [...config.traitDefinitions, 'Supporter'],
 			rules: [
-				...config.rules.map(({modifiedFields: _modifiedFields, ...rule}) => rule),
+				...withoutModifiedFields(config).map((rule) =>
+					rule.id === 'default' ? {...rule, limits: {...rule.limits, feature_custom_discriminator: 0}} : rule,
+				),
 				{id: 'supporter', filters: {traits: ['Supporter']}, limits: {feature_custom_discriminator: 1}},
 			],
 		}));
+	}
+
+	it('gives every account the default limits', async () => {
 		const member = await createTestAccount(harness);
+		const {limits} = await clientLimits(member);
+		expect(limits.feature_animated_banner).toBe(1);
+		expect(limits.max_guilds).toBe(DEFAULT_LIMITS.max_guilds);
+		expect(await changeTag(member, '4244')).toBe(200);
+	});
+
+	it('gives a trait rule to an account that an admin gave the trait, whatever its case', async () => {
+		await saveSupporterRule();
+		const member = await createTestAccount(harness);
+		expect(await changeTag(member, '4242')).toBe(400);
 		await setTraits(member, ['SUPPORTER']);
 		expect(await changeTag(member, '4243')).toBe(200);
 		const {traits, limits} = await clientLimits(member);
@@ -125,23 +120,15 @@ describe('limit rules and traits on a self-hosted instance', () => {
 		expect(limits.feature_custom_discriminator).toBe(1);
 	});
 
-	it('keeps an edit to the premium rule after saving', async () => {
-		await setPremiumMode('mirror');
+	it('keeps an edit to a trait rule after saving', async () => {
+		await saveSupporterRule();
 		await saveConfig((config) => ({
 			traitDefinitions: config.traitDefinitions,
-			rules: config.rules.map(({modifiedFields: _modifiedFields, ...rule}) =>
-				rule.id === 'premium' ? {...rule, limits: {...rule.limits, max_attachment_file_size: 123_456_789}} : rule,
+			rules: withoutModifiedFields(config).map((rule) =>
+				rule.id === 'supporter' ? {...rule, limits: {...rule.limits, max_attachment_file_size: 123_456_789}} : rule,
 			),
 		}));
-		const premium = (await getLimitConfig()).limit_config.rules.find((rule) => rule.id === 'premium');
-		expect(premium?.limits.max_attachment_file_size).toBe(123_456_789);
-	});
-
-	it('applies the default rule to every account when everyone gets premium', async () => {
-		await setPremiumMode('everyone');
-		const member = await createTestAccount(harness);
-		const {limits} = await clientLimits(member);
-		expect(limits.feature_animated_banner).toBe(1);
-		expect(await changeTag(member, '4244')).toBe(200);
+		const supporter = (await getLimitConfig()).limit_config.rules.find((rule) => rule.id === 'supporter');
+		expect(supporter?.limits.max_attachment_file_size).toBe(123_456_789);
 	});
 });

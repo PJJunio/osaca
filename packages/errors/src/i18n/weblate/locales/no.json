@@ -445,7 +445,6 @@
 	"premium_and_plans.custom_stickers_in_dms_require_premium": "Du kan ikke bruke egendefinerte klistremerker i direktemeldinger uten Premium.",
 	"premium_and_plans.custom_stickers_outside_source_require_premium": "Du kan ikke bruke egendefinerte klistremerker utenfor fellesskapene de tilhører, uten Premium.",
 	"premium_and_plans.discriminator_change_requires_premium": "Endring av diskriminatoren din krever Premium.",
-	"premium_and_plans.visionary_required_for_discriminator": "Du må ha livstidsabonnementet Visionary for å bruke den diskriminatoren.",
 	"rate_limits.accent_color_changed_too_often": "Du har endret aksentfargen din for ofte nylig. Prøv igjen om {minutes, plural, one {# minutt} other {# minutter}}.",
 	"rate_limits.avatar_changed_too_often": "Du har endret avataren din for ofte nylig. Prøv igjen om {minutes, plural, one {# minutt} other {# minutter}}.",
 	"rate_limits.banner_changed_too_often": "Du har endret banneret ditt for ofte nylig. Prøv igjen om {minutes, plural, one {# minutt} other {# minutter}}.",

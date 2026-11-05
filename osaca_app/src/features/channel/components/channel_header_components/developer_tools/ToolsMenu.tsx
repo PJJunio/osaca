@@ -10,7 +10,6 @@ import {
 	openDangerConfirmation,
 	PendingMenuItem,
 } from '@app/features/channel/components/channel_header_components/developer_tools/DeveloperToolsMenuComponents';
-import {resetPremiumStateOverrides} from '@app/features/devtools/components/PremiumScenarioOptions';
 import GatewaySessions from '@app/features/gateway/transport/GatewaySessionPool';
 
 import {TRY_AGAIN_IN_A_MOMENT_DESCRIPTOR} from '@app/features/i18n/utils/CommonMessageDescriptors';
@@ -68,23 +67,6 @@ const THIS_REMOVES_ALL_TRUSTED_DOMAINS_YOU_WILL_SEE_DESCRIPTOR = msg({
 	message: 'This removes all trusted domains. You will see the external link warning for all domains again.',
 	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
 });
-const PREMIUM_STATE_RESET_ON_THE_BACKEND_DESCRIPTOR = msg({
-	message: 'Premium state reset on the backend.',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const FAILED_TO_RESET_PREMIUM_STATE_DESCRIPTOR = msg({
-	message: 'Failed to reset premium state.',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const RESET_PREMIUM_STATE_DESCRIPTOR = msg({
-	message: 'Reset premium state',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const THIS_CLEARS_YOUR_BACKEND_PREMIUM_STATE_ENTIRELY_INCLUDING_DESCRIPTOR = msg({
-	message:
-		'This clears your backend premium state entirely, including premium type, billing metadata, and override flags.',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
 const CLEAR_TRUST_ALL_SETTING_DESCRIPTOR = msg({
 	message: 'Clear trust all setting',
 	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
@@ -109,15 +91,10 @@ const CLEARING_TRUSTED_DOMAINS_DESCRIPTOR = msg({
 	message: 'Clearing trusted domains...',
 	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
 });
-const RESETTING_PREMIUM_STATE_DESCRIPTOR = msg({
-	message: 'Resetting premium state...',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
 export const ToolsMenu: React.FC<{onClose: () => void}> = observer(({onClose}) => {
 	const {i18n} = useLingui();
 	const [isForgettingAuthorizedIps, setIsForgettingAuthorizedIps] = useState(false);
 	const [isClearingTrustedDomains, setIsClearingTrustedDomains] = useState(false);
-	const [isResettingPremiumState, setIsResettingPremiumState] = useState(false);
 	const socket = GatewaySessions.foregroundConnection.socket;
 	const trustedDomainsCount = TrustedDomain.getTrustedDomainsCount();
 	const handleForgetAuthorizedIps = useCallback(async () => {
@@ -175,33 +152,6 @@ export const ToolsMenu: React.FC<{onClose: () => void}> = observer(({onClose}) =
 			onPrimary: handleClearTrustedDomains,
 		});
 	}, [handleClearTrustedDomains, onClose, i18n]);
-	const handleResetPremiumState = useCallback(async () => {
-		setIsResettingPremiumState(true);
-		try {
-			await UserCommands.resetPremiumState();
-			resetPremiumStateOverrides();
-			ToastCommands.createToast({type: 'success', children: i18n._(PREMIUM_STATE_RESET_ON_THE_BACKEND_DESCRIPTOR)});
-		} catch (error) {
-			logger.error('Failed to reset premium state', error);
-			showChannelErrorModalAfterCurrentModal({
-				title: i18n._(FAILED_TO_RESET_PREMIUM_STATE_DESCRIPTOR),
-				message: i18n._(TRY_AGAIN_IN_A_MOMENT_DESCRIPTOR),
-				dataFlx:
-					'channel.channel-header-components.developer-tools-context-menu.reset-premium-state-failed.generic-error-modal',
-			});
-		} finally {
-			setIsResettingPremiumState(false);
-		}
-	}, [i18n]);
-	const handleResetPremiumStateClick = useCallback(() => {
-		openDangerConfirmation({
-			onClose,
-			title: i18n._(RESET_PREMIUM_STATE_DESCRIPTOR),
-			description: i18n._(THIS_CLEARS_YOUR_BACKEND_PREMIUM_STATE_ENTIRELY_INCLUDING_DESCRIPTOR),
-			primaryText: i18n._(RESET_PREMIUM_STATE_DESCRIPTOR),
-			onPrimary: handleResetPremiumState,
-		});
-	}, [handleResetPremiumState, onClose, i18n]);
 	let clearTrustedDomainsLabel: string;
 	if (TrustedDomain.trustAllDomains) {
 		clearTrustedDomainsLabel = i18n._(CLEAR_TRUST_ALL_SETTING_DESCRIPTOR);
@@ -336,14 +286,6 @@ export const ToolsMenu: React.FC<{onClose: () => void}> = observer(({onClose}) =
 						pendingLabel={i18n._(CLEARING_TRUSTED_DOMAINS_DESCRIPTOR)}
 						onClick={handleClearTrustedDomainsClick}
 						data-flx="channel.channel-header-components.developer-tools-context-menu.tools-menu.pending-menu-item.clear-trusted-domains-click"
-					/>
-					<PendingMenuItem
-						danger
-						isPending={isResettingPremiumState}
-						label={i18n._(RESET_PREMIUM_STATE_DESCRIPTOR)}
-						pendingLabel={i18n._(RESETTING_PREMIUM_STATE_DESCRIPTOR)}
-						onClick={handleResetPremiumStateClick}
-						data-flx="channel.channel-header-components.developer-tools-context-menu.tools-menu.pending-menu-item.reset-premium-state-click"
 					/>
 					<MenuItem
 						icon={

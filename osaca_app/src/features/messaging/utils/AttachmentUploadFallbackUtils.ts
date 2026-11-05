@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {ATTACHMENT_MAX_SIZE_NON_PREMIUM} from '@osaca/constants/src/LimitConstants';
+import {ATTACHMENT_MAX_SIZE} from '@osaca/constants/src/LimitConstants';
 
 interface FileSizeLike {
 	size: number;
 }
 
-export const MULTIPART_ATTACHMENT_FALLBACK_MAX_REQUEST_SIZE = ATTACHMENT_MAX_SIZE_NON_PREMIUM;
+export const MULTIPART_ATTACHMENT_FALLBACK_MAX_REQUEST_SIZE = ATTACHMENT_MAX_SIZE;
 
 function getMultipartFallbackRequestSize(files: ReadonlyArray<FileSizeLike>): number {
 	return files.reduce((total, file) => total + file.size, 0);

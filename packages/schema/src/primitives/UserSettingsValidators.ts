@@ -20,8 +20,6 @@ import {
 	UserAuthenticatorTypesDescriptions,
 	UserNotificationSettings,
 	UserNotificationSettingsDescriptions,
-	UserPremiumTypes,
-	UserPremiumTypesDescriptions,
 } from '@osaca/constants/src/UserConstants';
 import {
 	createInt32EnumType,
@@ -95,15 +93,6 @@ export const RelationshipTypesSchema = createInt32EnumType(
 	],
 	'Relationship type',
 	'RelationshipTypes',
-);
-export const UserPremiumTypesSchema = createInt32EnumType(
-	[
-		[UserPremiumTypes.NONE, 'NONE', UserPremiumTypesDescriptions.NONE],
-		[UserPremiumTypes.SUBSCRIPTION, 'SUBSCRIPTION', UserPremiumTypesDescriptions.SUBSCRIPTION],
-		[UserPremiumTypes.LIFETIME, 'LIFETIME', UserPremiumTypesDescriptions.LIFETIME],
-	],
-	'Premium subscription type',
-	'UserPremiumTypes',
 );
 export const UserAuthenticatorTypesSchema = createInt32EnumType(
 	[

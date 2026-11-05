@@ -5,7 +5,6 @@ import {useSearchInputAutofocus} from '@app/features/app/hooks/useSearchInputAut
 import styles from '@app/features/channel/components/EmojiPicker.module.css';
 import {EmojiPickerCategoryList} from '@app/features/channel/components/emoji_picker/EmojiPickerCategoryList';
 import gifStyles from '@app/features/channel/components/GifPicker.module.css';
-import {PremiumUpsellBanner} from '@app/features/channel/components/PremiumUpsellBanner';
 import {
 	buildRowOffsets,
 	PICKER_CATEGORY_HEADER_GAP,
@@ -20,7 +19,6 @@ import {
 import {PickerEmptyState} from '@app/features/channel/components/shared/PickerEmptyState';
 import {useStickerCategories} from '@app/features/channel/components/sticker_picker/hooks/useStickerCategories';
 import {getPickerRowItems, useVirtualRows} from '@app/features/channel/components/sticker_picker/hooks/useVirtualRows';
-import {renderStickerPickerPreviewItem} from '@app/features/channel/components/sticker_picker/PickerPreviewItem';
 import {
 	getFixedStickerRowHeight,
 	getStickerGridColumns,
@@ -32,24 +30,18 @@ import {StickerPickerInspector} from '@app/features/channel/components/sticker_p
 import {StickerPickerSearchBar} from '@app/features/channel/components/sticker_picker/StickerPickerSearchBar';
 import {VirtualRowWrapper} from '@app/features/channel/components/sticker_picker/VirtualRow';
 import Channels from '@app/features/channel/state/Channels';
-import {useStickerAnimation} from '@app/features/emoji/hooks/useStickerAnimation';
 import Sticker from '@app/features/emoji/state/EmojiSticker';
 import StickerPicker from '@app/features/emoji/state/StickerPicker';
 import {ExpressionPickerHeaderPortal} from '@app/features/expressions/components/popouts/ExpressionPickerPopout';
 import type {GuildSticker} from '@app/features/expressions/models/GuildSticker';
-import {
-	checkStickerAvailability,
-	shouldShowStickerPremiumUpsell,
-} from '@app/features/expressions/utils/ExpressionPermissionUtils';
+import {checkStickerAvailability} from '@app/features/expressions/utils/ExpressionPermissionUtils';
 import Permission from '@app/features/permissions/state/Permission';
 import {ComponentBus} from '@app/features/platform/utils/ComponentBus';
-import {usePremiumUpsellData} from '@app/features/premium/hooks/usePremiumUpsellData';
-import {getPremiumProductName, shouldShowPremiumFeatures} from '@app/features/premium/utils/PremiumUtils';
 import {Scroller, type ScrollerHandle} from '@app/features/ui/components/Scroller';
 import {getAppRemScale} from '@app/features/ui/utils/AppZoomUtils';
 
 import {msg} from '@lingui/core/macro';
-import {Plural, Trans, useLingui} from '@lingui/react/macro';
+import {useLingui} from '@lingui/react/macro';
 import {SmileySadIcon, StickerIcon} from '@phosphor-icons/react';
 import {observer} from 'mobx-react-lite';
 import type React from 'react';
@@ -75,7 +67,6 @@ export const StickersPicker = observer(
 		channelId?: string;
 		handleSelect: (sticker: GuildSticker, shiftKey?: boolean) => void;
 	}) => {
-		const PREMIUM_PRODUCT_NAME = getPremiumProductName();
 		const {i18n} = useLingui();
 		const [searchTerm, setSearchTerm] = useState('');
 
@@ -88,15 +79,9 @@ export const StickersPicker = observer(
 		const listMetrics = usePickerListMetrics(scrollerRef, rowListRef);
 		const [stickerDataVersion, setStickerDataVersion] = useState(0);
 		const permissionVersion = useSyncExternalStore(Permission.subscribe.bind(Permission), () => Permission.version);
-		const {shouldAnimate: shouldAnimateStickerPreview} = useStickerAnimation();
 		const getStickerAvailability = useCallback(
 			(sticker: GuildSticker) => checkStickerAvailability(i18n, sticker, channel),
 			[channel, i18n, permissionVersion],
-		);
-		const getStickerGuildId = useCallback((sticker: GuildSticker) => sticker.guildId, []);
-		const renderStickerPreviewItem = useCallback(
-			(sticker: GuildSticker) => renderStickerPickerPreviewItem(sticker, shouldAnimateStickerPreview),
-			[shouldAnimateStickerPreview],
 		);
 		useEffect(() => {
 			const handleStickerDataUpdated = () => {
@@ -109,22 +94,18 @@ export const StickersPicker = observer(
 			() => Sticker.searchWithChannel(channel, searchTerm),
 			[channel, searchTerm, stickerDataVersion],
 		);
-		const searchUpsell = usePremiumUpsellData({
-			items: searchItems,
-			getAvailability: getStickerAvailability,
-			getGuildId: getStickerGuildId,
-		});
-		const renderedStickers = searchUpsell.accessibleItems;
+		const accessibleSearchItems = useMemo(
+			() => searchItems.filter((item) => getStickerAvailability(item).canUse),
+			[searchItems, getStickerAvailability],
+		);
+		const renderedStickers = accessibleSearchItems;
 		const allItems = Sticker.getAllStickers();
-		const allUpsell = usePremiumUpsellData({
-			items: allItems,
-			getAvailability: getStickerAvailability,
-			getGuildId: getStickerGuildId,
-			renderPreviewItem: renderStickerPreviewItem,
-			previewLimit: 4,
-		});
+		const accessibleItems = useMemo(
+			() => allItems.filter((item) => getStickerAvailability(item).canUse),
+			[allItems, getStickerAvailability],
+		);
 		const {favoriteStickers, frequentlyUsedStickers, stickersByGuildId} = useStickerCategories(
-			allUpsell.accessibleItems,
+			accessibleItems,
 			renderedStickers,
 		);
 		const zoomLevel = Accessibility.zoomLevel;
@@ -149,31 +130,6 @@ export const StickersPicker = observer(
 			gridColumns,
 		);
 		const hasNoStickersAtAll = allItems.length === 0;
-		const isSearching = searchTerm.trim().length > 0;
-		const lockedStickerCount = allUpsell.summary.lockedItems.length;
-		const previewContent = allUpsell.previewContent;
-		const stickerCommunityCount = allUpsell.summary.communityCount;
-		const stickerUpsellMessage = (
-			<Trans>
-				Unlock{' '}
-				<Plural
-					value={lockedStickerCount}
-					one="# sticker"
-					other="# stickers"
-					data-flx="channel.stickers-picker.plural"
-				/>{' '}
-				from{' '}
-				<Plural
-					value={stickerCommunityCount}
-					one="# community"
-					other="# communities"
-					data-flx="channel.stickers-picker.plural--2"
-				/>{' '}
-				with {PREMIUM_PRODUCT_NAME}.
-			</Trans>
-		);
-		const showPremiumUpsell =
-			shouldShowPremiumFeatures() && shouldShowStickerPremiumUpsell(channel) && !isSearching && lockedStickerCount > 0;
 
 		const remScale = getAppRemScale();
 		const stickerRowHeight = useMemo(() => getFixedStickerRowHeight(remScale), [remScale, zoomLevel]);
@@ -283,15 +239,6 @@ export const StickersPicker = observer(
 								onResize={handleResize}
 								data-flx="channel.stickers-picker.list"
 							>
-								{showPremiumUpsell && (
-									<PremiumUpsellBanner
-										message={stickerUpsellMessage}
-										communityIds={allUpsell.summary.lockedCommunityIds}
-										communityCount={stickerCommunityCount}
-										previewContent={previewContent}
-										data-flx="channel.stickers-picker.premium-upsell-banner"
-									/>
-								)}
 								<div
 									ref={rowListRef}
 									style={{position: 'relative', flexShrink: 0, height: `${contentHeight}px`}}

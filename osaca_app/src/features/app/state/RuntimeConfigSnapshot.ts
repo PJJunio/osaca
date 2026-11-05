@@ -41,7 +41,6 @@ import {
 import type {LimitConfigSnapshot, LimitFilter, LimitRule} from '@osaca/limits/src/LimitTypes';
 
 const LIMIT_KEYS_SET = new Set<string>(LIMIT_KEYS);
-const DEFAULT_PREMIUM_PRODUCT_NAME = 'Plutonium';
 
 export interface RuntimeConfigIdentity {
 	readonly apiEndpoint: string;
@@ -252,11 +251,8 @@ function readFeatures(value: unknown): InstanceFeatures {
 			'features.presigned_attachment_uploads',
 		),
 		emails_enabled: readBoolean(source, 'emails_enabled', 'features.emails_enabled'),
-		premium_enabled: false,
 		phone_verification_enabled: false,
 	};
-	features.premium_enabled =
-		readOptionalBoolean(source, 'premium_enabled', 'features.premium_enabled') ?? !features.self_hosted;
 	const desktopModulesEnabled = readOptionalBoolean(
 		source,
 		'desktop_modules_enabled',
@@ -449,10 +445,6 @@ function readAppPublic(value: unknown): InstanceAppPublic {
 			status_page_instatus:
 				readOptionalBoolean(branding, 'status_page_instatus', 'appPublic.branding.status_page_instatus') ?? false,
 			status_page_incident_history_url: readOptionalText(branding, 'status_page_incident_history_url'),
-			premium_product_name: readOptionalText(branding, 'premium_product_name') ?? DEFAULT_PREMIUM_PRODUCT_NAME,
-			premium_info_url: Object.hasOwn(branding, 'premium_info_url')
-				? readNullableAbsoluteHttpUrl(branding, 'premium_info_url', 'appPublic.branding.premium_info_url')
-				: null,
 			sign_in_backdrop_url: Object.hasOwn(branding, 'sign_in_backdrop_url')
 				? readNullableAbsoluteHttpUrl(branding, 'sign_in_backdrop_url', 'appPublic.branding.sign_in_backdrop_url')
 				: null,

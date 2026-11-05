@@ -231,13 +231,6 @@ export async function updateBanner(
 		.execute();
 }
 
-export async function grantPremium(harness: ApiTestHarness, userId: string, premiumType: number): Promise<void> {
-	await createBuilderWithoutAuth(harness)
-		.post(`/test/users/${userId}/premium`)
-		.body({premium_type: premiumType})
-		.execute();
-}
-
 export async function subscribePush(
 	harness: ApiTestHarness,
 	token: string,

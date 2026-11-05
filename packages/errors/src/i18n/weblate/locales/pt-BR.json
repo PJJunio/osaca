@@ -445,7 +445,6 @@
 	"premium_and_plans.custom_stickers_in_dms_require_premium": "Você não pode usar figurinhas personalizadas em mensagens diretas sem o plano Premium.",
 	"premium_and_plans.custom_stickers_outside_source_require_premium": "Você não pode usar figurinhas personalizadas fora das comunidades de origem sem o plano Premium.",
 	"premium_and_plans.discriminator_change_requires_premium": "Alterar seu discriminador requer o plano Premium.",
-	"premium_and_plans.visionary_required_for_discriminator": "Você precisa estar no plano Visionary vitalício para usar esse discriminador.",
 	"rate_limits.accent_color_changed_too_often": "Você alterou a cor de destaque muitas vezes recentemente. Tente novamente em {minutes, plural, =1 {# minuto} other {# minutos}}.",
 	"rate_limits.avatar_changed_too_often": "Você alterou o avatar muitas vezes recentemente. Tente novamente em {minutes, plural, =1 {# minuto} other {# minutos}}.",
 	"rate_limits.banner_changed_too_often": "Você alterou o banner muitas vezes recentemente. Tente novamente em {minutes, plural, =1 {# minuto} other {# minutos}}.",

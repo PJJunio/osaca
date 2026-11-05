@@ -135,7 +135,7 @@ Each route needs one or more ACLs, and the caller needs at least one of them. Th
 | user:update:badges | Replaces the custom badges of an account |
 | user:update:bot_status | Updates bot and system account state |
 | user:update:email | Updates the email address, verifies it, resends verification, and sends a password reset |
-| user:update:flags | Updates account flags and premium flags, and ends every login session of an account |
+| user:update:flags | Updates account flags, and ends every login session of an account |
 | user:update:mfa | Reads and removes a user's WebAuthn credentials, and removes MFA state |
 | user:update:profile | Clears profile fields |
 | user:update:traits | Replaces account traits |
@@ -491,7 +491,6 @@ These entries have `access` set to `write`.
 | update_instance_config | The instance configuration was updated |
 | update_limit_config | The limit configuration was replaced |
 | update_name | A guild name was changed |
-| update_premium_flags | Premium flags were changed |
 | update_settings | General guild settings were changed |
 | update_user_badges | The custom badges of an account were replaced |
 | update_vanity | A guild custom invite code was changed |

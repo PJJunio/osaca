@@ -241,7 +241,6 @@ export interface RememberedSkeletonDMSidebarLayout {
 	readonly isMobile: boolean;
 	readonly friendsVisible: boolean;
 	readonly personalNotesVisible: boolean;
-	readonly premiumVisible: boolean;
 	readonly sectionVisible: boolean;
 	readonly channelRowCount: number;
 	readonly channelSubtextFlags: ReadonlyArray<boolean>;
@@ -615,7 +614,6 @@ const DM_SIDEBAR_KEYS = new Set([
 	'isMobile',
 	'friendsVisible',
 	'personalNotesVisible',
-	'premiumVisible',
 	'sectionVisible',
 	'channelRowCount',
 	'channelSubtextFlags',
@@ -866,7 +864,6 @@ function parseDMSidebarLayout(value: unknown, now: number): OptionalParseResult<
 		typeof value.isMobile !== 'boolean' ||
 		typeof value.friendsVisible !== 'boolean' ||
 		typeof value.personalNotesVisible !== 'boolean' ||
-		typeof value.premiumVisible !== 'boolean' ||
 		typeof value.sectionVisible !== 'boolean'
 	) {
 		return INVALID_PARSE_RESULT;
@@ -875,7 +872,6 @@ function parseDMSidebarLayout(value: unknown, now: number): OptionalParseResult<
 		isMobile: value.isMobile,
 		friendsVisible: value.friendsVisible,
 		personalNotesVisible: value.personalNotesVisible,
-		premiumVisible: value.premiumVisible,
 		sectionVisible: value.sectionVisible,
 		channelRowCount,
 		channelSubtextFlags,
@@ -1811,7 +1807,6 @@ function upgradeLegacyDMSidebar(dmSidebar: Record<string, unknown>): Record<stri
 		isMobile: dmSidebar.isMobile,
 		friendsVisible: dmSidebar.friendsVisible,
 		personalNotesVisible: dmSidebar.personalNotesVisible,
-		premiumVisible: dmSidebar.premiumVisible,
 		sectionVisible: dmSidebar.sectionVisible,
 		channelRowCount: dmSidebar.channelRowCount,
 		channelSubtextFlags,
@@ -2371,7 +2366,6 @@ function commitDMSidebarLayout(layout: RememberedSkeletonDMSidebarLayout): void 
 		previous?.isMobile === layout.isMobile &&
 		previous.friendsVisible === layout.friendsVisible &&
 		previous.personalNotesVisible === layout.personalNotesVisible &&
-		previous.premiumVisible === layout.premiumVisible &&
 		previous.sectionVisible === layout.sectionVisible &&
 		previous.channelRowCount === layout.channelRowCount &&
 		areBooleanArraysEqual(previous.channelSubtextFlags, layout.channelSubtextFlags)
@@ -2801,7 +2795,6 @@ export function reportSkeletonDMSidebarLayout(layout: RememberedSkeletonDMSideba
 		typeof layout.isMobile !== 'boolean' ||
 		typeof layout.friendsVisible !== 'boolean' ||
 		typeof layout.personalNotesVisible !== 'boolean' ||
-		typeof layout.premiumVisible !== 'boolean' ||
 		typeof layout.sectionVisible !== 'boolean' ||
 		!Array.isArray(layout.channelSubtextFlags)
 	) {
@@ -2815,7 +2808,6 @@ export function reportSkeletonDMSidebarLayout(layout: RememberedSkeletonDMSideba
 		isMobile: layout.isMobile,
 		friendsVisible: layout.friendsVisible,
 		personalNotesVisible: layout.personalNotesVisible,
-		premiumVisible: layout.premiumVisible,
 		sectionVisible: layout.sectionVisible,
 		channelRowCount,
 		channelSubtextFlags: Object.freeze(channelSubtextFlags),

@@ -30,7 +30,6 @@ import FocusRing from '@app/features/ui/focus_ring/FocusRing';
 import {openPopout} from '@app/features/ui/popover/PopoverPopout';
 import KeyboardMode from '@app/features/ui/state/KeyboardMode';
 import MobileLayout from '@app/features/ui/state/MobileLayout';
-import {MAX_MESSAGE_LENGTH_PREMIUM} from '@osaca/constants/src/LimitConstants';
 import {Trans, useLingui} from '@lingui/react/macro';
 import {SmileyIcon} from '@phosphor-icons/react';
 import {clsx} from 'clsx';
@@ -86,7 +85,6 @@ export const EditingMessageInput = observer(
 	}) => {
 		const {i18n} = useLingui();
 		const maxMessageLength = Limits.getMaxMessageLength();
-		const premiumMaxLength = Limits.getStockValue('max_message_length', MAX_MESSAGE_LENGTH_PREMIUM);
 		const [initial] = useState(() => {
 			let wire = MessageEdit.getEditingContent(channel.id, message.id);
 			if (wire == null) {
@@ -328,8 +326,6 @@ export const EditingMessageInput = observer(
 						<MessageCharacterCounter
 							currentLength={displayContentLength}
 							maxLength={maxMessageLength}
-							canUpgrade={maxMessageLength < premiumMaxLength}
-							premiumMaxLength={premiumMaxLength}
 							data-flx="channel.editing-message-input.message-character-counter"
 						/>
 					</div>

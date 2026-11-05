@@ -17,10 +17,8 @@ import {ScheduledMaintenanceNagbar} from '@app/features/app/components/layout/ap
 import {StreamerModeNagbar} from '@app/features/app/components/layout/app_layout/nagbars/StreamerModeNagbar';
 import {TermsAcceptanceNagbar} from '@app/features/app/components/layout/app_layout/nagbars/TermsAcceptanceNagbar';
 import {UnclaimedAccountNagbar} from '@app/features/app/components/layout/app_layout/nagbars/UnclaimedAccountNagbar';
-import {VisionaryMfaNagbar} from '@app/features/app/components/layout/app_layout/nagbars/VisionaryMfaNagbar';
 import {VoiceSessionRestoreNagbar} from '@app/features/app/components/layout/app_layout/nagbars/VoiceSessionRestoreNagbar';
 import {WindowsFontNagbar} from '@app/features/app/components/layout/app_layout/nagbars/WindowsFontNagbar';
-import {shouldShowPremiumFeatures} from '@app/features/premium/utils/PremiumUtils';
 import MobileLayout from '@app/features/ui/state/MobileLayout';
 import {SoftwareEncoderNagbar} from '@app/features/voice/components/SoftwareEncoderNagbar';
 import {observer} from 'mobx-react-lite';
@@ -32,7 +30,6 @@ interface NagbarContainerProps {
 
 interface NagbarEntry {
 	Component: React.ComponentType<{isMobile: boolean}>;
-	premium?: boolean;
 }
 
 class UnexpectedNagbarTypeError extends Error {
@@ -55,7 +52,6 @@ const NAGBARS: Record<NagbarType, NagbarEntry> = {
 	[NagbarType.DESKTOP_NOTIFICATION]: {Component: DesktopNotificationNagbar},
 	[NagbarType.DESKTOP_DOWNLOAD]: {Component: DesktopDownloadNagbar},
 	[NagbarType.GUILD_MEMBERSHIP_CTA]: {Component: GuildMembershipCtaNagbar},
-	[NagbarType.VISIONARY_MFA]: {Component: VisionaryMfaNagbar, premium: true},
 	[NagbarType.VOICE_SESSION_RESTORE]: {Component: VoiceSessionRestoreNagbar},
 	[NagbarType.SOFTWARE_ENCODER]: {Component: SoftwareEncoderNagbar},
 	[NagbarType.STREAMER_MODE]: {Component: StreamerModeNagbar},
@@ -66,14 +62,12 @@ const NAGBARS: Record<NagbarType, NagbarEntry> = {
 
 export const NagbarContainer: React.FC<NagbarContainerProps> = observer(({nagbars}) => {
 	const mobileLayout = MobileLayout;
-	const showPremiumFeatures = shouldShowPremiumFeatures();
 	if (nagbars.length === 0) return null;
 	return (
 		<div className={styles.container} data-flx="app.app-layout.nagbar-container.container">
 			{nagbars.map((nagbar) => {
 				const entry: NagbarEntry | undefined = NAGBARS[nagbar.type];
 				if (!entry) throw new UnexpectedNagbarTypeError(nagbar.type);
-				if (entry.premium && !showPremiumFeatures) return null;
 				return (
 					<entry.Component
 						key={nagbar.type}

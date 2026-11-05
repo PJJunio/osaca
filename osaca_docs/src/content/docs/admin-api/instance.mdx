@@ -26,7 +26,7 @@ The full runtime configuration. A setting that was never saved uses the default 
 | self_hosted | boolean | Whether the instance runs in self-hosted mode |
 | account_identity | [account identity configuration](#account-identity-configuration-object) object | How people sign in |
 | app_public | [public application configuration](#public-application-configuration-object) object | Branding, legal links, setup and registration fields |
-| policy | [instance policy](#instance-policy-object) object | Community, direct message, premium and gating policy |
+| policy | [instance policy](#instance-policy-object) object | Community, direct message and gating policy |
 | integrations | [instance integrations](#instance-integrations-object) object | Third-party provider settings |
 | media | [instance media](#instance-media-object) object | Attachment retention settings |
 | auth | [auth configuration](#auth-configuration-object) object | Email-first sign-in and instant accounts |
@@ -81,7 +81,6 @@ The rollout that lets small calls connect people directly, without the voice ser
 | rollout_salt | string | Salt of the sampling hash (1-64 printable ASCII characters, default `voice-p2p-v1`) |
 | included_user_ids | array[snowflake] | Accounts always selected (up to 1000 entries, default empty) |
 | included_guild_ids | array[snowflake] | Guilds whose members are always selected (up to 1000 entries, default empty) |
-| include_premium_users | boolean | Whether accounts with active premium are always selected (default false) |
 | excluded_user_ids | array[snowflake] | Accounts never selected, which wins over every other rule (up to 1000 entries, default empty) |
 | max_participants | integer | Most people in one peer-to-peer call (2-4, default 2) |
 
@@ -278,7 +277,7 @@ The admin view of the branding, legal and setup settings that the [Instance](/ht
 
 ## Instance policy object
 
-Community, direct message, premium and gating policy.
+Community, direct message and gating policy.
 
 ### Structure
 
@@ -291,7 +290,6 @@ Community, direct message, premium and gating policy.
 | friends_disabled<sup>1</sup> | boolean | Whether friend requests are off |
 | personal_notes_enabled<sup>2</sup> | boolean | Whether people can use personal notes. Off by default on self-hosted instances |
 | guild_create_access | boolean | Whether every account can create communities. If not, only admins and accounts with the `feature_guild_create` limit can |
-| premium_mode | string | [Premium mode](#premium-modes) |
 | services | object | Nullable `youtube_enabled` and `bluesky_enabled` overrides |
 | services_resolved | object | The same keys as booleans, using the override when set and `services_available` otherwise |
 | services_available | object | Whether `gif`, `youtube` and `bluesky` are set up, before overrides |
@@ -299,13 +297,6 @@ Community, direct message, premium and gating policy.
 <sup>1</sup> Sending and accepting friend requests fail with 400 `FRIENDS_DISABLED` while it is true
 
 <sup>2</sup> Every request to the personal notes channel fails with 400 `PERSONAL_NOTES_DISABLED` while it is false, and existing notes are kept
-
-## Premium modes
-
-| Value | Description |
-| --- | --- |
-| mirror | Premium follows each account's own subscription |
-| everyone | Every account has premium |
 
 ## Instance integrations object
 
@@ -513,13 +504,13 @@ Merges the body into the saved configuration and returns the [instance configura
 | app_public?<sup>1</sup> | object | `branding`, `setup` and `legal` objects, each merged field by field |
 | integrations?<sup>2</sup> | object | `gif`, `youtube`, `email` and `bluesky` objects, and `bluesky.keys` |
 | media? | object | `attachment_decay` overrides, null to restore a default |
-| policy? | [instance policy update](#instance-policy-update-structure) object | Community, direct message, premium and gating policy |
+| policy? | [instance policy update](#instance-policy-update-structure) object | Community, direct message and gating policy |
 | auth? | object | `identifier_first` and any `instant_accounts` fields from the [auth configuration](#auth-configuration-object) |
 | accounts? | object | Any [accounts configuration](#accounts-configuration-object) fields |
 | guild_visits? | object | Any [guild visits configuration](#guild-visits-configuration-object) fields |
 | notice?<sup>3</sup> | object | `message`, `url`, `starts_at` and `ends_at` of the [instance notice](/http-api/instance/#instance-notice-object) |
 
-<sup>1</sup> `branding.product_name` is 1-80 characters, `branding.premium_product_name` 1-40, `branding.custom_css` up to 32,768 and `branding.upload_limit_message` up to 500. `branding.trusted_domains` holds up to 50 hostnames, each optionally starting with `*.`, and null clears it. URLs are up to 2048 characters and `branding.theme_color` is a hex color. Setting `setup.configured` to true finishes setup, and accounts that register after that don't get the wildcard Admin ACL
+<sup>1</sup> `branding.product_name` is 1-80 characters, `branding.custom_css` up to 32,768 and `branding.upload_limit_message` up to 500. `branding.trusted_domains` holds up to 50 hostnames, each optionally starting with `*.`, and null clears it. URLs are up to 2048 characters and `branding.theme_color` is a hex color. Setting `setup.configured` to true finishes setup, and accounts that register after that don't get the wildcard Admin ACL
 
 <sup>2</sup> A secret such as `api_key` or the SMTP `password` is saved when sent and kept when left out. `email.smtp` takes `host`, `port`, `username`, `password` and `tls_mode`. `bluesky.keys` replaces the signing keys with up to 8 entries of `kid` and `private_key`
 
@@ -547,7 +538,6 @@ OSACA checks the merged settings before it writes anything, and refuses these co
 | friends_disabled?<sup>4</sup> | boolean | Whether friend requests are off |
 | personal_notes_enabled? | boolean | Whether people can use personal notes |
 | guild_create_access? | boolean | Whether every account can create communities |
-| premium_mode? | string | [Premium mode](#premium-modes) |
 | services? | object | Nullable `youtube_enabled` and `bluesky_enabled` overrides |
 
 <sup>1</sup> Turning it on uses the community set in `single_community_guild_id`, or creates one owned by you. After setup is complete, it fails with 400 `INSTANCE_POLICY_TRANSITION_NOT_ALLOWED` unless a community is already set or sent. Turning it off keeps the community
@@ -751,6 +741,5 @@ Replaces the saved limit configuration and returns the [limit configuration resp
 | 200 | [limit configuration response](#limit-configuration-response-object) object | The configuration was replaced |
 | 400 | [error response](/admin-api/#error-response) | `INVALID_FORM_BODY` for an unknown limit key, a negative value or a value outside the key's `min` and `max` |
 
-In the `everyone` premium mode, OSACA ignores the `premium` trait and every rule filtered on it, and keeps the ones already saved for when the mode goes back to `mirror`.
 
 The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.

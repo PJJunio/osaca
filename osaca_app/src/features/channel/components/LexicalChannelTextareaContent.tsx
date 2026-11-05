@@ -306,7 +306,6 @@ export const LexicalChannelTextareaContent = observer(
 		const editingMessageForComposer = editingMessage === undefined ? null : editingMessage;
 		const isEditingMessageOnMobile = editingMessageForComposer !== null && mobileLayout.enabled;
 		const maxMessageLength = Limits.getMaxMessageLength();
-		const premiumMaxLength = Limits.getStockValue('max_message_length', maxMessageLength);
 		const maxAttachments = Limits.getMaxAttachmentsPerMessage();
 		const uploadAttachments = useTextareaAttachments(composerKey);
 		const {isSlowmodeActive, slowmodeRemaining, isSlowmodeEnabled, isSlowmodeImmune} = useSlowmode(channel);
@@ -1465,8 +1464,6 @@ export const LexicalChannelTextareaContent = observer(
 					<MessageCharacterCounter
 						currentLength={composerMessageContent.length}
 						maxLength={maxMessageLength}
-						canUpgrade={maxMessageLength < premiumMaxLength}
-						premiumMaxLength={premiumMaxLength}
 						data-flx="channel.lexical-channel-textarea-content.message-character-counter"
 					/>
 				</flx-channel-textarea>

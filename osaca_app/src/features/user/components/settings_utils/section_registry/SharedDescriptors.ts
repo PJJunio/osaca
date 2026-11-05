@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {getPremiumProductName} from '@app/features/premium/utils/PremiumUtils';
 import {msg} from '@lingui/core/macro';
 
 export const COLORS_DESCRIPTOR = msg({
@@ -153,7 +152,6 @@ export const AUDIO_2_DESCRIPTOR = msg({
 	message: 'Audio',
 	comment: 'Settings search synonym. Used to match this term when the user types it in the settings search bar.',
 });
-export const PREMIUM_PRODUCT_NAME_KEYWORD = getPremiumProductName;
 export const DM_DESCRIPTOR = msg({
 	message: 'DM',
 	comment: 'Settings search synonym. Used to match this term when the user types it in the settings search bar.',
@@ -535,11 +533,6 @@ export const MINIMIZE_DESCRIPTOR = msg({
 export const LINKED_DEVICES_DESCRIPTOR = msg({
 	message: 'Linked devices',
 	comment: 'Settings search synonym. Used to match this term when the user types it in the settings search bar.',
-});
-
-export const REDEEM_A_GIFT_DESCRIPTOR = msg({
-	message: 'Redeem a gift',
-	comment: 'Settings search entry label. Names the settings search entry in the settings UI.',
 });
 
 export const PURCHASED_GIFTS_DESCRIPTOR = msg({

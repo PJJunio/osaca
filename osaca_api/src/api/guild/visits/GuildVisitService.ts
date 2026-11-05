@@ -52,18 +52,14 @@ import {TierGatedActions} from '@osaca/constants/src/AccountTierConstants';
 import {ChannelTypes, InviteTypes, Permissions} from '@osaca/constants/src/ChannelConstants';
 import {DiscoveryApplicationStatus} from '@osaca/constants/src/DiscoveryConstants';
 import {GuildFeatures, GuildOperations, JoinSourceTypes} from '@osaca/constants/src/GuildConstants';
-import {
-	GuildVisitEndReasons,
-	type GuildVisitSource,
-	GuildVisitSources,
-} from '@osaca/constants/src/GuildVisitConstants';
+import {GuildVisitEndReasons, type GuildVisitSource, GuildVisitSources} from '@osaca/constants/src/GuildVisitConstants';
 import {FeatureTemporarilyDisabledError} from '@osaca/errors/src/domains/core/FeatureTemporarilyDisabledError';
 import {GuildVisitNotFoundError} from '@osaca/errors/src/domains/guild/GuildVisitNotFoundError';
 import {GuildVisitsDisabledError} from '@osaca/errors/src/domains/guild/GuildVisitsDisabledError';
 import {UnknownGuildError} from '@osaca/errors/src/domains/guild/UnknownGuildError';
 import {InvitesDisabledError} from '@osaca/errors/src/domains/invite/InvitesDisabledError';
 import {UnknownInviteError} from '@osaca/errors/src/domains/invite/UnknownInviteError';
-import {DEFAULT_STOCK_LIMITS} from '@osaca/limits/src/LimitDefaults';
+import {DEFAULT_LIMITS} from '@osaca/limits/src/LimitDefaults';
 import type {ChannelResponse} from '@osaca/schema/src/domains/channel/ChannelSchemas';
 import type {GuildResponse} from '@osaca/schema/src/domains/guild/GuildResponseSchemas';
 import type {GuildVisitResponse, GuildVisitStartResponse} from '@osaca/schema/src/domains/guild/GuildVisitSchemas';
@@ -106,7 +102,7 @@ export function maxGuildVisitsFor(user: User, limitConfigService: LimitConfigSer
 		limitConfigService.getConfigSnapshot(),
 		createLimitMatchContext({user}),
 		'max_guild_visits',
-		DEFAULT_STOCK_LIMITS.max_guild_visits,
+		DEFAULT_LIMITS.max_guild_visits,
 	);
 	return getAccountTier(user) === 'verified' ? cap : Math.max(1, Math.floor(cap / 2));
 }

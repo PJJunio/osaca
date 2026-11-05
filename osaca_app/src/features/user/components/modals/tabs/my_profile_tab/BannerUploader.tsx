@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {showGenericErrorModal} from '@app/features/app/components/alerts/GenericErrorModalCommands';
-import {ConfirmModal} from '@app/features/app/components/dialogs/ConfirmModal';
 import {
 	ANIMATED_IMAGE_FORMATS,
 	BANNER_ASPECT_RATIO_LABEL,
@@ -17,17 +16,13 @@ import {inspectImageFile} from '@app/features/expressions/utils/AnimatedImageUti
 import {formatImageUploadMinimumHint} from '@app/features/expressions/utils/AssetUploadHintCopy';
 import {isSvgFile, readImageFileAsUploadDataUrl} from '@app/features/expressions/utils/ImageUploadFileUtils';
 import {
-	CANCEL_DESCRIPTOR,
 	FAILED_TO_PROCESS_CROPPED_IMAGE_DESCRIPTOR,
-	GET_PREMIUM_DESCRIPTOR,
 	INVALID_IMAGE_TRY_ANOTHER_DESCRIPTOR,
 } from '@app/features/i18n/utils/CommonMessageDescriptors';
 import {openFilePicker} from '@app/features/messaging/utils/FilePickerUtils';
 import {formatFileSize} from '@app/features/messaging/utils/FileUtils';
 import {readBlobAsDataUrl} from '@app/features/platform/utils/BlobDataUrl';
 import {canDecodeAnimatedAvif} from '@app/features/platform/utils/ImageDecoderInterop';
-import * as PremiumModalCommands from '@app/features/premium/commands/PremiumModalCommands';
-import {getPremiumProductName, shouldShowPremiumFeatures} from '@app/features/premium/utils/PremiumUtils';
 import {Button} from '@app/features/ui/button/Button';
 import * as ModalCommands from '@app/features/ui/commands/ModalCommands';
 import {modal} from '@app/features/ui/commands/ModalCommands';
@@ -56,10 +51,6 @@ const UPLOAD_A_CUSTOM_BANNER_FOR_THIS_COMMUNITY_DESCRIPTOR = msg({
 	comment: 'Button or menu action label in the banner uploader. Keep it concise. Keep the tone plain and specific.',
 });
 
-const PROFILE_BANNERS_REQUIRE_PREMIUM_DESCRIPTOR = msg({
-	message: 'Profile banners require {premiumProductName}.',
-	comment: 'Profile banner uploader notice shown when profile banners require premium.',
-});
 const PROFILE_BANNERS_NOT_ENABLED_DESCRIPTOR = msg({
 	message: 'Profile banners are not enabled on this instance.',
 	comment: 'Profile banner uploader notice shown when the instance configuration disables profile banners.',
@@ -67,11 +58,6 @@ const PROFILE_BANNERS_NOT_ENABLED_DESCRIPTOR = msg({
 const SHOW_ACCENT_COLOR_ONLY_IGNORING_YOUR_GLOBAL_PROFILE_DESCRIPTOR = msg({
 	message: 'Show accent color only, ignoring your global profile',
 	comment: 'Label in the banner uploader. Keep the tone plain and specific.',
-});
-const PROFILE_BANNERS_REQUIRE_DESCRIPTOR = msg({
-	message: 'Profile banners require {premiumProductName}',
-	comment:
-		'Label in the banner uploader. Preserve {premiumProductName}; it is inserted by code. Keep the tone plain and specific.',
 });
 const BANNER_FILE_IS_TOO_LARGE_PLEASE_CHOOSE_A_DESCRIPTOR = msg({
 	message: 'Banner file is too large. Choose a file smaller than {imageMaxSizeLabel}.',
@@ -121,7 +107,6 @@ export const BannerUploader = observer(
 		bannerMode = 'inherit',
 		onBannerModeChange,
 	}: BannerUploaderProps) => {
-		const PREMIUM_PRODUCT_NAME = getPremiumProductName();
 		const {i18n} = useLingui();
 		const hasPremiumBannerEntitlement = isLimitToggleEnabled(
 			{feature_animated_banner: LimitResolver.resolve({key: 'feature_animated_banner', fallback: 0})},
@@ -149,31 +134,6 @@ export const BannerUploader = observer(
 			],
 			[canUploadBanner, i18n],
 		);
-		const showBannerPremiumUpsell = useCallback(() => {
-			if (!shouldShowPremiumFeatures()) return;
-			ModalCommands.push(
-				modal(() => (
-					<ConfirmModal
-						title={i18n._(PROFILE_BANNERS_REQUIRE_DESCRIPTOR, {premiumProductName: getPremiumProductName()})}
-						description={
-							<Trans>
-								Profile banners are a {PREMIUM_PRODUCT_NAME} feature. Get {PREMIUM_PRODUCT_NAME} to add a banner to your
-								profile.
-							</Trans>
-						}
-						primaryText={i18n._(GET_PREMIUM_DESCRIPTOR, {premiumProductName: getPremiumProductName()})}
-						primaryVariant="primary"
-						secondaryText={i18n._(CANCEL_DESCRIPTOR)}
-						onPrimary={() => {
-							window.setTimeout(() => {
-								PremiumModalCommands.open();
-							}, 0);
-						}}
-						data-flx="user.my-profile-tab.banner-uploader.show-banner-premium-upsell.confirm-modal"
-					/>
-				)),
-			);
-		}, [i18n]);
 		const processBannerFile = useCallback(
 			async (file: File) => {
 				if (file.size > GlobalLimits.getAvatarMaxSize()) {
@@ -245,7 +205,6 @@ export const BannerUploader = observer(
 		}, [processBannerFile, showBannerUploadError]);
 		const handleBannerUpload = useCallback(() => {
 			if (!canUploadBanner) {
-				showBannerPremiumUpsell();
 				return;
 			}
 			openAssetSourceModal({
@@ -258,7 +217,7 @@ export const BannerUploader = observer(
 				}),
 				onPickUpload: handlePickBannerFile,
 			});
-		}, [canUploadBanner, handlePickBannerFile, i18n, showBannerPremiumUpsell]);
+		}, [canUploadBanner, handlePickBannerFile, i18n]);
 		const handleModeChange = useCallback(
 			(mode: BannerMode) => {
 				if (mode === 'custom') {
@@ -356,9 +315,7 @@ export const BannerUploader = observer(
 				)}
 				{!canUploadBanner && (
 					<div className={styles.description} data-flx="user.my-profile-tab.banner-uploader.description--3">
-						{shouldShowPremiumFeatures()
-							? i18n._(PROFILE_BANNERS_REQUIRE_PREMIUM_DESCRIPTOR, {premiumProductName: getPremiumProductName()})
-							: i18n._(PROFILE_BANNERS_NOT_ENABLED_DESCRIPTOR)}
+						{i18n._(PROFILE_BANNERS_NOT_ENABLED_DESCRIPTOR)}
 					</div>
 				)}
 				{errorMessage && (

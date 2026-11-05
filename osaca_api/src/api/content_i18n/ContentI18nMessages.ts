@@ -2,40 +2,6 @@
 
 export const CONTENT_I18N_MESSAGES = {
 	'auth.unknown_location': 'Unknown location',
-	'billing.brazil_withdrawal_checkout_subscription_v2':
-		"You can withdraw from this purchase until the end of the 7th day after you pay, at 23:59 Acre time (UTC-5), and get back everything you paid. An automatic renewal of the same plan doesn't start a new withdrawal period.",
-	'billing.brazil_withdrawal_checkout_v2':
-		'You can withdraw from this purchase until the end of the 7th day after you pay, at 23:59 Acre time (UTC-5), and get back everything you paid.',
-	'billing.donation_description_monthly': 'Monthly donation to support {product_name}',
-	'billing.donation_description_one_time': 'One-time donation to support {product_name}',
-	'billing.donation_description_yearly': 'Yearly donation to support {product_name}',
-	'billing.donation_name_one_time': '{product_name} donation',
-	'billing.donation_name_recurring': 'Recurring {product_name} donation',
-	'billing.eu_withdrawal_checkout_pro_rata':
-		'If I am a consumer in the EU or the EEA, I ask for {product_name} {premium_tier_name} to start right away. I understand that if I withdraw within 14 days, I pay for the days I had it and get the rest back, and that I can no longer withdraw once it has been fully provided. See the [terms of service]({terms_url}).',
-	'billing.operator_pass_delivery_business':
-		"Deliver my certificate now. I'm buying for the company with the CNPJ I entered, and I understand that this purchase has no right of withdrawal, unless Brazilian law treats the company as a consumer.",
-	'billing.operator_pass_delivery_business_multiple':
-		"Deliver my certificates now. I'm buying for the company with the CNPJ I entered, and I understand that this purchase has no right of withdrawal, unless Brazilian law treats the company as a consumer.",
-	'billing.operator_pass_delivery_country_multiple_v5':
-		'Deliver my certificates now. If I have a billing address in Brazil or pay in reais, I can still withdraw from each pass within {days, plural, one {# day} other {# days}} of delivery and get a full refund.',
-	'billing.operator_pass_delivery_country_v5':
-		'Deliver my certificate now. If I have a billing address in Brazil or pay in reais, I can still withdraw within {days, plural, one {# day} other {# days}} of delivery and get a full refund.',
-	'billing.operator_pass_delivery_waiver':
-		"Deliver my certificate now, before the 14-day withdrawal period ends. I understand that I lose my right to withdraw once it's delivered.",
-	'billing.operator_pass_delivery_waiver_multiple':
-		"Deliver my certificates now, before the 14-day withdrawal period ends. I understand that I lose my right to withdraw once they're delivered.",
-	'billing.operator_pass_description_v2': 'A numbered Operator certificate, delivered as a PDF.',
-	'billing.operator_pass_name': '{product_name} Operator Pass',
-	'billing.operator_pass_terms_submit':
-		'By paying, you agree to the [terms of service]({terms_url}) and the [Operator Pass terms]({operator_pass_terms_url}).',
-	'billing.operator_pass_visionary_terms_box':
-		"I accept the Operator Pass terms. This pass is part of your Visionary, so it can't be passed on.",
-	'billing.terms_checkout': 'I agree to the [terms of service]({terms_url}).',
-	'billing.withdrawal_gift_checkout_pro_rata':
-		'If I am a consumer in the EU, the EEA or the UK, I ask for this {product_name} {premium_tier_name} gift to start as soon as it is redeemed. I understand that if I withdraw within 14 days, I get everything back if the code has not been redeemed, and otherwise I pay for the days the recipient had it and get the rest back. See the [terms of service]({terms_url}).',
-	'billing.uk_withdrawal_checkout':
-		'If I am a consumer in the UK, I ask for {product_name} {premium_tier_name} to start right away. I understand that if I withdraw within 14 days, I pay for the days I had it and get the rest back, and that I can no longer withdraw once it has been fully provided. See the [terms of service]({terms_url}).',
 	'bulk_message_deletion.complete':
 		'We finished deleting your messages. We removed {message_count, plural, =0 {0 messages} one {# message} other {# messages}} from {channel_count, plural, =0 {0 places} one {# place} other {# places}}.',
 	'content.virus_detected': 'That file was flagged as potentially unsafe and has been removed.',
@@ -46,8 +12,6 @@ export const CONTENT_I18N_MESSAGES = {
 		'The community and its channels and messages are no longer available to anyone. Your own account is not restricted.',
 	'enforcement.effect.limit_direct_messages':
 		'Your one-to-one messages and friend requests are not delivered, and your profile is hidden. In communities and group conversations, people see your messages collapsed and marked as possible spam.',
-	'enforcement.effect.limit_purchases':
-		"{review, select, yes {You can't make purchases on {product_name} until a person on our team reviews this.} other {You can't make purchases on {product_name}.}}",
 	'enforcement.effect.limit_reports':
 		"{safety_route, select, yes {You can't send reports in the app until then. To report illegal content, use the safety route on our [company information page]({url}).} other {You can't send reports in the app until then.}}",
 	'enforcement.effect.messages_removed': 'We also removed {count, plural, =1 {# message} other {# messages}}.',
@@ -72,7 +36,6 @@ export const CONTENT_I18N_MESSAGES = {
 		'{count, plural, =1 {# message} other {# messages}} in a group conversation, {range, select, single {on {start}} other {between {start} and {end}}}.',
 	'enforcement.facts.group_message_month':
 		'{count, plural, =1 {# message} other {# messages}} in a group conversation in {month}.',
-	'enforcement.facts.payment': 'A payment on your account on {date}.',
 	'enforcement.facts.profile': 'Your profile: {fields}.',
 	'enforcement.facts.unknown_location':
 		'{count, plural, =1 {# message} other {# messages}} in a conversation that no longer exists, {range, select, single {on {start}} other {between {start} and {end}}}.',
@@ -104,9 +67,6 @@ export const CONTENT_I18N_MESSAGES = {
 	'enforcement.lead.legacy': "We don't have more detail on record for this decision.",
 	'enforcement.lead.malware':
 		'We found links or files from your account that lead to malware or other harmful software.',
-	'enforcement.lead.operator_pass_payments':
-		'We found that a dispute about an Operator Pass payment on your account was unjustified under the Operator Pass terms.',
-	'enforcement.lead.payments': 'We found a payment issue on your account that breaks our payment terms.',
 	'enforcement.lead.privacy': "We found that your account shared someone's personal information without their consent.",
 	'enforcement.lead.raids': 'We found that your account took part in a coordinated attack on a community or a person.',
 	'enforcement.lead.report_abuse':
@@ -145,8 +105,6 @@ export const CONTENT_I18N_MESSAGES = {
 	'enforcement.rule.impersonation': 'Impersonation and fake accounts',
 	'enforcement.rule.intimate_images': 'Intimate images shared without consent',
 	'enforcement.rule.malware': 'Malicious links and malware',
-	'enforcement.rule.operator_pass_payments': 'Operator Pass payment disputes',
-	'enforcement.rule.payments': 'Payments',
 	'enforcement.rule.privacy': 'Privacy and personal information',
 	'enforcement.rule.raids': 'Raids and coordinated attacks',
 	'enforcement.rule.report_abuse': 'Misuse of reporting',
@@ -179,28 +137,9 @@ export const CONTENT_I18N_MESSAGES = {
 	'guild.default_category_voice': 'Voice channels',
 	'guild.default_channel_text': 'general',
 	'guild.default_channel_voice': 'General',
-	'operator_pass.labs_greeting':
-		'{size, select, single {Welcome to #operators, {last}!} other {Welcome to #operators, {others} and {last}!}} This is the channel for everyone with an Operator Pass.',
 	'profile_badge.bug_hunter': '{product_name} Bug Hunter',
-	'profile_badge.operator_pass': 'Operator',
-	'profile_badge.operator_pass_accessible_count':
-		'Operator, {count, plural, one {# Operator Pass} other {# Operator Passes}}',
-	'profile_badge.operator_pass_recognition_v2':
-		'Counts the passes on this account and the passes it bought and passed on.',
-	'profile_badge.operator_pass_count': '{count, plural, one {# Operator Pass} other {# Operator Passes}}',
-	'profile_badge.operator_pass_since': 'Operator Pass since {since_date}',
-	'profile_badge.operator_pass_since_count':
-		'Operator Pass since {since_date}, {count, plural, one {# pass} other {# passes}}',
-	'profile_badge.operator_pass_since_line': 'Operator Pass since {since_date}',
-	'profile_badge.operator_pass_title': 'Operator',
 	'profile_badge.partner': '{product_name} Partner',
-	'profile_badge.premium': '{premium_name} subscriber',
-	'profile_badge.premium_lifetime': 'Lifetime {premium_name}',
-	'profile_badge.premium_since': '{premium_name} subscriber since {since_date}',
 	'profile_badge.staff': '{product_name} Staff',
-	'profile_badge.visionary': '{product_name} Visionary',
-	'profile_badge.visionary_number': 'Visionary ID {number}',
-	'profile_badge.visionary_since': '{product_name} Visionary since {since_date}',
 	'report_flow.description.name': 'Username, display name or community nickname',
 	'report_flow.description.photo': 'What they use as avatar and banner',
 	'report_flow.description.profile_text': 'Bio, custom status or pronouns',

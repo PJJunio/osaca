@@ -537,8 +537,6 @@ export const ERROR_I18N_MESSAGES = {
 	'premium_and_plans.custom_stickers_outside_source_require_premium':
 		"You can't use custom stickers outside their source communities without Premium.",
 	'premium_and_plans.discriminator_change_requires_premium': 'Changing your discriminator requires Premium.',
-	'premium_and_plans.visionary_required_for_discriminator':
-		'You must be on the Visionary lifetime plan to use that discriminator.',
 	'rate_limits.accent_color_changed_too_often':
 		"You've changed your accent color too often recently. Please try again in {minutes, plural, one {# minute} other {# minutes}}.",
 	'rate_limits.avatar_changed_too_often':

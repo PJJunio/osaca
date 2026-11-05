@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type {LimitKey} from '@osaca/constants/src/LimitConfigMetadata';
-import {DEFAULT_RESTRICTED_LIMITS} from '@osaca/limits/src/LimitDefaults';
+import {DEFAULT_LIMITS} from '@osaca/limits/src/LimitDefaults';
 import {applyRuleToResolvedLimits, ruleMatches, sortRulesBySpecificity} from '@osaca/limits/src/LimitRuleRuntime';
 import type {
 	LimitConfigSnapshot,
@@ -16,7 +16,7 @@ export function resolveLimits(
 	options?: LimitEvaluationOptions,
 ): LimitEvaluationResult {
 	const evaluationContext = options?.evaluationContext ?? 'user';
-	const resolvedLimits = {...(options?.baseLimits ?? DEFAULT_RESTRICTED_LIMITS)};
+	const resolvedLimits = {...(options?.baseLimits ?? DEFAULT_LIMITS)};
 	for (const rule of sortRulesBySpecificity(snapshot.rules)) {
 		if (ruleMatches(rule.filters, ctx)) {
 			applyRuleToResolvedLimits(resolvedLimits, rule, evaluationContext);

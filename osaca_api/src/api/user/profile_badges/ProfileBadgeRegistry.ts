@@ -3,20 +3,13 @@
 import {getContentMessage} from '@app/api/content_i18n/ContentI18n';
 import type {CustomBadge} from '@app/api/instance/custom_badges/CustomBadgeRepository';
 import type {BuiltInBadgeImages} from '@app/api/instance/InstanceConfigRepository';
-import {Logger} from '@app/api/Logger';
-import type {VisiblePremiumBadge} from '@app/api/user/profile_badges/PremiumBadgeMasking';
 import {PROFILE_BADGE_ASSETS} from '@app/api/user/profile_badges/ProfileBadgeAssets';
-import {getVisionaryNumberTag} from '@app/api/user/profile_badges/VisionaryNumberTags';
 import type {ProfileBadgeKind} from '@osaca/constants/src/BadgeConstants';
-import {UserFlags, UserPremiumTypes} from '@osaca/constants/src/UserConstants';
-import {getDateFormatter} from '@osaca/date_utils/src/DateFormatterCache';
+import {UserFlags} from '@osaca/constants/src/UserConstants';
 
 export interface ProfileBadgeEnvironment {
 	selfHosted: boolean;
-	premiumTieringActive: boolean;
 	productName: string;
-	premiumName: string;
-	premiumInfoUrl: string | null;
 	marketingUrl: string;
 	mediaUrl: string;
 	customBadges: ReadonlyArray<Pick<CustomBadge, 'id' | 'name' | 'description' | 'asset' | 'href'>>;
@@ -25,7 +18,6 @@ export interface ProfileBadgeEnvironment {
 
 export interface ProfileBadgeView {
 	flags: bigint;
-	premium: VisiblePremiumBadge;
 	environment: ProfileBadgeEnvironment;
 	locale: string;
 	shown: ReadonlySet<ProfileBadgeKind>;
@@ -48,30 +40,6 @@ export interface ProfileBadgeDefinition {
 	availability: 'everywhere' | 'hosted' | 'self_hosted';
 	href(environment: ProfileBadgeEnvironment): string | null;
 	qualify(view: ProfileBadgeView): ProfileBadgeContent | null;
-}
-
-function premiumName(environment: ProfileBadgeEnvironment): string {
-	return `${environment.productName} ${environment.premiumName}`;
-}
-
-function formatSinceDate(date: Date, locale: string): string {
-	return getDateFormatter(locale, {dateStyle: 'long', timeZone: 'UTC'}).format(date);
-}
-
-function premiumLabel(view: ProfileBadgeView): string {
-	if (view.premium.premiumType === UserPremiumTypes.LIFETIME) {
-		return getContentMessage('profile_badge.premium_lifetime', view.locale, {
-			premium_name: premiumName(view.environment),
-		});
-	}
-	const since = view.premium.premiumSince;
-	if (since) {
-		return getContentMessage('profile_badge.premium_since', view.locale, {
-			premium_name: premiumName(view.environment),
-			since_date: formatSinceDate(since, view.locale),
-		});
-	}
-	return getContentMessage('profile_badge.premium', view.locale, {premium_name: premiumName(view.environment)});
 }
 
 function flagBadge(flag: bigint, label: (view: ProfileBadgeView) => string): ProfileBadgeDefinition['qualify'] {
@@ -107,61 +75,5 @@ export const PROFILE_BADGE_REGISTRY: ReadonlyArray<ProfileBadgeDefinition> = [
 		qualify: flagBadge(UserFlags.BUG_HUNTER, (view) =>
 			getContentMessage('profile_badge.bug_hunter', view.locale, {product_name: view.environment.productName}),
 		),
-	},
-	{
-		kind: 'visionary',
-		asset: PROFILE_BADGE_ASSETS.visionary,
-		availability: 'hosted',
-		href: marketing('help/visionary'),
-		qualify: (view) => {
-			if (view.premium.premiumType !== UserPremiumTypes.LIFETIME) return null;
-			const since = view.premium.premiumSince;
-			const productName = view.environment.productName;
-			return {
-				label: since
-					? getContentMessage('profile_badge.visionary_since', view.locale, {
-							product_name: productName,
-							since_date: formatSinceDate(since, view.locale),
-						})
-					: getContentMessage('profile_badge.visionary', view.locale, {product_name: productName}),
-			};
-		},
-	},
-	{
-		kind: 'visionary_number',
-		asset: null,
-		availability: 'hosted',
-		href: marketing('help/visionary'),
-		qualify: (view) => {
-			const sequence = view.premium.premiumLifetimeSequence;
-			if (!view.shown.has('visionary') || sequence == null) return null;
-			const caption = `#${String(sequence)}`;
-			const label = getContentMessage('profile_badge.visionary_number', view.locale, {number: caption});
-			const tag = getVisionaryNumberTag(sequence);
-			if (!tag) {
-				Logger.warn({sequence}, 'No Visionary number tag for this sequence');
-				return {label, caption};
-			}
-			return {label, caption, asset: tag.asset, aspectRatio: tag.width / tag.height};
-		},
-	},
-	{
-		kind: 'plutonium',
-		asset: PROFILE_BADGE_ASSETS.plutonium,
-		availability: 'hosted',
-		href: marketing('plutonium'),
-		qualify: (view) =>
-			view.premium.premiumType === UserPremiumTypes.SUBSCRIPTION ? {label: premiumLabel(view)} : null,
-	},
-	{
-		kind: 'premium',
-		asset: PROFILE_BADGE_ASSETS.premium,
-		availability: 'self_hosted',
-		href: (environment) => environment.premiumInfoUrl,
-		qualify: (view) => {
-			const premiumType = view.premium.premiumType;
-			if (!view.environment.premiumTieringActive || !premiumType) return null;
-			return {label: premiumLabel(view)};
-		},
 	},
 ];

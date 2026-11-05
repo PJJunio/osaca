@@ -36,22 +36,6 @@ class LimitResolverClass {
 		}
 		return RuntimeConfig.getSnapshotOrNull()?.limits ?? null;
 	}
-
-	resolveStock(key: LimitKey, fallback: number): number {
-		return this.resolve({
-			key,
-			fallback,
-			context: LimitContext.stock(),
-		});
-	}
-
-	resolveRestricted(key: LimitKey, fallback: number): number {
-		return this.resolve({
-			key,
-			fallback,
-			context: LimitContext.restricted(),
-		});
-	}
 }
 
 export const LimitResolver = new LimitResolverClass();

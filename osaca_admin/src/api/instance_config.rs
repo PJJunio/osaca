@@ -7,7 +7,7 @@ use super::types::{
     AccountIdentitySettings, BrandingAssetKind, BrandingAssetUploadRequest,
     CreateRegistrationUrlRequest, CreateRegistrationUrlResponse, InstanceAccountIdentityDiscovery,
     InstanceConfigResponse, InstanceConfigUpdateRequest, InstanceEmailSmtpTestResponse,
-    InstancePremiumDiscovery, PendingRegistrationListResponse, PendingRegistrationResponse,
+    InstanceDiscovery, PendingRegistrationListResponse, PendingRegistrationResponse,
     PendingRegistrationStatus,
 };
 
@@ -16,7 +16,7 @@ impl AdminApiClient {
         self.get("/admin/instance/config", None).await
     }
 
-    pub async fn get_instance_premium_discovery(&self) -> ApiResult<InstancePremiumDiscovery> {
+    pub async fn get_instance_discovery(&self) -> ApiResult<InstanceDiscovery> {
         self.get("/.well-known/osaca", None).await
     }
 

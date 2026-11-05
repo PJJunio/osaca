@@ -658,10 +658,6 @@
 	composes: mobileSpecialButtonSelected;
 }
 
-.mobilePlutoniumButton {
-	composes: mobileSpecialButton;
-}
-
 @media (hover: hover) and (pointer: fine) {
 	:global(:where(html.window-focused, html.unfocused-fully-interactive):not(.window-focus-activation-guard))
 		.dmItemMobile:hover:not(.dmItemMobileSelected) {

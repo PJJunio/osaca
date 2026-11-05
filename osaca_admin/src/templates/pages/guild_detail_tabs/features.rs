@@ -12,7 +12,7 @@ use crate::{
 };
 use maud::{Markup, html};
 
-const HOSTED_ONLY: &[&str] = &["VISIONARY", "VIP_VOICE"];
+const HOSTED_ONLY: &[&str] = &["VIP_VOICE"];
 
 fn feature_label(feature: &str) -> String {
     if DEPRECATED_GUILD_FEATURES.contains(&feature) {

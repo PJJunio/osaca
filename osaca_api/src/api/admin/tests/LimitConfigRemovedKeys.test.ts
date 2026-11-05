@@ -83,7 +83,7 @@ describe.each([true, false])('limit config with a key from an older release (sel
 				},
 			})
 			.execute();
-		const {config: stored} = await getInstanceConfigRepository().readLimitConfigInputs();
+		const stored = await getInstanceConfigRepository().readStoredLimitConfig();
 		const vip = stored?.rules.find((rule) => rule.id === 'vip');
 		expect(vip?.limits).toEqual({max_bio_length: 200});
 	});

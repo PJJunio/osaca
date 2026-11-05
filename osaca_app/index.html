@@ -196,9 +196,9 @@ nav+=V('groups',groups);
 if(cats.length>0)nav+=V('drop-zone','');
 body+=V('gsb',frame+V('gsb-content',V('nav',nav)+V('sb-bottom-spacer','')))}
 else{
-var sr=n(h.sr,0,40),sb=AR(h.sb,40),sam=n(h.sam,0,7),drnd=SEED('dm-sidebar-skeleton-channels'),chans=[];
+var sr=n(h.sr,0,40),sb=AR(h.sb,40),sam=n(h.sam,0,3),drnd=SEED('dm-sidebar-skeleton-channels'),chans=[];
 for(i=0;i<sr;i++){var nw=(42+drnd()*42)+'%',hs=drnd()<0.45;if(sb!=null)hs=sb[i]===1;chans.push([nw,hs?(32+drnd()*38)+'%':null])}
-var acts=[];if((sam&1)!==0)acts.push('4.5rem');if((sam&2)!==0)acts.push('7.75rem');if((sam&4)!==0)acts.push('5.75rem');
+var acts=[];if((sam&1)!==0)acts.push('4.5rem');if((sam&2)!==0)acts.push('7.75rem');
 function AROW(w){return V(mo?'dmrow':'drow',V('drow-content',B(PZ(mo?'2.5rem':'2rem',mo?'2.5rem':'2rem'),RC+M)+B(PZ(w,'0.75rem'),RP)))}
 function CROW(c){return V(mo?'dmrow':'drow',V('drow-content',B(PZ(mo?'2.5rem':'2rem',mo?'2.5rem':'2rem'),RC)+V('chinfo',V('chname',B(PZ(c[0],'0.75rem'),RP))+(c[1]?V('chsub',B(PZ(c[1],'0.5rem'),RP+M)):''))+(mo?B(PZ('1.5rem','0.5rem'),RP+M):'')))}
 var rows='';

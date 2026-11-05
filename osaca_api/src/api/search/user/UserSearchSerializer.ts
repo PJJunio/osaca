@@ -17,7 +17,6 @@ export function convertToSearchableUser(user: User): SearchableUser {
 		isBot: user.isBot,
 		isSystem: user.isSystem,
 		flags: user.flags.toString(),
-		premiumType: user.premiumType,
 		emailVerified: user.emailVerified,
 		emailBounced: user.emailBounced,
 		acls: Array.from(user.acls),

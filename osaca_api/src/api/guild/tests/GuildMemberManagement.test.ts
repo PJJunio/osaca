@@ -15,7 +15,6 @@ import {profileSubstringBlocklistCache} from '@app/api/middleware/ProfileSubstri
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {HTTP_STATUS} from '@app/api/test/TestConstants';
 import {createBuilder} from '@app/api/test/TestRequestBuilder';
-import {grantPremium} from '@app/api/user/tests/UserTestUtils';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {Permissions} from '@osaca/constants/src/ChannelConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
@@ -297,7 +296,6 @@ describe('Guild Member Management', () => {
 			const {members, guild} = await setupTestGuildWithMembers(harness, 1);
 			const member = members[0];
 			await ensureSessionStarted(harness, member.token);
-			await grantPremium(harness, member.userId, 2);
 			profileSubstringBlocklistCache.add('bio', 'blockedslug');
 			profileSubstringBlocklistCache.add('pronouns', 'blockedslug');
 			await createBuilder(harness, member.token)
@@ -315,7 +313,6 @@ describe('Guild Member Management', () => {
 			const {owner, members, guild} = await setupTestGuildWithMembers(harness, 1);
 			const member = members[0];
 			await ensureSessionStarted(harness, member.token);
-			await grantPremium(harness, member.userId, 2);
 			await createBuilder(harness, owner.token)
 				.patch(`/guilds/${guild.id}/roles/${guild.id}`)
 				.body({
@@ -398,7 +395,7 @@ describe('Guild Member Management', () => {
 		});
 	});
 	describe('Member Avatar Upload Validation', () => {
-		test('should reject member avatar upload without premium', async () => {
+		test('accepts a member avatar upload', async () => {
 			const {members, guild} = await setupTestGuildWithMembers(harness, 1);
 			const member = members[0];
 			await ensureSessionStarted(harness, member.token);
@@ -407,11 +404,11 @@ describe('Guild Member Management', () => {
 				.body({avatar: getPngDataUrl()})
 				.expect(HTTP_STATUS.OK)
 				.execute();
-			expect(memberInfo.avatar).toBeNull();
+			expect(memberInfo.avatar).not.toBeNull();
 		});
 	});
 	describe('Member Banner Upload Validation', () => {
-		test('should reject member banner upload without premium', async () => {
+		test('accepts a member banner upload', async () => {
 			const {members, guild} = await setupTestGuildWithMembers(harness, 1);
 			const member = members[0];
 			await ensureSessionStarted(harness, member.token);
@@ -420,7 +417,7 @@ describe('Guild Member Management', () => {
 				.body({banner: getPngDataUrl()})
 				.expect(HTTP_STATUS.OK)
 				.execute();
-			expect(memberInfo.banner).toBeNull();
+			expect(memberInfo.banner).not.toBeNull();
 		});
 	});
 	describe('Member Role Assignment/Removal', () => {

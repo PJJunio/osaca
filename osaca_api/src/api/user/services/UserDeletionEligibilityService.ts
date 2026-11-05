@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type {UserID} from '@app/api/BrandedTypes';
-import {Config} from '@app/api/Config';
 import {getCachedAccountsConfig} from '@app/api/instance/AccountsConfigCache';
 import type {User} from '@app/api/models/User';
 import {isTemporarilyBanned} from '@app/api/user/UserHelpers';
 import {getValidTimestamp, parseStoredTimestamp} from '@app/api/utils/TimestampUtils';
-import {UserFlags, UserPremiumTypes} from '@osaca/constants/src/UserConstants';
+import {UserFlags} from '@osaca/constants/src/UserConstants';
 import type {IKVProvider} from '@pkgs/kv_client/src/IKVProvider';
 import {ms, seconds} from 'itty-time';
 
@@ -40,15 +39,11 @@ export class UserDeletionEligibilityService {
 		if (Date.now() - lastActiveAt < inactivityThresholdMs) {
 			return false;
 		}
-		return !this.isProtectedByLifetimePremium(user);
+		return true;
 	}
 
 	async isProtectedFromSystemDeletion(user: User): Promise<boolean> {
-		return isTemporarilyBanned(user) || this.isProtectedByLifetimePremium(user);
-	}
-
-	private isProtectedByLifetimePremium(user: User): boolean {
-		return !Config.instance.selfHosted && user.premiumType === UserPremiumTypes.LIFETIME;
+		return isTemporarilyBanned(user);
 	}
 
 	async markWarningSent(userId: UserID): Promise<void> {

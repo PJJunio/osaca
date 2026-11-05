@@ -18749,56 +18749,6 @@
 				}
 			}
 		},
-		"/users/@me/premium/reset": {
-			"post": {
-				"operationId": "reset_current_user_premium_state",
-				"summary": "Reset current user premium state",
-				"tags": ["Users"],
-				"responses": {
-					"204": {"description": "No Content"},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Staff-only endpoint that clears premium status and related premium metadata for the current user account.",
-				"security": [{"sessionToken": []}]
-			}
-		},
 		"/users/@me/profile-badges/preview": {
 			"post": {
 				"operationId": "preview_profile_badges",
@@ -23630,25 +23580,9 @@
 							{"type": "null"}
 						]
 					},
-					"premium_type": {
-						"$ref": "#/components/schemas/UserPremiumTypes",
-						"description": "The type of premium subscription. Deprecated for badge display, use profile_badges"
-					},
-					"premium_since": {
-						"description": "ISO8601 timestamp of when premium was activated. Deprecated for badge display, use profile_badges",
-						"type": "string"
-					},
-					"premium_lifetime_sequence": {
-						"description": "Sequence number for lifetime premium. Deprecated for badge display, use profile_badges",
-						"$ref": "#/components/schemas/Int32Type"
-					},
 					"profile_badges": {
 						"description": "Profile badges in display order. Empty when there is nothing to show. Older servers omit it",
 						"$ref": "#/components/schemas/ProfileBadgeListResponse"
-					},
-					"operator_pass_since": {
-						"description": "ISO8601 timestamp of when the user got the Operator Pass, or null when absent or hidden. Older servers omit it",
-						"type": ["string", "null"]
 					},
 					"hidden_profile_badge_count": {
 						"description": "How many of the badges you hold are hidden from other people. Only present on your own profile",
@@ -23684,7 +23618,7 @@
 						"description": "Current timezone offset in minutes from UTC for the target user's profile timezone, or null when hidden or unset"
 					},
 					"profile_limited": {
-						"description": "True when the target user has restricted their profile and the viewer does not meet the visibility tier. Bio, pronouns, connected accounts, and the premium and Operator Pass badges have been stripped. Staff, partner, and bug hunter badges remain.",
+						"description": "True when the target user has restricted their profile and the viewer does not meet the visibility tier. Bio, pronouns and connected accounts have been stripped. Staff, partner, and bug hunter badges remain.",
 						"type": "boolean"
 					}
 				},
@@ -23778,88 +23712,10 @@
 					},
 					"verified": {"type": "boolean", "description": "Whether the email address has been verified"},
 					"account_limited": {"description": "Whether the account is limited", "type": "boolean"},
-					"premium_type": {
-						"anyOf": [
-							{"$ref": "#/components/schemas/UserPremiumTypes", "description": "The type of premium subscription"},
-							{"type": "null"}
-						]
-					},
-					"premium_since": {
-						"description": "ISO8601 timestamp of when premium was first activated",
-						"type": ["string", "null"]
-					},
-					"premium_until": {
-						"description": "ISO8601 timestamp of when premium access ends, including stacked gift time",
-						"type": ["string", "null"]
-					},
-					"premium_will_cancel": {
-						"type": "boolean",
-						"description": "Whether premium is set to cancel at the end of the billing period"
-					},
-					"premium_billing_cycle": {
-						"description": "The billing cycle for the premium subscription",
-						"type": ["string", "null"]
-					},
-					"premium_lifetime_sequence": {
-						"anyOf": [{"$ref": "#/components/schemas/Int32Type"}, {"type": "null"}],
-						"description": "The sequence number for lifetime premium subscribers"
-					},
-					"premium_grace_ends_at": {
-						"description": "ISO8601 timestamp at which grace access ends after premium_until passes: after a failed renewal payment (7 days from the renewal for monthly plans, 14 for yearly), after a subscription ends (3 days), or during an App Store or Google Play grace period. Perks stay active and the original premium_since is kept on resubscribe until this timestamp passes. Null when no grace is recorded, in which case access lasts 3 days after premium_until.",
-						"type": ["string", "null"]
-					},
-					"premium_discriminator": {
-						"type": "boolean",
-						"description": "Whether the user selected a premium-only discriminator that will be rerolled when non-lifetime premium access ends"
-					},
 					"hidden_profile_badges": {
 						"type": "array",
 						"items": {"type": "string"},
 						"description": "Keys of the badges hidden from other people, as in the key field of a profile badge"
-					},
-					"premium_badge_hidden": {
-						"type": "boolean",
-						"description": "Deprecated, use hidden_profile_badges. Whether the premium badge held is in that list"
-					},
-					"premium_badge_masked": {
-						"type": "boolean",
-						"description": "Whether the premium badge shows a masked appearance"
-					},
-					"premium_badge_timestamp_hidden": {
-						"type": "boolean",
-						"description": "Whether the premium start timestamp is hidden"
-					},
-					"premium_badge_sequence_hidden": {
-						"type": "boolean",
-						"description": "Deprecated, use hidden_profile_badges. Whether visionary_number is in that list"
-					},
-					"premium_purchase_disabled": {
-						"type": "boolean",
-						"description": "Whether premium purchases are disabled for this account"
-					},
-					"premium_enabled_override": {
-						"type": "boolean",
-						"description": "Whether premium features are enabled via override"
-					},
-					"premium_perks_disabled": {
-						"type": "boolean",
-						"description": "Whether premium perks are temporarily disabled for this account"
-					},
-					"operator_pass_badge_hidden": {
-						"description": "Deprecated, use hidden_profile_badges. Whether operator_pass is in that list. Only present on the current user response. Older servers omit it",
-						"type": "boolean"
-					},
-					"operator_pass_badge_timestamp_hidden": {
-						"description": "Whether the month and year the Operator Pass was first held are hidden from other people. Only present on the current user response. Older servers omit it",
-						"type": "boolean"
-					},
-					"operator_pass_badge_count_hidden": {
-						"description": "Whether the number of Operator Passes held is hidden from other people, on the badge and the Operators' wall. Only present on the current user response. Older servers omit it",
-						"type": "boolean"
-					},
-					"operator_pass_since": {
-						"description": "ISO8601 timestamp of when the account got the Operator Pass, or null without one. Only present on the current user response.",
-						"type": ["string", "null"]
 					},
 					"password_last_changed_at": {
 						"description": "ISO8601 timestamp of the last password change",
@@ -23875,19 +23731,6 @@
 						"description": "Deprecated. Always empty."
 					},
 					"nsfw_allowed": {"type": "boolean", "description": "Whether the user is allowed to view NSFW content"},
-					"has_dismissed_premium_onboarding": {
-						"type": "boolean",
-						"description": "Whether the user has dismissed the premium onboarding flow"
-					},
-					"has_ever_purchased": {"type": "boolean", "description": "Whether the user has ever made a purchase"},
-					"has_unread_gift_inventory": {
-						"type": "boolean",
-						"description": "Whether there are unread items in the gift inventory"
-					},
-					"unread_gift_inventory_count": {
-						"description": "The number of unread gift inventory items",
-						"$ref": "#/components/schemas/Int32Type"
-					},
 					"pending_bulk_message_deletion": {
 						"anyOf": [
 							{
@@ -23963,30 +23806,11 @@
 					"banner_color",
 					"mfa_enabled",
 					"verified",
-					"premium_type",
-					"premium_since",
-					"premium_until",
-					"premium_will_cancel",
-					"premium_billing_cycle",
-					"premium_lifetime_sequence",
-					"premium_grace_ends_at",
-					"premium_discriminator",
 					"hidden_profile_badges",
-					"premium_badge_hidden",
-					"premium_badge_masked",
-					"premium_badge_timestamp_hidden",
-					"premium_badge_sequence_hidden",
-					"premium_purchase_disabled",
-					"premium_enabled_override",
-					"premium_perks_disabled",
 					"password_last_changed_at",
 					"last_voice_activity_sharing_change_at",
 					"required_actions",
 					"nsfw_allowed",
-					"has_dismissed_premium_onboarding",
-					"has_ever_purchased",
-					"has_unread_gift_inventory",
-					"unread_gift_inventory_count",
 					"pending_bulk_message_deletion",
 					"terms_agreed_at",
 					"privacy_agreed_at"
@@ -24691,25 +24515,7 @@
 			},
 			"ProfileBadgePreviewRequest": {
 				"type": "object",
-				"properties": {
-					"hidden_profile_badges": {"$ref": "#/components/schemas/HiddenProfileBadgesType"},
-					"premium_badge_masked": {"description": "Preview with the premium badge masked", "type": "boolean"},
-					"premium_badge_timestamp_hidden": {
-						"description": "Preview with the premium badge date hidden",
-						"type": "boolean"
-					},
-					"operator_pass_badge_timestamp_hidden": {
-						"description": "Preview with the month and year the Operator Pass was first held hidden",
-						"type": "boolean"
-					},
-					"operator_pass_badge_count_hidden": {
-						"description": "Preview with the number of Operator Passes held hidden",
-						"type": "boolean"
-					},
-					"premium_badge_hidden": {"description": "Deprecated, use hidden_profile_badges", "type": "boolean"},
-					"premium_badge_sequence_hidden": {"description": "Deprecated, use hidden_profile_badges", "type": "boolean"},
-					"operator_pass_badge_hidden": {"description": "Deprecated, use hidden_profile_badges", "type": "boolean"}
-				}
+				"properties": {"hidden_profile_badges": {"$ref": "#/components/schemas/HiddenProfileBadgesType"}}
 			},
 			"ProfileBadgePreviewResponse": {
 				"type": "object",
@@ -26897,37 +26703,6 @@
 					},
 					"timezone_privacy_flags": {"$ref": "#/components/schemas/ProfileFieldPrivacyFlags"},
 					"hidden_profile_badges": {"$ref": "#/components/schemas/HiddenProfileBadgesType"},
-					"premium_badge_hidden": {
-						"type": "boolean",
-						"description": "Deprecated, use hidden_profile_badges. true adds plutonium, visionary and premium to the list, and false removes them"
-					},
-					"premium_badge_masked": {"type": "boolean", "description": "Whether to mask the premium badge"},
-					"premium_badge_timestamp_hidden": {
-						"type": "boolean",
-						"description": "Whether to hide premium badge timestamp"
-					},
-					"premium_badge_sequence_hidden": {
-						"type": "boolean",
-						"description": "Deprecated, use hidden_profile_badges. true adds visionary_number to the list, and false removes it"
-					},
-					"operator_pass_badge_hidden": {
-						"type": "boolean",
-						"description": "Deprecated, use hidden_profile_badges. true adds operator_pass to the list, and false removes it"
-					},
-					"operator_pass_badge_timestamp_hidden": {
-						"type": "boolean",
-						"description": "Whether to hide from other people the month and year the Operator Pass was first held"
-					},
-					"operator_pass_badge_count_hidden": {
-						"type": "boolean",
-						"description": "Whether to hide from other people how many Operator Passes are held, on the badge and the Operators' wall"
-					},
-					"premium_enabled_override": {"type": "boolean", "description": "Override premium enabled state"},
-					"has_dismissed_premium_onboarding": {
-						"type": "boolean",
-						"description": "Whether user dismissed premium onboarding"
-					},
-					"has_unread_gift_inventory": {"type": "boolean", "description": "Whether user has unread gifts"},
 					"mention_flags": {
 						"$ref": "#/components/schemas/MentionReplyPreferencesInput",
 						"description": "Account-wide reply mention preference (NO_PREFERENCE, PREFER_MENTION, PREFER_NO_MENTION)"
@@ -27020,88 +26795,10 @@
 					},
 					"verified": {"type": "boolean", "description": "Whether the email address has been verified"},
 					"account_limited": {"description": "Whether the account is limited", "type": "boolean"},
-					"premium_type": {
-						"anyOf": [
-							{"$ref": "#/components/schemas/UserPremiumTypes", "description": "The type of premium subscription"},
-							{"type": "null"}
-						]
-					},
-					"premium_since": {
-						"description": "ISO8601 timestamp of when premium was first activated",
-						"type": ["string", "null"]
-					},
-					"premium_until": {
-						"description": "ISO8601 timestamp of when premium access ends, including stacked gift time",
-						"type": ["string", "null"]
-					},
-					"premium_will_cancel": {
-						"type": "boolean",
-						"description": "Whether premium is set to cancel at the end of the billing period"
-					},
-					"premium_billing_cycle": {
-						"description": "The billing cycle for the premium subscription",
-						"type": ["string", "null"]
-					},
-					"premium_lifetime_sequence": {
-						"anyOf": [{"$ref": "#/components/schemas/Int32Type"}, {"type": "null"}],
-						"description": "The sequence number for lifetime premium subscribers"
-					},
-					"premium_grace_ends_at": {
-						"description": "ISO8601 timestamp at which grace access ends after premium_until passes: after a failed renewal payment (7 days from the renewal for monthly plans, 14 for yearly), after a subscription ends (3 days), or during an App Store or Google Play grace period. Perks stay active and the original premium_since is kept on resubscribe until this timestamp passes. Null when no grace is recorded, in which case access lasts 3 days after premium_until.",
-						"type": ["string", "null"]
-					},
-					"premium_discriminator": {
-						"type": "boolean",
-						"description": "Whether the user selected a premium-only discriminator that will be rerolled when non-lifetime premium access ends"
-					},
 					"hidden_profile_badges": {
 						"type": "array",
 						"items": {"type": "string"},
 						"description": "Keys of the badges hidden from other people, as in the key field of a profile badge"
-					},
-					"premium_badge_hidden": {
-						"type": "boolean",
-						"description": "Deprecated, use hidden_profile_badges. Whether the premium badge held is in that list"
-					},
-					"premium_badge_masked": {
-						"type": "boolean",
-						"description": "Whether the premium badge shows a masked appearance"
-					},
-					"premium_badge_timestamp_hidden": {
-						"type": "boolean",
-						"description": "Whether the premium start timestamp is hidden"
-					},
-					"premium_badge_sequence_hidden": {
-						"type": "boolean",
-						"description": "Deprecated, use hidden_profile_badges. Whether visionary_number is in that list"
-					},
-					"premium_purchase_disabled": {
-						"type": "boolean",
-						"description": "Whether premium purchases are disabled for this account"
-					},
-					"premium_enabled_override": {
-						"type": "boolean",
-						"description": "Whether premium features are enabled via override"
-					},
-					"premium_perks_disabled": {
-						"type": "boolean",
-						"description": "Whether premium perks are temporarily disabled for this account"
-					},
-					"operator_pass_badge_hidden": {
-						"description": "Deprecated, use hidden_profile_badges. Whether operator_pass is in that list. Only present on the current user response. Older servers omit it",
-						"type": "boolean"
-					},
-					"operator_pass_badge_timestamp_hidden": {
-						"description": "Whether the month and year the Operator Pass was first held are hidden from other people. Only present on the current user response. Older servers omit it",
-						"type": "boolean"
-					},
-					"operator_pass_badge_count_hidden": {
-						"description": "Whether the number of Operator Passes held is hidden from other people, on the badge and the Operators' wall. Only present on the current user response. Older servers omit it",
-						"type": "boolean"
-					},
-					"operator_pass_since": {
-						"description": "ISO8601 timestamp of when the account got the Operator Pass, or null without one. Only present on the current user response.",
-						"type": ["string", "null"]
 					},
 					"password_last_changed_at": {
 						"description": "ISO8601 timestamp of the last password change",
@@ -27117,19 +26814,6 @@
 						"description": "Deprecated. Always empty."
 					},
 					"nsfw_allowed": {"type": "boolean", "description": "Whether the user is allowed to view NSFW content"},
-					"has_dismissed_premium_onboarding": {
-						"type": "boolean",
-						"description": "Whether the user has dismissed the premium onboarding flow"
-					},
-					"has_ever_purchased": {"type": "boolean", "description": "Whether the user has ever made a purchase"},
-					"has_unread_gift_inventory": {
-						"type": "boolean",
-						"description": "Whether there are unread items in the gift inventory"
-					},
-					"unread_gift_inventory_count": {
-						"description": "The number of unread gift inventory items",
-						"$ref": "#/components/schemas/Int32Type"
-					},
 					"pending_bulk_message_deletion": {
 						"anyOf": [
 							{
@@ -27213,30 +26897,11 @@
 					"banner_color",
 					"mfa_enabled",
 					"verified",
-					"premium_type",
-					"premium_since",
-					"premium_until",
-					"premium_will_cancel",
-					"premium_billing_cycle",
-					"premium_lifetime_sequence",
-					"premium_grace_ends_at",
-					"premium_discriminator",
 					"hidden_profile_badges",
-					"premium_badge_hidden",
-					"premium_badge_masked",
-					"premium_badge_timestamp_hidden",
-					"premium_badge_sequence_hidden",
-					"premium_purchase_disabled",
-					"premium_enabled_override",
-					"premium_perks_disabled",
 					"password_last_changed_at",
 					"last_voice_activity_sharing_change_at",
 					"required_actions",
 					"nsfw_allowed",
-					"has_dismissed_premium_onboarding",
-					"has_ever_purchased",
-					"has_unread_gift_inventory",
-					"unread_gift_inventory_count",
 					"pending_bulk_message_deletion",
 					"terms_agreed_at",
 					"privacy_agreed_at"
@@ -29481,7 +29146,6 @@
 						"properties": {
 							"domain_migration": {"$ref": "#/components/schemas/DomainMigrationAssignmentResponse"},
 							"channel_threads": {"$ref": "#/components/schemas/ChannelThreadsAssignmentResponse"},
-							"plutonium_page": {"$ref": "#/components/schemas/PlutoniumPageAssignmentResponse"},
 							"voice_p2p": {"$ref": "#/components/schemas/VoiceP2pAssignmentResponse"},
 							"guild_visits": {"$ref": "#/components/schemas/GuildVisitsAssignmentResponse"}
 						},
@@ -32226,7 +31890,7 @@
 							"traitDefinitions": {
 								"type": "array",
 								"items": {"type": "string"},
-								"description": "Available trait definitions (e.g., \"premium\")"
+								"description": "Available trait definitions (e.g., \"supporter\")"
 							},
 							"rules": {
 								"type": "array",
@@ -32538,14 +32202,6 @@
 						"description": "Optional public status page incident history URL",
 						"type": ["string", "null"]
 					},
-					"premium_product_name": {
-						"type": "string",
-						"description": "Name of the premium tier shown by client applications"
-					},
-					"premium_info_url": {
-						"description": "Optional absolute URL of a page describing the premium tier",
-						"type": ["string", "null"]
-					},
 					"sign_in_backdrop_url": {
 						"description": "Optional image URL drawn behind the sign-in card on a self-hosted instance",
 						"type": ["string", "null"]
@@ -32576,8 +32232,6 @@
 					"status_page_url",
 					"status_page_instatus",
 					"status_page_incident_history_url",
-					"premium_product_name",
-					"premium_info_url",
 					"sign_in_backdrop_url",
 					"custom_css",
 					"upload_limit_message",
@@ -32679,10 +32333,6 @@
 				"type": "object",
 				"properties": {
 					"voice_enabled": {"type": "boolean", "description": "Whether voice/video calling is enabled"},
-					"premium_enabled": {
-						"type": "boolean",
-						"description": "Whether this instance has a premium tier, so premium status, gifts and perks apply"
-					},
 					"self_hosted": {"type": "boolean", "description": "Whether this is a self-hosted instance"},
 					"presigned_attachment_uploads": {
 						"type": "boolean",
@@ -32750,7 +32400,6 @@
 				},
 				"required": [
 					"voice_enabled",
-					"premium_enabled",
 					"self_hosted",
 					"presigned_attachment_uploads",
 					"emails_enabled",
@@ -33939,7 +33588,7 @@
 				"description": "IDs of the custom badges assigned to it"
 			},
 			"GuildFeatureSchema": {
-				"description": "A guild feature flag Known values: ANIMATED_ICON, ANIMATED_BANNER, AUDIO_BITRATE_128_KBPS, AUDIO_BITRATE_256_KBPS, AUDIO_BITRATE_384_KBPS, BANNER, CLONE_EMOJI_DISABLED, CLONE_EMOJI_ENABLED, CLONE_STICKER_DISABLED, CLONE_STICKER_ENABLED, DETACHED_BANNER, INVITE_SPLASH, INVITES_DISABLED, RAID_DETECTED, TEXT_CHANNEL_FLEXIBLE_NAMES, HIDE_OWNER_CROWN, MORE_EMOJI, MORE_STICKERS, UNLIMITED_EMOJI, UNLIMITED_STICKERS, EXPRESSION_PURGE_ALLOWED, VANITY_URL, DISCOVERABLE, PARTNERED, VERIFIED, VIP_VOICE, VOICE_E2EE, UNAVAILABLE_FOR_EVERYONE, UNAVAILABLE_FOR_EVERYONE_BUT_STAFF, UNAVAILABLE_HIDDEN, VISIONARY, LARGE_GUILD_OVERRIDE, VERY_LARGE_GUILD, ANNOUNCEMENT_CHANNELS_DISABLED, VISITS_ENABLED (other values allowed)",
+				"description": "A guild feature flag Known values: ANIMATED_ICON, ANIMATED_BANNER, AUDIO_BITRATE_128_KBPS, AUDIO_BITRATE_256_KBPS, AUDIO_BITRATE_384_KBPS, BANNER, CLONE_EMOJI_DISABLED, CLONE_EMOJI_ENABLED, CLONE_STICKER_DISABLED, CLONE_STICKER_ENABLED, DETACHED_BANNER, INVITE_SPLASH, INVITES_DISABLED, RAID_DETECTED, TEXT_CHANNEL_FLEXIBLE_NAMES, HIDE_OWNER_CROWN, MORE_EMOJI, MORE_STICKERS, UNLIMITED_EMOJI, UNLIMITED_STICKERS, EXPRESSION_PURGE_ALLOWED, VANITY_URL, DISCOVERABLE, PARTNERED, VERIFIED, VIP_VOICE, VOICE_E2EE, UNAVAILABLE_FOR_EVERYONE, UNAVAILABLE_FOR_EVERYONE_BUT_STAFF, UNAVAILABLE_HIDDEN, LARGE_GUILD_OVERRIDE, VERY_LARGE_GUILD, ANNOUNCEMENT_CHANNELS_DISABLED, VISITS_ENABLED (other values allowed)",
 				"x-enumNames": [
 					"ANIMATED_ICON",
 					"ANIMATED_BANNER",
@@ -33971,7 +33620,6 @@
 					"UNAVAILABLE_FOR_EVERYONE",
 					"UNAVAILABLE_FOR_EVERYONE_BUT_STAFF",
 					"UNAVAILABLE_HIDDEN",
-					"VISIONARY",
 					"LARGE_GUILD_OVERRIDE",
 					"VERY_LARGE_GUILD",
 					"ANNOUNCEMENT_CHANNELS_DISABLED",
@@ -34008,7 +33656,6 @@
 					"Guild is unavailable for everyone",
 					"Guild is unavailable except for staff",
 					"Guild is hidden when it is force unavailable",
-					"Guild is a visionary guild",
 					"Guild has large guild overrides enabled",
 					"Guild has increased member capacity enabled",
 					"Guild cannot publish announcement messages or gain new followers",
@@ -34291,7 +33938,7 @@
 			},
 			"MessageContentRequest": {
 				"type": "string",
-				"description": "The message content. Non-premium users can send up to 2000 characters; premium users, bots, and webhooks can send up to 4000 characters."
+				"description": "The message content, up to the sender's max_message_length limit (4000 characters by default)."
 			},
 			"RichEmbedFooterRequest": {
 				"anyOf": [
@@ -35428,12 +35075,6 @@
 					"max_participants": {"type": "integer", "minimum": 2, "maximum": 4}
 				},
 				"required": ["enabled", "max_participants"],
-				"additionalProperties": false
-			},
-			"PlutoniumPageAssignmentResponse": {
-				"type": "object",
-				"properties": {"enabled": {"type": "boolean"}},
-				"required": ["enabled"],
 				"additionalProperties": false
 			},
 			"ChannelThreadsAssignmentResponse": {
@@ -37649,18 +37290,6 @@
 				"enum": ["unclaimed", "unverified", "verified"],
 				"type": "string"
 			},
-			"UserPremiumTypes": {
-				"description": "Premium subscription type",
-				"type": "integer",
-				"enum": [0, 1, 2],
-				"format": "int32",
-				"x-enumNames": ["NONE", "SUBSCRIPTION", "LIFETIME"],
-				"x-enumDescriptions": [
-					"No premium subscription",
-					"Active premium subscription",
-					"Lifetime premium subscription"
-				]
-			},
 			"UserAuthenticatorTypes": {
 				"description": "Authenticator type",
 				"type": "integer",
@@ -37690,7 +37319,7 @@
 				]
 			},
 			"HiddenProfileBadgesType": {
-				"maxItems": 1008,
+				"maxItems": 1003,
 				"type": "array",
 				"items": {
 					"type": "string",
@@ -37954,7 +37583,7 @@
 					},
 					"kind": {
 						"type": "string",
-						"description": "Badge type. Known values: staff, partner, bug_hunter, operator_pass, visionary, visionary_number, plutonium, custom, and premium on self-hosted instances. Clients must render unknown values from the other fields."
+						"description": "Badge type. Known values: staff, partner, bug_hunter and custom. Clients must render unknown values from the other fields."
 					},
 					"label": {
 						"type": "string",
@@ -38033,7 +37662,7 @@
 					},
 					"kind": {
 						"type": "string",
-						"description": "Badge type. Known values: staff, partner, bug_hunter, operator_pass, visionary, visionary_number, plutonium, custom, and premium on self-hosted instances. Clients must render unknown values from the other fields."
+						"description": "Badge type. Known values: staff, partner, bug_hunter and custom. Clients must render unknown values from the other fields."
 					},
 					"label": {
 						"type": "string",

@@ -13,7 +13,6 @@ import {customBadgeImageUrl} from '@app/api/instance/InstanceAssetReferences';
 import type {BuiltInBadgeImages} from '@app/api/instance/InstanceConfigRepository';
 import {assertSetupToken} from '@app/api/instance/SetupToken';
 import {getStatusPageDetector} from '@app/api/instance/StatusPageDetector';
-import {isPremiumTieringActive} from '@app/api/limits/InstancePremiumModeCache';
 import {RateLimitMiddleware} from '@app/api/middleware/RateLimitMiddleware';
 import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
 import {getVoiceTopology} from '@app/api/middleware/ServiceRegistry';
@@ -102,7 +101,6 @@ function buildDiscoveryStaticInput(
 		},
 		features: {
 			voice_enabled: Config.voice.enabled,
-			premium_enabled: isPremiumTieringActive(),
 			self_hosted: Config.instance.selfHosted,
 			presigned_attachment_uploads: Config.presignedAttachmentUploadsEnabled,
 			emails_enabled: runtime.emailDeliveryState === EmailDeliveryStates.ON,

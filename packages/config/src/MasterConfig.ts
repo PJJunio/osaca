@@ -3,7 +3,6 @@
 import type {DerivedEndpoints} from '@osaca/config/src/EndpointDerivation';
 
 type RuntimeEnv = 'development' | 'production' | 'test';
-type DatabaseBackend = 'postgres' | 'cassandra';
 type PublicScheme = 'http' | 'https';
 export const CACHE_PURGE_ADAPTER_NAMES = ['none', 'http', 'controller'] as const;
 export type CachePurgeAdapterName = (typeof CACHE_PURGE_ADAPTER_NAMES)[number];
@@ -51,15 +50,6 @@ export interface MasterConfig {
 		media_proxy: string;
 	};
 	database: {
-		backend: DatabaseBackend;
-		cassandra: {
-			hosts: Array<string>;
-			port: number;
-			keyspace: string;
-			local_dc: string;
-			username: string;
-			password: string;
-		};
 		postgres: {
 			url: string;
 			host: string;

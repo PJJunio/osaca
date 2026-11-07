@@ -16,7 +16,6 @@ import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {DELETED_USER_ID, UserFlags} from '@osaca/constants/src/UserConstants';
 import {ConflictError} from '@osaca/errors/src/domains/core/ConflictError';
 import {UnknownUserError} from '@osaca/errors/src/domains/user/UnknownUserError';
-import {BACKGROUND_READ_TIMEOUT_MS} from '@pkgs/cassandra/src/Client';
 
 const OSACA_BOT_USER_ID = 0n;
 const FETCH_USERS_BY_IDS_CQL = Users.selectCql({
@@ -93,11 +92,7 @@ export class UserDataRepository {
 		users: Array<User>;
 		pageState: string | null;
 	}> {
-		const result = await fetchPage<UserRow>(
-			FETCH_ALL_USERS_SCAN_CQL,
-			{},
-			{pageSize: limit, pageState, readTimeout: BACKGROUND_READ_TIMEOUT_MS},
-		);
+		const result = await fetchPage<UserRow>(FETCH_ALL_USERS_SCAN_CQL, {}, {pageSize: limit, pageState});
 		return {
 			users: result.rows.map((user) => new User(user)),
 			pageState: result.pageState,

@@ -91,7 +91,6 @@ catalog:
   astro: 7.4.4
   autoprefixer: 10.6.2
   bowser: 2.15.0
-  cassandra-driver: 4.10.0
   clsx: 2.1.1
   combokeys: 3.0.1
   emoji-regex: 11.0.0

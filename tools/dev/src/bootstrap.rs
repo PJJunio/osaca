@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use crate::gateway::setup_gateway_config;
-use crate::object_store::bootstrap_schema;
 use crate::paths::{ensure_state_dirs, ensure_writable_dev_paths};
 use crate::proc::{PNPM_INSTALL_ENV, RunOptions, run_command, wait_http_success, wait_tcp};
 use anyhow::Result;
@@ -27,7 +26,6 @@ pub async fn bootstrap(skip_install: bool) -> Result<()> {
     )?;
     setup_gateway_config()?;
     wait_core_infra().await?;
-    bootstrap_schema().await?;
     println!("OSACA dev bootstrap complete.");
     Ok(())
 }

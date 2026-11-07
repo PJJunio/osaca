@@ -57,15 +57,6 @@ function defaultConfig(): MasterConfig {
 			media_proxy: 'http://127.0.0.1:8082',
 		},
 		database: {
-			backend: 'postgres',
-			cassandra: {
-				hosts: ['127.0.0.1'],
-				port: 9042,
-				keyspace: 'osaca',
-				local_dc: 'datacenter1',
-				username: '',
-				password: '',
-			},
 			postgres: {
 				url: '',
 				host: '127.0.0.1',
@@ -369,7 +360,7 @@ function validatePostgresConfig(config: MasterConfig): void {
 	assertBoolean(postgres.ssl, 'OSACA_POSTGRES_SSL');
 	assertIdentifier(postgres.kv_table, 'OSACA_POSTGRES_KV_TABLE');
 	assertBoolean(postgres.prepared_statements, 'OSACA_POSTGRES_PREPARED_STATEMENTS');
-	if (config.env !== 'production' || config.database.backend !== 'postgres') {
+	if (config.env !== 'production') {
 		return;
 	}
 	if (!postgres.url) {
@@ -522,7 +513,6 @@ function validatePublicEndpoints(endpoints: DerivedEndpoints): void {
 function normalizeConfig(config: MasterConfig): MasterConfig {
 	assertOneOf(config.env, ['development', 'production', 'test'], 'OSACA_ENV');
 	assertOneOf(config.domain.public_scheme, ['http', 'https'], 'OSACA_PUBLIC_SCHEME');
-	assertOneOf(config.database.backend, ['postgres', 'cassandra'], 'OSACA_DATABASE_BACKEND');
 	assertOneOf(config.internal.kv_mode, ['standalone', 'cluster'], 'OSACA_KV_MODE');
 	assertOneOf(config.integrations.search.engine, ['elasticsearch', 'meilisearch', 'none'], 'OSACA_SEARCH_ENGINE');
 	assertOneOf(config.integrations.cache_purge.adapter, CACHE_PURGE_ADAPTER_NAMES, 'OSACA_CACHE_PURGE_ADAPTER');

@@ -141,11 +141,6 @@ services:
         volume:
           nocopy: true
       - type: volume
-        source: osaca-api-cassandra-node-modules
-        target: /workspaces/osaca/osaca_api/pkgs/cassandra/node_modules
-        volume:
-          nocopy: true
-      - type: volume
         source: osaca-api-elasticsearch-search-node-modules
         target: /workspaces/osaca/osaca_api/pkgs/elasticsearch_search/node_modules
         volume:
@@ -332,7 +327,6 @@ volumes:
   package-snowflake-node-modules:
   osaca-api-cache-node-modules:
   osaca-api-captcha-node-modules:
-  osaca-api-cassandra-node-modules:
   osaca-api-elasticsearch-search-node-modules:
   osaca-api-email-node-modules:
   osaca-api-http-client-node-modules:

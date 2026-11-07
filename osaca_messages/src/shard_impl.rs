@@ -14,7 +14,6 @@ use crate::types::{
     MessageEmbedMedia, MessageEmbedProvider, MessageReference, MessageRequest, MessageResponse,
     MessageSnapshot, MessageStickerItem,
 };
-use crate::udt;
 use base64::prelude::{BASE64_STANDARD, Engine};
 use chrono::{DateTime, Utc};
 use osaca_common::time::{unix_millis, unix_seconds};
@@ -23,18 +22,8 @@ use osaca_svc::shard::ShardService;
 use osaca_svc::transport::Transport;
 use osaca_svc::{postgres, postgres::BigIntBound, postgres::KeyPart};
 use futures::stream::{self, StreamExt};
-#[cfg(feature = "scylla")]
-use scylla::DeserializeRow;
-#[cfg(feature = "scylla")]
-use scylla::client::session::Session;
-#[cfg(feature = "scylla")]
-use scylla::response::query_result::QueryRowsResult;
-#[cfg(feature = "scylla")]
-use scylla::statement::prepared::PreparedStatement;
 use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
-#[cfg(feature = "scylla")]
-use std::sync::Arc;
 use url::Url;
 
 const BUCKET_DURATION_MS: i64 = 864_000_000;
@@ -113,15 +102,6 @@ fn assert_safe_byte_size(value: i64) -> i64 {
     value
 }
 
-#[cfg(feature = "scylla")]
-const MESSAGE_COLUMNS: &str = "\
-    message_id, channel_id, bucket, author_id, type, \
-    webhook_id, webhook_name, webhook_avatar_hash, \
-    content, edited_timestamp, pinned_timestamp, flags, mention_everyone, \
-    mention_users, mention_roles, mention_channels, \
-    has_reaction, version, \
-    attachments, embeds, sticker_items, message_reference, call, message_snapshots";
-
 pub struct MessagesShard<T> {
     storage: MessagesStorage,
     transport: T,
@@ -133,8 +113,6 @@ type DeletedMessageKeys = std::sync::Arc<std::sync::Mutex<Vec<(i64, i32, i64)>>>
 #[derive(Clone)]
 enum MessagesStorage {
     Postgres(PostgresMessagesStorage),
-    #[cfg(feature = "scylla")]
-    Scylla(Box<ScyllaMessagesStorage>),
     #[cfg(test)]
     Deletions(DeletedMessageKeys),
 }
@@ -144,53 +122,6 @@ struct PostgresMessagesStorage {
     kv: postgres::KvClient,
 }
 
-#[cfg(feature = "scylla")]
-#[derive(Clone)]
-struct ScyllaMessagesStorage {
-    db: Arc<Session>,
-    stmt_get_by_id: PreparedStatement,
-    stmt_get_latest: PreparedStatement,
-    stmt_get_before: PreparedStatement,
-    stmt_get_after: PreparedStatement,
-    stmt_list_buckets_desc: PreparedStatement,
-    stmt_list_buckets_asc: PreparedStatement,
-    stmt_get_reactions: PreparedStatement,
-    stmt_get_reactions_for_messages: PreparedStatement,
-    stmt_get_attachment_decay: PreparedStatement,
-    stmt_get_attachment_decay_many: PreparedStatement,
-    stmt_delete_message: PreparedStatement,
-}
-
-#[cfg_attr(feature = "scylla", derive(DeserializeRow))]
-#[derive(Debug)]
-struct MessageDbRow {
-    message_id: i64,
-    channel_id: i64,
-    bucket: i32,
-    author_id: Option<i64>,
-    r#type: Option<i32>,
-    webhook_id: Option<i64>,
-    webhook_name: Option<String>,
-    webhook_avatar_hash: Option<String>,
-    content: Option<String>,
-    edited_timestamp: Option<DateTime<Utc>>,
-    pinned_timestamp: Option<DateTime<Utc>>,
-    flags: Option<i32>,
-    mention_everyone: Option<bool>,
-    mention_users: Option<std::collections::HashSet<i64>>,
-    mention_roles: Option<std::collections::HashSet<i64>>,
-    mention_channels: Option<std::collections::HashSet<i64>>,
-    has_reaction: Option<bool>,
-    version: Option<i32>,
-    attachments: Option<Vec<udt::AttachmentUdt>>,
-    embeds: Option<Vec<udt::EmbedUdt>>,
-    sticker_items: Option<Vec<udt::StickerItemUdt>>,
-    message_reference: Option<udt::MessageReferenceUdt>,
-    call: Option<udt::MessageCallUdt>,
-    message_snapshots: Option<Vec<udt::MessageSnapshotUdt>>,
-}
-
-#[cfg_attr(feature = "scylla", derive(DeserializeRow))]
 #[derive(Debug)]
 struct MessageReactionDbRow {
     user_id: i64,
@@ -198,30 +129,6 @@ struct MessageReactionDbRow {
     emoji_name: String,
     emoji_animated: Option<bool>,
     created_at: Option<DateTime<Utc>>,
-}
-
-#[cfg(feature = "scylla")]
-#[derive(Debug, DeserializeRow)]
-struct ChannelMessageBucketDbRow {
-    bucket: i32,
-}
-
-#[cfg(feature = "scylla")]
-#[derive(Debug, DeserializeRow)]
-struct BatchedMessageReactionDbRow {
-    message_id: i64,
-    user_id: i64,
-    emoji_id: i64,
-    emoji_name: String,
-    emoji_animated: Option<bool>,
-    created_at: Option<DateTime<Utc>>,
-}
-
-#[cfg(feature = "scylla")]
-#[derive(Debug, DeserializeRow)]
-struct AttachmentDecayDbRow {
-    attachment_id: i64,
-    expires_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -386,81 +293,6 @@ impl<T: Transport> MessagesShard<T> {
     pub fn new_postgres(kv: postgres::KvClient, transport: T) -> anyhow::Result<Self> {
         Ok(Self {
             storage: MessagesStorage::Postgres(PostgresMessagesStorage { kv }),
-            transport,
-        })
-    }
-
-    #[cfg(feature = "scylla")]
-    pub async fn new_scylla(db: Arc<Session>, transport: T) -> anyhow::Result<Self> {
-        let stmt_get_by_id = db
-            .prepare(format!(
-                "SELECT {MESSAGE_COLUMNS} FROM messages WHERE channel_id = ? AND bucket = ? AND message_id = ? LIMIT 1"
-            ))
-            .await?;
-        let stmt_get_latest = db
-            .prepare(format!(
-                "SELECT {MESSAGE_COLUMNS} FROM messages WHERE channel_id = ? AND bucket = ? ORDER BY message_id DESC LIMIT ?"
-            ))
-            .await?;
-        let stmt_get_before = db
-            .prepare(format!(
-                "SELECT {MESSAGE_COLUMNS} FROM messages WHERE channel_id = ? AND bucket = ? AND message_id < ? ORDER BY message_id DESC LIMIT ?"
-            ))
-            .await?;
-        let stmt_get_after = db
-            .prepare(format!(
-                "SELECT {MESSAGE_COLUMNS} FROM messages WHERE channel_id = ? AND bucket = ? AND message_id > ? ORDER BY message_id ASC LIMIT ?"
-            ))
-            .await?;
-        let stmt_list_buckets_desc = db
-            .prepare(
-                "SELECT bucket FROM channel_message_buckets WHERE channel_id = ? AND bucket >= ? AND bucket <= ? ORDER BY bucket DESC LIMIT ?"
-            )
-            .await?;
-        let stmt_list_buckets_asc = db
-            .prepare(
-                "SELECT bucket FROM channel_message_buckets WHERE channel_id = ? AND bucket >= ? AND bucket <= ? ORDER BY bucket ASC LIMIT ?"
-            )
-            .await?;
-        let stmt_get_reactions = db
-            .prepare(
-                "SELECT user_id, emoji_id, emoji_name, emoji_animated, created_at FROM message_reactions WHERE channel_id = ? AND bucket = ? AND message_id = ?"
-            )
-            .await?;
-        let stmt_get_reactions_for_messages = db
-            .prepare(
-                "SELECT message_id, user_id, emoji_id, emoji_name, emoji_animated, created_at FROM message_reactions WHERE channel_id = ? AND bucket = ? AND message_id IN ?"
-            )
-            .await?;
-        let stmt_get_attachment_decay = db
-            .prepare(
-                "SELECT attachment_id, expires_at FROM attachment_decay_by_id WHERE attachment_id = ? LIMIT 1"
-            )
-            .await?;
-        let stmt_get_attachment_decay_many = db
-            .prepare(
-                "SELECT attachment_id, expires_at FROM attachment_decay_by_id WHERE attachment_id IN ?"
-            )
-            .await?;
-        let stmt_delete_message = db
-            .prepare("DELETE FROM messages WHERE channel_id = ? AND bucket = ? AND message_id = ?")
-            .await?;
-
-        Ok(Self {
-            storage: MessagesStorage::Scylla(Box::new(ScyllaMessagesStorage {
-                db,
-                stmt_get_by_id,
-                stmt_get_latest,
-                stmt_get_before,
-                stmt_get_after,
-                stmt_list_buckets_desc,
-                stmt_list_buckets_asc,
-                stmt_get_reactions,
-                stmt_get_reactions_for_messages,
-                stmt_get_attachment_decay,
-                stmt_get_attachment_decay_many,
-                stmt_delete_message,
-            })),
             transport,
         })
     }
@@ -1759,10 +1591,6 @@ impl MessagesStorage {
             MessagesStorage::Postgres(storage) => {
                 storage.get_by_id(channel_id, bucket, message_id).await
             }
-            #[cfg(feature = "scylla")]
-            MessagesStorage::Scylla(storage) => {
-                storage.get_by_id(channel_id, bucket, message_id).await
-            }
             #[cfg(test)]
             MessagesStorage::Deletions(_) => Ok(None),
         }
@@ -1781,12 +1609,6 @@ impl MessagesStorage {
         }
         match self {
             MessagesStorage::Postgres(storage) => {
-                storage
-                    .list_buckets(channel_id, min_bucket, max_bucket, limit, desc)
-                    .await
-            }
-            #[cfg(feature = "scylla")]
-            MessagesStorage::Scylla(storage) => {
                 storage
                     .list_buckets(channel_id, min_bucket, max_bucket, limit, desc)
                     .await
@@ -1810,10 +1632,6 @@ impl MessagesStorage {
                     .fetch_bucket(channel_id, bucket, bound, desc, limit)
                     .await
             }
-            #[cfg(feature = "scylla")]
-            MessagesStorage::Scylla(storage) => {
-                storage.fetch_bucket(channel_id, bucket, bound, limit).await
-            }
             #[cfg(test)]
             MessagesStorage::Deletions(_) => Ok(Vec::new()),
         }
@@ -1827,10 +1645,6 @@ impl MessagesStorage {
     ) -> anyhow::Result<()> {
         match self {
             MessagesStorage::Postgres(storage) => {
-                storage.delete_message(channel_id, bucket, message_id).await
-            }
-            #[cfg(feature = "scylla")]
-            MessagesStorage::Scylla(storage) => {
                 storage.delete_message(channel_id, bucket, message_id).await
             }
             #[cfg(test)]
@@ -1862,17 +1676,6 @@ impl MessagesStorage {
                     )
                     .await
             }
-            #[cfg(feature = "scylla")]
-            MessagesStorage::Scylla(storage) => {
-                storage
-                    .fetch_reactions_for_message_batch(
-                        channel_id,
-                        bucket,
-                        message_ids,
-                        viewer_user_id,
-                    )
-                    .await
-            }
             #[cfg(test)]
             MessagesStorage::Deletions(_) => HashMap::new(),
         }
@@ -1884,10 +1687,6 @@ impl MessagesStorage {
     ) -> anyhow::Result<HashMap<i64, DateTime<Utc>>> {
         match self {
             MessagesStorage::Postgres(storage) => {
-                storage.fetch_attachment_decay_batch(attachment_ids).await
-            }
-            #[cfg(feature = "scylla")]
-            MessagesStorage::Scylla(storage) => {
                 storage.fetch_attachment_decay_batch(attachment_ids).await
             }
             #[cfg(test)]
@@ -2050,234 +1849,6 @@ impl PostgresMessagesStorage {
         rows.into_iter()
             .map(|(_, row)| decode_postgres_attachment_decay(row))
             .collect::<anyhow::Result<HashMap<_, _>>>()
-    }
-}
-
-#[cfg(feature = "scylla")]
-impl ScyllaMessagesStorage {
-    async fn get_by_id(
-        &self,
-        channel_id: i64,
-        bucket: i32,
-        message_id: i64,
-    ) -> anyhow::Result<Option<Message>> {
-        let result = self
-            .db
-            .execute_unpaged(&self.stmt_get_by_id, (channel_id, bucket, message_id))
-            .await?;
-        let rows = result.into_rows_result()?;
-        Ok(rows.maybe_first_row::<MessageDbRow>()?.map(Into::into))
-    }
-
-    async fn list_buckets(
-        &self,
-        channel_id: i64,
-        min_bucket: i32,
-        max_bucket: i32,
-        limit: u32,
-        desc: bool,
-    ) -> anyhow::Result<Vec<i32>> {
-        let stmt = if desc {
-            &self.stmt_list_buckets_desc
-        } else {
-            &self.stmt_list_buckets_asc
-        };
-        let result = self
-            .db
-            .execute_unpaged(
-                stmt,
-                (
-                    channel_id,
-                    min_bucket,
-                    max_bucket,
-                    limit.min(i32::MAX as u32) as i32,
-                ),
-            )
-            .await?;
-        bucket_rows_to_vec(result.into_rows_result()?)
-    }
-
-    async fn fetch_bucket(
-        &self,
-        channel_id: i64,
-        bucket: i32,
-        bound: Option<BucketBound>,
-        limit: i32,
-    ) -> anyhow::Result<Vec<Message>> {
-        let result = match bound {
-            None => {
-                self.db
-                    .execute_unpaged(&self.stmt_get_latest, (channel_id, bucket, limit))
-                    .await?
-            }
-            Some(BucketBound::Before(before_id)) => {
-                self.db
-                    .execute_unpaged(
-                        &self.stmt_get_before,
-                        (channel_id, bucket, before_id, limit),
-                    )
-                    .await?
-            }
-            Some(BucketBound::After(after_id)) => {
-                self.db
-                    .execute_unpaged(&self.stmt_get_after, (channel_id, bucket, after_id, limit))
-                    .await?
-            }
-        };
-        rows_to_messages(result.into_rows_result()?)
-    }
-
-    async fn delete_message(
-        &self,
-        channel_id: i64,
-        bucket: i32,
-        message_id: i64,
-    ) -> anyhow::Result<()> {
-        self.db
-            .execute_unpaged(&self.stmt_delete_message, (channel_id, bucket, message_id))
-            .await?;
-        Ok(())
-    }
-
-    async fn fetch_reactions_for_message_batch(
-        &self,
-        channel_id: i64,
-        bucket: i32,
-        message_ids: Vec<i64>,
-        viewer_user_id: i64,
-    ) -> HashMap<i64, Vec<ApiMessageReactionResponse>> {
-        let result = self
-            .db
-            .execute_unpaged(
-                &self.stmt_get_reactions_for_messages,
-                (channel_id, bucket, message_ids.clone()),
-            )
-            .await;
-        let Ok(result) = result else {
-            return self
-                .fetch_reactions_for_messages_individually(
-                    channel_id,
-                    bucket,
-                    message_ids,
-                    viewer_user_id,
-                )
-                .await;
-        };
-        let Ok(rows) = result.into_rows_result() else {
-            return self
-                .fetch_reactions_for_messages_individually(
-                    channel_id,
-                    bucket,
-                    message_ids,
-                    viewer_user_id,
-                )
-                .await;
-        };
-        let Ok(rows) = rows.rows::<BatchedMessageReactionDbRow>() else {
-            return HashMap::new();
-        };
-        let mut by_message: HashMap<i64, Vec<MessageReactionDbRow>> = HashMap::new();
-        for row in rows.filter_map(Result::ok) {
-            by_message
-                .entry(row.message_id)
-                .or_default()
-                .push(MessageReactionDbRow {
-                    user_id: row.user_id,
-                    emoji_id: row.emoji_id,
-                    emoji_name: row.emoji_name,
-                    emoji_animated: row.emoji_animated,
-                    created_at: row.created_at,
-                });
-        }
-        by_message
-            .into_iter()
-            .filter_map(|(message_id, reactions)| {
-                let reactions = map_reactions(reactions, viewer_user_id);
-                (!reactions.is_empty()).then_some((message_id, reactions))
-            })
-            .collect()
-    }
-
-    async fn fetch_reactions_for_messages_individually(
-        &self,
-        channel_id: i64,
-        bucket: i32,
-        message_ids: Vec<i64>,
-        viewer_user_id: i64,
-    ) -> HashMap<i64, Vec<ApiMessageReactionResponse>> {
-        stream::iter(message_ids)
-            .map(|message_id| async move {
-                let result = self
-                    .db
-                    .execute_unpaged(&self.stmt_get_reactions, (channel_id, bucket, message_id))
-                    .await
-                    .ok()?;
-                let rows = result.into_rows_result().ok()?;
-                let reactions: Vec<MessageReactionDbRow> = rows
-                    .rows::<MessageReactionDbRow>()
-                    .ok()?
-                    .filter_map(Result::ok)
-                    .collect();
-                let reactions = map_reactions(reactions, viewer_user_id);
-                (!reactions.is_empty()).then_some((message_id, reactions))
-            })
-            .buffer_unordered(ENRICHMENT_QUERY_CONCURRENCY)
-            .collect::<Vec<_>>()
-            .await
-            .into_iter()
-            .flatten()
-            .collect()
-    }
-
-    async fn fetch_attachment_decay_batch(
-        &self,
-        attachment_ids: Vec<i64>,
-    ) -> anyhow::Result<HashMap<i64, DateTime<Utc>>> {
-        let result = self
-            .db
-            .execute_unpaged(
-                &self.stmt_get_attachment_decay_many,
-                (attachment_ids.clone(),),
-            )
-            .await;
-        let Ok(result) = result else {
-            return self
-                .fetch_attachment_decay_individually(attachment_ids)
-                .await;
-        };
-        let Ok(rows) = result.into_rows_result() else {
-            return self
-                .fetch_attachment_decay_individually(attachment_ids)
-                .await;
-        };
-        let rows = rows.rows::<AttachmentDecayDbRow>()?;
-        rows.map(|row| {
-            row.map(|row| (row.attachment_id, row.expires_at))
-                .map_err(Into::into)
-        })
-        .collect::<anyhow::Result<HashMap<_, _>>>()
-    }
-
-    async fn fetch_attachment_decay_individually(
-        &self,
-        attachment_ids: Vec<i64>,
-    ) -> anyhow::Result<HashMap<i64, DateTime<Utc>>> {
-        let rows = stream::iter(attachment_ids)
-            .map(|attachment_id| async move {
-                let result = self
-                    .db
-                    .execute_unpaged(&self.stmt_get_attachment_decay, (attachment_id,))
-                    .await?;
-                let rows = result.into_rows_result()?;
-                let row = rows.maybe_first_row::<AttachmentDecayDbRow>()?;
-                Ok::<_, anyhow::Error>(row.map(|row| (row.attachment_id, row.expires_at)))
-            })
-            .buffer_unordered(ENRICHMENT_QUERY_CONCURRENCY)
-            .collect::<Vec<_>>()
-            .await
-            .into_iter()
-            .collect::<anyhow::Result<Vec<_>>>()?;
-        Ok(rows.into_iter().flatten().collect())
     }
 }
 
@@ -2581,20 +2152,6 @@ fn decode_postgres_attachment_decay(
     let expires_at = DateTime::<Utc>::from_timestamp_millis(row.expires_at)
         .ok_or_else(|| anyhow::anyhow!("invalid attachment decay timestamp"))?;
     Ok((row.attachment_id, expires_at))
-}
-
-#[cfg(feature = "scylla")]
-fn rows_to_messages(rows: QueryRowsResult) -> anyhow::Result<Vec<Message>> {
-    let rows: Vec<MessageDbRow> = rows.rows::<MessageDbRow>()?.collect::<Result<_, _>>()?;
-    Ok(rows.into_iter().map(Message::from).collect())
-}
-
-#[cfg(feature = "scylla")]
-fn bucket_rows_to_vec(rows: QueryRowsResult) -> anyhow::Result<Vec<i32>> {
-    let rows: Vec<ChannelMessageBucketDbRow> = rows
-        .rows::<ChannelMessageBucketDbRow>()?
-        .collect::<Result<_, _>>()?;
-    Ok(rows.into_iter().map(|row| row.bucket).collect())
 }
 
 fn bucket_page_limit(message_limit: u32) -> u32 {
@@ -3183,238 +2740,6 @@ fn media_proxy_url_at(input_url: &str, options: &ResponseBuildOptions, now_secs:
         options.media_proxy_secret_key.as_bytes(),
     )
     .unwrap_or_else(|| input_url.to_owned())
-}
-
-fn dt_to_epoch_millis(dt: &DateTime<Utc>) -> i64 {
-    dt.timestamp_millis()
-}
-
-fn convert_attachment(a: udt::AttachmentUdt) -> MessageAttachment {
-    MessageAttachment {
-        attachment_id: a.attachment_id,
-        filename: a.filename,
-        size: a.size,
-        title: a.title,
-        description: a.description,
-        width: a.width,
-        height: a.height,
-        duration: a.duration,
-        content_type: a.content_type,
-        content_hash: a.content_hash,
-        placeholder: a.placeholder,
-        flags: a.flags,
-        nsfw: a.nsfw,
-        duration_secs: a.duration_secs,
-        waveform: a.waveform,
-    }
-}
-
-fn convert_embed_author(a: udt::EmbedAuthorUdt) -> MessageEmbedAuthor {
-    MessageEmbedAuthor {
-        name: a.name,
-        url: a.url,
-        icon_url: a.icon_url,
-    }
-}
-
-fn convert_embed_field(f: udt::EmbedFieldUdt) -> MessageEmbedField {
-    MessageEmbedField {
-        name: f.name,
-        value: f.value,
-        is_inline: f.is_inline,
-    }
-}
-
-fn convert_embed_footer(f: udt::EmbedFooterUdt) -> MessageEmbedFooter {
-    MessageEmbedFooter {
-        text: f.text,
-        icon_url: f.icon_url,
-    }
-}
-
-fn convert_embed_media(m: udt::EmbedMediaUdt) -> MessageEmbedMedia {
-    MessageEmbedMedia {
-        url: m.url,
-        width: m.width,
-        height: m.height,
-        duration: m.duration,
-        description: m.description,
-        content_type: m.content_type,
-        content_hash: m.content_hash,
-        placeholder: m.placeholder,
-        flags: m.flags,
-    }
-}
-
-fn convert_embed_provider(p: udt::EmbedProviderUdt) -> MessageEmbedProvider {
-    MessageEmbedProvider {
-        name: p.name,
-        url: p.url,
-    }
-}
-
-fn convert_embed_child(c: udt::EmbedChildUdt) -> MessageEmbedChild {
-    MessageEmbedChild {
-        embed_type: c.embed_type,
-        title: c.title,
-        description: c.description,
-        url: c.url,
-        timestamp: c.timestamp.as_ref().map(dt_to_epoch_millis),
-        color: c.color,
-        author: c.author.map(convert_embed_author),
-        provider: c.provider.map(convert_embed_provider),
-        thumbnail: c.thumbnail.map(convert_embed_media),
-        image: c.image.map(convert_embed_media),
-        video: c.video.map(convert_embed_media),
-        footer: c.footer.map(convert_embed_footer),
-        fields: c
-            .fields
-            .map(|v| v.into_iter().map(convert_embed_field).collect()),
-        nsfw: c.nsfw,
-        audio: c.audio.map(convert_embed_media),
-        html: c.html,
-        html_width: c.html_width,
-        html_height: c.html_height,
-    }
-}
-
-fn convert_embed(e: udt::EmbedUdt) -> MessageEmbed {
-    MessageEmbed {
-        embed_type: e.embed_type,
-        title: e.title,
-        description: e.description,
-        url: e.url,
-        timestamp: e.timestamp.as_ref().map(dt_to_epoch_millis),
-        color: e.color,
-        author: e.author.map(convert_embed_author),
-        provider: e.provider.map(convert_embed_provider),
-        thumbnail: e.thumbnail.map(convert_embed_media),
-        image: e.image.map(convert_embed_media),
-        video: e.video.map(convert_embed_media),
-        footer: e.footer.map(convert_embed_footer),
-        fields: e
-            .fields
-            .map(|v| v.into_iter().map(convert_embed_field).collect()),
-        nsfw: e.nsfw,
-        children: e
-            .children
-            .map(|v| v.into_iter().map(convert_embed_child).collect()),
-        audio: e.audio.map(convert_embed_media),
-        html: e.html,
-        html_width: e.html_width,
-        html_height: e.html_height,
-    }
-}
-
-fn convert_sticker_item(s: udt::StickerItemUdt) -> MessageStickerItem {
-    MessageStickerItem {
-        sticker_id: s.sticker_id,
-        name: s.name,
-        format_type: s.format_type,
-        animated: s.animated,
-    }
-}
-
-fn convert_message_reference(r: udt::MessageReferenceUdt) -> MessageReference {
-    MessageReference {
-        channel_id: r.channel_id,
-        message_id: r.message_id,
-        guild_id: r.guild_id,
-        reference_type: r.reference_type,
-    }
-}
-
-fn convert_message_call(c: udt::MessageCallUdt) -> MessageCall {
-    MessageCall {
-        participant_ids: c
-            .participant_ids
-            .map(|s| s.into_iter().collect())
-            .unwrap_or_default(),
-        ended_timestamp: c.ended_timestamp.as_ref().map(dt_to_epoch_millis),
-    }
-}
-
-fn convert_message_snapshot(s: udt::MessageSnapshotUdt) -> MessageSnapshot {
-    let edited_ts = s
-        .edited_timestamp
-        .as_ref()
-        .or(s.edited_timestmap.as_ref())
-        .map(dt_to_epoch_millis);
-
-    MessageSnapshot {
-        content: s.content,
-        timestamp: s.timestamp.as_ref().map(dt_to_epoch_millis),
-        edited_timestamp: edited_ts,
-        mention_users: s
-            .mention_users
-            .map(|s| s.into_iter().collect())
-            .unwrap_or_default(),
-        mention_roles: s
-            .mention_roles
-            .map(|s| s.into_iter().collect())
-            .unwrap_or_default(),
-        mention_channels: s
-            .mention_channels
-            .map(|s| s.into_iter().collect())
-            .unwrap_or_default(),
-        attachments: s
-            .attachments
-            .map(|v| v.into_iter().map(convert_attachment).collect()),
-        embeds: s.embeds.map(|v| v.into_iter().map(convert_embed).collect()),
-        sticker_items: s
-            .sticker_items
-            .map(|v| v.into_iter().map(convert_sticker_item).collect()),
-        snapshot_type: s.snapshot_type,
-        flags: s.flags,
-    }
-}
-
-impl From<MessageDbRow> for Message {
-    fn from(row: MessageDbRow) -> Self {
-        Self {
-            message_id: row.message_id,
-            channel_id: row.channel_id,
-            bucket: row.bucket,
-            author_id: row.author_id,
-            message_type: row.r#type.unwrap_or_default(),
-            webhook_id: row.webhook_id,
-            webhook_name: row.webhook_name,
-            webhook_avatar_hash: row.webhook_avatar_hash,
-            content: row.content,
-            edited_timestamp: row.edited_timestamp.as_ref().map(dt_to_epoch_millis),
-            pinned: Some(row.pinned_timestamp.is_some()),
-            flags: row.flags.map(i64::from),
-            mention_everyone: row.mention_everyone,
-            mention_users: row
-                .mention_users
-                .map(|s| s.into_iter().collect())
-                .unwrap_or_default(),
-            mention_roles: row
-                .mention_roles
-                .map(|s| s.into_iter().collect())
-                .unwrap_or_default(),
-            mention_channels: row
-                .mention_channels
-                .map(|s| s.into_iter().collect())
-                .unwrap_or_default(),
-            has_reaction: row.has_reaction,
-            version: row.version.unwrap_or_default(),
-            attachments: row
-                .attachments
-                .map(|v| v.into_iter().map(convert_attachment).collect()),
-            embeds: row
-                .embeds
-                .map(|v| v.into_iter().map(convert_embed).collect()),
-            sticker_items: row
-                .sticker_items
-                .map(|v| v.into_iter().map(convert_sticker_item).collect()),
-            message_reference: row.message_reference.map(convert_message_reference),
-            call: row.call.map(convert_message_call),
-            message_snapshots: row
-                .message_snapshots
-                .map(|v| v.into_iter().map(convert_message_snapshot).collect()),
-        }
-    }
 }
 
 #[cfg(test)]

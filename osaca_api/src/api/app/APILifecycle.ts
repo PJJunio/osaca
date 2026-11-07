@@ -46,7 +46,6 @@ import {JetStreamWorkerQueue} from '@app/api/worker/JetStreamWorkerQueue';
 import {WorkerService} from '@app/api/worker/WorkerService';
 import {registerMetricsSection} from '@osaca/hono/src/middleware/Metrics';
 import type {LoggerInterface} from '@osaca/logger/src/LoggerInterface';
-import {getClient, initCassandra, shutdownCassandra} from '@pkgs/cassandra/src/Client';
 import {JetStreamConnectionManager} from '@pkgs/nats/src/JetStreamConnectionManager';
 import {getDefaultPostgresClient, initPostgres, shutdownPostgres} from '@pkgs/postgres/src/Client';
 
@@ -118,10 +117,6 @@ export function whenSearchReady(): Promise<void> {
 	return searchReady;
 }
 
-function unsupportedDatabaseBackend(backend: never): never {
-	throw new Error(`Unsupported database backend during shutdown: ${String(backend)}`);
-}
-
 async function initializeSearchAndWarmup(
 	kvClient: ReturnType<typeof getKVClient>,
 	logger: LoggerInterface,
@@ -180,42 +175,13 @@ export function createInitializer(config: APIConfig, logger: LoggerInterface): (
 	return async (): Promise<void> => {
 		try {
 			logger.info('Initializing API service...');
-			if (config.database.backend === 'postgres' && !hasDatabaseQueryExecutor()) {
+			if (!hasDatabaseQueryExecutor()) {
 				await initPostgres(config.postgres, (diagnostic) => logger.error(diagnostic, 'Postgres connection error'));
 				const postgres = getDefaultPostgresClient();
 				await ensurePostgresKvSchema(postgres);
 				setDatabaseQueryExecutor(new PostgresKvQueryExecutor(postgres));
 				logger.info('Postgres KV client initialized');
-			} else if (config.database.backend === 'postgres') {
-				logger.info('Using injected database query executor for tests');
-			}
-			if (config.database.backend === 'cassandra' && !hasDatabaseQueryExecutor()) {
-				const {ensureCassandraSchema, logMissingCassandraKeyspace} = await import(
-					'@app/api/database/CassandraSchemaStartup'
-				);
-				await initCassandra({
-					hosts: config.cassandra.hosts.split(',').filter(Boolean),
-					port: config.cassandra.port,
-					keyspace: config.cassandra.keyspace,
-					localDc: config.cassandra.localDc,
-					username: config.cassandra.username || undefined,
-					password: config.cassandra.password || undefined,
-				}).catch((error: unknown) => {
-					if (config.instance.selfHosted) {
-						logMissingCassandraKeyspace(error, config.cassandra.keyspace, config.cassandra.localDc, logger);
-					}
-					throw error;
-				});
-				logger.info('Cassandra client initialized');
-				if (config.instance.selfHosted) {
-					await ensureCassandraSchema({
-						client: getClient(),
-						keyspace: config.cassandra.keyspace,
-						kv: getKVClient(),
-						logger,
-					});
-				}
-			} else if (config.database.backend === 'cassandra') {
+			} else {
 				logger.info('Using injected database query executor for tests');
 			}
 			const kvClient = getKVClient();
@@ -295,7 +261,7 @@ export function createInitializer(config: APIConfig, logger: LoggerInterface): (
 	};
 }
 
-export function createShutdown(config: APIConfig, logger: LoggerInterface): () => Promise<void> {
+export function createShutdown(_config: APIConfig, logger: LoggerInterface): () => Promise<void> {
 	return async (): Promise<void> => {
 		logger.info('Shutting down API service...');
 		try {
@@ -354,25 +320,11 @@ export function createShutdown(config: APIConfig, logger: LoggerInterface): () =
 			logger.error({error}, 'Error shutting down report service');
 		}
 		setDatabaseQueryExecutor(null);
-		switch (config.database.backend) {
-			case 'postgres':
-				try {
-					await shutdownPostgres();
-					logger.info('Postgres client shut down');
-				} catch (error) {
-					logger.error({error}, 'Error shutting down Postgres client');
-				}
-				break;
-			case 'cassandra':
-				try {
-					await shutdownCassandra();
-					logger.info('Cassandra client shut down');
-				} catch (error) {
-					logger.error({error}, 'Error shutting down Cassandra client');
-				}
-				break;
-			default:
-				unsupportedDatabaseBackend(config.database.backend);
+		try {
+			await shutdownPostgres();
+			logger.info('Postgres client shut down');
+		} catch (error) {
+			logger.error({error}, 'Error shutting down Postgres client');
 		}
 		try {
 			closeOwnedKVClient();

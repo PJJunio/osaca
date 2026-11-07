@@ -82,7 +82,6 @@ var envSections = []envSection{
 var envInternalGroups = []envSection{
 	{"hosted", "Hosted service only", "Only OSACA's hosted service uses these.", ""},
 	{"cluster", "Gateway clustering", "The stack runs the gateway as one node.", ""},
-	{"cassandra", "Cassandra", "The stack runs Postgres only.", ""},
 	{"docs", "Docs site", "The docs site isn't part of the compose stack.", ""},
 	{"dev", "Tests and development", "Only tests and development use these.", ""},
 }

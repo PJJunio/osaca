@@ -2,7 +2,6 @@
 
 use anyhow::{Context, Result, bail};
 use clap::{Args, Parser, Subcommand};
-use osaca_dev::cassandra::{apply_schema, compute_diff, verify_schema, write_diff_file};
 use osaca_dev::desktop::{
     DEFAULT_INSTALL_DIR, DesktopAppOptions, RendererDelivery, build_desktop, desktop_app,
     install_desktop_app, install_desktop_dependencies, package_desktop, run_desktop,
@@ -39,7 +38,6 @@ enum Command {
     Dev(DevArgs),
     RustServices(RustServicesArgs),
     Infra(InfraArgs),
-    Cassandra(CassandraArgs),
     Desktop(DesktopArgs),
     MediaProxy(MediaProxyArgs),
     Tunnel(TunnelArgs),
@@ -90,22 +88,6 @@ enum InfraCommand {
     Start,
     Stop,
     Status,
-}
-
-#[derive(Debug, Args)]
-struct CassandraArgs {
-    #[command(subcommand)]
-    command: CassandraCommand,
-}
-
-#[derive(Debug, Subcommand)]
-enum CassandraCommand {
-    Diff {
-        #[arg(long)]
-        output: Option<PathBuf>,
-    },
-    Apply,
-    Verify,
 }
 
 #[derive(Debug, Args)]
@@ -244,23 +226,6 @@ async fn main() -> Result<()> {
             std::process::exit(osaca_dev::rust_services::run_rust_services(&args.services).await?)
         }
         Command::Infra(args) => run_infra(args.command)?,
-        Command::Cassandra(args) => match args.command {
-            CassandraCommand::Diff { output } => {
-                let diff = compute_diff(None).await?;
-                let output = write_diff_file(&diff, output.as_deref())?;
-                println!("Wrote Cassandra schema diff to {}", output.display());
-                if !diff.errors.is_empty() {
-                    for error in diff.errors {
-                        println!("error: {error}");
-                    }
-                    std::process::exit(1);
-                }
-            }
-            CassandraCommand::Apply => {
-                apply_schema(None).await?;
-            }
-            CassandraCommand::Verify => verify_schema(None, None).await?,
-        },
         Command::Desktop(args) => match args.command {
             DesktopCommand::Deps => install_desktop_dependencies()?,
             DesktopCommand::Build {

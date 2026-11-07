@@ -11,7 +11,6 @@
 {{- $c := dict }}
 {{- $_ := set $c "OSACA_ENV" "production" }}
 {{- $_ := set $c "OSACA_SELF_HOSTED" "true" }}
-{{- $_ := set $c "OSACA_DATABASE_BACKEND" "postgres" }}
 {{- $_ := set $c "OSACA_TRUST_CLIENT_IP_HEADER" "true" }}
 {{- $_ := set $c "OSACA_BASE_DOMAIN" $v.domain }}
 {{- $_ := set $c "OSACA_PUBLIC_SCHEME" $v.scheme }}

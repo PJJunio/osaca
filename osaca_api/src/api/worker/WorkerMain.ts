@@ -23,7 +23,6 @@ import {startContentBlocklistCaches, stopContentBlocklistCaches} from '@app/api/
 import {
 	closeOwnedKVClient,
 	createSnowflakeService,
-	getKVClient,
 	setInjectedSnowflakeService,
 	setInjectedWorkerService,
 	shutdownVoiceResources,
@@ -67,7 +66,6 @@ import {workerTasks} from '@app/api/worker/WorkerTaskRegistry';
 import type {ServerType} from '@hono/node-server';
 import {createRegisteredMetricsHandler} from '@osaca/hono/src/middleware/Metrics';
 import {createServer, setupGracefulShutdown} from '@osaca/hono/src/Server';
-import {BACKGROUND_READ_TIMEOUT_MS, getClient, initCassandra, shutdownCassandra} from '@pkgs/cassandra/src/Client';
 import type {IKVProvider} from '@pkgs/kv_client/src/IKVProvider';
 import {JetStreamConnectionManager} from '@pkgs/nats/src/JetStreamConnectionManager';
 import {getDefaultPostgresClient, initPostgres, shutdownPostgres} from '@pkgs/postgres/src/Client';
@@ -289,7 +287,6 @@ export async function startWorkerRuntime(options: WorkerRuntimeOptions): Promise
 export async function startWorkerMain(): Promise<void> {
 	Logger.info('Starting worker backend...');
 	const host = sizeProcessForHost(Logger);
-	let cassandraInitialized = false;
 	let postgresInitialized = false;
 	let jsConnectionManager: JetStreamConnectionManager | null = null;
 	let snowflakeService: ISnowflakeService | null = null;
@@ -349,12 +346,6 @@ export async function startWorkerMain(): Promise<void> {
 				searchInitialized = false;
 			}
 		});
-		await cleanupStep('cassandra', async () => {
-			if (cassandraInitialized) {
-				await shutdownCassandra();
-				cassandraInitialized = false;
-			}
-		});
 		await cleanupStep('postgres', async () => {
 			if (postgresInitialized) {
 				setDatabaseQueryExecutor(null);
@@ -377,49 +368,18 @@ export async function startWorkerMain(): Promise<void> {
 	};
 
 	try {
-		if (Config.database.backend === 'postgres') {
-			await initPostgres(
-				{
-					...Config.postgres,
-					synchronousCommit: readOptionalEnv('OSACA_WORKER_POSTGRES_SYNCHRONOUS_COMMIT')?.trim() ?? 'off',
-				},
-				(diagnostic) => Logger.error(diagnostic, 'Postgres connection error'),
-			);
-			postgresInitialized = true;
-			const postgres = getDefaultPostgresClient();
-			await ensurePostgresKvSchema(postgres);
-			setDatabaseQueryExecutor(new PostgresKvQueryExecutor(postgres));
-			Logger.info('Postgres KV client initialised for worker backend');
-		}
-		if (Config.database.backend === 'cassandra') {
-			const {ensureCassandraSchema, logMissingCassandraKeyspace} = await import(
-				'@app/api/database/CassandraSchemaStartup'
-			);
-			await initCassandra({
-				hosts: Config.cassandra.hosts.split(',').filter(Boolean),
-				port: Config.cassandra.port,
-				keyspace: Config.cassandra.keyspace,
-				localDc: Config.cassandra.localDc,
-				username: Config.cassandra.username || undefined,
-				password: Config.cassandra.password || undefined,
-				readTimeoutMs: BACKGROUND_READ_TIMEOUT_MS,
-			}).catch((error: unknown) => {
-				if (Config.instance.selfHosted) {
-					logMissingCassandraKeyspace(error, Config.cassandra.keyspace, Config.cassandra.localDc, Logger);
-				}
-				throw error;
-			});
-			cassandraInitialized = true;
-			Logger.info('Cassandra client initialised for worker backend');
-			if (Config.instance.selfHosted) {
-				await ensureCassandraSchema({
-					client: getClient(),
-					keyspace: Config.cassandra.keyspace,
-					kv: getKVClient(),
-					logger: Logger,
-				});
-			}
-		}
+		await initPostgres(
+			{
+				...Config.postgres,
+				synchronousCommit: readOptionalEnv('OSACA_WORKER_POSTGRES_SYNCHRONOUS_COMMIT')?.trim() ?? 'off',
+			},
+			(diagnostic) => Logger.error(diagnostic, 'Postgres connection error'),
+		);
+		postgresInitialized = true;
+		const postgres = getDefaultPostgresClient();
+		await ensurePostgresKvSchema(postgres);
+		setDatabaseQueryExecutor(new PostgresKvQueryExecutor(postgres));
+		Logger.info('Postgres KV client initialised for worker backend');
 		snowflakeService = createSnowflakeService();
 		await snowflakeService.initialize();
 		setInjectedSnowflakeService(snowflakeService);

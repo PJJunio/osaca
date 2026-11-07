@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use crate::cassandra::{apply_schema, config_from_env};
 use crate::proc::{RunOptions, merged_env, run_command};
 use anyhow::{Context, Result, bail};
 use std::env;
@@ -168,13 +167,3 @@ fn s3_bucket_already_exists_output(output: &str) -> bool {
     output.contains("BucketAlreadyExists") || output.contains("BucketAlreadyOwnedByYou")
 }
 
-pub async fn bootstrap_schema() -> Result<()> {
-    if cassandra_backend_enabled() {
-        apply_schema(Some(config_from_env()?)).await?;
-    }
-    Ok(())
-}
-
-fn cassandra_backend_enabled() -> bool {
-    env::var("OSACA_DATABASE_BACKEND").as_deref() == Ok("cassandra")
-}

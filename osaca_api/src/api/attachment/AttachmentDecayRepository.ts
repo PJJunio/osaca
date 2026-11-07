@@ -11,7 +11,6 @@ import {
 } from '@app/api/database/CassandraQueryExecution';
 import {AttachmentDecayByExpiry, AttachmentDecayById, ChannelMessageBuckets} from '@app/api/Tables';
 import type {AttachmentDecayRow} from '@app/api/types/AttachmentDecayTypes';
-import {BACKGROUND_READ_TIMEOUT_MS} from '@pkgs/cassandra/src/Client';
 
 interface AttachmentDecayExpiryRow {
 	expiry_bucket: number;
@@ -84,7 +83,7 @@ export class AttachmentDecayRepository {
 		const page = await fetchPage<{channel_id: ChannelID}>(
 			SCAN_CHANNELS_WITH_MESSAGES_CQL,
 			{},
-			{pageSize: limit, pageState, readTimeout: BACKGROUND_READ_TIMEOUT_MS},
+			{pageSize: limit, pageState},
 		);
 		return {channelIds: [...new Set(page.rows.map((row) => row.channel_id))], pageState: page.pageState};
 	}

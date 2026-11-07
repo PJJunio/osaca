@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {readFileSync} from 'node:fs';
-import {fileURLToPath} from 'node:url';
 import {
 	type ChannelID,
 	channelIdToMessageId,
@@ -764,18 +762,8 @@ const THREAD_TABLES = [
 ];
 
 describe('thread storage leaves control storage untouched', () => {
-	it('declares every thread table in the target schema with the same columns and no TTL', () => {
-		const schema = JSON.parse(
-			readFileSync(
-				fileURLToPath(new URL('../../../../../tools/dev/cassandra_target_schema.json', import.meta.url)),
-				'utf8',
-			),
-		) as {tables: Array<{name: string; columns: Array<{name: string}>; options: string}>};
+	it('declares every thread table with no TTL', () => {
 		for (const table of THREAD_TABLES) {
-			const declared = schema.tables.find((entry) => entry.name === table.name);
-			expect(declared, table.name).toBeDefined();
-			expect(new Set(declared!.columns.map((column) => column.name))).toEqual(new Set(table.columns));
-			expect(declared!.options).not.toContain('default_time_to_live');
 			expect(table.defaultTtlSeconds).toBeUndefined();
 		}
 	});

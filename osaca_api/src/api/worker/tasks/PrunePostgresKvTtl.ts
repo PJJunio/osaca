@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {Config} from '@app/api/Config';
 import {expireLegacyDefaultTtlRows} from '@app/api/database/PostgresKvDefaultTtlExpiry';
 import {pruneExpiredPostgresKvRows} from '@app/api/database/PostgresKvQueryExecutor';
 import {expireLegacyJobLedgerRows} from '@app/api/jobs/PostgresJobLedgerExpiry';
@@ -13,9 +12,6 @@ const MAX_PRUNE_BATCHES_PER_RUN = 20;
 const LEGACY_EXPIRY_BUDGET_MS = ms('2 minutes');
 
 const prunePostgresKvTtl: WorkerTaskHandler = async (_payload, helpers) => {
-	if (Config.database.backend !== 'postgres') {
-		return;
-	}
 	const client = getDefaultPostgresClient();
 	const deadlineMs = Date.now() + LEGACY_EXPIRY_BUDGET_MS;
 	const legacyJobs = await expireLegacyJobLedgerRows(client, deadlineMs);

@@ -26,10 +26,6 @@ func (e *Env) bundledPostgres(ctx context.Context) bool {
 	if e.Instance == nil {
 		return false
 	}
-	switch strings.ToLower(e.value("OSACA_DATABASE_BACKEND")) {
-	case "cassandra", "scylla":
-		return false
-	}
 	if e.value("OSACA_POSTGRES_URL") != "" {
 		return false
 	}

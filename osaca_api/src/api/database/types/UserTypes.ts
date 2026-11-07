@@ -12,7 +12,6 @@ import type {
 } from '@app/api/BrandedTypes';
 import type {LocaleCode} from '@osaca/constants/src/Locales';
 import type {GuildFolderIcon, MentionReplyPreference} from '@osaca/constants/src/UserConstants';
-import type {types} from 'cassandra-driver';
 
 export type PushSubscriptionPlatform =
 	| 'web_push'
@@ -413,7 +412,7 @@ export const PUSH_SUBSCRIPTION_COLUMNS = [
 
 export interface UserContactChangeLogRow {
 	user_id: UserID;
-	event_id: types.TimeUuid;
+	event_id: string;
 	field: string;
 	old_value: string | null;
 	new_value: string | null;

@@ -2,7 +2,7 @@
 
 pub use osaca_common::config::env_value as optional_env;
 
-use std::net::{IpAddr, SocketAddr};
+use std::net::SocketAddr;
 use std::time::Duration;
 
 const DEFAULT_MAX_CONCURRENT_REQUESTS: usize = 64;
@@ -13,7 +13,6 @@ const SNOWFLAKES_MAX_CONCURRENT_REQUESTS: usize = 320;
 pub struct ServiceConfig {
     pub service_name: String,
     pub mode: Mode,
-    pub database_backend: DatabaseBackend,
     pub shard_id: u32,
     pub shard_count: u32,
     pub listen_addr: SocketAddr,
@@ -22,10 +21,6 @@ pub struct ServiceConfig {
     pub cache_max_entries: u64,
     pub cache_ttl: Duration,
     pub max_concurrent_requests: usize,
-    pub scylla_hosts: Vec<String>,
-    pub scylla_keyspace: String,
-    pub scylla_username: Option<String>,
-    pub scylla_password: Option<String>,
     pub postgres_url: Option<String>,
     pub postgres_host: String,
     pub postgres_port: u16,
@@ -46,19 +41,12 @@ pub enum Mode {
     Combined,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum DatabaseBackend {
-    Postgres,
-    Cassandra,
-}
-
 impl ServiceConfig {
     #[cfg(test)]
     pub(crate) fn for_test(mode: Mode, shard_id: u32, shard_count: u32) -> Self {
         ServiceConfig {
             service_name: "test".to_owned(),
             mode,
-            database_backend: DatabaseBackend::Postgres,
             shard_id,
             shard_count,
             listen_addr: "127.0.0.1:0".parse().unwrap(),
@@ -67,10 +55,6 @@ impl ServiceConfig {
             cache_max_entries: 100,
             cache_ttl: Duration::from_secs(30),
             max_concurrent_requests: 16,
-            scylla_hosts: Vec::new(),
-            scylla_keyspace: "osaca".to_owned(),
-            scylla_username: None,
-            scylla_password: None,
             postgres_url: None,
             postgres_host: "127.0.0.1".to_owned(),
             postgres_port: 5432,
@@ -95,17 +79,6 @@ impl ServiceConfig {
     {
         let service_name =
             optional_from(&get, "OSACA_SVC_NAME").unwrap_or_else(|| "default".to_owned());
-
-        let database_backend = match optional_from(&get, "OSACA_DATABASE_BACKEND")
-            .unwrap_or_else(|| "postgres".to_owned())
-            .trim()
-            .to_ascii_lowercase()
-            .as_str()
-        {
-            "postgres" | "postgresql" | "pg" => DatabaseBackend::Postgres,
-            "cassandra" | "scylla" | "scylladb" => DatabaseBackend::Cassandra,
-            other => anyhow::bail!("unsupported OSACA_DATABASE_BACKEND: {other}"),
-        };
 
         let mode = match optional_from(&get, "OSACA_SVC_MODE").as_deref() {
             None | Some("router") => Mode::Router,
@@ -148,22 +121,6 @@ impl ServiceConfig {
             .transpose()?
             .unwrap_or(30_000);
 
-        let cassandra_port = optional_from(&get, "OSACA_CASSANDRA_PORT")
-            .map(|v| v.parse::<u16>())
-            .transpose()?
-            .unwrap_or(9042);
-
-        let default_scylla_hosts = || vec![normalize_host("127.0.0.1", cassandra_port)];
-        let scylla_hosts = optional_from(&get, "OSACA_CASSANDRA_HOSTS")
-            .map(|hosts| {
-                parse_hosts(&hosts)
-                    .into_iter()
-                    .map(|host| normalize_host(&host, cassandra_port))
-                    .collect::<Vec<_>>()
-            })
-            .filter(|hosts| !hosts.is_empty())
-            .unwrap_or_else(default_scylla_hosts);
-
         let postgres_port = optional_from(&get, "OSACA_POSTGRES_PORT")
             .map(|v| v.parse::<u16>())
             .transpose()?
@@ -192,7 +149,6 @@ impl ServiceConfig {
         Ok(Self {
             service_name,
             mode,
-            database_backend,
             shard_id,
             shard_count,
             listen_addr: format!("{listen_host}:{listen_port}").parse()?,
@@ -204,11 +160,6 @@ impl ServiceConfig {
                 .unwrap_or(100_000),
             cache_ttl: Duration::from_millis(cache_ttl_ms),
             max_concurrent_requests,
-            scylla_hosts,
-            scylla_keyspace: optional_from(&get, "OSACA_CASSANDRA_KEYSPACE")
-                .unwrap_or_else(|| "osaca".to_owned()),
-            scylla_username: optional_from(&get, "OSACA_CASSANDRA_USERNAME"),
-            scylla_password: optional_from(&get, "OSACA_CASSANDRA_PASSWORD"),
             postgres_url: optional_from(&get, "OSACA_POSTGRES_URL"),
             postgres_host: optional_from(&get, "OSACA_POSTGRES_HOST")
                 .unwrap_or_else(|| "127.0.0.1".to_owned()),
@@ -242,43 +193,6 @@ where
     F: Fn(&str) -> Option<String>,
 {
     get(name).filter(|v| !v.trim().is_empty())
-}
-
-pub fn parse_hosts(hosts: &str) -> Vec<String> {
-    hosts
-        .split(',')
-        .map(str::trim)
-        .filter(|h| !h.is_empty())
-        .map(ToOwned::to_owned)
-        .collect()
-}
-
-pub fn normalize_host(host: &str, port: u16) -> String {
-    let host = host.trim();
-    if let Some(rest) = host.strip_prefix('[') {
-        if let Some((_, suffix)) = rest.rsplit_once("]:")
-            && suffix.parse::<u16>().is_ok()
-        {
-            return host.to_owned();
-        }
-        if host.ends_with(']') {
-            return format!("{host}:{port}");
-        }
-    }
-    if host.matches(':').count() == 1
-        && host
-            .rsplit_once(':')
-            .is_some_and(|(_, suffix)| suffix.parse::<u16>().is_ok())
-    {
-        return host.to_owned();
-    }
-    if let Ok(addr) = host.parse::<IpAddr>() {
-        return match addr {
-            IpAddr::V4(addr) => format!("{addr}:{port}"),
-            IpAddr::V6(addr) => format!("[{addr}]:{port}"),
-        };
-    }
-    format!("{host}:{port}")
 }
 
 pub fn shard_id_from_pod_name(pod_name: &str) -> Option<u32> {

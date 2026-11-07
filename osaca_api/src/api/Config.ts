@@ -111,7 +111,6 @@ export function buildAPIConfigFromMaster(master: MasterConfig): APIConfig {
 	if (!master.internal) {
 		throw new Error('internal configuration is required for the API');
 	}
-	const cassandraSource = master.database.cassandra;
 	const postgresSource = master.database.postgres;
 	const apiWorkerConfig = master.services.api?.worker;
 	const s3Config = master.s3;
@@ -133,10 +132,7 @@ export function buildAPIConfigFromMaster(master: MasterConfig): APIConfig {
 		reports: '',
 		harvests: '',
 	};
-	if (master.database.backend === 'cassandra' && !cassandraSource) {
-		throw new Error('Cassandra configuration is required.');
-	}
-	if (master.database.backend === 'postgres' && !postgresSource) {
+	if (!postgresSource) {
 		throw new Error('Postgres configuration is required.');
 	}
 	return {
@@ -147,14 +143,6 @@ export function buildAPIConfigFromMaster(master: MasterConfig): APIConfig {
 		maxInflightRequests: master.services.api.max_inflight_requests,
 		automatedMessageDeletionDelayDays: master.services.api.automated_message_deletion_delay_days,
 		ipBanExemptIps: normalizeIpBanExemptIps(master.services.api.ip_ban_exempt_ips),
-		cassandra: {
-			hosts: cassandraSource?.hosts.join(',') ?? '',
-			port: cassandraSource?.port ?? 9042,
-			keyspace: cassandraSource?.keyspace ?? '',
-			localDc: cassandraSource?.local_dc ?? '',
-			username: cassandraSource?.username ?? '',
-			password: cassandraSource?.password ?? '',
-		},
 		postgres: {
 			url: postgresSource?.url ?? '',
 			host: postgresSource?.host ?? '127.0.0.1',
@@ -167,9 +155,6 @@ export function buildAPIConfigFromMaster(master: MasterConfig): APIConfig {
 			maxConnections: postgresSource?.max_connections ?? 20,
 			kvTable: postgresSource?.kv_table ?? 'osaca_kv',
 			preparedStatements: postgresSource?.prepared_statements ?? true,
-		},
-		database: {
-			backend: master.database.backend,
 		},
 		kv: {
 			url: master.internal.kv,

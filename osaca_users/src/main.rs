@@ -5,7 +5,7 @@ mod router_impl;
 mod shard_impl;
 mod types;
 
-use osaca_svc::config::{DatabaseBackend, Mode, ServiceConfig};
+use osaca_svc::config::{Mode, ServiceConfig};
 use osaca_svc::transport::NatsTransport;
 use router_impl::UsersRouter;
 use shard_impl::UsersShard;
@@ -41,28 +41,12 @@ async fn main() -> anyhow::Result<()> {
 
 async fn build_shard(config: &ServiceConfig) -> anyhow::Result<UsersShard> {
     pseudonym::configure_from_env()?;
-    match config.database_backend {
-        DatabaseBackend::Postgres => {
-            let postgres_config = osaca_svc::postgres::PostgresConfig::from_service_config(config);
-            let pool = osaca_svc::postgres::connect(&postgres_config).await?;
-            let kv = osaca_svc::postgres::KvClient::new(pool, &postgres_config)?;
-            Ok(UsersShard::new_postgres(
-                kv,
-                config.cache_max_entries,
-                config.cache_ttl,
-            ))
-        }
-        DatabaseBackend::Cassandra => {
-            #[cfg(feature = "scylla")]
-            {
-                let scylla_config = osaca_svc::scylla::ScyllaConfig::from_service_config(config);
-                let db = osaca_svc::scylla::connect(&scylla_config).await?;
-                UsersShard::new_scylla(db, config.cache_max_entries, config.cache_ttl).await
-            }
-            #[cfg(not(feature = "scylla"))]
-            {
-                anyhow::bail!("OSACA_DATABASE_BACKEND=cassandra requires the scylla feature");
-            }
-        }
-    }
+    let postgres_config = osaca_svc::postgres::PostgresConfig::from_service_config(config);
+    let pool = osaca_svc::postgres::connect(&postgres_config).await?;
+    let kv = osaca_svc::postgres::KvClient::new(pool, &postgres_config)?;
+    Ok(UsersShard::new_postgres(
+        kv,
+        config.cache_max_entries,
+        config.cache_ttl,
+    ))
 }

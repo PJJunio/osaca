@@ -2,7 +2,7 @@
 
 use osaca_messages::router_impl::MessagesRouter;
 use osaca_messages::shard_impl::MessagesShard;
-use osaca_svc::config::{DatabaseBackend, Mode, ServiceConfig};
+use osaca_svc::config::{Mode, ServiceConfig};
 use osaca_svc::transport::NatsTransport;
 
 #[tokio::main]
@@ -42,24 +42,8 @@ async fn build_shard(
     config: &ServiceConfig,
     transport: &NatsTransport,
 ) -> anyhow::Result<MessagesShard<NatsTransport>> {
-    match config.database_backend {
-        DatabaseBackend::Postgres => {
-            let postgres_config = osaca_svc::postgres::PostgresConfig::from_service_config(config);
-            let pool = osaca_svc::postgres::connect(&postgres_config).await?;
-            let kv = osaca_svc::postgres::KvClient::new(pool, &postgres_config)?;
-            MessagesShard::new_postgres(kv, transport.clone())
-        }
-        DatabaseBackend::Cassandra => {
-            #[cfg(feature = "scylla")]
-            {
-                let scylla_config = osaca_svc::scylla::ScyllaConfig::from_service_config(config);
-                let db = osaca_svc::scylla::connect(&scylla_config).await?;
-                MessagesShard::new_scylla(db, transport.clone()).await
-            }
-            #[cfg(not(feature = "scylla"))]
-            {
-                anyhow::bail!("OSACA_DATABASE_BACKEND=cassandra requires the scylla feature");
-            }
-        }
-    }
+    let postgres_config = osaca_svc::postgres::PostgresConfig::from_service_config(config);
+    let pool = osaca_svc::postgres::connect(&postgres_config).await?;
+    let kv = osaca_svc::postgres::KvClient::new(pool, &postgres_config)?;
+    MessagesShard::new_postgres(kv, transport.clone())
 }

@@ -3,7 +3,6 @@ name: osaca
 x-osaca-settings: ${OSACA_SETTINGS_LOADED:?rexctl manages this instance. Run rexctl commands here, or run rexctl eject to use docker compose}
 
 x-osaca-postgres-env: &osaca-postgres-env
-  OSACA_DATABASE_BACKEND: postgres
   OSACA_POSTGRES_HOST: ${OSACA_POSTGRES_HOST:-postgres}
   OSACA_POSTGRES_PORT: ${OSACA_POSTGRES_PORT:-}
   OSACA_POSTGRES_DATABASE: ${OSACA_POSTGRES_DATABASE:-}

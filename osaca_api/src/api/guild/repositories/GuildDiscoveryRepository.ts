@@ -5,7 +5,6 @@ import {BatchBuilder, fetchMany, fetchOne, fetchPage} from '@app/api/database/Ca
 import type {GuildDiscoveryByStatusRow, GuildDiscoveryRow} from '@app/api/database/types/GuildDiscoveryTypes';
 import {GuildDiscovery, GuildDiscoveryByStatus} from '@app/api/Tables';
 import {DISCOVERY_DEFAULT_LANGUAGE, DiscoveryCategories} from '@osaca/constants/src/DiscoveryConstants';
-import {BACKGROUND_READ_TIMEOUT_MS} from '@pkgs/cassandra/src/Client';
 
 const FETCH_DISCOVERY_BY_GUILD_ID = GuildDiscovery.selectCql({
 	where: GuildDiscovery.where.eq('guild_id'),
@@ -41,11 +40,7 @@ export class GuildDiscoveryRepository {
 		pageState: string | null,
 		pageSize: number,
 	): Promise<{rows: Array<GuildDiscoveryByStatusRow>; pageState: string | null}> {
-		const result = await fetchPage<GuildDiscoveryByStatusRow>(
-			SCAN_DISCOVERY,
-			{},
-			{pageSize, pageState, readTimeout: BACKGROUND_READ_TIMEOUT_MS},
-		);
+		const result = await fetchPage<GuildDiscoveryByStatusRow>(SCAN_DISCOVERY, {}, {pageSize, pageState});
 		return {rows: result.rows, pageState: result.pageState};
 	}
 

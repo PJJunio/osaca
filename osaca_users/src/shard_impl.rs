@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use crate::types::{ApiUserPartial, UserPartial, UserRequest, UserResponse};
-#[cfg(feature = "scylla")]
-use chrono::{DateTime, Utc};
 use osaca_common::time::unix_millis;
 use osaca_common::user_flags::{AccountStanding, USER_FLAG_STAFF};
 use osaca_common::user_partial::{OSACA_SYSTEM_DISCRIMINATOR, OSACA_SYSTEM_USER_ID};
@@ -10,14 +8,6 @@ use osaca_svc::shard::ShardService;
 use osaca_svc::{postgres, postgres::KeyPart};
 use futures::stream::{self, StreamExt};
 use moka::future::Cache;
-#[cfg(feature = "scylla")]
-use scylla::DeserializeRow;
-#[cfg(feature = "scylla")]
-use scylla::client::session::Session;
-#[cfg(feature = "scylla")]
-use scylla::statement::prepared::PreparedStatement;
-#[cfg(feature = "scylla")]
-use scylla::value::MaybeEmpty;
 use serde::Deserialize;
 use std::collections::{HashMap, hash_map::DefaultHasher};
 use std::fmt::Write;
@@ -27,16 +17,6 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Duration;
 
-#[cfg(feature = "scylla")]
-type OptionalTimestamp = Option<MaybeEmpty<DateTime<Utc>>>;
-
-#[cfg(feature = "scylla")]
-const PARTIAL_USER_COLUMNS: &str = "\
-    user_id, username, discriminator, global_name, \
-    avatar_hash, bot, system, flags, \
-    banner_hash, banner_color, accent_color, avatar_color, \
-    mention_flags, temp_banned_until, pending_deletion_at, deletion_reason_code, \
-    content_hidden_since, hidden_profile_badges";
 const USER_BATCH_SIZE: usize = 128;
 const USER_BATCH_CONCURRENCY: usize = 8;
 const USER_CACHE_MIN_GENERATION_STRIPES: usize = 4096;
@@ -62,20 +42,11 @@ struct UserCacheKey {
 #[derive(Clone)]
 enum UsersStorage {
     Postgres(PostgresUsersStorage),
-    #[cfg(feature = "scylla")]
-    Scylla(Arc<ScyllaUsersStorage>),
 }
 
 #[derive(Clone)]
 struct PostgresUsersStorage {
     kv: postgres::KvClient,
-}
-
-#[cfg(feature = "scylla")]
-struct ScyllaUsersStorage {
-    db: Arc<Session>,
-    stmt_partial: PreparedStatement,
-    stmt_partial_batch: PreparedStatement,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -103,55 +74,6 @@ struct PartialUserDbRow {
     content_hidden_since: Option<i64>,
     #[serde(default)]
     hidden_profile_badges: Option<Vec<String>>,
-}
-
-#[cfg(feature = "scylla")]
-#[derive(Debug, DeserializeRow)]
-struct PartialUserScyllaRow {
-    user_id: i64,
-    username: String,
-    discriminator: i32,
-    global_name: Option<String>,
-    avatar_hash: Option<String>,
-    bot: Option<bool>,
-    system: Option<bool>,
-    flags: Option<i64>,
-    banner_hash: Option<String>,
-    banner_color: Option<i32>,
-    accent_color: Option<i32>,
-    avatar_color: Option<i32>,
-    mention_flags: Option<i32>,
-    temp_banned_until: OptionalTimestamp,
-    pending_deletion_at: OptionalTimestamp,
-    deletion_reason_code: Option<i32>,
-    content_hidden_since: OptionalTimestamp,
-    hidden_profile_badges: Option<Vec<String>>,
-}
-
-#[cfg(feature = "scylla")]
-impl From<PartialUserScyllaRow> for PartialUserDbRow {
-    fn from(row: PartialUserScyllaRow) -> Self {
-        Self {
-            user_id: row.user_id,
-            username: row.username,
-            discriminator: row.discriminator,
-            global_name: row.global_name,
-            avatar_hash: row.avatar_hash,
-            bot: row.bot,
-            system: row.system,
-            flags: row.flags,
-            banner_hash: row.banner_hash,
-            banner_color: row.banner_color,
-            accent_color: row.accent_color,
-            avatar_color: row.avatar_color,
-            mention_flags: row.mention_flags,
-            temp_banned_until: optional_timestamp_millis(row.temp_banned_until),
-            pending_deletion_at: optional_timestamp_millis(row.pending_deletion_at),
-            deletion_reason_code: row.deletion_reason_code,
-            content_hidden_since: optional_timestamp_millis(row.content_hidden_since),
-            hidden_profile_badges: row.hidden_profile_badges,
-        }
-    }
 }
 
 fn generation_stripes(max_entries: u64) -> usize {
@@ -235,33 +157,6 @@ impl UsersShard {
             storage: UsersStorage::Postgres(PostgresUsersStorage { kv }),
             caches: UserCaches::new(max_entries, ttl),
         }
-    }
-
-    #[cfg(feature = "scylla")]
-    pub async fn new_scylla(
-        db: Arc<Session>,
-        max_entries: u64,
-        ttl: Duration,
-    ) -> anyhow::Result<Self> {
-        let stmt_partial = db
-            .prepare(format!(
-                "SELECT {PARTIAL_USER_COLUMNS} FROM users WHERE user_id = ? LIMIT 1"
-            ))
-            .await?;
-        let stmt_partial_batch = db
-            .prepare(format!(
-                "SELECT {PARTIAL_USER_COLUMNS} FROM users WHERE user_id IN ?"
-            ))
-            .await?;
-
-        Ok(Self {
-            storage: UsersStorage::Scylla(Arc::new(ScyllaUsersStorage {
-                db,
-                stmt_partial,
-                stmt_partial_batch,
-            })),
-            caches: UserCaches::new(max_entries, ttl),
-        })
     }
 
     async fn get_partial_user(&self, user_id: i64) -> anyhow::Result<Option<UserPartial>> {
@@ -385,16 +280,12 @@ impl UsersStorage {
     async fn fetch_partial_user(&self, user_id: i64) -> anyhow::Result<Option<UserPartial>> {
         match self {
             UsersStorage::Postgres(storage) => storage.fetch_partial_user(user_id).await,
-            #[cfg(feature = "scylla")]
-            UsersStorage::Scylla(storage) => storage.fetch_partial_user(user_id).await,
         }
     }
 
     async fn fetch_partial_batch(&self, user_ids: Vec<i64>) -> anyhow::Result<Vec<UserPartial>> {
         match self {
             UsersStorage::Postgres(storage) => storage.fetch_partial_batch(user_ids).await,
-            #[cfg(feature = "scylla")]
-            UsersStorage::Scylla(storage) => storage.fetch_partial_batch(user_ids).await,
         }
     }
 }
@@ -417,36 +308,6 @@ impl PostgresUsersStorage {
         rows.into_iter()
             .map(|(_, row)| decode_postgres_user_partial(row))
             .collect()
-    }
-}
-
-#[cfg(feature = "scylla")]
-impl ScyllaUsersStorage {
-    async fn fetch_partial_user(&self, user_id: i64) -> anyhow::Result<Option<UserPartial>> {
-        let result = self
-            .db
-            .execute_unpaged(&self.stmt_partial, (user_id,))
-            .await?;
-        let rows = result.into_rows_result()?;
-        let partial = rows
-            .maybe_first_row::<PartialUserScyllaRow>()?
-            .map(|row| UserPartial::from(PartialUserDbRow::from(row)));
-        Ok(partial)
-    }
-
-    async fn fetch_partial_batch(&self, user_ids: Vec<i64>) -> anyhow::Result<Vec<UserPartial>> {
-        let result = self
-            .db
-            .execute_unpaged(&self.stmt_partial_batch, (user_ids,))
-            .await?;
-        let rows = result.into_rows_result()?;
-        let rows: Vec<PartialUserScyllaRow> = rows
-            .rows::<PartialUserScyllaRow>()?
-            .collect::<Result<_, _>>()?;
-        Ok(rows
-            .into_iter()
-            .map(|row| UserPartial::from(PartialUserDbRow::from(row)))
-            .collect::<Vec<_>>())
     }
 }
 
@@ -531,14 +392,6 @@ fn parse_user_id(user_id: &str) -> anyhow::Result<i64> {
     user_id
         .parse::<i64>()
         .map_err(|error| anyhow::anyhow!("invalid user id {user_id}: {error}"))
-}
-
-#[cfg(feature = "scylla")]
-fn optional_timestamp_millis(value: OptionalTimestamp) -> Option<i64> {
-    value.and_then(|maybe: MaybeEmpty<DateTime<Utc>>| match maybe {
-        MaybeEmpty::Empty => None,
-        MaybeEmpty::Value(dt) => Some(dt.timestamp_millis()),
-    })
 }
 
 impl From<PartialUserDbRow> for UserPartial {

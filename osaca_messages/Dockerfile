@@ -6,7 +6,7 @@ WORKDIR /usr/src/app
 
 COPY . .
 
-RUN cargo build --release -p osaca-messages --features scylla
+RUN cargo build --release -p osaca-messages
 
 FROM debian:trixie-slim
 

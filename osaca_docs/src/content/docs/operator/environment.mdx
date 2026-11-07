@@ -1781,10 +1781,6 @@ The port the app-proxy service listens on inside its container. Docker Compose s
 
 The domain the services build their addresses from, set from `OSACA_DOMAIN`.
 
-### `OSACA_DATABASE_BACKEND`
-
-The database the services use. Docker Compose sets it to `postgres`.
-
 ### `OSACA_EDGE_TLS_DIRECTIVE`
 
 The tls line of the edge Caddyfile, set from `OSACA_EDGE_TLS`.
@@ -2176,34 +2172,6 @@ The communities the gateway pins to particular nodes.
 #### `OSACA_GATEWAY_ROLE`
 
 The role of a gateway node in a cluster.
-
-### Cassandra
-
-The stack runs Postgres only.
-
-#### `OSACA_CASSANDRA_HOSTS`
-
-The Cassandra hosts.
-
-#### `OSACA_CASSANDRA_KEYSPACE`
-
-The Cassandra keyspace.
-
-#### `OSACA_CASSANDRA_LOCAL_DC`
-
-The local Cassandra data centre.
-
-#### `OSACA_CASSANDRA_PASSWORD`
-
-The Cassandra password.
-
-#### `OSACA_CASSANDRA_PORT`
-
-The Cassandra port.
-
-#### `OSACA_CASSANDRA_USERNAME`
-
-The Cassandra username.
 
 ### Docs site
 

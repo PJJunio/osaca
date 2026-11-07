@@ -32,14 +32,6 @@ export interface APIConfig {
 	maxInflightRequests: number;
 	automatedMessageDeletionDelayDays: number;
 	ipBanExemptIps: Array<string>;
-	cassandra: {
-		hosts: string;
-		port: number;
-		keyspace: string;
-		localDc: string;
-		username: string;
-		password: string;
-	};
 	postgres: {
 		url: string;
 		host: string;
@@ -52,9 +44,6 @@ export interface APIConfig {
 		maxConnections: number;
 		kvTable: string;
 		preparedStatements: boolean;
-	};
-	database: {
-		backend: 'cassandra' | 'postgres';
 	};
 	kv: {
 		url: string;

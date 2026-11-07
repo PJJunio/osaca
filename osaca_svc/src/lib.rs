@@ -11,9 +11,6 @@ pub mod shard;
 pub mod shutdown;
 pub mod transport;
 
-#[cfg(feature = "scylla")]
-pub mod scylla;
-
 pub fn init_tracing() {
     tracing_subscriber::fmt()
         .json()

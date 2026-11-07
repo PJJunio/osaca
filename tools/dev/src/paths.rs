@@ -14,7 +14,6 @@ pub static ROOT: LazyLock<PathBuf> = LazyLock::new(|| {
 });
 
 pub static DEV_STATE_DIR: LazyLock<PathBuf> = LazyLock::new(|| ROOT.join(".osaca/dev"));
-pub static DEV_CASSANDRA_DIR: LazyLock<PathBuf> = LazyLock::new(|| DEV_STATE_DIR.join("cassandra"));
 pub static DEV_GATEWAY_DIR: LazyLock<PathBuf> = LazyLock::new(|| DEV_STATE_DIR.join("gateway"));
 pub static DEV_LOG_DIR: LazyLock<PathBuf> = LazyLock::new(|| DEV_STATE_DIR.join("logs"));
 pub static DEV_SEAWEEDFS_DIR: LazyLock<PathBuf> = LazyLock::new(|| DEV_STATE_DIR.join("seaweedfs"));
@@ -33,7 +32,6 @@ pub static GATEWAY_CONFIG_DIR: LazyLock<PathBuf> =
 pub fn ensure_state_dirs() -> Result<()> {
     for path in [
         DEV_STATE_DIR.as_path(),
-        DEV_CASSANDRA_DIR.as_path(),
         DEV_GATEWAY_DIR.as_path(),
         DEV_LOG_DIR.as_path(),
         DEV_SEAWEEDFS_DIR.as_path(),

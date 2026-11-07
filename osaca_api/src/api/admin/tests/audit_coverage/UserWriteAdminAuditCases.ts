@@ -6,28 +6,18 @@ import type {
 } from '@app/api/admin/tests/audit_coverage/AdminAuditCoverage';
 import {
 	createTestAccount,
-	createTotpSecret,
 	createUniqueUsername,
-	generateTotpCode,
 	setUserACLs,
 	type TestAccount,
 } from '@app/api/auth/tests/AuthTestUtils';
-import {
-	createRegistrationResponse,
-	createWebAuthnDevice,
-	type WebAuthnCredentialMetadata,
-	type WebAuthnRegistrationOptions,
-} from '@app/api/auth/tests/WebAuthnTestUtils';
 import {createUserID} from '@app/api/BrandedTypes';
-import {Config} from '@app/api/Config';
-import {createFriendship} from '@app/api/channel/tests/ChannelTestUtils';
 import {getUserRepository} from '@app/api/middleware/ServiceSingletons';
 import type {User} from '@app/api/models/User';
 import {createBuilder} from '@app/api/test/TestRequestBuilder';
 import {AdminACLs} from '@osaca/constants/src/AdminACLs';
 import {DeletionReasons} from '@osaca/constants/src/Core';
 import {UserFlags} from '@osaca/constants/src/UserConstants';
-import {expect, onTestFinished} from 'vitest';
+import {expect} from 'vitest';
 
 async function loadUser(account: TestAccount): Promise<User> {
 	const user = await getUserRepository().findUnique(createUserID(BigInt(account.userId)));
@@ -41,15 +31,6 @@ function adminBuilder({harness, admin}: AdminAuditCoverageContext) {
 	return createBuilder(harness, admin.token);
 }
 
-async function enableTotp(context: AdminAuditCoverageContext, account: TestAccount): Promise<string> {
-	const secret = createTotpSecret();
-	await createBuilder(context.harness, account.token)
-		.post('/users/@me/mfa/totp/enable')
-		.body({secret, code: generateTotpCode(secret), password: account.password})
-		.execute();
-	return secret;
-}
-
 const COVERAGE_DECISION = {
 	reason_code: DeletionReasons.SPAM,
 	source: 'own_review',
@@ -60,45 +41,6 @@ const COVERAGE_DECISION = {
 export const UserWriteAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase> = [
 	{
 		method: 'DELETE',
-		route: '/admin/users/:user_id/relationships',
-		async prepare({harness}) {
-			const target = await createTestAccount(harness);
-			const friend = await createTestAccount(harness);
-			await createFriendship(harness, target, friend);
-			return {
-				request: {path: `/admin/users/${target.userId}/relationships?category=friend`},
-				expected: {
-					action: 'remove_relationships_by_category',
-					targetType: 'user',
-					targetId: target.userId,
-					metadata: {category: 'friend', removed_count: '1'},
-				},
-			};
-		},
-	},
-	{
-		method: 'DELETE',
-		route: '/admin/users/:user_id/relationships/:target_user_id',
-		async prepare({harness}) {
-			const target = await createTestAccount(harness);
-			const friend = await createTestAccount(harness);
-			await createFriendship(harness, target, friend);
-			return {
-				request: {
-					path: `/admin/users/${target.userId}/relationships/${friend.userId}?category=friend`,
-					expectStatus: 204,
-				},
-				expected: {
-					action: 'remove_relationship',
-					targetType: 'user',
-					targetId: target.userId,
-					metadata: {target_user_id: friend.userId, category: 'friend'},
-				},
-			};
-		},
-	},
-	{
-		method: 'DELETE',
 		route: '/admin/users/:user_id/sessions',
 		async prepare({harness}) {
 			const target = await createTestAccount(harness);
@@ -106,67 +48,6 @@ export const UserWriteAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase> = [
 				request: {path: `/admin/users/${target.userId}/sessions`},
 				expected: {
 					action: 'terminate_sessions',
-					targetType: 'user',
-					targetId: target.userId,
-					metadata: {},
-				},
-			};
-		},
-	},
-	{
-		method: 'DELETE',
-		route: '/admin/users/:user_id/webauthn-credentials/:credential_id',
-		async prepare(context) {
-			const {harness} = context;
-			const target = await createTestAccount(harness);
-			const secret = await enableTotp(context, target);
-			const device = createWebAuthnDevice();
-			const registrationOptions = await createBuilder<WebAuthnRegistrationOptions>(harness, target.token)
-				.post('/users/@me/mfa/webauthn/credentials/registration-options')
-				.body({mfa_method: 'totp', mfa_code: generateTotpCode(secret)})
-				.execute();
-			if (registrationOptions.rp.id) {
-				device.rpId = registrationOptions.rp.id;
-			}
-			await createBuilder(harness, target.token)
-				.post('/users/@me/mfa/webauthn/credentials')
-				.body({
-					response: createRegistrationResponse(device, registrationOptions, 'Coverage Passkey'),
-					challenge: registrationOptions.challenge,
-					name: 'Coverage Passkey',
-					mfa_method: 'totp',
-					mfa_code: generateTotpCode(secret),
-				})
-				.expect(204)
-				.execute();
-			const credentials = await createBuilder<Array<WebAuthnCredentialMetadata>>(harness, target.token)
-				.get('/users/@me/mfa/webauthn/credentials')
-				.execute();
-			const credentialId = credentials[0]!.id;
-			return {
-				request: {
-					path: `/admin/users/${target.userId}/webauthn-credentials/${credentialId}`,
-					expectStatus: 204,
-				},
-				expected: {
-					action: 'delete_webauthn_credential',
-					targetType: 'user',
-					targetId: target.userId,
-					metadata: {credential_id: credentialId},
-				},
-			};
-		},
-	},
-	{
-		method: 'DELETE',
-		route: '/admin/users/:user_id/mfa',
-		async prepare(context) {
-			const target = await createTestAccount(context.harness);
-			await enableTotp(context, target);
-			return {
-				request: {path: `/admin/users/${target.userId}/mfa`, expectStatus: 204},
-				expected: {
-					action: 'disable_mfa',
 					targetType: 'user',
 					targetId: target.userId,
 					metadata: {},
@@ -292,27 +173,6 @@ export const UserWriteAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase> = [
 	},
 	{
 		method: 'POST',
-		route: '/admin/users/:user_id/password-reset-link',
-		async prepare({harness}) {
-			const target = await createTestAccount(harness);
-			const originalSelfHosted = Config.instance.selfHosted;
-			onTestFinished(() => {
-				Config.instance.selfHosted = originalSelfHosted;
-			});
-			Config.instance.selfHosted = true;
-			return {
-				request: {path: `/admin/users/${target.userId}/password-reset-link`},
-				expected: {
-					action: 'create_password_reset_link',
-					targetType: 'user',
-					targetId: target.userId,
-					metadata: {},
-				},
-			};
-		},
-	},
-	{
-		method: 'POST',
 		route: '/admin/users/:user_id/sign-in-link',
 		async prepare({harness}) {
 			const target = await setUserACLs(harness, await createTestAccount(harness), [AdminACLs.WILDCARD]);
@@ -323,27 +183,6 @@ export const UserWriteAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase> = [
 					targetType: 'user',
 					targetId: target.userId,
 					metadata: {via: 'rexctl'},
-				},
-			};
-		},
-	},
-	{
-		method: 'DELETE',
-		route: '/admin/users/:user_id/recovery-kit',
-		async prepare({harness}) {
-			const target = await createTestAccount(harness);
-			const originalSelfHosted = Config.instance.selfHosted;
-			onTestFinished(() => {
-				Config.instance.selfHosted = originalSelfHosted;
-			});
-			Config.instance.selfHosted = true;
-			return {
-				request: {path: `/admin/users/${target.userId}/recovery-kit`, expectStatus: 204},
-				expected: {
-					action: 'revoke_recovery_kit',
-					targetType: 'user',
-					targetId: target.userId,
-					metadata: {},
 				},
 			};
 		},

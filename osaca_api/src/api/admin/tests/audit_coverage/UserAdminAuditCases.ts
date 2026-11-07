@@ -2,19 +2,10 @@
 
 import type {AdminAuditCoverageCase} from '@app/api/admin/tests/audit_coverage/AdminAuditCoverage';
 import {createTestAccount} from '@app/api/auth/tests/AuthTestUtils';
-import {
-	createDmChannel,
-	createFriendship,
-	createGroupDmChannel,
-	createGuild,
-} from '@app/api/channel/tests/ChannelTestUtils';
-import {getUserActivityBuffer} from '@app/api/middleware/ServiceSingletons';
-import {HTTP_STATUS, TEST_CREDENTIALS} from '@app/api/test/TestConstants';
-import {createBuilder} from '@app/api/test/TestRequestBuilder';
+import {createGuild} from '@app/api/channel/tests/ChannelTestUtils';
 import {AdminACLs} from '@osaca/constants/src/AdminACLs';
 
 const MISSING_USER_ID = '999999999999999999';
-const LAST_ACTIVE_IP = '198.51.100.91';
 
 export const UserAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase> = [
 	{
@@ -100,35 +91,6 @@ export const UserAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase> = [
 					targetId: '0',
 					metadata: {
 						selector: 'resolve',
-						result_count: '1',
-						total: '1',
-					},
-				},
-			};
-		},
-	},
-	{
-		method: 'GET',
-		route: '/admin/users',
-		name: 'last_active_ip',
-		async prepare({harness}) {
-			const target = await createTestAccount(harness);
-			await createBuilder(harness, target.token)
-				.get('/users/@me')
-				.header('x-forwarded-for', LAST_ACTIVE_IP)
-				.expect(HTTP_STATUS.OK)
-				.execute();
-			await getUserActivityBuffer().drainAndFlush();
-			return {
-				request: {path: `/admin/users?last_active_ip=${encodeURIComponent(LAST_ACTIVE_IP)}&limit=10&offset=0`},
-				expected: {
-					action: 'search_users',
-					targetType: 'user',
-					targetId: '0',
-					metadata: {
-						selector: 'last_active_ip',
-						limit: '10',
-						offset: '0',
 						result_count: '1',
 						total: '1',
 					},
@@ -241,110 +203,6 @@ export const UserAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase> = [
 	},
 	{
 		method: 'GET',
-		route: '/admin/users/:user_id/dm-channels',
-		name: 'dm',
-		async prepare({harness}) {
-			const target = await createTestAccount(harness);
-			const first = await createTestAccount(harness);
-			const second = await createTestAccount(harness);
-			await createFriendship(harness, target, first);
-			await createFriendship(harness, target, second);
-			const firstDm = await createDmChannel(harness, target.token, first.userId);
-			await createDmChannel(harness, target.token, second.userId);
-			return {
-				request: {path: `/admin/users/${target.userId}/dm-channels?after=${firstDm.id}&limit=10`},
-				expected: {
-					action: 'list_user_dm_channels',
-					targetType: 'user',
-					targetId: target.userId,
-					metadata: {
-						type: 'dm',
-						after_channel_id: firstDm.id,
-						limit: '10',
-						channel_count: '1',
-					},
-				},
-			};
-		},
-	},
-	{
-		method: 'GET',
-		route: '/admin/users/:user_id/dm-channels',
-		name: 'group_dm',
-		async prepare({harness}) {
-			const target = await createTestAccount(harness);
-			const first = await createTestAccount(harness);
-			const second = await createTestAccount(harness);
-			await createFriendship(harness, target, first);
-			await createFriendship(harness, target, second);
-			await createGroupDmChannel(harness, target.token, [first.userId, second.userId]);
-			return {
-				request: {path: `/admin/users/${target.userId}/dm-channels?type=group_dm`},
-				expected: {
-					action: 'list_user_dm_channels',
-					targetType: 'user',
-					targetId: target.userId,
-					metadata: {type: 'group_dm', channel_count: '1'},
-				},
-			};
-		},
-	},
-	{
-		method: 'GET',
-		route: '/admin/users/:user_id/change-log',
-		async prepare({harness}) {
-			const target = await createTestAccount(harness);
-			for (const username of ['auditfirstname', 'auditsecondname']) {
-				await createBuilder(harness, target.token)
-					.patch('/users/@me')
-					.body({username, password: TEST_CREDENTIALS.STRONG_PASSWORD})
-					.expect(HTTP_STATUS.OK)
-					.execute();
-			}
-			return {
-				request: {path: `/admin/users/${target.userId}/change-log?limit=50`},
-				expected: {
-					action: 'list_user_change_log',
-					targetType: 'user',
-					targetId: target.userId,
-					metadata: {
-						limit: '50',
-						entry_count: '2',
-					},
-				},
-			};
-		},
-	},
-	{
-		method: 'GET',
-		route: '/admin/users/:user_id/relationships',
-		async prepare({harness}) {
-			const target = await createTestAccount(harness);
-			const friend = await createTestAccount(harness);
-			const requested = await createTestAccount(harness);
-			await createFriendship(harness, target, friend);
-			await createBuilder(harness, target.token)
-				.post(`/users/@me/relationships/${requested.userId}`)
-				.body({})
-				.execute();
-			return {
-				request: {path: `/admin/users/${target.userId}/relationships`},
-				expected: {
-					action: 'list_user_relationships',
-					targetType: 'user',
-					targetId: target.userId,
-					metadata: {
-						friend_count: '1',
-						incoming_request_count: '0',
-						outgoing_request_count: '1',
-						blocked_count: '0',
-					},
-				},
-			};
-		},
-	},
-	{
-		method: 'GET',
 		route: '/admin/users/:user_id/sessions',
 		async prepare({harness}) {
 			const target = await createTestAccount(harness);
@@ -370,22 +228,6 @@ export const UserAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase> = [
 					targetType: 'user',
 					targetId: '0',
 					metadata: {platform: 'ios', release_channel: 'beta', has_cursor: 'false', result_count: '0'},
-				},
-			};
-		},
-	},
-	{
-		method: 'GET',
-		route: '/admin/users/:user_id/webauthn-credentials',
-		async prepare({harness}) {
-			const target = await createTestAccount(harness);
-			return {
-				request: {path: `/admin/users/${target.userId}/webauthn-credentials`},
-				expected: {
-					action: 'list_webauthn_credentials',
-					targetType: 'user',
-					targetId: target.userId,
-					metadata: {credential_count: '0'},
 				},
 			};
 		},

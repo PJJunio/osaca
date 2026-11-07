@@ -24,10 +24,8 @@ import {
 } from '@app/api/user/services/PartialUserChangePropagation';
 import {mapWebAuthnCredentialToResponse} from '@app/api/user/UserMappers';
 import {resolveAssignedTraits} from '@app/api/user/UserTraits';
-import {getIpAddressReverse} from '@app/api/utils/IpUtils';
 import * as RandomUtils from '@app/api/utils/RandomUtils';
 import {resolveSessionClientInfo} from '@app/api/utils/SessionClientIdentity';
-import {AdminACLs} from '@osaca/constants/src/AdminACLs';
 import type {EnforcementLimit} from '@osaca/constants/src/EnforcementReasons';
 import {UserFlags} from '@osaca/constants/src/UserConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
@@ -439,9 +437,9 @@ export class AdminUserSecurityService {
 		userId: bigint,
 		adminUserId: UserID,
 		auditLogReason: string | null,
-		acls: ReadonlySet<string>,
+		_acls: ReadonlySet<string>,
 	) {
-		const {users: userRepository, cache: cacheService} = this.deps.apiContext.services;
+		const {users: userRepository} = this.deps.apiContext.services;
 		const {auditService} = this.deps;
 		const userIdTyped = createUserID(userId);
 		await userRepository.findUniqueAssert(userIdTyped);
@@ -487,41 +485,6 @@ export class AdminUserSecurityService {
 		});
 		const {branding} = await getInstanceConfigRepository().getAppPublicConfig();
 		const productName = branding.product_name;
-		const canViewIp = acls.has(AdminACLs.USER_VIEW_IP) || acls.has(AdminACLs.WILDCARD);
-		if (!canViewIp) {
-			await auditService.createAuditLog({
-				adminUserId,
-				targetType: 'user',
-				targetId: userId,
-				action: 'list_user_sessions',
-				auditLogReason,
-				metadata: new Map([['session_count', entries.length.toString()]]),
-			});
-			return {
-				sessions: entries.map((entry) => {
-					const clientInfo = resolveSessionClientInfo({
-						userAgent: entry.clientUserAgent,
-						reportedOs: entry.clientOs,
-						productName,
-					});
-					return {
-						session_id_hash: entry.sessionIdHash.toString('base64url'),
-						created_at: entry.createdAt.toISOString(),
-						approx_last_used_at: entry.approximateLastUsedAt.toISOString(),
-						client_ip: '[redacted]',
-						client_ip_reverse: null,
-						client_os: clientInfo.os,
-						client_platform: clientInfo.platform,
-						client_location: null,
-						...entry.app,
-						deleted_at: entry.deletedAt?.toISOString() ?? null,
-					};
-				}),
-			};
-		}
-		const reverseDnsResults = await Promise.allSettled(
-			entries.map((entry) => getIpAddressReverse(entry.clientIp, cacheService)),
-		);
 		await auditService.createAuditLog({
 			adminUserId,
 			targetType: 'user',
@@ -531,9 +494,7 @@ export class AdminUserSecurityService {
 			metadata: new Map([['session_count', entries.length.toString()]]),
 		});
 		return {
-			sessions: entries.map((entry, index) => {
-				const reverseDnsResult = reverseDnsResults[index];
-				const clientIpReverse = reverseDnsResult?.status === 'fulfilled' ? reverseDnsResult.value : null;
+			sessions: entries.map((entry) => {
 				const clientInfo = resolveSessionClientInfo({
 					userAgent: entry.clientUserAgent,
 					reportedOs: entry.clientOs,
@@ -543,8 +504,8 @@ export class AdminUserSecurityService {
 					session_id_hash: entry.sessionIdHash.toString('base64url'),
 					created_at: entry.createdAt.toISOString(),
 					approx_last_used_at: entry.approximateLastUsedAt.toISOString(),
-					client_ip: entry.clientIp,
-					client_ip_reverse: clientIpReverse,
+					client_ip: '[redacted]',
+					client_ip_reverse: null,
 					client_os: clientInfo.os,
 					client_platform: clientInfo.platform,
 					client_location: null,

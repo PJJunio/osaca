@@ -14,16 +14,6 @@ describe('Admin Search Endpoints', () => {
 	afterEach(async () => {
 		await harness.shutdown();
 	});
-	describe('GET /admin/users/{user_id}/dm-channels', () => {
-		test('requires user:list:dm_channels ACL', async () => {
-			const admin = await createTestAccount(harness);
-			await setUserACLs(harness, admin, ['admin:authenticate']);
-			await createBuilder(harness, `${admin.token}`)
-				.get(`/admin/users/${admin.userId}/dm-channels?limit=10`)
-				.expect(HTTP_STATUS.FORBIDDEN)
-				.execute();
-		});
-	});
 	describe('/admin/audit-logs/{log_id}', () => {
 		test('requires audit_log:view ACL', async () => {
 			const admin = await createTestAccount(harness);

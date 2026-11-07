@@ -23,13 +23,9 @@ pub const USER_TABS: &[(&str, &str)] = &[
     ("overview", "Overview"),
     ("account", "Account"),
     ("guilds", "Guilds"),
-    ("dm_history", "DM History"),
-    ("group_dms", "Group DMs"),
-    ("relationships", "Relationships"),
     ("reports", "Reports"),
     ("moderation", "Moderation"),
     ("applications", "Applications"),
-    ("archives", "Archives"),
     ("audit_logs", "Audit Logs"),
 ];
 
@@ -149,14 +145,8 @@ fn render_user_detail(
 
 fn user_tab_visible(_config: &AdminConfig, tab_id: &str, admin_acls: &[String]) -> bool {
     match tab_id {
-        "overview" | "account" | "guilds" | "dm_history" | "group_dms" | "reports"
-        | "moderation" => true,
-        "relationships" => acl::has_permission(admin_acls, acl::USER_LIST_RELATIONSHIPS),
+        "overview" | "account" | "guilds" | "reports" | "moderation" => true,
         "applications" => acl::has_permission(admin_acls, acl::APPLICATION_LIST_BY_OWNER),
-        "archives" => acl::has_any_permission(
-            admin_acls,
-            &[acl::ARCHIVE_VIEW_ALL, acl::ARCHIVE_TRIGGER_USER],
-        ),
         "audit_logs" => acl::has_permission(admin_acls, acl::AUDIT_LOG_VIEW),
         _ => false,
     }

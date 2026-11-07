@@ -227,25 +227,6 @@ pub async fn render(
                 ),
             )
         }
-        "archives" => {
-            if !acl::has_any_permission(
-                admin_acls,
-                &[acl::ARCHIVE_VIEW_ALL, acl::ARCHIVE_TRIGGER_GUILD],
-            ) {
-                return None;
-            }
-            let a = client
-                .list_archives("guild", Some(guild_id), false, None)
-                .await;
-            Some(tabs::archives::archives_tab(
-                config,
-                &guild,
-                &a.map_err(|error| tracing::warn!(%error, guild_id, "admin API request failed: list guild archives"))
-                    .map(|r| r.archives)
-                    .unwrap_or_default(),
-                csrf_token,
-            ))
-        }
         _ => None,
     }
 }

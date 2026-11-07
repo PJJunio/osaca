@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {createTestAccount, setUserACLs} from '@app/api/auth/tests/AuthTestUtils';
-import {getUserActivityBuffer} from '@app/api/middleware/ServiceSingletons';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {HTTP_STATUS} from '@app/api/test/TestConstants';
 import {createBuilder} from '@app/api/test/TestRequestBuilder';
@@ -11,22 +10,12 @@ import {afterAll, beforeAll, beforeEach, describe, expect, test} from 'vitest';
 interface UserListResponse {
 	users: Array<{
 		id: string;
-		email: string | null;
 		last_active_ip: string | null;
 	}>;
 	total: number;
 }
 
 const SYNTHETIC_USER_IDS = ['0', '1'];
-
-async function setLastActiveIp(harness: ApiTestHarness, token: string, ip: string): Promise<void> {
-	await createBuilder(harness, `${token}`)
-		.get('/users/@me')
-		.header('x-forwarded-for', ip)
-		.expect(HTTP_STATUS.OK)
-		.execute();
-	await getUserActivityBuffer().drainAndFlush();
-}
 
 describe('Admin user directory', () => {
 	let harness: ApiTestHarness;
@@ -46,27 +35,6 @@ describe('Admin user directory', () => {
 		});
 	});
 	describe('GET /admin/users', () => {
-		test('rejects the last_active_ip selector without USER_VIEW_IP ACL', async () => {
-			const admin = await createTestAccount(harness);
-			await setUserACLs(harness, admin, [AdminACLs.AUTHENTICATE, AdminACLs.USER_LOOKUP]);
-			await createBuilder(harness, `${admin.token}`)
-				.get(`/admin/users?last_active_ip=${encodeURIComponent('203.0.113.9')}`)
-				.expect(HTTP_STATUS.FORBIDDEN, 'MISSING_ACL')
-				.execute();
-		});
-		test('returns the accounts for the last_active_ip selector with USER_VIEW_IP ACL', async () => {
-			const admin = await createTestAccount(harness);
-			await setUserACLs(harness, admin, [AdminACLs.AUTHENTICATE, AdminACLs.USER_LOOKUP, AdminACLs.USER_VIEW_IP]);
-			const target = await createTestAccount(harness);
-			await setLastActiveIp(harness, target.token, '203.0.113.9');
-			const result = await createBuilder<UserListResponse>(harness, `${admin.token}`)
-				.get(`/admin/users?last_active_ip=${encodeURIComponent('203.0.113.9')}`)
-				.expect(HTTP_STATUS.OK)
-				.execute();
-			const found = result.users.find((user) => user.id === target.userId);
-			expect(found).toBeDefined();
-			expect(found?.last_active_ip).toBe('203.0.113.9');
-		});
 		test('resolves a user ID without a PII ACL', async () => {
 			const admin = await createTestAccount(harness);
 			await setUserACLs(harness, admin, [AdminACLs.AUTHENTICATE, AdminACLs.USER_LOOKUP]);
@@ -95,23 +63,6 @@ describe('Admin user directory', () => {
 				.expect(HTTP_STATUS.OK)
 				.execute();
 			expect(result.users.map((user) => user.id)).not.toContain(userId);
-		});
-
-		test('matches IPv6 last active addresses by /64 trust key', async () => {
-			const admin = await createTestAccount(harness);
-			await setUserACLs(harness, admin, ['admin:authenticate', 'user:lookup', 'user:view:ip']);
-			const firstUser = await createTestAccount(harness);
-			const secondUser = await createTestAccount(harness);
-			await setLastActiveIp(harness, firstUser.token, '2a01:e0a:d10:95b0:8f54:410e:f290:1c66');
-			await setLastActiveIp(harness, secondUser.token, '2a01:e0a:d10:95b0:01e4:53a8:d0dd:7733');
-			const result = await createBuilder<UserListResponse>(harness, `${admin.token}`)
-				.get(
-					`/admin/users?last_active_ip=${encodeURIComponent('2a01:e0a:d10:95b0:b53f:16d3:aff2:9b0f')}&limit=10&offset=0`,
-				)
-				.expect(HTTP_STATUS.OK)
-				.execute();
-			expect(result.users.find((user) => user.id === firstUser.userId)).toBeDefined();
-			expect(result.users.find((user) => user.id === secondUser.userId)).toBeDefined();
 		});
 	});
 });

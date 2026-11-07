@@ -8,7 +8,6 @@ import {isProfileHidden} from '@app/api/user/ProfileVisibility';
 import {buildOperatorProfileBadges} from '@app/api/user/profile_badges/ProfileBadgeBuilder';
 import {loadProfileBadgeEnvironment} from '@app/api/user/profile_badges/ProfileBadgeEnvironment';
 import type {UserRepository} from '@app/api/user/repositories/UserRepository';
-import {getIpAddressReverse} from '@app/api/utils/IpUtils';
 import {AccountTiers} from '@osaca/constants/src/AccountTierConstants';
 import {AdminACLs, filterKnownAdminACLs} from '@osaca/constants/src/AdminACLs';
 import {DeletionReasons} from '@osaca/constants/src/Core';
@@ -38,17 +37,12 @@ async function buildAdminProfileBadges(
 
 export async function mapUserToAdminResponse(
 	user: User,
-	cacheService?: ICacheService,
+	_cacheService?: ICacheService,
 	acls?: ReadonlySet<string>,
 	locale?: string,
 ): Promise<UserAdminResponse> {
-	const canViewIp = !acls || hasAdminACL(acls, AdminACLs.USER_VIEW_IP);
 	const canViewAuditLog = !acls || hasAdminACL(acls, AdminACLs.AUDIT_LOG_VIEW);
-	const [lastActiveIpReverse, profileBadges] = await Promise.all([
-		canViewIp && user.lastActiveIp ? getIpAddressReverse(user.lastActiveIp, cacheService) : null,
-		buildAdminProfileBadges(user, locale),
-	]);
-	const lastActiveLocation: string | null = null;
+	const profileBadges = await buildAdminProfileBadges(user, locale);
 	const accountTier = getAccountTier(user);
 	return {
 		id: user.id.toString(),
@@ -84,9 +78,9 @@ export async function mapUserToAdminResponse(
 		account_tier: accountTier,
 		authenticator_types: user.authenticatorTypes ? Array.from(user.authenticatorTypes) : [],
 		last_active_at: user.lastActiveAt?.toISOString() ?? null,
-		last_active_ip: canViewIp ? (user.lastActiveIp ?? null) : null,
-		last_active_ip_reverse: canViewIp ? lastActiveIpReverse : null,
-		last_active_location: canViewIp ? lastActiveLocation : null,
+		last_active_ip: null,
+		last_active_ip_reverse: null,
+		last_active_location: null,
 	};
 }
 

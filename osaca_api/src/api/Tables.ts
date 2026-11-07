@@ -3,11 +3,7 @@
 import type {AttachmentID, ChannelID, GuildID, MemeID, PasswordResetToken, UserID} from '@app/api/BrandedTypes';
 import {defineTable} from '@app/api/database/CassandraTableDsl';
 import {
-	ADMIN_ARCHIVE_COLUMNS,
-	ADMIN_ARCHIVE_INDEX_COLUMNS,
 	ADMIN_AUDIT_LOG_COLUMNS,
-	type AdminArchiveIndexRow,
-	type AdminArchiveRow,
 	type AdminAuditLogRow,
 	BANNED_AVATAR_HASH_COLUMNS,
 	BANNED_FILE_SHA_COLUMNS,
@@ -598,21 +594,6 @@ export const PushSubscriptions = defineTable<PushSubscriptionRow, 'user_id' | 's
 	columns: PUSH_SUBSCRIPTION_COLUMNS,
 	primaryKey: ['user_id', 'subscription_id'],
 	defaultTtlSeconds: seconds('90 days'),
-});
-export const AdminArchivesBySubject = defineTable<AdminArchiveRow, 'subject_type' | 'subject_id' | 'archive_id'>({
-	name: 'admin_archives_by_subject',
-	columns: ADMIN_ARCHIVE_COLUMNS,
-	primaryKey: ['subject_type', 'subject_id', 'archive_id'],
-});
-export const AdminArchivesByRequester = defineTable<AdminArchiveIndexRow, 'requested_by' | 'archive_id'>({
-	name: 'admin_archives_by_requester',
-	columns: ADMIN_ARCHIVE_INDEX_COLUMNS,
-	primaryKey: ['requested_by', 'archive_id'],
-});
-export const AdminArchivesByType = defineTable<AdminArchiveIndexRow, 'subject_type' | 'archive_id'>({
-	name: 'admin_archives_by_type',
-	columns: ADMIN_ARCHIVE_INDEX_COLUMNS,
-	primaryKey: ['subject_type', 'archive_id'],
 });
 export const AdminAuditLogs = defineTable<AdminAuditLogRow, 'log_id'>({
 	name: 'admin_audit_logs',

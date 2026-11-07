@@ -11,17 +11,8 @@ import {RateLimitConfigs} from '@app/api/RateLimitConfig';
 import type {HonoApp} from '@app/api/types/HonoEnv';
 import {Validator} from '@app/api/Validator';
 import {AdminACLs} from '@osaca/constants/src/AdminACLs';
-import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
-import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
-import {
-	AdminChannelMessageListQuery,
-	AdminMessageSearchQuery,
-	AdminMessageSearchResponse,
-	BrowseChannelResponse,
-} from '@osaca/schema/src/domains/admin/AdminMessageBrowseSchemas';
 import {
 	AdminMessageDeleteRequest,
-	AdminMessageDetailQuery,
 	AdminUserMessageDeleteQuery,
 	AdminUserMessageDeleteRequest,
 	AdminUserMessageShredPreviewRequest,
@@ -31,102 +22,10 @@ import {
 	MessageShredPreviewResponse,
 	MessageShredResponse,
 } from '@osaca/schema/src/domains/admin/AdminMessageSchemas';
-import {
-	DeleteMessageResponse,
-	LookupMessageResponse,
-	MessageShredStatusResponse,
-} from '@osaca/schema/src/domains/admin/AdminSchemas';
-import {
-	ChannelIdMessageIdParam,
-	ChannelIdParam,
-	UserIdParam,
-} from '@osaca/schema/src/domains/common/CommonParamSchemas';
+import {DeleteMessageResponse, MessageShredStatusResponse} from '@osaca/schema/src/domains/admin/AdminSchemas';
+import {ChannelIdMessageIdParam, UserIdParam} from '@osaca/schema/src/domains/common/CommonParamSchemas';
 
 export function MessageAdminController(app: HonoApp) {
-	app.get(
-		'/admin/messages',
-		RateLimitMiddleware(RateLimitConfigs.ADMIN_MESSAGE_OPERATION),
-		requireAdminACL(AdminACLs.MESSAGE_LOOKUP),
-		Validator('query', AdminMessageSearchQuery),
-		OpenAPI({
-			operationId: 'search_admin_messages',
-			summary: 'Search messages',
-			description:
-				'Searches the messages of a channel by content, or resolves a single message by its ID or by one of its attachments. Passing message_id returns that message with the messages surrounding it; passing attachment_id together with filename returns the message with that attachment with its surrounding context. Requires MESSAGE_LOOKUP permission.',
-			responseSchema: AdminMessageSearchResponse,
-			statusCode: 200,
-			security: 'adminApiKey',
-			tags: 'Admin',
-		}),
-		async (ctx) => {
-			const adminService = ctx.get('adminService');
-			const query = ctx.req.valid('query');
-			if (query.message_id != null) {
-				const messageId = query.message_id;
-				const response = await adminService.messageService.lookupMessage({
-					channel_id: query.channel_id,
-					message_id: messageId,
-					context_limit: query.context_limit,
-				});
-				await recordAdminRead(ctx, {
-					targetType: 'message',
-					targetId: messageId,
-					action: AdminAuditReadActions.SEARCH_MESSAGES,
-					metadata: {
-						mode: 'message',
-						channel_id: query.channel_id,
-						context_limit: query.context_limit,
-						found: response.messages.some((message) => message.id === messageId.toString()),
-						result_count: response.messages.length,
-					},
-				});
-				return ctx.json(response);
-			}
-			if (query.attachment_id != null) {
-				if (query.filename == null) {
-					throw InputValidationError.fromCode('filename', ValidationErrorCodes.INVALID_FORMAT);
-				}
-				const response = await adminService.messageService.lookupMessageByAttachment({
-					channel_id: query.channel_id,
-					attachment_id: query.attachment_id,
-					filename: query.filename,
-					context_limit: query.context_limit,
-				});
-				await recordAdminRead(ctx, {
-					targetType: 'channel',
-					targetId: query.channel_id,
-					action: AdminAuditReadActions.SEARCH_MESSAGES,
-					metadata: {
-						mode: 'attachment',
-						attachment_id: query.attachment_id,
-						message_id: response.message_id,
-						context_limit: query.context_limit,
-						found: response.message_id !== null,
-						result_count: response.messages.length,
-					},
-				});
-				return ctx.json(response);
-			}
-			const response = await adminService.messageService.searchChannelMessages({
-				channel_id: query.channel_id,
-				query: query.q ?? '',
-				limit: query.limit,
-			});
-			await recordAdminRead(ctx, {
-				targetType: 'channel',
-				targetId: query.channel_id,
-				action: AdminAuditReadActions.SEARCH_MESSAGES,
-				metadata: {
-					mode: 'search',
-					has_query: query.q === undefined ? undefined : true,
-					limit: query.limit,
-					result_count: response.messages.length,
-					total: response.total,
-				},
-			});
-			return ctx.json(response);
-		},
-	);
 	app.get(
 		'/admin/messages/shreds/:job_id',
 		RateLimitMiddleware(RateLimitConfigs.ADMIN_MESSAGE_OPERATION),
@@ -155,86 +54,6 @@ export function MessageAdminController(app: HonoApp) {
 			return ctx.json(response);
 		},
 	);
-	app.get(
-		'/admin/channels/:channel_id/messages',
-		RateLimitMiddleware(RateLimitConfigs.ADMIN_MESSAGE_OPERATION),
-		requireAdminACL(AdminACLs.MESSAGE_LOOKUP),
-		Validator('param', ChannelIdParam),
-		Validator('query', AdminChannelMessageListQuery),
-		OpenAPI({
-			operationId: 'list_admin_channel_messages',
-			summary: 'List channel messages',
-			description:
-				'Pages through the messages of a channel, newest first, with cursor-based pagination. Requires MESSAGE_LOOKUP permission.',
-			responseSchema: BrowseChannelResponse,
-			statusCode: 200,
-			security: 'adminApiKey',
-			tags: 'Admin',
-		}),
-		async (ctx) => {
-			const adminService = ctx.get('adminService');
-			const {channel_id} = ctx.req.valid('param');
-			const {limit, before, after} = ctx.req.valid('query');
-			const response = await adminService.messageService.browseChannel({
-				channel_id,
-				before,
-				after,
-				limit,
-			});
-			await recordAdminRead(ctx, {
-				targetType: 'channel',
-				targetId: channel_id,
-				action: AdminAuditReadActions.LIST_CHANNEL_MESSAGES,
-				metadata: {
-					limit,
-					before,
-					after,
-					result_count: response.messages.length,
-					has_more: response.has_more,
-				},
-			});
-			return ctx.json(response);
-		},
-	);
-	app.get(
-		'/admin/channels/:channel_id/messages/:message_id',
-		RateLimitMiddleware(RateLimitConfigs.ADMIN_MESSAGE_OPERATION),
-		requireAdminACL(AdminACLs.MESSAGE_LOOKUP),
-		Validator('param', ChannelIdMessageIdParam),
-		Validator('query', AdminMessageDetailQuery),
-		OpenAPI({
-			operationId: 'get_admin_message',
-			summary: 'Get message',
-			description:
-				'Retrieves complete message details including content, attachments, edits, and metadata, together with the messages surrounding it. Requires MESSAGE_LOOKUP permission.',
-			responseSchema: LookupMessageResponse,
-			statusCode: 200,
-			security: 'adminApiKey',
-			tags: 'Admin',
-		}),
-		async (ctx) => {
-			const adminService = ctx.get('adminService');
-			const {channel_id, message_id} = ctx.req.valid('param');
-			const {context_limit} = ctx.req.valid('query');
-			const response = await adminService.messageService.lookupMessage({
-				channel_id,
-				message_id,
-				context_limit,
-			});
-			await recordAdminRead(ctx, {
-				targetType: 'message',
-				targetId: message_id,
-				action: AdminAuditReadActions.GET_MESSAGE,
-				metadata: {
-					channel_id,
-					context_limit,
-					found: response.messages.some((message) => message.id === message_id.toString()),
-					result_count: response.messages.length,
-				},
-			});
-			return ctx.json(response);
-		},
-	);
 	app.delete(
 		'/admin/channels/:channel_id/messages/:message_id',
 		RateLimitMiddleware(RateLimitConfigs.ADMIN_MESSAGE_OPERATION),
@@ -245,7 +64,7 @@ export function MessageAdminController(app: HonoApp) {
 			operationId: 'delete_admin_message',
 			summary: 'Delete message',
 			description:
-				'Deletes a single message permanently and purges its attachments. The basis is holder_request or housekeeping, such as cleanup of webhook or system messages. To remove a message for breaking a rule, shred it with an enforcement basis so a decision records it. Logged to audit log with the basis. Requires MESSAGE_DELETE permission.',
+				'Deletes one message from a channel, with its attachments. The basis is holder_request or housekeeping, such as cleanup of webhook or system messages. To remove a message for breaking a rule, shred it with an enforcement basis so a decision records it. Logged to audit log with the basis. Requires MESSAGE_DELETE permission.',
 			responseSchema: DeleteMessageResponse,
 			statusCode: 200,
 			security: 'adminApiKey',

@@ -459,14 +459,6 @@ async fn dispatch_guild_action(
                 "Failed to delete thread",
             )
         }
-        "trigger_archive" => {
-            let inc = form.bool_value("include_attachments");
-            action_result(
-                client.trigger_guild_archive(guild_id, inc).await,
-                "Guild archive triggered",
-                "Failed to trigger guild archive",
-            )
-        }
         _ => FlashData::error("Unknown guild action"),
     }
 }

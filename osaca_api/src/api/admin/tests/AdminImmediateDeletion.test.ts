@@ -130,11 +130,6 @@ describe('immediate account deletion from the admin panel', () => {
 			terms_agreed_at: null,
 		});
 		expect((await listedUsers()).map((user) => user.id)).not.toContain(target.userId);
-		const byIp = await createBuilder<{users: Array<{id: string}>}>(harness, admin.token)
-			.get(`/admin/users?last_active_ip=${encodeURIComponent('203.0.113.45')}`)
-			.expect(HTTP_STATUS.OK)
-			.execute();
-		expect(byIp.users).toEqual([]);
 		expect(await backfillDeletedUsers(users)).toMatchObject({scrubbed: 0});
 	});
 

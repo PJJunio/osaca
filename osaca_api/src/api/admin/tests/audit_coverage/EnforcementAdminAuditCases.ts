@@ -30,22 +30,6 @@ async function suspend(context: AdminAuditCoverageContext): Promise<{userId: str
 export const EnforcementAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase> = [
 	{
 		method: 'GET',
-		route: '/admin/users/:user_id/network-block-candidates',
-		async prepare(context) {
-			const target = await createTestAccount(context.harness, {ipAddress: '203.0.113.10'});
-			return {
-				request: {path: `/admin/users/${target.userId}/network-block-candidates`},
-				expected: {
-					action: 'list_network_block_candidates',
-					targetType: 'user',
-					targetId: target.userId,
-					metadata: {result_count: '1'},
-				},
-			};
-		},
-	},
-	{
-		method: 'GET',
 		route: '/admin/enforcement-decisions',
 		async prepare(context) {
 			const {userId} = await suspend(context);

@@ -49,7 +49,6 @@ const adminEndpoints: Array<AdminEndpointCase> = [
 	},
 	{method: 'GET', path: '/admin/guilds'},
 	{method: 'GET', path: '/admin/users'},
-	{method: 'GET', path: '/admin/messages?channel_id=1'},
 	{method: 'GET', path: '/admin/users/1'},
 	{method: 'GET', path: '/admin/guilds/1'},
 	{method: 'GET', path: '/admin/guilds/1/members'},

@@ -211,10 +211,6 @@ async fn user_detail_post(
     };
     let client = AdminApiClient::new(state.http_client(), config, &auth.0.session);
     let action = aq.action.as_deref().unwrap_or("");
-    if action == "create_password_reset_link" {
-        return create_password_reset_link(&state, &headers, &auth.0, &csrf.0.0, &client, &user_id)
-            .await;
-    }
     if action == "preview_message_shred" {
         return preview_message_shred(&headers, &client, &user_id, &form).await;
     }

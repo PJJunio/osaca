@@ -6,7 +6,7 @@ import {mapUserToAdminResponse} from '@app/api/admin/models/UserTypes';
 import {createSignInLink} from '@app/api/auth/SignInLinks';
 import {createUserID} from '@app/api/BrandedTypes';
 import {enforcementActor} from '@app/api/enforcement/EnforcementActor';
-import {hasAdminACL, requireAdminACL, requireGrantedAdminACLs} from '@app/api/middleware/AdminMiddleware';
+import {hasAdminACL, requireAdminACL} from '@app/api/middleware/AdminMiddleware';
 import {RateLimitMiddleware} from '@app/api/middleware/RateLimitMiddleware';
 import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
 import {getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
@@ -19,36 +19,26 @@ import {ListUserGuildsResponse} from '@osaca/schema/src/domains/admin/AdminGuild
 import {SearchUsersResponse} from '@osaca/schema/src/domains/admin/AdminSchemas';
 import {
 	AdminAclListResponse,
-	AdminPasswordResetLinkResponse,
 	AdminSignInLinkResponse,
 	AdminUserAclsRequest,
 	AdminUserBotStatusRequest,
-	AdminUserChangeLogQuery,
 	AdminUserClearFieldsRequest,
 	AdminUserCreateRequest,
 	AdminUserCreateResponse,
 	AdminUserDeletionCancelRequest,
 	AdminUserDeletionScheduleRequest,
-	AdminUserDmChannelListQuery,
-	AdminUserDmChannelListResponse,
 	AdminUserFlagsUpdateRequest,
 	AdminUserGuildListQuery,
 	AdminUserListQuery,
-	AdminUserRelationshipCategoryQuery,
-	AdminUserRelationshipParam,
 	AdminUserSystemStatusRequest,
 	AdminUsersMeResponse,
 	AdminUserTraitsRequest,
 	AdminUserUsernameUpdateRequest,
-	AdminUserWebAuthnCredentialParam,
 	ListAppSessionsQuery,
 	ListAppSessionsResponse,
-	ListUserChangeLogResponseSchema,
-	ListUserRelationshipsResponse,
 	ListUserSessionsResponse,
 	LookupUserRequest,
 	LookupUserResponse,
-	RemoveUserRelationshipsResponse,
 	TerminateSessionsResponse,
 	UserMutationResponse,
 	UserRestrictionResponse,
@@ -59,7 +49,6 @@ import {
 	AdminUserWarningRequest,
 	AdminUserWarningResponse,
 } from '@osaca/schema/src/domains/admin/EnforcementSchemas';
-import {WebAuthnCredentialListResponse} from '@osaca/schema/src/domains/auth/AuthSchemas';
 import {UserIdParam} from '@osaca/schema/src/domains/common/CommonParamSchemas';
 
 export function UserAdminController(app: HonoApp) {
@@ -158,19 +147,13 @@ export function UserAdminController(app: HonoApp) {
 				});
 				return ctx.json({users, total: users.length});
 			}
-			let selector: 'last_active_ip' | 'acl' | 'search' = 'search';
-			if (query.last_active_ip?.trim()) {
-				selector = 'last_active_ip';
-			} else if (query.acl !== undefined) {
+			let selector: 'acl' | 'search' = 'search';
+			if (query.acl !== undefined) {
 				selector = 'acl';
-			}
-			if (selector === 'last_active_ip') {
-				requireGrantedAdminACLs(adminUserAcls, [AdminACLs.USER_VIEW_IP]);
 			}
 			const response = await adminService.searchService.searchUsers(
 				{
 					query: query.q,
-					last_active_ip: query.last_active_ip,
 					acl: selector === 'acl' ? query.acl : undefined,
 					limit: query.limit,
 					offset: query.offset,
@@ -295,181 +278,6 @@ export function UserAdminController(app: HonoApp) {
 		},
 	);
 	app.get(
-		'/admin/users/:user_id/dm-channels',
-		RateLimitMiddleware(RateLimitConfigs.ADMIN_LOOKUP),
-		requireAdminACL(AdminACLs.USER_LIST_DM_CHANNELS),
-		Validator('param', UserIdParam),
-		Validator('query', AdminUserDmChannelListQuery),
-		OpenAPI({
-			operationId: 'list_admin_user_dm_channels',
-			summary: 'List user direct message channels',
-			responseSchema: AdminUserDmChannelListResponse,
-			statusCode: 200,
-			security: 'adminApiKey',
-			tags: 'Admin',
-			description:
-				'List the historical one-to-one direct message channels of a user with cursor pagination, or the group direct message channels they are a recipient of when type is group_dm. Requires USER_LIST_DM_CHANNELS permission.',
-		}),
-		async (ctx) => {
-			const adminService = ctx.get('adminService');
-			const {user_id: userId} = ctx.req.valid('param');
-			const {type, ...pagination} = ctx.req.valid('query');
-			if (type === 'group_dm') {
-				const response = await adminService.userService.listUserGroupDmChannels({user_id: userId});
-				await recordAdminRead(ctx, {
-					targetType: 'user',
-					targetId: userId,
-					action: AdminAuditReadActions.LIST_USER_DM_CHANNELS,
-					metadata: {type, channel_count: response.channels.length},
-				});
-				return ctx.json(response);
-			}
-			const response = await adminService.userService.listUserDmChannels({user_id: userId, ...pagination});
-			await recordAdminRead(ctx, {
-				targetType: 'user',
-				targetId: userId,
-				action: AdminAuditReadActions.LIST_USER_DM_CHANNELS,
-				metadata: {
-					type,
-					before_channel_id: pagination.before,
-					after_channel_id: pagination.after,
-					limit: pagination.limit,
-					channel_count: response.channels.length,
-				},
-			});
-			return ctx.json(response);
-		},
-	);
-	app.get(
-		'/admin/users/:user_id/change-log',
-		RateLimitMiddleware(RateLimitConfigs.ADMIN_LOOKUP),
-		requireAdminACL(AdminACLs.USER_VIEW_CONTACT_LOG),
-		Validator('param', UserIdParam),
-		Validator('query', AdminUserChangeLogQuery),
-		OpenAPI({
-			operationId: 'list_admin_user_change_log',
-			summary: 'List user contact change log',
-			responseSchema: ListUserChangeLogResponseSchema,
-			statusCode: 200,
-			security: 'adminApiKey',
-			tags: 'Admin',
-			description:
-				'Retrieve the identity and contact change log history for a user. Shows all profile modifications, admin actions, and account changes with timestamps. Requires USER_VIEW_CONTACT_LOG permission.',
-		}),
-		async (ctx) => {
-			const adminService = ctx.get('adminService');
-			const adminUserAcls = ctx.get('adminUserAcls');
-			const {user_id: userId} = ctx.req.valid('param');
-			const query = ctx.req.valid('query');
-			const response = await adminService.userService.listUserChangeLog({user_id: userId, ...query}, adminUserAcls);
-			await recordAdminRead(ctx, {
-				targetType: 'user',
-				targetId: userId,
-				action: AdminAuditReadActions.LIST_USER_CHANGE_LOG,
-				metadata: {
-					limit: query.limit,
-					has_page_token: query.page_token === undefined ? undefined : true,
-					entry_count: response.entries.length,
-				},
-			});
-			return ctx.json(response);
-		},
-	);
-	app.get(
-		'/admin/users/:user_id/relationships',
-		RateLimitMiddleware(RateLimitConfigs.ADMIN_LOOKUP),
-		requireAdminACL(AdminACLs.USER_LIST_RELATIONSHIPS),
-		Validator('param', UserIdParam),
-		OpenAPI({
-			operationId: 'list_admin_user_relationships',
-			summary: 'List user relationships',
-			responseSchema: ListUserRelationshipsResponse,
-			statusCode: 200,
-			security: 'adminApiKey',
-			tags: 'Admin',
-			description:
-				"List a user's friends, incoming and outgoing friend requests, and blocked users. Requires USER_LIST_RELATIONSHIPS permission.",
-		}),
-		async (ctx) => {
-			const adminService = ctx.get('adminService');
-			const {user_id: userId} = ctx.req.valid('param');
-			const response = await adminService.relationshipService.listRelationships({user_id: userId});
-			await recordAdminRead(ctx, {
-				targetType: 'user',
-				targetId: userId,
-				action: AdminAuditReadActions.LIST_USER_RELATIONSHIPS,
-				metadata: {
-					friend_count: response.friends.length,
-					incoming_request_count: response.incoming_requests.length,
-					outgoing_request_count: response.outgoing_requests.length,
-					blocked_count: response.blocked.length,
-				},
-			});
-			return ctx.json(response);
-		},
-	);
-	app.delete(
-		'/admin/users/:user_id/relationships',
-		RateLimitMiddleware(RateLimitConfigs.ADMIN_USER_MODIFY),
-		requireAdminACL(AdminACLs.USER_REMOVE_RELATIONSHIP),
-		Validator('param', UserIdParam),
-		Validator('query', AdminUserRelationshipCategoryQuery),
-		OpenAPI({
-			operationId: 'clear_admin_user_relationships',
-			summary: 'Clear user relationships',
-			responseSchema: RemoveUserRelationshipsResponse,
-			statusCode: 200,
-			security: 'adminApiKey',
-			tags: 'Admin',
-			description:
-				'Bulk-remove every relationship of the chosen category (friend, incoming_request, outgoing_request, blocked) for a user. Mirror entries on the other party are removed for friend, incoming_request, and outgoing_request. Requires USER_REMOVE_RELATIONSHIP permission.',
-		}),
-		async (ctx) => {
-			const adminService = ctx.get('adminService');
-			const adminUserId = ctx.get('adminUserId');
-			const auditLogReason = ctx.get('auditLogReason');
-			const {user_id: userId} = ctx.req.valid('param');
-			const {category} = ctx.req.valid('query');
-			return ctx.json(
-				await adminService.relationshipService.removeRelationshipsByCategory(
-					{user_id: userId, category},
-					adminUserId,
-					auditLogReason,
-				),
-			);
-		},
-	);
-	app.delete(
-		'/admin/users/:user_id/relationships/:target_user_id',
-		RateLimitMiddleware(RateLimitConfigs.ADMIN_USER_MODIFY),
-		requireAdminACL(AdminACLs.USER_REMOVE_RELATIONSHIP),
-		Validator('param', AdminUserRelationshipParam),
-		Validator('query', AdminUserRelationshipCategoryQuery),
-		OpenAPI({
-			operationId: 'remove_admin_user_relationship',
-			summary: 'Remove user relationship',
-			responseSchema: null,
-			statusCode: 204,
-			security: 'adminApiKey',
-			tags: 'Admin',
-			description:
-				'Remove a single relationship row for a user. For friend and outgoing_request, the mirror entry on the other user is also removed. Dispatches RELATIONSHIP_REMOVE gateway events. Requires USER_REMOVE_RELATIONSHIP permission.',
-		}),
-		async (ctx) => {
-			const adminService = ctx.get('adminService');
-			const adminUserId = ctx.get('adminUserId');
-			const auditLogReason = ctx.get('auditLogReason');
-			const {user_id: userId, target_user_id: targetUserId} = ctx.req.valid('param');
-			const {category} = ctx.req.valid('query');
-			await adminService.relationshipService.removeRelationship(
-				{user_id: userId, target_user_id: targetUserId, category},
-				adminUserId,
-				auditLogReason,
-			);
-			return ctx.body(null, 204);
-		},
-	);
-	app.get(
 		'/admin/users/:user_id/sessions',
 		RateLimitMiddleware(RateLimitConfigs.ADMIN_USER_MODIFY),
 		requireAdminACL(AdminACLs.USER_LIST_SESSIONS),
@@ -559,87 +367,6 @@ export function UserAdminController(app: HonoApp) {
 					auditLogReason,
 				),
 			);
-		},
-	);
-	app.get(
-		'/admin/users/:user_id/webauthn-credentials',
-		RateLimitMiddleware(RateLimitConfigs.ADMIN_USER_MODIFY),
-		requireAdminACL(AdminACLs.USER_UPDATE_MFA),
-		Validator('param', UserIdParam),
-		OpenAPI({
-			operationId: 'list_admin_user_webauthn_credentials',
-			summary: 'List user WebAuthn credentials',
-			responseSchema: WebAuthnCredentialListResponse,
-			statusCode: 200,
-			security: 'adminApiKey',
-			tags: 'Admin',
-			description:
-				'List all WebAuthn credentials (passkeys/security keys) registered for a user. Returns credential names, creation dates, and last usage. Creates audit log entry. Requires USER_UPDATE_MFA permission.',
-		}),
-		async (ctx) => {
-			const adminService = ctx.get('adminService');
-			const adminUserId = ctx.get('adminUserId');
-			const auditLogReason = ctx.get('auditLogReason');
-			const {user_id: userId} = ctx.req.valid('param');
-			return ctx.json(
-				await adminService.userService.securityService.listWebAuthnCredentials(
-					{user_id: userId},
-					adminUserId,
-					auditLogReason,
-				),
-			);
-		},
-	);
-	app.delete(
-		'/admin/users/:user_id/webauthn-credentials/:credential_id',
-		RateLimitMiddleware(RateLimitConfigs.ADMIN_USER_MODIFY),
-		requireAdminACL(AdminACLs.USER_UPDATE_MFA),
-		Validator('param', AdminUserWebAuthnCredentialParam),
-		OpenAPI({
-			operationId: 'delete_admin_user_webauthn_credential',
-			summary: 'Delete user WebAuthn credential',
-			responseSchema: null,
-			statusCode: 204,
-			security: 'adminApiKey',
-			tags: 'Admin',
-			description:
-				'Delete a specific WebAuthn credential (passkey/security key) from a user account. Creates audit log entry. Requires USER_UPDATE_MFA permission.',
-		}),
-		async (ctx) => {
-			const adminService = ctx.get('adminService');
-			const adminUserId = ctx.get('adminUserId');
-			const auditLogReason = ctx.get('auditLogReason');
-			const {user_id: userId, credential_id: credentialId} = ctx.req.valid('param');
-			await adminService.userService.securityService.deleteWebAuthnCredential(
-				{user_id: userId, credential_id: credentialId},
-				adminUserId,
-				auditLogReason,
-			);
-			return ctx.body(null, 204);
-		},
-	);
-	app.delete(
-		'/admin/users/:user_id/mfa',
-		RateLimitMiddleware(RateLimitConfigs.ADMIN_USER_MODIFY),
-		requireAdminACL(AdminACLs.USER_UPDATE_MFA),
-		Validator('param', UserIdParam),
-		OpenAPI({
-			operationId: 'disable_admin_user_mfa',
-			summary: 'Disable user MFA',
-			responseSchema: null,
-			statusCode: 204,
-			security: 'adminApiKey',
-			tags: 'Admin',
-			description:
-				'Disable two-factor authentication for user account. Removes all authenticators. Creates audit log entry. Requires USER_UPDATE_MFA permission.',
-		}),
-		async (ctx) => {
-			const adminService = ctx.get('adminService');
-			const adminUserId = ctx.get('adminUserId');
-			const auditLogReason = ctx.get('auditLogReason');
-			const {user_id: userId} = ctx.req.valid('param');
-			await adminService.userService.securityService.disableMfa({user_id: userId}, adminUserId, auditLogReason);
-			return ctx.body(null, 204);
 		},
 	);
 	app.delete(
@@ -769,36 +496,6 @@ export function UserAdminController(app: HonoApp) {
 	);
 
 	app.post(
-		'/admin/users/:user_id/password-reset-link',
-		RateLimitMiddleware(RateLimitConfigs.ADMIN_USER_MODIFY),
-		requireAdminACL(AdminACLs.USER_CREATE_PASSWORD_RESET_LINK),
-		Validator('param', UserIdParam),
-		OpenAPI({
-			operationId: 'create_admin_user_password_reset_link',
-			summary: 'Create user password reset link',
-			responseSchema: AdminPasswordResetLinkResponse,
-			statusCode: 200,
-			security: 'adminApiKey',
-			tags: 'Admin',
-			description:
-				'Create a one-time password reset link. Hand the link to the user yourself. It works once and expires after an hour. Deletes the recovery kit of the account. Creates audit log entry. Requires USER_CREATE_PASSWORD_RESET_LINK permission and every ACL the target account holds.',
-		}),
-		async (ctx) => {
-			const adminService = ctx.get('adminService');
-			const adminUserId = ctx.get('adminUserId');
-			const auditLogReason = ctx.get('auditLogReason');
-			const {user_id: userId} = ctx.req.valid('param');
-			return ctx.json(
-				await adminService.userService.securityService.createPasswordResetLink(
-					{user_id: userId},
-					adminUserId,
-					auditLogReason,
-					ctx.get('adminUserAcls'),
-				),
-			);
-		},
-	);
-	app.post(
 		'/admin/users/:user_id/sign-in-link',
 		RateLimitMiddleware(RateLimitConfigs.ADMIN_USER_MODIFY),
 		requireAdminACL(AdminACLs.WILDCARD),
@@ -825,33 +522,6 @@ export function UserAdminController(app: HonoApp) {
 					auditLogReason: ctx.get('auditLogReason'),
 				}),
 			);
-		},
-	);
-	app.delete(
-		'/admin/users/:user_id/recovery-kit',
-		RateLimitMiddleware(RateLimitConfigs.ADMIN_USER_MODIFY),
-		requireAdminACL(AdminACLs.USER_DELETE_RECOVERY_KIT),
-		Validator('param', UserIdParam),
-		OpenAPI({
-			operationId: 'revoke_admin_user_recovery_kit',
-			summary: 'Revoke user recovery kit',
-			responseSchema: null,
-			statusCode: 204,
-			security: 'adminApiKey',
-			tags: 'Admin',
-			description:
-				'Deletes the recovery kit of an account, so its key stops working. Creates audit log entry. Requires USER_DELETE_RECOVERY_KIT permission and every ACL the target account holds.',
-		}),
-		async (ctx) => {
-			const adminService = ctx.get('adminService');
-			const {user_id: userId} = ctx.req.valid('param');
-			await adminService.userService.securityService.revokeRecoveryKit(
-				{user_id: userId},
-				ctx.get('adminUserId'),
-				ctx.get('auditLogReason'),
-				ctx.get('adminUserAcls'),
-			);
-			return ctx.body(null, 204);
 		},
 	);
 	app.put(

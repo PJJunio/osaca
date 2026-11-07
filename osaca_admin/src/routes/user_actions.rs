@@ -137,11 +137,6 @@ pub async fn dispatch(
                 "Failed to update user traits",
             )
         }
-        "disable_mfa" => DispatchOutcome::from_result(
-            client.disable_mfa(user_id).await,
-            "MFA disabled successfully",
-            "Failed to disable MFA",
-        ),
         "terminate_sessions" => DispatchOutcome::from_result(
             client.terminate_user_sessions(user_id).await,
             "User sessions terminated successfully",
@@ -248,19 +243,6 @@ pub async fn dispatch(
                 Err(error) => decision_failure("Failed to lift the suspension", user_id, &error),
             }
         }
-        "ban_ip" => {
-            let Some(ip) = get("ip") else {
-                return DispatchOutcome::error("IP address is required");
-            };
-            let Ok(duration) = form.parse_value::<u32>("duration_hours") else {
-                return DispatchOutcome::error("Invalid ban duration");
-            };
-            DispatchOutcome::from_result(
-                client.ban_ip(&ip, duration.unwrap_or(0), None).await,
-                "IP banned successfully",
-                "Failed to ban IP",
-            )
-        }
         "ban_avatar" => {
             let Some(hash) = get("avatar_hash") else {
                 return DispatchOutcome::error("Avatar hash is required");
@@ -319,71 +301,6 @@ pub async fn dispatch(
             {
                 Ok(_) => DispatchOutcome::success("Deletion cancelled"),
                 Err(error) => decision_failure("Failed to cancel the deletion", user_id, &error),
-            }
-        }
-        "trigger_archive" => {
-            let inc = form.bool_value("include_attachments");
-            DispatchOutcome::from_result(
-                client.trigger_user_archive(user_id, inc).await,
-                "User archive triggered successfully",
-                "Failed to trigger user archive",
-            )
-        }
-        "delete_webauthn_credential" => {
-            let Some(cred_id) = get("credential_id") else {
-                return DispatchOutcome::error("Credential ID is required");
-            };
-            DispatchOutcome::from_result(
-                client.delete_webauthn_credential(user_id, &cred_id).await,
-                "WebAuthn credential deleted successfully",
-                "Failed to delete WebAuthn credential",
-            )
-        }
-        "revoke_recovery_kit" => DispatchOutcome::from_result(
-            client.revoke_recovery_kit(user_id).await,
-            "Recovery kit revoked",
-            "Failed to revoke recovery kit",
-        ),
-        "remove_relationship" => {
-            let Some(target_id) = get("target_user_id").or_else(|| get("target_id")) else {
-                return DispatchOutcome::error("Target user ID is required");
-            };
-            let category = get("category").unwrap_or_else(|| "friend".to_owned());
-            if !is_relationship_category(&category) {
-                return DispatchOutcome::error(format!(
-                    "Invalid relationship category: {category}"
-                ));
-            }
-            DispatchOutcome::from_result(
-                client
-                    .remove_relationship(user_id, &target_id, &category)
-                    .await,
-                "Relationship removed successfully",
-                "Failed to remove relationship",
-            )
-        }
-        "remove_relationships_by_category" => {
-            let Some(category) = get("category") else {
-                return DispatchOutcome::error("Relationship category is required");
-            };
-            if !is_relationship_category(&category) {
-                return DispatchOutcome::error(format!(
-                    "Invalid relationship category: {category}"
-                ));
-            }
-            match client
-                .remove_relationships_by_category(user_id, &category)
-                .await
-            {
-                Ok(response) => DispatchOutcome::success(format!(
-                    "Removed {} {} relationship(s)",
-                    response.removed_count,
-                    category.replace('_', " ")
-                )),
-                Err(error) => {
-                    tracing::warn!(%error, user_id, category, "admin API request failed: remove relationships by category");
-                    DispatchOutcome::error("Failed to remove relationships")
-                }
             }
         }
         "delete_all_messages" => delete_all_messages(client, user_id, form).await,

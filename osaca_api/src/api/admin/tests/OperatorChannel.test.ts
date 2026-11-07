@@ -152,7 +152,7 @@ describe('operator channel', () => {
 	});
 
 	it('still refuses writes to system users', async () => {
-		const response = await socketRequest(socketPath, 'POST', '/admin/users/0/password-reset-link');
+		const response = await socketRequest(socketPath, 'DELETE', '/admin/users/0/sessions');
 		expect(response.status).not.toBe(HTTP_STATUS.OK);
 		expect((response.body as {code: string}).code).toBe(APIErrorCodes.UNKNOWN_USER);
 	});

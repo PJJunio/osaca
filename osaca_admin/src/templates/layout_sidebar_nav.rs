@@ -80,43 +80,16 @@ pub const NAV_SECTIONS: &[NavSection] = &[
         title: "Content Tools",
         items: &[
             item!(
-                "Message Tools",
-                "/messages",
-                "message-tools",
-                [
-                    acl::MESSAGE_LOOKUP,
-                    acl::MESSAGE_DELETE,
-                    acl::MESSAGE_SHRED,
-                    acl::MESSAGE_DELETE_ALL,
-                ]
-            ),
-            item!(
                 "System DMs",
                 "/system-dms",
                 "system-dms",
                 [acl::SYSTEM_DM_SEND]
-            ),
-            item!(
-                "Archives",
-                "/archives",
-                "archives",
-                [
-                    acl::ARCHIVE_VIEW_ALL,
-                    acl::ARCHIVE_TRIGGER_USER,
-                    acl::ARCHIVE_TRIGGER_GUILD,
-                ]
             ),
         ],
     },
     NavSection {
         title: "User Bans",
         items: &[
-            item!(
-                "IP Bans",
-                "/ip-bans",
-                "ip-bans",
-                [acl::BAN_IP_CHECK, acl::BAN_IP_ADD, acl::BAN_IP_REMOVE]
-            ),
             item!(
                 "Phrase Bans",
                 "/phrase-bans",

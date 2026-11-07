@@ -46,14 +46,7 @@ pub async fn render(
                 .get_user_by_id(user_id)
                 .await
                 .log_error("load user overview")?;
-            let change_log = if acl::has_permission(admin_acls, acl::USER_VIEW_CONTACT_LOG) {
-                client
-                    .list_user_change_log(user_id, Some(50))
-                    .await
-                    .log_error("load user change log")
-            } else {
-                None
-            };
+            let change_log = None;
             let (limit_config, custom_badges) = tokio::join!(
                 async {
                     client
@@ -167,18 +160,7 @@ pub async fn render(
             if let Some(Err(error)) = &decisions {
                 tracing::warn!(%error, user_id, "admin API request failed: list user decisions");
             }
-            let can_block_networks = acl::has_permission(admin_acls, acl::USER_VIEW_IP)
-                && acl::has_permission(admin_acls, acl::BAN_IP_ADD)
-                && (acl::has_permission(admin_acls, acl::USER_TEMP_BAN)
-                    || acl::has_permission(admin_acls, acl::USER_DELETE));
-            let network_candidates = if can_block_networks {
-                Some(client.list_network_block_candidates(user_id).await)
-            } else {
-                None
-            };
-            if let Some(Err(error)) = &network_candidates {
-                tracing::warn!(%error, user_id, "admin API request failed: list network block candidates");
-            }
+            let network_candidates = None;
             let context = tabs::moderation::ModerationContext {
                 deletion_scheduler: deletion_scheduler.as_ref(),
                 legacy_suspension: tabs::moderation::find_legacy_suspension(&u, &legacy_logs),
@@ -216,25 +198,6 @@ pub async fn render(
                 "This user does not own any applications.",
             ))
         }
-        "archives" => {
-            if !acl::has_any_permission(
-                admin_acls,
-                &[acl::ARCHIVE_VIEW_ALL, acl::ARCHIVE_TRIGGER_USER],
-            ) {
-                return None;
-            }
-            let a = client
-                .list_archives("user", Some(user_id), false, None)
-                .await;
-            Some(tabs::archives::archives_tab(
-                config,
-                user_id,
-                &a.map_err(|error| tracing::warn!(%error, user_id, "admin API request failed: list user archives"))
-                    .map(|r| r.archives)
-                    .unwrap_or_default(),
-                csrf_token,
-            ))
-        }
         "guilds" => {
             let g = client
                 .get_user_guilds(user_id, Some(200), None, None, Some(true))
@@ -268,50 +231,6 @@ pub async fn render(
                 received_page,
                 limit,
             ))
-        }
-        "relationships" => {
-            if !acl::has_permission(admin_acls, acl::USER_LIST_RELATIONSHIPS) {
-                return None;
-            }
-            let d = client
-                .list_user_relationships(user_id)
-                .await
-                .log_error("load user relationships")?;
-            Some(tabs::relationships::relationships_tab(
-                config,
-                user_id,
-                &d,
-                acl::has_permission(admin_acls, acl::USER_REMOVE_RELATIONSHIP),
-                csrf_token,
-            ))
-        }
-        "dm-history" | "dm_history" => {
-            let limit = query.dm_limit.unwrap_or(50);
-            let before = query.dm_before.as_deref();
-            let after = query.dm_after.as_deref();
-            let ch = client
-                .list_user_dm_channels(user_id, before, after, Some(limit))
-                .await
-                .map(|r| r.channels)
-                .map_err(|error| tracing::warn!(%error, user_id, "admin API request failed: list user DM channels"))
-                .unwrap_or_default();
-            Some(tabs::dm_history::dm_history_tab(
-                config,
-                user_id,
-                &ch,
-                before,
-                after,
-                limit as usize,
-            ))
-        }
-        "group-dm" | "group_dms" => {
-            let ch = client
-                .list_user_group_dm_channels(user_id)
-                .await
-                .map(|r| r.channels)
-                .map_err(|error| tracing::warn!(%error, user_id, "admin API request failed: list user group DM channels"))
-                .unwrap_or_default();
-            Some(tabs::group_dm::group_dm_tab(config, user_id, &ch))
         }
         "audit_logs" | "audit-logs" => {
             if !acl::has_permission(admin_acls, acl::AUDIT_LOG_VIEW) {
@@ -365,11 +284,7 @@ pub async fn render_account(
             |error| tracing::warn!(%error, user_id, "admin API request failed: list user sessions"),
         )
         .unwrap_or_default();
-    let webauthn_credentials = client
-        .list_webauthn_credentials(user_id)
-        .await
-        .map_err(|error| tracing::warn!(%error, user_id, "admin API request failed: list webauthn credentials"))
-        .unwrap_or_default();
+    let webauthn_credentials = Vec::new();
     Some(tabs::account::account_tab(
         config,
         &u,

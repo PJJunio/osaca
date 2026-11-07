@@ -2,7 +2,6 @@
 
 import {AdminApiKeyAdminController} from '@app/api/admin/controllers/AdminApiKeyAdminController';
 import {ApplicationAdminController} from '@app/api/admin/controllers/ApplicationAdminController';
-import {ArchiveAdminController} from '@app/api/admin/controllers/ArchiveAdminController';
 import {AssetAdminController} from '@app/api/admin/controllers/AssetAdminController';
 import {AuditLogAdminController} from '@app/api/admin/controllers/AuditLogAdminController';
 import {BadgeAdminController} from '@app/api/admin/controllers/BadgeAdminController';
@@ -39,7 +38,6 @@ export function registerAdminControllers(app: HonoApp) {
 	MessageAdminController(app);
 	BulkAdminController(app);
 	AuditLogAdminController(app);
-	ArchiveAdminController(app);
 	ReportAdminController(app);
 	VoiceAdminController(app);
 	GatewayAdminController(app);

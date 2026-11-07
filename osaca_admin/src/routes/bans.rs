@@ -27,7 +27,6 @@ use super::bans_actions::{
 
 pub fn router() -> Router<AppState> {
     Router::new()
-        .route("/ip-bans", get(ip_bans).post(ip_bans_post))
         .route("/phrase-bans", get(phrase_bans).post(phrase_bans_post))
         .route("/url-bans", get(url_bans).post(url_bans_post))
         .route(
@@ -76,7 +75,6 @@ macro_rules! ban_get {
     };
 }
 
-ban_get!(ip_bans, "ip-bans");
 ban_get!(phrase_bans, "phrase-bans");
 ban_get!(url_bans, "url-bans");
 ban_get!(file_sha_bans, "file-sha-bans");
@@ -134,7 +132,6 @@ macro_rules! ban_post {
     };
 }
 
-ban_post!(ip_bans_post, "ip-bans");
 ban_post!(phrase_bans_post, "phrase-bans");
 ban_post!(url_bans_post, "url-bans");
 ban_post!(file_sha_bans_post, "file-sha-bans");

@@ -18,38 +18,9 @@ import {
 	EnforcementDecisionNoteRequest,
 	EnforcementDecisionNoteResponse,
 	EnforcementDecisionResponse,
-	NetworkBlockCandidatesResponse,
 } from '@osaca/schema/src/domains/admin/EnforcementSchemas';
-import {UserIdParam} from '@osaca/schema/src/domains/common/CommonParamSchemas';
 
 export function EnforcementAdminController(app: HonoApp) {
-	app.get(
-		'/admin/users/:user_id/network-block-candidates',
-		RateLimitMiddleware(RateLimitConfigs.ADMIN_LOOKUP),
-		requireAdminACL(AdminACLs.USER_VIEW_IP),
-		Validator('param', UserIdParam),
-		OpenAPI({
-			operationId: 'list_admin_user_network_block_candidates',
-			summary: 'List networks a suspension or closure can block',
-			responseSchema: NetworkBlockCandidatesResponse,
-			statusCode: 200,
-			security: 'adminApiKey',
-			tags: 'Admin',
-			description:
-				'Lists the addresses the account used in the last 30 days, most recent first, with how many other accounts that are not suspended or closed were last active on each. These are the addresses block_networks accepts on the suspend and close routes. Requires USER_VIEW_IP permission.',
-		}),
-		async (ctx) => {
-			const {user_id: userId} = ctx.req.valid('param');
-			const result = await ctx.get('adminService').enforcementService.listNetworkBlockCandidates(userId);
-			await recordAdminRead(ctx, {
-				targetType: 'user',
-				targetId: userId,
-				action: AdminAuditReadActions.LIST_NETWORK_BLOCK_CANDIDATES,
-				metadata: {result_count: result.networks.length},
-			});
-			return ctx.json(result);
-		},
-	);
 	app.get(
 		'/admin/enforcement-decisions',
 		RateLimitMiddleware(RateLimitConfigs.ADMIN_LOOKUP),

@@ -22,7 +22,6 @@ import {
 	AdminAuditLogs,
 	BannedAvatarHashes,
 	BannedFileShas,
-	BannedPhrases,
 	BannedProfileSubstrings,
 	BannedUrlDomains,
 	BannedUrls,
@@ -58,7 +57,6 @@ const FETCH_AUDIT_LOGS_BY_IDS_QUERY = AdminAuditLogs.select({
 	where: AdminAuditLogs.where.in('log_id', 'log_ids'),
 });
 
-const LOAD_ALL_BANNED_PHRASES_QUERY = BannedPhrases.select();
 const LOAD_ALL_BANNED_URLS_QUERY = BannedUrls.select();
 const LOAD_ALL_BANNED_URL_DOMAINS_QUERY = BannedUrlDomains.select();
 const LOAD_ALL_BANNED_FILE_SHAS_QUERY = BannedFileShas.select();
@@ -158,21 +156,12 @@ export class AdminRepository {
 		return [];
 	}
 
-	async banPhrase(phrase: string): Promise<void> {
-		const phraseLower = canonicalizeStoredPhrase(phrase);
-		await upsertOne(BannedPhrases.insert({phrase: phraseLower}));
-	}
+	async banPhrase(_phrase: string): Promise<void> {}
 
-	async unbanPhrase(phrase: string): Promise<void> {
-		const phraseLower = canonicalizeStoredPhrase(phrase);
-		await deleteOneOrMany(BannedPhrases.deleteByPk({phrase: phraseLower}));
-	}
+	async unbanPhrase(_phrase: string): Promise<void> {}
 
 	async loadAllBannedPhrases(): Promise<Array<string>> {
-		const rows = await fetchMany<{
-			phrase: string;
-		}>(LOAD_ALL_BANNED_PHRASES_QUERY.bind({}));
-		return rows.map((row) => row.phrase);
+		return [];
 	}
 
 	async banUrl(row: BannedUrlRow): Promise<void> {

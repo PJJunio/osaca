@@ -1,10 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {Logger} from '@app/api/Logger';
-import {phraseBlocklistCache} from '@app/api/middleware/PhraseBlocklistCache';
-import {urlBlocklistCache} from '@app/api/middleware/UrlBlocklistCache';
-import {readRequestJsonBody} from '@app/api/utils/RequestJsonBody';
-import {ContentBlockedError} from '@osaca/errors/src/domains/content/ContentBlockedError';
 import {createMiddleware} from 'hono/factory';
 
 const SKIP_FIELDS = new Set([
@@ -113,46 +108,6 @@ export function extractStringValues(body: unknown, depth = 0): Array<string> {
 	return strings;
 }
 
-const ContentFilterMiddleware = createMiddleware(async (ctx, next) => {
-	const method = ctx.req.method;
-	if (method !== 'POST' && method !== 'PUT' && method !== 'PATCH') {
-		return next();
-	}
-	const path = ctx.req.path;
-	if (shouldSkipContentFilterPath(path)) {
-		return next();
-	}
-	const contentType = ctx.req.header('content-type') ?? '';
-	if (contentType.includes('multipart/form-data') || contentType.includes('application/x-www-form-urlencoded')) {
-		return next();
-	}
-	const body = await readRequestJsonBody(ctx.req);
-	if (!body.parsed) {
-		return next();
-	}
-	const strings = extractStringValues(body.value);
-	if (strings.length === 0) {
-		return next();
-	}
-	const userId = ctx.get('user')?.id ?? null;
-	for (const text of strings) {
-		if (text.length < 3) continue;
-		if (phraseBlocklistCache.containsBannedPhrase(text)) {
-			Logger.warn(
-				{surface: 'global_filter', userId: userId?.toString(), path},
-				'content_moderation.block phrase match in request body',
-			);
-			throw new ContentBlockedError();
-		}
-		if (urlBlocklistCache.containsBannedLink(text)) {
-			Logger.warn(
-				{surface: 'global_filter', userId: userId?.toString(), path},
-				'content_moderation.block url match in request body',
-			);
-			throw new ContentBlockedError();
-		}
-	}
-	return next();
-});
+const ContentFilterMiddleware = createMiddleware(async (_ctx, next) => next());
 
 export default ContentFilterMiddleware;

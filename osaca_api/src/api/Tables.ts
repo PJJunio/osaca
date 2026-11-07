@@ -7,13 +7,11 @@ import {
 	type AdminAuditLogRow,
 	BANNED_AVATAR_HASH_COLUMNS,
 	BANNED_FILE_SHA_COLUMNS,
-	BANNED_PHRASE_COLUMNS,
 	BANNED_PROFILE_SUBSTRING_COLUMNS,
 	BANNED_URL_COLUMNS,
 	BANNED_URL_DOMAIN_COLUMNS,
 	type BannedAvatarHashRow,
 	type BannedFileShaRow,
-	type BannedPhraseRow,
 	type BannedProfileSubstringRow,
 	type BannedUrlDomainRow,
 	type BannedUrlRow,
@@ -198,12 +196,8 @@ import {
 	type NoteRow,
 	PUSH_SUBSCRIPTION_COLUMNS,
 	type PushSubscriptionRow,
-	RECENT_MENTION_COLUMNS,
 	RELATIONSHIP_COLUMNS,
-	type RecentMentionRow,
 	type RelationshipRow,
-	SAVED_MESSAGE_COLUMNS,
-	type SavedMessageRow,
 	USER_BY_ACL_COLUMNS,
 	USER_BY_USERNAME_COLUMNS,
 	USER_COLUMNS,
@@ -554,41 +548,6 @@ export const AttachmentLookup = defineTable<AttachmentLookupRow, 'channel_id' | 
 	columns: ATTACHMENT_LOOKUP_COLUMNS,
 	primaryKey: ['channel_id', 'attachment_id', 'filename'],
 });
-export const RecentMentions = defineTable<RecentMentionRow, 'user_id' | 'message_id'>({
-	name: 'recent_mentions',
-	columns: RECENT_MENTION_COLUMNS,
-	primaryKey: ['user_id', 'message_id'],
-	defaultTtlSeconds: seconds('7 days'),
-});
-
-interface RecentMentionsByGuildRow {
-	user_id: bigint;
-	guild_id: bigint;
-	message_id: bigint;
-	channel_id: bigint;
-	is_everyone: boolean;
-	is_role: boolean;
-}
-
-const RECENT_MENTIONS_BY_GUILD_COLUMNS = [
-	'user_id',
-	'guild_id',
-	'message_id',
-	'channel_id',
-	'is_everyone',
-	'is_role',
-] as const satisfies ReadonlyArray<keyof RecentMentionsByGuildRow>;
-export const RecentMentionsByGuild = defineTable<RecentMentionsByGuildRow, 'user_id' | 'guild_id' | 'message_id'>({
-	name: 'recent_mentions_by_guild',
-	columns: RECENT_MENTIONS_BY_GUILD_COLUMNS,
-	primaryKey: ['user_id', 'guild_id', 'message_id'],
-	defaultTtlSeconds: seconds('7 days'),
-});
-export const SavedMessages = defineTable<SavedMessageRow, 'user_id' | 'message_id'>({
-	name: 'saved_messages',
-	columns: SAVED_MESSAGE_COLUMNS,
-	primaryKey: ['user_id', 'message_id'],
-});
 export const PushSubscriptions = defineTable<PushSubscriptionRow, 'user_id' | 'subscription_id'>({
 	name: 'push_subscriptions',
 	columns: PUSH_SUBSCRIPTION_COLUMNS,
@@ -649,11 +608,6 @@ export const EnforcementReviewQueue = defineTable<EnforcementReviewQueueRow, 'bu
 	columns: ENFORCEMENT_REVIEW_QUEUE_COLUMNS,
 	primaryKey: ['bucket', 'decision_id'],
 	partitionKey: ['bucket'],
-});
-export const BannedPhrases = defineTable<BannedPhraseRow, 'phrase'>({
-	name: 'banned_phrases',
-	columns: BANNED_PHRASE_COLUMNS,
-	primaryKey: ['phrase'],
 });
 export const BannedUrls = defineTable<BannedUrlRow, 'url_canonical'>({
 	name: 'banned_urls',

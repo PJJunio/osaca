@@ -322,42 +322,15 @@ async fn read_attachment(
     headers: &HeaderMap,
 ) -> Response {
     let filename = filename_from_storage_key(key);
-    if !requests_transform(params) {
-        return serve_stored_passthrough_stream(
-            app,
-            method,
-            &app.cfg.storage.bucket_cdn,
-            key,
-            headers,
-            PassthroughDisposition::Attachment {
-                requested_download: bool_param(params, "download", false),
-                filename,
-            },
-        )
-        .await;
-    }
-    let object = match app
-        .store
-        .read_object(&app.cfg.storage.bucket_cdn, key)
-        .await
-    {
-        Ok(object) => object,
-        Err(StorageError::StreamTooLong) => {
-            return serve_spooled_attachment_video(app, method, key, params, headers).await;
-        }
-        Err(err) => return storage_error_response(key, err),
-    };
-    serve_bytes_or_transform(
-        app.media.transforms(),
-        ServeBytesRequest {
-            method,
-            data: object.data,
-            content_type: object.content_type,
-            cache_identity: key,
+    serve_stored_passthrough_stream(
+        app,
+        method,
+        &app.cfg.storage.bucket_cdn,
+        key,
+        headers,
+        PassthroughDisposition::Attachment {
+            requested_download: bool_param(params, "download", false),
             filename,
-            route: TransformRoute::Attachment,
-            params,
-            headers,
         },
     )
     .await

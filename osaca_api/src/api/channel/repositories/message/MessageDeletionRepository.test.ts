@@ -61,11 +61,11 @@ describe('MessageDeletionRepository reaction tombstones', () => {
 		executor.reset();
 		setCassandraQueryExecutorForTesting(null);
 	});
-	it('skips the reaction delete when the message never had a reaction', async () => {
+	it('always deletes reactions even when has_reaction is false', async () => {
 		const messageId = createMessageID(100n);
 		await seedMessage(messageId, false);
 		await createRepository().deleteMessage(CHANNEL_ID, messageId, AUTHOR_ID);
-		expect(executor.countStatements('delete:message_reactions')).toBe(0);
+		expect(executor.countStatements('delete:message_reactions')).toBe(1);
 	});
 	it('still deletes reactions when the message has one', async () => {
 		const messageId = createMessageID(101n);
@@ -83,7 +83,7 @@ describe('MessageDeletionRepository reaction tombstones', () => {
 		await createRepository().deleteMessage(CHANNEL_ID, createMessageID(103n), AUTHOR_ID);
 		expect(executor.countStatements('delete:message_reactions')).toBe(1);
 	});
-	it('only deletes reactions for the reacted messages in a bulk delete', async () => {
+	it('deletes reactions for every message in a bulk delete', async () => {
 		const unreacted = [createMessageID(200n), createMessageID(201n), createMessageID(202n)];
 		const reacted = createMessageID(203n);
 		const legacy = createMessageID(204n);
@@ -93,6 +93,6 @@ describe('MessageDeletionRepository reaction tombstones', () => {
 		await seedMessage(reacted, true);
 		await seedMessage(legacy, null);
 		await createRepository().bulkDeleteMessages(CHANNEL_ID, [...unreacted, reacted, legacy]);
-		expect(executor.countStatements('delete:message_reactions')).toBe(2);
+		expect(executor.countStatements('delete:message_reactions')).toBe(5);
 	});
 });

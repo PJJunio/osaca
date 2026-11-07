@@ -1,11 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {createHash} from 'node:crypto';
-import {Logger} from '@app/api/Logger';
-import {fileShaCache} from '@app/api/middleware/FileShaCache';
-import {phraseBlocklistCache} from '@app/api/middleware/PhraseBlocklistCache';
-import {urlBlocklistCache} from '@app/api/middleware/UrlBlocklistCache';
-import {ContentBlockedError} from '@osaca/errors/src/domains/content/ContentBlockedError';
 
 export interface ModerationContext {
 	userId: bigint | null;
@@ -30,52 +25,15 @@ export interface ModerationContext {
 }
 
 class ContentModerationService {
-	scanText(text: string | null | undefined, ctx: ModerationContext): void {
-		if (!text) return;
-		if (phraseBlocklistCache.containsBannedPhrase(text)) {
-			Logger.warn(
-				{surface: ctx.surface, userId: ctx.userId?.toString(), guildId: ctx.guildId?.toString()},
-				'content_moderation.block phrase match in text',
-			);
-			throw new ContentBlockedError();
-		}
-		if (urlBlocklistCache.containsBannedLink(text)) {
-			Logger.warn(
-				{surface: ctx.surface, userId: ctx.userId?.toString(), guildId: ctx.guildId?.toString()},
-				'content_moderation.block url match in text',
-			);
-			throw new ContentBlockedError();
-		}
+	scanText(_text: string | null | undefined, _ctx: ModerationContext): void {}
+
+	scanUrl(_url: string, _ctx: ModerationContext): void {}
+
+	scanFileBuffer(buffer: Buffer | Uint8Array, _ctx: ModerationContext): string {
+		return createHash('sha256').update(buffer).digest('hex');
 	}
 
-	scanUrl(url: string, ctx: ModerationContext): void {
-		if (!url) return;
-		if (urlBlocklistCache.isUrlOrDomainBanned(url)) {
-			Logger.warn({surface: ctx.surface, userId: ctx.userId?.toString(), url}, 'content_moderation.block url match');
-			throw new ContentBlockedError();
-		}
-	}
-
-	scanFileBuffer(buffer: Buffer | Uint8Array, ctx: ModerationContext): string {
-		const sha = createHash('sha256').update(buffer).digest('hex');
-		this.scanSha256(sha, ctx);
-		return sha;
-	}
-
-	scanSha256(sha: string, ctx: ModerationContext): void {
-		if (fileShaCache.isBanned(sha)) {
-			Logger.warn(
-				{
-					surface: ctx.surface,
-					userId: ctx.userId?.toString(),
-					guildId: ctx.guildId?.toString(),
-					sha256: sha,
-				},
-				'content_moderation.block sha256 match',
-			);
-			throw new ContentBlockedError();
-		}
-	}
+	scanSha256(_sha: string, _ctx: ModerationContext): void {}
 }
 
 export const contentModerationService = new ContentModerationService();

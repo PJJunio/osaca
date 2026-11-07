@@ -32,7 +32,7 @@ async function loadHasReaction(channelId: ChannelID, messageId: MessageID): Prom
 	return row?.has_reaction;
 }
 
-describe('MessageInteractionRepository has_reaction writes', () => {
+describe('MessageInteractionRepository reaction writes without has_reaction indexing', () => {
 	beforeEach(() => {
 		executor = new InMemoryCassandraQueryExecutor();
 		setCassandraQueryExecutorForTesting(executor);
@@ -41,7 +41,7 @@ describe('MessageInteractionRepository has_reaction writes', () => {
 		executor.reset();
 		setCassandraQueryExecutorForTesting(null);
 	});
-	it('flags the message on every reaction add', async () => {
+	it('stores reactions without patching has_reaction on messages', async () => {
 		const channelId = createChannelID(10n);
 		const messageId = createMessageID(100n);
 		const repository = createRepository();
@@ -52,19 +52,18 @@ describe('MessageInteractionRepository has_reaction writes', () => {
 				(meta) =>
 					meta.action === 'patch' && meta.table.name === 'messages' && (meta.patchKeys ?? []).includes('has_reaction'),
 			).length,
-		).toBe(2);
+		).toBe(0);
 		expect(await repository.listMessageReactions(channelId, messageId)).toHaveLength(2);
-		expect(await loadHasReaction(channelId, messageId)).toBe(true);
+		expect(await loadHasReaction(channelId, messageId)).toBeUndefined();
 	});
-	it('restores the flag when it was cleared after the message was read', async () => {
+	it('treats setHasReaction as a no-op', async () => {
 		const channelId = createChannelID(10n);
 		const messageId = createMessageID(100n);
 		const repository = createRepository();
 		await repository.addReaction(channelId, messageId, createUserID(1n), '🔥');
 		await repository.setHasReaction(channelId, messageId, false);
-		expect(await loadHasReaction(channelId, messageId)).toBe(false);
+		expect(await loadHasReaction(channelId, messageId)).toBeUndefined();
 		await repository.addReaction(channelId, messageId, createUserID(2n), '🔥');
-		expect(await loadHasReaction(channelId, messageId)).toBe(true);
 		expect(await repository.listMessageReactions(channelId, messageId)).toHaveLength(2);
 	});
 });

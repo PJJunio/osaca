@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {ActivityPubController} from '@app/api/activity_pub/ActivityPubController';
 import {AdminDownloadController} from '@app/api/admin/AdminDownloadController';
 import {registerAdminControllers} from '@app/api/admin/controllers/index';
 import {AttachmentController} from '@app/api/attachment/AttachmentController';
@@ -29,7 +28,6 @@ import {SearchController} from '@app/api/search/controllers/SearchController';
 import {TestHarnessController} from '@app/api/test/TestHarnessController';
 import {ThemeController} from '@app/api/theme/ThemeController';
 import type {HonoApp} from '@app/api/types/HonoEnv';
-import {UnfurlController} from '@app/api/unfurl/UnfurlController';
 import {UserController} from '@app/api/user/controllers/UserController';
 import {VoiceNodeController} from '@app/api/voice/VoiceNodeController';
 import {VoiceP2pConnectionReportController} from '@app/api/voice/VoiceP2pConnectionReportController';
@@ -49,7 +47,6 @@ export function registerControllers(routes: HonoApp, config: APIConfig): void {
 	ConnectionController(routes);
 	BlueskyOAuthController(routes);
 	InstanceController(routes);
-	ActivityPubController(routes);
 	OpenAPIController(routes);
 	DownloadController(routes);
 	ExperimentController(routes);
@@ -60,7 +57,6 @@ export function registerControllers(routes: HonoApp, config: APIConfig): void {
 	GuildController(routes);
 	SearchController(routes);
 	ThemeController(routes);
-	UnfurlController(routes);
 	if (config.dev.testModeEnabled || config.nodeEnv === 'development') {
 		TestHarnessController(routes);
 	}

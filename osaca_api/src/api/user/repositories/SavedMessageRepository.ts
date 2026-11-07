@@ -1,67 +1,27 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {type ChannelID, createMessageID, type MessageID, type UserID} from '@app/api/BrandedTypes';
-import {deleteOneOrMany, fetchMany, fetchOne, upsertOne} from '@app/api/database/CassandraQueryExecution';
-import type {SavedMessageRow} from '@app/api/database/types/UserTypes';
+import type {ChannelID, MessageID, UserID} from '@app/api/BrandedTypes';
 import {SavedMessage} from '@app/api/models/SavedMessage';
-import {SavedMessages} from '@app/api/Tables';
-import {generateSnowflake} from '@osaca/snowflake/src/Snowflake';
-
-const createFetchSavedMessagesQuery = (limit: number) =>
-	SavedMessages.select({
-		where: [SavedMessages.where.eq('user_id'), SavedMessages.where.lt('message_id', 'before_message_id')],
-		orderBy: {col: 'message_id', direction: 'DESC'},
-		limit,
-	});
-
-const COUNT_SAVED_MESSAGES_CQL = SavedMessages.selectCountCql({
-	where: SavedMessages.where.eq('user_id'),
-});
 
 export class SavedMessageRepository {
-	async countSavedMessages(userId: UserID): Promise<number> {
-		const result = await fetchOne<{
-			count: bigint;
-		}>(COUNT_SAVED_MESSAGES_CQL, {user_id: userId});
-		return result ? Number(result.count) : 0;
+	async countSavedMessages(_userId: UserID): Promise<number> {
+		return 0;
 	}
 
-	async listSavedMessages(
-		userId: UserID,
-		limit: number = 25,
-		before: MessageID = createMessageID(generateSnowflake()),
-	): Promise<Array<SavedMessage>> {
-		const fetchLimit = Math.max(limit * 2, 50);
-		const savedMessageRows = await fetchMany<SavedMessageRow>(
-			createFetchSavedMessagesQuery(fetchLimit).bind({
-				user_id: userId,
-				before_message_id: before,
-			}),
-		);
-		const savedMessages: Array<SavedMessage> = [];
-		for (const savedMessageRow of savedMessageRows) {
-			if (savedMessages.length >= limit) break;
-			savedMessages.push(new SavedMessage(savedMessageRow));
-		}
-		return savedMessages;
+	async listSavedMessages(_userId: UserID, _limit: number = 25, _before?: MessageID): Promise<Array<SavedMessage>> {
+		return [];
 	}
 
 	async createSavedMessage(userId: UserID, channelId: ChannelID, messageId: MessageID): Promise<SavedMessage> {
-		const savedMessageRow: SavedMessageRow = {
+		return new SavedMessage({
 			user_id: userId,
 			channel_id: channelId,
 			message_id: messageId,
 			saved_at: new Date(),
-		};
-		await upsertOne(SavedMessages.upsertAll(savedMessageRow));
-		return new SavedMessage(savedMessageRow);
+		});
 	}
 
-	async deleteSavedMessage(userId: UserID, messageId: MessageID): Promise<void> {
-		await deleteOneOrMany(SavedMessages.deleteByPk({user_id: userId, message_id: messageId}));
-	}
+	async deleteSavedMessage(_userId: UserID, _messageId: MessageID): Promise<void> {}
 
-	async deleteAllSavedMessages(userId: UserID): Promise<void> {
-		await deleteOneOrMany(SavedMessages.delete({where: SavedMessages.where.eq('user_id')}).bind({user_id: userId}));
-	}
+	async deleteAllSavedMessages(_userId: UserID): Promise<void> {}
 }

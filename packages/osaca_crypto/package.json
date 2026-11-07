@@ -1,0 +1,25 @@
+{
+	"name": "@osaca/crypto",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts",
+		"./src/*": "./src/*",
+		"./*": "./*"
+	},
+	"main": "./src/index.ts",
+	"types": "./src/index.ts",
+	"scripts": {
+		"build:wasm": "cargo build --release --target wasm32-unknown-unknown -p osaca_crypto && wasm-bindgen --target web --out-dir wasm --out-name osaca_crypto ../../target/wasm32-unknown-unknown/release/osaca_crypto.wasm",
+		"build": "pnpm run build:wasm",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"typecheck": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"@types/node": "catalog:",
+		"typescript": "catalog:ts7",
+		"vitest": "catalog:"
+	}
+}

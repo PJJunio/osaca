@@ -13,11 +13,7 @@ import {getKVAccountDeletionQueue} from '@app/api/middleware/ServiceSingletons';
 import type {AuthSession} from '@app/api/models/AuthSession';
 import type {User} from '@app/api/models/User';
 import {requireConfiguredClientIp} from '@app/api/utils/RequestClientIp';
-import {
-	isOsacaNativeUserAgent,
-	parseReportedClientApp,
-	parseReportedClientOs,
-} from '@app/api/utils/SessionClientIdentity';
+import {isOsacaNativeUserAgent, parseReportedClientApp} from '@app/api/utils/SessionClientIdentity';
 import {BotUserAuthSessionCreationDeniedError} from '@osaca/errors/src/domains/auth/BotUserAuthSessionCreationDeniedError';
 import {RegistrationPendingApprovalError} from '@osaca/errors/src/domains/auth/RegistrationPendingApprovalError';
 import {RegistrationRejectedError} from '@osaca/errors/src/domains/auth/RegistrationRejectedError';
@@ -66,12 +62,8 @@ interface CreateAdditionalAuthSessionFromTokenParams {
 
 export function resolveSessionOrigin(ctx: ApiContext, request: Request): SessionOrigin {
 	const {config} = ctx.services;
-	const ip = requireConfiguredClientIp(request, config.proxy);
-	const userAgent = request.headers.get('user-agent')?.trim() || null;
-	const clientOs = isOsacaNativeUserAgent(userAgent)
-		? parseReportedClientOs(request.headers.get('x-osaca-client-properties'))
-		: null;
-	return {ip, userAgent, clientOs};
+	requireConfiguredClientIp(request, config.proxy);
+	return {ip: '', userAgent: null, clientOs: null};
 }
 
 export async function createAuthSession(

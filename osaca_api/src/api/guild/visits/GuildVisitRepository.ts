@@ -1,40 +1,53 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type {GuildID, UserID} from '@app/api/BrandedTypes';
-import {BatchBuilder, fetchMany, fetchOne} from '@app/api/database/CassandraQueryExecution';
 import type {GuildVisitRow} from '@app/api/database/types/GuildVisitTypes';
-import {GuildVisitsByGuild, GuildVisitsByUser} from '@app/api/Tables';
 import {GUILD_VISIT_TTL_SECONDS} from '@osaca/constants/src/GuildVisitConstants';
 
 const MAX_GUILD_PAGE = 5000;
 const USER_PARTITION_LIMIT = 200;
 
-const GET_CQL = GuildVisitsByUser.selectCql({
-	where: [GuildVisitsByUser.where.eq('user_id'), GuildVisitsByUser.where.eq('guild_id')],
-	limit: 1,
-});
-const LIST_CQL = GuildVisitsByUser.selectCql({
-	where: GuildVisitsByUser.where.eq('user_id'),
-	limit: USER_PARTITION_LIMIT,
-});
-const pageByGuildQuery = (limit: number) =>
-	GuildVisitsByGuild.select({
-		where: [GuildVisitsByGuild.where.eq('guild_id'), GuildVisitsByGuild.where.gt('user_id', 'after_user_id')],
-		limit,
-	});
-const firstPageByGuildQuery = (limit: number) =>
-	GuildVisitsByGuild.select({where: GuildVisitsByGuild.where.eq('guild_id'), limit});
-const pageAllQuery = (limit: number) =>
-	GuildVisitsByUser.select({where: GuildVisitsByUser.where.tokenGt('user_id', 'after_user_id'), limit});
-const firstPageAllQuery = (limit: number) => GuildVisitsByUser.select({limit});
+interface StoredGuildVisit {
+	row: GuildVisitRow;
+	expiresAt: number;
+}
 
 export class GuildVisitRepository {
+	private readonly entries = new Map<string, StoredGuildVisit>();
+
+	private key(userId: UserID, guildId: GuildID): string {
+		return `${userId}:${guildId}`;
+	}
+
+	clear(): void {
+		this.entries.clear();
+	}
+
 	async get(userId: UserID, guildId: GuildID): Promise<GuildVisitRow | null> {
-		return fetchOne<GuildVisitRow>(GET_CQL, {user_id: userId, guild_id: guildId});
+		const key = this.key(userId, guildId);
+		const entry = this.entries.get(key);
+		if (!entry) return null;
+		if (entry.expiresAt <= Date.now()) {
+			this.entries.delete(key);
+			return null;
+		}
+		return entry.row;
 	}
 
 	async list(userId: UserID): Promise<Array<GuildVisitRow>> {
-		return fetchMany<GuildVisitRow>(LIST_CQL, {user_id: userId});
+		const now = Date.now();
+		const rows: Array<GuildVisitRow> = [];
+		for (const [key, entry] of this.entries) {
+			if (entry.expiresAt <= now) {
+				this.entries.delete(key);
+				continue;
+			}
+			if (entry.row.user_id === userId) {
+				rows.push(entry.row);
+				if (rows.length >= USER_PARTITION_LIMIT) break;
+			}
+		}
+		return rows;
 	}
 
 	async upsert(row: GuildVisitRow, now: Date = new Date()): Promise<boolean> {
@@ -46,10 +59,10 @@ export class GuildVisitRepository {
 			ttl = Math.max(0, Math.min(GUILD_VISIT_TTL_SECONDS, remaining));
 		}
 		if (ttl <= 0) return false;
-		const batch = new BatchBuilder();
-		batch.addPrepared(GuildVisitsByUser.insertWithTtl(row, ttl));
-		batch.addPrepared(GuildVisitsByGuild.insertWithTtl(row, ttl));
-		await batch.execute();
+		this.entries.set(this.key(row.user_id, row.guild_id), {
+			row: {...row},
+			expiresAt: now.getTime() + ttl * 1000,
+		});
 		return true;
 	}
 
@@ -60,10 +73,7 @@ export class GuildVisitRepository {
 	}
 
 	async delete(userId: UserID, guildId: GuildID): Promise<void> {
-		const batch = new BatchBuilder();
-		batch.addPrepared(GuildVisitsByUser.deleteByPk({user_id: userId, guild_id: guildId}));
-		batch.addPrepared(GuildVisitsByGuild.deleteByPk({guild_id: guildId, user_id: userId}));
-		await batch.execute();
+		this.entries.delete(this.key(userId, guildId));
 	}
 
 	async deleteAllForUser(userId: UserID): Promise<Array<GuildID>> {
@@ -80,12 +90,19 @@ export class GuildVisitRepository {
 		limit: number,
 	): Promise<{rows: Array<GuildVisitRow>; next: UserID | null}> {
 		const bounded = Math.max(1, Math.min(MAX_GUILD_PAGE, Math.floor(limit)));
-		const rows =
-			afterUserId === null
-				? await fetchMany<GuildVisitRow>(firstPageByGuildQuery(bounded).bind({guild_id: guildId}))
-				: await fetchMany<GuildVisitRow>(
-						pageByGuildQuery(bounded).bind({guild_id: guildId, after_user_id: afterUserId}),
-					);
+		const now = Date.now();
+		const matching: Array<GuildVisitRow> = [];
+		for (const [key, entry] of this.entries) {
+			if (entry.expiresAt <= now) {
+				this.entries.delete(key);
+				continue;
+			}
+			if (entry.row.guild_id !== guildId) continue;
+			if (afterUserId !== null && entry.row.user_id <= afterUserId) continue;
+			matching.push(entry.row);
+		}
+		matching.sort((a, b) => (a.user_id < b.user_id ? -1 : a.user_id > b.user_id ? 1 : 0));
+		const rows = matching.slice(0, bounded);
 		const next = rows.length === bounded ? rows[rows.length - 1]!.user_id : null;
 		return {rows, next};
 	}
@@ -95,10 +112,18 @@ export class GuildVisitRepository {
 		limit: number,
 	): Promise<{userIds: Array<UserID>; next: UserID | null}> {
 		const bounded = Math.max(1, Math.min(MAX_GUILD_PAGE, Math.floor(limit)));
-		const rows =
-			afterUserId === null
-				? await fetchMany<GuildVisitRow>(firstPageAllQuery(bounded).bind({}))
-				: await fetchMany<GuildVisitRow>(pageAllQuery(bounded).bind({after_user_id: afterUserId}));
+		const now = Date.now();
+		const matching: Array<GuildVisitRow> = [];
+		for (const [key, entry] of this.entries) {
+			if (entry.expiresAt <= now) {
+				this.entries.delete(key);
+				continue;
+			}
+			if (afterUserId !== null && entry.row.user_id <= afterUserId) continue;
+			matching.push(entry.row);
+		}
+		matching.sort((a, b) => (a.user_id < b.user_id ? -1 : a.user_id > b.user_id ? 1 : 0));
+		const rows = matching.slice(0, bounded);
 		const userIds = [...new Set(rows.map((row) => row.user_id))];
 		const next = rows.length === bounded ? rows[rows.length - 1]!.user_id : null;
 		return {userIds, next};

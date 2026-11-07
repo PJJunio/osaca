@@ -3,14 +3,12 @@
 import {AsyncLocalStorage} from 'node:async_hooks';
 import type {ChangeSource, Channel, Meta} from '@app/api/infrastructure/activity/Contract.generated';
 import type {HonoEnv} from '@app/api/types/HonoEnv';
-import {getRequestClientIp} from '@app/api/utils/RequestClientIp';
 import {stripApiPrefix} from '@app/api/utils/RequestPathUtils';
 import {parseAcceptLanguage} from '@osaca/i18n/src/locale/resolution/AcceptLanguageNegotiation';
 import type {Context} from 'hono';
 import {createMiddleware} from 'hono/factory';
 
 const CANARY_ORIGINS = new Set(['https://canary.osaca.example', 'https://web.canary.osaca.example']);
-const UA_MAX_CHARS = 512;
 
 export interface ActivityRequestContext {
 	ip: string | null;
@@ -31,11 +29,10 @@ export function setActivityProcessChannel(channel: Channel): void {
 
 function activityMetaFromContext(ctx: Context<HonoEnv>): ActivityRequestContext {
 	const origin = ctx.req.header('origin');
-	const ua = ctx.req.header('user-agent');
 	const acceptLanguage = ctx.req.header('accept-language');
 	return {
-		ip: getRequestClientIp(ctx),
-		ua: ua ? ua.slice(0, UA_MAX_CHARS) : null,
+		ip: null,
+		ua: null,
 		locale: acceptLanguage ? parseAcceptLanguage(acceptLanguage) : null,
 		requestId: ctx.get('requestId') ?? null,
 		channel: origin && CANARY_ORIGINS.has(origin) ? 'canary' : 'stable',

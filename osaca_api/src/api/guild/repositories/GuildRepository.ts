@@ -139,7 +139,7 @@ const FETCH_GUILD_BANS_BY_USER_ID_QUERY = GuildBansByUserId.selectCql({
 	where: GuildBansByUserId.where.eq('user_id'),
 });
 
-const AUDIT_LOG_TTL_SECONDS = seconds('45 days');
+const AUDIT_LOG_TTL_SECONDS = seconds('30 days');
 
 const FETCH_GUILD_EMOJIS_BY_GUILD_ID_QUERY = GuildEmojis.selectCql({
 	where: GuildEmojis.where.eq('guild_id'),
@@ -441,22 +441,23 @@ export class GuildRepository {
 	}
 
 	async upsertBan(data: GuildBanRow): Promise<GuildBan> {
+		const sanitized: GuildBanRow = {...data, ip: null};
 		const batch = new BatchBuilder();
 		const byUserRow: GuildBanByUserIdRow = {
-			user_id: data.user_id,
-			guild_id: data.guild_id,
+			user_id: sanitized.user_id,
+			guild_id: sanitized.guild_id,
 		};
-		if (data.expires_at) {
+		if (sanitized.expires_at) {
 			const now = Date.now();
-			const ttl = Math.max(0, Math.ceil((data.expires_at.getTime() - now) / 1000));
-			batch.addPrepared(GuildBans.insertWithTtl(data, ttl));
+			const ttl = Math.max(0, Math.ceil((sanitized.expires_at.getTime() - now) / 1000));
+			batch.addPrepared(GuildBans.insertWithTtl(sanitized, ttl));
 			batch.addPrepared(GuildBansByUserId.insertWithTtl(byUserRow, ttl));
 		} else {
-			batch.addPrepared(GuildBans.insert(data));
+			batch.addPrepared(GuildBans.insert(sanitized));
 			batch.addPrepared(GuildBansByUserId.insert(byUserRow));
 		}
 		await batch.execute();
-		return new GuildBan(data);
+		return new GuildBan(sanitized);
 	}
 
 	async deleteBan(guildId: GuildID, userId: UserID): Promise<void> {

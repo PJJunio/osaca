@@ -14,7 +14,6 @@ import {getInviteRepository, getLimitConfigService} from '@app/api/middleware/Se
 import type {User} from '@app/api/models/User';
 import {GuildVisitEndReasons, GuildVisitSources} from '@osaca/constants/src/GuildVisitConstants';
 import {BannedFromGuildError} from '@osaca/errors/src/domains/guild/BannedFromGuildError';
-import {IpBannedFromGuildError} from '@osaca/errors/src/domains/guild/IpBannedFromGuildError';
 
 export interface SessionGuildVisit {
 	guildId: GuildID;
@@ -39,7 +38,7 @@ async function checkSessionVisit(
 	try {
 		await assertNotBannedFromGuildVisit({guildId: row.guild_id, user, ip});
 	} catch (error) {
-		if (error instanceof BannedFromGuildError || error instanceof IpBannedFromGuildError) {
+		if (error instanceof BannedFromGuildError) {
 			return 'BANNED';
 		}
 		throw error;

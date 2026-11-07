@@ -11,14 +11,12 @@ import {
 	type AdminAuditLogRow,
 	BANNED_AVATAR_HASH_COLUMNS,
 	BANNED_FILE_SHA_COLUMNS,
-	BANNED_IP_COLUMNS,
 	BANNED_PHRASE_COLUMNS,
 	BANNED_PROFILE_SUBSTRING_COLUMNS,
 	BANNED_URL_COLUMNS,
 	BANNED_URL_DOMAIN_COLUMNS,
 	type BannedAvatarHashRow,
 	type BannedFileShaRow,
-	type BannedIpRow,
 	type BannedPhraseRow,
 	type BannedProfileSubstringRow,
 	type BannedUrlDomainRow,
@@ -40,10 +38,6 @@ import {
 	AUTH_SESSION_BY_APP_CHANNEL_COLUMNS,
 	AUTH_SESSION_COLUMNS,
 	AUTH_SESSION_TOMBSTONE_COLUMNS,
-	AUTHORIZED_IP_COLUMNS,
-	AUTHORIZED_IP_TRUST_KEY_COLUMNS,
-	type AuthorizedIpRow,
-	type AuthorizedIpTrustKeyRow,
 	type AuthSessionByAppChannelRow,
 	type AuthSessionRow,
 	type AuthSessionTombstoneRow,
@@ -122,7 +116,6 @@ import {
 	type GuildRow,
 	type GuildStickerRow,
 } from '@app/api/database/types/GuildTypes';
-import {GUILD_VISIT_COLUMNS, type GuildVisitRow} from '@app/api/database/types/GuildVisitTypes';
 import {
 	INSTANCE_CONFIGURATION_COLUMNS,
 	type InstanceConfigurationRow,
@@ -216,23 +209,15 @@ import {
 	SAVED_MESSAGE_COLUMNS,
 	type SavedMessageRow,
 	USER_BY_ACL_COLUMNS,
-	USER_BY_LAST_ACTIVE_IP_COLUMNS,
-	USER_BY_LAST_ACTIVE_IP_TRUST_KEY_COLUMNS,
 	USER_BY_USERNAME_COLUMNS,
 	USER_COLUMNS,
-	USER_CONTACT_CHANGE_LOG_COLUMNS,
-	USER_DM_HISTORY_COLUMNS,
 	USER_ENTRANCE_SOUND_COLUMNS,
 	USER_ENTRANCE_SOUND_SELECTION_COLUMNS,
 	USER_GUILD_SETTINGS_COLUMNS,
 	USER_HARVEST_COLUMNS,
 	USER_SETTINGS_COLUMNS,
 	type UserByAclRow,
-	type UserByLastActiveIpRow,
-	type UserByLastActiveIpTrustKeyRow,
 	type UserByUsernameRow,
-	type UserContactChangeLogRow,
-	type UserDmHistoryRow,
 	type UserEntranceSoundRow,
 	type UserEntranceSoundSelectionRow,
 	type UserGuildSettingsRow,
@@ -245,7 +230,6 @@ import {
 	type VoiceP2pConnectionReportRow,
 } from '@app/api/database/types/VoiceTypes';
 import {ATTACHMENT_DECAY_COLUMNS, type AttachmentDecayRow} from '@app/api/types/AttachmentDecayTypes';
-import {GUILD_VISIT_TTL_SECONDS} from '@osaca/constants/src/GuildVisitConstants';
 import {seconds} from 'itty-time';
 
 export const Users = defineTable<UserRow, 'user_id'>({
@@ -254,11 +238,6 @@ export const Users = defineTable<UserRow, 'user_id'>({
 	primaryKey: ['user_id'],
 });
 
-export const UserDmHistory = defineTable<UserDmHistoryRow, 'user_id' | 'channel_id'>({
-	name: 'user_dm_history',
-	columns: USER_DM_HISTORY_COLUMNS,
-	primaryKey: ['user_id', 'channel_id'],
-});
 export const UserByUsername = defineTable<UserByUsernameRow, 'username' | 'discriminator' | 'user_id'>({
 	name: 'users_by_username',
 	columns: USER_BY_USERNAME_COLUMNS,
@@ -269,19 +248,6 @@ export const UserByAcl = defineTable<UserByAclRow, 'acl' | 'user_id', 'acl'>({
 	columns: USER_BY_ACL_COLUMNS,
 	primaryKey: ['acl', 'user_id'],
 	partitionKey: ['acl'],
-});
-export const UserByLastActiveIp = defineTable<UserByLastActiveIpRow, 'last_active_ip' | 'user_id'>({
-	name: 'users_by_last_active_ip',
-	columns: USER_BY_LAST_ACTIVE_IP_COLUMNS,
-	primaryKey: ['last_active_ip', 'user_id'],
-});
-export const UserByLastActiveIpTrustKey = defineTable<
-	UserByLastActiveIpTrustKeyRow,
-	'last_active_ip_trust_key' | 'user_id'
->({
-	name: 'users_by_last_active_ip_trust_key_v1',
-	columns: USER_BY_LAST_ACTIVE_IP_TRUST_KEY_COLUMNS,
-	primaryKey: ['last_active_ip_trust_key', 'user_id'],
 });
 export const UserSettings = defineTable<UserSettingsRow, 'user_id'>({
 	name: 'user_settings',
@@ -302,11 +268,6 @@ export const UserGuildSettings = defineTable<UserGuildSettingsRow, 'user_id' | '
 	name: 'user_guild_settings',
 	columns: USER_GUILD_SETTINGS_COLUMNS,
 	primaryKey: ['user_id', 'guild_id'],
-});
-export const UserContactChangeLogs = defineTable<UserContactChangeLogRow, 'user_id' | 'event_id'>({
-	name: 'user_contact_change_logs',
-	columns: USER_CONTACT_CHANGE_LOG_COLUMNS,
-	primaryKey: ['user_id', 'event_id'],
 });
 export const UserConnections = defineTable<UserConnectionStorageRow, 'user_id' | 'connection_type' | 'connection_id'>({
 	name: 'user_connections',
@@ -365,37 +326,23 @@ export const GuildBansByUserId = defineTable<GuildBanByUserIdRow, 'user_id' | 'g
 	primaryKey: ['user_id', 'guild_id'],
 	partitionKey: ['user_id'],
 });
-export const GuildVisitsByUser = defineTable<GuildVisitRow, 'user_id' | 'guild_id', 'user_id'>({
-	name: 'guild_visits_by_user',
-	columns: GUILD_VISIT_COLUMNS,
-	primaryKey: ['user_id', 'guild_id'],
-	partitionKey: ['user_id'],
-	defaultTtlSeconds: GUILD_VISIT_TTL_SECONDS,
-});
-export const GuildVisitsByGuild = defineTable<GuildVisitRow, 'guild_id' | 'user_id', 'guild_id'>({
-	name: 'guild_visits_by_guild',
-	columns: GUILD_VISIT_COLUMNS,
-	primaryKey: ['guild_id', 'user_id'],
-	partitionKey: ['guild_id'],
-	defaultTtlSeconds: GUILD_VISIT_TTL_SECONDS,
-});
 export const GuildAuditLogs = defineTable<GuildAuditLogRow, 'guild_id' | 'log_id'>({
 	name: 'guild_audit_logs_v2',
 	columns: GUILD_AUDIT_LOG_COLUMNS,
 	primaryKey: ['guild_id', 'log_id'],
-	defaultTtlSeconds: seconds('45 days'),
+	defaultTtlSeconds: seconds('30 days'),
 });
 export const GuildAuditLogsByUser = defineTable<GuildAuditLogRow, 'guild_id' | 'user_id' | 'log_id'>({
 	name: 'guild_audit_logs_v2_by_user',
 	columns: GUILD_AUDIT_LOG_COLUMNS,
 	primaryKey: ['guild_id', 'user_id', 'log_id'],
-	defaultTtlSeconds: seconds('45 days'),
+	defaultTtlSeconds: seconds('30 days'),
 });
 export const GuildAuditLogsByAction = defineTable<GuildAuditLogRow, 'guild_id' | 'action_type' | 'log_id'>({
 	name: 'guild_audit_logs_v2_by_action',
 	columns: GUILD_AUDIT_LOG_COLUMNS,
 	primaryKey: ['guild_id', 'action_type', 'log_id'],
-	defaultTtlSeconds: seconds('45 days'),
+	defaultTtlSeconds: seconds('30 days'),
 });
 export const GuildAuditLogsByUserAction = defineTable<
 	GuildAuditLogRow,
@@ -404,7 +351,7 @@ export const GuildAuditLogsByUserAction = defineTable<
 	name: 'guild_audit_logs_v2_by_user_action',
 	columns: GUILD_AUDIT_LOG_COLUMNS,
 	primaryKey: ['guild_id', 'user_id', 'action_type', 'log_id'],
-	defaultTtlSeconds: seconds('45 days'),
+	defaultTtlSeconds: seconds('30 days'),
 });
 export const GuildMembershipMetadata = defineTable<GuildMembershipMetadataRow, 'guild_id' | 'user_id'>({
 	name: 'guild_membership_metadata',
@@ -671,6 +618,7 @@ export const AdminAuditLogs = defineTable<AdminAuditLogRow, 'log_id'>({
 	name: 'admin_audit_logs',
 	columns: ADMIN_AUDIT_LOG_COLUMNS,
 	primaryKey: ['log_id'],
+	defaultTtlSeconds: seconds('30 days'),
 });
 export const AdminApiKeys = defineTable<AdminApiKeyRow, 'key_id'>({
 	name: 'admin_api_keys',
@@ -702,7 +650,7 @@ export const EnforcementDecisionEvidence = defineTable<EnforcementDecisionEviden
 	name: 'enforcement_decision_evidence',
 	columns: ENFORCEMENT_DECISION_EVIDENCE_COLUMNS,
 	primaryKey: ['decision_id'],
-	defaultTtlSeconds: seconds('365 days'),
+	defaultTtlSeconds: seconds('30 days'),
 });
 export const EnforcementDecisionNotes = defineTable<
 	EnforcementDecisionNoteRow,
@@ -713,18 +661,13 @@ export const EnforcementDecisionNotes = defineTable<
 	columns: ENFORCEMENT_DECISION_NOTE_COLUMNS,
 	primaryKey: ['decision_id', 'note_id'],
 	partitionKey: ['decision_id'],
-	defaultTtlSeconds: seconds('365 days'),
+	defaultTtlSeconds: seconds('30 days'),
 });
 export const EnforcementReviewQueue = defineTable<EnforcementReviewQueueRow, 'bucket' | 'decision_id', 'bucket'>({
 	name: 'enforcement_review_queue',
 	columns: ENFORCEMENT_REVIEW_QUEUE_COLUMNS,
 	primaryKey: ['bucket', 'decision_id'],
 	partitionKey: ['bucket'],
-});
-export const BannedIps = defineTable<BannedIpRow, 'ip'>({
-	name: 'banned_ips',
-	columns: BANNED_IP_COLUMNS,
-	primaryKey: ['ip'],
 });
 export const BannedPhrases = defineTable<BannedPhraseRow, 'phrase'>({
 	name: 'banned_phrases',
@@ -776,7 +719,7 @@ export const MessageReportSubmissionsByReporter = defineTable<
 	columns: MESSAGE_REPORT_SUBMISSION_BY_REPORTER_COLUMNS,
 	primaryKey: ['reporter_id', 'channel_id', 'message_id'],
 	partitionKey: ['reporter_id'],
-	defaultTtlSeconds: seconds('365 days'),
+	defaultTtlSeconds: seconds('30 days'),
 });
 export const UserReportSubmissionsByReporter = defineTable<
 	UserReportSubmissionByReporterRow,
@@ -822,6 +765,7 @@ export const AuthSessions = defineTable<AuthSessionRow, 'session_id_hash'>({
 	name: 'auth_sessions',
 	columns: AUTH_SESSION_COLUMNS,
 	primaryKey: ['session_id_hash'],
+	defaultTtlSeconds: seconds('90 days'),
 });
 export const AuthSessionsByUserId = defineTable<
 	{
@@ -833,6 +777,7 @@ export const AuthSessionsByUserId = defineTable<
 	name: 'auth_sessions_by_user_id',
 	columns: ['user_id', 'session_id_hash'],
 	primaryKey: ['user_id', 'session_id_hash'],
+	defaultTtlSeconds: seconds('90 days'),
 });
 export const AuthSessionsByAppChannel = defineTable<
 	AuthSessionByAppChannelRow,
@@ -843,6 +788,7 @@ export const AuthSessionsByAppChannel = defineTable<
 	columns: AUTH_SESSION_BY_APP_CHANNEL_COLUMNS,
 	primaryKey: ['app_platform', 'app_release_channel', 'session_id_hash'],
 	partitionKey: ['app_platform', 'app_release_channel'],
+	defaultTtlSeconds: seconds('90 days'),
 });
 export const AuthSessionTombstones = defineTable<AuthSessionTombstoneRow, 'user_id' | 'session_id_hash'>({
 	name: 'auth_session_tombstones',
@@ -875,16 +821,6 @@ export const WebAuthnCredentialLookup = defineTable<
 	name: 'webauthn_credential_lookup',
 	columns: ['credential_id', 'user_id'],
 	primaryKey: ['credential_id'],
-});
-export const AuthorizedIps = defineTable<AuthorizedIpRow, 'user_id' | 'ip'>({
-	name: 'authorized_ips_v2',
-	columns: AUTHORIZED_IP_COLUMNS,
-	primaryKey: ['user_id', 'ip'],
-});
-export const AuthorizedIpTrustKeys = defineTable<AuthorizedIpTrustKeyRow, 'user_id' | 'trust_key'>({
-	name: 'authorized_ip_trust_keys_v1',
-	columns: AUTHORIZED_IP_TRUST_KEY_COLUMNS,
-	primaryKey: ['user_id', 'trust_key'],
 });
 
 interface AttachmentDecayByExpiryRow {
@@ -1091,14 +1027,14 @@ export const JobsById = defineTable<JobByIdRow, 'job_id'>({
 	name: 'jobs_by_id',
 	columns: JOB_BY_ID_COLUMNS,
 	primaryKey: ['job_id'],
-	defaultTtlSeconds: seconds('90 days'),
+	defaultTtlSeconds: seconds('30 days'),
 });
 export const JobsByDayBucket = defineTable<JobByDayBucketRow, 'bucket_day' | 'created_at' | 'job_id'>({
 	name: 'jobs_by_day_bucket',
 	columns: JOB_BY_DAY_BUCKET_COLUMNS,
 	primaryKey: ['bucket_day', 'created_at', 'job_id'],
 	partitionKey: ['bucket_day'],
-	defaultTtlSeconds: seconds('90 days'),
+	defaultTtlSeconds: seconds('30 days'),
 });
 export const JobsActive = defineTable<JobActiveRow, 'job_id'>({
 	name: 'jobs_active',
@@ -1109,17 +1045,17 @@ export const AttachmentUploadTracesByKey = defineTable<AttachmentUploadTraceByKe
 	name: 'attachment_upload_traces_by_key',
 	columns: ATTACHMENT_UPLOAD_TRACE_BY_KEY_COLUMNS,
 	primaryKey: ['upload_key'],
-	defaultTtlSeconds: seconds('30 days'),
+	defaultTtlSeconds: seconds('24 hours'),
 });
 export const AttachmentUploadTracesByAttachment = defineTable<AttachmentUploadTraceByAttachmentRow, 'attachment_id'>({
 	name: 'attachment_upload_traces_by_attachment',
 	columns: ATTACHMENT_UPLOAD_TRACE_BY_ATTACHMENT_COLUMNS,
 	primaryKey: ['attachment_id'],
-	defaultTtlSeconds: seconds('30 days'),
+	defaultTtlSeconds: seconds('24 hours'),
 });
 export const VoiceP2pConnectionReports = defineTable<VoiceP2pConnectionReportRow, 'user_id' | 'report_id'>({
 	name: 'voice_p2p_connection_reports',
 	columns: VOICE_P2P_CONNECTION_REPORT_COLUMNS,
 	primaryKey: ['user_id', 'report_id'],
-	defaultTtlSeconds: seconds('180 days'),
+	defaultTtlSeconds: seconds('30 days'),
 });

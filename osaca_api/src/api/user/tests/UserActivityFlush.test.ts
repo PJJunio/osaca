@@ -26,28 +26,27 @@ describe('User activity buffering', () => {
 	afterAll(async () => {
 		await harness?.shutdown();
 	});
-	test('an authenticated request buffers last active instead of writing it', async () => {
+	test('an authenticated request buffers last active timestamp without storing IP', async () => {
 		const account = await createTestAccount(harness, {ipAddress: REGISTRATION_IP});
 		const userId = createUserID(BigInt(account.userId));
 		await fetchMeFromIp(harness, account.token, REQUEST_IP);
 		const pending = await harness.kvProvider.hgetall('user_activity:pending');
 		expect(pending[account.userId]).toBeDefined();
 		const beforeFlush = await getUserRepository().getActivityTracking(userId);
-		expect(beforeFlush?.last_active_ip).toBe(REGISTRATION_IP);
+		expect(beforeFlush?.last_active_ip).toBeNull();
 		await getUserActivityBuffer().drainAndFlush();
 		const afterFlush = await getUserRepository().getActivityTracking(userId);
-		expect(afterFlush?.last_active_ip).toBe(REQUEST_IP);
+		expect(afterFlush?.last_active_at).toBeInstanceOf(Date);
+		expect(afterFlush?.last_active_ip).toBeNull();
 	});
-	test('flushing moves the last active IP index and prunes the previous address', async () => {
+	test('never indexes users by last active IP', async () => {
 		const account = await createTestAccount(harness, {ipAddress: REGISTRATION_IP});
 		const userRepository = getUserRepository();
 		const seeded = await userRepository.listUserIdsByLastActiveIp(REGISTRATION_IP, 10, 0);
-		expect(seeded.userIds.map((id) => id.toString())).toContain(account.userId);
+		expect(seeded.userIds).toEqual([]);
 		await fetchMeFromIp(harness, account.token, REQUEST_IP);
 		await getUserActivityBuffer().drainAndFlush();
-		const previous = await userRepository.listUserIdsByLastActiveIp(REGISTRATION_IP, 10, 0);
-		expect(previous.userIds.map((id) => id.toString())).not.toContain(account.userId);
 		const current = await userRepository.listUserIdsByLastActiveIp(REQUEST_IP, 10, 0);
-		expect(current.userIds.map((id) => id.toString())).toContain(account.userId);
+		expect(current.userIds).toEqual([]);
 	});
 });

@@ -106,7 +106,7 @@ export async function createAccountHandoff(
 	const record: AccountHandoffRecord = {
 		global_name: params.globalName,
 		nonce_hash: params.nonceHash,
-		client_ip: params.clientIp,
+		client_ip: '',
 		locale: params.locale ?? null,
 		registration_url_code: params.registrationUrlCode?.trim() || null,
 		created_at: Date.now(),

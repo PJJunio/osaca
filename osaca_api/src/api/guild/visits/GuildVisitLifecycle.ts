@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type {GuildID, UserID} from '@app/api/BrandedTypes';
-import {isIpBanExempt} from '@app/api/ban/IpBanExemptions';
 import type {GuildVisitRow} from '@app/api/database/types/GuildVisitTypes';
 import {userGuildVisitsActive} from '@app/api/experiment/GuildVisitsGate';
 import {guildVisitEndedTotal} from '@app/api/guild/visits/GuildVisitMetrics';
@@ -20,8 +19,7 @@ import {
 	GuildVisitSources,
 } from '@osaca/constants/src/GuildVisitConstants';
 import {BannedFromGuildError} from '@osaca/errors/src/domains/guild/BannedFromGuildError';
-import {IpBannedFromGuildError} from '@osaca/errors/src/domains/guild/IpBannedFromGuildError';
-import {getSameIpDecisionKey, isSameIpDecisionMatch} from '@osaca/ip_utils/src/IpAddress';
+
 
 const BAN_MEMO_TTL_SECONDS = 600;
 const GUILD_PAGE_SIZE = 1000;
@@ -76,22 +74,15 @@ export async function assertNotBannedFromGuildVisit(params: {
 	user: Pick<User, 'id' | 'lastActiveIp'>;
 	ip: string | null;
 }): Promise<void> {
-	const {guildId, user, ip} = params;
+	const {guildId, user} = params;
 	const kv = getKVClient();
 	const generation = (await kv.get(banGenerationKey(guildId))) ?? '0';
-	const ipKey = ip ? (getSameIpDecisionKey(ip) ?? ip) : '-';
-	const memoKey = `guild_visit:ban_ok:${guildId}:${user.id}:${ipKey}:${generation}`;
+	const memoKey = `guild_visit:ban_ok:${guildId}:${user.id}:${generation}`;
 	if ((await kv.get(memoKey)) !== null) return;
 	const guildRepository = getGuildRepository();
 	const bans = await guildRepository.listBans(guildId);
-	const ips = [ip, user.lastActiveIp].filter((value): value is string => typeof value === 'string' && value !== '');
 	for (const ban of bans) {
 		if (ban.userId === user.id) throw new BannedFromGuildError();
-		for (const candidate of ips) {
-			if (isSameIpDecisionMatch(candidate, ban.ipAddress) && !isIpBanExempt(candidate)) {
-				throw new IpBannedFromGuildError();
-			}
-		}
 	}
 	await kv.setex(memoKey, BAN_MEMO_TTL_SECONDS, '1');
 }
@@ -102,23 +93,11 @@ export async function onGuildBanAdded(params: {
 	targetIp: string | null;
 	gateway: IGatewayService;
 }): Promise<void> {
-	const {guildId, targetUserId, targetIp, gateway} = params;
+	const {guildId, targetUserId, gateway} = params;
 	await bumpGuildBanGeneration(guildId);
 	await bumpGuildVisitorViewGeneration(guildId);
 	if (await guildVisitRepository().get(targetUserId, guildId)) {
 		await endGuildVisit({userId: targetUserId, guildId, reason: GuildVisitEndReasons.BANNED, gateway});
-	}
-	const ipKey = targetIp ? getSameIpDecisionKey(targetIp) : null;
-	if (!ipKey) return;
-	let evicted: Array<UserID> = [];
-	try {
-		evicted = await gateway.evictVisitors({guildId, ipKeys: [ipKey]});
-	} catch (error) {
-		Logger.warn({guildId: guildId.toString(), error}, 'Failed to evict visitors on a banned address');
-	}
-	for (const userId of evicted) {
-		if (userId === targetUserId) continue;
-		await endGuildVisit({userId, guildId, reason: GuildVisitEndReasons.BANNED, gateway});
 	}
 }
 

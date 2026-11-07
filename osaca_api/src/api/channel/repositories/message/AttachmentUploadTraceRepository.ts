@@ -66,7 +66,7 @@ export class AttachmentUploadTraceRepository {
 			filename: input.filename,
 			content_type: input.contentType,
 			upload_mode: input.uploadMode,
-			request_ip: input.requestIp,
+			request_ip: '',
 			requested_at: now,
 			completion_ip: null,
 			completed_at: null,
@@ -85,7 +85,7 @@ export class AttachmentUploadTraceRepository {
 		const completedAt = new Date();
 		const updated: AttachmentUploadTraceByKeyRow = {
 			...existing,
-			completion_ip: input.completionIp,
+			completion_ip: null,
 			completed_at: completedAt,
 			updated_at: completedAt,
 		};

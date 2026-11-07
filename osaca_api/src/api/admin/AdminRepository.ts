@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {createUserID, type UserID} from '@app/api/BrandedTypes';
-import {isIpBanExempt} from '@app/api/ban/IpBanExemptions';
 import {ContentBlocklistCategory} from '@app/api/constants/ContentModeration';
 import {
 	deleteOneOrMany,
@@ -14,7 +13,6 @@ import type {
 	AdminAuditLogRow,
 	BannedAvatarHashRow,
 	BannedFileShaRow,
-	BannedIpRow,
 	BannedProfileSubstringRow,
 	BannedProfileSubstringScope,
 	BannedUrlDomainRow,
@@ -24,15 +22,12 @@ import {
 	AdminAuditLogs,
 	BannedAvatarHashes,
 	BannedFileShas,
-	BannedIps,
 	BannedPhrases,
 	BannedProfileSubstrings,
 	BannedUrlDomains,
 	BannedUrls,
 } from '@app/api/Tables';
-import {parseIpBanEntry, tryParseSingleIp} from '@app/api/utils/IpRangeUtils';
 import {canonicalizeStoredPhrase} from '@app/api/utils/PhraseBlocklistNormalization';
-import {getSameIpDecisionKey} from '@osaca/ip_utils/src/IpAddress';
 
 export interface AdminAuditLog {
 	logId: bigint;
@@ -62,10 +57,6 @@ const FETCH_AUDIT_LOG_BY_ID_QUERY = AdminAuditLogs.select({
 const FETCH_AUDIT_LOGS_BY_IDS_QUERY = AdminAuditLogs.select({
 	where: AdminAuditLogs.where.in('log_id', 'log_ids'),
 });
-const LOAD_ALL_BANNED_IPS_QUERY = BannedIps.select();
-const FETCH_BANNED_IP_QUERY = BannedIps.select({
-	where: BannedIps.where.eq('ip'),
-});
 
 const LOAD_ALL_BANNED_PHRASES_QUERY = BannedPhrases.select();
 const LOAD_ALL_BANNED_URLS_QUERY = BannedUrls.select();
@@ -83,24 +74,6 @@ const createListAllAuditLogsFirstPageQuery = (limit: number) =>
 		limit,
 	});
 
-function parseBannedIpKind(value: string | null | undefined): BannedIpKind {
-	return value === 'temporary_24h' ? 'temporary_24h' : 'permanent';
-}
-
-function canonicalizeBannedIpEntry(value: string): string {
-	return parseIpBanEntry(value)?.canonical ?? value;
-}
-
-function toBannedIpEntry(row: BannedIpRow): BannedIpEntry {
-	return {
-		ip: row.ip,
-		kind: parseBannedIpKind(row.ban_kind),
-		reason: row.reason ?? null,
-		expiresAt: row.expires_at ?? null,
-		createdAt: row.created_at ?? null,
-		decisionId: row.decision_id ?? null,
-	};
-}
 
 export class AdminRepository {
 	async createAuditLog(log: AdminAuditLogRow): Promise<AdminAuditLog> {
@@ -151,186 +124,38 @@ export class AdminRepository {
 		return rows.map((row) => this.mapRowToAuditLog(row));
 	}
 
-	async isIpBanned(ip: string): Promise<boolean> {
-		if (isIpBanExempt(ip)) {
-			return false;
-		}
-		const candidate = tryParseSingleIp(ip);
-		if (!candidate) {
-			return false;
-		}
-		const sameIpDecisionKey = getSameIpDecisionKey(candidate.canonical);
-		const entries = await this.loadAllBannedIpEntries();
-		for (const entry of entries) {
-			const parsed = parseIpBanEntry(entry.ip);
-			if (!parsed) {
-				continue;
-			}
-			if (parsed.type === 'single') {
-				if (parsed.family === candidate.family && parsed.canonical === candidate.canonical) {
-					return true;
-				}
-				if (sameIpDecisionKey && getSameIpDecisionKey(parsed.canonical) === sameIpDecisionKey) {
-					return true;
-				}
-				continue;
-			}
-			if (parsed.family === candidate.family && candidate.value >= parsed.start && candidate.value <= parsed.end) {
-				return true;
-			}
-		}
+	async isIpBanned(_ip: string): Promise<boolean> {
 		return false;
 	}
 
-	async banIp(ip: string, ttlSeconds: number | null = null): Promise<void> {
-		await this.writeIpBan(ip, 'platform_admin_enforcement', ttlSeconds);
+	async banIp(_ip: string, _ttlSeconds: number | null = null): Promise<void> {}
+
+	async banIpTemp(_ip: string, _ttlSeconds: number): Promise<void> {}
+
+	async findIpBanDecision(_ip: string): Promise<bigint | null> {
+		return null;
 	}
 
-	async banIpTemp(ip: string, ttlSeconds: number): Promise<void> {
-		await this.writeIpBan(ip, 'abusive_api_access_patterns', ttlSeconds);
+	async banIpForDecision(_ip: string, _decisionId: bigint, _expiresAt: Date): Promise<BannedIpEntry | null> {
+		return null;
 	}
 
-	async findIpBanDecision(ip: string): Promise<bigint | null> {
-		const row = await this.fetchActiveIpBanRow(canonicalizeBannedIpEntry(ip));
-		return row?.decision_id ?? null;
+	async listDecisionIpBans(_decisionId: bigint): Promise<Array<BannedIpEntry>> {
+		return [];
 	}
 
-	async banIpForDecision(ip: string, decisionId: bigint, expiresAt: Date): Promise<BannedIpEntry | null> {
-		if (isIpBanExempt(ip)) {
-			return null;
-		}
-		const canonicalIp = canonicalizeBannedIpEntry(ip);
-		const existing = await this.fetchActiveIpBanRow(canonicalIp);
-		if (existing && (existing.decision_id ?? decisionId) !== decisionId) {
-			return null;
-		}
-		if (existing && !existing.expires_at) {
-			return null;
-		}
-		const createdAt = new Date();
-		const existingExpiry = existing?.expires_at ?? null;
-		const expiry = existingExpiry && existingExpiry.getTime() > expiresAt.getTime() ? existingExpiry : expiresAt;
-		const row: BannedIpRow = {
-			ip: canonicalIp,
-			ban_kind: 'temporary_24h',
-			reason: 'enforcement_decision',
-			expires_at: expiry,
-			created_at: createdAt,
-			decision_id: decisionId,
-		};
-		const ttlSeconds = Math.ceil((expiry.getTime() - createdAt.getTime()) / 1000);
-		await upsertOne(BannedIps.insertWithTtl(row, ttlSeconds));
-		return toBannedIpEntry(row);
+	async relinkDecisionIpBans(_fromDecisionId: bigint, _toDecisionId: bigint): Promise<Array<BannedIpEntry>> {
+		return [];
 	}
 
-	async listDecisionIpBans(decisionId: bigint): Promise<Array<BannedIpEntry>> {
-		const entries = await this.loadAllBannedIpEntries();
-		return entries.filter((entry) => entry.decisionId === decisionId);
+	async removeDecisionIpBans(_decisionIds: ReadonlyArray<bigint>): Promise<Array<BannedIpEntry>> {
+		return [];
 	}
 
-	async relinkDecisionIpBans(fromDecisionId: bigint, toDecisionId: bigint): Promise<Array<BannedIpEntry>> {
-		const now = Date.now();
-		const entries = (await this.listDecisionIpBans(fromDecisionId)).filter(
-			(entry) => entry.expiresAt && entry.expiresAt.getTime() > now,
-		);
-		const relinked = entries.map((entry) => ({...entry, decisionId: toDecisionId}));
-		await Promise.all(
-			relinked.map((entry) =>
-				upsertOne(
-					BannedIps.insertWithTtl(
-						{
-							ip: entry.ip,
-							ban_kind: entry.kind,
-							reason: entry.reason,
-							expires_at: entry.expiresAt,
-							created_at: entry.createdAt,
-							decision_id: toDecisionId,
-						},
-						Math.ceil((entry.expiresAt!.getTime() - now) / 1000),
-					),
-				),
-			),
-		);
-		return relinked;
-	}
-
-	async removeDecisionIpBans(decisionIds: ReadonlyArray<bigint>): Promise<Array<BannedIpEntry>> {
-		const ids = new Set(decisionIds);
-		const entries = (await this.loadAllBannedIpEntries()).filter(
-			(entry) => entry.decisionId !== null && ids.has(entry.decisionId),
-		);
-		await Promise.all(entries.map((entry) => deleteOneOrMany(BannedIps.deleteByPk({ip: entry.ip}))));
-		return entries;
-	}
-
-	private async fetchActiveIpBanRow(canonicalIp: string): Promise<BannedIpRow | null> {
-		const row = await fetchOne<BannedIpRow>(FETCH_BANNED_IP_QUERY.bind({ip: canonicalIp}));
-		if (!row || (row.expires_at && row.expires_at.getTime() <= Date.now())) {
-			return null;
-		}
-		return row;
-	}
-
-	private async writeIpBan(ip: string, reason: string, ttlSeconds: number | null): Promise<void> {
-		if (ttlSeconds !== null && (!Number.isInteger(ttlSeconds) || ttlSeconds <= 0)) {
-			throw new RangeError('Temporary IP ban TTL must be a positive integer');
-		}
-		if (isIpBanExempt(ip)) {
-			return;
-		}
-		const canonicalIp = canonicalizeBannedIpEntry(ip);
-		if ((await this.fetchActiveIpBanRow(canonicalIp))?.decision_id != null) {
-			return;
-		}
-		const createdAt = new Date();
-		if (ttlSeconds === null) {
-			await upsertOne(
-				BannedIps.insert({
-					ip: canonicalIp,
-					ban_kind: 'permanent',
-					reason,
-					expires_at: null,
-					created_at: createdAt,
-					decision_id: null,
-				}),
-			);
-			return;
-		}
-		await upsertOne(
-			BannedIps.insertWithTtl(
-				{
-					ip: canonicalIp,
-					ban_kind: 'temporary_24h',
-					reason,
-					expires_at: new Date(createdAt.getTime() + ttlSeconds * 1000),
-					created_at: createdAt,
-					decision_id: null,
-				},
-				ttlSeconds,
-			),
-		);
-	}
-
-	async unbanIp(ip: string): Promise<void> {
-		const deleteKeys = new Set<string>([ip]);
-		const parsed = parseIpBanEntry(ip);
-		if (parsed) {
-			deleteKeys.add(parsed.canonical);
-			const entries = await this.loadAllBannedIpEntries();
-			for (const entry of entries) {
-				const stored = parseIpBanEntry(entry.ip);
-				if (stored?.canonical === parsed.canonical) {
-					deleteKeys.add(entry.ip);
-				}
-			}
-		}
-		await Promise.all(Array.from(deleteKeys).map((key) => deleteOneOrMany(BannedIps.deleteByPk({ip: key}))));
-	}
+	async unbanIp(_ip: string): Promise<void> {}
 
 	async loadAllBannedIpEntries(): Promise<Array<BannedIpEntry>> {
-		const rows = await fetchMany<BannedIpRow>(LOAD_ALL_BANNED_IPS_QUERY.bind({}));
-		const now = Date.now();
-		return rows.filter((row) => !row.expires_at || row.expires_at.getTime() > now).map(toBannedIpEntry);
+		return [];
 	}
 
 	async banPhrase(phrase: string): Promise<void> {

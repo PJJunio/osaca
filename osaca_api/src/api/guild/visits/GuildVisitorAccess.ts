@@ -39,7 +39,6 @@ import {
 import {MS_PER_DAY, MS_PER_HOUR} from '@osaca/date_utils/src/DateConstants';
 import {RateLimitError} from '@osaca/errors/src/domains/core/RateLimitError';
 import {BannedFromGuildError} from '@osaca/errors/src/domains/guild/BannedFromGuildError';
-import {IpBannedFromGuildError} from '@osaca/errors/src/domains/guild/IpBannedFromGuildError';
 import {getSameIpDecisionKey} from '@osaca/ip_utils/src/IpAddress';
 import {DEFAULT_LIMITS} from '@osaca/limits/src/LimitDefaults';
 import type {IRateLimitService} from '@pkgs/rate_limit/src/IRateLimitService';
@@ -97,6 +96,7 @@ export function forgetGuildVisitRow(userId: UserID, guildId: GuildID): void {
 export function resetGuildVisitorCachesForTesting(): void {
 	visitRowCache.clear();
 	viewCache.clear();
+	visitRepository.clear();
 }
 
 async function findGuildVisitRowCached(userId: UserID, guildId: GuildID): Promise<GuildVisitRow | null> {
@@ -241,7 +241,7 @@ async function visitorStillAllowedIn(guildId: GuildID, user: User): Promise<bool
 		await assertNotBannedFromGuildVisit({guildId, user, ip: visitorRequestContext.getStore()?.ip ?? null});
 		return true;
 	} catch (error) {
-		if (!(error instanceof BannedFromGuildError || error instanceof IpBannedFromGuildError)) {
+		if (!(error instanceof BannedFromGuildError)) {
 			throw error;
 		}
 		await endGuildVisit({userId: user.id, guildId, reason: GuildVisitEndReasons.BANNED});

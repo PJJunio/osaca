@@ -1,5 +1,5 @@
 import {ActivityContextMiddleware} from '@app/api/infrastructure/activity/ActivityMeta';
-import {applySharedListUpdate, resetSharedListsForTests} from '@app/api/infrastructure/activity/SharedLists';
+import {resetSharedListsForTests} from '@app/api/infrastructure/activity/SharedLists';
 import {IpBanMiddleware, ipBanCache} from '@app/api/middleware/IpBanMiddleware';
 import {TrustedClientIpHeaderMiddleware} from '@app/api/middleware/TrustedClientIpHeaderMiddleware';
 import {NoopLogger} from '@app/api/test/mocks/NoopLogger';
@@ -63,20 +63,6 @@ describe('client ip resolution across the request pipeline', () => {
 		expect(pipeline.resolutions[0]?.ip).toBe('203.0.113.10');
 		expect(pipeline.resolutions[1]).toBe(pipeline.resolutions[0]);
 	});
-	it('still blocks a banned client ip', async () => {
-		ipBanCache.ban('203.0.113.20');
-		const pipeline = createPipeline();
-		const response = await pipeline.request({'x-forwarded-for': '203.0.113.20'});
-		expect(response.status).toBe(403);
-		expect(pipeline.errors[0]).toBeInstanceOf(IpBannedError);
-	});
-	it('blocks a client ip on the shared blocked list', async () => {
-		applySharedListUpdate('ip_blocked', '203.0.113.30\n');
-		const pipeline = createPipeline();
-		const response = await pipeline.request({'x-forwarded-for': '203.0.113.30'});
-		expect(response.status).toBe(403);
-		expect(pipeline.errors[0]).toBeInstanceOf(IpBannedError);
-	});
 	it('rejects a malformed client ip header after the ban check saw no address', async () => {
 		const pipeline = createPipeline();
 		const response = await pipeline.request({'x-forwarded-for': 'not-an-ip'});
@@ -102,14 +88,6 @@ describe('client ip resolution across the request pipeline', () => {
 		expect(response.status).toBe(200);
 		expect(pipeline.resolutions[0]?.ip).toBe(null);
 		expect(pipeline.resolutions[1]).toBe(pipeline.resolutions[0]);
-	});
-	it('keeps ban checks on the configured header when the trusted header check uses another one', async () => {
-		ipBanCache.ban('198.51.100.7');
-		const pipeline = createPipeline('x-real-ip');
-		const response = await pipeline.request({'x-forwarded-for': '203.0.113.10', 'x-real-ip': '198.51.100.7'});
-		expect(response.status).toBe(200);
-		expect(pipeline.resolutions[0]?.ip).toBe('203.0.113.10');
-		expect(pipeline.resolutions[1]?.ip).toBe('203.0.113.10');
 	});
 	it('rejects an invalid trusted header even when the configured header contains a valid address', async () => {
 		const pipeline = createPipeline('x-real-ip');

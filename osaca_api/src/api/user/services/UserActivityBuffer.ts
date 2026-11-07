@@ -165,8 +165,8 @@ export class UserActivityBuffer {
 		this.accounts = accounts;
 	}
 
-	recordActivity(userId: UserID, timestamp: Date, ip: string | null): void {
-		const payload: PendingEntry = {ts: timestamp.getTime(), ip};
+	recordActivity(userId: UserID, timestamp: Date, _ip: string | null): void {
+		const payload: PendingEntry = {ts: timestamp.getTime(), ip: null};
 		void this.kv.hset(PENDING_HASH_KEY, userId.toString(), JSON.stringify(payload)).catch((error) => {
 			Logger.debug({error, userId: userId.toString()}, 'Failed to enqueue user activity to buffer');
 		});
@@ -237,7 +237,6 @@ export class UserActivityBuffer {
 				this.accounts.updateLastActiveAt({
 					userId,
 					lastActiveAt: new Date(entry.ts),
-					lastActiveIp: entry.ip ?? undefined,
 				}),
 			'Failed to flush a user activity entry',
 		);

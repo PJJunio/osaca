@@ -1,17 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {createChannelID, createGuildID} from '@app/api/BrandedTypes';
-import {getInstanceProductName} from '@app/api/instance/ProductName';
 import {DefaultUserOnly, LoginRequired} from '@app/api/middleware/AuthMiddleware';
 import {RateLimitMiddleware} from '@app/api/middleware/RateLimitMiddleware';
 import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
 import {getVoiceP2pConnectionReportRepository} from '@app/api/middleware/ServiceSingletons';
 import {RateLimitConfigs} from '@app/api/RateLimitConfig';
 import type {HonoApp} from '@app/api/types/HonoEnv';
-import {extractConfiguredClientIp} from '@app/api/utils/RequestClientIp';
-import {resolveSessionClientInfo} from '@app/api/utils/SessionClientIdentity';
 import {Validator} from '@app/api/Validator';
-import {normalizeIpString} from '@osaca/ip_utils/src/IpAddress';
 import {VoiceP2pConnectionReportsRequest} from '@osaca/schema/src/domains/voice/VoiceP2pConnectionReportSchemas';
 
 export function VoiceP2pConnectionReportController(app: HonoApp) {
@@ -37,14 +33,7 @@ export function VoiceP2pConnectionReportController(app: HonoApp) {
 			if (!(await ctx.get('instanceConfigRepository').getVoiceP2pConfig()).enabled) {
 				return ctx.body(null, 204);
 			}
-			const authSession = ctx.get('authSession');
-			const clientIp = extractConfiguredClientIp(ctx.req.raw);
-			const normalizedIp = clientIp ? normalizeIpString(clientIp) : null;
-			const clientInfo = resolveSessionClientInfo({
-				userAgent: authSession?.clientUserAgent ?? null,
-				reportedOs: authSession?.clientOs ?? null,
-				productName: getInstanceProductName(),
-			});
+
 			const userId = ctx.get('user').id;
 			const snowflakeService = ctx.get('snowflakeService');
 			const reportedAt = new Date();
@@ -64,9 +53,9 @@ export function VoiceP2pConnectionReportController(app: HonoApp) {
 					setup_ms: report.setup_ms,
 					ice_restarted: report.ice_restarted,
 					country: null,
-					ip: normalizedIp,
-					client_platform: clientInfo.platform,
-					client_os: clientInfo.os,
+					ip: null,
+					client_platform: null,
+					client_os: null,
 				})),
 			);
 			await getVoiceP2pConnectionReportRepository().insertReports(rows);

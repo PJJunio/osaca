@@ -2,15 +2,9 @@
 
 import type {UserID} from '@app/api/BrandedTypes';
 import {fetchMany, fetchOne} from '@app/api/database/CassandraQueryExecution';
-import type {
-	UserByAclRow,
-	UserByLastActiveIpRow,
-	UserByLastActiveIpTrustKeyRow,
-	UserByUsernameRow,
-} from '@app/api/database/types/UserTypes';
+import type {UserByAclRow, UserByUsernameRow} from '@app/api/database/types/UserTypes';
 import type {User} from '@app/api/models/User';
-import {UserByAcl, UserByLastActiveIp, UserByLastActiveIpTrustKey, UserByUsername} from '@app/api/Tables';
-import {getSameIpDecisionKey, normalizeIpString} from '@osaca/ip_utils/src/IpAddress';
+import {UserByAcl, UserByUsername} from '@app/api/Tables';
 
 const FETCH_USER_IDS_BY_ACL_QUERY = UserByAcl.select({
 	columns: ['user_id'],
@@ -24,14 +18,6 @@ const FETCH_USER_ID_BY_USERNAME_DISCRIMINATOR_QUERY = UserByUsername.select({
 	columns: ['user_id'],
 	where: [UserByUsername.where.eq('username'), UserByUsername.where.eq('discriminator')],
 	limit: 1,
-});
-const FETCH_USER_IDS_BY_LAST_ACTIVE_IP_QUERY = UserByLastActiveIp.select({
-	columns: ['user_id'],
-	where: UserByLastActiveIp.where.eq('last_active_ip'),
-});
-const FETCH_USER_IDS_BY_LAST_ACTIVE_IP_TRUST_KEY_QUERY = UserByLastActiveIpTrustKey.select({
-	columns: ['user_id'],
-	where: UserByLastActiveIpTrustKey.where.eq('last_active_ip_trust_key'),
 });
 
 export class UserLookupRepository {
@@ -69,51 +55,13 @@ export class UserLookupRepository {
 	}
 
 	async listUserIdsByLastActiveIp(
-		lastActiveIp: string,
-		limit: number,
-		offset: number,
+		_lastActiveIp: string,
+		_limit: number,
+		_offset: number,
 	): Promise<{
 		userIds: Array<UserID>;
 		total: number;
 	}> {
-		const normalizedIp = normalizeIpString(lastActiveIp);
-		const trustKey = getSameIpDecisionKey(normalizedIp);
-		const userIds: Array<UserID> = [];
-		const seen = new Set<string>();
-		const trustKeyRows =
-			trustKey == null
-				? []
-				: await fetchMany<Pick<UserByLastActiveIpTrustKeyRow, 'user_id'>>(
-						FETCH_USER_IDS_BY_LAST_ACTIVE_IP_TRUST_KEY_QUERY.bind({last_active_ip_trust_key: trustKey}),
-					);
-		for (const row of trustKeyRows) {
-			const key = row.user_id.toString();
-			if (seen.has(key)) {
-				continue;
-			}
-			seen.add(key);
-			userIds.push(row.user_id);
-		}
-		if (trustKey == null || trustKey !== normalizedIp || userIds.length === 0) {
-			const exactRows = await fetchMany<Pick<UserByLastActiveIpRow, 'user_id'>>(
-				FETCH_USER_IDS_BY_LAST_ACTIVE_IP_QUERY.bind({last_active_ip: normalizedIp}),
-			);
-			for (const row of exactRows) {
-				const key = row.user_id.toString();
-				if (seen.has(key)) {
-					continue;
-				}
-				seen.add(key);
-				userIds.push(row.user_id);
-			}
-		}
-		const total = userIds.length;
-		if (total === 0 || offset >= total) {
-			return {userIds: [], total};
-		}
-		return {
-			userIds: userIds.slice(offset, offset + limit),
-			total,
-		};
+		return {userIds: [], total: 0};
 	}
 }

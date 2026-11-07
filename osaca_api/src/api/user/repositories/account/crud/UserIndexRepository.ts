@@ -3,8 +3,7 @@
 import type {UserID} from '@app/api/BrandedTypes';
 import {BatchBuilder} from '@app/api/database/CassandraQueryExecution';
 import type {UserRow} from '@app/api/database/types/UserTypes';
-import {UserByAcl, UserByLastActiveIp, UserByLastActiveIpTrustKey, UserByUsername} from '@app/api/Tables';
-import {getSameIpDecisionKey} from '@osaca/ip_utils/src/IpAddress';
+import {UserByAcl, UserByUsername} from '@app/api/Tables';
 
 export class UserIndexRepository {
 	async syncIndices(data: UserRow, oldData?: UserRow | null): Promise<void> {
@@ -41,43 +40,6 @@ export class UserIndexRepository {
 				);
 			}
 		}
-		if (data.last_active_ip) {
-			batch.addPrepared(
-				UserByLastActiveIp.upsertAll({
-					last_active_ip: data.last_active_ip,
-					user_id: data.user_id,
-					last_active_at: data.last_active_at ?? null,
-				}),
-			);
-			const trustKey = getSameIpDecisionKey(data.last_active_ip);
-			if (trustKey) {
-				batch.addPrepared(
-					UserByLastActiveIpTrustKey.upsertAll({
-						last_active_ip_trust_key: trustKey,
-						user_id: data.user_id,
-						last_active_at: data.last_active_at ?? null,
-					}),
-				);
-			}
-		}
-		if (oldData?.last_active_ip && oldData.last_active_ip !== data.last_active_ip) {
-			batch.addPrepared(
-				UserByLastActiveIp.deleteByPk({
-					last_active_ip: oldData.last_active_ip,
-					user_id: oldData.user_id,
-				}),
-			);
-			const oldTrustKey = getSameIpDecisionKey(oldData.last_active_ip);
-			const newTrustKey = data.last_active_ip ? getSameIpDecisionKey(data.last_active_ip) : null;
-			if (oldTrustKey && oldTrustKey !== newTrustKey) {
-				batch.addPrepared(
-					UserByLastActiveIpTrustKey.deleteByPk({
-						last_active_ip_trust_key: oldTrustKey,
-						user_id: oldData.user_id,
-					}),
-				);
-			}
-		}
 		await batch.execute();
 	}
 
@@ -90,54 +52,17 @@ export class UserIndexRepository {
 	}
 
 	async updateLastActiveIpIndex(
-		userId: UserID,
-		lastActiveIp: string,
-		lastActiveAt: Date,
-		previousLastActiveIp?: string | null,
-	): Promise<void> {
-		const batch = new BatchBuilder();
-		batch.addPrepared(
-			UserByLastActiveIp.upsertAll({
-				last_active_ip: lastActiveIp,
-				user_id: userId,
-				last_active_at: lastActiveAt,
-			}),
-		);
-		const trustKey = getSameIpDecisionKey(lastActiveIp);
-		if (trustKey) {
-			batch.addPrepared(
-				UserByLastActiveIpTrustKey.upsertAll({
-					last_active_ip_trust_key: trustKey,
-					user_id: userId,
-					last_active_at: lastActiveAt,
-				}),
-			);
-		}
-		if (previousLastActiveIp && previousLastActiveIp !== lastActiveIp) {
-			batch.addPrepared(
-				UserByLastActiveIp.deleteByPk({
-					last_active_ip: previousLastActiveIp,
-					user_id: userId,
-				}),
-			);
-			const previousTrustKey = getSameIpDecisionKey(previousLastActiveIp);
-			if (previousTrustKey && previousTrustKey !== trustKey) {
-				batch.addPrepared(
-					UserByLastActiveIpTrustKey.deleteByPk({
-						last_active_ip_trust_key: previousTrustKey,
-						user_id: userId,
-					}),
-				);
-			}
-		}
-		await batch.execute(false);
-	}
+		_userId: UserID,
+		_lastActiveIp: string,
+		_lastActiveAt: Date,
+		_previousLastActiveIp?: string | null,
+	): Promise<void> {}
 
 	async deleteIndices(
 		userId: UserID,
 		username: string,
 		discriminator: number,
-		lastActiveIp?: string | null,
+		_lastActiveIp?: string | null,
 		acls?: ReadonlySet<string> | null,
 	): Promise<void> {
 		const batch = new BatchBuilder();
@@ -151,23 +76,6 @@ export class UserIndexRepository {
 				user_id: userId,
 			}),
 		);
-		if (lastActiveIp) {
-			batch.addPrepared(
-				UserByLastActiveIp.deleteByPk({
-					last_active_ip: lastActiveIp,
-					user_id: userId,
-				}),
-			);
-			const trustKey = getSameIpDecisionKey(lastActiveIp);
-			if (trustKey) {
-				batch.addPrepared(
-					UserByLastActiveIpTrustKey.deleteByPk({
-						last_active_ip_trust_key: trustKey,
-						user_id: userId,
-					}),
-				);
-			}
-		}
 		await batch.execute();
 	}
 }

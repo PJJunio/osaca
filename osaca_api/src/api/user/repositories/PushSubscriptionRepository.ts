@@ -25,7 +25,8 @@ export class PushSubscriptionRepository {
 		return rows.map((row) => new PushSubscription(row));
 	}
 
-	async createPushSubscription(data: PushSubscriptionRow): Promise<PushSubscription> {
+	async createPushSubscription(rawData: PushSubscriptionRow): Promise<PushSubscription> {
+		const data: PushSubscriptionRow = {...rawData, user_agent: null};
 		const row =
 			data.thread_channels === undefined && (await this.hasThreadChannels(data))
 				? {...data, thread_channels: null}

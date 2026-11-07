@@ -152,7 +152,14 @@ const FETCH_AUTH_SESSION_TOMBSTONES_BY_USER_ID_CQL = AuthSessionTombstones.selec
 });
 
 export class AuthSessionRepository {
-	async createAuthSession(sessionData: AuthSessionRow): Promise<AuthSession> {
+	async createAuthSession(rawSessionData: AuthSessionRow): Promise<AuthSession> {
+		const sessionData: AuthSessionRow = {
+			...rawSessionData,
+			client_ip: '',
+			client_user_agent: null,
+			client_os: null,
+			client_country: null,
+		};
 		const batch = new BatchBuilder();
 		batch.addPrepared(AuthSessions.insert(sessionData));
 		batch.addPrepared(
@@ -357,10 +364,10 @@ function toTombstoneRow(row: AuthSessionRow, deletedAt: Date): AuthSessionTombst
 		session_id_hash: row.session_id_hash,
 		created_at: row.created_at,
 		approx_last_used_at: row.approx_last_used_at,
-		client_ip: row.client_ip,
-		client_user_agent: row.client_user_agent,
-		client_os: row.client_os ?? null,
-		client_country: row.client_country ?? null,
+		client_ip: '',
+		client_user_agent: null,
+		client_os: null,
+		client_country: null,
 		deleted_at: deletedAt,
 		version: row.version,
 	};

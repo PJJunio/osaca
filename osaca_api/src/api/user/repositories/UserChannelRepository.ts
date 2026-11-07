@@ -16,7 +16,7 @@ import {
 import type {ChannelRow, DmStateRow, PrivateChannelRow} from '@app/api/database/types/ChannelTypes';
 import {Logger} from '@app/api/Logger';
 import {Channel} from '@app/api/models/Channel';
-import {Channels, DmStates, PinnedDms, PrivateChannels, ReadStates, UserDmHistory} from '@app/api/Tables';
+import {Channels, DmStates, PinnedDms, PrivateChannels, ReadStates} from '@app/api/Tables';
 import {ChannelTypes} from '@osaca/constants/src/ChannelConstants';
 
 export interface PrivateChannelSummary {
@@ -98,10 +98,6 @@ const FETCH_PRIVATE_CHANNELS_CQL = PrivateChannels.selectCql({
 });
 const FETCH_OPEN_PRIVATE_CHANNELS_BY_IDS_CQL = PrivateChannels.selectCql({
 	where: [PrivateChannels.where.eq('user_id'), PrivateChannels.where.in('channel_id', 'channel_ids')],
-});
-const HISTORICAL_DM_CHANNELS_CQL = UserDmHistory.selectCql({
-	columns: ['channel_id'],
-	where: UserDmHistory.where.eq('user_id'),
 });
 const FETCH_CHANNEL_DETAILS_CQL = Channels.selectCql({
 	columns: ['channel_id', 'type', 'recipient_ids', 'last_message_id', 'soft_deleted'],
@@ -382,7 +378,6 @@ export class UserChannelRepository {
 		try {
 			for (const channelId of channelIds) {
 				await deleteOneOrMany(PrivateChannels.deleteByPk({user_id: userId, channel_id: channelId}));
-				await deleteOneOrMany(UserDmHistory.deleteByPk({user_id: userId, channel_id: channelId}));
 			}
 			Logger.warn(
 				{userId: userId.toString(), channelIds: channelIds.map((id) => id.toString())},
@@ -475,11 +470,7 @@ export class UserChannelRepository {
 	}
 
 	async listHistoricalDmChannelIds(userId: UserID): Promise<Array<ChannelID>> {
-		const rows = await fetchMany<{
-			channel_id: ChannelID;
-		}>(HISTORICAL_DM_CHANNELS_CQL, {
-			user_id: userId,
-		});
+		const rows: Array<{channel_id: ChannelID}> = [];
 		const channelIds = rows.map((row) => row.channel_id);
 		if (channelIds.length === 0) {
 			return [];
@@ -537,55 +528,9 @@ export class UserChannelRepository {
 		if (options.beforeChannelId !== undefined && options.afterChannelId !== undefined) {
 			throw new Error('Cannot paginate with both beforeChannelId and afterChannelId');
 		}
-		let rows: Array<{
+		const rows: Array<{
 			channel_id: ChannelID;
-		}>;
-		if (options.afterChannelId !== undefined) {
-			const query = UserDmHistory.select({
-				columns: ['channel_id'],
-				where: [UserDmHistory.where.eq('user_id'), UserDmHistory.where.gt('channel_id', 'after_channel_id')],
-				orderBy: {col: 'channel_id', direction: 'ASC'},
-				limit: options.limit,
-			});
-			rows = await fetchMany<{
-				channel_id: ChannelID;
-			}>(
-				query.bind({
-					user_id: userId,
-					after_channel_id: options.afterChannelId,
-				}),
-			);
-			rows.reverse();
-		} else if (options.beforeChannelId !== undefined) {
-			const query = UserDmHistory.select({
-				columns: ['channel_id'],
-				where: [UserDmHistory.where.eq('user_id'), UserDmHistory.where.lt('channel_id', 'before_channel_id')],
-				orderBy: {col: 'channel_id', direction: 'DESC'},
-				limit: options.limit,
-			});
-			rows = await fetchMany<{
-				channel_id: ChannelID;
-			}>(
-				query.bind({
-					user_id: userId,
-					before_channel_id: options.beforeChannelId,
-				}),
-			);
-		} else {
-			const query = UserDmHistory.select({
-				columns: ['channel_id'],
-				where: UserDmHistory.where.eq('user_id'),
-				orderBy: {col: 'channel_id', direction: 'DESC'},
-				limit: options.limit,
-			});
-			rows = await fetchMany<{
-				channel_id: ChannelID;
-			}>(
-				query.bind({
-					user_id: userId,
-				}),
-			);
-		}
+		}> = [];
 		const channelIds = rows.map((row) => row.channel_id);
 		if (channelIds.length === 0) {
 			return [];
@@ -671,17 +616,7 @@ export class UserChannelRepository {
 		);
 	}
 
-	private async recordHistoricalDmChannel(userId: UserID, channelId: ChannelID, isGroupDm: boolean): Promise<void> {
-		if (isGroupDm) {
-			return;
-		}
-		await upsertOne(
-			UserDmHistory.upsertAll({
-				user_id: userId,
-				channel_id: channelId,
-			}),
-		);
-	}
+	private async recordHistoricalDmChannel(_userId: UserID, _channelId: ChannelID, _isGroupDm: boolean): Promise<void> {}
 
 	async removePinnedDm(userId: UserID, channelId: ChannelID): Promise<Array<ChannelID>> {
 		await deleteOneOrMany(

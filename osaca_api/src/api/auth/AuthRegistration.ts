@@ -310,7 +310,7 @@ async function createAccountAfterSetupCheck(
 		terms_agreed_at: requiresTermsConsent ? now : null,
 		privacy_agreed_at: requiresPrivacyConsent ? now : null,
 		last_active_at: now,
-		last_active_ip: clientIp,
+		last_active_ip: null,
 		acls: null,
 		traits: traits.size > 0 ? traits : null,
 		version: 1,
@@ -333,7 +333,7 @@ async function createAccountAfterSetupCheck(
 				global_name: userRow.global_name,
 				requested_at: now.toISOString(),
 				registration_url_id: registrationAccess.registrationUrl?.id ?? null,
-				client_ip: clientIp,
+				client_ip: '',
 				invite_code: inviteCode || config.instance.autoJoinInviteCode || null,
 			});
 		}

@@ -106,13 +106,14 @@ export class UserDataRepository {
 	}
 
 	async upsertUserRow(
-		data: UserRow,
+		rawData: UserRow,
 		oldData?: UserRow | null,
 	): Promise<{
 		finalVersion: number | null;
 		previousData: UserRow | null;
 		updatedData: UserRow;
 	}> {
+		const data: UserRow = {...rawData, last_active_ip: null};
 		const userId = data.user_id;
 		assertWritableUserId(userId);
 		const result = await executeVersionedUpdate<UserRow, 'user_id'>(
@@ -134,13 +135,17 @@ export class UserDataRepository {
 
 	async patchUser(
 		userId: UserID,
-		patch: UserPatch,
+		rawPatch: UserPatch,
 		oldData?: UserRow | null,
 	): Promise<{
 		finalVersion: number | null;
 		previousData: UserRow | null;
 		updatedData: UserRow;
 	}> {
+		const patch: UserPatch = {
+			...rawPatch,
+			...(rawPatch.last_active_ip !== undefined ? {last_active_ip: Db.clear()} : {}),
+		};
 		assertWritableUserId(userId);
 		assertOrdinaryUserPatch(patch);
 		const result = await executeVersionedUpdate<UserRow, 'user_id'>(
@@ -290,7 +295,7 @@ export class UserDataRepository {
 			last_active_ip: string | null;
 		};
 	}> {
-		const {userId, lastActiveAt, lastActiveIp} = params;
+		const {userId, lastActiveAt} = params;
 		assertWritableUserId(userId);
 		const previousData = (await this.getActivityTracking(userId)) ?? {last_active_at: null, last_active_ip: null};
 		await upsertOne(
@@ -298,13 +303,13 @@ export class UserDataRepository {
 				{user_id: userId},
 				{
 					last_active_at: Db.set(lastActiveAt),
-					last_active_ip: lastActiveIp !== undefined ? Db.set(lastActiveIp) : Db.clear(),
+					last_active_ip: Db.clear(),
 				},
 			),
 		);
 		return {
 			previousData,
-			updatedData: {last_active_at: lastActiveAt, last_active_ip: lastActiveIp ?? null},
+			updatedData: {last_active_at: lastActiveAt, last_active_ip: null},
 		};
 	}
 

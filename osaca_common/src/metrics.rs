@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use libc::{CLOCK_MONOTONIC, clock_gettime, timespec};
 use std::fmt::{self, Write as _};
 use std::net::SocketAddr;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -75,18 +74,27 @@ impl Default for Histogram {
     }
 }
 
+#[cfg(unix)]
 pub fn now_ms() -> i64 {
-    let mut ts = timespec {
+    let mut ts = libc::timespec {
         tv_sec: 0,
         tv_nsec: 0,
     };
-    let rc = unsafe { clock_gettime(CLOCK_MONOTONIC, &mut ts) };
+    let rc = unsafe { libc::clock_gettime(libc::CLOCK_MONOTONIC, &mut ts) };
     if rc != 0 {
         return 0;
     }
-    ts.tv_sec
+    (ts.tv_sec as i64)
         .saturating_mul(1_000)
-        .saturating_add(ts.tv_nsec / 1_000_000)
+        .saturating_add((ts.tv_nsec as i64) / 1_000_000)
+}
+
+#[cfg(not(unix))]
+pub fn now_ms() -> i64 {
+    use std::sync::LazyLock;
+    use std::time::Instant;
+    static START: LazyLock<Instant> = LazyLock::new(Instant::now);
+    START.elapsed().as_millis() as i64
 }
 
 pub fn render_counter(out: &mut String, name: &str, counter: &AtomicU64) -> fmt::Result {

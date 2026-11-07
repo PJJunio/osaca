@@ -2,6 +2,7 @@
 
 pub mod combined;
 pub mod config;
+pub mod delivery;
 pub mod hash_ring;
 pub mod metrics;
 pub mod postgres;

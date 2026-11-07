@@ -3447,11 +3447,14 @@ dependencies = [
  "chrono",
  "deadpool-postgres",
  "futures",
+ "hex",
  "osaca_common",
  "rmp-serde",
  "rustls",
  "serde",
  "serde_json",
+ "sha2 0.10.9",
+ "thiserror",
  "tokio",
  "tokio-postgres",
  "tokio-postgres-rustls",
@@ -3827,6 +3830,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "851ca9db4932932d69f3ea811b1abe63087a0f740a47692619dd40d4899b68be"
 dependencies = [
  "bytes",
+ "chrono",
  "fallible-iterator",
  "postgres-protocol",
  "serde_core",

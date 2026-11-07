@@ -300,6 +300,10 @@ export const ErrorCodeToI18nKey = {
 	[APIErrorCodes.VOICE_SERVER_API_KEY_IN_USE]: 'calls_and_voice.voice_server_api_key_in_use',
 	[APIErrorCodes.VOICE_SERVER_ID_IN_USE]: 'calls_and_voice.voice_server_id_in_use',
 	[APIErrorCodes.WEBAUTHN_CREDENTIAL_LIMIT_REACHED]: 'mfa_and_passkeys.webauthn_credential_limit_reached',
+	[APIErrorCodes.MLS_EPOCH_CONFLICT]: 'mls.epoch_conflict',
+	[APIErrorCodes.MLS_KEY_PACKAGE_EXHAUSTED]: 'mls.key_package_exhausted',
+	[APIErrorCodes.MLS_GROUP_NOT_FOUND]: 'mls.group_not_found',
+
 	[ValidationErrorCodes.MESSAGE_IDS_CANNOT_BE_EMPTY]: 'messages.message_ids_cannot_be_empty',
 	[ValidationErrorCodes.MESSAGES_ARRAY_REQUIRED_AND_NOT_EMPTY]: 'messages.messages_array_required',
 	[ValidationErrorCodes.MESSAGES_WITH_SNAPSHOTS_CANNOT_BE_EDITED]: 'messages.messages_with_snapshots_cannot_be_edited',

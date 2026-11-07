@@ -472,5 +472,8 @@
 	"webhooks.service_forum_unsupported": "This webhook service can't post to a forum or media channel without a `thread_id`.",
 	"webhooks.thread_name_requires_forum": "`thread_name` and `applied_tags` only work in forum and media channels.",
 	"webhooks.unknown_webhook": "Unknown webhook.",
-	"webhooks.webhook_name_length_invalid": "Webhook name must be between {min} and {max} characters."
+	"webhooks.webhook_name_length_invalid": "Webhook name must be between {min} and {max} characters.",
+	"mls.epoch_conflict": "MLS epoch conflict.",
+	"mls.key_package_exhausted": "No key packages available for device.",
+	"mls.group_not_found": "MLS group not found."
 }

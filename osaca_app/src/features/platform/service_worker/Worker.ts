@@ -24,6 +24,7 @@ import {
 	type InstanceManifestSources,
 	isNotificationClearPayload,
 	isPushNotificationReadThrough,
+	isWakeupPushPayload,
 	matchesPushChannelNotification,
 	normalizePushPayload,
 	resolvePushChannelId,
@@ -32,6 +33,8 @@ import {
 	resolvePushTitle,
 	shouldRenotifyPushNotification,
 	shouldSilenceNonMobilePushNotification,
+	toWakeupPushPayload,
+	WAKEUP_PUSH_BODY,
 } from '@app/features/platform/service_worker/WorkerPushPayload';
 import {isObjectLike as isRecord} from '@osaca/record_utils/src/RecordGuards';
 
@@ -357,7 +360,8 @@ self.addEventListener('push', (event: PushEvent) => {
 					rawPreview: rawText?.slice(0, 512) ?? null,
 				});
 			}
-			const payload = normalizePushPayload(raw);
+			const normalized = normalizePushPayload(raw);
+			const payload = isNotificationClearPayload(normalized) ? normalized : toWakeupPushPayload(normalized);
 			const tag = resolvePushNotificationTag(payload);
 			const badgeCount = getBadgeCount(payload);
 			if (isNotificationClearPayload(payload)) {
@@ -373,8 +377,8 @@ self.addEventListener('push', (event: PushEvent) => {
 				await log('warn', 'push ignored in native desktop service worker', {badgeCount});
 				return;
 			}
-			const title = await resolvePushTitle(payload, instanceManifestSources);
-			const body = payload.body ?? '';
+			const title = await resolvePushTitle(instanceManifestSources);
+			const body = WAKEUP_PUSH_BODY;
 			let clientState = getPushNotificationClientState([]);
 			try {
 				const clientList = (await self.clients.matchAll({
@@ -390,8 +394,6 @@ self.addEventListener('push', (event: PushEvent) => {
 				renotify?: boolean;
 			} = {
 				body,
-				icon: payload.icon ?? undefined,
-				badge: payload.badge ?? undefined,
 				data: payload.data ?? undefined,
 				tag,
 				renotify,
@@ -402,7 +404,7 @@ self.addEventListener('push', (event: PushEvent) => {
 			};
 			await log('info', 'push received', {
 				title,
-				hasBody: Boolean(payload.body),
+				wakeup: isWakeupPushPayload(normalized),
 				tag,
 				renotify,
 				hasData: payload.data !== undefined,

@@ -32,6 +32,48 @@ export const normalizePushPayload = (raw: unknown): PushPayload => {
 	}
 	return payload;
 };
+/**
+ * Message pushes are Wake-up Pushes: the server never sends message content,
+ * sender names, avatars, attachment URLs or channel names. The worker shows a
+ * generic notification and the app fetches and decrypts the message itself.
+ */
+export const WAKEUP_PUSH_TYPE = 'wakeup';
+export const WAKEUP_PUSH_BODY = 'New message';
+const CONTENT_KEYS = [
+	'title',
+	'body',
+	'icon',
+	'badge',
+	'image',
+	'image_url',
+	'author_avatar_url',
+	'channel_name',
+	'parent_name',
+	'caller_id',
+	'caller_name',
+	'caller_avatar_url',
+	'has_media',
+] as const;
+export const isWakeupPushPayload = (payload: PushPayload): boolean =>
+	payload.type === WAKEUP_PUSH_TYPE || payload.data?.type === WAKEUP_PUSH_TYPE;
+const withoutContent = (record: Record<string, unknown>): Record<string, unknown> => {
+	const copy = {...record};
+	for (const key of CONTENT_KEYS) delete copy[key];
+	return copy;
+};
+/**
+ * Drops anything that could carry plaintext or sender metadata, so the worker
+ * can never render server-supplied content even if a payload contains it.
+ */
+export const toWakeupPushPayload = (payload: PushPayload): PushPayload => {
+	const {notification: _notification, ...rest} = payload;
+	const sanitized = withoutContent(rest as Record<string, unknown>) as PushPayload;
+	return {
+		...sanitized,
+		type: sanitized.type ?? WAKEUP_PUSH_TYPE,
+		data: payload.data ? withoutContent(payload.data) : undefined,
+	};
+};
 const PUSH_TITLE_MANIFEST_TIMEOUT_MS = 2000;
 export interface InstanceManifestSources {
 	fetchManifest: (signal: AbortSignal) => Promise<Response>;
@@ -67,8 +109,7 @@ const readCachedManifestName = async (sources: InstanceManifestSources): Promise
 		return null;
 	}
 };
-export const resolvePushTitle = async (payload: PushPayload, sources: InstanceManifestSources): Promise<string> => {
-	if (typeof payload.title === 'string' && payload.title.trim()) return payload.title;
+export const resolvePushTitle = async (sources: InstanceManifestSources): Promise<string> => {
 	return (
 		(await fetchManifestName(sources, PUSH_TITLE_MANIFEST_TIMEOUT_MS)) ??
 		(await readCachedManifestName(sources)) ??

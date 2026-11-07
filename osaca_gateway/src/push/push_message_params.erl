@@ -21,12 +21,8 @@
     channel_id := pos_integer(),
     message_id := pos_integer(),
     guild_default_notifications := integer(),
-    guild_name := binary() | undefined,
-    channel_name := binary() | undefined,
-    role_names := map(),
     user_roles := map(),
     connected_users := map(),
-    markdown_context := map(),
     large_guild_metadata := map() | undefined
 }.
 
@@ -49,7 +45,6 @@ context_from_message_data(Params, MessageData) ->
     Notifications = push_normalize:notification_level(
         maps:get(guild_default_notifications, Params, undefined)
     ),
-    RoleNames = role_names_map(maps:get(role_names, Params, #{})),
     validate(#{
         message_data => MessageData,
         user_ids => UserIds,
@@ -58,14 +53,8 @@ context_from_message_data(Params, MessageData) ->
         channel_id => ChannelId,
         message_id => MessageId,
         guild_default_notifications => Notifications,
-        guild_name => maps:get(guild_name, Params, undefined),
-        channel_name => maps:get(channel_name, Params, undefined),
-        role_names => RoleNames,
         user_roles => maps:get(user_roles, Params, #{}),
         connected_users => maps:get(connected_users, Params, #{}),
-        markdown_context => markdown_context(
-            MessageData, GuildId, RoleNames, maps:get(markdown_context, Params, undefined)
-        ),
         large_guild_metadata => large_guild_metadata(Params)
     }).
 
@@ -173,27 +162,3 @@ user_ids(Values) when is_list(Values) ->
     lists:filtermap(fun snowflake_id:filter/1, Values);
 user_ids(_) ->
     [].
-
--spec role_names_map(term()) -> map().
-role_names_map(Value) when is_map(Value) ->
-    Value;
-role_names_map(_) ->
-    #{}.
-
--spec optional_map(term()) -> map().
-optional_map(Value) when is_map(Value) ->
-    Value;
-optional_map(_) ->
-    #{}.
-
--spec markdown_context(map(), term(), map(), term()) -> map().
-markdown_context(_MessageData, _GuildId, _RoleNames, RawContext) when
-    is_map(RawContext), map_size(RawContext) > 0
-->
-    RawContext;
-markdown_context(MessageData, GuildId, RoleNames, _RawContext) when
-    is_integer(GuildId), GuildId >= 0
-->
-    push_notification_format:build_markdown_context(MessageData, GuildId, RoleNames, #{});
-markdown_context(_MessageData, _GuildId, _RoleNames, RawContext) ->
-    optional_map(RawContext).

@@ -1,94 +1,56 @@
 %% SPDX-License-Identifier: AGPL-3.0-or-later
 
+%% Routing fields for push jobs.
+%%
+%% Push jobs only ever carry identifiers. Message content, author names and
+%% avatars, attachment URLs, caller identity and channel/guild names never
+%% leave the gateway: osaca_push turns each job into an opaque Wake-up Push
+%% and the client fetches and decrypts the message itself.
+
 -module(push_job_fields).
 -typing([eqwalizer]).
 
--export([notification/7, thread/2, caller/1]).
+-export([thread/1]).
 
--define(MAX_CALLER_NAME_BYTES, 128).
+-define(THREAD_PUSH_KEY, <<"__thread_push">>).
 
--spec caller(map()) -> map().
-caller(#{caller_id := CallerId, caller_name := Name} = Caller) when
-    is_integer(CallerId), is_binary(Name), byte_size(Name) > 0
+-spec thread(map()) -> map().
+thread(#{?THREAD_PUSH_KEY := #{<<"parent_id">> := ParentId}} = MessageData) when
+    is_integer(ParentId)
 ->
-    CallerIdBin = integer_to_binary(CallerId),
     #{
-        <<"caller_id">> => CallerIdBin,
-        <<"caller_name">> => push_notification_format:truncate_bytes(
-            Name, ?MAX_CALLER_NAME_BYTES
-        ),
-        <<"caller_avatar_url">> => caller_avatar_url(
-            CallerIdBin, maps:get(caller_avatar, Caller, undefined)
-        )
+        <<"parent_id">> => integer_to_binary(ParentId),
+        <<"kind">> => thread_job_kind(MessageData)
     };
-caller(_Caller) ->
+thread(_MessageData) ->
     #{}.
 
--spec caller_avatar_url(binary(), term()) -> binary().
-caller_avatar_url(CallerIdBin, Hash) when is_binary(Hash), byte_size(Hash) > 0 ->
-    push_notification_format:resolve_author_avatar_url(#{
-        <<"id">> => CallerIdBin, <<"avatar">> => Hash
-    });
-caller_avatar_url(CallerIdBin, _Hash) ->
-    push_notification_format:resolve_author_avatar_url(#{
-        <<"id">> => CallerIdBin, <<"avatar">> => null
-    }).
-
--spec notification(
-    map(), map(), integer(), integer(), integer(), binary() | undefined, binary() | undefined
-) -> map().
-notification(
-    MessageData, MarkdownContext, GuildId, ChannelId, MessageId, GuildName, ChannelName
-) ->
-    AuthorData = maps:get(<<"author">>, MessageData, #{}),
-    AuthorUsername = maps:get(<<"username">>, AuthorData, <<"Unknown">>),
-    AuthorName = push_notification_format:resolve_author_name(
-        MessageData, MarkdownContext, AuthorUsername
-    ),
-    ChannelIdBin = integer_to_binary(ChannelId),
-    MessageIdBin = integer_to_binary(MessageId),
-    with_badge(#{
-        <<"title">> => push_notification:build_notification_title(
-            AuthorName, MessageData, GuildId, GuildName, ChannelName
-        ),
-        <<"body">> => push_notification_format:build_content_preview(
-            MessageData, MarkdownContext
-        ),
-        <<"icon">> => push_notification_format:resolve_author_avatar_url(AuthorData),
-        <<"tag">> => <<"channel:", ChannelIdBin/binary, ":", MessageIdBin/binary>>,
-        <<"notification_tag">> => <<"channel:", ChannelIdBin/binary>>,
-        <<"url">> => push_notification_format:build_url(GuildId, ChannelId, MessageId),
-        <<"image_url">> => nullable(push_image_url:extract(MessageData))
-    }).
-
--spec with_badge(map()) -> map().
-with_badge(Fields) ->
-    case osaca_gateway_env:get(self_hosted) of
-        true ->
-            Fields;
-        _ ->
-            Fields#{
-                <<"badge">> => push_utils:construct_static_asset_url(
-                    <<"marketing/branding/symbol-white.svg">>
-                )
-            }
-    end.
-
--spec thread(map(), binary() | undefined) -> map().
-thread(MessageData, ChannelName) ->
-    case push_notification:thread_fields(MessageData, ChannelName) of
-        Fields when map_size(Fields) =:= 0 -> Fields;
-        Fields -> Fields#{<<"kind">> => thread_job_kind(MessageData)}
-    end.
-
 -spec thread_job_kind(map()) -> binary().
-thread_job_kind(#{<<"__thread_push">> := #{<<"forum_thread_created">> := true}}) ->
+thread_job_kind(#{?THREAD_PUSH_KEY := #{<<"forum_thread_created">> := true}}) ->
     <<"forum_thread_created">>;
 thread_job_kind(_MessageData) ->
     <<"thread">>.
 
--spec nullable(binary() | undefined) -> binary() | null.
-nullable(undefined) ->
-    null;
-nullable(Value) ->
-    Value.
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+thread_job_carries_only_ids_test() ->
+    MessageData = #{
+        <<"content">> => <<"see you tomorrow">>,
+        <<"author">> => #{<<"username">> => <<"elias">>},
+        ?THREAD_PUSH_KEY => #{<<"parent_id">> => 200, <<"parent_name">> => <<"general">>}
+    },
+    ?assertEqual(
+        #{<<"parent_id">> => <<"200">>, <<"kind">> => <<"thread">>},
+        thread(MessageData)
+    ).
+
+forum_thread_created_kind_test() ->
+    MessageData = #{
+        ?THREAD_PUSH_KEY => #{<<"parent_id">> => 7, <<"forum_thread_created">> => true}
+    },
+    ?assertEqual(<<"forum_thread_created">>, maps:get(<<"kind">>, thread(MessageData))).
+
+non_thread_message_has_no_thread_fields_test() ->
+    ?assertEqual(#{}, thread(#{<<"content">> => <<"hi">>})).
+-endif.

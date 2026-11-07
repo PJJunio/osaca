@@ -127,12 +127,9 @@ dispatch_ring_job(UserId, #{
     channel_id := ChannelId,
     message_id := MessageId,
     started_at_ms := StartedAt,
-    expires_at_ms := ExpiresAt,
-    caller := Caller
+    expires_at_ms := ExpiresAt
 }) ->
-    _ = push_job_publisher:publish_ring(
-        UserId, ChannelId, MessageId, StartedAt, ExpiresAt, Caller
-    ),
+    _ = push_job_publisher:publish_ring(UserId, ChannelId, MessageId, StartedAt, ExpiresAt),
     ok.
 
 -spec ring_suppressed(integer(), [integer()]) -> boolean().

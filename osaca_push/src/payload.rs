@@ -1,16 +1,28 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+//! Push payload builders.
+//!
+//! Every message notification is a Wake-up Push: an opaque envelope that tells
+//! the client "something arrived in channel X" and nothing more. The server
+//! never puts message content, author names, avatars, attachment URLs or
+//! channel/guild names into a push payload; the client fetches and decrypts
+//! the message itself before showing anything to the user.
+
 use crate::job::{ClearJob, MessageJob, RingJob};
 use crate::metrics::PayloadShrink;
 use crate::unix_seconds;
 use serde_json::{Map, Value, json};
 
 const WEB_PUSH_MARKER: u64 = 8030;
+const WAKEUP_TYPE: &str = "wakeup";
 const CLEAR_TYPE: &str = "notification_clear";
 const CLEAR_ACTION: &str = "clear_channel";
 const RING_TYPE: &str = "call_ring";
 const FALLBACK_TAG: &str = "osaca-message";
 const FALLBACK_TITLE: &str = "OSACA";
+/// Generic, content-free text shown by operating systems that render the
+/// notification before the app can decrypt anything (FCM / APNs alerts).
+const WAKEUP_BODY: &str = "New message";
 const APNS_CATEGORY: &str = "osaca_message";
 const FCM_CLICK_ACTION: &str = "OSACA_MESSAGE";
 const APNS_SOUND: &str = "default";
@@ -21,12 +33,22 @@ const SHRUNK_BODY_MAX_BYTES: usize = 40;
 const MINIMAL_TITLE_MAX_BYTES: usize = 120;
 const MEDIA_KEYS: [&str; 2] = ["image_url", "image"];
 const ICON_KEYS: [&str; 3] = ["icon", "badge", "author_avatar_url"];
-const RING_CALLER_ID_KEY: &str = "caller_id";
-const RING_CALLER_NAME_KEY: &str = "caller_name";
-const RING_CALLER_AVATAR_KEY: &str = "caller_avatar_url";
-const RING_AVATAR_KEYS: [&str; 1] = [RING_CALLER_AVATAR_KEY];
-const RING_IDENTITY_KEYS: [&str; 2] = [RING_CALLER_ID_KEY, RING_CALLER_NAME_KEY];
-const THREAD_DATA_KEYS: [&str; 3] = ["parent_id", "parent_name", "channel_name"];
+/// Keys that may carry plaintext or sender metadata. They are never emitted;
+/// provider payloads strip them defensively even if an envelope carries them.
+const CONTENT_KEYS: [&str; 12] = [
+    "title",
+    "body",
+    "icon",
+    "image",
+    "image_url",
+    "author_avatar_url",
+    "channel_name",
+    "parent_name",
+    "caller_id",
+    "caller_name",
+    "caller_avatar_url",
+    "has_media",
+];
 const NOTIF_TYPE_KEY: &str = "notif_type_id";
 const FORUM_THREAD_CREATED_NOTIF_TYPE: u64 = 9;
 const FCM_DEFAULT_CHANNEL_ID: &str = "osaca_default_push";
@@ -46,63 +68,54 @@ const MINIMAL_DATA_KEYS: [&str; 11] = [
 ];
 
 pub fn web_push_message(job: &MessageJob, target_user_id: &str, badge_count: u32) -> Value {
-    let fields = &job.notification;
-    let image_url = fields.image_url.as_deref();
-    let guild_id = if job.is_direct_message() {
-        Value::Null
+    let (guild_id, guild_path) = if job.is_direct_message() {
+        (Value::Null, "@me")
     } else {
-        Value::String(job.guild_id.clone())
+        (Value::String(job.guild_id.clone()), job.guild_id.as_str())
     };
+    let url = format!(
+        "/channels/{guild_path}/{}/{}",
+        job.channel_id, job.message_id
+    );
+    let notification_tag = format!("channel:{}", job.channel_id);
+    let tag = format!("channel:{}:{}", job.channel_id, job.message_id);
     let mut data = json!({
+        "type": WAKEUP_TYPE,
         "channel_id": job.channel_id,
-        "author_avatar_url": fields.icon,
         "message_id": job.message_id,
-        "notification_tag": fields.notification_tag,
+        "notification_tag": notification_tag,
         "guild_id": guild_id,
-        "url": fields.url,
+        "url": url,
         "badge_count": badge_count,
         "target_user_id": target_user_id,
-        "has_media": image_url.is_some(),
     });
     merge_thread_fields(&mut data, job);
-    let badge = fields.badge.as_deref();
-    let mut notification = json!({
-        "title": fields.title,
-        "body": fields.body,
-        "icon": fields.icon,
-        "tag": fields.tag,
-        "navigate": fields.url,
+    let notification = json!({
+        "type": WAKEUP_TYPE,
+        "title": FALLBACK_TITLE,
+        "body": "",
+        "tag": tag,
+        "navigate": url,
         "app_badge": badge_count.to_string(),
         "data": data,
     });
-    insert_present(&mut notification, "badge", badge);
-    let mut envelope = json!({
+    json!({
         "web_push": WEB_PUSH_MARKER,
+        "type": WAKEUP_TYPE,
         "notification": notification,
-        "title": fields.title,
-        "body": fields.body,
-        "icon": fields.icon,
-        "tag": fields.tag,
+        "title": FALLBACK_TITLE,
+        "body": "",
+        "tag": tag,
         "data": data,
-    });
-    insert_present(&mut envelope, "badge", badge);
-    insert_present(&mut envelope, "image_url", image_url);
-    envelope
+    })
 }
 
 fn merge_thread_fields(data: &mut Value, job: &MessageJob) {
     let Some(object) = data.as_object_mut() else {
         return;
     };
-    let fields = [
-        job.parent_id.as_deref(),
-        job.parent_name.as_deref(),
-        job.channel_name.as_deref(),
-    ];
-    for (key, value) in THREAD_DATA_KEYS.into_iter().zip(fields) {
-        if let Some(value) = value.filter(|value| !value.is_empty()) {
-            object.insert(key.to_owned(), value.into());
-        }
+    if let Some(parent_id) = job.parent_id.as_deref().filter(|id| !id.is_empty()) {
+        object.insert("parent_id".to_owned(), parent_id.into());
     }
     if job.is_forum_thread_created() {
         object.insert(
@@ -142,8 +155,10 @@ pub fn web_push_clear(job: &ClearJob, badge_count: u32) -> Value {
     })
 }
 
+/// Incoming-call wake-up. The caller's identity is deliberately omitted; the
+/// client resolves who is calling from its own state once it is awake.
 pub fn web_push_call_ring(job: &RingJob) -> Value {
-    let mut data = json!({
+    let data = json!({
         "type": RING_TYPE,
         "channel_id": job.channel_id,
         "message_id": job.message_id,
@@ -151,28 +166,11 @@ pub fn web_push_call_ring(job: &RingJob) -> Value {
         "started_at_ms": job.started_at_ms,
         "expires_at_ms": job.expires_at_ms,
     });
-    put_caller(&mut data, job);
     json!({
         "web_push": WEB_PUSH_MARKER,
         "type": RING_TYPE,
         "data": data,
     })
-}
-
-fn put_caller(data: &mut Value, job: &RingJob) {
-    let Some(object) = data.as_object_mut() else {
-        return;
-    };
-    let caller = [
-        (RING_CALLER_ID_KEY, job.caller_id.as_deref()),
-        (RING_CALLER_NAME_KEY, job.caller_name.as_deref()),
-        (RING_CALLER_AVATAR_KEY, job.caller_avatar_url.as_deref()),
-    ];
-    for (key, value) in caller {
-        if let Some(value) = value.filter(|value| !value.is_empty()) {
-            object.insert(key.to_owned(), value.into());
-        }
-    }
 }
 
 pub fn fcm_message(device_token: &str, envelope: &Value) -> Value {
@@ -209,42 +207,26 @@ fn fcm_clear_message(device_token: &str, envelope: &Value) -> Value {
 }
 
 fn fcm_notification_message(device_token: &str, envelope: &Value) -> Value {
-    let notification = envelope.get("notification");
-    let title = sanitized_text(fcm_text(notification, envelope, "title", FALLBACK_TITLE));
-    let body = sanitized_text(fcm_text(notification, envelope, "body", ""));
     let tag = envelope
         .get("tag")
         .and_then(Value::as_str)
         .unwrap_or(FALLBACK_TAG);
-    let image_url = first_non_empty([
-        field(envelope, "image_url"),
-        notification.and_then(|value| field(value, "image")),
-        notification.and_then(|value| field(value, "image_url")),
-    ]);
-    let mut notification_body = json!({"title": title, "body": body});
-    put_image(&mut notification_body, image_url);
     let mut data = stringified_data(envelope.get("data"));
-    data.insert("title".to_owned(), title.as_str().into());
-    data.insert("body".to_owned(), body.as_str().into());
+    data.insert("type".to_owned(), WAKEUP_TYPE.into());
     data.insert("tag".to_owned(), tag.into());
-    if let Some(url) = image_url {
-        data.insert("image_url".to_owned(), url.into());
-    }
-    let mut android_notification = json!({
-        "channel_id": fcm_channel_id(envelope),
-        "tag": tag,
-        "click_action": FCM_CLICK_ACTION,
-    });
-    put_image(&mut android_notification, image_url);
     json!({
         "message": {
             "token": device_token,
-            "notification": notification_body,
+            "notification": {"title": FALLBACK_TITLE, "body": WAKEUP_BODY},
             "data": data,
             "android": {
                 "priority": "HIGH",
                 "ttl": "86400s",
-                "notification": android_notification,
+                "notification": {
+                    "channel_id": fcm_channel_id(envelope),
+                    "tag": tag,
+                    "click_action": FCM_CLICK_ACTION,
+                },
             },
             "fcm_options": {"analytics_label": "message_create"},
         },
@@ -265,7 +247,11 @@ fn fcm_channel_id(envelope: &Value) -> &'static str {
 
 pub fn apns_payload(envelope: &Value) -> Value {
     let data = envelope.get("data");
-    let mut payload = data.and_then(Value::as_object).cloned().unwrap_or_default();
+    let mut payload = data
+        .and_then(Value::as_object)
+        .cloned()
+        .map(without_content)
+        .unwrap_or_default();
     if is_clear(envelope) {
         payload.insert("type".to_owned(), CLEAR_TYPE.into());
         payload.insert("action".to_owned(), CLEAR_ACTION.into());
@@ -273,21 +259,10 @@ pub fn apns_payload(envelope: &Value) -> Value {
         return Value::Object(payload);
     }
     let notification = envelope.get("notification");
-    let title = notification
-        .and_then(|value| field(value, "title"))
-        .or_else(|| field(envelope, "title"))
-        .unwrap_or(FALLBACK_TITLE);
-    let body = notification
-        .and_then(|value| field(value, "body"))
-        .or_else(|| field(envelope, "body"))
-        .unwrap_or("");
     let url = data
         .and_then(|data| field(data, "url"))
-        .or_else(|| notification.and_then(|value| field(value, "navigate")));
-    let image_url = first_non_empty([
-        field(envelope, "image_url"),
-        notification.and_then(|value| field(value, "image")),
-    ]);
+        .or_else(|| notification.and_then(|value| field(value, "navigate")))
+        .map(str::to_owned);
     let thread_id = data
         .and_then(|data| field(data, "notification_tag"))
         .map(str::to_owned)
@@ -297,7 +272,10 @@ pub fn apns_payload(envelope: &Value) -> Value {
         })
         .unwrap_or_else(|| FALLBACK_TAG.to_owned());
     let mut aps = Map::new();
-    aps.insert("alert".to_owned(), json!({"title": title, "body": body}));
+    aps.insert(
+        "alert".to_owned(),
+        json!({"title": FALLBACK_TITLE, "body": WAKEUP_BODY}),
+    );
     aps.insert("sound".to_owned(), APNS_SOUND.into());
     aps.insert("thread-id".to_owned(), thread_id.into());
     aps.insert("category".to_owned(), APNS_CATEGORY.into());
@@ -307,15 +285,10 @@ pub fn apns_payload(envelope: &Value) -> Value {
         aps.insert("badge".to_owned(), badge.into());
     }
     aps.insert("mutable-content".to_owned(), 1.into());
-    payload.insert("title".to_owned(), title.into());
-    payload.insert("body".to_owned(), body.into());
+    payload.insert("type".to_owned(), WAKEUP_TYPE.into());
     payload.remove("url");
     if let Some(url) = url {
         payload.insert("url".to_owned(), url.into());
-    }
-    payload.remove("image_url");
-    if let Some(image_url) = image_url {
-        payload.insert("image_url".to_owned(), image_url.into());
     }
     payload.insert("aps".to_owned(), Value::Object(aps));
     Value::Object(payload)
@@ -352,34 +325,20 @@ pub fn apns_delivery_headers(envelope: &Value) -> Vec<(String, String)> {
     headers
 }
 
-fn put_image(target: &mut Value, image_url: Option<&str>) {
-    let (Some(image_url), Some(object)) = (image_url, target.as_object_mut()) else {
-        return;
-    };
-    object.insert("image".to_owned(), image_url.into());
-}
-
-fn fcm_text<'a>(
-    notification: Option<&'a Value>,
-    envelope: &'a Value,
-    key: &str,
-    fallback: &'a str,
-) -> &'a str {
-    notification
-        .and_then(|value| value.get(key))
-        .or_else(|| envelope.get(key))
-        .and_then(Value::as_str)
-        .unwrap_or(fallback)
-}
-
 fn stringified_data(data: Option<&Value>) -> Map<String, Value> {
     data.and_then(Value::as_object)
         .map(|data| {
             data.iter()
+                .filter(|(key, _)| !CONTENT_KEYS.contains(&key.as_str()))
                 .map(|(key, value)| (key.clone(), stringified(value)))
                 .collect()
         })
         .unwrap_or_default()
+}
+
+fn without_content(mut data: Map<String, Value>) -> Map<String, Value> {
+    data.retain(|key, _| !CONTENT_KEYS.contains(&key.as_str()));
+    data
 }
 
 fn stringified(value: &Value) -> Value {
@@ -392,31 +351,8 @@ fn stringified(value: &Value) -> Value {
     }
 }
 
-fn sanitized_text(value: &str) -> String {
-    value
-        .chars()
-        .filter(|character| displayable(*character))
-        .collect()
-}
-
-fn displayable(character: char) -> bool {
-    match character {
-        '\n' | '\t' => true,
-        '\u{0}'..='\u{1f}'
-        | '\u{7f}'..='\u{9f}'
-        | '\u{200e}'..='\u{200f}'
-        | '\u{202a}'..='\u{202e}'
-        | '\u{2066}'..='\u{2069}' => false,
-        _ => true,
-    }
-}
-
 fn field<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
     value.get(key).and_then(non_empty)
-}
-
-fn first_non_empty<const N: usize>(candidates: [Option<&str>; N]) -> Option<&str> {
-    candidates.into_iter().flatten().next()
 }
 
 fn badge_number(value: Option<&Value>) -> Option<u64> {
@@ -476,14 +412,11 @@ pub fn fit(envelope: &Value, budget: usize) -> (Vec<u8>, Option<PayloadShrink>) 
     (serialize(&working), Some(PayloadShrink::Minimal))
 }
 
-fn fit_ring(envelope: &Value, budget: usize) -> (Vec<u8>, Option<PayloadShrink>) {
+fn fit_ring(envelope: &Value, _budget: usize) -> (Vec<u8>, Option<PayloadShrink>) {
     let mut working = envelope.clone();
-    drop_keys(&mut working, &RING_AVATAR_KEYS);
-    let serialized = serialize(&working);
-    if serialized.len() <= budget {
-        return (serialized, Some(PayloadShrink::Icons));
+    if let Some(data) = working.get_mut("data").and_then(Value::as_object_mut) {
+        data.retain(|key, _| MINIMAL_DATA_KEYS.contains(&key.as_str()));
     }
-    drop_keys(&mut working, &RING_IDENTITY_KEYS);
     (serialize(&working), Some(PayloadShrink::Minimal))
 }
 
@@ -618,13 +551,6 @@ fn first_text<'a>(envelope: &'a Value, key: &str) -> Option<&'a str> {
         .or_else(|| envelope.get("notification")?.get(key).and_then(non_empty))
 }
 
-fn insert_present(target: &mut Value, key: &str, value: Option<&str>) {
-    let (Some(value), Some(object)) = (value, target.as_object_mut()) else {
-        return;
-    };
-    object.insert(key.to_owned(), value.into());
-}
-
 fn non_empty(value: &Value) -> Option<&str> {
     value.as_str().filter(|text| !text.is_empty())
 }
@@ -636,54 +562,213 @@ fn serialize(value: &Value) -> Vec<u8> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::job::{MessageJob, NotificationFields};
+    use crate::job::{MessageJob, RingJob};
 
     const CHANNEL_ID: &str = "9876543210987654321";
     const MESSAGE_ID: &str = "1122334455667788990";
     const USER_ID: &str = "1234567890123456789";
+    const GUILD_ID: &str = "5555555555555555555";
 
-    fn message_job(image_url: Option<&str>) -> MessageJob {
-        MessageJob {
-            v: 1,
-            guild_id: "0".to_owned(),
-            channel_id: CHANNEL_ID.to_owned(),
-            message_id: MESSAGE_ID.to_owned(),
-            notification: NotificationFields {
-                title: "Elias".to_owned(),
-                body: "see you tomorrow".to_owned(),
-                icon: "https://media.osaca.example/avatars/1/a.webp".to_owned(),
-                badge: Some("https://media.osaca.example/badge.png".to_owned()),
-                tag: format!("channel:{CHANNEL_ID}:{MESSAGE_ID}"),
-                notification_tag: format!("channel:{CHANNEL_ID}"),
-                url: format!("/channels/@me/{CHANNEL_ID}"),
-                image_url: image_url.map(str::to_owned),
+    /// Strings a legacy gateway used to send. None may appear in any payload.
+    const LEAKS: [&str; 7] = [
+        "Elias",
+        "see you tomorrow",
+        "avatars",
+        "attachments",
+        "general",
+        "ideas",
+        "Ada Lovelace",
+    ];
+
+    fn legacy_message_job_bytes(guild_id: &str, kind: Option<&str>) -> Vec<u8> {
+        let mut job = json!({
+            "v": 1,
+            "guild_id": guild_id,
+            "channel_id": CHANNEL_ID,
+            "message_id": MESSAGE_ID,
+            "notification": {
+                "title": "Elias (#general, Guild)",
+                "body": "see you tomorrow",
+                "icon": "https://media.osaca.example/avatars/1/a.webp",
+                "badge": "https://media.osaca.example/badge.png",
+                "tag": format!("channel:{CHANNEL_ID}:{MESSAGE_ID}"),
+                "notification_tag": format!("channel:{CHANNEL_ID}"),
+                "url": format!("/channels/@me/{CHANNEL_ID}"),
+                "image_url": "https://media.osaca.example/attachments/1/2/cat.png",
             },
-            user_ids: vec![USER_ID.to_owned()],
-            kind: None,
-            parent_id: None,
-            parent_name: None,
-            channel_name: None,
+            "user_ids": [USER_ID],
+            "parent_id": "200",
+            "parent_name": "general",
+            "channel_name": "ideas",
+        });
+        if let Some(kind) = kind {
+            job["kind"] = kind.into();
+        }
+        job.to_string().into_bytes()
+    }
+
+    fn message_job(guild_id: &str) -> MessageJob {
+        crate::job::decode_message(&legacy_message_job_bytes(guild_id, None)).expect("decodes")
+    }
+
+    fn ring_job() -> RingJob {
+        crate::job::decode_ring(
+            json!({
+                "v": 1,
+                "user_id": USER_ID,
+                "channel_id": CHANNEL_ID,
+                "message_id": MESSAGE_ID,
+                "started_at_ms": 1,
+                "expires_at_ms": 2,
+                "caller_id": "42",
+                "caller_name": "Ada Lovelace",
+                "caller_avatar_url": "https://media.osaca.example/avatars/42/a.webp",
+            })
+            .to_string()
+            .as_bytes(),
+        )
+        .expect("decodes")
+    }
+
+    fn assert_no_leaks(payload: &Value) {
+        let serialized = payload.to_string();
+        for leak in LEAKS {
+            assert!(
+                !serialized.contains(leak),
+                "payload leaks {leak:?}: {serialized}"
+            );
+        }
+        for key in [
+            "author_avatar_url",
+            "image_url",
+            "channel_name",
+            "parent_name",
+            "caller_id",
+            "caller_name",
+            "caller_avatar_url",
+            "icon",
+            "image",
+        ] {
+            assert!(
+                !serialized.contains(&format!("\"{key}\"")),
+                "payload carries {key:?}: {serialized}"
+            );
         }
     }
 
-    fn apns_for(image_url: Option<&str>) -> Value {
-        apns_payload(&web_push_message(&message_job(image_url), USER_ID, 3))
+    fn envelope(guild_id: &str) -> Value {
+        web_push_message(&message_job(guild_id), USER_ID, 3)
+    }
+
+    #[test]
+    fn a_web_push_message_is_an_opaque_wakeup() {
+        let envelope = envelope("0");
+        assert_eq!(envelope["type"], json!("wakeup"));
+        assert_eq!(envelope["data"]["type"], json!("wakeup"));
+        assert_eq!(envelope["title"], json!("OSACA"));
+        assert_eq!(envelope["body"], json!(""));
+        assert_eq!(envelope["notification"]["body"], json!(""));
+        assert_eq!(envelope["data"]["channel_id"], json!(CHANNEL_ID));
+        assert_eq!(envelope["data"]["message_id"], json!(MESSAGE_ID));
+        assert_eq!(envelope["data"]["guild_id"], Value::Null);
+        assert_eq!(
+            envelope["data"]["url"],
+            json!(format!("/channels/@me/{CHANNEL_ID}/{MESSAGE_ID}"))
+        );
+        assert_no_leaks(&envelope);
+    }
+
+    #[test]
+    fn a_guild_web_push_message_routes_without_names() {
+        let envelope = envelope(GUILD_ID);
+        assert_eq!(envelope["data"]["guild_id"], json!(GUILD_ID));
+        assert_eq!(envelope["data"]["parent_id"], json!("200"));
+        assert_no_leaks(&envelope);
+    }
+
+    #[test]
+    fn an_fcm_message_carries_no_content_or_sender() {
+        for guild_id in ["0", GUILD_ID] {
+            let message = fcm_message("device-token", &envelope(guild_id));
+            assert_eq!(message["message"]["notification"]["title"], json!("OSACA"));
+            assert_eq!(
+                message["message"]["notification"]["body"],
+                json!(WAKEUP_BODY)
+            );
+            assert_eq!(message["message"]["data"]["type"], json!("wakeup"));
+            assert_no_leaks(&message);
+        }
+    }
+
+    #[test]
+    fn an_apns_payload_carries_no_content_or_sender() {
+        for guild_id in ["0", GUILD_ID] {
+            let payload = apns_payload(&envelope(guild_id));
+            assert_eq!(payload["aps"]["alert"]["title"], json!("OSACA"));
+            assert_eq!(payload["aps"]["alert"]["body"], json!(WAKEUP_BODY));
+            assert_eq!(payload["type"], json!("wakeup"));
+            assert_no_leaks(&payload);
+        }
+    }
+
+    #[test]
+    fn provider_payloads_strip_content_smuggled_into_an_envelope() {
+        let mut smuggled = envelope("0");
+        smuggled["title"] = json!("Elias");
+        smuggled["body"] = json!("see you tomorrow");
+        smuggled["image_url"] = json!("https://media.osaca.example/attachments/x.png");
+        smuggled["data"]["channel_name"] = json!("general");
+        smuggled["data"]["author_avatar_url"] = json!("https://x/avatars/1.webp");
+        smuggled["notification"]["body"] = json!("see you tomorrow");
+        assert_no_leaks(&fcm_message("device-token", &smuggled));
+        assert_no_leaks(&apns_payload(&smuggled));
+    }
+
+    #[test]
+    fn a_call_ring_does_not_reveal_the_caller() {
+        let ring = web_push_call_ring(&ring_job());
+        assert_eq!(ring["type"], json!("call_ring"));
+        assert_eq!(ring["data"]["channel_id"], json!(CHANNEL_ID));
+        assert_no_leaks(&ring);
+    }
+
+    #[test]
+    fn a_forum_thread_wakeup_keeps_its_android_channel() {
+        let job = crate::job::decode_message(&legacy_message_job_bytes(
+            GUILD_ID,
+            Some("forum_thread_created"),
+        ))
+        .expect("decodes");
+        let message = fcm_message("device-token", &web_push_message(&job, USER_ID, 1));
+        assert_eq!(
+            message["message"]["android"]["notification"]["channel_id"],
+            json!(FCM_FORUM_THREAD_CREATED_CHANNEL_ID)
+        );
+        assert_no_leaks(&message);
     }
 
     #[test]
     fn the_apns_category_is_the_identifier_the_app_registers() {
-        assert_eq!(apns_for(None)["aps"]["category"], json!("osaca_message"));
+        assert_eq!(
+            apns_payload(&envelope("0"))["aps"]["category"],
+            json!("osaca_message")
+        );
     }
 
     #[test]
     fn the_android_click_action_keeps_its_own_identifier() {
-        let message = fcm_message(
-            "device-token",
-            &web_push_message(&message_job(None), USER_ID, 3),
-        );
+        let message = fcm_message("device-token", &envelope("0"));
         assert_eq!(
             message["message"]["android"]["notification"]["click_action"],
             json!("OSACA_MESSAGE")
         );
+    }
+
+    #[test]
+    fn a_wakeup_fits_a_tight_budget_without_leaking() {
+        let (bytes, _) = fit(&envelope(GUILD_ID), 200);
+        let fitted: Value = serde_json::from_slice(&bytes).expect("json");
+        assert!(bytes.len() <= 200, "{} bytes", bytes.len());
+        assert_no_leaks(&fitted);
     }
 }

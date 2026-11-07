@@ -99,7 +99,9 @@ The rate limit is 40 requests per minute, on the `user:push:unsubscribe` bucket.
 
 ## Handling an incoming push
 
-OSACA posts one `aes128gcm` record to a Web Push endpoint for each notification. A raw registration gets an unencrypted APNs or FCM message instead. A record has at most 2713 bytes of JSON. When a notification is too large, OSACA leaves out media and icons and shortens the body text, and your client has to handle those fields being missing.
+OSACA posts one `aes128gcm` record to a Web Push endpoint for each notification. A raw registration gets an unencrypted APNs or FCM message instead. A record has at most 2713 bytes of JSON.
+
+Every message notification is a Wake-up Push. It never carries message content, the author's name or avatar, attachment URLs, or channel and guild names; it only tells your client which message arrived where. Your client fetches and decrypts the message itself before it shows anything to the user. No external push relay is involved.
 
 OSACA sets these Web Push headers on each record.
 
@@ -112,7 +114,7 @@ Each payload is one of these kinds.
 
 | Kind | How to recognize it | What to do |
 | --- | --- | --- |
-| Notification | Any other payload | Show it, using `title`, `body`, `icon` and `image_url`, and open `data.url` when tapped |
+| Wake-up | Top-level `type` is `wakeup` | Fetch `data.message_id` in `data.channel_id`, then show a notification and open `data.url` when tapped. `title` is always `OSACA` and `body` is empty, so never display them as message content |
 | Clear | Top-level `type` is `notification_clear` and `action` is `clear_channel` | Dismiss what you showed for `data.channel_id` |
 | Call ring | Top-level `type` is `call_ring` | See [Call ring](#call-ring) |
 
@@ -130,11 +132,8 @@ Only `ios_apns_voip` registrations and Web Push `android_fcm` registrations get 
 | target_user_id | string | The account being rung |
 | started_at_ms | integer | When the ring started, in milliseconds since the Unix epoch |
 | expires_at_ms | integer | When the ring ends, in milliseconds since the Unix epoch |
-| caller_id? | string | The account placing the call |
-| caller_name? | string | The name to show for the caller |
-| caller_avatar_url? | string | An image URL for the caller |
 
-`caller_id` and `caller_name` are sent together or not at all, and `caller_avatar_url` can be missing even when they are present. Ring until `expires_at_ms` even when they are missing. OSACA sends no push when a call ends, and your client learns that from the Gateway connection.
+A call ring never says who is calling. Resolve the caller from your own state or the Gateway connection, and ring until `expires_at_ms`. OSACA sends no push when a call ends, and your client learns that from the Gateway connection.
 
 ### Call rings on iOS
 

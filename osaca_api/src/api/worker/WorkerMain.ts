@@ -30,7 +30,6 @@ import {
 import {
 	getAdminArchiveService,
 	getAdminRepository,
-	getCacheService,
 	getInstanceConfigRepository,
 	getLimitConfigService,
 } from '@app/api/middleware/ServiceSingletons';
@@ -398,7 +397,7 @@ export async function startWorkerMain(): Promise<void> {
 		instanceConfigRepository = getInstanceConfigRepository();
 		limitConfigService = getLimitConfigService();
 		try {
-			await initializeSearch(getCacheService());
+			await initializeSearch();
 			searchInitialized = true;
 			Logger.info('Search initialised for worker backend');
 		} catch (error) {

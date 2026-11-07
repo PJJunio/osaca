@@ -42,10 +42,6 @@ The LiveKit API key. Docker Compose passes it to the bundled LiveKit as its API 
 
 The Postgres password. Docker Compose passes it to OSACA as `OSACA_POSTGRES_PASSWORD` and to the bundled Postgres, which sets it only on its first start with an empty data directory. Set it once before the first start and never change it. Keep it secret.
 
-### `MEILI_MASTER_KEY`
-
-The Meilisearch master key. Docker Compose passes it to the bundled Meilisearch and to OSACA as `OSACA_SEARCH_API_KEY`. Set it once before the first start and never change it. Keep it secret.
-
 ### `OSACA_S3_SECRET_KEY`
 
 The object store secret key. For your own object store, set its secret key, and update it when you rotate the key at the store. With Docker Compose, a new value applies the next time it starts the services. Keep it secret. With rexctl, use `rexctl config set storage.secret_key`.
@@ -524,9 +520,9 @@ Whether OSACA uses Postgres prepared statements. Use `true` or `false`. When it'
 
 The Postgres table for OSACA's key-value data, a plain identifier of letters, digits and underscores that starts with a letter or an underscore. When it's empty, OSACA uses `osaca_kv`. With rexctl, use `rexctl config set OSACA_POSTGRES_KV_TABLE`.
 
-## Cache, queue and search
+## Cache and queue
 
-Leave these unset to use the bundled Valkey, NATS and Meilisearch.
+Leave these unset to use the bundled Valkey and NATS.
 
 ### `OSACA_KV_URL`
 
@@ -595,26 +591,6 @@ How long the API keeps a fetched batch of IDs before it throws the rest away, in
 ### `OSACA_SNOWFLAKE_SERVICE_REQUEST_TIMEOUT_MS`
 
 How long the API waits for the snowflakes service, in milliseconds from 1 to 60000. When it's empty, the API uses `6000`. With rexctl, use `rexctl config set OSACA_SNOWFLAKE_SERVICE_REQUEST_TIMEOUT_MS`.
-
-### `OSACA_SEARCH_ENGINE`
-
-Which search engine OSACA uses. Use `meilisearch` or `elasticsearch`, or `none` to turn search off. With `elasticsearch`, set `MEILI_MASTER_KEY` to your Elasticsearch API key. Docker Compose passes it to OSACA as `OSACA_SEARCH_API_KEY`. The default is `meilisearch`. With rexctl, use `rexctl config set OSACA_SEARCH_ENGINE`.
-
-### `OSACA_SEARCH_URL`
-
-The address of the search engine. The default is `http://meilisearch:7700`. With rexctl, use `rexctl config set OSACA_SEARCH_URL`.
-
-### `OSACA_SEARCH_USERNAME`
-
-The basic auth username for Elasticsearch. OSACA uses it only when `OSACA_SEARCH_API_KEY` is empty. Docker Compose always sets that key from `MEILI_MASTER_KEY`. To use basic auth, set `OSACA_SEARCH_API_KEY` to an empty value for the api and worker in a compose file of your own. With rexctl, use `rexctl config set OSACA_SEARCH_USERNAME`.
-
-### `OSACA_SEARCH_PASSWORD`
-
-The basic auth password for Elasticsearch. OSACA uses it only when `OSACA_SEARCH_API_KEY` is empty, the same as `OSACA_SEARCH_USERNAME`. Keep it secret. With rexctl, use `rexctl config set OSACA_SEARCH_PASSWORD`.
-
-### `OSACA_SEARCH_TLS_REJECT_UNAUTHORIZED`
-
-Whether OSACA checks the Elasticsearch TLS certificate. Use `true` or `false`. When it's empty, OSACA checks it. Meilisearch connections don't use it. With rexctl, use `rexctl config set OSACA_SEARCH_TLS_REJECT_UNAUTHORIZED`.
 
 ## Outgoing proxy
 
@@ -1336,18 +1312,6 @@ NATS JetStream `max_memory_store`, the most memory JetStream may use for streams
 
 NATS JetStream `max_file_store`, the most disk space JetStream may use for its streams, such as `20GB`. The default is `10GB`. With rexctl, use `rexctl config set OSACA_NATS_MAX_FILE_STORE`.
 
-### `OSACA_MEILISEARCH_MEMORY_LIMIT`
-
-The memory limit for the meilisearch container. The default is `1536mb`. rexctl sizes this. With rexctl, use `rexctl config set OSACA_MEILISEARCH_MEMORY_LIMIT`.
-
-### `OSACA_MEILISEARCH_MAX_INDEXING_MEMORY`
-
-The memory Meilisearch aims to stay under while indexing, set as its `MEILI_MAX_INDEXING_MEMORY`, such as `512mb`. Meilisearch can go a little over it. Keep it well below `OSACA_MEILISEARCH_MEMORY_LIMIT`. The default is `256mb`. rexctl sizes this. With rexctl, use `rexctl config set OSACA_MEILISEARCH_MAX_INDEXING_MEMORY`.
-
-### `OSACA_MEILISEARCH_MAX_INDEXING_THREADS`
-
-The most threads Meilisearch may use for indexing, set as its `MEILI_MAX_INDEXING_THREADS`. The default is `2`. rexctl sizes this. With rexctl, use `rexctl config set OSACA_MEILISEARCH_MAX_INDEXING_THREADS`.
-
 ### `OSACA_SEAWEEDFS_MEMORY_LIMIT`
 
 The memory limit for the seaweedfs container. The default is `2gb`. rexctl sizes this. With rexctl, use `rexctl config set OSACA_SEAWEEDFS_MEMORY_LIMIT`.
@@ -1518,7 +1482,7 @@ The memory limit for the admin container. The default is `256mb`. With rexctl, u
 
 ## Bundled services
 
-These change how the bundled Valkey, Meilisearch and SeaweedFS run.
+These change how the bundled Valkey and SeaweedFS run.
 
 ### `OSACA_VALKEY_APPENDFSYNC`
 
@@ -1527,14 +1491,6 @@ Valkey `appendfsync`, how often Valkey flushes its append-only file to disk. Use
 ### `OSACA_VALKEY_SAVE`
 
 Valkey `save`, when Valkey writes RDB snapshots, as pairs of seconds and changes such as `3600 1 300 100`. When it's empty, snapshots are off and Valkey keeps its data in the append-only file alone. With rexctl, use `rexctl config set OSACA_VALKEY_SAVE`.
-
-### `OSACA_MEILISEARCH_ENV`
-
-The Meilisearch environment, set as its `MEILI_ENV`. Use `production` or `development`. With `production`, Meilisearch refuses to start without a master key of at least 16 bytes and turns off its search preview. The default is `production`. With rexctl, use `rexctl config set OSACA_MEILISEARCH_ENV`.
-
-### `OSACA_MEILISEARCH_NO_ANALYTICS`
-
-Whether Meilisearch stops sending usage data to the Meilisearch team, set as its `MEILI_NO_ANALYTICS`. Use `true` or `false`. The default is `true`. With rexctl, use `rexctl config set OSACA_MEILISEARCH_NO_ANALYTICS`.
 
 ### `OSACA_SEAWEEDFS_TELEMETRY`
 
@@ -1557,10 +1513,6 @@ The gateway log level. Use `debug`, `info`, `notice`, `warning`, `error`, `criti
 ### `LOGGER_LEVEL`
 
 The gateway log level, which wins over `OSACA_GATEWAY_LOGGER_LEVEL` and takes the same levels. An empty or unknown value falls back to `OSACA_GATEWAY_LOGGER_LEVEL`. With rexctl, use `rexctl config set LOGGER_LEVEL`.
-
-### `OSACA_MEILISEARCH_LOG_LEVEL`
-
-How much Meilisearch logs, set as its `MEILI_LOG_LEVEL`. Use `OFF`, `ERROR`, `WARN`, `INFO`, `DEBUG` or `TRACE`. The default is `WARN`. With rexctl, use `rexctl config set OSACA_MEILISEARCH_LOG_LEVEL`.
 
 ### `OSACA_LIVEKIT_LOG_LEVEL`
 
@@ -1596,11 +1548,11 @@ How long one health check may run before Docker counts it as failed. The default
 
 ### `OSACA_HEALTHCHECK_RETRIES`
 
-How many failed health checks in a row mark the edge, postgres, valkey, nats, meilisearch, livekit, media-proxy, static-proxy and app-proxy containers as unhealthy. The default is `10`. With rexctl, use `rexctl config set OSACA_HEALTHCHECK_RETRIES`.
+How many failed health checks in a row mark the edge, postgres, valkey, nats, livekit, media-proxy, static-proxy and app-proxy containers as unhealthy. The default is `10`. With rexctl, use `rexctl config set OSACA_HEALTHCHECK_RETRIES`.
 
 ### `OSACA_HEALTHCHECK_START_PERIOD`
 
-How long the edge, postgres, valkey, nats, meilisearch, livekit, media-proxy, static-proxy and app-proxy containers get to start before failed health checks count. The default is `60s`. With rexctl, use `rexctl config set OSACA_HEALTHCHECK_START_PERIOD`.
+How long the edge, postgres, valkey, nats, livekit, media-proxy, static-proxy and app-proxy containers get to start before failed health checks count. The default is `60s`. With rexctl, use `rexctl config set OSACA_HEALTHCHECK_START_PERIOD`.
 
 ### `OSACA_HEALTHCHECK_START_INTERVAL`
 
@@ -1649,10 +1601,6 @@ The image the valkey container runs. The default is `valkey/valkey:9.1-alpine`. 
 ### `OSACA_NATS_IMAGE`
 
 The image the nats container runs. The default is `nats:2.14-alpine`. With rexctl, use `rexctl config set images.nats`.
-
-### `OSACA_MEILISEARCH_IMAGE`
-
-The image the meilisearch container runs. The default is `getmeili/meilisearch:v1.53`. With rexctl, use `rexctl config set images.meilisearch`.
 
 ### `OSACA_SEAWEEDFS_IMAGE`
 
@@ -1841,10 +1789,6 @@ The object store access key the services use, set from `OSACA_S3_ACCESS_KEY`.
 
 The object store secret key the services use, set from `OSACA_S3_SECRET_KEY`.
 
-### `OSACA_SEARCH_API_KEY`
-
-The search API key the services use, set from `MEILI_MASTER_KEY`.
-
 ### `OSACA_SELF_HOSTED`
 
 Whether the services run as a self-hosted instance. Docker Compose sets it to `true`.
@@ -1876,30 +1820,6 @@ The LiveKit API key and secret pair, set from `LIVEKIT_API_KEY` and `LIVEKIT_API
 ### `MALLOC_ARENA_MAX`
 
 The glibc memory arena limit of the push, admin, snowflakes, users, messages and unfurl services, set from `OSACA_MALLOC_ARENA_MAX`.
-
-### `MEILI_ENV`
-
-The Meilisearch environment, set from `OSACA_MEILISEARCH_ENV`.
-
-### `MEILI_LOG_LEVEL`
-
-The Meilisearch log level, set from `OSACA_MEILISEARCH_LOG_LEVEL`.
-
-### `MEILI_MAX_INDEXING_MEMORY`
-
-The memory Meilisearch aims to stay under while indexing, set from `OSACA_MEILISEARCH_MAX_INDEXING_MEMORY`.
-
-### `MEILI_MAX_INDEXING_THREADS`
-
-The most threads Meilisearch may use for indexing, set from `OSACA_MEILISEARCH_MAX_INDEXING_THREADS`.
-
-### `MEILI_NO_ANALYTICS`
-
-Whether Meilisearch stops sending usage data, set from `OSACA_MEILISEARCH_NO_ANALYTICS`.
-
-### `MEILI_UPGRADE_DB`
-
-Whether Meilisearch upgrades its database on start after a version change. Docker Compose sets it to `true`.
 
 ### `NODE_EXTRA_CA_CERTS`
 

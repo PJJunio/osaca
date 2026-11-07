@@ -21,10 +21,10 @@ x-osaca-env: &osaca-env
   RUST_LOG: ${RUST_LOG:-}
   HTTP_PROXY: ${HTTP_PROXY:-}
   HTTPS_PROXY: ${HTTPS_PROXY:-}
-  NO_PROXY: localhost,127.0.0.1,::1,edge,postgres,valkey,nats,meilisearch,seaweedfs,livekit,api,worker,gateway,media-proxy,push,static-proxy,app-proxy,snowflakes,users,messages,unfurl,admin${NO_PROXY:+,${NO_PROXY:-}}
+  NO_PROXY: localhost,127.0.0.1,::1,edge,postgres,valkey,nats,seaweedfs,livekit,api,worker,gateway,media-proxy,push,static-proxy,app-proxy,snowflakes,users,messages,unfurl,admin${NO_PROXY:+,${NO_PROXY:-}}
   http_proxy: ${HTTP_PROXY:-}
   https_proxy: ${HTTPS_PROXY:-}
-  no_proxy: localhost,127.0.0.1,::1,edge,postgres,valkey,nats,meilisearch,seaweedfs,livekit,api,worker,gateway,media-proxy,push,static-proxy,app-proxy,snowflakes,users,messages,unfurl,admin${NO_PROXY:+,${NO_PROXY:-}}
+  no_proxy: localhost,127.0.0.1,::1,edge,postgres,valkey,nats,seaweedfs,livekit,api,worker,gateway,media-proxy,push,static-proxy,app-proxy,snowflakes,users,messages,unfurl,admin${NO_PROXY:+,${NO_PROXY:-}}
   OSACA_SELF_HOSTED: "true"
   OSACA_BASE_DOMAIN: ${OSACA_DOMAIN:-}
   OSACA_PUBLIC_SCHEME: ${OSACA_PUBLIC_SCHEME:-https}
@@ -78,13 +78,6 @@ x-osaca-env: &osaca-env
   OSACA_SNOWFLAKE_SERVICE_LOW_WATERMARK: ${OSACA_SNOWFLAKE_SERVICE_LOW_WATERMARK:-}
   OSACA_SNOWFLAKE_SERVICE_MAX_BUFFER_AGE_MS: ${OSACA_SNOWFLAKE_SERVICE_MAX_BUFFER_AGE_MS:-}
   OSACA_SNOWFLAKE_SERVICE_REQUEST_TIMEOUT_MS: ${OSACA_SNOWFLAKE_SERVICE_REQUEST_TIMEOUT_MS:-}
-
-  OSACA_SEARCH_ENGINE: ${OSACA_SEARCH_ENGINE:-meilisearch}
-  OSACA_SEARCH_URL: ${OSACA_SEARCH_URL:-http://meilisearch:7700}
-  OSACA_SEARCH_API_KEY: ${MEILI_MASTER_KEY:-}
-  OSACA_SEARCH_USERNAME: ${OSACA_SEARCH_USERNAME:-}
-  OSACA_SEARCH_PASSWORD: ${OSACA_SEARCH_PASSWORD:-}
-  OSACA_SEARCH_TLS_REJECT_UNAUTHORIZED: ${OSACA_SEARCH_TLS_REJECT_UNAUTHORIZED:-}
 
   OSACA_S3_ENDPOINT: ${OSACA_S3_ENDPOINT:-http://seaweedfs:8333}
   OSACA_S3_PUBLIC_ENDPOINT: ${OSACA_S3_PUBLIC_ENDPOINT:-${OSACA_S3_ENDPOINT:-http://seaweedfs:8333}}
@@ -344,27 +337,6 @@ services:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8222/healthz"]
       <<: *osaca-healthcheck
 
-  meilisearch:
-    <<: *osaca-service
-    image: ${OSACA_MEILISEARCH_IMAGE:-getmeili/meilisearch:v1.53}
-    deploy:
-      resources:
-        limits:
-          memory: ${OSACA_MEILISEARCH_MEMORY_LIMIT:-1536mb}
-    environment:
-      MEILI_ENV: ${OSACA_MEILISEARCH_ENV:-production}
-      MEILI_NO_ANALYTICS: "${OSACA_MEILISEARCH_NO_ANALYTICS:-true}"
-      MEILI_UPGRADE_DB: "true"
-      MEILI_MAX_INDEXING_MEMORY: ${OSACA_MEILISEARCH_MAX_INDEXING_MEMORY:-256mb}
-      MEILI_MAX_INDEXING_THREADS: ${OSACA_MEILISEARCH_MAX_INDEXING_THREADS:-2}
-      MEILI_LOG_LEVEL: ${OSACA_MEILISEARCH_LOG_LEVEL:-WARN}
-      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-}
-    volumes:
-      - meilisearch-data:/meili_data
-    healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:7700/health"]
-      <<: *osaca-healthcheck
-
   seaweedfs:
     <<: *osaca-service
     image: ${OSACA_SEAWEEDFS_IMAGE:-chrislusf/seaweedfs:4.47}
@@ -510,7 +482,6 @@ services:
       postgres: {condition: service_healthy}
       valkey: {condition: service_healthy}
       nats: {condition: service_healthy}
-      meilisearch: {condition: service_healthy}
       seaweedfs-init: {condition: service_completed_successfully}
       snowflakes: {condition: service_healthy}
       messages: {condition: service_healthy}
@@ -841,6 +812,5 @@ volumes:
   postgres-data:
   valkey-data:
   nats-data:
-  meilisearch-data:
   seaweedfs-data:
   media-proxy-tmp:

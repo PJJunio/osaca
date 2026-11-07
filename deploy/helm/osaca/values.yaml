@@ -73,8 +73,6 @@ secrets:
     # Password of the bundled Postgres role. Changing it after the first install
     # does not change the stored role password.
     OSACA_POSTGRES_PASSWORD: ""
-    # Meilisearch master key.
-    OSACA_SEARCH_API_KEY: ""
     # S3 access key id. The bundled store installs it on every upgrade.
     OSACA_S3_ACCESS_KEY_ID: osaca
     # S3 secret key. Letters and digits only for the bundled store.
@@ -123,8 +121,6 @@ secrets:
     # OSACA_POSTGRES_SSL_CA: ""
     # The URL of an outside key-value store that holds a password.
     # OSACA_KV_URL: redis://:secret@cache.example.com:6379/0
-    # The password of an outside search server.
-    # OSACA_SEARCH_PASSWORD: ""
     # A temporary S3 session token.
     # OSACA_S3_SESSION_TOKEN: ""
     # Comma-separated base64 secrets that sign attachment URLs.
@@ -269,32 +265,6 @@ nats:
       memory: 64Mi
     limits:
       memory: 256Mi
-  nodeSelector: {}
-  tolerations: []
-  affinity: {}
-
-meilisearch:
-  # Run Meilisearch in the release. Set false and give external.url to use your own.
-  enabled: true
-  image:
-    repository: getmeili/meilisearch
-    tag: v1.53
-    digest: ""
-    pullPolicy: IfNotPresent
-  external:
-    # Its key goes in secrets.values.OSACA_SEARCH_API_KEY.
-    url: ""
-  maxIndexingMemory: 256mb
-  maxIndexingThreads: 2
-  persistence:
-    size: 10Gi
-    storageClassName: ""
-  resources:
-    requests:
-      cpu: 50m
-      memory: 256Mi
-    limits:
-      memory: 1536Mi
   nodeSelector: {}
   tolerations: []
   affinity: {}

@@ -82,7 +82,6 @@ var ImageVars = map[string]string{
 	"postgres":    "OSACA_POSTGRES_IMAGE",
 	"valkey":      "OSACA_VALKEY_IMAGE",
 	"nats":        "OSACA_NATS_IMAGE",
-	"meilisearch": "OSACA_MEILISEARCH_IMAGE",
 	"seaweedfs":   "OSACA_SEAWEEDFS_IMAGE",
 	"livekit":     "OSACA_LIVEKIT_IMAGE",
 	"edge":        "OSACA_CADDY_IMAGE",

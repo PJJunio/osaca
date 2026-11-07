@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {GuildDiscoveryRepository} from '@app/api/guild/repositories/GuildDiscoveryRepository';
+import {type IPostgresClient, quoteIdentifier} from '@pkgs/postgres/src/Client';
 import type {IAuditLogSearchService} from '@app/api/search/IAuditLogSearchService';
 import type {IGuildMemberSearchService} from '@app/api/search/IGuildMemberSearchService';
 import type {IGuildSearchService} from '@app/api/search/IGuildSearchService';
@@ -109,6 +110,8 @@ class InMemorySearchAdapter<TFilters, TDocument extends SearchableDocument> {
 		private readonly matchesFilters: Matcher<TDocument, TFilters>,
 		private readonly collectText: TextCollector<TDocument>,
 		private readonly sortDocuments: Sorter<TDocument, TFilters>,
+		private readonly tableName?: string,
+		private readonly postgresClient?: IPostgresClient,
 	) {}
 
 	async initialize(): Promise<void> {}
@@ -121,27 +124,45 @@ class InMemorySearchAdapter<TFilters, TDocument extends SearchableDocument> {
 		return true;
 	}
 
+	private buildSearchText(doc: TDocument): string {
+		return this.collectText(doc).filter(isString).join(' ');
+	}
+
 	async indexDocument(doc: TDocument): Promise<void> {
 		this.docs.set(doc.id, doc);
+		if (this.postgresClient && this.tableName) {
+			await this.postgresClient.query(
+				`INSERT INTO ${quoteIdentifier(this.postgresClient.kvTable())} (table_name, partition_key, row_key, row_data)
+VALUES ($1, $2, $2, jsonb_build_object('doc', $3::jsonb, 'search_text', $4::text))
+ON CONFLICT (table_name, row_key) DO UPDATE SET row_data = EXCLUDED.row_data, updated_at = now()`,
+				[this.tableName, doc.id, JSON.stringify(doc), this.buildSearchText(doc)],
+			);
+		}
 	}
 
 	async indexDocuments(docs: Array<TDocument>): Promise<void> {
 		for (const doc of docs) {
-			this.docs.set(doc.id, doc);
+			await this.indexDocument(doc);
 		}
 	}
 
 	async updateDocument(doc: TDocument): Promise<void> {
-		this.docs.set(doc.id, doc);
+		await this.indexDocument(doc);
 	}
 
 	async deleteDocument(id: string): Promise<void> {
 		this.docs.delete(id);
+		if (this.postgresClient && this.tableName) {
+			await this.postgresClient.query(
+				`DELETE FROM ${quoteIdentifier(this.postgresClient.kvTable())} WHERE table_name = $1 AND row_key = $2`,
+				[this.tableName, id],
+			);
+		}
 	}
 
 	async deleteDocuments(ids: Array<string>): Promise<void> {
 		for (const id of ids) {
-			this.docs.delete(id);
+			await this.deleteDocument(id);
 		}
 	}
 
@@ -149,10 +170,22 @@ class InMemorySearchAdapter<TFilters, TDocument extends SearchableDocument> {
 		for (const [id, doc] of this.docs) {
 			if ((doc as unknown as Record<string, unknown>)[field] === value) this.docs.delete(id);
 		}
+		if (this.postgresClient && this.tableName) {
+			await this.postgresClient.query(
+				`DELETE FROM ${quoteIdentifier(this.postgresClient.kvTable())} WHERE table_name = $1 AND row_data->'doc'->>$2 = $3`,
+				[this.tableName, field, value],
+			);
+		}
 	}
 
 	async deleteAllDocuments(): Promise<void> {
 		this.docs.clear();
+		if (this.postgresClient && this.tableName) {
+			await this.postgresClient.query(
+				`DELETE FROM ${quoteIdentifier(this.postgresClient.kvTable())} WHERE table_name = $1`,
+				[this.tableName],
+			);
+		}
 	}
 
 	async bulkIndexDocuments(docs: Array<TDocument>): Promise<void> {
@@ -161,8 +194,35 @@ class InMemorySearchAdapter<TFilters, TDocument extends SearchableDocument> {
 
 	async refreshIndex(): Promise<void> {}
 
+	private async loadCandidateDocuments(query: string): Promise<Array<TDocument>> {
+		if (!this.postgresClient || !this.tableName) {
+			return Array.from(this.docs.values());
+		}
+		const trimmed = query.trim();
+		const table = quoteIdentifier(this.postgresClient.kvTable());
+		if (trimmed.length === 0) {
+			const res = await this.postgresClient.query<{doc: TDocument}>(
+				`SELECT row_data->'doc' AS doc FROM ${table} WHERE table_name = $1 AND (expires_at IS NULL OR expires_at > now())`,
+				[this.tableName],
+			);
+			return res.rows.map((r) => r.doc);
+		}
+		const res = await this.postgresClient.query<{doc: TDocument}>(
+			`SELECT row_data->'doc' AS doc FROM ${table}
+WHERE table_name = $1
+  AND (expires_at IS NULL OR expires_at > now())
+  AND (
+    to_tsvector('simple', coalesce(row_data->>'search_text', '')) @@ websearch_to_tsquery('simple', $2)
+    OR coalesce(row_data->>'search_text', '') ILIKE '%' || $2 || '%'
+  )`,
+			[this.tableName, trimmed],
+		);
+		return res.rows.map((r) => r.doc);
+	}
+
 	async search(query: string, filters: TFilters, options?: SearchOptions): Promise<SearchResult<TDocument>> {
-		const hits = Array.from(this.docs.values())
+		const candidates = await this.loadCandidateDocuments(query);
+		const hits = candidates
 			.filter((doc) => this.matchesFilters(doc, filters))
 			.filter((doc) => {
 				const trimmed = query.trim();
@@ -489,52 +549,80 @@ function sortThreadDocs(
 }
 
 export class InMemorySearchProvider implements ISearchProvider {
-	private readonly messages = new MessageSearchService(
-		new InMemorySearchAdapter<MessageSearchFilters, SearchableMessage>(
-			matchesMessageFilters,
-			collectMessageText,
-			sortMessageDocs,
-		),
-	);
-	private readonly guilds = new GuildSearchService(
-		new InMemorySearchAdapter<GuildSearchFilters, SearchableGuild>(matchesGuildFilters, collectGuildText, sortGuilds),
-		new GuildDiscoveryRepository(),
-	);
-	private readonly users = new UserSearchService(
-		new InMemorySearchAdapter<UserSearchFilters, SearchableUser>(
-			matchesUserFilters,
-			collectUserText,
-			sortNumericField<SearchableUser, UserSearchFilters>('createdAt', 'asc'),
-		),
-	);
-	private readonly reports = new ReportSearchService(
-		new InMemorySearchAdapter<ReportSearchFilters, SearchableReport>(
-			matchesReportFilters,
-			collectReportText,
-			sortNumericField<SearchableReport, ReportSearchFilters>('createdAt', 'desc'),
-		),
-	);
-	private readonly auditLogs = new AuditLogSearchService(
-		new InMemorySearchAdapter<AuditLogSearchFilters, SearchableAuditLog>(
-			matchesAuditLogFilters,
-			collectAuditLogText,
-			sortNumericField<SearchableAuditLog, AuditLogSearchFilters>('createdAt', 'desc'),
-		),
-	);
-	private readonly guildMembers = new GuildMemberSearchService(
-		new InMemorySearchAdapter<GuildMemberSearchFilters, SearchableGuildMember>(
-			matchesGuildMemberFilters,
-			collectGuildMemberText,
-			sortGuildMemberDocs,
-		),
-	);
-	private readonly threads = new ThreadSearchIndex(
-		new InMemorySearchAdapter<ThreadSearchFilters, SearchableThread>(
-			matchesThreadFilters,
-			(doc) => [doc.name],
-			sortThreadDocs,
-		),
-	);
+	private readonly messages: MessageSearchService;
+	private readonly guilds: GuildSearchService;
+	private readonly users: UserSearchService;
+	private readonly reports: ReportSearchService;
+	private readonly auditLogs: AuditLogSearchService;
+	private readonly guildMembers: GuildMemberSearchService;
+	private readonly threads: ThreadSearchIndex;
+
+	constructor(postgresClient?: IPostgresClient) {
+		this.messages = new MessageSearchService(
+			new InMemorySearchAdapter<MessageSearchFilters, SearchableMessage>(
+				matchesMessageFilters,
+				collectMessageText,
+				sortMessageDocs,
+				'__osaca_search_messages',
+				postgresClient,
+			),
+		);
+		this.guilds = new GuildSearchService(
+			new InMemorySearchAdapter<GuildSearchFilters, SearchableGuild>(
+				matchesGuildFilters,
+				collectGuildText,
+				sortGuilds,
+				'__osaca_search_guilds',
+				postgresClient,
+			),
+			new GuildDiscoveryRepository(),
+		);
+		this.users = new UserSearchService(
+			new InMemorySearchAdapter<UserSearchFilters, SearchableUser>(
+				matchesUserFilters,
+				collectUserText,
+				sortNumericField<SearchableUser, UserSearchFilters>('createdAt', 'asc'),
+				'__osaca_search_users',
+				postgresClient,
+			),
+		);
+		this.reports = new ReportSearchService(
+			new InMemorySearchAdapter<ReportSearchFilters, SearchableReport>(
+				matchesReportFilters,
+				collectReportText,
+				sortNumericField<SearchableReport, ReportSearchFilters>('createdAt', 'desc'),
+				'__osaca_search_reports',
+				postgresClient,
+			),
+		);
+		this.auditLogs = new AuditLogSearchService(
+			new InMemorySearchAdapter<AuditLogSearchFilters, SearchableAuditLog>(
+				matchesAuditLogFilters,
+				collectAuditLogText,
+				sortNumericField<SearchableAuditLog, AuditLogSearchFilters>('createdAt', 'desc'),
+				'__osaca_search_audit_logs',
+				postgresClient,
+			),
+		);
+		this.guildMembers = new GuildMemberSearchService(
+			new InMemorySearchAdapter<GuildMemberSearchFilters, SearchableGuildMember>(
+				matchesGuildMemberFilters,
+				collectGuildMemberText,
+				sortGuildMemberDocs,
+				'__osaca_search_guild_members',
+				postgresClient,
+			),
+		);
+		this.threads = new ThreadSearchIndex(
+			new InMemorySearchAdapter<ThreadSearchFilters, SearchableThread>(
+				matchesThreadFilters,
+				(doc) => [doc.name],
+				sortThreadDocs,
+				'__osaca_search_threads',
+				postgresClient,
+			),
+		);
+	}
 
 	async initialize(): Promise<void> {
 		await Promise.all([

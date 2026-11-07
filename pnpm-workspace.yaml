@@ -40,7 +40,6 @@ catalog:
   '@aws-sdk/s3-request-presigner': 3.1159.0
   '@base-ui/react': 1.9.0
   '@biomejs/biome': 2.6.4
-  '@elastic/elasticsearch': 9.5.1
   '@floating-ui/react': 0.27.20
   '@floating-ui/react-dom': 2.1.9
   '@hono/node-server': 2.1.5

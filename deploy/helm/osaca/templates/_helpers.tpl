@@ -165,9 +165,6 @@ public: {{ substr 56 121 $der | b64enc | replace "+" "-" | replace "/" "_" | tri
 {{- if and (not .Values.postgres.enabled) (not (get $extra "OSACA_POSTGRES_URL")) }}
 {{- $keys = append $keys "OSACA_POSTGRES_PASSWORD" }}
 {{- end }}
-{{- if not .Values.meilisearch.enabled }}
-{{- $keys = append $keys "OSACA_SEARCH_API_KEY" }}
-{{- end }}
 {{- if not .Values.seaweedfs.enabled }}
 {{- $keys = append $keys "OSACA_S3_SECRET_ACCESS_KEY" }}
 {{- end }}

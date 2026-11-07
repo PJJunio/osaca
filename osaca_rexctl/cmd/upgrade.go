@@ -1378,7 +1378,6 @@ func goBack(ctx context.Context, app *App, inst *instance.Instance, e *engine.En
 
 func restoreRelease(ctx context.Context, app *App, inst *instance.Instance, e *engine.Engine, version string) ([]string, error) {
 	var put []string
-	search := runningImage(ctx, e.Named(inst.Project(), inst.Dir), searchService)
 	if version != inst.State.Release {
 		restored, err := release.Restore(inst, version)
 		if err != nil {
@@ -1409,9 +1408,6 @@ func restoreRelease(ctx context.Context, app *App, inst *instance.Instance, e *e
 	p, lerr := deploy.Load(ctx, inst, e)
 	if lerr != nil {
 		return put, lerr
-	}
-	if serr := keepSearchReadable(ctx, app, inst, p, search, version); serr != nil {
-		return put, serr
 	}
 	if err != nil {
 		if err := startEach(ctx, p, false); err != nil {

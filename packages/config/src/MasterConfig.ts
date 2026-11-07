@@ -191,14 +191,6 @@ export interface MasterConfig {
 			join_allow_private_endpoints?: boolean;
 			health_interval_ms?: number;
 		};
-		search: {
-			engine: 'elasticsearch' | 'meilisearch' | 'none';
-			url: string;
-			api_key: string;
-			username: string;
-			password: string;
-			tls_reject_unauthorized: boolean;
-		};
 		clamav: {
 			enabled: boolean;
 			host: string;

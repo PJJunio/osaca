@@ -59,14 +59,6 @@ export interface APIConfig {
 		stream: string;
 		skipBuckets: Array<string>;
 	};
-	search: {
-		engine: 'elasticsearch' | 'meilisearch' | 'none';
-		url: string;
-		apiKey: string;
-		username: string;
-		password: string;
-		tlsRejectUnauthorized: boolean;
-	};
 	mediaProxy: {
 		host: string;
 		port: number;

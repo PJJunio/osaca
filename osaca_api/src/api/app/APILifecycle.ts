@@ -31,7 +31,6 @@ import {
 	shutdownVoiceResources,
 } from '@app/api/middleware/ServiceRegistry';
 import {
-	getCacheService,
 	getCustomBadgeCatalog,
 	getKVAccountDeletionQueue,
 	getReportRepository,
@@ -121,7 +120,7 @@ async function initializeSearchAndWarmup(
 	kvClient: ReturnType<typeof getKVClient>,
 	logger: LoggerInterface,
 ): Promise<void> {
-	await initializeSearch(getCacheService());
+	await initializeSearch();
 	markSearchReady();
 	if (searchInitStopped) return;
 	logger.info('Search initialized');

@@ -24,9 +24,6 @@
 {{- if and (not $v.nats.enabled) (not $v.nats.external.url) }}
 {{- fail "nats.enabled is false, so set nats.external.url" }}
 {{- end }}
-{{- if and (not $v.meilisearch.enabled) (not $v.meilisearch.external.url) }}
-{{- fail "meilisearch.enabled is false, so set meilisearch.external.url" }}
-{{- end }}
 {{- if and (not $v.seaweedfs.enabled) (not $v.s3.endpoint) }}
 {{- fail "seaweedfs.enabled is false, so set s3.endpoint to your S3 store" }}
 {{- end }}
@@ -172,9 +169,6 @@
 {{- fail (printf "%s must be at least 32 characters, for example the output of openssl rand -hex 32" $k) }}
 {{- end }}
 {{- end }}
-{{- if and $v.meilisearch.enabled (hasKey $data "OSACA_SEARCH_API_KEY") (lt (len (get $data "OSACA_SEARCH_API_KEY")) 16) }}
-{{- fail "OSACA_SEARCH_API_KEY must be at least 16 characters, or the bundled Meilisearch refuses to start" }}
-{{- end }}
 {{- if eq (get $data "OSACA_POSTGRES_PASSWORD" | default "") "osaca" }}
 {{- fail "OSACA_POSTGRES_PASSWORD must not be osaca, which the services refuse in production" }}
 {{- end }}
@@ -210,7 +204,7 @@
 {{- fail "edge.expose is gateway, but the Gateway API is not installed in the cluster" }}
 {{- end }}
 {{- $emptyClass := and (eq $v.edge.expose "loadBalancer") (not $v.edge.loadBalancer.persistence.storageClassName) }}
-{{- range $c := list $v.postgres $v.valkey $v.nats $v.meilisearch $v.seaweedfs }}
+{{- range $c := list $v.postgres $v.valkey $v.nats $v.seaweedfs }}
 {{- if and $c.enabled (not $c.persistence.storageClassName) }}
 {{- $emptyClass = true }}
 {{- end }}
@@ -223,7 +217,7 @@
 {{- end }}
 {{- end }}
 {{- if not $default }}
-{{- fail "The cluster has no default StorageClass, so the volumes would never bind. Install a storage provisioner and mark its class as default, or set persistence.storageClassName on postgres, valkey, nats, meilisearch and seaweedfs" }}
+{{- fail "The cluster has no default StorageClass, so the volumes would never bind. Install a storage provisioner and mark its class as default, or set persistence.storageClassName on postgres, valkey, nats and seaweedfs" }}
 {{- end }}
 {{- end }}
 {{- if and (eq $v.edge.expose "ingress") (not $v.edge.ingress.className) }}

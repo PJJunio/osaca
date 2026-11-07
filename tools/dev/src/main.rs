@@ -18,7 +18,6 @@ const DEV_INFRA_SERVICES: &[&str] = &[
     "valkey",
     "nats",
     "livekit",
-    "meilisearch",
 ];
 
 #[derive(Debug, Parser)]

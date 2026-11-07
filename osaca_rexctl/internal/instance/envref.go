@@ -55,7 +55,7 @@ var envSections = []envSection{
 	{"storage", "Object storage", "By default OSACA keeps files in the bundled object store. To use your own S3-compatible store, set its address and buckets, add " +
 		stack.OverlayFiles[stack.OverlayExternalObjectStore] + " to COMPOSE_FILE and put its keys in OSACA_S3_ACCESS_KEY and OSACA_S3_SECRET_KEY.", ""},
 	{"database", "Database", "Leave these unset to use the bundled Postgres.", ""},
-	{"services", "Cache, queue and search", "Leave these unset to use the bundled Valkey, NATS and Meilisearch.", ""},
+	{"services", "Cache and queue", "Leave these unset to use the bundled Valkey and NATS.", ""},
 	{envNetworkSection, "Outgoing proxy", "These settings are for OSACA's services. rexctl and the Linux and macOS install script take HTTPS_PROXY, HTTP_PROXY and NO_PROXY from the shell you run them from.", ""},
 	{"sign_in", "Sign-in", "", ""},
 	{"push", "Push notifications", "", ""},
@@ -66,7 +66,7 @@ var envSections = []envSection{
 	{"instance", "Instance and branding", "OSACA uses the product name, images, theme colour and status page links set here only until the setup wizard finishes or someone saves branding in the admin panel. After that it uses the saved values and ignores these. Make later changes in the admin panel or with `rexctl config set`.", ""},
 	{"integrations", "Integrations", "The admin panel can also save the Bluesky settings and keys. A value saved there is used first.", ""},
 	{"tuning", "Memory and performance", "rexctl sets some of these from the machine's memory and CPU on every start. A value you set wins.", ""},
-	{"bundled", "Bundled services", "These change how the bundled Valkey, Meilisearch and SeaweedFS run.", ""},
+	{"bundled", "Bundled services", "These change how the bundled Valkey and SeaweedFS run.", ""},
 	{"operations", "Logs and health checks", "", ""},
 	{settings.ImagesPrefix[:len(settings.ImagesPrefix)-1], "Images",
 		"Set one to use your own mirror or another version. OSACA's own images are pinned to the release in " + stack.ComposeFile + ".", ""},

@@ -37,7 +37,6 @@ var Required = []Spec{
 	{Key: "OSACA_S3_ACCESS_KEY", Kind: KindFixed, Fixed: "osaca"},
 	{Key: "LIVEKIT_API_KEY", Kind: KindFixed, Fixed: "osaca"},
 	{Key: "POSTGRES_PASSWORD", Kind: KindHex32, Stateful: true},
-	{Key: "MEILI_MASTER_KEY", Kind: KindHex32, Stateful: true},
 	{Key: "OSACA_S3_SECRET_KEY", Kind: KindHex32, Stateful: true},
 	{Key: "OSACA_SUDO_MODE_SECRET", Kind: KindHex32},
 	{Key: "OSACA_CONNECTION_INITIATION_SECRET", Kind: KindHex32},

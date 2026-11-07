@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {Config} from '@app/api/Config';
-import {SearchProvider} from '@app/api/infrastructure/SearchProvider';
 import {Logger} from '@app/api/Logger';
 import type {IAuditLogSearchService} from '@app/api/search/IAuditLogSearchService';
 import type {IGuildMemberSearchService} from '@app/api/search/IGuildMemberSearchService';
@@ -11,90 +9,23 @@ import type {IReportSearchService} from '@app/api/search/IReportSearchService';
 import type {ISearchProvider} from '@app/api/search/ISearchProvider';
 import type {IThreadSearchService} from '@app/api/search/IThreadSearchService';
 import type {IUserSearchService} from '@app/api/search/IUserSearchService';
-import {type MeilisearchClientConfig, MeilisearchHttpClient} from '@app/api/search/meilisearch/MeilisearchClient';
-import {
-	MeilisearchAuditLogAdapter,
-	MeilisearchGuildAdapter,
-	MeilisearchGuildMemberAdapter,
-	MeilisearchMessageAdapter,
-	MeilisearchReportAdapter,
-	MeilisearchThreadAdapter,
-	MeilisearchUserAdapter,
-} from '@app/api/search/meilisearch/MeilisearchDomainAdapters';
-import {
-	AuditLogSearchService,
-	GuildMemberSearchService,
-	GuildSearchService,
-	MessageSearchService,
-	ReportSearchService,
-	UserSearchService,
-} from '@app/api/search/SearchServices';
-import {ThreadSearchIndex} from '@app/api/search/thread/ThreadSearchIndex';
-import {DEFAULT_SEARCH_CLIENT_TIMEOUT_MS} from '@osaca/constants/src/Timeouts';
-import type {ElasticsearchDistributedLock} from '@pkgs/elasticsearch_search/src/adapters/ElasticsearchIndexAdapter';
-import type {ElasticsearchClientConfig} from '@pkgs/elasticsearch_search/src/ElasticsearchClient';
+import {InMemorySearchProvider} from '@app/api/test/search/InMemorySearchProvider';
+import {getDefaultPostgresClient, type IPostgresClient} from '@pkgs/postgres/src/Client';
 
 let searchProvider: ISearchProvider | null = null;
 let injectedSearchProvider: ISearchProvider | undefined;
 
-function createElasticsearchSearchProvider(lock?: ElasticsearchDistributedLock): ISearchProvider {
-	if (!Config.search.apiKey && !Config.search.username) {
-		Logger.warn('Elasticsearch credentials are not configured; search will be unavailable');
-		return new SearchProvider(null);
+function tryGetPostgresClient(): IPostgresClient | undefined {
+	try {
+		return getDefaultPostgresClient();
+	} catch {
+		return undefined;
 	}
-	Logger.info({url: Config.search.url}, 'Using Elasticsearch for search');
-	const config: ElasticsearchClientConfig = {
-		node: Config.search.url,
-		auth: Config.search.apiKey
-			? {apiKey: Config.search.apiKey}
-			: {username: Config.search.username, password: Config.search.password},
-		requestTimeoutMs: DEFAULT_SEARCH_CLIENT_TIMEOUT_MS,
-		tlsRejectUnauthorized: Config.search.tlsRejectUnauthorized,
-	};
-	return new SearchProvider(
-		async () => {
-			const {createElasticsearchSearchServices} = await import(
-				'@app/api/search/elasticsearch/ElasticsearchSearchServices'
-			);
-			return createElasticsearchSearchServices(config, lock);
-		},
-		() => Logger.info({node: config.node}, 'ElasticsearchSearchProvider initialised'),
-	);
 }
 
-function createMeilisearchSearchProvider(): ISearchProvider {
-	Logger.info({url: Config.search.url}, 'Using Meilisearch for search');
-	const config: MeilisearchClientConfig = {
-		host: Config.search.url,
-		apiKey: Config.search.apiKey || undefined,
-		requestTimeoutMs: DEFAULT_SEARCH_CLIENT_TIMEOUT_MS,
-	};
-	return new SearchProvider(
-		async () => {
-			const {GuildDiscoveryRepository} = await import('@app/api/guild/repositories/GuildDiscoveryRepository');
-			const client = new MeilisearchHttpClient(config);
-			const message = new MessageSearchService(new MeilisearchMessageAdapter({client}));
-			const guild = new GuildSearchService(new MeilisearchGuildAdapter({client}), new GuildDiscoveryRepository());
-			const user = new UserSearchService(new MeilisearchUserAdapter({client}));
-			const report = new ReportSearchService(new MeilisearchReportAdapter({client}));
-			const auditLog = new AuditLogSearchService(new MeilisearchAuditLogAdapter({client}));
-			const guildMember = new GuildMemberSearchService(new MeilisearchGuildMemberAdapter({client}));
-			const thread = new ThreadSearchIndex(new MeilisearchThreadAdapter({client}));
-			return {message, guild, user, report, auditLog, guildMember, thread};
-		},
-		() => Logger.info({host: config.host}, 'MeilisearchSearchProvider initialised'),
-	);
-}
-
-function createSearchProvider(lock?: ElasticsearchDistributedLock): ISearchProvider {
-	if (Config.search.engine === 'none') {
-		Logger.info('Search is turned off');
-		return new SearchProvider(null);
-	}
-	if (Config.search.engine === 'meilisearch') {
-		return createMeilisearchSearchProvider();
-	}
-	return createElasticsearchSearchProvider(lock);
+function createSearchProvider(): ISearchProvider {
+	Logger.info('Using Postgres-backed search provider');
+	return new InMemorySearchProvider(tryGetPostgresClient());
 }
 
 export function setInjectedSearchProvider(provider: ISearchProvider | undefined): void {
@@ -130,7 +61,7 @@ export function getThreadSearchService(): IThreadSearchService | null {
 	return searchProvider?.getThreadSearchService() ?? null;
 }
 
-export async function initializeSearch(lock?: ElasticsearchDistributedLock): Promise<void> {
+export async function initializeSearch(): Promise<void> {
 	if (searchProvider) {
 		await shutdownSearch();
 	}
@@ -141,7 +72,7 @@ export async function initializeSearch(lock?: ElasticsearchDistributedLock): Pro
 		await searchProvider.initialize();
 		return;
 	}
-	const provider = createSearchProvider(lock);
+	const provider = createSearchProvider();
 	try {
 		await provider.initialize();
 	} catch (error) {

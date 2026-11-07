@@ -13,7 +13,7 @@
 	"remoteEnv": {
 		"DOCKER_HOST": "unix:///var/run/docker.sock"
 	},
-	"runServices": ["workspace", "postgres", "valkey", "nats", "livekit", "meilisearch"],
+	"runServices": ["workspace", "postgres", "valkey", "nats", "livekit"],
 	"forwardPorts": [3000, 8088, 8080, 8771, 8082, 8773, 3020, 8333],
 	"portsAttributes": {
 		"8088": {

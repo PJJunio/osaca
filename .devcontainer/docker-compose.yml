@@ -141,11 +141,6 @@ services:
         volume:
           nocopy: true
       - type: volume
-        source: osaca-api-elasticsearch-search-node-modules
-        target: /workspaces/osaca/osaca_api/pkgs/elasticsearch_search/node_modules
-        volume:
-          nocopy: true
-      - type: volume
         source: osaca-api-email-node-modules
         target: /workspaces/osaca/osaca_api/pkgs/email/node_modules
         volume:
@@ -235,8 +230,6 @@ services:
         condition: service_started
       livekit:
         condition: service_started
-      meilisearch:
-        condition: service_healthy
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
@@ -286,23 +279,6 @@ services:
       - "127.0.0.1:${OSACA_DEV_LIVEKIT_TCP_PORT:-7881}:${OSACA_DEV_LIVEKIT_TCP_PORT:-7881}"
       - "127.0.0.1:${OSACA_DEV_LIVEKIT_UDP_PORT:-7882}:${OSACA_DEV_LIVEKIT_UDP_PORT:-7882}/udp"
 
-  meilisearch:
-    image: getmeili/meilisearch:v1.53
-    environment:
-      MEILI_NO_ANALYTICS: "true"
-      MEILI_UPGRADE_DB: "true"
-      MEILI_MASTER_KEY: osaca-dev-meilisearch
-    volumes:
-      - meilisearch-data:/meili_data
-    ports:
-      - "127.0.0.1:${OSACA_DEV_MEILISEARCH_PORT:-7700}:7700"
-    healthcheck:
-      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:7700/health"]
-      interval: 2s
-      timeout: 5s
-      retries: 30
-      start_period: 5s
-
 volumes:
   pnpm-store:
   root-node-modules:
@@ -327,7 +303,6 @@ volumes:
   package-snowflake-node-modules:
   osaca-api-cache-node-modules:
   osaca-api-captcha-node-modules:
-  osaca-api-elasticsearch-search-node-modules:
   osaca-api-email-node-modules:
   osaca-api-http-client-node-modules:
   osaca-api-kv-client-node-modules:
@@ -345,5 +320,4 @@ volumes:
   cargo-git:
   rust-target:
   nats-data:
-  meilisearch-data:
   postgres-data:

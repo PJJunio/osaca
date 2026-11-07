@@ -8,7 +8,7 @@ import (
 )
 
 var Services = []string{
-	"edge", "postgres", "valkey", "nats", "meilisearch", "seaweedfs", "seaweedfs-init", "livekit",
+	"edge", "postgres", "valkey", "nats", "seaweedfs", "seaweedfs-init", "livekit",
 	"api", "worker", "gateway", "media-proxy", "push", "static-proxy", "app-proxy", "admin",
 	"snowflakes", "users", "messages", "unfurl",
 }
@@ -16,10 +16,10 @@ var Services = []string{
 var OneShot = map[string]bool{"seaweedfs-init": true}
 
 var Volumes = []string{
-	"edge-data", "edge-config", "postgres-data", "valkey-data", "nats-data", "meilisearch-data", "seaweedfs-data",
+	"edge-data", "edge-config", "postgres-data", "valkey-data", "nats-data", "seaweedfs-data",
 }
 
-var BackupVolumes = []string{"seaweedfs-data", "valkey-data", "nats-data", "meilisearch-data"}
+var BackupVolumes = []string{"seaweedfs-data", "valkey-data", "nats-data"}
 
 var UploadsServices = []string{"seaweedfs", "seaweedfs-init"}
 
@@ -32,7 +32,6 @@ var DataMounts = map[string]DataMount{
 	"postgres-data":    {Service: "postgres", Target: "/var/lib/postgresql/data"},
 	"valkey-data":      {Service: "valkey", Target: "/data"},
 	"nats-data":        {Service: "nats", Target: "/data"},
-	"meilisearch-data": {Service: "meilisearch", Target: "/meili_data"},
 	"seaweedfs-data":   {Service: "seaweedfs", Target: "/data"},
 }
 

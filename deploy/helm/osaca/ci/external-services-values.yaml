@@ -10,10 +10,6 @@ nats:
   enabled: false
   external:
     url: nats://mq.example.test:4222
-meilisearch:
-  enabled: false
-  external:
-    url: https://search.example.test
 seaweedfs:
   enabled: false
 s3:
@@ -29,7 +25,6 @@ livekit:
 secrets:
   values:
     OSACA_POSTGRES_PASSWORD: ci-postgres-password
-    OSACA_SEARCH_API_KEY: ci-search-key
     OSACA_S3_SECRET_ACCESS_KEY: ci-s3-secret
     OSACA_NATS_AUTH_TOKEN: ci-nats-token
     OSACA_LIVEKIT_API_KEY: ci-livekit-key

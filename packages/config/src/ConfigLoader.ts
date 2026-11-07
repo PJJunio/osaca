@@ -161,14 +161,6 @@ function defaultConfig(): MasterConfig {
 				url: '',
 				internal_url: '',
 			},
-			search: {
-				engine: 'elasticsearch',
-				url: 'http://127.0.0.1:9200',
-				api_key: '',
-				username: '',
-				password: '',
-				tls_reject_unauthorized: true,
-			},
 			clamav: {
 				enabled: false,
 				host: '127.0.0.1',
@@ -514,7 +506,6 @@ function normalizeConfig(config: MasterConfig): MasterConfig {
 	assertOneOf(config.env, ['development', 'production', 'test'], 'OSACA_ENV');
 	assertOneOf(config.domain.public_scheme, ['http', 'https'], 'OSACA_PUBLIC_SCHEME');
 	assertOneOf(config.internal.kv_mode, ['standalone', 'cluster'], 'OSACA_KV_MODE');
-	assertOneOf(config.integrations.search.engine, ['elasticsearch', 'meilisearch', 'none'], 'OSACA_SEARCH_ENGINE');
 	assertOneOf(config.integrations.cache_purge.adapter, CACHE_PURGE_ADAPTER_NAMES, 'OSACA_CACHE_PURGE_ADAPTER');
 	validatePostgresConfig(config);
 	validateApiWorkerConfig(config);

@@ -49,7 +49,6 @@ var logParts = []logPart{
 	{"admin", []string{"admin"}},
 	{"push", []string{"push"}},
 	{"database", []string{"postgres"}},
-	{"search", []string{"meilisearch"}},
 	{"storage", []string{"seaweedfs", "seaweedfs-init"}},
 	{"cache", []string{"valkey"}},
 	{"queue", []string{"nats"}},

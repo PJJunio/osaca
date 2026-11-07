@@ -48,8 +48,6 @@
 {{- $_ := set $c "OSACA_NATS_URL" $nats }}
 {{- $_ := set $c "OSACA_NATS_JETSTREAM_URL" $nats }}
 {{- $_ := set $c "OSACA_SVC_NATS_URL" $nats }}
-{{- $_ := set $c "OSACA_SEARCH_ENGINE" "meilisearch" }}
-{{- $_ := set $c "OSACA_SEARCH_URL" (ternary "http://meilisearch:7700" ($v.meilisearch.external.url | default "") $v.meilisearch.enabled) }}
 {{- $_ := set $c "OSACA_S3_ENDPOINT" $s3 }}
 {{- $_ := set $c "OSACA_S3_PUBLIC_ENDPOINT" ($v.s3.publicEndpoint | default $s3) }}
 {{- $_ := set $c "OSACA_S3_REGION" $v.s3.region }}

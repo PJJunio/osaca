@@ -2,7 +2,7 @@
 
 use crate::gateway::setup_gateway_config;
 use crate::paths::{ensure_state_dirs, ensure_writable_dev_paths};
-use crate::proc::{PNPM_INSTALL_ENV, RunOptions, run_command, wait_http_success, wait_tcp};
+use crate::proc::{PNPM_INSTALL_ENV, RunOptions, run_command, wait_tcp};
 use anyhow::Result;
 
 pub async fn bootstrap(skip_install: bool) -> Result<()> {
@@ -40,7 +40,6 @@ pub async fn post_start() -> Result<()> {
 
 pub async fn wait_core_infra() -> Result<()> {
     wait_tcp("Postgres", "postgres", 5432, 120).await?;
-    wait_http_success("Meilisearch", "http://meilisearch:7700/health", 120).await?;
     wait_tcp("Valkey", "valkey", 6379, 120).await?;
     wait_tcp("NATS", "nats", 4222, 120).await?;
     wait_tcp("LiveKit", "livekit", 7880, 120).await?;

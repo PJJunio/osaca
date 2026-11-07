@@ -77,7 +77,6 @@ func Sizing(hw Hardware, memory bool, fixed map[string]string) map[string]string
 	}
 	setInt(out, "OSACA_POSTGRES_MAX_PARALLEL_WORKERS_PER_GATHER", gather)
 	setInt(out, "OSACA_POSTGRES_MAX_PARALLEL_WORKERS", min(8, c))
-	setInt(out, "OSACA_MEILISEARCH_MAX_INDEXING_THREADS", clamp(c/4, 1, 4))
 
 	if !memory || hw.MemoryBytes == 0 {
 		return out
@@ -110,7 +109,6 @@ func Sizing(hw Hardware, memory bool, fixed map[string]string) map[string]string
 	seaweed := share("OSACA_SEAWEEDFS_MEMORY_LIMIT", 8, 768, 2048)
 	out["OSACA_SEAWEEDFS_GOMEMLIMIT"] = strconv.Itoa(seaweed*85/100) + "MiB"
 	setInt(out, "OSACA_SEAWEEDFS_S3_CONCURRENT_UPLOADS", clamp(seaweed/384, 2, 8))
-	out["OSACA_MEILISEARCH_MAX_INDEXING_MEMORY"] = strconv.Itoa(share("OSACA_MEILISEARCH_MEMORY_LIMIT", 15, 512, 4096)/3) + "mb"
 
 	out["OSACA_VALKEY_MEMORY_LIMIT"] = strconv.Itoa(clamp(m*45/1000+32, 224, 1568)) + "mb"
 	out["OSACA_VALKEY_MAXMEMORY"] = strconv.Itoa((size("OSACA_VALKEY_MEMORY_LIMIT", 256)-32)*2/3) + "mb"

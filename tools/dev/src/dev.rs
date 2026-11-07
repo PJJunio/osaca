@@ -10,7 +10,7 @@ use crate::paths::{DESKTOP_DIR, ROOT};
 use crate::proc::{
     AwaitOutcome, PNPM_INSTALL_ENV, RESTART_LIMIT, RESTART_WINDOW, RunOptions, ShutdownSignal,
     await_or_shutdown, configure_process_group, format_command, merged_env, prefix_output,
-    restart_budget_exceeded, run_command_interruptible, wait_http,
+    restart_budget_exceeded, run_command_interruptible,
 };
 use anyhow::{Context, Result, bail};
 use std::collections::{BTreeMap, VecDeque};
@@ -79,13 +79,6 @@ pub async fn run_dev(task_names: &[String], cloudflare_tunnel: bool) -> Result<i
         }
     }
     match await_or_shutdown(&mut shutdown, ensure_object_store_if_needed(&selected)).await {
-        AwaitOutcome::Completed(result) => result?,
-        AwaitOutcome::Shutdown(signal) => {
-            println!("Received {signal}; stopping dev startup...");
-            return Ok(0);
-        }
-    }
-    match await_or_shutdown(&mut shutdown, wait_for_search_backend_if_needed(&selected)).await {
         AwaitOutcome::Completed(result) => result?,
         AwaitOutcome::Shutdown(signal) => {
             println!("Received {signal}; stopping dev startup...");
@@ -545,50 +538,6 @@ pub fn task_table() -> Result<BTreeMap<&'static str, DevTask>> {
         env: Vec::new(),
     });
     Ok(tasks)
-}
-
-async fn wait_for_search_backend_if_needed(selected: &[String]) -> Result<()> {
-    if !selected
-        .iter()
-        .any(|name| name == "api" || name == "worker")
-    {
-        return Ok(());
-    }
-    let env = merged_env(None, true)?;
-    let backend = SearchBackend::from_env(&env)?;
-    let search_url = env
-        .get("OSACA_SEARCH_URL")
-        .filter(|url| !url.trim().is_empty())
-        .context("Missing OSACA_SEARCH_URL for the selected search backend")?;
-    wait_http(backend.label(), search_url, 120).await
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum SearchBackend {
-    Elasticsearch,
-    Meilisearch,
-}
-
-impl SearchBackend {
-    fn from_env(env: &BTreeMap<String, String>) -> Result<Self> {
-        match env.get("OSACA_SEARCH_ENGINE").map(String::as_str) {
-            Some("elasticsearch") => Ok(Self::Elasticsearch),
-            Some("meilisearch") => Ok(Self::Meilisearch),
-            Some(engine) => bail!(
-                "Unsupported OSACA_SEARCH_ENGINE value {engine:?}; expected `meilisearch` or `elasticsearch`"
-            ),
-            None => {
-                bail!("Missing OSACA_SEARCH_ENGINE; expected `meilisearch` or `elasticsearch`")
-            }
-        }
-    }
-
-    fn label(self) -> &'static str {
-        match self {
-            Self::Elasticsearch => "Elasticsearch",
-            Self::Meilisearch => "Meilisearch",
-        }
-    }
 }
 
 fn self_tool_command() -> Result<Vec<String>> {

@@ -170,14 +170,6 @@ export function buildAPIConfigFromMaster(master: MasterConfig): APIConfig {
 			stream: master.services.api.storage_change_feed?.stream ?? 'STORAGE_CHANGES',
 			skipBuckets: master.services.api.storage_change_feed?.skip_buckets ?? [s3Buckets.uploads],
 		},
-		search: {
-			engine: master.integrations.search?.engine ?? 'elasticsearch',
-			url: master.integrations.search?.url ?? 'http://127.0.0.1:9200',
-			apiKey: master.integrations.search?.api_key ?? '',
-			username: master.integrations.search?.username ?? '',
-			password: master.integrations.search?.password ?? '',
-			tlsRejectUnauthorized: master.integrations.search?.tls_reject_unauthorized ?? true,
-		},
 		mediaProxy: {
 			host: extractHostname(master.internal.media_proxy),
 			port: new URL(master.internal.media_proxy).port

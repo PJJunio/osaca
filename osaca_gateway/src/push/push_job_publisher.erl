@@ -3,8 +3,8 @@
 -module(push_job_publisher).
 -typing([eqwalizer]).
 
--export([publish_message/8, publish_clear/3, clear_job/4]).
--export([publish_ring/6, request/3]).
+-export([publish_message/5, publish_clear/3, clear_job/4]).
+-export([publish_ring/5, request/3]).
 
 -define(SUBJECT_MESSAGE, <<"push.job.message">>).
 -define(SUBJECT_CLEAR, <<"push.job.clear">>).
@@ -20,35 +20,10 @@
     message_id := integer()
 }.
 
--spec publish_message(
-    [integer()],
-    map(),
-    map(),
-    integer(),
-    integer(),
-    integer(),
-    binary() | undefined,
-    binary() | undefined
-) -> ok | {error, term()}.
-publish_message(
-    UserIds,
-    MessageData,
-    MarkdownContext,
-    GuildId,
-    ChannelId,
-    MessageId,
-    GuildName,
-    ChannelName
-) ->
-    Job = message_job(
-        MessageData,
-        MarkdownContext,
-        GuildId,
-        ChannelId,
-        MessageId,
-        GuildName,
-        ChannelName
-    ),
+-spec publish_message([integer()], map(), integer(), integer(), integer()) ->
+    ok | {error, term()}.
+publish_message(UserIds, MessageData, GuildId, ChannelId, MessageId) ->
+    Job = message_job(MessageData, GuildId, ChannelId, MessageId),
     publish_recipients(Job, UserIds, #{
         kind => message,
         user_ids => UserIds,
@@ -56,41 +31,17 @@ publish_message(
         message_id => MessageId
     }).
 
--spec message_job(
-    map(),
-    map(),
-    integer(),
-    integer(),
-    integer(),
-    binary() | undefined,
-    binary() | undefined
-) -> map().
-message_job(
-    MessageData,
-    MarkdownContext,
-    GuildId,
-    ChannelId,
-    MessageId,
-    GuildName,
-    ChannelName
-) ->
+%% A message job is routing data only; see push_job_fields.
+-spec message_job(map(), integer(), integer(), integer()) -> map().
+message_job(MessageData, GuildId, ChannelId, MessageId) ->
     Job = #{
         <<"v">> => ?JOB_VERSION,
         <<"config_version">> => ?LEGACY_CONFIG_VERSION,
         <<"guild_id">> => integer_to_binary(GuildId),
         <<"channel_id">> => integer_to_binary(ChannelId),
-        <<"message_id">> => integer_to_binary(MessageId),
-        <<"notification">> => push_job_fields:notification(
-            MessageData,
-            MarkdownContext,
-            GuildId,
-            ChannelId,
-            MessageId,
-            GuildName,
-            ChannelName
-        )
+        <<"message_id">> => integer_to_binary(MessageId)
     },
-    maps:merge(Job, push_job_fields:thread(MessageData, ChannelName)).
+    maps:merge(Job, push_job_fields:thread(MessageData)).
 
 -spec publish_recipients(map(), [integer()], meta()) -> ok | {error, term()}.
 publish_recipients(Job, UserIds, Meta) ->
@@ -145,21 +96,19 @@ clear_fields(UserId, ChannelId, MessageId) ->
 clear_meta(UserId, ChannelId, MessageId) ->
     #{kind => clear, user_ids => [UserId], channel_id => ChannelId, message_id => MessageId}.
 
--spec publish_ring(integer(), integer(), integer(), integer(), integer(), map()) ->
+%% The caller's identity is deliberately not part of the job.
+-spec publish_ring(integer(), integer(), integer(), integer(), integer()) ->
     ok | {error, term()}.
-publish_ring(UserId, ChannelId, MessageId, StartedAtMs, ExpiresAtMs, Caller) ->
-    Job = maps:merge(
-        #{
-            <<"v">> => ?JOB_VERSION,
-            <<"config_version">> => ?LEGACY_CONFIG_VERSION,
-            <<"user_id">> => integer_to_binary(UserId),
-            <<"channel_id">> => integer_to_binary(ChannelId),
-            <<"message_id">> => integer_to_binary(MessageId),
-            <<"started_at_ms">> => StartedAtMs,
-            <<"expires_at_ms">> => ExpiresAtMs
-        },
-        push_job_fields:caller(Caller)
-    ),
+publish_ring(UserId, ChannelId, MessageId, StartedAtMs, ExpiresAtMs) ->
+    Job = #{
+        <<"v">> => ?JOB_VERSION,
+        <<"config_version">> => ?LEGACY_CONFIG_VERSION,
+        <<"user_id">> => integer_to_binary(UserId),
+        <<"channel_id">> => integer_to_binary(ChannelId),
+        <<"message_id">> => integer_to_binary(MessageId),
+        <<"started_at_ms">> => StartedAtMs,
+        <<"expires_at_ms">> => ExpiresAtMs
+    },
     publish(?SUBJECT_RING, Job, #{
         kind => ring,
         user_ids => [UserId],

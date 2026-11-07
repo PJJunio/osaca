@@ -19,30 +19,11 @@ pub struct MessageJob {
     pub guild_id: String,
     pub channel_id: String,
     pub message_id: String,
-    pub notification: NotificationFields,
     pub user_ids: Vec<String>,
     #[serde(default)]
     pub kind: Option<String>,
     #[serde(default)]
     pub parent_id: Option<String>,
-    #[serde(default)]
-    pub parent_name: Option<String>,
-    #[serde(default)]
-    pub channel_name: Option<String>,
-}
-
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
-pub struct NotificationFields {
-    pub title: String,
-    pub body: String,
-    pub icon: String,
-    #[serde(default)]
-    pub badge: Option<String>,
-    pub tag: String,
-    pub notification_tag: String,
-    pub url: String,
-    #[serde(default)]
-    pub image_url: Option<String>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
@@ -63,12 +44,6 @@ pub struct RingJob {
     pub message_id: String,
     pub started_at_ms: i64,
     pub expires_at_ms: i64,
-    #[serde(default)]
-    pub caller_id: Option<String>,
-    #[serde(default)]
-    pub caller_name: Option<String>,
-    #[serde(default)]
-    pub caller_avatar_url: Option<String>,
 }
 
 #[derive(Debug, Error)]
@@ -155,35 +130,40 @@ mod tests {
         );
     }
 
-    const BASE: &str = r#"{"v":1,"config_version":3,"guild_id":"5","channel_id":"6","message_id":"7","notification":{"title":"t","body":"b","icon":"i","badge":"g","tag":"x","notification_tag":"y","url":"/u"},"user_ids":["8"]"#;
+    const BASE: &str = r#"{"v":1,"config_version":3,"guild_id":"5","channel_id":"6","message_id":"7","user_ids":["8"]"#;
 
     #[test]
     fn a_job_without_thread_fields_decodes_as_before() {
         let job = decode_message(format!("{BASE}}}").as_bytes()).expect("the job decodes");
         assert!(!job.is_thread());
         assert_eq!(job.parent_id, None);
-        assert_eq!(job.parent_name, None);
-        assert_eq!(job.channel_name, None);
     }
 
     #[test]
-    fn a_job_without_a_badge_decodes() {
+    fn a_legacy_job_carrying_notification_content_still_decodes() {
         let job = decode_message(
             br#"{"v":1,"guild_id":"5","channel_id":"6","message_id":"7","notification":{"title":"t","body":"b","icon":"i","tag":"x","notification_tag":"y","url":"/u"},"user_ids":["8"]}"#,
         )
         .expect("the job decodes");
-        assert_eq!(job.notification.badge, None);
+        assert_eq!(job.message_id, "7");
     }
 
     #[test]
     fn a_gateway_thread_job_decodes_as_a_thread() {
         let job = decode_message(
-            br#"{"v":1,"config_version":3,"guild_id":"5","channel_id":"6","message_id":"7","notification":{"title":"ada (#ideas, #general, Guild)","body":"hi","icon":"icon","badge":"badge","tag":"channel:6:7","notification_tag":"channel:6","url":"/channels/5/6/7","image_url":null},"user_ids":["8"],"kind":"thread","parent_id":"200","parent_name":"general","channel_name":"ideas"}"#,
+            br#"{"v":1,"config_version":3,"guild_id":"5","channel_id":"6","message_id":"7","user_ids":["8"],"kind":"thread","parent_id":"200"}"#,
         )
         .expect("the job decodes");
         assert!(job.is_thread());
         assert_eq!(job.parent_id.as_deref(), Some("200"));
-        assert_eq!(job.parent_name.as_deref(), Some("general"));
-        assert_eq!(job.channel_name.as_deref(), Some("ideas"));
+    }
+
+    #[test]
+    fn a_legacy_ring_job_carrying_caller_identity_still_decodes() {
+        let job = decode_ring(
+            br#"{"v":1,"user_id":"1","channel_id":"2","message_id":"3","started_at_ms":1,"expires_at_ms":2,"caller_id":"9","caller_name":"ada","caller_avatar_url":"https://x/a.png"}"#,
+        )
+        .expect("the job decodes");
+        assert_eq!(job.channel_id, "2");
     }
 }

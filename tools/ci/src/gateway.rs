@@ -8,7 +8,7 @@ use std::ffi::{OsStr, OsString};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-const GATEWAY_NIF_CRATES: &[&str] = &["push_markdown_plaintext_nif", "guild_member_list_oset_nif"];
+const GATEWAY_NIF_CRATES: &[&str] = &["guild_member_list_oset_nif"];
 const GNU_LD_FATAL_WARNINGS: &str = "-Wl,--fatal-warnings";
 
 #[derive(Debug, Args, Clone)]

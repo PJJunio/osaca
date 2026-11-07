@@ -206,10 +206,7 @@ do_handle_message_create_context(Context) ->
         connected_users := ConnectedUsers,
         channel_id := ChannelId,
         message_id := MessageId,
-        guild_default_notifications := GuildDefaultNotifications,
-        guild_name := GuildName,
-        channel_name := ChannelName,
-        markdown_context := MarkdownContext
+        guild_default_notifications := GuildDefaultNotifications
     } = Context,
     logger:debug("Push: evaluating eligibility", #{
         message_id => MessageId,
@@ -237,54 +234,17 @@ do_handle_message_create_context(Context) ->
     publish_eligible_users(
         EligibleUsers,
         push_eligibility_checks:strip_thread_eligibility(MessageData),
-        MarkdownContext,
         GuildId,
         ChannelId,
-        MessageId,
-        GuildName,
-        ChannelName
+        MessageId
     ).
 
--spec publish_eligible_users(
-    [integer()],
-    map(),
-    map(),
-    integer(),
-    integer(),
-    integer(),
-    binary() | undefined,
-    binary() | undefined
-) -> ok.
-publish_eligible_users(
-    [],
-    _MessageData,
-    _MarkdownContext,
-    _GuildId,
-    _ChannelId,
-    _MessageId,
-    _GuildName,
-    _ChannelName
-) ->
+-spec publish_eligible_users([integer()], map(), integer(), integer(), integer()) -> ok.
+publish_eligible_users([], _MessageData, _GuildId, _ChannelId, _MessageId) ->
     ok;
-publish_eligible_users(
-    EligibleUsers,
-    MessageData,
-    MarkdownContext,
-    GuildId,
-    ChannelId,
-    MessageId,
-    GuildName,
-    ChannelName
-) ->
+publish_eligible_users(EligibleUsers, MessageData, GuildId, ChannelId, MessageId) ->
     _ = push_job_publisher:publish_message(
-        EligibleUsers,
-        MessageData,
-        MarkdownContext,
-        GuildId,
-        ChannelId,
-        MessageId,
-        GuildName,
-        ChannelName
+        EligibleUsers, MessageData, GuildId, ChannelId, MessageId
     ),
     ok.
 

@@ -31,26 +31,23 @@ send(
             ok;
         AuthorId ->
             ChannelIdBin = maps:get(<<"channel_id">>, MessageData),
-            {PushMessageData, ChannelName} = push_message_data(
+            PushMessageData = push_message_data(
                 MessageData, ChannelIdBin, EligibleUserIds ++ element(1, Held), Data
             ),
-            RoleNames = build_role_names_map(Data),
             Params = push_params(Request#{
                 message_data := PushMessageData,
-                channel_name => ChannelName,
-                role_names => RoleNames,
                 author_id => AuthorId
             }),
             ok = guild_push_engagement:send(EligibleUserIds, Params),
             guild_push_engagement:hold(Held, Params)
     end.
 
--spec push_message_data(event_data(), term(), [user_id()], map()) -> {event_data(), binary()}.
+-spec push_message_data(event_data(), term(), [user_id()], map()) -> event_data().
 push_message_data(MessageData, ChannelIdBin, UserIds, Data) ->
     ChannelId = guild_dispatch_decorate:parse_snowflake(<<"channel_id">>, ChannelIdBin),
     case thread_push_message_data(MessageData, ChannelId, UserIds, Data) of
-        undefined -> {MessageData, find_channel_name(ChannelIdBin, Data)};
-        ThreadPush -> ThreadPush
+        undefined -> MessageData;
+        {ThreadMessageData, _ThreadName} -> ThreadMessageData
     end.
 
 -spec thread_push_message_data(event_data(), integer() | undefined, [user_id()], map()) ->
@@ -66,27 +63,17 @@ push_params(#{
     guild_id := GuildId,
     user_roles := UserRolesMap,
     connected_users := ConnectedUsers,
-    channel_name := ChannelName,
-    role_names := RoleNames,
     data := Data,
     author_id := AuthorId,
     large_guild_meta := LargeGuildMeta
 }) ->
     Guild = maps:get(<<"guild">>, Data),
     DefaultMessageNotifications = maps:get(<<"default_message_notifications">>, Guild, 0),
-    GuildName = maps:get(<<"name">>, Guild, <<"Unknown">>),
     #{
         message_data => MessageData,
         guild_id => GuildId,
         author_id => AuthorId,
         guild_default_notifications => DefaultMessageNotifications,
-        guild_name => GuildName,
-        channel_name => ChannelName,
-        role_names => RoleNames,
-        markdown_context =>
-            push_notification_format:build_markdown_context(
-                MessageData, GuildId, RoleNames, Data
-            ),
         user_roles => UserRolesMap,
         connected_users => ConnectedUsers,
         guild_member_count => meta_member_count(LargeGuildMeta),
@@ -100,40 +87,6 @@ meta_member_count(_Meta) -> undefined.
 -spec meta_features(map() | undefined) -> [binary()] | undefined.
 meta_features(#{features := Features}) -> Features;
 meta_features(_Meta) -> undefined.
-
--spec find_channel_name(term(), map()) -> binary().
-find_channel_name(ChannelIdBin, Data) ->
-    case guild_dispatch_decorate:parse_snowflake(<<"channel_id">>, ChannelIdBin) of
-        undefined ->
-            <<"unknown">>;
-        ChannelId ->
-            lookup_channel_name(ChannelId, Data)
-    end.
-
--spec lookup_channel_name(integer(), map()) -> binary().
-lookup_channel_name(ChannelId, Data) ->
-    Channels = guild_data_index_channels:channel_index(Data),
-    case maps:get(ChannelId, Channels, undefined) of
-        undefined -> <<"unknown">>;
-        Channel -> maps:get(<<"name">>, Channel, <<"unknown">>)
-    end.
-
--spec build_role_names_map(map()) -> #{integer() => binary()}.
-build_role_names_map(Data) ->
-    maps:fold(
-        fun add_role_name/3,
-        #{},
-        guild_data_index_roles:role_index(Data)
-    ).
-
--spec add_role_name(term(), term(), #{integer() => binary()}) -> #{integer() => binary()}.
-add_role_name(RoleId, Role, Acc) when is_integer(RoleId), is_map(Role) ->
-    case push_utils:normalize_binary(maps:get(<<"name">>, Role, undefined)) of
-        Name when is_binary(Name), byte_size(Name) > 0 -> Acc#{RoleId => Name};
-        _ -> Acc
-    end;
-add_role_name(_RoleId, _Role, Acc) ->
-    Acc.
 
 -spec user_roles(map(), [integer()]) -> #{integer() => [integer()]}.
 user_roles(Members, EligibleUserIds) ->

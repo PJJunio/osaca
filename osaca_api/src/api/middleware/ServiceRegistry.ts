@@ -18,6 +18,9 @@ import {SnowflakeService} from '@app/api/infrastructure/SnowflakeService';
 import {VoiceRoomStore} from '@app/api/infrastructure/VoiceRoomStore';
 import type {InstanceConfigRepository} from '@app/api/instance/InstanceConfigRepository';
 import {Logger} from '@app/api/Logger';
+import type {IMlsDeliveryService} from '@app/api/mls/IMlsDeliveryService';
+import {InMemoryMlsDeliveryService} from '@app/api/mls/InMemoryMlsDeliveryService';
+import {PostgresMlsDeliveryService} from '@app/api/mls/PostgresMlsDeliveryService';
 import {readOptionalEnv, readOptionalIntegerEnv} from '@app/api/utils/IntegerOptions';
 import {VoiceAvailabilityService} from '@app/api/voice/VoiceAvailabilityService';
 import {VoiceRepository} from '@app/api/voice/VoiceRepository';
@@ -28,6 +31,7 @@ import type {WorkerTaskName} from '@app/api/worker/WorkerLaneConfig';
 import type {IKVProvider} from '@pkgs/kv_client/src/IKVProvider';
 import {KVClient} from '@pkgs/kv_client/src/KVClient';
 import {NatsConnectionManager} from '@pkgs/nats/src/NatsConnectionManager';
+import {getDefaultPostgresClient} from '@pkgs/postgres/src/Client';
 import type {IWorkerService} from '@pkgs/worker/src/contracts/IWorkerService';
 
 export function createSnowflakeService(): SnowflakeService {
@@ -340,7 +344,31 @@ export function getVoiceRoomStoreInstance(): IVoiceRoomStore | null {
 	return voiceSession?.resources?.roomStore ?? null;
 }
 
+let _injectedMlsDeliveryService: IMlsDeliveryService | undefined;
+let _defaultInMemoryMlsDeliveryService: IMlsDeliveryService | null = null;
+
+export function setInjectedMlsDeliveryService(service: IMlsDeliveryService | undefined): void {
+	_injectedMlsDeliveryService = service;
+}
+
+export function getMlsDeliveryService(): IMlsDeliveryService {
+	if (_injectedMlsDeliveryService) {
+		return _injectedMlsDeliveryService;
+	}
+	try {
+		const postgres = getDefaultPostgresClient();
+		return new PostgresMlsDeliveryService(postgres);
+	} catch {
+		if (!_defaultInMemoryMlsDeliveryService) {
+			_defaultInMemoryMlsDeliveryService = new InMemoryMlsDeliveryService();
+		}
+		return _defaultInMemoryMlsDeliveryService;
+	}
+}
+
 export function resetServiceRegistryForTesting(): void {
+	_injectedMlsDeliveryService = undefined;
+	_defaultInMemoryMlsDeliveryService = null;
 	_kvClient = null;
 	_snowflakeService = null;
 	resetBlueskyOAuthServiceCache();

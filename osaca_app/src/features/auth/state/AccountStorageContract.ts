@@ -18,7 +18,6 @@ export interface UserData {
 	username: string;
 	discriminator: string;
 	globalName?: string | null;
-	email?: string | null;
 	avatar?: string | null;
 }
 

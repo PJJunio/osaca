@@ -128,7 +128,7 @@ Joins the authenticated account to the target of the invite and returns an [invi
 | --- | --- | --- |
 | 200 | [invite](#invite-object) object | The account joined or was already in the target |
 | 400 | [error response](/http-api/#error-response) | `TEMPORARY_INVITE_REQUIRES_PRESENCE` when a temporary invite is accepted with no active presence |
-| 400 | [error response](/http-api/#error-response) | `UNCLAIMED_ACCOUNT_CANNOT_JOIN_GROUP_DMS` when an unclaimed account joins a group direct message |
+| 403 | [error response](/http-api/#error-response) | `ACCOUNT_VERIFICATION_REQUIRED` when an unclaimed account joins a group direct message |
 | 400 | [error response](/http-api/#error-response) | `INVALID_CHANNEL_TYPE` when a type `1` invite targets a private channel that is not a group direct message |
 | 400 | [error response](/http-api/#error-response) | `MAX_GUILDS` when the account is in the maximum number of guilds |
 | 400 | [error response](/http-api/#error-response) | `MAX_GUILD_MEMBERS` or `MAX_GROUP_DM_RECIPIENTS` when the target is full |

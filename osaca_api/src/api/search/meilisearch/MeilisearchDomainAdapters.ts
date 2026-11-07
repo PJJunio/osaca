@@ -131,8 +131,6 @@ function buildUserFilters(filters: UserSearchFilters): Array<MeilisearchFilter |
 	const clauses: Array<MeilisearchFilter | undefined> = [];
 	if (filters.isBot !== undefined) clauses.push(meiliTermFilter('isBot', filters.isBot));
 	if (filters.isSystem !== undefined) clauses.push(meiliTermFilter('isSystem', filters.isSystem));
-	if (filters.emailVerified !== undefined) clauses.push(meiliTermFilter('emailVerified', filters.emailVerified));
-	if (filters.emailBounced !== undefined) clauses.push(meiliTermFilter('emailBounced', filters.emailBounced));
 	if (filters.isTempBanned !== undefined)
 		clauses.push(filters.isTempBanned ? meiliExistsFilter('tempBannedUntil') : meiliNotExistsFilter('tempBannedUntil'));
 	if (filters.isPendingDeletion !== undefined) {

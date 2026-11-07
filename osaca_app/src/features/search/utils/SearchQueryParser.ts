@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
 import Channels from '@app/features/channel/state/Channels';
 import {fuzzySearch} from '@app/features/search/utils/SearchTextMatching';
 import type {MessageSearchParams} from '@app/features/search/utils/SearchUtils';
@@ -349,7 +348,7 @@ const tryResolveUser = (tag: string, hints?: SearchHints): string | null => {
 		return getCurrentUserId();
 	}
 	if (hints?.usersByTag?.[trimmedTag]) return hints.usersByTag[trimmedTag];
-	const isBareUsername = RuntimeConfig.usesUniqueUsernames && BARE_USERNAME_RE.test(trimmedTag);
+	const isBareUsername = BARE_USERNAME_RE.test(trimmedTag);
 	if (!USER_TAG_RE.test(trimmedTag) && !isBareUsername) return null;
 	const user = Users.getUserByTag(trimmedTag);
 	return user?.id ?? null;

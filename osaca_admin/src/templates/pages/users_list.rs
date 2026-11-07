@@ -26,14 +26,13 @@ use crate::{
     },
     utils::{
         bigint::format_discriminator,
-        user_tag::{unique_usernames, user_tag},
+        user_tag::user_tag,
     },
 };
 use maud::{Markup, html};
 
 pub struct UserListParams {
     pub q: String,
-    pub email: String,
     pub ip: String,
     pub requested_ids: Vec<String>,
     pub limit: u32,
@@ -43,7 +42,6 @@ pub struct UserListParams {
 impl UserListParams {
     pub fn from_query(
         q: Option<String>,
-        email: Option<String>,
         ip: Option<String>,
         ids: Option<String>,
         limit: Option<u32>,
@@ -52,7 +50,6 @@ impl UserListParams {
         let ids = ids.unwrap_or_default();
         Self {
             q: q.unwrap_or_default().trim().to_owned(),
-            email: email.unwrap_or_default().trim().to_owned(),
             ip: ip.unwrap_or_default().trim().to_owned(),
             requested_ids: parse_ids_query(&ids),
             limit: match limit.unwrap_or(25) {
@@ -70,22 +67,14 @@ impl UserListParams {
     }
 
     pub fn has_search(&self) -> bool {
-        self.has_id_lookup() || !self.q.is_empty() || !self.email.is_empty() || !self.ip.is_empty()
+        self.has_id_lookup() || !self.q.is_empty() || !self.ip.is_empty()
     }
 
     pub fn search_query(&self) -> Option<&str> {
-        if self.email.is_empty() && self.ip.is_empty() && !self.q.is_empty() {
+        if self.ip.is_empty() && !self.q.is_empty() {
             Some(&self.q)
         } else {
             None
-        }
-    }
-
-    pub fn email_query(&self) -> Option<&str> {
-        if self.email.is_empty() {
-            None
-        } else {
-            Some(&self.email)
         }
     }
 
@@ -96,13 +85,6 @@ impl UserListParams {
             Some(&self.ip)
         }
     }
-}
-
-#[derive(Clone, Copy)]
-pub enum UserEmailAccess {
-    Hidden,
-    SearchOnly,
-    SearchAndView,
 }
 
 pub enum UserListOutput {
@@ -119,7 +101,6 @@ pub struct UserListResults<'a> {
 pub struct UserListView<'a> {
     pub params: &'a UserListParams,
     pub results: Option<UserListResults<'a>>,
-    pub email: UserEmailAccess,
     pub output: UserListOutput,
 }
 
@@ -128,10 +109,9 @@ pub fn users_list_page(config: &AdminConfig, auth: &AuthContext, view: UserListV
     let UserListView {
         params,
         results,
-        email,
         output,
     } = view;
-    let results_markup = render_results(config, params, results.as_ref(), email);
+    let results_markup = render_results(config, params, results.as_ref());
 
     if matches!(output, UserListOutput::Results) {
         return results_markup;
@@ -144,7 +124,7 @@ pub fn users_list_page(config: &AdminConfig, auth: &AuthContext, view: UserListV
                 p class="mb-1 text-xs text-neutral-500" {
                     "Every account is listed, oldest first. Type to narrow the list."
                 }
-                (search_form(base, params, email))
+                (search_form(base, params))
             }
             (results_markup)
         }
@@ -186,21 +166,14 @@ fn search_input(name: &str, value: &str, placeholder: &str, action: &str) -> Mar
     }
 }
 
-fn search_form(base: &str, params: &UserListParams, email: UserEmailAccess) -> Markup {
+fn search_form(base: &str, params: &UserListParams) -> Markup {
     let action = format!("{base}/users");
-    let placeholder = if unique_usernames() {
-        "Search by user ID or username..."
-    } else {
-        "Search by user ID, username or tag#0000..."
-    };
+    let placeholder = "Search by user ID or username...";
     html! {
         form method="get" action=(&action)
             class="flex flex-col gap-3 sm:flex-row sm:items-center" {
             div class="flex flex-1 flex-col gap-2 sm:flex-row" {
                 (search_input("q", &params.q, placeholder, &action))
-                @if !matches!(email, UserEmailAccess::Hidden) {
-                    (search_input("email", &params.email, "Exact email address...", &action))
-                }
                 (search_input("ip", &params.ip, "Last active IP address...", &action))
                 div class="flex-1" {
                     div class="relative" {
@@ -232,7 +205,6 @@ fn render_results(
     config: &AdminConfig,
     params: &UserListParams,
     results: Option<&UserListResults<'_>>,
-    email: UserEmailAccess,
 ) -> Markup {
     let base = &config.base_path;
     html! {
@@ -266,7 +238,7 @@ fn render_results(
                             "Copy IDs"
                         }
                     }
-                    (render_users_table(config, users, email))
+                    (render_users_table(config, users))
                     script { (maud::PreEscaped(copy_ids_script())) }
                     @if !params.has_id_lookup() && (params.page > 0 || result.has_more) {
                         (pagination_controls(base, params, result))
@@ -293,8 +265,6 @@ fn empty_state_title(params: &UserListParams) -> String {
             "No users found for the {} requested IDs",
             params.requested_ids.len()
         )
-    } else if !params.email.is_empty() {
-        format!("No users found with email \"{}\"", params.email)
     } else if !params.ip.is_empty() {
         format!("No users found with last active IP \"{}\"", params.ip)
     } else {
@@ -333,7 +303,7 @@ fn user_status_badge(user: &AdminUser) -> Markup {
     }
 }
 
-fn render_users_table(config: &AdminConfig, users: &[AdminUser], email: UserEmailAccess) -> Markup {
+fn render_users_table(config: &AdminConfig, users: &[AdminUser]) -> Markup {
     let base = &config.base_path;
     table_container(html! {
         table class="min-w-full divide-y divide-neutral-200" {
@@ -341,9 +311,6 @@ fn render_users_table(config: &AdminConfig, users: &[AdminUser], email: UserEmai
                 tr {
                     (table_header_cell("User"))
                     (table_header_cell("ID"))
-                    @if matches!(email, UserEmailAccess::SearchAndView) {
-                        (table_header_cell("Email"))
-                    }
                     (table_header_cell("Status"))
                     (table_header_cell(""))
                 }
@@ -389,11 +356,6 @@ fn render_users_table(config: &AdminConfig, users: &[AdminUser], email: UserEmai
                                 (user.id)
                             }
                         }))
-                        @if matches!(email, UserEmailAccess::SearchAndView) {
-                            (table_cell(true, html! {
-                                (user.email.as_deref().unwrap_or("-"))
-                            }))
-                        }
                         (table_cell(false, html! {
                             (user_status_badge(user))
                         }))
@@ -442,9 +404,6 @@ fn users_url(base: &str, params: &UserListParams, page: u32) -> String {
     let mut pairs = Vec::new();
     if !params.q.is_empty() {
         pairs.push(format!("q={}", urlencoding::encode(&params.q)));
-    }
-    if !params.email.is_empty() {
-        pairs.push(format!("email={}", urlencoding::encode(&params.email)));
     }
     if !params.ip.is_empty() {
         pairs.push(format!("ip={}", urlencoding::encode(&params.ip)));

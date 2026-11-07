@@ -1,15 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {
-	clearTestEmails,
-	createTestAccount,
-	listTestEmails,
-	setUserACLs,
-	type TestAccount,
-} from '@app/api/auth/tests/AuthTestUtils';
+import {createTestAccount, setUserACLs, type TestAccount} from '@app/api/auth/tests/AuthTestUtils';
 import {getConfig} from '@app/api/Config';
 import {getWorkerService, setInjectedWorkerService} from '@app/api/middleware/ServiceRegistry';
-import {getEmailService, getInstanceConfigRepository, getUserRepository} from '@app/api/middleware/ServiceSingletons';
+import {getInstanceConfigRepository, getUserRepository} from '@app/api/middleware/ServiceSingletons';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {RecordingWorkerService} from '@app/api/test/RecordingWorkerService';
 import {createTestWorkerHelpers} from '@app/api/test/SyncTaskWorkerService';
@@ -53,10 +47,8 @@ describe('notice to registration approvers', () => {
 			userRepository: getUserRepository(),
 			kvClient: harness.kvProvider,
 			instanceConfigRepository: getInstanceConfigRepository(),
-			emailService: getEmailService(),
 		});
 		worker.jobs.length = 0;
-		await clearTestEmails(harness);
 		getConfig().endpoints.admin = 'https://admin.example.test///';
 		getConfig().instance.selfHosted = true;
 	});
@@ -109,33 +101,5 @@ describe('notice to registration approvers', () => {
 		expect(worker.jobs).toEqual(firstNotice);
 		await notifyRegistrationApprovers({user_id: '124'}, helpers);
 		expect(worker.jobs).toEqual(firstNotice);
-	});
-
-	it('emails each approver instead of a hidden DM when the instance turned DMs off', async () => {
-		await getInstanceConfigRepository().setInstancePolicyConfig({direct_messages_disabled: true});
-		await getInstanceConfigRepository().setInstanceIntegrationsConfig({email: {enabled: true}});
-		await notifyRegistrationApprovers({user_id: '126'}, helpers);
-		expect(worker.jobs).toEqual([]);
-		const emails = await listTestEmails(harness);
-		expect(emails.map(({to, type, metadata}) => ({to, type, metadata}))).toEqual([
-			{
-				to: owner.email,
-				type: 'registration_pending',
-				metadata: {review_url: 'https://admin.example.test/pending-registrations'},
-			},
-			{
-				to: reviewer.email,
-				type: 'registration_pending',
-				metadata: {review_url: 'https://admin.example.test/pending-registrations'},
-			},
-		]);
-	});
-
-	it('sends nothing when DMs are off and the instance sends no email', async () => {
-		await getInstanceConfigRepository().setInstancePolicyConfig({direct_messages_disabled: true});
-		await getInstanceConfigRepository().setInstanceIntegrationsConfig({email: {enabled: false}});
-		await notifyRegistrationApprovers({user_id: '127'}, helpers);
-		expect(worker.jobs).toEqual([]);
-		expect(await listTestEmails(harness)).toEqual([]);
 	});
 });

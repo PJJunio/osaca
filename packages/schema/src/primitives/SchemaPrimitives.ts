@@ -245,7 +245,7 @@ function getEnumEntries<T extends string | number>(pairs: NamedLiteralPairs<T>):
 	return pairs.map(([value, name, description]) => ({name, value, ...(description ? {description} : {})}));
 }
 
-export function createNamedLiteral<T extends number>(value: T, name: string, description?: string) {
+export function createNamedLiteral<const T extends string | number>(value: T, name: string, description?: string) {
 	return withSchemaMetadata(z.literal(value), {enumEntries: [{name, value, ...(description ? {description} : {})}]});
 }
 

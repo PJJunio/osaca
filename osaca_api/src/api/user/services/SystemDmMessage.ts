@@ -25,15 +25,8 @@ export async function systemDmsHidden(
 	return (await config.getInstancePolicyConfig()).direct_messages_disabled;
 }
 
-export async function noticeEmailAddress(
-	user: Pick<User, 'email'>,
-	config: Pick<InstanceConfigRepository, 'isEmailEnabled'> = getInstanceConfigRepository(),
-): Promise<string | null> {
-	return user.email && (await config.isEmailEnabled()) ? user.email : null;
-}
-
-export function systemDmBody(emailBody: string): string {
-	return emailBody.split('\n\n').slice(0, -1).join('\n\n');
+export function systemDmBody(noticeBody: string): string {
+	return noticeBody.split('\n\n').slice(0, -1).join('\n\n');
 }
 
 export async function sendSystemDmMessage(params: {

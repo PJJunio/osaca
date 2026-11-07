@@ -28,9 +28,6 @@ export interface UserRow {
 	global_name: string | null;
 	bot: boolean | null;
 	system: boolean | null;
-	email: string | null;
-	email_verified: boolean | null;
-	email_bounced: boolean | null;
 	password_hash: string | null;
 	password_last_changed_at: Date | null;
 	totp_secret: string | null;
@@ -79,9 +76,6 @@ export const USER_COLUMNS = [
 	'global_name',
 	'bot',
 	'system',
-	'email',
-	'email_verified',
-	'email_bounced',
 	'password_hash',
 	'password_last_changed_at',
 	'totp_secret',
@@ -129,9 +123,6 @@ export const EMPTY_USER_ROW: UserRow = {
 	global_name: null,
 	bot: null,
 	system: null,
-	email: null,
-	email_verified: null,
-	email_bounced: null,
 	password_hash: null,
 	password_last_changed_at: null,
 	totp_secret: null,
@@ -519,18 +510,6 @@ export interface UserByUsernameRow {
 	user_id: UserID;
 }
 
-export interface UserByEmailRow {
-	email_lower: string;
-	user_id: UserID;
-}
-
-export interface UserEmailOwnerRow {
-	email_lower: string;
-	user_id: UserID | null;
-	claimed_at: Date | null;
-	claimed: boolean;
-}
-
 export interface UserByAclRow {
 	acl: string;
 	user_id: UserID;
@@ -551,13 +530,6 @@ export interface UserByLastActiveIpTrustKeyRow {
 export const USER_BY_USERNAME_COLUMNS = ['username', 'discriminator', 'user_id'] as const satisfies ReadonlyArray<
 	keyof UserByUsernameRow
 >;
-export const USER_BY_EMAIL_COLUMNS = ['email_lower', 'user_id'] as const satisfies ReadonlyArray<keyof UserByEmailRow>;
-export const USER_EMAIL_OWNER_COLUMNS = [
-	'email_lower',
-	'user_id',
-	'claimed_at',
-	'claimed',
-] as const satisfies ReadonlyArray<keyof UserEmailOwnerRow>;
 export const USER_BY_ACL_COLUMNS = ['acl', 'user_id'] as const satisfies ReadonlyArray<keyof UserByAclRow>;
 export const USER_BY_LAST_ACTIVE_IP_COLUMNS = [
 	'last_active_ip',

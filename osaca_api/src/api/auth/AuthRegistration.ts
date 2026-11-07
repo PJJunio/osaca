@@ -1,31 +1,17 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type {ApiContext} from '@app/api/ApiContext';
-import {
-	budgetEnvFor,
-	chargeAddressLookup,
-	enforceInstantAccountLimits,
-	recordInstantAccountCreated,
-} from '@app/api/auth/AccountBudgets';
-import {issueDeviceProof, normalizeEmailKey} from '@app/api/auth/AccountCodes';
-import {sendVerificationEmail} from '@app/api/auth/AuthEmail';
+import {budgetEnvFor, enforceInstantAccountLimits, recordInstantAccountCreated} from '@app/api/auth/AccountBudgets';
 import * as AuthPassword from '@app/api/auth/AuthPassword';
 import * as AuthSession from '@app/api/auth/AuthSession';
-import {assertEmailNotBlocklisted} from '@app/api/auth/EmailBlocklist';
-import {
-	getLocalPartAtInstance,
-	getPrimaryInstanceHost,
-	usernameFromInstanceLocalPart,
-} from '@app/api/auth/InstanceAddress';
 import {createInviteCode, createUserID, type UserID} from '@app/api/BrandedTypes';
 import type {APIConfig} from '@app/api/config/APIConfig';
 import {EMPTY_USER_ROW, type UserRow} from '@app/api/database/types/UserTypes';
 import {emitActivity} from '@app/api/infrastructure/activity/ActivityEvents';
 import type {RegMethod} from '@app/api/infrastructure/activity/Contract.generated';
-import {isBlockedEmailDomain} from '@app/api/infrastructure/activity/SharedLists';
 import type {DiscriminatorService} from '@app/api/infrastructure/DiscriminatorService';
 import type {KVActivityTracker} from '@app/api/infrastructure/KVActivityTracker';
-import {withAccountIdentitySetupLock} from '@app/api/instance/AccountIdentitySetupLock';
+import {withAdminBootstrapLock} from '@app/api/instance/AdminBootstrapLock';
 import {parseInviteCodeList} from '@app/api/instance/AutoJoinInviteCodes';
 import {
 	type InstanceConfigRepository,
@@ -38,7 +24,6 @@ import type {InviteService} from '@app/api/invite/InviteService';
 import {Logger} from '@app/api/Logger';
 import {profileSubstringBlocklistCache} from '@app/api/middleware/ProfileSubstringBlocklistCache';
 import type {RequestCache} from '@app/api/middleware/RequestCacheMiddleware';
-import {getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
 import type {User} from '@app/api/models/User';
 import {UserSettings} from '@app/api/models/UserSettings';
 import {NO_TIER_CONTEXT, type TierContext} from '@app/api/user/AccountTier';
@@ -50,30 +35,17 @@ import {
 	type UsernameReservation,
 } from '@app/api/user/UniqueUsernames';
 import {USERNAME_MODE_DISCRIMINATOR} from '@app/api/user/UserTag';
-import {assertEmailDomainAllowed, extractEmailDomain} from '@app/api/utils/EmailDomainUtils';
 import {hashPassword} from '@app/api/utils/PasswordUtils';
 import {createRateLimitError} from '@app/api/utils/RateLimitUtils';
 import {requireConfiguredClientIp} from '@app/api/utils/RequestClientIp';
 import {generateRandomUsername} from '@app/api/utils/UsernameGenerator';
-import {
-	deriveUsernameFromDisplayName,
-	randomUsernameVariant,
-	usernameBaseFromDisplayName,
-} from '@app/api/utils/UsernameSuggestionUtils';
-import {inputValidationErrorFromZodIssues} from '@app/api/Validator';
-import {
-	EmailDeliveryStates,
-	InstantAccountAvailability,
-	RegistrationModes,
-} from '@osaca/constants/src/AccountConfigConstants';
-import {AccountIdentityModes, TagStyles} from '@osaca/constants/src/AccountIdentityConstants';
-import {requiresLocalCredential} from '@osaca/constants/src/AccountTierRules';
+import {randomUsernameVariant, usernameBaseFromDisplayName} from '@app/api/utils/UsernameSuggestionUtils';
+import {InstantAccountAvailability, RegistrationModes} from '@osaca/constants/src/AccountConfigConstants';
 import {AdminACLs} from '@osaca/constants/src/AdminACLs';
 import {ProfileFieldPrivacyFlags} from '@osaca/constants/src/UserConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {InstantAccountsDisabledError} from '@osaca/errors/src/domains/auth/InstantAccountsDisabledError';
 import {RegistrationClosedError} from '@osaca/errors/src/domains/auth/RegistrationClosedError';
-import {RegistrationCredentialRequiredError} from '@osaca/errors/src/domains/auth/RegistrationCredentialRequiredError';
 import {RegistrationCredentialsRequiredError} from '@osaca/errors/src/domains/auth/RegistrationCredentialsRequiredError';
 import {RegistrationUrlInvalidError} from '@osaca/errors/src/domains/auth/RegistrationUrlInvalidError';
 import {ContentBlockedError} from '@osaca/errors/src/domains/content/ContentBlockedError';
@@ -82,7 +54,6 @@ import {parseAcceptLanguage} from '@osaca/i18n/src/locale/resolution/AcceptLangu
 import {getSameIpDecisionKey, getSubnet} from '@osaca/ip_utils/src/IpAddress';
 import type {RegisterRequest} from '@osaca/schema/src/domains/auth/AuthSchemas';
 import type {GuildEntryResult} from '@osaca/schema/src/domains/user/AccountSchemas';
-import {UsernameType} from '@osaca/schema/src/primitives/UserValidators';
 import {ms} from 'itty-time';
 
 const DERIVED_USERNAME_ATTEMPTS = 5;
@@ -108,8 +79,6 @@ interface RegistrationAccess {
 }
 
 interface AccountCreationInput {
-	email: string | null;
-	emailProven: boolean;
 	username?: string;
 	globalName?: string;
 	password?: string;
@@ -117,7 +86,6 @@ interface AccountCreationInput {
 	inviteCode?: string | null;
 	registrationUrlCode?: string | null;
 	theme?: RegisterRequest['theme'];
-	olderAppEmail?: string | null;
 	locale?: string | null;
 	setupToken?: string | null;
 }
@@ -137,7 +105,6 @@ export type AccountCreationResult =
 			user: User;
 			token: string;
 			entry: GuildEntryResult | null;
-			deviceProof: string;
 	  }
 	| {pendingApproval: true; user: User};
 
@@ -185,11 +152,8 @@ export function assertRegistrationConsent(
 	return {requiresTermsConsent, requiresPrivacyConsent};
 }
 
-export function isInstantAccountRequest(
-	data: {email?: string | null; password?: string | null},
-	{usernameMode}: {usernameMode: boolean},
-): boolean {
-	return !data.password && (usernameMode || !data.email);
+export function isInstantAccountRequest(data: {password?: string | null}): boolean {
+	return !data.password;
 }
 
 export async function register(
@@ -201,8 +165,6 @@ export async function register(
 	const clientIp = requireConfiguredClientIp(request, config.proxy);
 	return await createAccount(ctx, deps, {
 		input: {
-			email: data.email ?? null,
-			emailProven: false,
 			username: data.username,
 			globalName: data.global_name,
 			password: data.password,
@@ -210,7 +172,6 @@ export async function register(
 			inviteCode: data.invite_code,
 			registrationUrlCode: data.registration_url_code,
 			theme: data.theme,
-			olderAppEmail: data.email ?? null,
 			setupToken: data.setup_token,
 		},
 		request,
@@ -250,33 +211,24 @@ export async function createAccount(
 		presented: params.input.setupToken,
 		clientIp: params.clientIp,
 	});
-	if (!config.instance.selfHosted || (await deps.instanceConfigRepository.isAccountIdentityLocked())) {
-		return await createAccountUnlocked(ctx, deps, params, {setupTokenPassed});
+	if (!config.instance.selfHosted || (await deps.instanceConfigRepository.isAdminBootstrapped())) {
+		return await createAccountAfterSetupCheck(ctx, deps, params, {setupTokenPassed});
 	}
-	return await withAccountIdentitySetupLock(cache, () => createAccountUnlocked(ctx, deps, params, {setupTokenPassed}));
+	return await withAdminBootstrapLock(cache, () => createAccountAfterSetupCheck(ctx, deps, params, {setupTokenPassed}));
 }
 
-async function createAccountUnlocked(
+async function createAccountAfterSetupCheck(
 	ctx: ApiContext,
 	deps: RegistrationDependencies,
 	{input, request, clientIp, requestCache, source, tierContext}: AccountCreationParams,
 	{setupTokenPassed}: {setupTokenPassed: boolean},
 ): Promise<AccountCreationResult> {
-	const {users, snowflake, emailDnsValidation, config} = ctx.services;
+	const {users, snowflake, config} = ctx.services;
 	const {instanceConfigRepository, discriminatorService, kvActivityTracker} = deps;
 	const setupTokenVerified = setupTokenPassed && !(await instanceConfigRepository.confirmAdminBootstrapped());
 	const appPublicConfig = await instanceConfigRepository.getAppPublicConfig();
-	const emailDeliveryState = await instanceConfigRepository.getEmailDeliveryState();
-	const emailEnabled = emailDeliveryState === EmailDeliveryStates.ON;
-	const accountIdentity = await instanceConfigRepository.getAccountIdentity();
-	const usernameMode = accountIdentity.mode === AccountIdentityModes.USERNAME;
-	const uniqueUsernames = accountIdentity.tagStyle === TagStyles.NONE;
-	const instant = isInstantAccountRequest({email: input.email, password: input.password}, {usernameMode});
-	let olderAppUsername: string | undefined;
-	if (usernameMode) {
-		assertUsernameModeRegistration(input);
-		olderAppUsername = input.username ? undefined : requestedUsernameFromOlderApp(config, input.olderAppEmail);
-	}
+	const instant = isInstantAccountRequest({password: input.password});
+	assertUsernameForPasswordRegistration(input);
 	const {requiresTermsConsent, requiresPrivacyConsent} = assertRegistrationConsent(
 		config,
 		appPublicConfig,
@@ -288,28 +240,12 @@ async function createAccountUnlocked(
 	if (setupTokenVerified) {
 		registrationAccess = {pendingApproval: false, registrationUrl: null};
 	} else {
-		registrationAccess = await resolveRegistrationAccess(
-			instanceConfigRepository,
-			input.registrationUrlCode,
-			usernameMode ? null : input.email,
-		);
+		registrationAccess = await resolveRegistrationAccess(instanceConfigRepository, input.registrationUrlCode);
 	}
-	if (registrationAccess.pendingApproval && !hasSignInCredentials(input, usernameMode)) {
+	if (registrationAccess.pendingApproval && !input.password) {
 		throw new RegistrationCredentialsRequiredError();
 	}
 	const inviteCode = input.inviteCode?.trim() || registrationAccess.registrationUrl?.invite_code || null;
-	if (
-		!usernameMode &&
-		input.email &&
-		!input.password &&
-		requiresLocalCredential({
-			identityMode: accountIdentity.mode,
-			deliveryState: emailDeliveryState,
-			emailProven: input.emailProven,
-		})
-	) {
-		throw new RegistrationCredentialRequiredError();
-	}
 	if (instant) {
 		let approvalOverride: {approvalRequired: boolean} | null = null;
 		if (setupTokenVerified) {
@@ -322,49 +258,24 @@ async function createAccountUnlocked(
 	if (input.password && (await AuthPassword.isPasswordPwned(ctx, input.password))) {
 		throw InputValidationError.fromCode('password', ValidationErrorCodes.PASSWORD_IS_TOO_COMMON);
 	}
-	const rawEmail = usernameMode ? null : input.email;
 	const enforceRateLimits = !config.dev.relaxRegistrationRateLimits && !setupTokenVerified;
 	const budgetEnv = budgetEnvFor(ctx.services, request);
 	if (instant) {
 		if (enforceRateLimits) await enforceInstantAccountLimits({...budgetEnv, enforce: true}, clientIp);
-	} else if (!input.emailProven) {
-		await enforceRegistrationRateLimits(ctx, {
-			enforceRateLimits,
-			clientIp,
-			emailKey: rawEmail ? rawEmail.toLowerCase() : null,
-		});
+	} else {
+		await enforceRegistrationRateLimits(ctx, {enforceRateLimits, clientIp});
 	}
-	if (rawEmail) {
-		if (!input.emailProven) {
-			await assertRegistrationEmailDeliverable(rawEmail, emailDnsValidation);
-		}
-		const emailTaken = await users.findByEmail(rawEmail);
-		if (emailTaken) {
-			if (!input.emailProven) {
-				await chargeAddressLookup(budgetEnv, {
-					clientIp,
-					emailKey: normalizeEmailKey(rawEmail),
-					requester: 'unknown',
-				});
-			}
-			throw InputValidationError.fromCode('email', ValidationErrorCodes.EMAIL_ALREADY_IN_USE);
-		}
-	}
-	const requestedUsername =
-		input.username ?? olderAppUsername ?? (input.emailProven && rawEmail ? usernameFromEmail(rawEmail) : undefined);
 	const {username, discriminator} = await resolveRegistrationUsername({
 		users,
 		discriminatorService,
-		uniqueUsernames,
-		requestedUsername,
-		explicitlyRequested: input.username !== undefined || olderAppUsername !== undefined,
+		uniqueUsernames: true,
+		requestedUsername: input.username,
+		explicitlyRequested: input.username !== undefined,
 		globalName: input.globalName,
 	});
 	const bootstrapAdminEligible =
 		shouldAttemptBootstrapAdminGrant(config, {
-			rawEmail,
 			hasPassword: Boolean(input.password),
-			usernameMode,
 			pendingApproval: registrationAccess.pendingApproval,
 			setupConfigured: appPublicConfig.setup.configured,
 			setupTokenVerified,
@@ -380,7 +291,6 @@ async function createAccountUnlocked(
 		? parseAcceptLanguage(input.locale)
 		: parseAcceptLanguage(request.headers.get('accept-language'));
 	const passwordHash = input.password ? await hashPassword(input.password) : null;
-	const emailOwnedAtCreation = rawEmail !== null && (input.emailProven || !emailEnabled);
 	const traits = new Set<string>();
 	if (registrationAccess.pendingApproval) traits.add(REGISTRATION_PENDING_APPROVAL_TRAIT);
 	const userRow: UserRow = {
@@ -391,9 +301,6 @@ async function createAccountUnlocked(
 		global_name: input.globalName || null,
 		bot: false,
 		system: false,
-		email: rawEmail,
-		email_verified: rawEmail === null ? !emailEnabled : emailOwnedAtCreation,
-		email_bounced: false,
 		password_hash: passwordHash,
 		password_last_changed_at: passwordHash ? now : null,
 		authenticator_types: new Set(),
@@ -417,16 +324,13 @@ async function createAccountUnlocked(
 	let creationAttempt: 'unattempted' | 'ordinary_account' | 'bootstrap_admin' = 'unattempted';
 	let usernameReservation: UsernameReservation | null = null;
 	try {
-		if (uniqueUsernames) {
-			usernameReservation = await reserveUsername({users, cache: ctx.services.cache}, username);
-		}
+		usernameReservation = await reserveUsername({users, cache: ctx.services.cache}, username);
 		if (registrationAccess.pendingApproval) {
 			await instanceConfigRepository.addPendingRegistration({
 				user_id: userId.toString(),
 				username: userRow.username,
 				discriminator: userRow.discriminator,
 				global_name: userRow.global_name,
-				email: rawEmail,
 				requested_at: now.toISOString(),
 				registration_url_id: registrationAccess.registrationUrl?.id ?? null,
 				client_ip: clientIp,
@@ -464,14 +368,7 @@ async function createAccountUnlocked(
 	void kvActivityTracker.updateActivity(user.id, now).catch((error: unknown) => {
 		Logger.warn({error, userId: user.id}, 'Failed to update real-time user activity');
 	});
-	let registrationMethod: RegMethod = 'unclaimed';
-	if (input.emailProven) {
-		registrationMethod = 'email_code';
-	} else if (input.password) {
-		registrationMethod = 'password';
-	} else if (rawEmail) {
-		registrationMethod = 'other';
-	}
+	const registrationMethod: RegMethod = input.password ? 'password' : 'unclaimed';
 	await emitActivity(
 		'registration',
 		user.id.toString(),
@@ -479,7 +376,6 @@ async function createAccountUnlocked(
 			user_id: user.id.toString(),
 			method: registrationMethod,
 			source,
-			email: rawEmail,
 			username,
 			username_user_chosen: input.username != null || input.globalName != null,
 			global_name: input.globalName ?? null,
@@ -491,9 +387,6 @@ async function createAccountUnlocked(
 		null,
 		user.id.toString(),
 	);
-	if (rawEmail && !input.emailProven && emailEnabled) {
-		await sendVerificationEmail(ctx, {user, email: rawEmail});
-	}
 	await users.createAuthorizedIp(userId, clientIp);
 	if (instant) await recordInstantAccountCreated(budgetEnv, clientIp);
 	if (registrationAccess.pendingApproval) {
@@ -515,35 +408,11 @@ async function createAccountUnlocked(
 		user,
 		origin: AuthSession.resolveSessionOrigin(ctx, request),
 	});
-	return {pendingApproval: false, user, token, entry, deviceProof: issueDeviceProof(user.id)};
-}
-
-export async function assertRegistrationEmailDeliverable(
-	email: string,
-	emailDnsValidation: ApiContext['services']['emailDnsValidation'],
-): Promise<void> {
-	if (isBlockedEmailDomain(extractEmailDomain(email))) {
-		throw InputValidationError.fromCode('email', ValidationErrorCodes.INVALID_EMAIL_ADDRESS);
-	}
-	await assertEmailNotBlocklisted(email, 'email');
-	if (!(await emailDnsValidation.hasValidDnsRecords(email))) {
-		throw InputValidationError.fromCode('email', ValidationErrorCodes.EMAIL_DOMAIN_CANNOT_RECEIVE_MAIL);
-	}
-}
-
-export async function assertInstanceAcceptsEmailDomain(email: string, field: string): Promise<void> {
-	const {allowed_email_domains} = await getInstanceConfigRepository().getRegistrationConfig();
-	assertEmailDomainAllowed(email, allowed_email_domains, field);
-}
-
-function usernameFromEmail(email: string): string | undefined {
-	const localPart = email.split('@')[0] ?? '';
-	return deriveUsernameFromDisplayName(localPart) ?? undefined;
+	return {pendingApproval: false, user, token, entry};
 }
 
 export async function assertRequestedProfileAllowed(
 	ctx: ApiContext,
-	deps: Pick<RegistrationDependencies, 'instanceConfigRepository'>,
 	params: {username: string | undefined; globalName: string | undefined},
 ): Promise<void> {
 	const {username, globalName} = params;
@@ -552,8 +421,7 @@ export async function assertRequestedProfileAllowed(
 		throw new ContentBlockedError();
 	}
 	if (!username) return;
-	const accountIdentity = await deps.instanceConfigRepository.getAccountIdentity();
-	if (accountIdentity.tagStyle === TagStyles.NONE && (await isUsernameTaken(ctx.services.users, username))) {
+	if (await isUsernameTaken(ctx.services.users, username)) {
 		throw InputValidationError.fromCode('username', ValidationErrorCodes.USERNAME_ALREADY_TAKEN);
 	}
 }
@@ -610,15 +478,13 @@ function usernameBaseFromGlobalName(globalName: string | undefined): string {
 function shouldAttemptBootstrapAdminGrant(
 	config: APIConfig,
 	params: {
-		rawEmail: string | null;
 		hasPassword: boolean;
-		usernameMode: boolean;
 		pendingApproval: boolean;
 		setupConfigured: boolean;
 		setupTokenVerified: boolean;
 	},
 ): boolean {
-	const claimedAccount = params.usernameMode ? params.hasPassword : params.rawEmail !== null;
+	const claimedAccount = params.hasPassword;
 	if (isSetupTokenEnforced(config)) return params.setupTokenVerified && claimedAccount;
 	const localDevInstance = config.nodeEnv === 'development' && !config.dev.testModeEnabled;
 	const setupBootstrapOpen = !params.setupConfigured;
@@ -627,35 +493,10 @@ function shouldAttemptBootstrapAdminGrant(
 	);
 }
 
-function hasSignInCredentials(input: AccountCreationInput, usernameMode: boolean): boolean {
-	if (input.emailProven && input.email) return true;
-	if (!input.password) return false;
-	return usernameMode || Boolean(input.email);
-}
-
-function assertUsernameModeRegistration(data: AccountCreationInput): void {
-	if (data.password && !data.username && data.olderAppEmail == null) {
+function assertUsernameForPasswordRegistration(data: AccountCreationInput): void {
+	if (data.password && !data.username) {
 		throw InputValidationError.fromCode('username', ValidationErrorCodes.USERNAME_LENGTH_INVALID);
 	}
-}
-
-function requestedUsernameFromOlderApp(config: APIConfig, email: string | null | undefined): string | undefined {
-	if (email == null) return undefined;
-	const localPart = getLocalPartAtInstance(config, email.trim());
-	if (localPart === null) {
-		throw InputValidationError.fromCode('email', ValidationErrorCodes.INSTANCE_ADDRESS_REQUIRED, {
-			host: getPrimaryInstanceHost(config),
-		});
-	}
-	const candidate = usernameFromInstanceLocalPart(localPart);
-	if (candidate === null) {
-		throw InputValidationError.fromCode('username', ValidationErrorCodes.USERNAME_INVALID_CHARACTERS);
-	}
-	const parsed = UsernameType.safeParse(candidate);
-	if (!parsed.success) {
-		throw inputValidationErrorFromZodIssues(parsed.error.issues.map((issue) => ({...issue, path: ['username']})));
-	}
-	return parsed.data;
 }
 
 async function claimRegistrationUrlUse(
@@ -707,7 +548,6 @@ async function releaseBootstrapAdminOfUncreatedAccount(
 export async function resolveRegistrationAccess(
 	instanceConfigRepository: InstanceConfigRepository,
 	registrationUrlCode: string | null | undefined,
-	email: string | null,
 ): Promise<RegistrationAccess> {
 	const registrationConfig = await instanceConfigRepository.getRegistrationConfig();
 	const normalizedCode = registrationUrlCode?.trim();
@@ -723,9 +563,6 @@ export async function resolveRegistrationAccess(
 	}
 	if (!registrationUrl && registrationConfig.mode === RegistrationModes.CLOSED) {
 		throw new RegistrationClosedError();
-	}
-	if (!registrationUrl && email) {
-		assertEmailDomainAllowed(email, registrationConfig.allowed_email_domains, 'email');
 	}
 	return {
 		pendingApproval: registrationUrl
@@ -763,20 +600,11 @@ export async function enforceRegistrationRateLimits(
 	params: {
 		enforceRateLimits: boolean;
 		clientIp: string;
-		emailKey: string | null;
 	},
 ): Promise<void> {
 	const {rateLimit} = ctx.services;
-	const {enforceRateLimits, clientIp, emailKey} = params;
+	const {enforceRateLimits, clientIp} = params;
 	if (!enforceRateLimits) return;
-	if (emailKey) {
-		const emailRateLimit = await rateLimit.checkLimit({
-			identifier: `registration:email:${emailKey}`,
-			maxAttempts: 3,
-			windowMs: ms('15 minutes'),
-		});
-		if (!emailRateLimit.allowed) throw createRateLimitError(emailRateLimit);
-	}
 	const ipRateLimit = await rateLimit.checkLimit({
 		identifier: `registration:ip:${getSameIpDecisionKey(clientIp) ?? clientIp}`,
 		maxAttempts: 3,

@@ -3,16 +3,11 @@
 import type {UserID} from '@app/api/BrandedTypes';
 import {Db, type DbOp} from '@app/api/database/CassandraTypes';
 import type {UserRow} from '@app/api/database/types/UserTypes';
-import {Logger} from '@app/api/Logger';
 import {User} from '@app/api/models/User';
 import {
 	UserDataRepository,
 	type UserDeletionTransition,
 } from '@app/api/user/repositories/account/crud/UserDataRepository';
-import {
-	type EmailClaimReservation,
-	UserEmailOwnershipRepository,
-} from '@app/api/user/repositories/account/crud/UserEmailOwnershipRepository';
 import {UserIndexRepository} from '@app/api/user/repositories/account/crud/UserIndexRepository';
 import {UserSearchRepository} from '@app/api/user/repositories/account/crud/UserSearchRepository';
 import {personalFieldsToClear} from '@app/api/user/UserHelpers';
@@ -22,7 +17,6 @@ import {
 	LEGACY_DEAD_USER_FLAGS_MASK,
 	legacyHiddenProfileBadges,
 } from '@osaca/constants/src/UserConstants';
-import type {IKVProvider} from '@pkgs/kv_client/src/IKVProvider';
 
 export interface UserDeletionScheduleUpdate {
 	pending_deletion_at: Date | null;
@@ -40,13 +34,11 @@ const USER_FLAGS_WRITE_ATTEMPTS = 3;
 
 export class UserAccountRepository {
 	private dataRepo: UserDataRepository;
-	private emailOwnershipRepo: UserEmailOwnershipRepository;
 	private indexRepo: UserIndexRepository;
 	private searchRepo: UserSearchRepository;
 
-	constructor(kv: IKVProvider) {
+	constructor() {
 		this.dataRepo = new UserDataRepository();
-		this.emailOwnershipRepo = new UserEmailOwnershipRepository((userId: UserID) => this.findUnique(userId), kv);
 		this.indexRepo = new UserIndexRepository();
 		this.searchRepo = new UserSearchRepository();
 	}
@@ -83,37 +75,15 @@ export class UserAccountRepository {
 			oldData = (await this.findUnique(userId))?.toRow() ?? null;
 		}
 		this.applyLegacyFlagsMigration(data);
-		const claimedNewEmail = this.didEmailChange(oldData, data);
-		let emailClaim: EmailClaimReservation | null = null;
-		if (claimedNewEmail && data.email) {
-			emailClaim = await this.emailOwnershipRepo.claimEmail(data.email, userId);
+		const result = await this.dataRepo.upsertUserRow(data, oldData);
+		if (result.finalVersion === null) {
+			throw new Error(`Failed to update user ${userId} after max retries due to concurrent updates`);
 		}
-		let dataCommitted = false;
-		try {
-			const result = await this.dataRepo.upsertUserRow(data, oldData);
-			if (result.finalVersion === null) {
-				throw new Error(`Failed to update user ${userId} after max retries due to concurrent updates`);
-			}
-			dataCommitted = true;
-			const updatedData = result.updatedData;
-			const previousData = result.previousData;
-			const updatedUser = new User(updatedData);
-			await this.emailOwnershipRepo.finalizeEmailClaim(emailClaim);
-			await this.releasePreviousEmailIfChanged(previousData, updatedData);
-			await this.indexRepo.syncIndices(updatedData, previousData);
-			await this.searchRepo.indexUser(updatedUser);
-			return updatedUser;
-		} catch (error) {
-			if (!dataCommitted && emailClaim) {
-				await this.emailOwnershipRepo.abortEmailClaim(emailClaim).catch((abortError: unknown) => {
-					Logger.warn(
-						{userId: userId.toString(), abortError},
-						'Failed to abort the email claim of a user write that did not commit',
-					);
-				});
-			}
-			throw error;
-		}
+		const updatedData = result.updatedData;
+		const updatedUser = new User(updatedData);
+		await this.indexRepo.syncIndices(updatedData, result.previousData);
+		await this.searchRepo.indexUser(updatedUser);
+		return updatedUser;
 	}
 
 	async patchUpsert(userId: UserID, patchData: Partial<UserRow>, oldData?: UserRow | null): Promise<User> {
@@ -198,9 +168,6 @@ export class UserAccountRepository {
 			Object.fromEntries(cleared.map((field) => [field, Db.clear()])),
 			user.toRow(),
 		);
-		if (user.email) {
-			await this.emailOwnershipRepo.releaseEmail(user.email, user.id);
-		}
 		return true;
 	}
 
@@ -226,40 +193,22 @@ export class UserAccountRepository {
 				userPatch[key] = Db.clear();
 			}
 		}
-		const nextEmail = typeof patchData.email === 'string' ? patchData.email : null;
-		const claimedNewEmail = nextEmail !== null && this.didEmailChange(oldData, {email: nextEmail});
-		let emailClaim: EmailClaimReservation | null = null;
-		if (claimedNewEmail && nextEmail) {
-			emailClaim = await this.emailOwnershipRepo.claimEmail(nextEmail, userId);
+		const result = deletionTransition
+			? await this.dataRepo.patchDeletion(new User(oldData), userPatch, deletionTransition)
+			: await this.dataRepo.patchUser(userId, userPatch, oldData);
+		if (result.finalVersion === null) {
+			throw new Error(`Failed to update user ${userId} due to concurrent modification`);
 		}
-		let dataCommitted = false;
-		try {
-			const result = deletionTransition
-				? await this.dataRepo.patchDeletion(new User(oldData), userPatch, deletionTransition)
-				: await this.dataRepo.patchUser(userId, userPatch, oldData);
-			if (result.finalVersion === null) {
-				throw new Error(`Failed to update user ${userId} due to concurrent modification`);
-			}
-			dataCommitted = true;
-			const updatedData = result.updatedData;
-			const previousData = result.previousData;
-			const updatedUser = new User(updatedData);
-			await this.emailOwnershipRepo.finalizeEmailClaim(emailClaim);
-			await this.releasePreviousEmailIfChanged(previousData, updatedData);
-			if (deletionTransition !== 'anonymise') {
-				await this.indexRepo.syncIndices(updatedData, previousData);
-			}
-			await this.searchRepo.updateUser(updatedUser);
-			if (legacyHiddenProfileBadges(updatedData.flags ?? 0n).length > 0) {
-				return (await this.moveLegacyBadgeHideBits(userId, {mergeIntoHiddenList: false})) ?? updatedUser;
-			}
-			return updatedUser;
-		} catch (error) {
-			if (!dataCommitted && emailClaim) {
-				await this.emailOwnershipRepo.abortEmailClaim(emailClaim);
-			}
-			throw error;
+		const updatedData = result.updatedData;
+		const updatedUser = new User(updatedData);
+		if (deletionTransition !== 'anonymise') {
+			await this.indexRepo.syncIndices(updatedData, result.previousData);
 		}
+		await this.searchRepo.updateUser(updatedUser);
+		if (legacyHiddenProfileBadges(updatedData.flags ?? 0n).length > 0) {
+			return (await this.moveLegacyBadgeHideBits(userId, {mergeIntoHiddenList: false})) ?? updatedUser;
+		}
+		return updatedUser;
 	}
 
 	async indexUserAcls(user: User): Promise<void> {
@@ -269,14 +218,7 @@ export class UserAccountRepository {
 	async deleteUserSecondaryIndices(userId: UserID): Promise<void> {
 		const user = await this.findUnique(userId);
 		if (!user) return;
-		await this.indexRepo.deleteIndices(
-			userId,
-			user.username,
-			user.discriminator,
-			user.email,
-			user.lastActiveIp,
-			user.acls,
-		);
+		await this.indexRepo.deleteIndices(userId, user.username, user.discriminator, user.lastActiveIp, user.acls);
 	}
 
 	async updateLastActiveAt(params: {userId: UserID; lastActiveAt: Date; lastActiveIp?: string}): Promise<void> {
@@ -332,19 +274,5 @@ export class UserAccountRepository {
 			return {...patchData, flags: oldRawFlags & ~LEGACY_DEAD_USER_FLAGS_MASK};
 		}
 		return patchData;
-	}
-
-	private didEmailChange(oldData: Pick<UserRow, 'email'> | null | undefined, newData: Pick<UserRow, 'email'>): boolean {
-		return oldData?.email?.toLowerCase() !== newData.email?.toLowerCase();
-	}
-
-	private async releasePreviousEmailIfChanged(oldData: UserRow | null, newData: UserRow): Promise<void> {
-		if (!oldData?.email) {
-			return;
-		}
-		if (oldData.email.toLowerCase() === newData.email?.toLowerCase()) {
-			return;
-		}
-		await this.emailOwnershipRepo.releaseEmail(oldData.email, oldData.user_id);
 	}
 }

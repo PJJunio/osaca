@@ -20,7 +20,7 @@ use crate::{
     state::AppState,
     templates::pages::{
         instance_branding::CUSTOM_CSS_FIELD,
-        instance_config::{LOADED_CONFIG_FIELD, REGISTRATION_ALLOWED_EMAIL_DOMAINS_FIELD},
+        instance_config::LOADED_CONFIG_FIELD,
     },
     utils::forms::MultiValueForm,
 };
@@ -178,11 +178,7 @@ pub async fn instance_config_post(
     let flash = 'action: {
         match action {
             "update_integrations" => {
-                break 'action integrations::run(&client, &form, integrations::Action::Update)
-                    .await;
-            }
-            "test_smtp" => {
-                break 'action integrations::run(&client, &form, integrations::Action::Test).await;
+                break 'action integrations::run(&client, &form).await;
             }
             _ => {}
         }
@@ -251,10 +247,6 @@ pub async fn instance_config_post(
             );
         }
         let feedback = match action {
-            "update_registration" => UpdateFeedback::Field(
-                "allowed_email_domains",
-                REGISTRATION_ALLOWED_EMAIL_DOMAINS_FIELD,
-            ),
             "update_app_public" => {
                 UpdateFeedback::Field("app_public.branding.custom_css", CUSTOM_CSS_FIELD)
             }
@@ -462,9 +454,6 @@ fn build_registration_update(form: &MultiValueForm) -> InstanceConfigUpdateReque
             admin_registration_urls_enabled: Some(
                 form.bool_value("admin_registration_urls_enabled"),
             ),
-            allowed_email_domains: form
-                .contains_key(REGISTRATION_ALLOWED_EMAIL_DOMAINS_FIELD)
-                .then(|| form.list_values(REGISTRATION_ALLOWED_EMAIL_DOMAINS_FIELD)),
         }),
         ..Default::default()
     }

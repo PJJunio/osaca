@@ -142,16 +142,6 @@ pub async fn dispatch(
             "MFA disabled successfully",
             "Failed to disable MFA",
         ),
-        "resend_verification_email" => DispatchOutcome::from_result(
-            client.resend_verification_email(user_id).await,
-            "Verification email sent successfully",
-            "Failed to resend verification email",
-        ),
-        "verify_email" => DispatchOutcome::from_result(
-            client.verify_email(user_id).await,
-            "Email verified successfully",
-            "Failed to verify email",
-        ),
         "terminate_sessions" => DispatchOutcome::from_result(
             client.terminate_user_sessions(user_id).await,
             "User sessions terminated successfully",
@@ -200,16 +190,6 @@ pub async fn dispatch(
                     .await,
                 "Username changed successfully",
                 "Failed to change username",
-            )
-        }
-        "change_email" => {
-            let Some(email) = get("email") else {
-                return DispatchOutcome::error("Email is required");
-            };
-            DispatchOutcome::from_result(
-                client.change_email(user_id, &email).await,
-                "Email changed successfully",
-                "Failed to change email",
             )
         }
         "suspend" => {
@@ -359,11 +339,6 @@ pub async fn dispatch(
                 "Failed to delete WebAuthn credential",
             )
         }
-        "send_password_reset" => DispatchOutcome::from_result(
-            client.send_password_reset(user_id).await,
-            "Password reset sent successfully",
-            "Failed to send password reset",
-        ),
         "revoke_recovery_kit" => DispatchOutcome::from_result(
             client.revoke_recovery_kit(user_id).await,
             "Recovery kit revoked",

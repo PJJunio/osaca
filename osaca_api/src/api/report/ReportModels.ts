@@ -54,7 +54,6 @@ export interface IARMessageContext {
 export interface IARSubmission {
 	reportId: ReportID;
 	reporterId: UserID | null;
-	reporterEmail: string | null;
 	reporterFullLegalName: string | null;
 	reporterCountryOfResidence: string | null;
 	reportedAt: Date;

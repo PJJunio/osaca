@@ -2,7 +2,6 @@
 
 import {Routes} from '@app/app/Routes';
 import type {RuntimeConfigSnapshot} from '@app/features/app/state/InstanceSnapshotStore';
-import {usesUsernameSignIn} from '@app/features/app/utils/AccountIdentityFeatures';
 import * as AuthenticationCommands from '@app/features/auth/commands/AuthenticationCommands';
 import {AuthBottomLink} from '@app/features/auth/flow/AuthBottomLink';
 import {AuthErrorState} from '@app/features/auth/flow/AuthErrorState';
@@ -16,7 +15,7 @@ import {AuthRuntimeTargetGate} from '@app/features/auth/flow/AuthRuntimeTargetGa
 import {AuthRuntimeTargetResetAction} from '@app/features/auth/flow/AuthRuntimeTargetResetAction';
 import {isHandoffRequest} from '@app/features/auth/flow/auth_login_core/useDesktopHandoffFlow';
 import {DesktopDeepLinkPrompt} from '@app/features/auth/flow/DesktopDeepLinkPrompt';
-import {linkRegisterFields, readRegistrationUrlCode} from '@app/features/auth/flow/RegisterFormFields';
+import {credentialRegisterFields} from '@app/features/auth/flow/RegisterFormFields';
 import {useAuthPresentation} from '@app/features/auth/flow/useAuthPresentation';
 import {AuthCardVariant} from '@app/features/auth/state/AuthLayoutContext';
 import {useAuthRuntimeTarget} from '@app/features/auth/state/AuthRuntimeTarget';
@@ -162,7 +161,6 @@ const ResourceAuthContent = observer(function ResourceAuthContent<T>({
 				/>
 			</AuthLoginStepCarousel>
 		);
-	const usernameSignIn = usesUsernameSignIn(runtimeSnapshot.features);
 	const header = (
 		<>
 			<DesktopDeepLinkPrompt code={id} kind={config.kind} data-flx={`${prefix}.desktop-deep-link-prompt`} />
@@ -173,10 +171,10 @@ const ResourceAuthContent = observer(function ResourceAuthContent<T>({
 		<div className={sharedStyles.container} data-flx={`${prefix}.div`}>
 			{config.headerOutsideForm ? null : header}
 			<AuthRegisterFormCore
-				fields={linkRegisterFields(runtimeSnapshot, readRegistrationUrlCode(params))}
+				fields={credentialRegisterFields()}
 				submitLabel={config.submitLabel}
 				redirectPath={config.registerRedirectPath(id, safeRedirect)}
-				offerRecoveryKit={usernameSignIn}
+				offerRecoveryKit
 				onRegister={onRegisterComplete}
 				runtimeSnapshot={runtimeSnapshot}
 				onAuthenticated={runtimeTarget.reset}

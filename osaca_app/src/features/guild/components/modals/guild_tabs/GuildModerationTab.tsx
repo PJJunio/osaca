@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {useFormSubmit} from '@app/features/app/hooks/useFormSubmit';
-import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
 import * as GuildCommands from '@app/features/guild/commands/GuildCommands';
 import styles from '@app/features/guild/components/modals/guild_tabs/GuildModerationTab.module.css';
 import Guilds from '@app/features/guild/state/Guilds';
@@ -18,6 +17,8 @@ import {Tooltip} from '@app/features/ui/tooltip/Tooltip';
 import {CompactComboboxRow} from '@app/features/user/components/modals/tabs/components/CompactComboboxRow';
 import Users from '@app/features/user/state/Users';
 import {useRemoteFormReset} from '@app/lib/forms/RemoteFormReset';
+import {msg} from '@lingui/core/macro';
+import {Trans, useLingui} from '@lingui/react/macro';
 import {Permissions} from '@osaca/constants/src/ChannelConstants';
 import {
 	CONTENT_WARNING_TEXT_MAX_LENGTH,
@@ -28,8 +29,6 @@ import {
 	GuildVerificationLevel,
 	getEffectiveGuildVerificationLevel,
 } from '@osaca/constants/src/GuildConstants';
-import {msg} from '@lingui/core/macro';
-import {Trans, useLingui} from '@lingui/react/macro';
 import {observer} from 'mobx-react-lite';
 import type React from 'react';
 import {useCallback, useEffect} from 'react';
@@ -60,13 +59,8 @@ const VERIFICATION_LEVEL_LOW_NAME_DESCRIPTOR = msg({
 		'Member verification level option in the community moderation settings tab. Short standalone severity label.',
 });
 const VERIFICATION_LEVEL_LOW_DESCRIPTION_DESCRIPTOR = msg({
-	message: 'Requires a verified email address.',
-	comment: 'Helper text for the "Low" member verification level option in the community moderation settings tab.',
-});
-const VERIFICATION_LEVEL_LOW_USERNAME_DESCRIPTION_DESCRIPTOR = msg({
 	message: 'Requires a claimed account.',
-	comment:
-		'Helper text for the "Low" member verification level option on an instance where people sign in with a username and no email.',
+	comment: 'Helper text for the "Low" member verification level option.',
 });
 const VERIFICATION_LEVEL_MEDIUM_NAME_DESCRIPTOR = msg({
 	message: 'Medium',
@@ -74,13 +68,8 @@ const VERIFICATION_LEVEL_MEDIUM_NAME_DESCRIPTOR = msg({
 		'Member verification level option in the community moderation settings tab. Short standalone severity label.',
 });
 const VERIFICATION_LEVEL_MEDIUM_DESCRIPTION_DESCRIPTOR = msg({
-	message: "Requires a verified email address and an account that's at least 5 minutes old.",
-	comment: 'Helper text for the "Medium" member verification level option in the community moderation settings tab.',
-});
-const VERIFICATION_LEVEL_MEDIUM_USERNAME_DESCRIPTION_DESCRIPTOR = msg({
 	message: "Requires a claimed account that's at least 5 minutes old.",
-	comment:
-		'Helper text for the "Medium" member verification level option on an instance where people sign in with a username and no email.',
+	comment: 'Helper text for the "Medium" member verification level option.',
 });
 const VERIFICATION_LEVEL_HIGH_NAME_DESCRIPTOR = msg({
 	message: 'High',
@@ -260,7 +249,6 @@ const GuildModerationTab: React.FC<{guildId: string}> = observer(({guildId}) => 
 		}
 		return;
 	};
-	const usesUsernameSignIn = RuntimeConfig.usesUsernameSignIn;
 	const verificationLevelOptions: ReadonlyArray<RadioOption<number>> = [
 		{
 			value: GuildVerificationLevel.NONE,
@@ -271,20 +259,12 @@ const GuildModerationTab: React.FC<{guildId: string}> = observer(({guildId}) => 
 		{
 			value: GuildVerificationLevel.LOW,
 			name: colorizeLabel(i18n._(VERIFICATION_LEVEL_LOW_NAME_DESCRIPTOR), '#22c55e'),
-			desc: i18n._(
-				usesUsernameSignIn
-					? VERIFICATION_LEVEL_LOW_USERNAME_DESCRIPTION_DESCRIPTOR
-					: VERIFICATION_LEVEL_LOW_DESCRIPTION_DESCRIPTOR,
-			),
+			desc: i18n._(VERIFICATION_LEVEL_LOW_DESCRIPTION_DESCRIPTOR),
 		},
 		{
 			value: GuildVerificationLevel.MEDIUM,
 			name: colorizeLabel(i18n._(VERIFICATION_LEVEL_MEDIUM_NAME_DESCRIPTOR), '#f59e0b'),
-			desc: i18n._(
-				usesUsernameSignIn
-					? VERIFICATION_LEVEL_MEDIUM_USERNAME_DESCRIPTION_DESCRIPTOR
-					: VERIFICATION_LEVEL_MEDIUM_DESCRIPTION_DESCRIPTOR,
-			),
+			desc: i18n._(VERIFICATION_LEVEL_MEDIUM_DESCRIPTION_DESCRIPTOR),
 		},
 		{
 			value: GuildVerificationLevel.HIGH,
@@ -320,7 +300,7 @@ const GuildModerationTab: React.FC<{guildId: string}> = observer(({guildId}) => 
 								data-flx="guild.guild-tabs.guild-moderation-tab.section-description--verification-discovery"
 							>
 								<Trans>
-									Communities listed in Explore need at least email verification. You can't pick "None" while your
+									Communities listed in Explore need at least a claimed account. You can't pick "None" while your
 									community is listed in Explore.
 								</Trans>
 							</p>

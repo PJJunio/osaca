@@ -27,7 +27,6 @@ import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHa
 import {HarvestedMessagesSchema, harvestUserArchive} from '@app/api/test/UserArchiveTestUtils';
 import {clearWorkerDependencies, setWorkerDependencies} from '@app/api/worker/WorkerContext';
 import {initializeWorkerDependencies, type WorkerDependencies} from '@app/api/worker/WorkerDependencies';
-import {AccountIdentityModes} from '@osaca/constants/src/AccountIdentityConstants';
 import {makeBucket} from '@osaca/snowflake/src/SnowflakeBuckets';
 import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it} from 'vitest';
 import {z} from 'zod';
@@ -51,7 +50,6 @@ beforeEach(async () => {
 		user_id: AUTHOR,
 		username: 'exporter',
 		discriminator: 1,
-		email: 'operator@example.com',
 	});
 });
 afterEach(() => {
@@ -215,7 +213,6 @@ const UserDataSchema = z.looseObject({});
 async function exportUserData(data: SeedData = {}) {
 	if (data.recoveryKitCreatedAt) {
 		Config.instance.selfHosted = true;
-		await deps.instanceConfigRepository.setAccountIdentityMode(AccountIdentityModes.USERNAME, 'setup');
 		await upsertOne(
 			UserRecoveryKits.upsertAll({
 				user_id: AUTHOR,

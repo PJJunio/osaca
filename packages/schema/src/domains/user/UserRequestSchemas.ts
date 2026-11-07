@@ -53,7 +53,6 @@ import {
 } from '@osaca/schema/src/primitives/UserSettingsValidators';
 import {
 	DiscriminatorType,
-	EmailType,
 	GlobalNameType,
 	PasswordType,
 	UsernameType,
@@ -65,7 +64,6 @@ export const UserUpdateRequest = z
 		username: UsernameType.describe('The username for the account (1-32 characters)'),
 		discriminator: DiscriminatorType.describe('The 4-digit discriminator tag'),
 		global_name: GlobalNameType.nullish().describe('The display name shown to other users'),
-		email: EmailType.describe('The email address for the account'),
 		new_password: PasswordType.describe('The new password to set'),
 		password: PasswordType.describe('The current password for verification'),
 		avatar: createBase64ImageType().nullish().describe('Base64-encoded avatar image'),
@@ -90,88 +88,9 @@ export const UserUpdateRequest = z
 
 export type UserUpdateRequest = z.infer<typeof UserUpdateRequest>;
 
-const EmailTokenType = createStringType(1, 256);
-export const UserUpdateWithVerificationRequest = UserUpdateRequest.extend({
-	email_token: EmailTokenType.optional().describe('Email change token for updating email'),
-	...SudoVerificationSchema.shape,
-}).superRefine((data, ctx) => {
-	if (data.email !== undefined) {
-		ctx.addIssue({
-			code: 'custom',
-			message: ValidationErrorCodes.EMAIL_MUST_BE_CHANGED_VIA_TOKEN,
-			path: ['email'],
-		});
-	}
-});
+export const UserUpdateWithVerificationRequest = UserUpdateRequest.extend(SudoVerificationSchema.shape);
 
 export type UserUpdateWithVerificationRequest = z.infer<typeof UserUpdateWithVerificationRequest>;
-
-export const EmailChangeTicketRequest = z.object({
-	ticket: createStringType().describe('Email change ticket identifier'),
-});
-
-export type EmailChangeTicketRequest = z.infer<typeof EmailChangeTicketRequest>;
-
-export const EmailChangeVerifyOriginalRequest = EmailChangeTicketRequest.extend({
-	code: createStringType().describe('Verification code sent to the original email address'),
-});
-
-export type EmailChangeVerifyOriginalRequest = z.infer<typeof EmailChangeVerifyOriginalRequest>;
-
-export const EmailChangeRequestNewRequest = EmailChangeTicketRequest.extend({
-	new_email: EmailType.describe('New email address to switch to'),
-	original_proof: createStringType().describe('Proof token obtained from verifying the original email'),
-	new_password: PasswordType.optional().describe(
-		'Password the caller intends to set, rejected here instead of after the code is sent',
-	),
-});
-
-export type EmailChangeRequestNewRequest = z.infer<typeof EmailChangeRequestNewRequest>;
-
-export const EmailChangeVerifyNewRequest = EmailChangeVerifyOriginalRequest.extend({
-	original_proof: createStringType().describe('Proof token obtained from verifying the original email'),
-});
-
-export type EmailChangeVerifyNewRequest = z.infer<typeof EmailChangeVerifyNewRequest>;
-
-export const EmailChangeApplyRequest = z
-	.object({
-		email_token: EmailTokenType.describe('Email change token returned from verify-new'),
-	})
-	.extend(SudoVerificationSchema.shape);
-
-export type EmailChangeApplyRequest = z.infer<typeof EmailChangeApplyRequest>;
-
-export const EmailChangeBouncedRequestNewRequest = z.object({
-	new_email: EmailType.describe('Replacement email address used when the current email has bounced'),
-});
-
-export type EmailChangeBouncedRequestNewRequest = z.infer<typeof EmailChangeBouncedRequestNewRequest>;
-
-export const EmailChangeBouncedVerifyNewRequest = EmailChangeTicketRequest.extend({
-	code: createStringType().describe('Verification code sent to the replacement email address'),
-});
-
-export type EmailChangeBouncedVerifyNewRequest = z.infer<typeof EmailChangeBouncedVerifyNewRequest>;
-
-export const PasswordChangeTicketRequest = z.object({
-	ticket: createStringType().describe('Password change ticket identifier'),
-});
-
-export type PasswordChangeTicketRequest = z.infer<typeof PasswordChangeTicketRequest>;
-
-export const PasswordChangeVerifyRequest = PasswordChangeTicketRequest.extend({
-	code: createStringType().describe('Verification code sent to the email address'),
-});
-
-export type PasswordChangeVerifyRequest = z.infer<typeof PasswordChangeVerifyRequest>;
-
-export const PasswordChangeCompleteRequest = PasswordChangeTicketRequest.extend({
-	verification_proof: createStringType().describe('Proof token obtained from verifying the email code'),
-	new_password: PasswordType.describe('The new password to set'),
-}).extend(SudoVerificationSchema.shape);
-
-export type PasswordChangeCompleteRequest = z.infer<typeof PasswordChangeCompleteRequest>;
 
 export const UserPasswordUpdateRequest = z
 	.object({

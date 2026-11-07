@@ -250,7 +250,7 @@ export const EnforcementDecisionEndRequest = z.object({
 	outcome: z
 		.enum(['lifted', 'reversed'])
 		.describe('Lifted ends a restriction that was correct. Reversed says the decision was wrong'),
-	statement: createStringType(1, 500).optional().describe('Note to the user, shown in the email'),
+	statement: createStringType(1, 500).optional().describe('Note to the user, shown in the notice'),
 });
 
 export type EnforcementDecisionEndRequest = z.infer<typeof EnforcementDecisionEndRequest>;
@@ -285,7 +285,7 @@ const EnforcementDecisionSummary = z.object({
 	ended_by: SnowflakeStringType.nullable(),
 	end_statement: z.string().nullable(),
 	notice_status: z.enum(['pending', 'sent', 'undelivered']),
-	notice_channels: z.array(z.enum(['email', 'system_dm', 'sign_in'])),
+	notice_channels: z.array(z.enum(['system_dm', 'sign_in'])),
 	notice_locale: z.string().nullable(),
 	notice_text: z.string().nullable().describe('The plain text that was sent'),
 	notice_sent_at: z.string().nullable(),

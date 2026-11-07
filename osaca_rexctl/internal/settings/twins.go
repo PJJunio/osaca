@@ -21,29 +21,10 @@ var Twins = map[string]string{
 	"OSACA_AUTH_BLUESKY_LOGO_URI":                "integrations.bluesky.logo_uri",
 	"OSACA_AUTH_BLUESKY_POLICY_URI":              "integrations.bluesky.policy_uri",
 	"OSACA_AUTH_BLUESKY_TOS_URI":                 "integrations.bluesky.tos_uri",
-	"OSACA_EMAIL_DELIVERY":                       "integrations.email.delivery",
-	"OSACA_EMAIL_ENABLED":                        "integrations.email.delivery",
-	"OSACA_EMAIL_FROM_EMAIL":                     "integrations.email.from_email",
-	"OSACA_EMAIL_FROM_NAME":                      "integrations.email.from_name",
-	"OSACA_EMAIL_PROVIDER":                       "integrations.email.delivery",
-	"OSACA_EMAIL_SMTP_HOST":                      "integrations.email.smtp.host",
-	"OSACA_EMAIL_SMTP_PASSWORD":                  "integrations.email.smtp.password",
-	"OSACA_EMAIL_SMTP_PORT":                      "integrations.email.smtp.port",
-	"OSACA_EMAIL_SMTP_SECURE":                    "integrations.email.smtp.tls_mode",
-	"OSACA_EMAIL_SMTP_TLS_MODE":                  "integrations.email.smtp.tls_mode",
-	"OSACA_EMAIL_SMTP_USERNAME":                  "integrations.email.smtp.username",
 	"OSACA_YOUTUBE_API_KEY":                      "integrations.youtube.api_key",
 }
 
-var twinVars = map[string]string{
-	"integrations.email.delivery":      "OSACA_EMAIL_DELIVERY",
-	"integrations.email.smtp.tls_mode": "OSACA_EMAIL_SMTP_TLS_MODE",
-}
-
 func TwinVar(adminKey string) (string, bool) {
-	if v, ok := twinVars[adminKey]; ok {
-		return v, true
-	}
 	for v, k := range Twins {
 		if k == adminKey {
 			return v, true

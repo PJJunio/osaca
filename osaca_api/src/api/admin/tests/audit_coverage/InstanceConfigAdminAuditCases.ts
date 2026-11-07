@@ -1,12 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type {AdminAuditCoverageCase} from '@app/api/admin/tests/audit_coverage/AdminAuditCoverage';
-import {
-	createUniqueEmail,
-	createUniqueUsername,
-	registerUser,
-	type TestAccount,
-} from '@app/api/auth/tests/AuthTestUtils';
+import {createUniqueUsername, registerUser, type TestAccount} from '@app/api/auth/tests/AuthTestUtils';
 import {getPngDataUrl} from '@app/api/emoji/tests/EmojiTestUtils';
 import {getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
 import type {ApiTestHarness} from '@app/api/test/ApiTestHarness';
@@ -78,24 +73,6 @@ export const InstanceConfigAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase
 	},
 	{
 		method: 'POST',
-		route: '/admin/instance/config/smtp-tests',
-		async prepare() {
-			return {
-				request: {
-					path: '/admin/instance/config/smtp-tests',
-					body: {host: '127.0.0.1', port: 1, username: 'coverage', password: 'coverage-password', tls_mode: 'none'},
-				},
-				expected: {
-					action: 'test_smtp_connection',
-					targetType: 'instance_config',
-					targetId: '0',
-					metadata: {port: '1', tls_mode: 'none', ok: 'false', sent_message: 'false'},
-				},
-			};
-		},
-	},
-	{
-		method: 'POST',
 		route: '/admin/instance/registration-urls',
 		async prepare() {
 			return {
@@ -150,7 +127,6 @@ export const InstanceConfigAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase
 		async prepare({harness}) {
 			await getInstanceConfigRepository().setRegistrationConfig({mode: 'approval'});
 			await registerUser(harness, {
-				email: createUniqueEmail('coverage-listed'),
 				username: createUniqueUsername('coveragelisted'),
 				global_name: 'Coverage Listed',
 				password: 'coverage-listed-password',
@@ -173,7 +149,6 @@ export const InstanceConfigAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase
 		async prepare({harness}) {
 			await getInstanceConfigRepository().setRegistrationConfig({mode: 'approval'});
 			const pending = await registerUser(harness, {
-				email: createUniqueEmail('coverage-pending'),
 				username: createUniqueUsername('coveragepending'),
 				global_name: 'Coverage Pending',
 				password: 'coverage-pending-password',

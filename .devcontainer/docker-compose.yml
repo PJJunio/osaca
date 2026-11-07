@@ -242,8 +242,6 @@ services:
         condition: service_started
       meilisearch:
         condition: service_healthy
-      mailpit:
-        condition: service_started
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
@@ -310,17 +308,6 @@ services:
       retries: 30
       start_period: 5s
 
-  mailpit:
-    image: axllent/mailpit:v1.31
-    environment:
-      MP_DATABASE: /data/mailpit.db
-      MP_MAX_MESSAGES: 5000
-      MP_SMTP_AUTH_ACCEPT_ANY: "1"
-      MP_SMTP_AUTH_ALLOW_INSECURE: "1"
-      MP_WEBROOT: devmail
-    volumes:
-      - mailpit-data:/data
-
 volumes:
   pnpm-store:
   root-node-modules:
@@ -365,5 +352,4 @@ volumes:
   rust-target:
   nats-data:
   meilisearch-data:
-  mailpit-data:
   postgres-data:

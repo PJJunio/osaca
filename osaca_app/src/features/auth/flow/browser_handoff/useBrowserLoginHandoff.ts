@@ -17,7 +17,6 @@ import {
 } from '@app/features/auth/flow/browser_handoff/HandoffErrorMessages';
 import {getAuthErrorMessage} from '@app/features/auth/hooks/useAuthForm';
 import type {LoginSuccessPayload} from '@app/features/auth/state/AuthFlow';
-import {type LoginIdentifierField, loginIdentifierField} from '@app/features/auth/utils/AccountSignInIdentifier';
 import {instanceTargetFromSnapshot} from '@app/features/platform/transport/InstanceHTTP';
 import {HttpError} from '@app/features/platform/types/EndpointError';
 import {Logger} from '@app/features/platform/utils/AppLogger';
@@ -96,21 +95,16 @@ function resolveHandoffTarget(runtimeSnapshot: RuntimeConfigSnapshot): BrowserLo
 interface BrowserLoginHandoffURLRequest {
 	readonly session: BrowserLoginHandoffSession;
 	readonly prefillIdentifier: string | null | undefined;
-	readonly prefillField: LoginIdentifierField;
 }
 
-function buildBrowserLoginHandoffURL({
-	session,
-	prefillIdentifier,
-	prefillField,
-}: BrowserLoginHandoffURLRequest): string {
+function buildBrowserLoginHandoffURL({session, prefillIdentifier}: BrowserLoginHandoffURLRequest): string {
 	const params = new URLSearchParams({
 		handoff: '1',
 		code: session.code,
 		api: new URL(session.target.instance.apiEndpoint).origin,
 	});
 	if (prefillIdentifier != null && prefillIdentifier.length > 0) {
-		params.set(prefillField, prefillIdentifier);
+		params.set('login', prefillIdentifier);
 	}
 	return `${session.target.webAppEndpoint}/login?${params.toString()}`;
 }
@@ -263,7 +257,6 @@ export function useBrowserLoginHandoff({
 				buildBrowserLoginHandoffURL({
 					session: currentSession,
 					prefillIdentifier,
-					prefillField: loginIdentifierField(runtimeSnapshot),
 				}),
 			);
 			return true;

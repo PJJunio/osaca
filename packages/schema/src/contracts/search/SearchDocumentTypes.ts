@@ -107,12 +107,9 @@ export interface SearchableUser {
 	id: string;
 	username: string;
 	discriminator: number;
-	email: string | null;
 	isBot: boolean;
 	isSystem: boolean;
 	flags: string;
-	emailVerified: boolean;
-	emailBounced: boolean;
 	acls: Array<string>;
 	createdAt: number;
 	lastActiveAt: number | null;
@@ -123,8 +120,6 @@ export interface SearchableUser {
 export interface UserSearchFilters {
 	isBot?: boolean;
 	isSystem?: boolean;
-	emailVerified?: boolean;
-	emailBounced?: boolean;
 	isTempBanned?: boolean;
 	isPendingDeletion?: boolean;
 	hasAcl?: Array<string>;

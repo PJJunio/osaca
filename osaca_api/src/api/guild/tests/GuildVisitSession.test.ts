@@ -67,7 +67,6 @@ describe('Guild visit session ban checks', () => {
 			expires_at: null,
 			reason: null,
 			ip,
-			email: null,
 		});
 
 		const session = await restoreSession(visitor).execute();

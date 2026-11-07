@@ -1,14 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {
-	clearTestEmails,
-	createAuthHarness,
-	createTestAccount,
-	findLastTestEmail,
-	listTestEmails,
-	loginAccount,
-	type TestAccount,
-} from '@app/api/auth/tests/AuthTestUtils';
+import {createAuthHarness, createTestAccount, loginAccount, type TestAccount} from '@app/api/auth/tests/AuthTestUtils';
 import type {ApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {generateUniquePassword, HTTP_STATUS} from '@app/api/test/TestConstants';
 import {createBuilder} from '@app/api/test/TestRequestBuilder';
@@ -38,22 +30,9 @@ async function completePasswordChange(
 	account: TestAccount,
 	newPassword: string,
 ): Promise<ReplacementResponse> {
-	const start = await createBuilder<{ticket: string}>(harness, account.token)
-		.post('/users/@me/password-change/start')
-		.body({})
-		.execute();
-	const emails = await listTestEmails(harness, {recipient: account.email});
-	const record = findLastTestEmail(emails, 'password_change_verification');
-	if (!record) {
-		throw new Error('Password change verification email not found');
-	}
-	const verify = await createBuilder<{verification_proof: string}>(harness, account.token)
-		.post('/users/@me/password-change/verify')
-		.body({ticket: start.ticket, code: record.metadata.code})
-		.execute();
 	return createBuilder<ReplacementResponse>(harness, account.token)
-		.post('/users/@me/password-change/complete')
-		.body({ticket: start.ticket, verification_proof: verify.verification_proof, new_password: newPassword})
+		.post('/users/@me/password')
+		.body({password: account.password, new_password: newPassword})
 		.expect(HTTP_STATUS.OK)
 		.execute();
 }
@@ -65,7 +44,6 @@ describe('Auth session replacement on password change', () => {
 	});
 	beforeEach(async () => {
 		await harness.reset();
-		await clearTestEmails(harness);
 	});
 	afterAll(async () => {
 		await harness?.shutdown();
@@ -100,7 +78,7 @@ describe('Auth session replacement on password change', () => {
 		await createBuilder(harness, account.token).get('/users/@me').expect(HTTP_STATUS.OK).execute();
 	});
 
-	it('returns a working replacement token from password-change/complete', async () => {
+	it('returns a working replacement token from POST /users/@me/password', async () => {
 		const account = await createTestAccount(harness);
 		const response = await completePasswordChange(harness, account, generateUniquePassword());
 		await createBuilder(harness, account.token).get('/users/@me').expect(HTTP_STATUS.UNAUTHORIZED).execute();

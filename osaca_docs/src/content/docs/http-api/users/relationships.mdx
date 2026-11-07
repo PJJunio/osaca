@@ -95,7 +95,7 @@ Sends a friend request to the account with the given username and discriminator,
 | username | string | The username of the target (1-32 characters) |
 | discriminator? | string \| integer | The discriminator of the target (1-4 digits) |
 
-You can leave out the discriminator only when the instance tag style is `none`.
+Without a discriminator, OSACA looks up the account by username alone.
 
 ### Response
 
@@ -103,7 +103,7 @@ You can leave out the discriminator only when the instance tag style is `none`.
 | --- | --- | --- |
 | 200 | [relationship](#relationship-object) object | The request or friendship was returned |
 | 400 | [error response](/http-api/#error-response) | `NO_USERS_WITH_OSACATAG_EXIST`, `DISCRIMINATOR_REQUIRED`, `ALREADY_FRIENDS`, or a code from [the user ID route](#send-friend-request-by-user-id) |
-| 403 | [error response](/http-api/#error-response) | `UNCLAIMED_ACCOUNT_CANNOT_SEND_FRIEND_REQUESTS`, `FRIEND_REQUEST_EMAIL_VERIFICATION_REQUIRED` or `NEW_CONVERSATIONS_LIMITED` |
+| 403 | [error response](/http-api/#error-response) | `ACCOUNT_VERIFICATION_REQUIRED` or `NEW_CONVERSATIONS_LIMITED` |
 
 The rate limit is 10 requests per minute, on the `user:friend_request:send` bucket.
 
@@ -127,7 +127,7 @@ The body is optional.
 | --- | --- | --- |
 | 200 | [relationship](#relationship-object) object | The request or friendship was returned |
 | 400 | [error response](/http-api/#error-response) | One of the codes below |
-| 403 | [error response](/http-api/#error-response) | `UNCLAIMED_ACCOUNT_CANNOT_SEND_FRIEND_REQUESTS`, `FRIEND_REQUEST_EMAIL_VERIFICATION_REQUIRED` or `NEW_CONVERSATIONS_LIMITED` |
+| 403 | [error response](/http-api/#error-response) | `ACCOUNT_VERIFICATION_REQUIRED` or `NEW_CONVERSATIONS_LIMITED` |
 | 404 | [error response](/http-api/#error-response) | `UNKNOWN_USER` when the account does not exist |
 
 A 400 has one of these codes.
@@ -176,7 +176,7 @@ A 400 has one of these codes.
 | `CANNOT_BLOCK_SYSTEM_USER` | The block target is the OSACA system account |
 | `MAX_FRIENDS` | You are at the [relationship limit](#relationship-limit) |
 
-A 403 has `UNCLAIMED_ACCOUNT_CANNOT_ACCEPT_FRIEND_REQUESTS` or `FRIEND_REQUEST_EMAIL_VERIFICATION_REQUIRED`.
+A 403 has `ACCOUNT_VERIFICATION_REQUIRED`.
 
 Accepting sends [Relationship Update](/gateway/events/#relationship-update) to both accounts, opens your direct message with the account for both of you, and sends [Channel Create](/gateway/events/#channel-create) to whoever did not already have it open.
 

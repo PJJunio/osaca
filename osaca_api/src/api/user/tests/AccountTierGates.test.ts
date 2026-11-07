@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {createTestAccount} from '@app/api/auth/tests/AuthTestUtils';
+import {createTestAccount, createUniqueUsername} from '@app/api/auth/tests/AuthTestUtils';
 import {getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {HTTP_STATUS} from '@app/api/test/TestConstants';
@@ -30,7 +30,7 @@ describe('Tier gates on joins', () => {
 	async function createUnclaimed(): Promise<Registered> {
 		return await createBuilderWithoutAuth<Registered>(harness)
 			.post('/auth/register')
-			.body({username: 'shopper', consent: true})
+			.body({username: createUniqueUsername('shopper'), consent: true})
 			.execute();
 	}
 

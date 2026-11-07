@@ -2,7 +2,6 @@
 
 import {Routes} from '@app/app/Routes';
 import type {RuntimeConfigSnapshot} from '@app/features/app/state/InstanceSnapshotStore';
-import {usesUsernameSignIn} from '@app/features/app/utils/AccountIdentityFeatures';
 import * as AuthenticationCommands from '@app/features/auth/commands/AuthenticationCommands';
 import {openRecoveryKitModal} from '@app/features/auth/components/modals/RecoveryKitModal';
 import styles from '@app/features/auth/components/pages/RecoverAccountPage.module.css';
@@ -20,13 +19,12 @@ import {
 	TWO_FACTOR_AUTHENTICATION_DESCRIPTOR,
 	USERNAME_DESCRIPTOR,
 } from '@app/features/i18n/utils/CommonMessageDescriptors';
-import * as RouterUtils from '@app/features/navigation/utils/RouterUtils';
 import {Button} from '@app/features/ui/button/Button';
 import {rememberRecoveryKit} from '@app/features/user/commands/RecoveryKitCommands';
 import {useOsacaDocumentTitle} from '@app/features/window/hooks/useOsacaDocumentTitle';
-import {formatRecoveryKeyInput} from '@osaca/constants/src/RecoveryKeyUtils';
 import {msg} from '@lingui/core/macro';
 import {Trans, useLingui} from '@lingui/react/macro';
+import {formatRecoveryKeyInput} from '@osaca/constants/src/RecoveryKeyUtils';
 import {observer} from 'mobx-react-lite';
 import type {ReactNode} from 'react';
 import {useCallback, useEffect, useId, useState} from 'react';
@@ -299,12 +297,6 @@ const RecoverAccountPageContent = observer(function RecoverAccountPageContent({
 }: RecoverAccountPageContentProps) {
 	const {i18n} = useLingui();
 	const [fragment] = useState(readRecoveryFragment);
-	const usernameSignIn = usesUsernameSignIn(runtimeSnapshot.features);
-	useEffect(() => {
-		if (!usernameSignIn) {
-			RouterUtils.replaceWith(Routes.LOGIN);
-		}
-	}, [usernameSignIn]);
 	useEffect(() => {
 		clearRecoveryFragment();
 	}, []);

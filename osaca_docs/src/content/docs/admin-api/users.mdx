@@ -8,11 +8,11 @@ import RouteHeader from '@/components/RouteHeader.astro';
 
 These routes read and change any account on the instance. Each field group has its own route and [ACL](/admin-api/#acl-registry), and every route except [Get current Admin user](#get-current-admin-user) records an [Admin audit entry](/admin-api/#admin-audit-entry-object), reads included.
 
-On an instance where members sign in with a username, the email routes return 400 `EMAIL_UNAVAILABLE_ON_INSTANCE` and you reset a password with [Create password reset link](#create-password-reset-link), which also works on an email instance that doesn't send email. On routes that record an [enforcement decision](/admin-api/enforcement/), the `X-Audit-Log-Reason` header is required and becomes the decision's first note. Blocking a user's avatar is on [Blocklists](/admin-api/blocklists/#block-a-users-current-avatar).
+You reset a password with [Create password reset link](#create-password-reset-link). On routes that record an [enforcement decision](/admin-api/enforcement/), the `X-Audit-Log-Reason` header is required and becomes the decision's first note. Blocking a user's avatar is on [Blocklists](/admin-api/blocklists/#block-a-users-current-avatar).
 
 ## Admin user object
 
-The full admin view of one account, with the flags, lifecycle, contact and network fields the public [user object](/http-api/users/#user-object) leaves out. Without `user:view:email` or `user:view:ip`, the fields that ACL protects are null (or false for the email booleans) and the request still succeeds.
+The full admin view of one account, with the flags, lifecycle, contact and network fields the public [user object](/http-api/users/#user-object) leaves out. Without `user:view:ip`, the fields that ACL protects are null and the request still succeeds.
 
 ### Structure
 
@@ -30,9 +30,6 @@ The full admin view of one account, with the flags, lifecycle, contact and netwo
 | bio | ?string | The profile bio |
 | pronouns | ?string | The profile pronouns |
 | accent_color | ?integer | The profile accent color |
-| email<sup>2</sup> | ?string | The email address |
-| email_verified<sup>2</sup> | boolean | Whether the email address is verified |
-| email_bounced<sup>2</sup> | boolean | Whether mail to the address hard bounced |
 | locale | ?string | The saved [locale](/topics/locales/#supported-locales) |
 | profile_badges | array[[Admin profile badge](#admin-profile-badge-object) object] | Every badge the account qualifies for, including hidden ones |
 | temp_banned_until | ?ISO8601 timestamp | When the current suspension ends, or null when none is in force |
@@ -53,15 +50,13 @@ The full admin view of one account, with the flags, lifecycle, contact and netwo
 | account_tier | string | The [account tier](/http-api/users/#account-tiers) |
 | authenticator_types | array[integer] | Second-factor [authenticator types](/http-api/users/#authenticator-types) (at most 10) |
 | last_active_at | ?ISO8601 timestamp | When the account was last active |
-| last_active_ip<sup>3</sup> | ?string | The IP address the account was last active from |
-| last_active_ip_reverse<sup>3</sup> | ?string | The reverse DNS name of that address |
-| last_active_location<sup>3</sup> | ?string | The approximate location of that address |
+| last_active_ip<sup>2</sup> | ?string | The IP address the account was last active from |
+| last_active_ip_reverse<sup>2</sup> | ?string | The reverse DNS name of that address |
+| last_active_location<sup>2</sup> | ?string | The approximate location of that address |
 
-<sup>1</sup> Other Admin objects use a zero-padded string. On an instance with the `none` tag style, every account that is not a bot has `0`
+<sup>1</sup> Other Admin objects use a zero-padded string. Every account that is not a bot has `0`
 
-<sup>2</sup> Needs `user:view:email`
-
-<sup>3</sup> Needs `user:view:ip`
+<sup>2</sup> Needs `user:view:ip`
 
 ### Example
 
@@ -75,9 +70,6 @@ The full admin view of one account, with the flags, lifecycle, contact and netwo
   "system": false,
   "flags": "8796093022208",
   "avatar": "a1b2c3d4e5f60718293a4b5c6d7e8f90",
-  "email": "subject@example.com",
-  "email_verified": true,
-  "email_bounced": false,
   "temp_banned_until": null,
   "pending_deletion_at": null,
   "deletion_reason_code": null,
@@ -321,21 +313,19 @@ One relationship between the account and another account.
 
 ## Admin user change log object
 
-One change to the account's email address or tag, by the account holder or an Admin.
+One change to the account's tag, by the account holder or an Admin.
 
 ### Structure
 
 | Field | Type | Description |
 | --- | --- | --- |
 | event_id | string | The ID of the entry, which you send as `page_token` |
-| field | string | `email` or `osaca_tag` |
-| old_value<sup>1</sup> | ?string | The value before the change |
-| new_value<sup>1</sup> | ?string | The value after the change |
+| field | string | `osaca_tag` |
+| old_value | ?string | The value before the change |
+| new_value | ?string | The value after the change |
 | reason | ?string | The reason, `admin_action` for an Admin change |
 | actor_user_id | ?snowflake | The ID of the Admin, or null for the account holder's own change |
 | event_at | ISO8601 timestamp | When the change happened |
-
-<sup>1</sup> An `email` entry shows `[redacted]` without `user:view:email`
 
 ## Message shred entry object
 
@@ -352,28 +342,23 @@ One message to shred.
 
 <RouteHeader method="GET" path="/v1/admin/users" auditReason />
 
-Finds accounts by one selector and returns [Admin user](#admin-user-object) objects. You need `user:lookup`. When you send more than one selector, the first one in this order wins: `user_id`, `resolve`, `email`, `last_active_ip`, `acl`, then `q`.
+Finds accounts by one selector and returns [Admin user](#admin-user-object) objects. You need `user:lookup`. When you send more than one selector, the first one in this order wins: `user_id`, `resolve`, `last_active_ip`, `acl`, then `q`.
 
 ### Query parameters
 
 | Field | Type | Description |
 | --- | --- | --- |
 | user_id? | array[snowflake] | Exact account IDs, repeated for more than one (at most 100) |
-| resolve?<sup>1</sup> | string | A tag, account ID or email address to match one account (1-1024 characters) |
-| email?<sup>2</sup> | string | An exact email address (1-320 characters) |
-| last_active_ip?<sup>3</sup> | string | An exact last active IP address (1-64 characters) |
+| resolve? | string | A tag or account ID to match one account (1-1024 characters) |
+| last_active_ip?<sup>1</sup> | string | An exact last active IP address (1-64 characters) |
 | acl? | string | An [ACL](/admin-api/#acl-registry), to list the accounts that have it |
 | q? | string | A search query (1-1024 characters) |
-| limit?<sup>4</sup> | integer | How many accounts to return (1-200, default 50) |
-| offset?<sup>4</sup> | integer | How many results to skip (0-100000, default 0) |
+| limit?<sup>2</sup> | integer | How many accounts to return (1-200, default 50) |
+| offset?<sup>2</sup> | integer | How many results to skip (0-100000, default 0) |
 
-<sup>1</sup> A value with `@` needs `user:view:email`
+<sup>1</sup> Needs `user:view:ip`
 
-<sup>2</sup> Needs `user:view:email`
-
-<sup>3</sup> Needs `user:view:ip`
-
-<sup>4</sup> Only for `last_active_ip`, `acl` and `q`
+<sup>2</sup> Only for `last_active_ip`, `acl` and `q`
 
 ### Response body
 
@@ -443,10 +428,7 @@ Creates an account with no password and returns a [password reset link](#passwor
 | Field | Type | Description |
 | --- | --- | --- |
 | username | string | The username (1-32 characters) |
-| email?<sup>1</sup> | string | The email address |
 | admin? | boolean | Whether to give the account `*` (default false) |
-
-<sup>1</sup> Required on an email instance and refused with `USERNAME_SIGN_IN_ONLY` on a username instance
 
 ### Response body
 
@@ -460,7 +442,7 @@ Creates an account with no password and returns a [password reset link](#passwor
 | Status | Body | Condition |
 | --- | --- | --- |
 | 200 | response body | The account was created |
-| 400 | [error response](/admin-api/#error-response) | The username or email address is taken or invalid |
+| 400 | [error response](/admin-api/#error-response) | The username is taken or invalid |
 
 The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
 
@@ -496,102 +478,17 @@ OSACA sends [User Update](/gateway/events/#user-update) and [Guild Member Update
 
 The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
 
-## Change user email
-
-<RouteHeader method="PATCH" path="/v1/admin/users/{user_id}/email" auditReason />
-
-Changes the email address and returns the account. You need `user:update:email`. The new address is unverified, or verified when the instance doesn't send email. Nobody is emailed about the change.
-
-### JSON body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| email | string | The new email address (1-254 characters) |
-
-### Response body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| user | [Admin user](#admin-user-object) object | The updated account |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | response body | The email address was changed |
-| 400 | [error response](/admin-api/#error-response) | `EMAIL_ALREADY_IN_USE` when another account has the address |
-
-OSACA sends [User Update](/gateway/events/#user-update).
-
-The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
-
-## Verify user email
-
-<RouteHeader method="PUT" path="/v1/admin/users/{user_id}/email-verification" auditReason />
-
-Marks the email address as verified, clears its bounce marker and returns the account. You need `user:update:email`.
-
-### Response body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| user | [Admin user](#admin-user-object) object | The updated account |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | response body | The email address was marked verified |
-
-OSACA sends [User Update](/gateway/events/#user-update).
-
-The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
-
-## Resend verification email
-
-<RouteHeader method="POST" path="/v1/admin/users/{user_id}/verification-email" auditReason />
-
-Emails the account holder a new verification link. You need `user:update:email`. Nothing is sent when the address is already verified, has bounced or the instance doesn't send email.
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 204 | empty | The request was accepted |
-| 400 | [error response](/admin-api/#error-response) | `INVALID_FORM_BODY` with `USER_DOES_NOT_HAVE_AN_EMAIL_ADDRESS` when the account has no address |
-| 403 | [error response](/admin-api/#error-response) | `BOT_USER_AUTH_ENDPOINT_ACCESS_DENIED` when the account is a bot |
-| 429 | [error response](/admin-api/#error-response) | The address already got three verification emails in 15 minutes |
-
-The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
-
-## Send password reset
-
-<RouteHeader method="POST" path="/v1/admin/users/{user_id}/password-reset" auditReason />
-
-Emails the account holder a password reset link. You need `user:update:email`. When the instance doesn't send email, use [Create password reset link](#create-password-reset-link).
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 204 | empty | The request was accepted |
-| 400 | [error response](/admin-api/#error-response) | `EMAIL_DELIVERY_OFF` when the instance doesn't send email |
-| 400 | [error response](/admin-api/#error-response) | `INVALID_FORM_BODY` with `USER_DOES_NOT_HAVE_AN_EMAIL_ADDRESS` when the account has no address |
-
-The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
-
 ## Create password reset link
 
 <RouteHeader method="POST" path="/v1/admin/users/{user_id}/password-reset-link" auditReason />
 
-Returns a [password reset link](#password-reset-link-object) without emailing it, on an instance where members sign in with a username or one that doesn't send email. You need `user:create:password_reset_link` and every ACL the account has. Earlier reset links and the account's recovery kit stop working.
+Returns a [password reset link](#password-reset-link-object). You need `user:create:password_reset_link` and every ACL the account has. Earlier reset links and the account's recovery kit stop working.
 
 ### Response
 
 | Status | Body | Condition |
 | --- | --- | --- |
 | 200 | [password reset link](#password-reset-link-object) object | The link was created |
-| 400 | [error response](/admin-api/#error-response) | `USERNAME_SIGN_IN_ONLY` on an email instance that sends email |
 | 403 | [error response](/admin-api/#error-response) | `MISSING_ACL` when the account has an ACL you lack, or `BOT_USER_AUTH_ENDPOINT_ACCESS_DENIED` for a bot |
 
 The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
@@ -600,7 +497,7 @@ The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
 
 <RouteHeader method="POST" path="/v1/admin/users/{user_id}/sign-in-link" auditReason />
 
-Returns a [sign-in link](#sign-in-link-object) for an account that has `*`. Only [rexctl](/operator/rexctl/) on the server can call it. The link signs the admin in without a password, a second factor or an email.
+Returns a [sign-in link](#sign-in-link-object) for an account that has `*`. Only [rexctl](/operator/rexctl/) on the server can call it. The link signs the admin in without a password or a second factor.
 
 ### Response
 
@@ -615,14 +512,13 @@ The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
 
 <RouteHeader method="DELETE" path="/v1/admin/users/{user_id}/recovery-kit" auditReason />
 
-Deletes the account's recovery kit, on an instance where members sign in with a username. You need `user:delete:recovery_kit` and every ACL the account has. The account holder can make a new kit in their settings.
+Deletes the account's recovery kit. You need `user:delete:recovery_kit` and every ACL the account has. The account holder can make a new kit in their settings.
 
 ### Response
 
 | Status | Body | Condition |
 | --- | --- | --- |
 | 204 | none | The kit was deleted, or there was none |
-| 400 | [error response](/admin-api/#error-response) | `USERNAME_SIGN_IN_ONLY` on an email instance |
 
 The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
 
@@ -905,7 +801,7 @@ The rate limit is 200 requests per minute, on the `admin:lookup` bucket.
 
 <RouteHeader method="DELETE" path="/v1/admin/users/{user_id}/ban" auditReason />
 
-Lifts a suspension that no enforcement decision owns and returns the account. You need `user:temp_ban`. The account holder is emailed when the suspension was still in force. Sessions that were signed out stay signed out.
+Lifts a suspension that no enforcement decision owns and returns the account. You need `user:temp_ban`. Sessions that were signed out stay signed out.
 
 ### Response body
 
@@ -928,7 +824,7 @@ The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
 
 <RouteHeader method="POST" path="/v1/admin/users/{user_id}/warnings" auditReason />
 
-Records a warning decision and sends its notice by email and system DM. You need `user:update:flags`.
+Records a warning decision and sends its notice by system DM. You need `user:update:flags`.
 
 ### JSON body
 
@@ -991,9 +887,9 @@ Closes the account, signs it out everywhere, schedules its deletion and returns 
 
 | Basis | Effect |
 | --- | --- |
-| `enforcement` | Records a closure decision, sends its notice and blocks the email address, except for minimum age reasons |
-| `holder_request` | Sets `deletion_reason_code` to `USER_REQUESTED`, emails the account holder, and signing in cancels it |
-| `housekeeping` | Sets `deletion_reason_code` to `INACTIVITY`, emails the account holder, and signing in cancels it |
+| `enforcement` | Records a closure decision, and sends its notice |
+| `holder_request` | Sets `deletion_reason_code` to `USER_REQUESTED`, and signing in cancels it |
+| `housekeeping` | Sets `deletion_reason_code` to `INACTIVITY`, and signing in cancels it |
 
 ### JSON body
 
@@ -1032,7 +928,7 @@ The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
 
 <RouteHeader method="DELETE" path="/v1/admin/users/{user_id}/deletion" auditReason />
 
-Cancels a scheduled deletion that no enforcement decision owns, emails the account holder and returns the account. You need `user:delete`. The account can sign in again, but signed-out sessions stay signed out. To cancel a closure with a decision, [end the decision](/admin-api/enforcement/#end-an-enforcement-decision).
+Cancels a scheduled deletion that no enforcement decision owns and returns the account. You need `user:delete`. The account can sign in again, but signed-out sessions stay signed out. To cancel a closure with a decision, [end the decision](/admin-api/enforcement/#end-an-enforcement-decision).
 
 ### JSON body
 
@@ -1491,7 +1387,7 @@ The rate limit is 200 requests per minute, on the `admin:lookup` bucket.
 
 <RouteHeader method="GET" path="/v1/admin/users/{user_id}/change-log" auditReason />
 
-Lists the account's email and tag changes, newest first. You need `user:view:contact_log`, and `user:view:email` to see email values.
+Lists the account's tag changes, newest first. You need `user:view:contact_log`.
 
 ### Query parameters
 

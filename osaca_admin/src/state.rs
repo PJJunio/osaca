@@ -3,10 +3,7 @@
 use crate::{
     api::{
         client::{AdminApiClient, ApiResultExt},
-        types::{
-            AccountIdentityMode, AccountIdentitySettings, InstanceConfigResponse, AdminBranding,
-            ReportReasonEntry,
-        },
+        types::{AdminBranding, InstanceConfigResponse, ReportReasonEntry},
     },
     config::AdminConfig,
 };
@@ -16,8 +13,6 @@ use std::{
 };
 
 const BRANDING_TTL: Duration = Duration::from_secs(60);
-const ACCOUNT_IDENTITY_TTL: Duration = Duration::from_secs(60);
-const ACCOUNT_IDENTITY_RETRY_TTL: Duration = Duration::from_secs(10);
 
 #[derive(Clone)]
 pub struct AppState {
@@ -28,7 +23,6 @@ struct AppStateInner {
     pub config: AdminConfig,
     pub http_client: reqwest::Client,
     branding_cache: Mutex<Option<(Instant, AdminBranding)>>,
-    account_identity: Mutex<Option<(Instant, AccountIdentitySettings)>>,
     report_reasons: Mutex<Option<Arc<[ReportReasonEntry]>>>,
 }
 
@@ -43,7 +37,6 @@ impl AppState {
                 config,
                 http_client,
                 branding_cache: Mutex::new(None),
-                account_identity: Mutex::new(None),
                 report_reasons: Mutex::new(None),
             }),
         }
@@ -127,52 +120,6 @@ impl AppState {
             .branding_cache
             .lock()
             .unwrap_or_else(|poisoned| poisoned.into_inner()) = None;
-        *self
-            .inner
-            .account_identity
-            .lock()
-            .unwrap_or_else(|poisoned| poisoned.into_inner()) = None;
-    }
-
-    pub async fn account_identity(&self, client: &AdminApiClient) -> AccountIdentityMode {
-        self.account_identity_settings(client).await.mode
-    }
-
-    pub async fn account_identity_settings(
-        &self,
-        client: &AdminApiClient,
-    ) -> AccountIdentitySettings {
-        if !self.config().self_hosted {
-            return AccountIdentitySettings::default();
-        }
-        let previous = *self
-            .inner
-            .account_identity
-            .lock()
-            .unwrap_or_else(|poisoned| poisoned.into_inner());
-        if let Some((expires_at, settings)) = previous
-            && Instant::now() < expires_at
-        {
-            return settings;
-        }
-        let (settings, ttl) = match client
-            .get_instance_account_identity()
-            .await
-            .log_error("load account identity mode")
-        {
-            Some(settings) => (settings, ACCOUNT_IDENTITY_TTL),
-            None => (
-                previous.map_or(AccountIdentitySettings::default(), |(_, settings)| settings),
-                ACCOUNT_IDENTITY_RETRY_TTL,
-            ),
-        };
-        *self
-            .inner
-            .account_identity
-            .lock()
-            .unwrap_or_else(|poisoned| poisoned.into_inner()) =
-            Some((Instant::now() + ttl, settings));
-        settings
     }
 
     pub async fn report_reasons(

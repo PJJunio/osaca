@@ -6,13 +6,11 @@ import {DEFAULT_THEME_COLOR} from '@app/features/app/components/setup/SetupBrand
 import type {FinishDraft} from '@app/features/app/components/setup/SetupPolicySteps';
 import type {WizardStep} from '@app/features/app/components/setup/SetupWizardStateMachine';
 import {StepHeader, SUMMARY_DESCRIPTORS, TextButton} from '@app/features/app/components/setup/SetupWizardSteps';
-import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
 import {int2hex} from '@app/features/theme/utils/ColorUtils';
 import Users from '@app/features/user/state/Users';
 import type {I18n, MessageDescriptor} from '@lingui/core';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
-import {AccountIdentityModes, TagStyles} from '@osaca/constants/src/AccountIdentityConstants';
 import type {InstanceConfigResponse} from '@osaca/schema/src/domains/admin/AdminSchemas';
 import {observer} from 'mobx-react-lite';
 import type React from 'react';
@@ -22,7 +20,7 @@ const REVIEW_TITLE_DESCRIPTOR = msg({
 	comment: 'Setup wizard title for the review screen before finishing.',
 });
 const REVIEW_BODY_DESCRIPTOR = msg({
-	message: "How people sign in can't change after setup. You can change everything else later in the admin panel.",
+	message: 'You can change all of this later in the admin panel.',
 	comment: 'Setup wizard body on the review screen.',
 });
 const REVIEW_CHANGE_DESCRIPTOR = msg({
@@ -39,7 +37,7 @@ const FINISH_ERROR_DESCRIPTOR = msg({
 });
 
 interface ReviewStepProps {
-	config: Pick<InstanceConfigResponse, 'account_identity' | 'integrations'> | null;
+	config: Pick<InstanceConfigResponse, 'integrations'> | null;
 	finishDraft: FinishDraft;
 	productName: string;
 	themeColor: number | null;
@@ -48,7 +46,6 @@ interface ReviewStepProps {
 	accountUsername: string;
 	error: string | null;
 	onChange: (step: WizardStep) => void;
-	onEmailChange: () => void;
 }
 
 interface ReviewRow {
@@ -68,32 +65,19 @@ function reviewRows(
 		attachmentsEnabled,
 		accountUsername,
 		onChange,
-		onEmailChange,
 	}: ReviewStepProps,
 	i18n: I18n,
 ): ReadonlyArray<ReviewRow> {
 	if (!config) return [];
 	const t = (descriptor: MessageDescriptor, values?: Record<string, unknown>) => i18n._(descriptor, values);
-	const usernameMode = config.account_identity.mode === AccountIdentityModes.USERNAME;
 	const logo = assets.find((asset) => asset.kind === 'logo');
 	const logoSource = logo?.preview ?? logo?.url ?? null;
-	const emailService = config.integrations.email;
-	const signInLabel = t(SUMMARY_DESCRIPTORS.signIn);
-	let signInDescriptor = SUMMARY_DESCRIPTORS.emailAddressesUnique;
-	if (usernameMode) signInDescriptor = SUMMARY_DESCRIPTORS.usernames;
-	else if (config.account_identity.tag_style === TagStyles.RANDOM)
-		signInDescriptor = SUMMARY_DESCRIPTORS.emailAddressesShared;
 	const registrationSummary = {
 		closed: SUMMARY_DESCRIPTORS.registrationClosed,
 		approval: SUMMARY_DESCRIPTORS.registrationApproval,
 		open: SUMMARY_DESCRIPTORS.registrationOpen,
 	}[finishDraft.registrationMode];
 	const rows: Array<ReviewRow> = [
-		{
-			key: 'sign_in',
-			label: signInLabel,
-			value: t(signInDescriptor),
-		},
 		{
 			key: 'account',
 			label: t(SUMMARY_DESCRIPTORS.account),
@@ -104,18 +88,6 @@ function reviewRows(
 			),
 		},
 	];
-	if (!usernameMode) {
-		const label = t(SUMMARY_DESCRIPTORS.email);
-		let value: string;
-		if (RuntimeConfig.emailsEnabled) value = t(SUMMARY_DESCRIPTORS.emailAlreadySet);
-		else if (emailService.effective_enabled) {
-			value = t(SUMMARY_DESCRIPTORS.emailFrom, {
-				host: emailService.smtp.host ?? '',
-				from: emailService.from_email ?? '',
-			});
-		} else value = t(SUMMARY_DESCRIPTORS.emailLater);
-		rows.push({key: 'email', label, value, onChange: RuntimeConfig.emailsEnabled ? undefined : onEmailChange});
-	}
 	rows.push(
 		{key: 'name', label: t(SUMMARY_DESCRIPTORS.name), value: productName.trim(), onChange: () => onChange('name')},
 		{

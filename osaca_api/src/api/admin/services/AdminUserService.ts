@@ -231,7 +231,6 @@ export class AdminUserService {
 		if (!acls.has(AdminACLs.USER_VIEW_CONTACT_LOG) && !acls.has(AdminACLs.WILDCARD)) {
 			return {entries: [], next_page_token: null};
 		}
-		const canViewEmail = acls.has(AdminACLs.USER_VIEW_EMAIL) || acls.has(AdminACLs.WILDCARD);
 		const entries = await this.contactChangeLogService.listLogs({
 			userId: createUserID(data.user_id),
 			limit: data.limit,
@@ -241,13 +240,11 @@ export class AdminUserService {
 		const nextPageToken = lastEntry?.event_id != null ? lastEntry.event_id.toString() : null;
 		return {
 			entries: entries.map((entry) => {
-				const isEmailField = entry.field === 'email';
-				const shouldRedact = isEmailField && !canViewEmail;
 				return {
 					event_id: entry.event_id != null ? entry.event_id.toString() : String(entry.user_id),
 					field: entry.field,
-					old_value: shouldRedact ? '[redacted]' : (entry.old_value ?? null),
-					new_value: shouldRedact ? '[redacted]' : (entry.new_value ?? null),
+					old_value: entry.old_value ?? null,
+					new_value: entry.new_value ?? null,
 					reason: entry.reason ?? null,
 					actor_user_id: entry.actor_user_id ? entry.actor_user_id.toString() : null,
 					event_at: entry.event_at.toISOString(),

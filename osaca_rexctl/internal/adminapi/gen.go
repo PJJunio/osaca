@@ -15,61 +15,16 @@ const (
 	AdminApiKeyScopes adminApiKeyContextKey = "adminApiKey.Scopes"
 )
 
-// Defines values for AccountIdentityLockReasonSchema.
-const (
-	ACCOUNTSEXIST    AccountIdentityLockReasonSchema = "accounts_exist"
-	ADMINEXISTS      AccountIdentityLockReasonSchema = "admin_exists"
-	EXISTINGINSTANCE AccountIdentityLockReasonSchema = "existing_instance"
-	SETUPCONFIGURED  AccountIdentityLockReasonSchema = "setup_configured"
-)
-
-// Valid indicates whether the value is a known member of the AccountIdentityLockReasonSchema enum.
-func (e AccountIdentityLockReasonSchema) Valid() bool {
-	switch e {
-	case ACCOUNTSEXIST:
-		return true
-	case ADMINEXISTS:
-		return true
-	case EXISTINGINSTANCE:
-		return true
-	case SETUPCONFIGURED:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for AccountIdentityModeSchema.
-const (
-	EMAIL    AccountIdentityModeSchema = "email"
-	USERNAME AccountIdentityModeSchema = "username"
-)
-
-// Valid indicates whether the value is a known member of the AccountIdentityModeSchema enum.
-func (e AccountIdentityModeSchema) Valid() bool {
-	switch e {
-	case EMAIL:
-		return true
-	case USERNAME:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for AccountTierSchema.
 const (
-	UNCLAIMED  AccountTierSchema = "unclaimed"
-	UNVERIFIED AccountTierSchema = "unverified"
-	VERIFIED   AccountTierSchema = "verified"
+	UNCLAIMED AccountTierSchema = "unclaimed"
+	VERIFIED  AccountTierSchema = "verified"
 )
 
 // Valid indicates whether the value is a known member of the AccountTierSchema enum.
 func (e AccountTierSchema) Valid() bool {
 	switch e {
 	case UNCLAIMED:
-		return true
-	case UNVERIFIED:
 		return true
 	case VERIFIED:
 		return true
@@ -99,9 +54,6 @@ const (
 	BanAvatarHashAdd              AdminAclType = "ban:avatar_hash:add"
 	BanAvatarHashCheck            AdminAclType = "ban:avatar_hash:check"
 	BanAvatarHashRemove           AdminAclType = "ban:avatar_hash:remove"
-	BanEmailAdd                   AdminAclType = "ban:email:add"
-	BanEmailCheck                 AdminAclType = "ban:email:check"
-	BanEmailRemove                AdminAclType = "ban:email:remove"
 	BanFileShaAdd                 AdminAclType = "ban:file_sha:add"
 	BanFileShaCheck               AdminAclType = "ban:file_sha:check"
 	BanFileShaRemove              AdminAclType = "ban:file_sha:remove"
@@ -175,14 +127,12 @@ const (
 	UserTempBan                   AdminAclType = "user:temp_ban"
 	UserUpdateBadges              AdminAclType = "user:update:badges"
 	UserUpdateBotStatus           AdminAclType = "user:update:bot_status"
-	UserUpdateEmail               AdminAclType = "user:update:email"
 	UserUpdateFlags               AdminAclType = "user:update:flags"
 	UserUpdateMfa                 AdminAclType = "user:update:mfa"
 	UserUpdateProfile             AdminAclType = "user:update:profile"
 	UserUpdateTraits              AdminAclType = "user:update:traits"
 	UserUpdateUsername            AdminAclType = "user:update:username"
 	UserViewContactLog            AdminAclType = "user:view:contact_log"
-	UserViewEmail                 AdminAclType = "user:view:email"
 	UserViewIp                    AdminAclType = "user:view:ip"
 	VoiceJoinTokenCreate          AdminAclType = "voice:join_token:create"
 	VoiceJoinTokenList            AdminAclType = "voice:join_token:list"
@@ -237,12 +187,6 @@ func (e AdminAclType) Valid() bool {
 	case BanAvatarHashCheck:
 		return true
 	case BanAvatarHashRemove:
-		return true
-	case BanEmailAdd:
-		return true
-	case BanEmailCheck:
-		return true
-	case BanEmailRemove:
 		return true
 	case BanFileShaAdd:
 		return true
@@ -390,8 +334,6 @@ func (e AdminAclType) Valid() bool {
 		return true
 	case UserUpdateBotStatus:
 		return true
-	case UserUpdateEmail:
-		return true
 	case UserUpdateFlags:
 		return true
 	case UserUpdateMfa:
@@ -403,8 +345,6 @@ func (e AdminAclType) Valid() bool {
 	case UserUpdateUsername:
 		return true
 	case UserViewContactLog:
-		return true
-	case UserViewEmail:
 		return true
 	case UserViewIp:
 		return true
@@ -470,16 +410,16 @@ func (e BrandingAssetUploadRequestKind) Valid() bool {
 
 // Defines values for CaptchaProviderSchema.
 const (
-	CaptchaProviderSchemaALTCHA CaptchaProviderSchema = "altcha"
-	CaptchaProviderSchemaNONE   CaptchaProviderSchema = "none"
+	ALTCHA CaptchaProviderSchema = "altcha"
+	NONE   CaptchaProviderSchema = "none"
 )
 
 // Valid indicates whether the value is a known member of the CaptchaProviderSchema enum.
 func (e CaptchaProviderSchema) Valid() bool {
 	switch e {
-	case CaptchaProviderSchemaALTCHA:
+	case ALTCHA:
 		return true
-	case CaptchaProviderSchemaNONE:
+	case NONE:
 		return true
 	default:
 		return false
@@ -621,60 +561,18 @@ func (e DeletionReasonCode) Valid() bool {
 	}
 }
 
-// Defines values for EmailDeliveryModeSchema.
-const (
-	EmailDeliveryModeSchemaOFF  EmailDeliveryModeSchema = "off"
-	EmailDeliveryModeSchemaSMTP EmailDeliveryModeSchema = "smtp"
-)
-
-// Valid indicates whether the value is a known member of the EmailDeliveryModeSchema enum.
-func (e EmailDeliveryModeSchema) Valid() bool {
-	switch e {
-	case EmailDeliveryModeSchemaOFF:
-		return true
-	case EmailDeliveryModeSchemaSMTP:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for EmailDeliveryStateSchema.
-const (
-	EmailDeliveryStateSchemaOFFDISABLED     EmailDeliveryStateSchema = "off_disabled"
-	EmailDeliveryStateSchemaOFFINCOMPLETE   EmailDeliveryStateSchema = "off_incomplete"
-	EmailDeliveryStateSchemaOFFUSERNAMEMODE EmailDeliveryStateSchema = "off_username_mode"
-	EmailDeliveryStateSchemaON              EmailDeliveryStateSchema = "on"
-)
-
-// Valid indicates whether the value is a known member of the EmailDeliveryStateSchema enum.
-func (e EmailDeliveryStateSchema) Valid() bool {
-	switch e {
-	case EmailDeliveryStateSchemaOFFDISABLED:
-		return true
-	case EmailDeliveryStateSchemaOFFINCOMPLETE:
-		return true
-	case EmailDeliveryStateSchemaOFFUSERNAMEMODE:
-		return true
-	case EmailDeliveryStateSchemaON:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for EnforcementDecisionInputAutomation.
 const (
-	EnforcementDecisionInputAutomationFlagged EnforcementDecisionInputAutomation = "flagged"
-	EnforcementDecisionInputAutomationNone    EnforcementDecisionInputAutomation = "none"
+	Flagged EnforcementDecisionInputAutomation = "flagged"
+	None    EnforcementDecisionInputAutomation = "none"
 )
 
 // Valid indicates whether the value is a known member of the EnforcementDecisionInputAutomation enum.
 func (e EnforcementDecisionInputAutomation) Valid() bool {
 	switch e {
-	case EnforcementDecisionInputAutomationFlagged:
+	case Flagged:
 		return true
-	case EnforcementDecisionInputAutomationNone:
+	case None:
 		return true
 	default:
 		return false
@@ -900,153 +798,6 @@ func (e GuildJoinGateSchema) Valid() bool {
 	}
 }
 
-// Defines values for IdentifierFirstModeSchema.
-const (
-	IdentifierFirstModeSchemaAUTO IdentifierFirstModeSchema = "auto"
-	IdentifierFirstModeSchemaOFF  IdentifierFirstModeSchema = "off"
-	IdentifierFirstModeSchemaON   IdentifierFirstModeSchema = "on"
-)
-
-// Valid indicates whether the value is a known member of the IdentifierFirstModeSchema enum.
-func (e IdentifierFirstModeSchema) Valid() bool {
-	switch e {
-	case IdentifierFirstModeSchemaAUTO:
-		return true
-	case IdentifierFirstModeSchemaOFF:
-		return true
-	case IdentifierFirstModeSchemaON:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for InstanceConfigResponseIntegrationsEmailEffectiveProvider.
-const (
-	InstanceConfigResponseIntegrationsEmailEffectiveProviderNone InstanceConfigResponseIntegrationsEmailEffectiveProvider = "none"
-	InstanceConfigResponseIntegrationsEmailEffectiveProviderSmtp InstanceConfigResponseIntegrationsEmailEffectiveProvider = "smtp"
-)
-
-// Valid indicates whether the value is a known member of the InstanceConfigResponseIntegrationsEmailEffectiveProvider enum.
-func (e InstanceConfigResponseIntegrationsEmailEffectiveProvider) Valid() bool {
-	switch e {
-	case InstanceConfigResponseIntegrationsEmailEffectiveProviderNone:
-		return true
-	case InstanceConfigResponseIntegrationsEmailEffectiveProviderSmtp:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for InstanceConfigResponseIntegrationsEmailProvider.
-const (
-	InstanceConfigResponseIntegrationsEmailProviderNone InstanceConfigResponseIntegrationsEmailProvider = "none"
-	InstanceConfigResponseIntegrationsEmailProviderSmtp InstanceConfigResponseIntegrationsEmailProvider = "smtp"
-)
-
-// Valid indicates whether the value is a known member of the InstanceConfigResponseIntegrationsEmailProvider enum.
-func (e InstanceConfigResponseIntegrationsEmailProvider) Valid() bool {
-	switch e {
-	case InstanceConfigResponseIntegrationsEmailProviderNone:
-		return true
-	case InstanceConfigResponseIntegrationsEmailProviderSmtp:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for InstanceConfigResponseIntegrationsEmailSmtpEffectiveTlsMode.
-const (
-	InstanceConfigResponseIntegrationsEmailSmtpEffectiveTlsModeIMPLICIT      InstanceConfigResponseIntegrationsEmailSmtpEffectiveTlsMode = "implicit"
-	InstanceConfigResponseIntegrationsEmailSmtpEffectiveTlsModeNONE          InstanceConfigResponseIntegrationsEmailSmtpEffectiveTlsMode = "none"
-	InstanceConfigResponseIntegrationsEmailSmtpEffectiveTlsModeOPPORTUNISTIC InstanceConfigResponseIntegrationsEmailSmtpEffectiveTlsMode = "opportunistic"
-	InstanceConfigResponseIntegrationsEmailSmtpEffectiveTlsModeSTARTTLS      InstanceConfigResponseIntegrationsEmailSmtpEffectiveTlsMode = "starttls"
-)
-
-// Valid indicates whether the value is a known member of the InstanceConfigResponseIntegrationsEmailSmtpEffectiveTlsMode enum.
-func (e InstanceConfigResponseIntegrationsEmailSmtpEffectiveTlsMode) Valid() bool {
-	switch e {
-	case InstanceConfigResponseIntegrationsEmailSmtpEffectiveTlsModeIMPLICIT:
-		return true
-	case InstanceConfigResponseIntegrationsEmailSmtpEffectiveTlsModeNONE:
-		return true
-	case InstanceConfigResponseIntegrationsEmailSmtpEffectiveTlsModeOPPORTUNISTIC:
-		return true
-	case InstanceConfigResponseIntegrationsEmailSmtpEffectiveTlsModeSTARTTLS:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for InstanceConfigResponseIntegrationsEmailSmtpTlsMode.
-const (
-	InstanceConfigResponseIntegrationsEmailSmtpTlsModeIMPLICIT      InstanceConfigResponseIntegrationsEmailSmtpTlsMode = "implicit"
-	InstanceConfigResponseIntegrationsEmailSmtpTlsModeNONE          InstanceConfigResponseIntegrationsEmailSmtpTlsMode = "none"
-	InstanceConfigResponseIntegrationsEmailSmtpTlsModeOPPORTUNISTIC InstanceConfigResponseIntegrationsEmailSmtpTlsMode = "opportunistic"
-	InstanceConfigResponseIntegrationsEmailSmtpTlsModeSTARTTLS      InstanceConfigResponseIntegrationsEmailSmtpTlsMode = "starttls"
-)
-
-// Valid indicates whether the value is a known member of the InstanceConfigResponseIntegrationsEmailSmtpTlsMode enum.
-func (e InstanceConfigResponseIntegrationsEmailSmtpTlsMode) Valid() bool {
-	switch e {
-	case InstanceConfigResponseIntegrationsEmailSmtpTlsModeIMPLICIT:
-		return true
-	case InstanceConfigResponseIntegrationsEmailSmtpTlsModeNONE:
-		return true
-	case InstanceConfigResponseIntegrationsEmailSmtpTlsModeOPPORTUNISTIC:
-		return true
-	case InstanceConfigResponseIntegrationsEmailSmtpTlsModeSTARTTLS:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for InstanceConfigUpdateRequestIntegrationsEmailProvider.
-const (
-	InstanceConfigUpdateRequestIntegrationsEmailProviderNone InstanceConfigUpdateRequestIntegrationsEmailProvider = "none"
-	InstanceConfigUpdateRequestIntegrationsEmailProviderSmtp InstanceConfigUpdateRequestIntegrationsEmailProvider = "smtp"
-)
-
-// Valid indicates whether the value is a known member of the InstanceConfigUpdateRequestIntegrationsEmailProvider enum.
-func (e InstanceConfigUpdateRequestIntegrationsEmailProvider) Valid() bool {
-	switch e {
-	case InstanceConfigUpdateRequestIntegrationsEmailProviderNone:
-		return true
-	case InstanceConfigUpdateRequestIntegrationsEmailProviderSmtp:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for InstanceConfigUpdateRequestIntegrationsEmailSmtpTlsMode.
-const (
-	InstanceConfigUpdateRequestIntegrationsEmailSmtpTlsModeIMPLICIT      InstanceConfigUpdateRequestIntegrationsEmailSmtpTlsMode = "implicit"
-	InstanceConfigUpdateRequestIntegrationsEmailSmtpTlsModeNONE          InstanceConfigUpdateRequestIntegrationsEmailSmtpTlsMode = "none"
-	InstanceConfigUpdateRequestIntegrationsEmailSmtpTlsModeOPPORTUNISTIC InstanceConfigUpdateRequestIntegrationsEmailSmtpTlsMode = "opportunistic"
-	InstanceConfigUpdateRequestIntegrationsEmailSmtpTlsModeSTARTTLS      InstanceConfigUpdateRequestIntegrationsEmailSmtpTlsMode = "starttls"
-)
-
-// Valid indicates whether the value is a known member of the InstanceConfigUpdateRequestIntegrationsEmailSmtpTlsMode enum.
-func (e InstanceConfigUpdateRequestIntegrationsEmailSmtpTlsMode) Valid() bool {
-	switch e {
-	case InstanceConfigUpdateRequestIntegrationsEmailSmtpTlsModeIMPLICIT:
-		return true
-	case InstanceConfigUpdateRequestIntegrationsEmailSmtpTlsModeNONE:
-		return true
-	case InstanceConfigUpdateRequestIntegrationsEmailSmtpTlsModeOPPORTUNISTIC:
-		return true
-	case InstanceConfigUpdateRequestIntegrationsEmailSmtpTlsModeSTARTTLS:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for InstanceConfigUpdateRequestPolicyDirectMessagesLocked.
 const (
 	False InstanceConfigUpdateRequestPolicyDirectMessagesLocked = false
@@ -1056,30 +807,6 @@ const (
 func (e InstanceConfigUpdateRequestPolicyDirectMessagesLocked) Valid() bool {
 	switch e {
 	case False:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for InstanceEmailSmtpTestRequestTlsMode.
-const (
-	InstanceEmailSmtpTestRequestTlsModeIMPLICIT      InstanceEmailSmtpTestRequestTlsMode = "implicit"
-	InstanceEmailSmtpTestRequestTlsModeNONE          InstanceEmailSmtpTestRequestTlsMode = "none"
-	InstanceEmailSmtpTestRequestTlsModeOPPORTUNISTIC InstanceEmailSmtpTestRequestTlsMode = "opportunistic"
-	InstanceEmailSmtpTestRequestTlsModeSTARTTLS      InstanceEmailSmtpTestRequestTlsMode = "starttls"
-)
-
-// Valid indicates whether the value is a known member of the InstanceEmailSmtpTestRequestTlsMode enum.
-func (e InstanceEmailSmtpTestRequestTlsMode) Valid() bool {
-	switch e {
-	case InstanceEmailSmtpTestRequestTlsModeIMPLICIT:
-		return true
-	case InstanceEmailSmtpTestRequestTlsModeNONE:
-		return true
-	case InstanceEmailSmtpTestRequestTlsModeOPPORTUNISTIC:
-		return true
-	case InstanceEmailSmtpTestRequestTlsModeSTARTTLS:
 		return true
 	default:
 		return false
@@ -1154,16 +881,16 @@ func (e InteractionTierModeSchema) Valid() bool {
 
 // Defines values for LastSessionCleanupModeSchema.
 const (
-	LastSessionCleanupModeSchemaAFTERGRACE LastSessionCleanupModeSchema = "after_grace"
-	LastSessionCleanupModeSchemaOFF        LastSessionCleanupModeSchema = "off"
+	AFTERGRACE LastSessionCleanupModeSchema = "after_grace"
+	OFF        LastSessionCleanupModeSchema = "off"
 )
 
 // Valid indicates whether the value is a known member of the LastSessionCleanupModeSchema enum.
 func (e LastSessionCleanupModeSchema) Valid() bool {
 	switch e {
-	case LastSessionCleanupModeSchemaAFTERGRACE:
+	case AFTERGRACE:
 		return true
-	case LastSessionCleanupModeSchemaOFF:
+	case OFF:
 		return true
 	default:
 		return false
@@ -1254,45 +981,6 @@ func (e SkippedNetworkBlockReason) Valid() bool {
 	}
 }
 
-// Defines values for TagStyleSchema.
-const (
-	TagStyleSchemaNONE   TagStyleSchema = "none"
-	TagStyleSchemaRANDOM TagStyleSchema = "random"
-)
-
-// Valid indicates whether the value is a known member of the TagStyleSchema enum.
-func (e TagStyleSchema) Valid() bool {
-	switch e {
-	case TagStyleSchemaNONE:
-		return true
-	case TagStyleSchemaRANDOM:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for VerificationBasisSchema.
-const (
-	AUTO            VerificationBasisSchema = "auto"
-	CONFIRMEDEMAIL  VerificationBasisSchema = "confirmed_email"
-	LOCALCREDENTIAL VerificationBasisSchema = "local_credential"
-)
-
-// Valid indicates whether the value is a known member of the VerificationBasisSchema enum.
-func (e VerificationBasisSchema) Valid() bool {
-	switch e {
-	case AUTO:
-		return true
-	case CONFIRMEDEMAIL:
-		return true
-	case LOCALCREDENTIAL:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for VoiceJoinTokenStatus.
 const (
 	Expired VoiceJoinTokenStatus = "expired"
@@ -1338,28 +1026,12 @@ func (e VoiceServerHealthResponseStatus) Valid() bool {
 	}
 }
 
-// AccountIdentityLockReasonSchema Why the sign-in method can no longer change
-type AccountIdentityLockReasonSchema string
-
-// AccountIdentityModeSchema How people identify themselves when they sign in
-type AccountIdentityModeSchema string
-
 // AccountTierSchema How far the account has got with setting up a way to sign in
 type AccountTierSchema string
 
 // AccountsConfigSchema defines model for AccountsConfigSchema.
 type AccountsConfigSchema struct {
-	GuildJoinGate      GuildJoinGateSchema `json:"guild_join_gate"`
-	InactivityDeletion struct {
-		// InactiveDays Days without use before the warning email is sent
-		InactiveDays int `json:"inactive_days"`
-
-		// Mode Whether accounts unused for a long time are deleted. An account is only deleted after a warning email reached it
-		Mode CleanupModeSchema `json:"mode"`
-
-		// WarningLeadDays Days between the warning email and the deletion
-		WarningLeadDays int `json:"warning_lead_days"`
-	} `json:"inactivity_deletion"`
+	GuildJoinGate           GuildJoinGateSchema       `json:"guild_join_gate"`
 	InteractionTier         InteractionTierModeSchema `json:"interaction_tier"`
 	UnclaimedAccountCleanup struct {
 		// InactiveDays Days without use before such an account is deleted
@@ -1369,24 +1041,13 @@ type AccountsConfigSchema struct {
 		Mode             CleanupModeSchema            `json:"mode"`
 		OnLastSessionEnd LastSessionCleanupModeSchema `json:"on_last_session_end"`
 	} `json:"unclaimed_account_cleanup"`
-	VerificationBasis VerificationBasisSchema `json:"verification_basis"`
 }
 
 // AccountsConfigUpdateRequest defines model for AccountsConfigUpdateRequest.
 type AccountsConfigUpdateRequest struct {
 	// AbandonedAccountCleanup Deprecated, use unclaimed_account_cleanup
-	AbandonedAccountCleanup *bool                `json:"abandoned_account_cleanup,omitempty"`
-	GuildJoinGate           *GuildJoinGateSchema `json:"guild_join_gate,omitempty"`
-	InactivityDeletion      *struct {
-		// InactiveDays Days without use before the warning email is sent
-		InactiveDays *int `json:"inactive_days,omitempty"`
-
-		// Mode Whether accounts unused for a long time are deleted. An account is only deleted after a warning email reached it
-		Mode *CleanupModeSchema `json:"mode,omitempty"`
-
-		// WarningLeadDays Days between the warning email and the deletion
-		WarningLeadDays *int `json:"warning_lead_days,omitempty"`
-	} `json:"inactivity_deletion,omitempty"`
+	AbandonedAccountCleanup *bool                      `json:"abandoned_account_cleanup,omitempty"`
+	GuildJoinGate           *GuildJoinGateSchema       `json:"guild_join_gate,omitempty"`
 	InteractionTier         *InteractionTierModeSchema `json:"interaction_tier,omitempty"`
 	UnclaimedAccountCleanup *struct {
 		// InactiveDays Days without use before such an account is deleted
@@ -1396,7 +1057,6 @@ type AccountsConfigUpdateRequest struct {
 		Mode             *CleanupModeSchema            `json:"mode,omitempty"`
 		OnLastSessionEnd *LastSessionCleanupModeSchema `json:"on_last_session_end,omitempty"`
 	} `json:"unclaimed_account_cleanup,omitempty"`
-	VerificationBasis *VerificationBasisSchema `json:"verification_basis,omitempty"`
 }
 
 // AdminAclType defines model for AdminAclType.
@@ -1491,9 +1151,6 @@ type AdminUserCreateRequest struct {
 	// Admin Whether to give the new account full admin access
 	Admin *bool `json:"admin,omitempty"`
 
-	// Email Email address for the new account. Required on an instance where people sign in with email, and refused where they sign in with a username
-	Email *EmailType `json:"email,omitempty"`
-
 	// Username Username for the new account
 	Username UsernameType `json:"username"`
 }
@@ -1513,7 +1170,7 @@ type AdminUserDeletionScheduleRequest struct {
 	// DaysUntilDeletion Days until the account is deleted. Raised to 14, or to 74 when a rule was broken so an appeal can be reviewed first. Self-hosted instances have no appeals and raise every basis to 14
 	DaysUntilDeletion int `json:"days_until_deletion"`
 
-	// Immediate Self-hosted instances only. Delete the account now instead of after days_until_deletion, with no notice email. This cannot be undone
+	// Immediate Self-hosted instances only. Delete the account now instead of after days_until_deletion. This cannot be undone
 	Immediate *bool `json:"immediate,omitempty"`
 
 	// RemoveEvidence Remove the reported messages and the evidence you listed after they are snapshotted into the decision. Other messages from the reports are kept. Enforcement basis only
@@ -1529,12 +1186,8 @@ type AdminUserMessageDeleteRequest struct {
 	Basis *ModerationBasis `json:"basis,omitempty"`
 }
 
-// AllowedEmailDomainsSchema defines model for AllowedEmailDomainsSchema.
-type AllowedEmailDomainsSchema = []string
-
 // AuthConfigUpdateRequest defines model for AuthConfigUpdateRequest.
 type AuthConfigUpdateRequest struct {
-	IdentifierFirst *AuthConfigUpdateRequest_IdentifierFirst `json:"identifier_first,omitempty"`
 	InstantAccounts *struct {
 		// Enabled Whether accounts can be created from just a display name. Needs the captcha to be on
 		Enabled *bool `json:"enabled,omitempty"`
@@ -1542,17 +1195,6 @@ type AuthConfigUpdateRequest struct {
 		// PowEscalationPerHour Every this many accounts created from a display name in the current hour doubles the captcha cost
 		PowEscalationPerHour *int `json:"pow_escalation_per_hour,omitempty"`
 	} `json:"instant_accounts,omitempty"`
-}
-
-// AuthConfigUpdateRequestIdentifierFirst0 Whether clients show the single sign-in entry that starts with an email
-type AuthConfigUpdateRequestIdentifierFirst0 = IdentifierFirstModeSchema
-
-// AuthConfigUpdateRequestIdentifierFirst1 Deprecated: true means on and false means off
-type AuthConfigUpdateRequestIdentifierFirst1 = bool
-
-// AuthConfigUpdateRequest_IdentifierFirst defines model for AuthConfigUpdateRequest.IdentifierFirst.
-type AuthConfigUpdateRequest_IdentifierFirst struct {
-	union json.RawMessage
 }
 
 // BrandingAssetUploadRequest defines model for BrandingAssetUploadRequest.
@@ -1832,15 +1474,6 @@ type DomainMigrationConfigUpdateRequest struct {
 	StandaloneForwarding        *bool                                `json:"standalone_forwarding,omitempty"`
 }
 
-// EmailDeliveryModeSchema How the instance sends email
-type EmailDeliveryModeSchema string
-
-// EmailDeliveryStateSchema Whether the instance sends email, and why not
-type EmailDeliveryStateSchema string
-
-// EmailType defines model for EmailType.
-type EmailType = string
-
 // EnforcementDecisionInput Why the restriction is applied. The X-Audit-Log-Reason header is required and becomes the first note
 type EnforcementDecisionInput struct {
 	// Automation Whether automated tools flagged this before a person on the team decided
@@ -1998,22 +1631,8 @@ type GuildVisitsConfigUpdateRequest struct {
 // HexString16Type defines model for HexString16Type.
 type HexString16Type = string
 
-// IdentifierFirstModeSchema Whether clients show the single sign-in entry that starts with an email
-type IdentifierFirstModeSchema string
-
 // InstanceConfigResponse defines model for InstanceConfigResponse.
 type InstanceConfigResponse struct {
-	AccountIdentity struct {
-		// LockReason Why the sign-in method can no longer change, or null while it still can
-		LockReason *AccountIdentityLockReasonSchema `json:"lock_reason"`
-
-		// Locked Whether the sign-in method can no longer change
-		Locked bool `json:"locked"`
-
-		// Mode Sign-in method in effect on this instance
-		Mode     AccountIdentityModeSchema `json:"mode"`
-		TagStyle TagStyleSchema            `json:"tag_style"`
-	} `json:"account_identity"`
 	Accounts  AccountsConfigSchema `json:"accounts"`
 	AppPublic struct {
 		Branding struct {
@@ -2042,8 +1661,6 @@ type InstanceConfigResponse struct {
 		} `json:"setup"`
 	} `json:"app_public"`
 	Auth struct {
-		IdentifierFirst IdentifierFirstModeSchema `json:"identifier_first"`
-
 		// InstantAccountAvailability Whether accounts can be created from just a display name through public sign-up right now, and why not
 		InstantAccountAvailability InstantAccountAvailabilitySchema `json:"instant_account_availability"`
 		InstantAccounts            struct {
@@ -2070,39 +1687,6 @@ type InstanceConfigResponse struct {
 			PolicyUri        *string `json:"policy_uri"`
 			TosUri           *string `json:"tos_uri"`
 		} `json:"bluesky"`
-		Email struct {
-			// Delivery Saved delivery mode, or null to use the environment
-			Delivery                           *EmailDeliveryModeSchema `json:"delivery"`
-			DeliveryState                      EmailDeliveryStateSchema `json:"delivery_state"`
-			DisableNewIpAuthorization          bool                     `json:"disable_new_ip_authorization"`
-			EffectiveDelivery                  EmailDeliveryModeSchema  `json:"effective_delivery"`
-			EffectiveDisableNewIpAuthorization bool                     `json:"effective_disable_new_ip_authorization"`
-
-			// EffectiveEnabled Whether the instance sends email, same as delivery_state being on
-			EffectiveEnabled bool `json:"effective_enabled"`
-
-			// EffectiveProvider Deprecated, use delivery
-			EffectiveProvider InstanceConfigResponseIntegrationsEmailEffectiveProvider `json:"effective_provider"`
-
-			// Enabled Deprecated, use delivery
-			Enabled   *bool   `json:"enabled"`
-			FromEmail *string `json:"from_email"`
-			FromName  *string `json:"from_name"`
-
-			// Provider Deprecated, use delivery
-			Provider *InstanceConfigResponseIntegrationsEmailProvider `json:"provider"`
-			Smtp     struct {
-				// EffectiveTlsMode How the SMTP connection is encrypted
-				EffectiveTlsMode *InstanceConfigResponseIntegrationsEmailSmtpEffectiveTlsMode `json:"effective_tls_mode"`
-				Host             *string                                                      `json:"host"`
-				PasswordSet      bool                                                         `json:"password_set"`
-				Port             *int                                                         `json:"port"`
-
-				// TlsMode Saved TLS mode, or null to pick one from the port
-				TlsMode  *InstanceConfigResponseIntegrationsEmailSmtpTlsMode `json:"tls_mode"`
-				Username *string                                             `json:"username"`
-			} `json:"smtp"`
-		} `json:"email"`
 		Youtube struct {
 			ApiKeySet          bool `json:"api_key_set"`
 			EffectiveAvailable bool `json:"effective_available"`
@@ -2161,12 +1745,9 @@ type InstanceConfigResponse struct {
 		SingleCommunityGuildId *string `json:"single_community_guild_id"`
 	} `json:"policy"`
 	Registration struct {
-		AdminRegistrationUrlsEnabled bool `json:"admin_registration_urls_enabled"`
-
-		// AllowedEmailDomains Email domains that public sign-ups and email changes must use. Empty allows any domain
-		AllowedEmailDomains AllowedEmailDomainsSchema      `json:"allowed_email_domains"`
-		Mode                InstanceRegistrationModeSchema `json:"mode"`
-		Urls                []struct {
+		AdminRegistrationUrlsEnabled bool                           `json:"admin_registration_urls_enabled"`
+		Mode                         InstanceRegistrationModeSchema `json:"mode"`
+		Urls                         []struct {
 			ApprovalRequired bool                `json:"approval_required"`
 			CreatedAt        time.Time           `json:"created_at"`
 			CreatedByUserId  SnowflakeStringType `json:"created_by_user_id"`
@@ -2189,18 +1770,6 @@ type InstanceConfigResponse struct {
 	// Warnings Problems the save found that did not stop it. Always empty outside a save response
 	Warnings []string `json:"warnings"`
 }
-
-// InstanceConfigResponseIntegrationsEmailEffectiveProvider Deprecated, use delivery
-type InstanceConfigResponseIntegrationsEmailEffectiveProvider string
-
-// InstanceConfigResponseIntegrationsEmailProvider Deprecated, use delivery
-type InstanceConfigResponseIntegrationsEmailProvider string
-
-// InstanceConfigResponseIntegrationsEmailSmtpEffectiveTlsMode How the SMTP connection is encrypted
-type InstanceConfigResponseIntegrationsEmailSmtpEffectiveTlsMode string
-
-// InstanceConfigResponseIntegrationsEmailSmtpTlsMode Saved TLS mode, or null to pick one from the port
-type InstanceConfigResponseIntegrationsEmailSmtpTlsMode string
 
 // InstanceConfigUpdateRequest defines model for InstanceConfigUpdateRequest.
 type InstanceConfigUpdateRequest struct {
@@ -2250,31 +1819,6 @@ type InstanceConfigUpdateRequest struct {
 			PolicyUri *string `json:"policy_uri,omitempty"`
 			TosUri    *string `json:"tos_uri,omitempty"`
 		} `json:"bluesky,omitempty"`
-		Email *struct {
-			// Delivery How the instance sends email, or null to use the environment
-			Delivery                  *EmailDeliveryModeSchema `json:"delivery,omitempty"`
-			DisableNewIpAuthorization *bool                    `json:"disable_new_ip_authorization,omitempty"`
-
-			// Enabled Deprecated, use delivery
-			Enabled   *bool   `json:"enabled,omitempty"`
-			FromEmail *string `json:"from_email,omitempty"`
-			FromName  *string `json:"from_name,omitempty"`
-
-			// Provider Deprecated, use delivery
-			Provider *InstanceConfigUpdateRequestIntegrationsEmailProvider `json:"provider,omitempty"`
-			Smtp     *struct {
-				Host     *string `json:"host,omitempty"`
-				Password *string `json:"password,omitempty"`
-				Port     *int    `json:"port,omitempty"`
-
-				// Secure Deprecated, use tls_mode
-				Secure *bool `json:"secure,omitempty"`
-
-				// TlsMode How the SMTP connection is encrypted
-				TlsMode  *InstanceConfigUpdateRequestIntegrationsEmailSmtpTlsMode `json:"tls_mode,omitempty"`
-				Username *string                                                  `json:"username,omitempty"`
-			} `json:"smtp,omitempty"`
-		} `json:"email,omitempty"`
 		Youtube *struct {
 			ApiKey *string `json:"api_key,omitempty"`
 		} `json:"youtube,omitempty"`
@@ -2332,51 +1876,13 @@ type InstanceConfigUpdateRequest struct {
 	} `json:"policy,omitempty"`
 	Registration *struct {
 		AdminRegistrationUrlsEnabled *bool                           `json:"admin_registration_urls_enabled,omitempty"`
-		AllowedEmailDomains          *AllowedEmailDomainsSchema      `json:"allowed_email_domains,omitempty"`
 		Mode                         *InstanceRegistrationModeSchema `json:"mode,omitempty"`
 	} `json:"registration,omitempty"`
 	VoiceP2p *VoiceP2pConfigUpdateRequest `json:"voice_p2p,omitempty"`
 }
 
-// InstanceConfigUpdateRequestIntegrationsEmailProvider Deprecated, use delivery
-type InstanceConfigUpdateRequestIntegrationsEmailProvider string
-
-// InstanceConfigUpdateRequestIntegrationsEmailSmtpTlsMode How the SMTP connection is encrypted
-type InstanceConfigUpdateRequestIntegrationsEmailSmtpTlsMode string
-
 // InstanceConfigUpdateRequestPolicyDirectMessagesLocked defines model for InstanceConfigUpdateRequest.Policy.DirectMessagesLocked.
 type InstanceConfigUpdateRequestPolicyDirectMessagesLocked bool
-
-// InstanceEmailSmtpTestRequest defines model for InstanceEmailSmtpTestRequest.
-type InstanceEmailSmtpTestRequest struct {
-	// FromEmail The from address for the test message, in place of the saved one
-	FromEmail *EmailType `json:"from_email,omitempty"`
-
-	// FromName The from name for the test message, in place of the saved one
-	FromName *string `json:"from_name,omitempty"`
-	Host     *string `json:"host,omitempty"`
-	Password *string `json:"password,omitempty"`
-	Port     *int    `json:"port,omitempty"`
-
-	// SendTo When set, the test also sends a short message to this address and reports what the server answered
-	SendTo *EmailType `json:"send_to,omitempty"`
-
-	// TlsMode How the SMTP connection is encrypted
-	TlsMode  *InstanceEmailSmtpTestRequestTlsMode `json:"tls_mode,omitempty"`
-	Username *string                              `json:"username,omitempty"`
-}
-
-// InstanceEmailSmtpTestRequestTlsMode How the SMTP connection is encrypted
-type InstanceEmailSmtpTestRequestTlsMode string
-
-// InstanceEmailSmtpTestResponse defines model for InstanceEmailSmtpTestResponse.
-type InstanceEmailSmtpTestResponse struct {
-	Error *string `json:"error"`
-	Ok    bool    `json:"ok"`
-
-	// ServerResponse What the server answered when it accepted the test message, present only when send_to was set
-	ServerResponse *string `json:"server_response,omitempty"`
-}
 
 // InstanceNoticeSchema Notice from the instance administrator shown to everyone, such as planned maintenance
 type InstanceNoticeSchema struct {
@@ -2571,7 +2077,6 @@ type PendingRegistrationListResponse struct {
 type PendingRegistrationResponse struct {
 	ClientIp          *string             `json:"client_ip"`
 	Discriminator     int                 `json:"discriminator"`
-	Email             *string             `json:"email"`
 	GlobalName        *string             `json:"global_name"`
 	InviteCode        *string             `json:"invite_code"`
 	RegistrationUrlId *string             `json:"registration_url_id"`
@@ -2610,9 +2115,6 @@ type SnowflakeType0 = string
 
 // SnowflakeType1 defines model for .
 type SnowflakeType1 = int
-
-// TagStyleSchema How usernames are tagged
-type TagStyleSchema string
 
 // TerminateSessionsResponse defines model for TerminateSessionsResponse.
 type TerminateSessionsResponse struct {
@@ -2726,9 +2228,6 @@ type UserAdminResponseSchema struct {
 	// DeletionScheduledBy ID of the account that scheduled the pending deletion, null when it was not recorded
 	DeletionScheduledBy *SnowflakeStringType `json:"deletion_scheduled_by"`
 	Discriminator       Int32Type            `json:"discriminator"`
-	Email               *string              `json:"email"`
-	EmailBounced        bool                 `json:"email_bounced"`
-	EmailVerified       bool                 `json:"email_verified"`
 
 	// EnforcementDecisionId The enforcement decision behind the current suspension or closure, null when none owns it
 	EnforcementDecisionId *SnowflakeStringType `json:"enforcement_decision_id"`
@@ -2773,9 +2272,6 @@ type UserRestrictionResponse struct {
 
 // UsernameType defines model for UsernameType.
 type UsernameType = string
-
-// VerificationBasisSchema What an account needs to finish setting up
-type VerificationBasisSchema string
 
 // VoiceInternalEndpointType URL the API uses for the control API and health checks of this server, such as http://voice-fra:7880
 type VoiceInternalEndpointType = string
@@ -2995,11 +2491,8 @@ type ListAdminUsersParams struct {
 		union json.RawMessage
 	} `form:"user_id,omitempty" json:"user_id,omitempty"`
 
-	// Resolve Resolve one exact identifier: a username#discriminator tag, a user ID, an email address, or a Stripe subscription ID
+	// Resolve Resolve one exact identifier: a username or a user ID
 	Resolve *string `form:"resolve,omitempty" json:"resolve,omitempty"`
-
-	// Email Restrict the results to the user with this exact email address
-	Email *string `form:"email,omitempty" json:"email,omitempty"`
 
 	// LastActiveIp Restrict the results to the users whose last active IP address matches this one exactly
 	LastActiveIp *string `form:"last_active_ip,omitempty" json:"last_active_ip,omitempty"`
@@ -3034,9 +2527,6 @@ type UpdateAdminInstanceConfigJSONRequestBody = InstanceConfigUpdateRequest
 
 // CreateAdminInstanceBrandingAssetJSONRequestBody defines body for CreateAdminInstanceBrandingAsset for application/json ContentType.
 type CreateAdminInstanceBrandingAssetJSONRequestBody = BrandingAssetUploadRequest
-
-// CreateAdminInstanceSmtpTestJSONRequestBody defines body for CreateAdminInstanceSmtpTest for application/json ContentType.
-type CreateAdminInstanceSmtpTestJSONRequestBody = InstanceEmailSmtpTestRequest
 
 // UpdateAdminPendingRegistrationJSONRequestBody defines body for UpdateAdminPendingRegistration for application/json ContentType.
 type UpdateAdminPendingRegistrationJSONRequestBody = PendingRegistrationActionRequest
@@ -3287,68 +2777,6 @@ func (a ThrottledError) MarshalJSON() ([]byte, error) {
 		}
 	}
 	return json.Marshal(object)
-}
-
-// AsAuthConfigUpdateRequestIdentifierFirst0 returns the union data inside the AuthConfigUpdateRequest_IdentifierFirst as a AuthConfigUpdateRequestIdentifierFirst0
-func (t AuthConfigUpdateRequest_IdentifierFirst) AsAuthConfigUpdateRequestIdentifierFirst0() (AuthConfigUpdateRequestIdentifierFirst0, error) {
-	var body AuthConfigUpdateRequestIdentifierFirst0
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromAuthConfigUpdateRequestIdentifierFirst0 overwrites any union data inside the AuthConfigUpdateRequest_IdentifierFirst as the provided AuthConfigUpdateRequestIdentifierFirst0
-func (t *AuthConfigUpdateRequest_IdentifierFirst) FromAuthConfigUpdateRequestIdentifierFirst0(v AuthConfigUpdateRequestIdentifierFirst0) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeAuthConfigUpdateRequestIdentifierFirst0 performs a merge with any union data inside the AuthConfigUpdateRequest_IdentifierFirst, using the provided AuthConfigUpdateRequestIdentifierFirst0
-func (t *AuthConfigUpdateRequest_IdentifierFirst) MergeAuthConfigUpdateRequestIdentifierFirst0(v AuthConfigUpdateRequestIdentifierFirst0) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsAuthConfigUpdateRequestIdentifierFirst1 returns the union data inside the AuthConfigUpdateRequest_IdentifierFirst as a AuthConfigUpdateRequestIdentifierFirst1
-func (t AuthConfigUpdateRequest_IdentifierFirst) AsAuthConfigUpdateRequestIdentifierFirst1() (AuthConfigUpdateRequestIdentifierFirst1, error) {
-	var body AuthConfigUpdateRequestIdentifierFirst1
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromAuthConfigUpdateRequestIdentifierFirst1 overwrites any union data inside the AuthConfigUpdateRequest_IdentifierFirst as the provided AuthConfigUpdateRequestIdentifierFirst1
-func (t *AuthConfigUpdateRequest_IdentifierFirst) FromAuthConfigUpdateRequestIdentifierFirst1(v AuthConfigUpdateRequestIdentifierFirst1) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeAuthConfigUpdateRequestIdentifierFirst1 performs a merge with any union data inside the AuthConfigUpdateRequest_IdentifierFirst, using the provided AuthConfigUpdateRequestIdentifierFirst1
-func (t *AuthConfigUpdateRequest_IdentifierFirst) MergeAuthConfigUpdateRequestIdentifierFirst1(v AuthConfigUpdateRequestIdentifierFirst1) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-func (t AuthConfigUpdateRequest_IdentifierFirst) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *AuthConfigUpdateRequest_IdentifierFirst) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
 }
 
 // AsModerationBasis0 returns the union data inside the ModerationBasis as a ModerationBasis0

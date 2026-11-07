@@ -2,7 +2,6 @@
 
 import {createHash} from 'node:crypto';
 import {Config} from '@app/api/Config';
-import {withAccountIdentitySetupLock} from '@app/api/instance/AccountIdentitySetupLock';
 import {type CustomBadge, compareBigInts} from '@app/api/instance/custom_badges/CustomBadgeRepository';
 import {
 	type DiscoveryValidators,
@@ -23,31 +22,16 @@ import {entityTagMatches} from '@app/api/utils/EntityTag';
 import {requireConfiguredClientIp} from '@app/api/utils/RequestClientIp';
 import {Validator} from '@app/api/Validator';
 import {endpointOrigin} from '@app/api/voice/VoiceServerEndpoints';
-import {
-	type EmailDeliveryState,
-	EmailDeliveryStates,
-	InstantAccountAvailability,
-} from '@osaca/constants/src/AccountConfigConstants';
-import {
-	type AccountIdentity,
-	AccountIdentityDecisionSources,
-	AccountIdentityModes,
-	TagStyles,
-} from '@osaca/constants/src/AccountIdentityConstants';
-import {resolveEffectiveVerificationBasis, resolveIdentifierFirst} from '@osaca/constants/src/AccountTierRules';
+import {InstantAccountAvailability} from '@osaca/constants/src/AccountConfigConstants';
 import {API_CODE_VERSION} from '@osaca/constants/src/AppConstants';
 import {BUILT_IN_GUILD_BADGE_KINDS, type HideableBuiltInBadgeKind} from '@osaca/constants/src/BadgeConstants';
-import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
-import {AccountIdentityLockedError} from '@osaca/errors/src/domains/auth/AccountIdentityLockedError';
 import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
 import {buildDiscoveryResponse, type DiscoveryStaticInput} from '@osaca/instance_bootstrap/src/BuildDiscovery';
 import type {InstanceAppPublic} from '@osaca/instance_bootstrap/src/Types';
-import type {AccountsConfig, AuthConfig} from '@osaca/schema/src/domains/admin/AccountsConfigSchemas';
+import type {AccountsConfig} from '@osaca/schema/src/domains/admin/AccountsConfigSchemas';
 import type {CaptchaConfig} from '@osaca/schema/src/domains/admin/CaptchaSchemas';
 import {toDomainMigrationDiscovery} from '@osaca/schema/src/domains/admin/DomainMigrationSchemas';
 import {
-	InstanceAccountIdentityResponse,
-	InstanceAccountIdentityUpdateRequest,
 	type InstanceBadge,
 	InstanceBadgesQuery,
 	InstanceBadgesResponse,
@@ -65,18 +49,10 @@ function buildDiscoveryStaticInput(
 	appPublic: InstanceAppPublic,
 	runtime: {
 		captcha: CaptchaConfig;
-		emailDeliveryState: EmailDeliveryState;
-		accountIdentity: AccountIdentity;
-		auth: AuthConfig;
 		accounts: AccountsConfig;
 		instantAccountAvailability: InstantAccountAvailability;
 	},
 ): DiscoveryStaticInput {
-	const signIn = resolveIdentifierFirst({
-		mode: runtime.auth.identifier_first,
-		identityMode: runtime.accountIdentity.mode,
-		deliveryState: runtime.emailDeliveryState,
-	});
 	const apiClientEndpoint = Config.endpoints.apiClient;
 	const apiPublicEndpoint = Config.endpoints.apiPublicDiscovery;
 	return {
@@ -103,23 +79,12 @@ function buildDiscoveryStaticInput(
 			voice_enabled: Config.voice.enabled,
 			self_hosted: Config.instance.selfHosted,
 			presigned_attachment_uploads: Config.presignedAttachmentUploadsEnabled,
-			emails_enabled: runtime.emailDeliveryState === EmailDeliveryStates.ON,
 			phone_verification_enabled: false,
 			discovery_enabled: Config.discovery.enabled,
-			account_identity: runtime.accountIdentity.mode,
-			tag_style: runtime.accountIdentity.tagStyle,
-			identifier_first: signIn.identifierFirst,
 			instant_accounts: runtime.instantAccountAvailability === InstantAccountAvailability.AVAILABLE,
-			email_codes: signIn.emailCodes,
 			instant_account_availability: runtime.instantAccountAvailability,
 			interaction_tier: runtime.accounts.interaction_tier,
 			guild_join_gate: runtime.accounts.guild_join_gate,
-			email_delivery_state: runtime.emailDeliveryState,
-			verification_basis: resolveEffectiveVerificationBasis({
-				identityMode: runtime.accountIdentity.mode,
-				basis: runtime.accounts.verification_basis,
-				deliveryState: runtime.emailDeliveryState,
-			}),
 		},
 		push: {
 			public_vapid_key: Config.push.publicVapidKey ?? null,
@@ -234,10 +199,7 @@ export function InstanceController(app: Hono<HonoEnv>) {
 				services,
 				appPublicConfig,
 				captcha,
-				emailDeliveryState,
 				domainMigration,
-				accountIdentity,
-				auth,
 				accounts,
 				instantAccountAvailability,
 				notice,
@@ -250,10 +212,7 @@ export function InstanceController(app: Hono<HonoEnv>) {
 				instanceConfigRepository.getResolvedServicesConfig(),
 				instanceConfigRepository.getAppPublicConfig(),
 				instanceConfigRepository.getCaptchaConfig(),
-				instanceConfigRepository.getEmailDeliveryState(),
 				instanceConfigRepository.getDomainMigrationConfig(),
-				instanceConfigRepository.getAccountIdentity(),
-				instanceConfigRepository.getAuthConfig(),
 				instanceConfigRepository.getAccountsConfig(),
 				instanceConfigRepository.getInstantAccountAvailability(),
 				instanceConfigRepository.getActiveInstanceNotice(),
@@ -262,18 +221,13 @@ export function InstanceController(app: Hono<HonoEnv>) {
 				instanceConfigRepository.getHiddenBuiltInBadges(),
 			]);
 			const statusPageInstatus = await getStatusPageDetector().isInstatus(appPublicConfig.branding.status_page_url);
-			const lockReason =
-				Config.instance.selfHosted && !appPublicConfig.setup.configured
-					? await instanceConfigRepository.getAccountIdentityLockReason()
-					: undefined;
 			const openSetup =
-				lockReason === undefined
-					? {}
-					: {
-							account_identity_locked: lockReason !== null,
-							account_identity_lock_reason: lockReason,
+				Config.instance.selfHosted && !appPublicConfig.setup.configured
+					? {
 							setup_token_required: await instanceConfigRepository.isSetupTokenRequired(),
-						};
+							admin_exists: await instanceConfigRepository.isAdminBootstrapped(),
+						}
+					: {};
 			const discovery = buildDiscoveryResponse(
 				buildDiscoveryStaticInput(
 					{
@@ -287,9 +241,6 @@ export function InstanceController(app: Hono<HonoEnv>) {
 					},
 					{
 						captcha,
-						emailDeliveryState,
-						accountIdentity,
-						auth,
 						accounts,
 						instantAccountAvailability,
 					},
@@ -404,48 +355,6 @@ export function InstanceController(app: Hono<HonoEnv>) {
 				clientIp: requireConfiguredClientIp(ctx.req.raw, config.proxy),
 			});
 			return ctx.body(null, 204);
-		},
-	);
-	app.put(
-		'/instance/setup/account-identity',
-		RateLimitMiddleware(RateLimitConfigs.INSTANCE_SETUP_ACCOUNT_IDENTITY),
-		Validator('json', InstanceAccountIdentityUpdateRequest),
-		OpenAPI({
-			operationId: 'set_instance_account_identity',
-			summary: 'Choose the sign-in method for a new instance',
-			responseSchema: InstanceAccountIdentityResponse,
-			statusCode: 200,
-			security: [],
-			tags: ['Instance'],
-			description:
-				'Sets how people sign in on a new self-hosted instance, and for email sign-in whether usernames are unique with no tag. Username sign-in always uses unique usernames. It works only before setup is finished and before the first account exists. After that it fails with ACCOUNT_IDENTITY_LOCKED. While the instance requires a setup token, the request must send it as setup_token.',
-		}),
-		async (ctx) => {
-			const {mode, tag_style, setup_token} = ctx.req.valid('json');
-			const instanceConfigRepository = ctx.get('instanceConfigRepository');
-			const {config, rateLimit, cache} = ctx.get('apiContext').services;
-			await assertSetupToken({
-				rateLimit,
-				config,
-				repository: instanceConfigRepository,
-				presented: setup_token,
-				clientIp: requireConfiguredClientIp(ctx.req.raw, config.proxy),
-			});
-			if (mode === AccountIdentityModes.USERNAME && tag_style === TagStyles.RANDOM) {
-				throw InputValidationError.fromCode('tag_style', ValidationErrorCodes.TAG_STYLE_REQUIRES_EMAIL_SIGN_IN);
-			}
-			const identity = await withAccountIdentitySetupLock(cache, async () => {
-				if (await instanceConfigRepository.isAccountIdentityLocked()) {
-					throw new AccountIdentityLockedError();
-				}
-				await instanceConfigRepository.setAccountIdentityMode(
-					mode,
-					AccountIdentityDecisionSources.SETUP,
-					tag_style ?? TagStyles.NONE,
-				);
-				return await instanceConfigRepository.getAccountIdentity();
-			});
-			return ctx.json({mode: identity.mode, tag_style: identity.tagStyle});
 		},
 	);
 }

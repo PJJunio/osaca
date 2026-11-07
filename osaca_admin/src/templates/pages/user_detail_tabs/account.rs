@@ -4,10 +4,7 @@ use crate::{
     acl,
     api::{
         generated::types::EnforcementKindType,
-        types::{
-            AccountIdentityMode, AdminUser, PasswordResetLinkResponse, UserSession,
-            WebAuthnCredential,
-        },
+        types::{AdminUser, PasswordResetLinkResponse, UserSession, WebAuthnCredential},
     },
     config::AdminConfig,
     templates::components::{
@@ -29,8 +26,6 @@ const BTN_CLS: &str = "w-full inline-flex items-center justify-center rounded-md
 
 pub struct AccountTabOptions<'a> {
     pub admin_acls: &'a [String],
-    pub account_identity: AccountIdentityMode,
-    pub reset_link_available: bool,
     pub password_reset_link: Option<&'a PasswordResetLinkResponse>,
 }
 
@@ -43,24 +38,20 @@ pub fn account_tab(
     options: &AccountTabOptions<'_>,
 ) -> Markup {
     let base = &config.base_path;
-    let identity = options.account_identity;
-    let can_create_reset_link = options.reset_link_available
-        && acl::has_permission(options.admin_acls, acl::USER_CREATE_PASSWORD_RESET_LINK);
-    let can_revoke_recovery_kit = identity.is_username()
-        && !user.bot
-        && acl::has_permission(options.admin_acls, acl::USER_DELETE_RECOVERY_KIT);
+    let can_create_reset_link =
+        acl::has_permission(options.admin_acls, acl::USER_CREATE_PASSWORD_RESET_LINK);
+    let can_revoke_recovery_kit =
+        !user.bot && acl::has_permission(options.admin_acls, acl::USER_DELETE_RECOVERY_KIT);
     html! {
         div class="space-y-6" {
             @if can_create_reset_link {
                 (password_reset_link_card(base, user, csrf_token, options.password_reset_link))
             }
-            (edit_account_card(base, user, csrf_token, identity))
+            (edit_account_card(base, user, csrf_token))
             (sessions_card(config, sessions))
-            (quick_actions_card(base, user, csrf_token, &QuickActions {
-                identity,
-                send_reset_email: !options.reset_link_available,
-                can_revoke_recovery_kit,
-            }))
+            @if can_revoke_recovery_kit {
+                (quick_actions_card(base, user, csrf_token))
+            }
             (clear_fields_card(base, user, csrf_token))
             (user_status_card(base, user, csrf_token))
             (security_actions_card(base, user, csrf_token))
@@ -138,7 +129,6 @@ fn edit_account_card(
     base: &str,
     user: &AdminUser,
     csrf_token: &str,
-    identity: AccountIdentityMode,
 ) -> Markup {
     html! {
         (card_with_header("Edit Account Information", html! {
@@ -147,7 +137,7 @@ fn edit_account_card(
                     p class="text-sm font-medium text-neutral-700" { "Change Username:" }
                     input type="text" name="username" placeholder="New username"
                         required class=(INPUT_CLS);
-                    @if !crate::utils::user_tag::unique_usernames() || user.bot {
+                    @if user.bot {
                         input type="text" name="discriminator"
                             placeholder="Discriminator (optional)" inputmode="numeric" pattern="[0-9]{1,4}" maxlength="4"
                             class=(INPUT_CLS);
@@ -156,16 +146,6 @@ fn edit_account_card(
                         (submit_button("Change Username"))
                     }))
                 }, csrf_token))
-                @if !identity.is_username() {
-                    (post_form(base, &user.id, "change_email", "account", html! {
-                        p class="text-sm font-medium text-neutral-700" { "Change Email:" }
-                        input type="email" name="email" placeholder="New email address"
-                            required class=(INPUT_CLS);
-                        (form_actions(html! {
-                            (submit_button("Change Email"))
-                        }))
-                    }, csrf_token))
-                }
             }
         }))
     }
@@ -266,33 +246,12 @@ fn session_app_label(s: &UserSession) -> Option<String> {
     (!parts.is_empty()).then(|| parts.join(", "))
 }
 
-struct QuickActions {
-    identity: AccountIdentityMode,
-    send_reset_email: bool,
-    can_revoke_recovery_kit: bool,
-}
-
-fn quick_actions_card(
-    base: &str,
-    user: &AdminUser,
-    csrf_token: &str,
-    actions: &QuickActions,
-) -> Markup {
+fn quick_actions_card(base: &str, user: &AdminUser, csrf_token: &str) -> Markup {
     html! {
         (card_with_header("Quick Actions", html! {
             div class="flex flex-wrap gap-3" {
-                @if !user.email_verified && !actions.identity.is_username() {
-                    (action_form(base, &user.id, "verify_email", "account",
-                        "Verify Email", csrf_token))
-                }
-                @if actions.send_reset_email {
-                    (action_form(base, &user.id, "send_password_reset", "account",
-                        "Send Password Reset", csrf_token))
-                }
-                @if actions.can_revoke_recovery_kit {
-                    (action_form(base, &user.id, "revoke_recovery_kit", "account",
-                        "Revoke Recovery Kit", csrf_token))
-                }
+                (action_form(base, &user.id, "revoke_recovery_kit", "account",
+                    "Revoke Recovery Kit", csrf_token))
             }
         }))
     }

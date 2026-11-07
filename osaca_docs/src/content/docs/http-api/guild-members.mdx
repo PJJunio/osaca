@@ -178,7 +178,7 @@ The body is a [guild member update object](#guild-member-update-object) without 
 | 200 | [guild member](#guild-member-object) object | The membership was updated |
 | 400 | [error response](/http-api/#error-response) | `USER_NOT_IN_VOICE` when `channel_id` is set and the member isn't in voice |
 | 403 | [error response](/http-api/#error-response) | `MISSING_PERMISSIONS` for a missing voice permission or a timeout on yourself |
-| 403 | [error response](/http-api/#error-response) | `PROFILE_EMAIL_VERIFICATION_REQUIRED`, `COMMUNICATION_DISABLED`, `CONTENT_BLOCKED` or `ACCOUNT_LIMITED` |
+| 403 | [error response](/http-api/#error-response) | `ACCOUNT_VERIFICATION_REQUIRED`, `COMMUNICATION_DISABLED`, `CONTENT_BLOCKED` or `ACCOUNT_LIMITED` |
 
 OSACA sends [Guild Member Update](/gateway/events/#guild-member-update).
 
@@ -256,12 +256,10 @@ Makes another member the owner and returns the [guild object](/http-api/guilds/#
 | --- | --- | --- |
 | new_owner_id | snowflake | The ID of the member to make the new owner |
 | password? | string | The current owner's password |
-| mfa_method? | string | The second factor to verify, one of `totp`, `webauthn` or `email_code` |
+| mfa_method? | string | The second factor to verify, `totp` or `webauthn` |
 | mfa_code? | string | The authenticator code, required when the method is `totp` (1-32 characters) |
 | webauthn_response? | [WebAuthn assertion](/http-api/authentication/#webauthn-assertion) object | The assertion produced when the method is `webauthn` |
 | webauthn_challenge? | string | The challenge bound to the WebAuthn assertion |
-| email_code_ticket? | string | The ticket from [send a sudo email code](/http-api/users/mfa/#send-a-sudo-email-code) (1-128 characters) |
-| email_code? | string | The 6-digit code from that email |
 
 ### Response
 

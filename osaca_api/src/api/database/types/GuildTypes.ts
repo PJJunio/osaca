@@ -200,7 +200,6 @@ export interface GuildBanRow {
 	expires_at: Date | null;
 	reason: string | null;
 	ip: string | null;
-	email: string | null;
 }
 
 export const GUILD_BAN_COLUMNS = [
@@ -211,26 +210,14 @@ export const GUILD_BAN_COLUMNS = [
 	'expires_at',
 	'reason',
 	'ip',
-	'email',
 ] as const satisfies ReadonlyArray<keyof GuildBanRow>;
-
-export interface GuildBanByEmailRow {
-	guild_id: GuildID;
-	email: string;
-	user_id: UserID;
-}
-
-export const GUILD_BAN_BY_EMAIL_COLUMNS = ['guild_id', 'email', 'user_id'] as const satisfies ReadonlyArray<
-	keyof GuildBanByEmailRow
->;
 
 export interface GuildBanByUserIdRow {
 	user_id: UserID;
 	guild_id: GuildID;
-	email: string | null;
 }
 
-export const GUILD_BAN_BY_USER_ID_COLUMNS = ['user_id', 'guild_id', 'email'] as const satisfies ReadonlyArray<
+export const GUILD_BAN_BY_USER_ID_COLUMNS = ['user_id', 'guild_id'] as const satisfies ReadonlyArray<
 	keyof GuildBanByUserIdRow
 >;
 

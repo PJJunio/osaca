@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {revokeAllAuthSessions} from '@app/api/auth/AuthSessionRevocation';
 import type {UserID} from '@app/api/BrandedTypes';
-import {Config} from '@app/api/Config';
-import {SYSTEM_USER_ID} from '@app/api/constants/Core';
 import {EnforcementDecisionRepository} from '@app/api/enforcement/EnforcementDecisionRepository';
 import {clearExpiredSuspension} from '@app/api/enforcement/SuspensionState';
 import type {IGatewayService} from '@app/api/infrastructure/IGatewayService';
@@ -18,7 +15,6 @@ import {
 	type PartialUserChangePropagationDeps,
 	propagateUserUpdate,
 } from '@app/api/user/services/PartialUserChangePropagation';
-import {reschedulePendingDeletion} from '@app/api/user/services/PendingDeletionCoordinator';
 import type {UserDeletionEligibilityService} from '@app/api/user/services/UserDeletionEligibilityService';
 import {isDeletionComplete} from '@app/api/user/UserHelpers';
 import {mapWithConcurrency} from '@app/api/utils/ConcurrencyUtils';
@@ -32,8 +28,6 @@ import {DeletionReasons} from '@osaca/constants/src/Core';
 import {UserFlags} from '@osaca/constants/src/UserConstants';
 import type {AccountsConfig} from '@osaca/schema/src/domains/admin/AccountsConfigSchemas';
 import {snowflakeToDate} from '@osaca/snowflake/src/Snowflake';
-import type {IEmailService} from '@pkgs/email/src/IEmailService';
-import {TestEmailService} from '@pkgs/email/src/TestEmailService';
 import type {IKVProvider} from '@pkgs/kv_client/src/IKVProvider';
 import type {WorkerTaskHandler} from '@pkgs/worker/src/contracts/WorkerTask';
 import {ms} from 'itty-time';
@@ -42,40 +36,12 @@ const BATCH_SIZE = 100;
 const USER_PROCESSING_CONCURRENCY = 8;
 
 interface InactivityCheckResult {
-	warningsSent: number;
 	deletionsScheduled: number;
 	suspensionsCleared: number;
 	errors: number;
 }
 
-async function scheduleDeletion(
-	userRepository: UserRepository,
-	deletionQueueService: KVAccountDeletionQueueService,
-	gatewayService: IGatewayService,
-	user: User,
-	userId: UserID,
-): Promise<void> {
-	const gracePeriodMs = Config.deletionGracePeriodHours * ms('1 hour');
-	const pendingDeletionAt = new Date(Date.now() + gracePeriodMs);
-	await userRepository.updateDeletionSchedule(user, {
-		flags: user.flags | UserFlags.SELF_DELETED,
-		pending_deletion_at: pendingDeletionAt,
-		deletion_reason_code: DeletionReasons.INACTIVITY,
-		deletion_scheduled_by: SYSTEM_USER_ID,
-		deletion_scheduled_at: new Date(),
-	});
-	await reschedulePendingDeletion({
-		userId,
-		currentPendingDeletionAt: user.pendingDeletionAt,
-		nextPendingDeletionAt: pendingDeletionAt,
-		deletionReasonCode: DeletionReasons.INACTIVITY,
-		deletionQueue: deletionQueueService,
-	});
-	await revokeAllAuthSessions({users: userRepository, gateway: gatewayService}, userId);
-	Logger.debug({userId, pendingDeletionAt, reason: 'INACTIVITY'}, 'Scheduled inactive user for deletion');
-}
-
-type AccountCleanupConfig = Pick<AccountsConfig, 'unclaimed_account_cleanup' | 'inactivity_deletion'>;
+type AccountCleanupConfig = Pick<AccountsConfig, 'unclaimed_account_cleanup'>;
 
 function daysMs(days: number): number {
 	return days * ms('1 day');
@@ -93,8 +59,6 @@ interface ProcessUserDeps {
 	userRepository: UserRepository;
 	deletionQueueService: KVAccountDeletionQueueService;
 	gatewayService: IGatewayService;
-	emailService: IEmailService;
-	isEmailEnabled: () => Promise<boolean>;
 	activityTracker: KVActivityTracker;
 	deletionEligibilityService: UserDeletionEligibilityService;
 	decisionRepository: Pick<EnforcementDecisionRepository, 'get' | 'endIfActive'>;
@@ -132,15 +96,7 @@ async function processUser(
 	pageActivities: ReadonlyMap<UserID, Date | null> | null,
 	result: InactivityCheckResult,
 ): Promise<void> {
-	const {
-		userRepository,
-		deletionQueueService,
-		gatewayService,
-		emailService,
-		isEmailEnabled,
-		activityTracker,
-		deletionEligibilityService,
-	} = deps;
+	const {userRepository, deletionQueueService, gatewayService, activityTracker, deletionEligibilityService} = deps;
 	if (isDeletionComplete(listedUser)) return;
 	const user = await clearSuspensionIfExpired(listedUser, deps, result);
 	const userId = user.id;
@@ -156,80 +112,33 @@ async function processUser(
 		Logger.debug({userId}, 'User is an app store reviewer, skipping');
 		return;
 	}
+	if (!sweepsAbandonedAccounts(deps.cleanup)) return;
 	const prefetchedActivity = pageActivities?.get(userId);
 	const lastActivity =
 		prefetchedActivity !== undefined ? prefetchedActivity : await activityTracker.getActivity(userId);
 	const now = new Date();
-	const userInactiveMs = lastActivity ? now.getTime() - lastActivity.getTime() : Infinity;
-	if (sweepsAbandonedAccounts(deps.cleanup)) {
-		const lastKnownActivity = lastActivity ?? user.lastActiveAt ?? snowflakeToDate(BigInt(userId));
-		const abandonedInactiveMs = now.getTime() - lastKnownActivity.getTime();
-		const reasonCode = await abandonedAccountReason(user, abandonedInactiveMs, userRepository, deps.cleanup);
-		const current = reasonCode === null ? null : await userRepository.findUnique(userId);
-		const currentReason =
-			current === null ||
-			current.pendingDeletionAt ||
-			(await deletionEligibilityService.isProtectedFromSystemDeletion(current))
-				? null
-				: await abandonedAccountReason(current, abandonedInactiveMs, userRepository, deps.cleanup);
-		if (current !== null && currentReason !== null) {
-			await scheduleSystemDeletion(
-				{users: userRepository, gateway: gatewayService, deletionQueue: deletionQueueService},
-				current,
-				{
-					reasonCode: currentReason,
-					delayMs: AccountCleanupDefaults.SCHEDULED_DELETION_GRACE_MS,
-					cancelledBySignIn: true,
-					endSessions: true,
-				},
-			);
-			result.deletionsScheduled++;
-			return;
-		}
-	}
-	const inactivity = deps.cleanup.inactivity_deletion;
-	if (inactivity.mode === CleanupModes.OFF || userInactiveMs < daysMs(inactivity.inactive_days)) {
-		return;
-	}
-	const isEligible = await deletionEligibilityService.isEligibleForInactivityDeletion(user);
-	if (!isEligible) {
-		Logger.debug({userId}, 'User not eligible for inactivity deletion');
-		return;
-	}
-	const hasWarningSent = await deletionEligibilityService.hasWarningSent(userId);
-	if (hasWarningSent) {
-		const hasGracePeriodExpired = await deletionEligibilityService.hasWarningGracePeriodExpired(userId);
-		if (hasGracePeriodExpired) {
-			Logger.debug({userId}, 'Warning grace period expired, scheduling deletion');
-			await scheduleDeletion(userRepository, deletionQueueService, gatewayService, user, userId);
-			result.deletionsScheduled++;
-		} else {
-			Logger.debug({userId}, 'Warning grace period still active, skipping (idempotency check)');
-		}
-		return;
-	}
-	const isTestRun = Config.dev.testModeEnabled;
-	const usingTestEmailService = emailService instanceof TestEmailService;
-	const canSendEmail = !!user.email && (usingTestEmailService || isTestRun || (await isEmailEnabled()));
-	if (!canSendEmail) {
-		return;
-	}
-	try {
-		const deletionDate = new Date(now.getTime() + daysMs(inactivity.warning_lead_days));
-		const sent = await emailService.send(
-			'inactivity_warning',
-			user.email,
-			{deletionDate, lastActiveDate: lastActivity ?? snowflakeToDate(BigInt(userId))},
-			user.locale,
+	const lastKnownActivity = lastActivity ?? user.lastActiveAt ?? snowflakeToDate(BigInt(userId));
+	const abandonedInactiveMs = now.getTime() - lastKnownActivity.getTime();
+	const reasonCode = await abandonedAccountReason(user, abandonedInactiveMs, userRepository, deps.cleanup);
+	const current = reasonCode === null ? null : await userRepository.findUnique(userId);
+	const currentReason =
+		current === null ||
+		current.pendingDeletionAt ||
+		(await deletionEligibilityService.isProtectedFromSystemDeletion(current))
+			? null
+			: await abandonedAccountReason(current, abandonedInactiveMs, userRepository, deps.cleanup);
+	if (current !== null && currentReason !== null) {
+		await scheduleSystemDeletion(
+			{users: userRepository, gateway: gatewayService, deletionQueue: deletionQueueService},
+			current,
+			{
+				reasonCode: currentReason,
+				delayMs: AccountCleanupDefaults.SCHEDULED_DELETION_GRACE_MS,
+				cancelledBySignIn: true,
+				endSessions: true,
+			},
 		);
-		if (sent) {
-			await deletionEligibilityService.markWarningSent(userId);
-			result.warningsSent++;
-			Logger.debug({userId, email: user.email}, 'Sent inactivity warning email');
-		}
-	} catch (emailError) {
-		Logger.error({error: emailError, userId, email: user.email}, 'Failed to send inactivity warning email');
-		result.errors++;
+		result.deletionsScheduled++;
 	}
 }
 
@@ -260,8 +169,6 @@ interface ProcessInactivityDeletionsDeps {
 	userRepository: UserRepository;
 	deletionQueueService: KVAccountDeletionQueueService;
 	gatewayService: IGatewayService;
-	emailService: IEmailService;
-	isEmailEnabled: () => Promise<boolean>;
 	activityTracker: KVActivityTracker;
 	deletionEligibilityService: UserDeletionEligibilityService;
 	userUpdateDeps: PartialUserChangePropagationDeps;
@@ -275,14 +182,11 @@ export async function processInactivityDeletionsCore(
 		userRepository,
 		deletionQueueService,
 		gatewayService,
-		emailService,
-		isEmailEnabled,
 		activityTracker,
 		deletionEligibilityService,
 		userUpdateDeps,
 	} = deps;
 	const result: InactivityCheckResult = {
-		warningsSent: 0,
 		deletionsScheduled: 0,
 		suspensionsCleared: 0,
 		errors: 0,
@@ -298,8 +202,6 @@ export async function processInactivityDeletionsCore(
 		userRepository,
 		deletionQueueService,
 		gatewayService,
-		emailService,
-		isEmailEnabled,
 		activityTracker,
 		deletionEligibilityService,
 		decisionRepository: new EnforcementDecisionRepository(),
@@ -323,16 +225,12 @@ export async function processInactivityDeletionsCore(
 		});
 		processedUsers += users.length;
 		if (processedUsers % 1000 === 0) {
-			Logger.debug(
-				{processedUsers, warningsSent: result.warningsSent, deletionsScheduled: result.deletionsScheduled},
-				'Inactivity deletion progress',
-			);
+			Logger.debug({processedUsers, deletionsScheduled: result.deletionsScheduled}, 'Inactivity deletion progress');
 		}
 	} while (pageState);
 	Logger.info(
 		{
 			processedUsers,
-			warningsSent: result.warningsSent,
 			deletionsScheduled: result.deletionsScheduled,
 			suspensionsCleared: result.suspensionsCleared,
 			errors: result.errors,
@@ -349,7 +247,6 @@ const processInactivityDeletions: WorkerTaskHandler = async (_payload, helpers) 
 		userRepository,
 		deletionQueueService,
 		gatewayService,
-		emailService,
 		instanceConfigRepository,
 		activityTracker,
 		deletionEligibilityService,
@@ -362,8 +259,6 @@ const processInactivityDeletions: WorkerTaskHandler = async (_payload, helpers) 
 		userRepository,
 		deletionQueueService,
 		gatewayService,
-		emailService,
-		isEmailEnabled: () => instanceConfigRepository.isEmailEnabled(),
 		activityTracker,
 		deletionEligibilityService,
 		userUpdateDeps: {userCacheService, gatewayService, userRepository, guildRepository},

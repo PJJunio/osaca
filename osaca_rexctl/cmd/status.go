@@ -169,8 +169,8 @@ func runStatus(ctx context.Context, app *App) error {
 		client := app.adminClient(inst, p)
 		if done, err := setup.Done(ctx, client); err == nil && !done {
 			fix := "Run rexctl setup to finish it here, or rexctl setup token to finish it in your browser."
-			if admin, exists, err := setup.AccountsExist(ctx, client); err == nil && exists {
-				fix = browserSetupFix(inst.Origin(), admin)
+			if admin, err := setup.AdminExists(ctx, client); err == nil && admin {
+				fix = browserSetupFix(inst.Origin(), true)
 			}
 			app.UI.Warn("Setup isn't finished yet.", fix)
 		}

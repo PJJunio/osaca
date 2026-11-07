@@ -14,13 +14,13 @@ import {Button} from '@app/features/ui/button/Button';
 import {Input} from '@app/features/ui/components/form/FormInput';
 import {Spinner} from '@app/features/ui/components/Spinner';
 import FocusRing from '@app/features/ui/focus_ring/FocusRing';
+import {msg} from '@lingui/core/macro';
+import {Trans, useLingui} from '@lingui/react/macro';
 import {
 	formatDesktopHandoffCode,
 	isDesktopHandoffCode,
 	parseDesktopHandoffCodeInput,
 } from '@osaca/schema/src/domains/auth/DesktopHandoffCode';
-import {msg} from '@lingui/core/macro';
-import {Trans, useLingui} from '@lingui/react/macro';
 import {CheckCircleIcon, ProhibitIcon} from '@phosphor-icons/react';
 import type React from 'react';
 import {useCallback, useState} from 'react';
@@ -128,7 +128,7 @@ function AccountLine({handoff, onUseAnotherAccount}: {handoff: DesktopHandoffFlo
 		<div className={styles.accountLine} data-flx="auth.flow.handoff-approval-flow.account-line">
 			{requestedIdentifier != null ? (
 				<p className={styles.wrongAccount} role="alert" data-flx="auth.flow.handoff-approval-flow.wrong-account">
-					<Trans comment="Warning on the browser approval page when the app asked for a different account than the one chosen. requestedIdentifier is the email or username the app asked for, name is the chosen account's display name.">
+					<Trans comment="Warning on the browser approval page when the app asked for a different account than the one chosen. requestedIdentifier is the username the app asked for, name is the chosen account's display name.">
 						The {PRODUCT_NAME} app asked to sign in as {requestedIdentifier}, but you chose {name}.
 					</Trans>
 				</p>

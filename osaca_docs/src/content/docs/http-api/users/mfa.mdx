@@ -16,26 +16,9 @@ OSACA accepts six-digit HMAC-SHA-1 codes with a 30-second time step and one step
 
 An account gets 10 backup codes when it enables TOTP, and when it turns on passkeys as a second factor while it has no unused codes. Each code works once, and OSACA ignores case, spaces and hyphens when it compares them. You can send a backup code wherever a TOTP code is accepted, except in [Enable TOTP MFA](#enable-totp-mfa). OSACA deletes every code when the account is left with no second factor.
 
-A user who lost their codes and their authenticator can get them back by email without sudo mode.
-
-1. [Start MFA backup codes challenge](#start-mfa-backup-codes-challenge) emails a code and returns a ticket that lasts 30 minutes.
-2. [Verify MFA backup codes challenge code](#verify-mfa-backup-codes-challenge-code) trades the code, which lasts 10 minutes, for the current codes and a proof.
-3. [Regenerate MFA backup codes](#regenerate-mfa-backup-codes) uses the proof to replace the set.
-
-The account needs a verified email address and a second factor turned on. On an instance where people sign in with a username these routes return 400 `EMAIL_UNAVAILABLE_ON_INSTANCE`, and on an instance that sends no email they return 400 `EMAIL_CODES_UNAVAILABLE`. Ticket, code and proof errors come back as `INVALID_FORM_BODY` [validation errors](/http-api/#validation-error-object).
-
-Each step also has a limit of its own, on top of its route bucket.
-
-| Step | Limit |
-| --- | --- |
-| Start | 3 emails per 15 minutes for each account |
-| Resend | 3 emails per 15 minutes for each account, and 30 seconds between emails on a ticket |
-| Verify | 5 attempts per 15 minutes for each ticket |
-| Regenerate | 5 attempts per 15 minutes for each ticket |
-
 ## Sudo mode
 
-Sudo mode is a recent proof that the account holder is present, and security-sensitive operations need it. Send the proof as [sudo verification object](#sudo-verification-object) fields in the JSON body, or send an earlier token in the `X-OSACA-Sudo-Mode-JWT` header. After a TOTP, backup code, passkey or email code proof, OSACA returns a token in the same response header, and it works for five minutes on any of the account's sessions. A password proof returns no token, and the account sends `password` on each call.
+Sudo mode is a recent proof that the account holder is present, and security-sensitive operations need it. Send the proof as [sudo verification object](#sudo-verification-object) fields in the JSON body, or send an earlier token in the `X-OSACA-Sudo-Mode-JWT` header. After a TOTP, backup code or passkey proof, OSACA returns a token in the same response header, and it works for five minutes on any of the account's sessions. A password proof returns no token, and the account sends `password` on each call.
 
 The first row that matches the account says which proofs it can send.
 
@@ -43,10 +26,9 @@ The first row that matches the account says which proofs it can send.
 | --- | --- |
 | A second factor is turned on | `mfa_method` of `totp` or `webauthn` with its fields |
 | Has a password | `password`, or `webauthn` with a passkey |
-| Has a confirmed email address on an instance that sends email | `mfa_method` of `email_code` after [Send a sudo email code](#send-a-sudo-email-code), or `webauthn` with a passkey |
 | None of these | Nothing, and the operation goes ahead |
 
-Without a proof, the request returns 403 `SUDO_MODE_REQUIRED` with the [sudo mode methods](#sudo-mode-methods-object) fields. A wrong password returns 400 `INVALID_PASSWORD` on the path `password`, and a wrong TOTP code, backup code or passkey assertion returns 400 `INVALID_MFA_CODE` on the path `mfa_code`. The `totp` method allows 10 attempts per 15 minutes for each account, and a correct code resets the count. A wrong email code returns 400 `INVALID_SIGN_IN_CODE`, a ticket past 10 minutes or 5 wrong tries returns 400 `SIGN_IN_CODE_EXPIRED`, and an unknown ticket returns 400 `UNKNOWN_SIGN_IN_TICKET`.
+Without a proof, the request returns 403 `SUDO_MODE_REQUIRED` with the [sudo mode methods](#sudo-mode-methods-object) fields. A wrong password returns 400 `INVALID_PASSWORD` on the path `password`, and a wrong TOTP code, backup code or passkey assertion returns 400 `INVALID_MFA_CODE` on the path `mfa_code`. The `totp` method allows 10 attempts per 15 minutes for each account, and a correct code resets the count.
 
 ## Sudo mode methods object
 
@@ -68,7 +50,6 @@ Without a proof, the request returns 403 `SUDO_MODE_REQUIRED` with the [sudo mod
 | totp | boolean | Whether the account has TOTP enabled |
 | webauthn | boolean | Whether the account has at least one passkey |
 | backup_codes<sup>1</sup> | boolean | Whether the account has at least one unused backup code |
-| email_code? | boolean | Whether the account can prove sudo mode with an emailed code |
 | password? | boolean | Whether the account can prove sudo mode with its password |
 
 <sup>1</sup> A backup code goes in `mfa_code` with `mfa_method` set to `totp`, also on an account without TOTP. There is no `backup_codes` method
@@ -83,7 +64,6 @@ Without a proof, the request returns 403 `SUDO_MODE_REQUIRED` with the [sudo mod
 | webauthn | boolean | Whether the account has at least one passkey |
 | backup_codes | boolean | Whether the account has at least one unused backup code |
 | has_mfa | boolean | Whether the account has TOTP or at least one passkey |
-| email_code? | boolean | Whether the account can prove sudo mode with an emailed code |
 | password? | boolean | Whether the account can prove sudo mode with its password |
 
 ## Sudo verification object
@@ -95,12 +75,10 @@ Operations that need [sudo mode](#sudo-mode) accept these fields in their JSON b
 | Field | Type | Description |
 | --- | --- | --- |
 | password? | string | Account password (8-256 characters) |
-| mfa_method? | string | One of `totp`, `webauthn` or `email_code` |
+| mfa_method? | string | `totp` or `webauthn` |
 | mfa_code? | string | TOTP code or unused backup code, for `totp` (1-32 characters) |
 | webauthn_response? | [WebAuthn assertion](#webauthn-assertion-object) object | Assertion for `webauthn_challenge`, for `webauthn` |
 | webauthn_challenge? | string | Challenge from [Create sudo WebAuthn authentication options](#create-sudo-webauthn-authentication-options) (1-256 characters) |
-| email_code_ticket? | string | Ticket from [Send a sudo email code](#send-a-sudo-email-code), for `email_code` (1-128 characters) |
-| email_code? | string | The 6-digit code from the email, for `email_code` |
 
 ## MFA backup codes object
 
@@ -129,25 +107,6 @@ Operations that need [sudo mode](#sudo-mode) accept these fields in their JSON b
 | --- | --- | --- |
 | code | string | The code, two groups of four lowercase letters and digits |
 | consumed | boolean | Whether the code has been used |
-
-## MFA backup codes challenge object
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| ticket | string | The ticket to send in later steps |
-| code_expires_at | ISO8601 timestamp | When the emailed code expires |
-| resend_available_at | ISO8601 timestamp | When you can ask for another code |
-
-## MFA backup codes verification object
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| backup_codes | array[[MFA backup code](#mfa-backup-code-object) object] | The account's current backup codes |
-| verification_proof | string | The proof for [Regenerate MFA backup codes](#regenerate-mfa-backup-codes) |
 
 ## WebAuthn credential object
 
@@ -340,16 +299,6 @@ The options to pass to `navigator.credentials.create()`.
 | hmacCreateSecret? | boolean | Whether HMAC secret creation is requested |
 | minPinLength? | boolean | Whether minimum PIN length is requested |
 
-## Sudo email code object
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| ticket | string | The value to send back as `email_code_ticket` |
-| code_expires_at | ISO8601 timestamp | When the emailed code expires, 10 minutes after sending |
-| resend_available_at | ISO8601 timestamp | When you can ask for another code, 30 seconds after sending |
-
 ## WebAuthn two-factor object
 
 ### Structure
@@ -380,7 +329,7 @@ The body extends the [sudo verification object](#sudo-verification-object) with 
 | --- | --- | --- |
 | 200 | [MFA backup codes](#mfa-backup-codes-object) object | TOTP was enabled |
 | 400 | [error response](/http-api/#error-response) | `INVALID_CODE` on the path `code`, or `TWO_FA_ALREADY_ENABLED` when TOTP is already enabled |
-| 403 | [error response](/http-api/#error-response) | `MFA_EMAIL_VERIFICATION_REQUIRED` or `ACCOUNT_VERIFICATION_REQUIRED` when the account isn't verified |
+| 403 | [error response](/http-api/#error-response) | `ACCOUNT_VERIFICATION_REQUIRED` when the account isn't verified |
 
 The rate limit is 10 requests per minute, on the `user:mfa:totp:enable` bucket.
 
@@ -429,91 +378,9 @@ The body extends the [sudo verification object](#sudo-verification-object) with 
 | Status | Body | Condition |
 | --- | --- | --- |
 | 200 | [MFA backup codes](#mfa-backup-codes-object) object | The current or new codes were returned |
-| 403 | [error response](/http-api/#error-response) | `MFA_EMAIL_VERIFICATION_REQUIRED` or `ACCOUNT_VERIFICATION_REQUIRED` when `regenerate` is true and the account isn't verified |
+| 403 | [error response](/http-api/#error-response) | `ACCOUNT_VERIFICATION_REQUIRED` when `regenerate` is true and the account isn't verified |
 
 The rate limit is 6 requests per minute, on the `user:mfa:backup_codes` bucket.
-
-## Start MFA backup codes challenge
-
-<RouteHeader method="POST" path="/v1/users/@me/mfa/backup-codes/challenge" />
-
-Emails a verification code to the account and returns a ticket. The body is empty or `{}`.
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | [MFA backup codes challenge](#mfa-backup-codes-challenge-object) object | The code was sent |
-| 400 | [error response](/http-api/#error-response) | `TWO_FACTOR_REQUIRED` when the account has no second factor turned on |
-| 400 | [error response](/http-api/#error-response) | `EMAIL_CODES_UNAVAILABLE` when the instance doesn't send email |
-| 403 | [error response](/http-api/#error-response) | `MFA_EMAIL_VERIFICATION_REQUIRED` when the email address is unverified |
-
-The rate limit is 6 requests per minute, on the `user:mfa:backup_codes_challenge:start` bucket.
-
-## Resend MFA backup codes challenge code
-
-<RouteHeader method="POST" path="/v1/users/@me/mfa/backup-codes/challenge/resend" />
-
-Emails a new code for the ticket and returns 204. The old code and any proof already issued for the ticket stop working.
-
-### JSON body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| ticket | string | Ticket from [Start MFA backup codes challenge](#start-mfa-backup-codes-challenge) (1-256 characters) |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 204 | empty | A new code was sent |
-| 400 | [error response](/http-api/#error-response) | `INVALID_OR_EXPIRED_TICKET` when the ticket is unknown or expired |
-
-The rate limit is 6 requests per minute, on the `user:mfa:backup_codes_challenge:resend` bucket.
-
-## Verify MFA backup codes challenge code
-
-<RouteHeader method="POST" path="/v1/users/@me/mfa/backup-codes/challenge/verify" />
-
-Checks the emailed code and returns the account's backup codes and a proof. A code works once.
-
-### JSON body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| ticket | string | Ticket from [Start MFA backup codes challenge](#start-mfa-backup-codes-challenge) (1-256 characters) |
-| code | string | The code from the email (1-256 characters) |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | [MFA backup codes verification](#mfa-backup-codes-verification-object) object | The code was accepted |
-| 400 | [error response](/http-api/#error-response) | `INVALID_VERIFICATION_CODE`, `VERIFICATION_CODE_EXPIRED` or `VERIFICATION_CODE_NOT_ISSUED` |
-
-The rate limit is 20 requests per minute, on the `user:mfa:backup_codes_challenge:verify` bucket.
-
-## Regenerate MFA backup codes
-
-<RouteHeader method="POST" path="/v1/users/@me/mfa/backup-codes/challenge/regenerate" />
-
-Replaces the account's backup codes with 10 new ones. The ticket and proof can be used again until the ticket expires.
-
-### JSON body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| ticket | string | Ticket from [Start MFA backup codes challenge](#start-mfa-backup-codes-challenge) (1-256 characters) |
-| verification_proof | string | Proof from [Verify MFA backup codes challenge code](#verify-mfa-backup-codes-challenge-code) (1-256 characters) |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | [MFA backup codes](#mfa-backup-codes-object) object | The codes were replaced |
-| 400 | [error response](/http-api/#error-response) | `INVALID_PROOF_TOKEN`, `INVALID_OR_EXPIRED_TICKET` or `TWO_FACTOR_REQUIRED` |
-
-The rate limit is 6 requests per minute, on the `user:mfa:backup_codes_challenge:regenerate` bucket.
 
 ## List WebAuthn credentials
 
@@ -545,7 +412,7 @@ The body is a [sudo verification object](#sudo-verification-object).
 | --- | --- | --- |
 | 200 | [WebAuthn registration options](#webauthn-registration-options-object) object | The challenge was created |
 | 400 | [error response](/http-api/#error-response) | `WEBAUTHN_CREDENTIAL_LIMIT_REACHED` when the account has 10 credentials |
-| 403 | [error response](/http-api/#error-response) | `MFA_EMAIL_VERIFICATION_REQUIRED` when the account needs to confirm or add an email address to be verified |
+| 403 | [error response](/http-api/#error-response) | `ACCOUNT_VERIFICATION_REQUIRED` when the account has no password or passkey yet |
 
 The rate limit is 20 requests per 10 seconds, on the `mfa:webauthn:registration_options` bucket.
 
@@ -570,7 +437,7 @@ Adds a WebAuthn credential to the account and returns 204. A challenge works onl
 | 204 | empty | The credential was registered |
 | 400 | [error response](/http-api/#error-response) | `INVALID_WEBAUTHN_CREDENTIAL`, `INVALID_WEBAUTHN_PUBLIC_KEY_FORMAT` or `INVALID_WEBAUTHN_CREDENTIAL_COUNTER` |
 | 400 | [error response](/http-api/#error-response) | `WEBAUTHN_CREDENTIAL_LIMIT_REACHED` when the account has 10 credentials |
-| 403 | [error response](/http-api/#error-response) | `MFA_EMAIL_VERIFICATION_REQUIRED` when the account needs to confirm or add an email address to be verified |
+| 403 | [error response](/http-api/#error-response) | `ACCOUNT_VERIFICATION_REQUIRED` when the account has no password or passkey yet |
 
 The rate limit is 10 requests per minute, on the `mfa:webauthn:register` bucket.
 
@@ -636,7 +503,7 @@ The body extends the [sudo verification object](#sudo-verification-object) with 
 | --- | --- | --- |
 | 200 | [WebAuthn two-factor](#webauthn-two-factor-object) object | The setting was saved |
 | 400 | [error response](/http-api/#error-response) | `NO_PASSKEYS_REGISTERED` when turning it on with no credentials |
-| 403 | [error response](/http-api/#error-response) | `MFA_EMAIL_VERIFICATION_REQUIRED` or `ACCOUNT_VERIFICATION_REQUIRED` when turning it on and the account isn't verified |
+| 403 | [error response](/http-api/#error-response) | `ACCOUNT_VERIFICATION_REQUIRED` when turning it on and the account isn't verified |
 
 The rate limit is 10 requests per minute, on the `mfa:webauthn:two_factor` bucket.
 
@@ -653,23 +520,6 @@ Returns the [sudo mode](#sudo-mode) proofs the account can give.
 | 200 | [sudo MFA methods](#sudo-mfa-methods-object) object | The methods were returned |
 
 The rate limit is 20 requests per minute, on the `sudo:mfa:methods` bucket.
-
-## Send a sudo email code
-
-<RouteHeader method="POST" path="/v1/users/@me/sudo/email-code" />
-
-Emails a 6-digit code for [sudo mode](#sudo-mode) to an account that has no password and no second factor. The code lasts 10 minutes and allows 5 wrong tries.
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | [sudo email code](#sudo-email-code-object) object | The code was sent |
-| 400 | [error response](/http-api/#error-response) | `SUDO_SECOND_FACTOR_REQUIRED` when the account has a second factor turned on |
-| 400 | [error response](/http-api/#error-response) | `EMAIL_CODES_UNAVAILABLE` when the account has a password or no verified email address, or the instance doesn't send email |
-| 429 | [rate limit response](/topics/rate-limits/#rate-limit-response-object) | Too many codes were sent or too many wrong codes were tried |
-
-The rate limit is 5 requests per 15 minutes, on the `sudo:email_code` bucket.
 
 ## Create sudo WebAuthn authentication options
 

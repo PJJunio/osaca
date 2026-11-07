@@ -15,14 +15,12 @@ import {reschedulePendingDeletion} from '@app/api/user/services/PendingDeletionC
 import {DeletionReasons} from '@osaca/constants/src/Core';
 import {UserFlags} from '@osaca/constants/src/UserConstants';
 import {UserOwnsGuildsError} from '@osaca/errors/src/domains/guild/UserOwnsGuildsError';
-import type {IEmailService} from '@pkgs/email/src/IEmailService';
 import {ms} from 'itty-time';
 
 interface UserAccountLifecycleServiceDeps {
 	apiContext: ApiContext;
 	userAccountRepository: UserRepository;
 	guildRepository: GuildRepository;
-	emailService: IEmailService;
 	userUpdateDeps: PartialUserChangePropagationDeps;
 	kvDeletionQueue: KVAccountDeletionQueueService;
 }
@@ -65,14 +63,6 @@ export class UserAccountLifecycleService {
 			deletionQueue: this.deps.kvDeletionQueue,
 		});
 		await revokeAllAuthSessions(this.deps.apiContext.services, userId);
-		if (user.email) {
-			await this.deps.emailService.send(
-				'self_deletion_scheduled',
-				user.email,
-				{deletionDate: pendingDeletionAt},
-				user.locale,
-			);
-		}
 		if (updatedUser) {
 			await propagateUserUpdate(this.deps.userUpdateDeps, user, updatedUser);
 		}

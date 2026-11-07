@@ -23,7 +23,6 @@ const (
 type User struct {
 	ID        string `json:"id"`
 	Username  string `json:"username"`
-	Email     string `json:"email,omitempty"`
 	Admin     bool   `json:"admin"`
 	Banned    bool   `json:"banned"`
 	MFA       bool   `json:"mfa"`
@@ -37,7 +36,6 @@ func (u User) DeletionFinished() bool { return u.deletionFinished }
 type UserDetail struct {
 	User
 	Disabled     bool     `json:"disabled"`
-	Verified     bool     `json:"verified"`
 	LastActiveAt *string  `json:"last_active_at"`
 	ACLs         []string `json:"acls"`
 	Sessions     int      `json:"sessions"`
@@ -87,9 +85,6 @@ func toUser(u UserAdminResponseSchema) User {
 
 		deletionFinished: deletionFinished(u),
 	}
-	if u.Email != nil {
-		out.Email = *u.Email
-	}
 	return out
 }
 
@@ -102,7 +97,6 @@ func toDetail(u UserAdminResponseSchema, sessions int) UserDetail {
 	return UserDetail{
 		User:         toUser(u),
 		Disabled:     flags&userFlagDisabled != 0,
-		Verified:     u.EmailVerified,
 		LastActiveAt: u.LastActiveAt,
 		ACLs:         acls,
 		Sessions:     sessions,
@@ -191,8 +185,6 @@ func (c *Client) resolve(ctx context.Context, ref string) (*UserAdminResponseSch
 	}
 	query := map[string]string{"limit": strconv.Itoa(listPageSize)}
 	switch {
-	case strings.Contains(ref, "@"):
-		query["email"] = ref
 	case strings.Contains(ref, "#"):
 		query["resolve"] = ref
 	default:
@@ -252,11 +244,8 @@ type CreatedUser struct {
 	ResetLink string
 }
 
-func (c *Client) CreateUser(ctx context.Context, username, email string, admin bool) (*CreatedUser, error) {
+func (c *Client) CreateUser(ctx context.Context, username string, admin bool) (*CreatedUser, error) {
 	req := AdminUserCreateRequest{Username: username}
-	if email != "" {
-		req.Email = &email
-	}
 	if admin {
 		req.Admin = &admin
 	}
@@ -317,7 +306,7 @@ func (c *Client) Ban(ctx context.Context, id string, reason BanReason, note stri
 		Decision: EnforcementDecisionInput{
 			ReasonCode: EnforcementReasonCodeType(reason.Code),
 			Source:     OwnReview,
-			Automation: EnforcementDecisionInputAutomationNone,
+			Automation: None,
 			Statement:  &statement,
 		},
 	}
@@ -410,7 +399,7 @@ func (c *Client) deletionBasis(ctx context.Context, u UserAdminResponseSchema) (
 		Decision: EnforcementDecisionInput{
 			ReasonCode: decision.ReasonCode,
 			Source:     OwnReview,
-			Automation: EnforcementDecisionInputAutomationNone,
+			Automation: None,
 			Statement:  &statement,
 		},
 	})

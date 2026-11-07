@@ -2,13 +2,11 @@
 
 use crate::{
     api::types::{
-        AccountIdentitySettings, AppPublicConfigResponse, CaptchaProvider, CleanupMode,
+        AppPublicConfigResponse, CaptchaProvider, CleanupMode,
         EXPERIMENT_MAX_ROLLOUT_COUNTRY_CODES, EXPERIMENT_MAX_TARGETED_USERS,
-        EmailDeliveryMode, EmailDeliveryState, ExperimentDeliveryConfigResponse,
-        GUILD_VISITS_DEFAULT_SALT, GatewayRolloutConfigResponse, GuildJoinGate,
-        GuildVisitsConfigResponse, IdentifierFirstMode, InstanceConfigResponse,
-        InstanceNoticeResponse, InteractionTierMode, LastSessionCleanupMode, LimitConfigResponse,
-        VerificationBasis,
+        ExperimentDeliveryConfigResponse, GUILD_VISITS_DEFAULT_SALT, GatewayRolloutConfigResponse,
+        GuildJoinGate, GuildVisitsConfigResponse, InstanceConfigResponse, InstanceNoticeResponse,
+        InteractionTierMode, LastSessionCleanupMode, LimitConfigResponse,
     },
     config::AdminConfig,
     middleware::auth::AuthContext,
@@ -16,7 +14,7 @@ use crate::{
         components::{
             badge::{BadgeVariant, badge},
             form::{
-                Checkbox, FORM_INPUT_CLASS, FORM_LABEL_CLASS, FORM_TEXTAREA_CLASS, NumberField,
+                Checkbox, FORM_INPUT_CLASS, NumberField,
                 csrf_input, form_actions, form_field_group, secondary_button_link, select_input,
                 submit_button, text_input, textarea_input,
             },
@@ -41,7 +39,7 @@ mod media;
 mod policy;
 
 use self::{
-    accounts::{AccountsSectionInput, account_identity_section, accounts_section},
+    accounts::{AccountsSectionInput, accounts_section},
     captcha::captcha_section,
     experiments::{domain_migration_section, voice_p2p_section},
     integrations::integrations_config_section,
@@ -66,7 +64,6 @@ impl ConfigForm<'_> {
     }
 }
 
-pub const REGISTRATION_ALLOWED_EMAIL_DOMAINS_FIELD: &str = "registration_allowed_email_domains";
 
 fn inherit_select(name: &str, label: &str, override_value: Option<bool>) -> Markup {
     let selected = match override_value {
@@ -160,14 +157,10 @@ pub fn instance_config_page(
                     "Access & accounts",
                     "Who can sign in and create accounts on this instance.",
                     html! {
-                        @if instance_config.self_hosted {
-                            (account_identity_section(&instance_config.account_identity))
-                        }
                         (registration_config_section(
                             config,
                             config_form,
                             &instance_config.registration,
-                            instance_config.account_identity.mode,
                         ))
                         (accounts_section(
                             base,
@@ -175,13 +168,6 @@ pub fn instance_config_page(
                             &AccountsSectionInput {
                                 auth: &instance_config.auth,
                                 accounts: &instance_config.accounts,
-                                identity: AccountIdentitySettings {
-                                    mode: instance_config.account_identity.mode,
-                                    tag_style: instance_config.account_identity.tag_style,
-                                    emails_enabled: instance_config.integrations.email.delivery_state
-                                        == EmailDeliveryState::On,
-                                },
-                                delivery_state: instance_config.integrations.email.delivery_state,
                                 captcha_provider: instance_config.captcha.provider,
                                 guild_visits_enabled: instance_config.guild_visits.enabled,
                             },
@@ -217,8 +203,6 @@ pub fn instance_config_page(
                             base,
                             config_form,
                             &instance_config.integrations,
-                            instance_config.account_identity.mode,
-                            &instance_config.app_public.branding.product_name,
                         ),
                 ))
                 (config_group(
@@ -396,7 +380,7 @@ fn app_public_config_section(
                                 "Registration asks for agreement only to the terms and privacy documents configured here. Leave both blank to hide legal consent on self-hosted registration."
                             }
                             p class="text-xs text-neutral-500" {
-                                "The community guidelines URL is linked from the app, the report flow and enforcement emails. Use an absolute http or https URL. Leave it blank to hide those links."
+                                "The community guidelines URL is linked from the app, the report flow and enforcement notices. Use an absolute http or https URL. Leave it blank to hide those links."
                             }
                             (form_actions(html! {
                                 (submit_button("Save Legal Documents"))
@@ -510,15 +494,6 @@ fn gateway_rollout_section(
     )
 }
 
-const IDENTIFIER_FIRST_CHOICES: &[(IdentifierFirstMode, &str)] = &[
-    (
-        IdentifierFirstMode::Auto,
-        "Automatic, on while the instance sends email",
-    ),
-    (IdentifierFirstMode::On, "On"),
-    (IdentifierFirstMode::Off, "Off"),
-];
-
 const INTERACTION_TIER_CHOICES: &[(InteractionTierMode, &str)] = &[
     (InteractionTierMode::Legacy, "Keep the older limits"),
     (
@@ -534,15 +509,6 @@ const GUILD_JOIN_GATE_CHOICES: &[(GuildJoinGate, &str)] = &[
         "Ask only on clients that can preview communities",
     ),
     (GuildJoinGate::Always, "Ask on every client"),
-];
-
-const VERIFICATION_BASIS_CHOICES: &[(VerificationBasis, &str)] = &[
-    (
-        VerificationBasis::Auto,
-        "Automatic, a confirmed email while the instance sends email, otherwise a password or passkey",
-    ),
-    (VerificationBasis::ConfirmedEmail, "A confirmed email"),
-    (VerificationBasis::LocalCredential, "A password or passkey"),
 ];
 
 const CLEANUP_MODE_CHOICES: &[(CleanupMode, &str)] = &[
@@ -564,11 +530,6 @@ const LAST_SESSION_CLEANUP_CHOICES: &[(LastSessionCleanupMode, &str)] = &[
 const CAPTCHA_PROVIDER_CHOICES: &[(CaptchaProvider, &str)] = &[
     (CaptchaProvider::Altcha, "Proof-of-work check"),
     (CaptchaProvider::None, "Off"),
-];
-
-const EMAIL_DELIVERY_CHOICES: &[(EmailDeliveryMode, &str)] = &[
-    (EmailDeliveryMode::Smtp, "Send email through SMTP"),
-    (EmailDeliveryMode::Off, "Off"),
 ];
 
 fn choice_options<T: std::fmt::Display>(
@@ -727,26 +688,6 @@ pub(super) fn format_optional_admin_timestamp(value: Option<&str>, fallback: &st
     value
         .map(format_admin_timestamp)
         .unwrap_or_else(|| fallback.to_owned())
-}
-
-pub(super) fn allowed_domains_input(name: &str, value: &str, hint: &str) -> Markup {
-    let hint_id = format!("{name}-hint");
-    let error_id = format!("{name}-error");
-    html! {
-        div class="space-y-2" {
-            div class="flex flex-col gap-2" {
-                label for=(name) class=(FORM_LABEL_CLASS) { "Allowed Email Domains" }
-                textarea id=(name) name=(name) placeholder="example.com\nexample.org" rows="3"
-                    aria-describedby={(error_id) " " (hint_id)}
-                    class=(FORM_TEXTAREA_CLASS) {
-                    (value)
-                }
-            }
-            p id=(error_id) class="text-xs leading-5 text-red-600"
-                data-field-error=(name) hidden {}
-            p id=(hint_id) class="text-xs text-neutral-500" { (hint) }
-        }
-    }
 }
 
 fn limit_config_section(base: &str, limit_config: &LimitConfigResponse) -> Markup {

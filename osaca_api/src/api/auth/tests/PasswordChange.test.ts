@@ -1,12 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {
-	clearTestEmails,
-	createAuthHarness,
-	createTestAccount,
-	loginAccount,
-	loginUser,
-} from '@app/api/auth/tests/AuthTestUtils';
+import {createAuthHarness, createTestAccount, loginAccount, loginUser} from '@app/api/auth/tests/AuthTestUtils';
 import type {ApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {createBuilder, createBuilderWithoutAuth} from '@app/api/test/TestRequestBuilder';
 import {afterAll, beforeAll, beforeEach, describe, expect, it} from 'vitest';
@@ -26,7 +20,6 @@ describe('Password change invalidates sessions', () => {
 	});
 	beforeEach(async () => {
 		await harness.reset();
-		await clearTestEmails(harness);
 	});
 	afterAll(async () => {
 		await harness?.shutdown();
@@ -49,7 +42,7 @@ describe('Password change invalidates sessions', () => {
 		await createBuilder(harness, account.token).get('/users/@me').expect(401).execute();
 		await createBuilder(harness, session2.token).get('/users/@me').expect(401).execute();
 		await createBuilder(harness, session3.token).get('/users/@me').expect(401).execute();
-		const login = await loginUser(harness, {email: account.email, password: newPassword});
+		const login = await loginUser(harness, {login: account.username, password: newPassword});
 		if ('mfa' in login && login.mfa) {
 			throw new Error('Expected non-MFA login');
 		}
@@ -60,7 +53,7 @@ describe('Password change invalidates sessions', () => {
 		expect(nonMfaLogin.token.length).toBeGreaterThan(0);
 		await createBuilderWithoutAuth(harness)
 			.post('/auth/login')
-			.body({email: account.email, password: account.password})
+			.body({login: account.username, password: account.password})
 			.expect(400)
 			.execute();
 	});

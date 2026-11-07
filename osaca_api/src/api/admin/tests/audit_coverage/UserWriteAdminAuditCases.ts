@@ -7,7 +7,6 @@ import type {
 import {
 	createTestAccount,
 	createTotpSecret,
-	createUniqueEmail,
 	createUniqueUsername,
 	generateTotpCode,
 	setUserACLs,
@@ -22,10 +21,9 @@ import {
 import {createUserID} from '@app/api/BrandedTypes';
 import {Config} from '@app/api/Config';
 import {createFriendship} from '@app/api/channel/tests/ChannelTestUtils';
-import {getInstanceConfigRepository, getUserRepository} from '@app/api/middleware/ServiceSingletons';
+import {getUserRepository} from '@app/api/middleware/ServiceSingletons';
 import type {User} from '@app/api/models/User';
 import {createBuilder} from '@app/api/test/TestRequestBuilder';
-import {AccountIdentityModes} from '@osaca/constants/src/AccountIdentityConstants';
 import {AdminACLs} from '@osaca/constants/src/AdminACLs';
 import {DeletionReasons} from '@osaca/constants/src/Core';
 import {UserFlags} from '@osaca/constants/src/UserConstants';
@@ -277,77 +275,12 @@ export const UserWriteAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase> = [
 		},
 	},
 	{
-		method: 'PATCH',
-		route: '/admin/users/:user_id/email',
-		async prepare({harness}) {
-			const target = await createTestAccount(harness);
-			const email = createUniqueEmail('changed');
-			return {
-				request: {path: `/admin/users/${target.userId}/email`, body: {email}},
-				expected: {
-					action: 'change_email',
-					targetType: 'user',
-					targetId: target.userId,
-					metadata: {old_email: (await loadUser(target)).email!, new_email: email},
-				},
-			};
-		},
-	},
-	{
-		method: 'PUT',
-		route: '/admin/users/:user_id/email-verification',
-		async prepare({harness}) {
-			const target = await createTestAccount(harness, {skipEmailVerification: true});
-			return {
-				request: {path: `/admin/users/${target.userId}/email-verification`},
-				expected: {
-					action: 'verify_email',
-					targetType: 'user',
-					targetId: target.userId,
-					metadata: {email: (await loadUser(target)).email!},
-				},
-			};
-		},
-	},
-	{
-		method: 'POST',
-		route: '/admin/users/:user_id/verification-email',
-		async prepare({harness}) {
-			const target = await createTestAccount(harness, {skipEmailVerification: true});
-			return {
-				request: {path: `/admin/users/${target.userId}/verification-email`, expectStatus: 204},
-				expected: {
-					action: 'resend_verification_email',
-					targetType: 'user',
-					targetId: target.userId,
-					metadata: {email: (await loadUser(target)).email!},
-				},
-			};
-		},
-	},
-	{
-		method: 'POST',
-		route: '/admin/users/:user_id/password-reset',
-		async prepare({harness}) {
-			const target = await createTestAccount(harness);
-			return {
-				request: {path: `/admin/users/${target.userId}/password-reset`, expectStatus: 204},
-				expected: {
-					action: 'send_password_reset',
-					targetType: 'user',
-					targetId: target.userId,
-					metadata: {email: (await loadUser(target)).email!},
-				},
-			};
-		},
-	},
-	{
 		method: 'POST',
 		route: '/admin/users',
 		async prepare() {
 			const username = createUniqueUsername('created');
 			return {
-				request: {path: '/admin/users', body: {username, email: createUniqueEmail('created')}},
+				request: {path: '/admin/users', body: {username}},
 				expected: {
 					action: 'create_user',
 					targetType: 'user',
@@ -367,7 +300,6 @@ export const UserWriteAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase> = [
 				Config.instance.selfHosted = originalSelfHosted;
 			});
 			Config.instance.selfHosted = true;
-			await getInstanceConfigRepository().setAccountIdentityMode(AccountIdentityModes.USERNAME, 'setup');
 			return {
 				request: {path: `/admin/users/${target.userId}/password-reset-link`},
 				expected: {
@@ -405,7 +337,6 @@ export const UserWriteAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase> = [
 				Config.instance.selfHosted = originalSelfHosted;
 			});
 			Config.instance.selfHosted = true;
-			await getInstanceConfigRepository().setAccountIdentityMode(AccountIdentityModes.USERNAME, 'setup');
 			return {
 				request: {path: `/admin/users/${target.userId}/recovery-kit`, expectStatus: 204},
 				expected: {
@@ -437,7 +368,7 @@ export const UserWriteAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase> = [
 						decision_id: expect.any(String),
 						reason_code: DeletionReasons.SPAM.toString(),
 						kind: 'suspension',
-						notice_status: 'sent',
+						notice_status: 'undelivered',
 					},
 				},
 			};
@@ -528,7 +459,6 @@ export const UserWriteAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase> = [
 						days: '30',
 						reason_code: DeletionReasons.USER_REQUESTED.toString(),
 						pending_deletion_at: expect.any(String),
-						notification_sent: 'true',
 					},
 				},
 			};
@@ -558,7 +488,6 @@ export const UserWriteAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase> = [
 						cancelled_scheduled_by: context.admin.userId,
 						cancelled_scheduled_at: expect.any(String),
 						cancelled_reason_code: DeletionReasons.USER_REQUESTED.toString(),
-						notice: 'account_deletion_cancelled',
 					},
 				},
 			};

@@ -18,11 +18,6 @@ describe('buildNamedOsacaEnvOverrides', () => {
 				OSACA_LIVEKIT_DEFAULT_REGION: blank,
 				OSACA_VOICE_P2P_STUN_URLS: blank,
 				OSACA_AUTH_BLUESKY_KEYS: blank,
-				OSACA_EMAIL_FROM_NAME: blank,
-				OSACA_EMAIL_REPLY_TO_EMAIL: blank,
-				OSACA_EMAIL_FALLBACK_DOMAINS: blank,
-				OSACA_EMAIL_FALLBACK_SMTP_HOST: blank,
-				OSACA_EMAIL_FALLBACK_SMTP_HEADERS: blank,
 			}),
 		).toEqual({});
 	});

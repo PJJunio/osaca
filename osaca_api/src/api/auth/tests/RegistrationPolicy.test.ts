@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {createAuthHarness, createUniqueEmail, createUniqueUsername} from '@app/api/auth/tests/AuthTestUtils';
+import {createAuthHarness, createUniqueUsername} from '@app/api/auth/tests/AuthTestUtils';
 import {getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
 import type {ApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {createBuilderWithoutAuth} from '@app/api/test/TestRequestBuilder';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
-import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {afterAll, beforeAll, beforeEach, describe, expect, it} from 'vitest';
 
 interface PendingRegistrationResponse {
@@ -20,7 +19,6 @@ interface RegistrationTokenResponse {
 
 function registrationBody(prefix: string): Record<string, unknown> {
 	return {
-		email: createUniqueEmail(prefix),
 		username: createUniqueUsername(prefix),
 		global_name: 'Registration Policy',
 		password: 'a-strong-password',
@@ -87,7 +85,7 @@ describe('Auth registration policy', () => {
 		expect(Object.keys(registration).sort()).toEqual(['registration_pending_approval', 'user_id']);
 		await createBuilderWithoutAuth(harness)
 			.post('/auth/login')
-			.body({email: body.email, password: body.password})
+			.body({login: body.username, password: body.password})
 			.expect(403, APIErrorCodes.REGISTRATION_PENDING_APPROVAL)
 			.execute();
 	});
@@ -97,28 +95,6 @@ describe('Auth registration policy', () => {
 		await createBuilderWithoutAuth(harness)
 			.post('/auth/register')
 			.body({global_name: 'Nobody Signs In', consent: true})
-			.expect(400, APIErrorCodes.REGISTRATION_CREDENTIALS_REQUIRED)
-			.execute();
-		expect(await getInstanceConfigRepository().getPendingRegistrations()).toEqual([]);
-	});
-
-	it('refuses an approval registration with an email but no password', async () => {
-		await getInstanceConfigRepository().setRegistrationConfig({mode: 'approval'});
-		const {password: _password, ...body} = registrationBody('nopassword');
-		await createBuilderWithoutAuth(harness)
-			.post('/auth/register')
-			.body(body)
-			.expect(400, APIErrorCodes.REGISTRATION_CREDENTIALS_REQUIRED)
-			.execute();
-		expect(await getInstanceConfigRepository().getPendingRegistrations()).toEqual([]);
-	});
-
-	it('refuses an approval registration with a password but no email', async () => {
-		await getInstanceConfigRepository().setRegistrationConfig({mode: 'approval'});
-		const {email: _email, ...body} = registrationBody('noemail');
-		await createBuilderWithoutAuth(harness)
-			.post('/auth/register')
-			.body(body)
 			.expect(400, APIErrorCodes.REGISTRATION_CREDENTIALS_REQUIRED)
 			.execute();
 		expect(await getInstanceConfigRepository().getPendingRegistrations()).toEqual([]);
@@ -153,48 +129,5 @@ describe('Auth registration policy', () => {
 			.body({global_name: 'Open Unclaimed', consent: true})
 			.execute();
 		expect(registration.token.length).toBeGreaterThan(0);
-	});
-
-	it('limits public sign-ups to the allowed email domains', async () => {
-		const repository = getInstanceConfigRepository();
-		const saved = await repository.setRegistrationConfig({allowed_email_domains: [' Example.COM ', 'corp.example']});
-		expect(saved.allowed_email_domains).toEqual(['example.com', 'corp.example']);
-		expect(await repository.getRegistrationPublicConfig()).not.toHaveProperty('allowed_email_domains');
-		const {json} = await createBuilderWithoutAuth<{errors: Array<{path: string; code: string}>}>(harness)
-			.post('/auth/register')
-			.body({...registrationBody('outsider'), email: `outsider-${Date.now()}@elsewhere.test`})
-			.expect(400, APIErrorCodes.INVALID_FORM_BODY)
-			.executeWithResponse();
-		expect(json.errors).toEqual([
-			expect.objectContaining({path: 'email', code: ValidationErrorCodes.EMAIL_DOMAIN_NOT_ALLOWED}),
-		]);
-		const allowed = await createBuilderWithoutAuth<RegistrationTokenResponse>(harness)
-			.post('/auth/register')
-			.body({...registrationBody('insider'), email: `insider-${Date.now()}@EXAMPLE.com`})
-			.execute();
-		expect(allowed.token.length).toBeGreaterThan(0);
-	});
-
-	it('lets an admin-issued registration URL sign up outside the allowed email domains', async () => {
-		const repository = getInstanceConfigRepository();
-		await repository.setRegistrationConfig({allowed_email_domains: ['corp.example']});
-		const {code} = await repository.createRegistrationUrl({
-			label: 'Guest',
-			createdByUserId: '1',
-			expiresAt: null,
-			maxUses: 1,
-			approvalRequired: false,
-		});
-		const registration = await createBuilderWithoutAuth<RegistrationTokenResponse>(harness)
-			.post('/auth/register')
-			.body({...registrationBody('guest'), registration_url_code: code})
-			.execute();
-		expect(registration.token.length).toBeGreaterThan(0);
-	});
-
-	it('refuses an allowed email domain list with an invalid entry', async () => {
-		await expect(
-			getInstanceConfigRepository().setRegistrationConfig({allowed_email_domains: ['user@example.com']}),
-		).rejects.toMatchObject({code: APIErrorCodes.INVALID_FORM_BODY});
 	});
 });

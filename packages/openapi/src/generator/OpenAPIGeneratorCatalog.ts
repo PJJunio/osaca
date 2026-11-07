@@ -44,7 +44,6 @@ const SECURITY_SCHEMES: Record<string, OpenAPISecurityScheme> = {
 				tokenUrl: '/oauth2/token',
 				scopes: {
 					identify: 'Read basic user identity information.',
-					email: 'Read the user email address.',
 					guilds: 'Read guild membership information for the current user.',
 					connections: 'Read linked third-party account connections for the current user.',
 					bot: 'Add a bot user to a guild.',

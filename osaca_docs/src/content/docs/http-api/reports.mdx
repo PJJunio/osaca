@@ -1,14 +1,12 @@
 ---
 # SPDX-License-Identifier: AGPL-3.0-or-later
 title: Reports
-description: Report flows, report submission, the reason catalog and Digital Services Act notices.
+description: Report flows, report submission and the reason catalog.
 ---
 
 import RouteHeader from '@/components/RouteHeader.astro';
 
-A report tells the instance's moderators that a message, a user profile or a guild breaks the rules. A signed-in user reports a message or a profile by answering a [report flow](#report-flows), and anyone with a verified email address can file a Digital Services Act notice without an account. Moderators work with stored reports through the [Admin Reports API](/admin-api/reports/).
-
-A Digital Services Act notice takes three calls, [Send DSA report email](#send-dsa-report-email), [Verify DSA report email](#verify-dsa-report-email) and [Create DSA report](#create-dsa-report), and the reporter gets a receipt email with the report ID when the notice is filed.
+A report tells the instance's moderators that a message, a user profile or a guild breaks the rules. A signed-in user reports a message or a profile by answering a [report flow](#report-flows). Moderators work with stored reports through the [Admin Reports API](/admin-api/reports/).
 
 OSACA keeps a copy of the reported content and profile when a report is filed, and editing or deleting the content afterwards doesn't change it.
 
@@ -175,22 +173,6 @@ A step is one answered screen in a submission. A choice screen's step sends `opt
 | status | string | [Report status](#report-status-values), always `pending` on a new report |
 | reported_at | ISO8601 timestamp | When the report was filed |
 
-## Success object
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| ok | boolean | Always true |
-
-## Ticket object
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| ticket | string | The credential for [Create DSA report](#create-dsa-report), valid for one hour |
-
 ## Report status values
 
 | Value | Description |
@@ -311,38 +293,6 @@ Every report stores one of these categories.
 | impersonation | Falsely claiming to be another person or entity |
 | other | Anything the other categories don't cover |
 
-## EU country codes
-
-| Value | Description |
-| --- | --- |
-| AT | Austria |
-| BE | Belgium |
-| BG | Bulgaria |
-| HR | Croatia |
-| CY | Cyprus |
-| CZ | Czechia |
-| DK | Denmark |
-| EE | Estonia |
-| FI | Finland |
-| FR | France |
-| DE | Germany |
-| GR | Greece |
-| HU | Hungary |
-| IE | Ireland |
-| IT | Italy |
-| LV | Latvia |
-| LT | Lithuania |
-| LU | Luxembourg |
-| MT | Malta |
-| NL | Netherlands |
-| PL | Poland |
-| PT | Portugal |
-| RO | Romania |
-| SK | Slovakia |
-| SI | Slovenia |
-| ES | Spain |
-| SE | Sweden |
-
 ## Get report flow
 
 <RouteHeader method="GET" path="/v1/reports/flows/{target_type}" unauthenticated />
@@ -387,9 +337,8 @@ Files a report about a message from the reporter's answers to the `in_app` messa
 | --- | --- | --- |
 | 200 | [report](#report-object) object | The report was filed |
 | 400 | [error response](/http-api/#error-response) | `INVALID_REPORT_FLOW_ANSWERS` when the answers don't fit the current flow |
-| 400 | [error response](/http-api/#error-response) | `UNCLAIMED_ACCOUNT_CANNOT_SUBMIT_REPORTS` for an unclaimed account while `interaction_tier` is `legacy` |
+| 403 | [error response](/http-api/#error-response) | `ACCOUNT_VERIFICATION_REQUIRED` for an unclaimed account while `interaction_tier` is `legacy` |
 | 400 | [error response](/http-api/#error-response) | `CANNOT_REPORT_OWN_MESSAGE` when the reporter wrote the message |
-| 403 | [error response](/http-api/#error-response) | `REPORT_EMAIL_VERIFICATION_REQUIRED` for an unverified email while `interaction_tier` is `legacy` |
 | 403 | [error response](/http-api/#error-response) | `REPORT_BANNED` when the account is banned from reporting |
 | 403 | [error response](/http-api/#error-response) | `MISSING_PERMISSIONS` when the reporter can't view the channel |
 | 404 | [error response](/http-api/#error-response) | `UNKNOWN_CHANNEL` or `UNKNOWN_MESSAGE` when the reporter can't see the channel or message |
@@ -421,9 +370,8 @@ Files a report about a user's profile from the reporter's answers to the `in_app
 | --- | --- | --- |
 | 200 | [report](#report-object) object | The report was filed |
 | 400 | [error response](/http-api/#error-response) | `INVALID_REPORT_FLOW_ANSWERS` when the answers don't fit the current flow |
-| 400 | [error response](/http-api/#error-response) | `UNCLAIMED_ACCOUNT_CANNOT_SUBMIT_REPORTS` for an unclaimed account while `interaction_tier` is `legacy` |
+| 403 | [error response](/http-api/#error-response) | `ACCOUNT_VERIFICATION_REQUIRED` for an unclaimed account while `interaction_tier` is `legacy` |
 | 400 | [error response](/http-api/#error-response) | `CANNOT_REPORT_YOURSELF` when the report is about the reporter's own account |
-| 403 | [error response](/http-api/#error-response) | `REPORT_EMAIL_VERIFICATION_REQUIRED` for an unverified email while `interaction_tier` is `legacy` |
 | 403 | [error response](/http-api/#error-response) | `REPORT_BANNED` when the account is banned from reporting |
 | 404 | [error response](/http-api/#error-response) | `UNKNOWN_USER` when `user_id` isn't an account, or is the system account |
 | 404 | [error response](/http-api/#error-response) | `UNKNOWN_GUILD` when `guild_id` isn't a guild the reporter is in |
@@ -431,112 +379,3 @@ Files a report about a user's profile from the reporter's answers to the `in_app
 | 409 | [error response](/http-api/#error-response) | `CONFLICT` when the reporter reported this user in the last 24 hours |
 
 The rate limit is 10 requests per hour, on the `report:create` bucket. One reporter can file at most 5 reports an hour across the report routes. When [`interaction_tier`](/http-api/users/#account-tiers) is `enforced`, an account that isn't verified can still report, up to 5 reports a day for the account and 10 a day from one IP address.
-
-## Send DSA report email
-
-<RouteHeader method="POST" path="/v1/reports/dsa/email/send" unauthenticated />
-
-Sends a Digital Services Act verification code to an email address and returns a [success object](#success-object). The code expires after 10 minutes, and one address can get one code per minute and 3 per hour.
-
-### JSON body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| email | string | The address that gets the code (1-254 characters) |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | [success](#success-object) object | The code was sent |
-| 400 | [error response](/http-api/#error-response) | `EMAIL_UNAVAILABLE_ON_INSTANCE` when the instance uses username sign-in |
-| 400 | [error response](/http-api/#error-response) | `INVALID_FORM_BODY` when the address is invalid or its domain can't receive mail |
-| 503 | [error response](/http-api/#error-response) | `SERVICE_UNAVAILABLE` when the email couldn't be sent |
-
-The rate limit is 5 requests per hour, on the `dsa:report:email:send` bucket.
-
-## Verify DSA report email
-
-<RouteHeader method="POST" path="/v1/reports/dsa/email/verify" unauthenticated />
-
-Exchanges a verification code for a [ticket object](#ticket-object). Each address gets 5 attempts in 10 minutes, and a sixth attempt deletes the code until you send a new one.
-
-### JSON body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| email | string | The address that got the code (1-254 characters) |
-| code | string | The code in `XXXX-XXXX` form |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | [ticket](#ticket-object) object | The code matched |
-| 400 | [error response](/http-api/#error-response) | `INVALID_DSA_VERIFICATION_CODE` when the code is wrong or expired, or attempts ran out |
-| 400 | [error response](/http-api/#error-response) | `EMAIL_UNAVAILABLE_ON_INSTANCE` when the instance uses username sign-in |
-
-The rate limit is 10 requests per hour, on the `dsa:report:email:verify` bucket.
-
-## Create DSA report
-
-<RouteHeader method="POST" path="/v1/reports/dsa" unauthenticated />
-
-Files a Digital Services Act notice about a message, user or guild and returns a [report object](#report-object). This is the only way to report a guild. Walk the flow with `surface=dsa` and send the fields for your `report_type`. The ticket is used up only when the notice is filed.
-
-### JSON body
-
-#### Common fields
-
-| Field | Type | Description |
-| --- | --- | --- |
-| ticket | string | The ticket from [Verify DSA report email](#verify-dsa-report-email) (1-128 characters) |
-| report_type | string | The [target type](#report-flow-target-types) of the notice |
-| revision_hash | string | The [revision hash](#revision-hash) of the `dsa` flow the reporter answered (1-64 characters) |
-| steps | array[[report flow step](#report-flow-step-object) object] | The answered screens in walk order (1-16 steps) |
-| additional_info | string | The reporter's explanation of the problem (1-1000 characters) |
-| good_faith_confirmed | boolean | Must be `true`, confirming the notice is accurate and complete |
-| reporter_full_legal_name?<sup>1</sup> | string | The reporter's full legal name (1-160 characters) |
-| reporter_country_of_residence | string | The reporter's [EU country code](#eu-country-codes) |
-| locale? | string | The language tag the reporter saw the flow in (1-35 characters) |
-
-<sup>1</sup> Required unless the walk ends in the `child_safety` category
-
-#### Message fields
-
-| Field | Type | Description |
-| --- | --- | --- |
-| message_link<sup>1</sup> | string | The link to the reported message (1-2048 characters) |
-| reported_user_tag? | string | The author's tag in `username#1234` form, or the username (1-37 characters) |
-
-<sup>1</sup> An absolute URL with the path `/channels/{guild_id}/{channel_id}/{message_id}`, with `@me` in place of the guild ID for a direct message
-
-#### User fields
-
-| Field | Type | Description |
-| --- | --- | --- |
-| user_id?<sup>1</sup> | snowflake | The ID of the reported user |
-| user_tag?<sup>1</sup> | string | The user's tag in `username#1234` form, or the username (1-37 characters) |
-
-<sup>1</sup> Send at least one, and when you send both they must be the same account
-
-#### Guild fields
-
-| Field | Type | Description |
-| --- | --- | --- |
-| guild_id | snowflake | The ID of the reported guild |
-| invite_code? | string | An [invite](/http-api/invites/) code or URL for the guild (1-64 characters) |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | [report](#report-object) object | The notice was filed |
-| 400 | [error response](/http-api/#error-response) | `INVALID_DSA_TICKET` when the ticket is unknown or expired |
-| 400 | [error response](/http-api/#error-response) | `INVALID_DSA_REPORT_TARGET` when the user ID and tag point to different accounts, or the invite isn't for `guild_id` |
-| 400 | [error response](/http-api/#error-response) | `INVALID_REPORT_FLOW_ANSWERS` when the answers don't fit the current `dsa` flow |
-| 404 | [error response](/http-api/#error-response) | `UNKNOWN_MESSAGE` when the message link or author tag doesn't match a message |
-| 404 | [error response](/http-api/#error-response) | `UNKNOWN_USER`, `UNKNOWN_GUILD` or `UNKNOWN_INVITE` when the reported user, guild or invite doesn't exist |
-| 409 | [error response](/http-api/#error-response) | `REPORT_FLOW_OUTDATED` when the answers came from an outdated flow |
-
-The rate limit is 5 requests per hour, on the `dsa:report:create` bucket.

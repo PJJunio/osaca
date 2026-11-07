@@ -5,7 +5,7 @@ import * as AuthMfa from '@app/api/auth/AuthMfa';
 import {visibleWebAuthnCredentials} from '@app/api/auth/services/PasskeyRelyingParty';
 import type {SudoVerificationResult} from '@app/api/auth/services/SudoVerificationService';
 import type {User} from '@app/api/models/User';
-import {assertCanRegisterPasskey, assertTierAllows, NO_TIER_CONTEXT} from '@app/api/user/AccountTier';
+import {assertTierAllows, NO_TIER_CONTEXT} from '@app/api/user/AccountTier';
 import type {UserRepository} from '@app/api/user/repositories/UserRepository';
 import * as UserAuth from '@app/api/user/services/UserAuth';
 import {mapUserToPrivateResponse, mapWebAuthnCredentialToResponse} from '@app/api/user/UserMappers';
@@ -108,13 +108,11 @@ export class UserAuthRequestService {
 		user: User,
 		origin: string | undefined,
 	): Promise<WebAuthnChallengeResponse> {
-		assertCanRegisterPasskey(user);
 		const options = await AuthMfa.generateWebAuthnRegistrationOptions(this.apiContext, user.id, origin);
 		return {...options};
 	}
 
 	async registerWebAuthnCredential({user, data}: UserAuthWebAuthnRegisterRequest): Promise<void> {
-		assertCanRegisterPasskey(user);
 		await AuthMfa.verifyWebAuthnRegistration(this.apiContext, user.id, data.response, data.challenge, data.name);
 	}
 

@@ -7,11 +7,6 @@ type DatabaseBackend = 'postgres' | 'cassandra';
 type PublicScheme = 'http' | 'https';
 export const CACHE_PURGE_ADAPTER_NAMES = ['none', 'http', 'controller'] as const;
 export type CachePurgeAdapterName = (typeof CACHE_PURGE_ADAPTER_NAMES)[number];
-export const ACCOUNT_IDENTITY_MODE_NAMES = ['email', 'username'] as const;
-type AccountIdentityModeName = (typeof ACCOUNT_IDENTITY_MODE_NAMES)[number];
-export const TAG_STYLE_NAMES = ['none', 'random'] as const;
-type TagStyleName = (typeof TAG_STYLE_NAMES)[number];
-type SmtpTlsModeName = 'implicit' | 'starttls' | 'opportunistic' | 'none';
 
 export interface VoiceTurnServerConfig {
 	host: string;
@@ -21,15 +16,6 @@ export interface VoiceTurnServerConfig {
 	credential?: string;
 	secret?: string;
 	ttl?: number;
-}
-
-interface SmtpConfig {
-	host: string;
-	port: number;
-	username: string;
-	password: string;
-	tls_mode?: SmtpTlsModeName;
-	secure?: boolean;
 }
 
 interface InstanceBrandingConfig {
@@ -196,22 +182,6 @@ export interface MasterConfig {
 		};
 	};
 	integrations: {
-		email: {
-			enabled: boolean;
-			provider: 'smtp' | 'none';
-			delivery?: 'off' | 'smtp';
-			from_email: string;
-			from_name: string;
-			reply_to_email: string;
-			support_alert_email?: string;
-			app_base_url: string;
-			webhook_secret?: string;
-			smtp?: SmtpConfig;
-			fallback?: {
-				domains: Array<string>;
-				smtp: SmtpConfig & {headers?: Record<string, string>};
-			};
-		};
 		voice: {
 			enabled: boolean;
 			api_key: string;
@@ -276,8 +246,6 @@ export interface MasterConfig {
 			configured: boolean;
 			token?: string;
 		};
-		account_identity: AccountIdentityModeName | null;
-		tag_style: TagStyleName | null;
 	};
 	dev: {
 		relax_registration_rate_limits: boolean;
@@ -296,7 +264,6 @@ export interface MasterConfig {
 	};
 	attachment_decay_enabled: boolean;
 	deletion_grace_period_hours: number;
-	inactivity_deletion_threshold_days?: number;
 	report_retention: {
 		days: number;
 		dry_run: boolean;

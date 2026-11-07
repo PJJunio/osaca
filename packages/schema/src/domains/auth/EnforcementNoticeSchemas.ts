@@ -32,7 +32,6 @@ export const EnforcementNotice = z.object({
 		.object({
 			email: z.string().describe('Address that takes appeals'),
 			deadline: z.string().nullable().describe('Last day to appeal, already formatted for the reader'),
-			account_has_email: z.boolean().describe('Whether the account has an email address to write from'),
 		})
 		.nullable()
 		.describe('How to appeal, null when the instance offers no appeal route'),

@@ -154,7 +154,6 @@ export class GuildModerationService {
 			});
 		}
 		const targetIp = isIpBanExempt(targetUser.lastActiveIp) ? null : targetUser.lastActiveIp || null;
-		const targetEmail = targetUser.email?.toLowerCase() || null;
 		let expiresAt: Date | null = null;
 		if (banDurationSeconds && banDurationSeconds > 0) {
 			expiresAt = new Date(Date.now() + banDurationSeconds * 1000);
@@ -168,7 +167,6 @@ export class GuildModerationService {
 			expires_at: expiresAt,
 			reason: reason || null,
 			ip: targetIp,
-			email: targetEmail,
 		});
 		const metadata: Record<string, string> | undefined =
 			effectiveDeleteMessageSeconds && effectiveDeleteMessageSeconds > 0

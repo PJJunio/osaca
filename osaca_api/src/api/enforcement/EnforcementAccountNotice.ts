@@ -26,14 +26,13 @@ interface DecisionNoticeInputs {
 	messages: ReadonlyArray<IARMessageContextRow>;
 	channelKinds: ReadonlyMap<bigint, EvidenceChannelKind> | null;
 	networkBlocks: ReadonlyArray<BannedIpEntry>;
-	accountHasEmail: boolean;
 	locale: string | null;
 }
 
 export async function loadDecisionNotice(
 	deps: NoticeLookupDeps,
 	decision: EnforcementDecisionRow,
-	{messages, channelKinds, networkBlocks, accountHasEmail, locale}: DecisionNoticeInputs,
+	{messages, channelKinds, networkBlocks, locale}: DecisionNoticeInputs,
 ): Promise<EnforcementNotice> {
 	return buildEnforcementNotice(
 		{
@@ -41,7 +40,6 @@ export async function loadDecisionNotice(
 			decision,
 			evidence: await resolveEvidenceLocations(messages, channelKinds, deps.channelRepository, deps.guildRepository),
 			networksBlockedUntil: latestNetworkBlockExpiry(networkBlocks),
-			accountHasEmail,
 		},
 		locale,
 	);
@@ -75,7 +73,6 @@ export async function loadAccountNotice(
 		messages: evidence?.messages ?? [],
 		channelKinds: evidence?.message_locations ?? null,
 		networkBlocks,
-		accountHasEmail: user.email !== null,
 		locale,
 	});
 	if (decision !== stored) {

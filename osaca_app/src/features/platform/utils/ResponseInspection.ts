@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {HttpError} from '@app/features/platform/types/EndpointError';
-import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
-import {HttpStatus} from '@osaca/constants/src/HttpConstants';
 import {isObjectLike as isRecord} from '@osaca/record_utils/src/RecordGuards';
-
-const DEFAULT_IP_AUTHORIZATION_RESEND_SECONDS = 30;
 
 const NON_CONTEXT_KEYS = new Set(['code', 'details', 'errors', 'message', 'request_id', 'retry_after', 'status']);
 
@@ -23,13 +19,6 @@ interface ApiErrorResponse {
 	fields: ReadonlyArray<ValidationFault> | undefined;
 	retryAfterSeconds: number | undefined;
 	context: Record<string, unknown> | undefined;
-}
-
-export interface IpAuthorizationRequiredResponse {
-	ip_authorization_required: true;
-	ticket: string;
-	email: string;
-	resend_available_in: number;
 }
 
 function parseAPIErrorResponse(body: unknown, httpStatus?: number): ApiErrorResponse | null {
@@ -69,25 +58,6 @@ export function failureRetryAfterSeconds(error: unknown): number | undefined {
 
 export function failureValidationErrors(error: unknown): ReadonlyArray<ValidationFault> | undefined {
 	return failureResponse(error)?.fields;
-}
-
-export function ipAuthorizationRequiredResponseFromError(error: unknown): IpAuthorizationRequiredResponse | null {
-	const response = failureResponse(error);
-	if (response == null || response.status !== HttpStatus.FORBIDDEN) return null;
-	if (response.code !== APIErrorCodes.IP_AUTHORIZATION_REQUIRED) return null;
-	const context = response.context;
-	if (context == null) return null;
-	const ticket = readString(context, 'ticket');
-	const email = readString(context, 'email');
-	if (ticket == null || ticket.length === 0 || email == null || email.length === 0) return null;
-	const resendAvailableIn = readNumber(context, 'resend_available_in');
-	if (resendAvailableIn != null && (!Number.isSafeInteger(resendAvailableIn) || resendAvailableIn < 0)) return null;
-	return {
-		ip_authorization_required: true,
-		ticket,
-		email,
-		resend_available_in: resendAvailableIn ?? DEFAULT_IP_AUTHORIZATION_RESEND_SECONDS,
-	};
 }
 
 function failureResponse(error: unknown): ApiErrorResponse | null {

@@ -16,15 +16,10 @@ export async function assertNotBannedFromGuild(
 	const {userId, guildId} = params;
 	const [bans, user] = await Promise.all([guildRepository.listBans(guildId), userRepository.findUnique(userId)]);
 	const userIp = user?.lastActiveIp;
-	const userEmail = user?.email?.toLowerCase();
 	for (const ban of bans) {
 		if (ban.userId === userId) throw new BannedFromGuildError();
 		if (isSameIpDecisionMatch(userIp, ban.ipAddress) && !isIpBanExempt(userIp)) {
 			throw new IpBannedFromGuildError();
 		}
-	}
-	if (userEmail) {
-		const emailBan = await guildRepository.getBanByEmail(guildId, userEmail);
-		if (emailBan) throw new BannedFromGuildError();
 	}
 }

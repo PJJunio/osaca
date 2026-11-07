@@ -16,11 +16,6 @@ import type {
 } from '@osaca/schema/src/domains/user/UserHarvestSchemas';
 import type {
 	BackupCode,
-	EmailChangeRequestNewResponse,
-	EmailChangeVerifyOriginalResponse,
-	PasswordChangeCompleteResponse,
-	PasswordChangeStartResponse,
-	PasswordChangeVerifyResponse,
 	UserPasswordUpdateResponse,
 	UserPrivate,
 } from '@osaca/schema/src/domains/user/UserResponseSchemas';
@@ -43,29 +38,12 @@ export type HarvestDataFilter = BulkDeleteMyMessagesFilter;
 
 const logger = new Logger('User');
 
-interface OsacaTagAvailabilityResponse {
-	taken: boolean;
-}
-
-interface EmailChangeStartResponse {
-	ticket: string;
-	require_original: boolean;
-	original_proof?: string | null;
-	original_code_expires_at?: string;
-	resend_available_at?: string | null;
-}
-
-interface EmailChangeVerifyNewResponse {
-	email_token: string;
-}
-
 type UserUpdatePayload = Partial<UserPrivate> & {
 	avatar?: string | null;
 	password?: string;
 	new_password?: string;
 	hidden_profile_badges?: ReadonlyArray<string>;
 	accent_color?: number | null;
-	email_token?: string;
 	mention_flags?: number;
 };
 type UserUpdateResponse = UserPrivate & {
@@ -103,148 +81,6 @@ export async function update(user: UserUpdatePayload): Promise<UserUpdateRespons
 		logger.debug('Authentication token was refreshed');
 	}
 	return userData;
-}
-
-export async function checkOsacaTagAvailability({
-	username,
-	discriminator,
-}: {
-	username: string;
-	discriminator: string;
-}): Promise<boolean> {
-	logger.debug(`Checking availability for OsacaTag ${username}#${discriminator}`);
-	const response = await http.get<OsacaTagAvailabilityResponse>(Endpoints.USER_CHECK_TAG, {
-		query: {username, discriminator},
-	});
-	return response.body.taken;
-}
-
-export async function startEmailChange(): Promise<EmailChangeStartResponse> {
-	logger.debug('Starting email change flow');
-	const response = await http.post<EmailChangeStartResponse>(Endpoints.USER_EMAIL_CHANGE_START, {
-		body: {},
-	});
-	return response.body;
-}
-
-export async function resendEmailChangeOriginal(ticket: string): Promise<void> {
-	logger.debug('Resending email change original code');
-	await http.post(Endpoints.USER_EMAIL_CHANGE_RESEND_ORIGINAL, {
-		body: {ticket: ticket},
-	});
-}
-
-export async function verifyEmailChangeOriginal(
-	ticket: string,
-	code: string,
-): Promise<EmailChangeVerifyOriginalResponse> {
-	logger.debug('Verifying original email code');
-	const response = await http.post<EmailChangeVerifyOriginalResponse>(Endpoints.USER_EMAIL_CHANGE_VERIFY_ORIGINAL, {
-		body: {ticket: ticket, code: code},
-	});
-	return response.body;
-}
-
-export async function requestEmailChangeNew(
-	ticket: string,
-	newEmail: string,
-	originalProof: string,
-	newPassword?: string,
-): Promise<EmailChangeRequestNewResponse> {
-	logger.debug('Requesting new email code');
-	const response = await http.post<EmailChangeRequestNewResponse>(Endpoints.USER_EMAIL_CHANGE_REQUEST_NEW, {
-		body: {
-			ticket: ticket,
-			new_email: newEmail,
-			original_proof: originalProof,
-			...(newPassword != null ? {new_password: newPassword} : {}),
-		},
-	});
-	return response.body;
-}
-
-export async function resendEmailChangeNew(ticket: string): Promise<void> {
-	logger.debug('Resending new email code');
-	await http.post(Endpoints.USER_EMAIL_CHANGE_RESEND_NEW, {
-		body: {ticket: ticket},
-	});
-}
-
-export async function verifyEmailChangeNew(
-	ticket: string,
-	code: string,
-	originalProof: string,
-): Promise<EmailChangeVerifyNewResponse> {
-	logger.debug('Verifying new email code');
-	const response = await http.post<EmailChangeVerifyNewResponse>(Endpoints.USER_EMAIL_CHANGE_VERIFY_NEW, {
-		body: {ticket: ticket, code: code, original_proof: originalProof},
-	});
-	return response.body;
-}
-
-export async function requestBouncedEmailChangeNew(newEmail: string): Promise<EmailChangeRequestNewResponse> {
-	logger.debug('Requesting bounced email replacement code');
-	const response = await http.post<EmailChangeRequestNewResponse>(Endpoints.USER_EMAIL_CHANGE_BOUNCED_REQUEST_NEW, {
-		body: {new_email: newEmail},
-	});
-	return response.body;
-}
-
-export async function resendBouncedEmailChangeNew(ticket: string): Promise<void> {
-	logger.debug('Resending bounced email replacement code');
-	await http.post(Endpoints.USER_EMAIL_CHANGE_BOUNCED_RESEND_NEW, {
-		body: {ticket: ticket},
-	});
-}
-
-export async function verifyBouncedEmailChangeNew(ticket: string, code: string): Promise<UserPrivate> {
-	logger.debug('Verifying bounced email replacement code');
-	const response = await http.post<UserPrivate>(Endpoints.USER_EMAIL_CHANGE_BOUNCED_VERIFY_NEW, {
-		body: {ticket: ticket, code: code},
-	});
-	return response.body;
-}
-
-export async function startPasswordChange(): Promise<PasswordChangeStartResponse> {
-	logger.debug('Starting password change flow');
-	const response = await http.post<PasswordChangeStartResponse>(Endpoints.USER_PASSWORD_CHANGE_START, {
-		body: {},
-	});
-	return response.body;
-}
-
-export async function resendPasswordChangeCode(ticket: string): Promise<void> {
-	logger.debug('Resending password change code');
-	await http.post(Endpoints.USER_PASSWORD_CHANGE_RESEND, {
-		body: {ticket: ticket},
-	});
-}
-
-export async function verifyPasswordChangeCode(ticket: string, code: string): Promise<PasswordChangeVerifyResponse> {
-	logger.debug('Verifying password change code');
-	const response = await http.post<PasswordChangeVerifyResponse>(Endpoints.USER_PASSWORD_CHANGE_VERIFY, {
-		body: {ticket: ticket, code: code},
-	});
-	return response.body;
-}
-
-export async function completePasswordChange(
-	ticket: string,
-	verificationProof: string,
-	newPassword: string,
-): Promise<void> {
-	logger.debug('Completing password change');
-	const response = await http.post<PasswordChangeCompleteResponse>(Endpoints.USER_PASSWORD_CHANGE_COMPLETE, {
-		body: {
-			ticket: ticket,
-			verification_proof: verificationProof,
-			new_password: newPassword,
-		},
-	});
-	await SessionManager.setToken(response.body.token);
-	GatewaySessions.foregroundConnection.setToken(response.body.token);
-	AuthSession.handleAuthSessionChange(response.body.auth_session_id_hash);
-	logger.info('Password changed successfully');
 }
 
 export async function updatePasswordWithSudo(newPassword: string): Promise<void> {

@@ -5,10 +5,7 @@ import {Routes} from '@app/app/Routes';
 import {resolveAuthShellCategory} from '@app/features/app/components/skeleton/AuthShellHint';
 import {readHashParam} from '@app/features/app/hooks/useHashParam';
 import type {RuntimeConfigSnapshot} from '@app/features/app/state/InstanceSnapshotStore';
-import {
-	resolveForgotPasswordRedirect,
-	resolveMissingResetTokenRedirect,
-} from '@app/features/auth/flow/AccountRecoveryRedirects';
+import {resolveMissingResetTokenRedirect} from '@app/features/auth/flow/AccountRecoveryRedirects';
 import {warmAuthRuntimeTarget} from '@app/features/auth/flow/AuthRuntimeTargetBoundary';
 import {instanceTargetFromSnapshot} from '@app/features/platform/transport/InstanceHTTP';
 import {Logger} from '@app/features/platform/utils/AppLogger';
@@ -31,10 +28,7 @@ async function prepareRuntimeDependentFirstScreen(runtime: RuntimeConfigSnapshot
 	}
 	const {pathname, hash} = window.location;
 	if (pathname === Routes.FORGOT_PASSWORD) {
-		const redirect = resolveForgotPasswordRedirect(runtime);
-		if (redirect !== null) {
-			await router.preload(redirect);
-		}
+		await router.preload(Routes.RECOVER_ACCOUNT);
 		return;
 	}
 	if (pathname !== Routes.RESET_PASSWORD) {
@@ -42,7 +36,7 @@ async function prepareRuntimeDependentFirstScreen(runtime: RuntimeConfigSnapshot
 	}
 	const token = readHashParam(hash, 'token');
 	if (token === null) {
-		await router.preload(resolveMissingResetTokenRedirect(runtime));
+		await router.preload(resolveMissingResetTokenRedirect());
 		return;
 	}
 	const {warmResetPasswordTokenCheck} = await loadLazyModule(

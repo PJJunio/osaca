@@ -14,33 +14,16 @@ import InstanceSnapshotStore, {
 	runtimeInstanceKey,
 } from '@app/features/app/state/InstanceSnapshotStore';
 import {requireRuntimeConfigSnapshot} from '@app/features/app/state/RuntimeConfigSnapshot';
-import {
-	accountIdentityOf,
-	tagStyleOf,
-	usesUniqueUsernames,
-	usesUsernameSignIn,
-} from '@app/features/app/utils/AccountIdentityFeatures';
 import {discoveryEnabledOf, isDiscoveryAvailable} from '@app/features/app/utils/DiscoveryFeatures';
 import DeveloperOptions from '@app/features/devtools/state/DeveloperOptions';
 import {Logger} from '@app/features/platform/utils/AppLogger';
 import {getElectronAPI} from '@app/features/ui/utils/NativeUtils';
 import {
-	type EffectiveVerificationBasis,
-	type EmailCodeAvailability,
-	type EmailDeliveryState,
-	EmailDeliveryStates,
 	type GuildJoinGate,
 	GuildJoinGates,
 	type InteractionTierMode,
 	InteractionTierModes,
-	VerificationBases,
 } from '@osaca/constants/src/AccountConfigConstants';
-import {
-	type AccountIdentityMode,
-	AccountIdentityModes,
-	type TagStyle,
-} from '@osaca/constants/src/AccountIdentityConstants';
-import {resolveEffectiveVerificationBasis, resolveEmailCodeAvailability} from '@osaca/constants/src/AccountTierRules';
 import {API_CODE_VERSION} from '@osaca/constants/src/AppConstants';
 import {NO_BUILT_IN_GUILD_BADGE_IMAGES} from '@osaca/instance_bootstrap/src/ClientRuntimeDiscovery';
 import {InstanceDiscoveryUnreachableError} from '@osaca/instance_bootstrap/src/Discovery';
@@ -61,32 +44,6 @@ import type {InstanceConfigResponse} from '@osaca/schema/src/domains/admin/Admin
 import {makeAutoObservable, observableRef} from 'mobx';
 
 const logger = new Logger('RuntimeConfig');
-
-function emailFeaturesForIdentity(
-	mode: AccountIdentityMode,
-	features: InstanceFeatures,
-): Pick<
-	InstanceFeatures,
-	'emails_enabled' | 'email_delivery_state' | 'verification_basis' | 'identifier_first' | 'email_codes'
-> {
-	if (mode !== AccountIdentityModes.USERNAME) {
-		const wasUsernameMode = features.email_delivery_state === EmailDeliveryStates.OFF_USERNAME_MODE;
-		return {
-			emails_enabled: features.emails_enabled,
-			email_delivery_state: wasUsernameMode ? undefined : features.email_delivery_state,
-			verification_basis: wasUsernameMode ? undefined : features.verification_basis,
-			...(features.identifier_first === undefined ? {} : {identifier_first: features.identifier_first}),
-			...(features.email_codes === undefined ? {} : {email_codes: features.email_codes}),
-		};
-	}
-	return {
-		identifier_first: false,
-		email_codes: false,
-		emails_enabled: false,
-		email_delivery_state: EmailDeliveryStates.OFF_USERNAME_MODE,
-		verification_basis: VerificationBases.LOCAL_CREDENTIAL,
-	};
-}
 
 export {
 	runtimeConfigSnapshotsAreSameInstance,
@@ -612,16 +569,6 @@ class RuntimeConfig {
 		throw operationError;
 	}
 
-	applyAccountIdentity(mode: AccountIdentityMode, tagStyle: TagStyle): void {
-		const current = this.requireActiveSnapshot();
-		this.replaceActiveFeatures({
-			...current.features,
-			...emailFeaturesForIdentity(mode, current.features),
-			account_identity: mode,
-			tag_style: tagStyle,
-		});
-	}
-
 	async refreshDiscovery(signal?: AbortSignal): Promise<void> {
 		const current = this.requireActiveSnapshot();
 		const resolution = await InstanceSnapshotStore.refresh({input: current.apiEndpoint, signal: signal ?? null});
@@ -654,13 +601,6 @@ class RuntimeConfig {
 		return request;
 	}
 
-	private replaceActiveFeatures(features: InstanceFeatures): void {
-		const runtime = this.requireActiveRuntime();
-		const usable = this.requireUsableSnapshot({...runtime.snapshot, features});
-		this.activeRuntime = {...runtime, snapshot: usable};
-		this.lifecycleGeneration = nextLifecycleGeneration(this.lifecycleGeneration);
-	}
-
 	applyAdminInstanceConfig(config: InstanceConfigResponse): void {
 		const current = this.requireActiveSnapshot();
 		const appPublic: InstanceAppPublic = {
@@ -681,9 +621,6 @@ class RuntimeConfig {
 			features: {
 				...current.features,
 				self_hosted: config.self_hosted,
-				...emailFeaturesForIdentity(config.account_identity.mode, current.features),
-				account_identity: config.account_identity.mode,
-				tag_style: config.account_identity.tag_style,
 			},
 			registration: {
 				mode: config.registration.mode,
@@ -739,10 +676,6 @@ class RuntimeConfig {
 		return DeveloperOptions.selfHostedModeOverride || this.features.self_hosted;
 	}
 
-	get emailsEnabled(): boolean {
-		return this.features.emails_enabled;
-	}
-
 	get discoveryEnabled(): boolean {
 		return discoveryEnabledOf(this.features);
 	}
@@ -751,54 +684,12 @@ class RuntimeConfig {
 		return isDiscoveryAvailable(this);
 	}
 
-	get accountIdentity(): AccountIdentityMode {
-		return accountIdentityOf(this.features);
-	}
-
-	get emailDeliveryState(): EmailDeliveryState {
-		if (this.features.email_delivery_state !== undefined) return this.features.email_delivery_state;
-		if (this.usesUsernameSignIn) return EmailDeliveryStates.OFF_USERNAME_MODE;
-		return this.emailsEnabled ? EmailDeliveryStates.ON : EmailDeliveryStates.OFF_DISABLED;
-	}
-
-	get verificationBasis(): EffectiveVerificationBasis {
-		return (
-			this.features.verification_basis ??
-			resolveEffectiveVerificationBasis({
-				identityMode: this.accountIdentity,
-				basis: VerificationBases.AUTO,
-				deliveryState: this.emailDeliveryState,
-			})
-		);
-	}
-
 	get interactionTier(): InteractionTierMode {
 		return this.features.interaction_tier ?? InteractionTierModes.LEGACY;
 	}
 
 	get guildJoinGate(): GuildJoinGate {
 		return this.features.guild_join_gate ?? GuildJoinGates.ALWAYS;
-	}
-
-	emailCodeAvailabilityFor(account: {hasEmail: boolean; emailVerified: boolean}): EmailCodeAvailability {
-		return resolveEmailCodeAvailability({
-			identityMode: this.accountIdentity,
-			deliveryState: this.emailDeliveryState,
-			hasEmail: account.hasEmail,
-			emailVerified: account.emailVerified,
-		});
-	}
-
-	get usesUsernameSignIn(): boolean {
-		return usesUsernameSignIn(this.features);
-	}
-
-	get tagStyle(): TagStyle {
-		return tagStyleOf(this.features);
-	}
-
-	get usesUniqueUsernames(): boolean {
-		return usesUniqueUsernames(this.features);
 	}
 
 	get productName(): string {

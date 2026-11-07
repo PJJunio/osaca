@@ -271,8 +271,6 @@ export class ApplicationService {
 					username: DELETED_USER_USERNAME,
 					global_name: DELETED_USER_GLOBAL_NAME,
 					discriminator: 0,
-					email: null,
-					email_verified: false,
 					password_hash: null,
 					password_last_changed_at: null,
 					totp_secret: null,

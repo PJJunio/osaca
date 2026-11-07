@@ -940,7 +940,7 @@ A message with the `VOICE_MESSAGE` flag has one audio attachment with `duration`
 | 403 | [error response](/http-api/#error-response) | `COMMUNICATION_DISABLED` when you're timed out |
 | 403 | [error response](/http-api/#error-response) | `NEW_CONVERSATIONS_LIMITED` when you can't start new DMs |
 | 403 | [error response](/http-api/#error-response) | `ACCOUNT_LIMITED` when your account is [limited](/http-api/users/#account-limitation) |
-| 403 | [error response](/http-api/#error-response) | `UNCLAIMED_ACCOUNT_CANNOT_SEND_MESSAGES` outside personal notes |
+| 403 | [error response](/http-api/#error-response) | `ACCOUNT_VERIFICATION_REQUIRED` outside personal notes |
 
 The rate limit is 20 requests per 10 seconds, on the `channel:message:create::channel_id` bucket.
 
@@ -1114,12 +1114,10 @@ Deletes every message you sent in a channel and its threads, and can't be undone
 | Field | Type | Description |
 | --- | --- | --- |
 | password? | string | Your password, when you have no MFA |
-| mfa_method? | string | `totp`, `webauthn` or `email_code` |
+| mfa_method? | string | `totp` or `webauthn` |
 | mfa_code? | string | The authenticator code (1-32 characters) |
 | webauthn_response? | [WebAuthn assertion](/http-api/authentication/#webauthn-assertion) object | The WebAuthn assertion |
 | webauthn_challenge? | string | The challenge for the assertion |
-| email_code_ticket? | string | The ticket from [send a sudo email code](/http-api/users/mfa/#send-a-sudo-email-code) (1-128 characters) |
-| email_code? | string | The 6-digit code from the email |
 
 ### Response
 
@@ -1248,7 +1246,7 @@ The rate limit is 30 requests per 10 seconds, on the `channel:reactions::channel
 
 <RouteHeader method="PUT" path="/v1/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me" bot />
 
-Adds your reaction, and OSACA sends [Message Reaction Add](/gateway/events/#message-reaction-add). In a guild, adding a new emoji needs `ADD_REACTIONS`, and a custom emoji also needs `USE_EXTERNAL_EMOJIS`. Using another guild's emoji needs the `feature_global_expressions` limit. Your account needs a verified email.
+Adds your reaction, and OSACA sends [Message Reaction Add](/gateway/events/#message-reaction-add). In a guild, adding a new emoji needs `ADD_REACTIONS`, and a custom emoji also needs `USE_EXTERNAL_EMOJIS`. Using another guild's emoji needs the `feature_global_expressions` limit. Your account needs to be [verified](/http-api/users/#account-tiers).
 
 ### Query parameters
 
@@ -1264,8 +1262,7 @@ Adds your reaction, and OSACA sends [Message Reaction Add](/gateway/events/#mess
 | 400 | [error response](/http-api/#error-response) | `MAX_REACTIONS` when the message has too many reactions |
 | 400 | [error response](/http-api/#error-response) | `INVALID_FORM_BODY` with `NOT_A_VALID_UNICODE_EMOJI` or `CUSTOM_EMOJI_NOT_FOUND` for a bad emoji |
 | 400 | [error response](/http-api/#error-response) | `INVALID_FORM_BODY` with `CUSTOM_EMOJIS_REQUIRE_PREMIUM_OUTSIDE_SOURCE` for another guild's emoji |
-| 403 | [error response](/http-api/#error-response) | `REACTION_EMAIL_VERIFICATION_REQUIRED` when your email isn't verified |
-| 403 | [error response](/http-api/#error-response) | `UNCLAIMED_ACCOUNT_CANNOT_ADD_REACTIONS` outside personal notes |
+| 403 | [error response](/http-api/#error-response) | `ACCOUNT_VERIFICATION_REQUIRED` outside personal notes |
 | 403 | [error response](/http-api/#error-response) | `COMMUNICATION_DISABLED` when you're timed out |
 
 The rate limit is 30 requests per 10 seconds, on the `channel:reactions::channel_id` bucket.

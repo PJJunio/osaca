@@ -159,9 +159,8 @@ pub(crate) fn reporter_label(report: &ReportEntry) -> Markup {
     }
     html! {
         (report
-            .reporter_email
+            .reporter_id
             .as_deref()
-            .or(report.reporter_id.as_deref())
             .unwrap_or("Unknown reporter"))
     }
 }

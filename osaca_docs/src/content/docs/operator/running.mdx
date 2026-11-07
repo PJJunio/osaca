@@ -137,21 +137,7 @@ rexctl users ban spammer42 --reason spam --delete-messages
 
 When someone has lost their password and can't reset it themselves, [create a reset link](/operator/sign-in/#lost-passwords) for them.
 
-## Email and branding
-
-Set up email for your instance, then send yourself a test email.
-
-```sh
-rexctl email set
-rexctl email test you@example.com
-```
-
-If your email server's certificate comes from your own CA, put that CA's PEM file in the `ca` folder of your instance. The api and worker see that folder at `/etc/osaca/ca`, and they can't see the edge's `certs` folder. The file needs only the CA certificate, never a private key. Tell them to trust the file, then test again.
-
-```sh
-rexctl config set OSACA_NODE_EXTRA_CA_CERTS /etc/osaca/ca/ca.pem
-rexctl email test you@example.com
-```
+## Branding
 
 Change your instance's name, color, logo or icon.
 
@@ -159,7 +145,7 @@ Change your instance's name, color, logo or icon.
 rexctl branding set --name "Example Chat" --logo logo.png
 ```
 
-You can also change email and branding in the admin panel, at your instance's address followed by `/admin`.
+You can also change branding in the admin panel, at your instance's address followed by `/admin`.
 
 ## Change a setting
 

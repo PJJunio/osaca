@@ -23,7 +23,6 @@ import type {
 import {
 	AdminAuditLogs,
 	BannedAvatarHashes,
-	BannedEmails,
 	BannedFileShas,
 	BannedIps,
 	BannedPhrases,
@@ -67,24 +66,7 @@ const LOAD_ALL_BANNED_IPS_QUERY = BannedIps.select();
 const FETCH_BANNED_IP_QUERY = BannedIps.select({
 	where: BannedIps.where.eq('ip'),
 });
-const IS_EMAIL_BANNED_QUERY = BannedEmails.select({
-	where: BannedEmails.where.eq('email_lower'),
-});
-const LOAD_ALL_BANNED_EMAILS_QUERY = BannedEmails.select();
 
-function getEmailBlocklistKeys(email: string): Array<string> {
-	const emailLower = email.trim().toLowerCase();
-	const atIndex = emailLower.lastIndexOf('@');
-	if (atIndex <= 0) {
-		return [emailLower];
-	}
-	const labels = emailLower.slice(atIndex + 1).split('.');
-	const keys = [emailLower];
-	for (let index = 0; index < labels.length - 1; index++) {
-		keys.push(`@${labels.slice(index).join('.')}`);
-	}
-	return keys;
-}
 const LOAD_ALL_BANNED_PHRASES_QUERY = BannedPhrases.select();
 const LOAD_ALL_BANNED_URLS_QUERY = BannedUrls.select();
 const LOAD_ALL_BANNED_URL_DOMAINS_QUERY = BannedUrlDomains.select();
@@ -349,35 +331,6 @@ export class AdminRepository {
 		const rows = await fetchMany<BannedIpRow>(LOAD_ALL_BANNED_IPS_QUERY.bind({}));
 		const now = Date.now();
 		return rows.filter((row) => !row.expires_at || row.expires_at.getTime() > now).map(toBannedIpEntry);
-	}
-
-	async isEmailBanned(email: string): Promise<boolean> {
-		for (const key of getEmailBlocklistKeys(email)) {
-			const result = await fetchOne<{
-				email_lower: string;
-			}>(IS_EMAIL_BANNED_QUERY.bind({email_lower: key}));
-			if (result) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	async banEmail(email: string): Promise<void> {
-		const emailLower = email.toLowerCase();
-		await upsertOne(BannedEmails.insert({email_lower: emailLower}));
-	}
-
-	async unbanEmail(email: string): Promise<void> {
-		const emailLower = email.toLowerCase();
-		await deleteOneOrMany(BannedEmails.deleteByPk({email_lower: emailLower}));
-	}
-
-	async loadAllBannedEmails(): Promise<Array<string>> {
-		const rows = await fetchMany<{
-			email_lower: string;
-		}>(LOAD_ALL_BANNED_EMAILS_QUERY.bind({}));
-		return rows.map((row) => row.email_lower);
 	}
 
 	async banPhrase(phrase: string): Promise<void> {

@@ -8,15 +8,12 @@ import {
 	type MfaLoginResponse,
 	type RegistrationPendingApprovalResponse,
 } from '@app/features/auth/commands/AuthenticationCommands';
-import {readDeviceProof, storeDeviceProof} from '@app/features/auth/state/AccountEntryStorage';
-import {switcherAccounts} from '@app/features/auth/state/AccountSwitcherAccounts';
 import {type LoginSuccessPayload, type MfaChallenge, toLoginSuccessPayload} from '@app/features/auth/state/AuthFlow';
 import {instanceRequest, instanceTargetFromSnapshot} from '@app/features/platform/transport/InstanceHTTP';
 import {getCurrentOrDetectedLocale} from '@app/features/user/utils/LocaleUtils';
-import type {EmailCodeSendResponse, IdentifyResponse} from '@osaca/schema/src/domains/auth/AuthSchemas';
 import type {GuildEntryResult} from '@osaca/schema/src/domains/user/AccountSchemas';
 
-type EntryTokenResponse = AuthTokenResponse & {device_proof?: string; entry?: GuildEntryResult | null};
+type EntryTokenResponse = AuthTokenResponse & {entry?: GuildEntryResult | null};
 
 export type AccountEntryResult =
 	| {type: 'success'; payload: LoginSuccessPayload; entry: GuildEntryResult | null}
@@ -25,16 +22,6 @@ export type AccountEntryResult =
 
 function localeHeaders(): Record<string, string> {
 	return {'Accept-Language': getCurrentOrDetectedLocale()};
-}
-
-function deviceProofForEmail(email: string): string | undefined {
-	const normalized = email.trim().toLowerCase();
-	for (const account of switcherAccounts()) {
-		if (account.userData?.email?.toLowerCase() === normalized) {
-			return readDeviceProof(account.userId) ?? undefined;
-		}
-	}
-	return undefined;
 }
 
 function toEntryResult(
@@ -55,76 +42,7 @@ function toEntryResult(
 		return {type: 'pending_approval'};
 	}
 	const tokenResponse = response as EntryTokenResponse;
-	storeDeviceProof(tokenResponse.user_id, tokenResponse.device_proof);
 	return {type: 'success', payload: toLoginSuccessPayload(tokenResponse), entry: tokenResponse.entry ?? null};
-}
-
-export async function identify(email: string, snapshot: RuntimeConfigSnapshot): Promise<IdentifyResponse> {
-	const deviceProof = deviceProofForEmail(email);
-	const response = await instanceRequest<IdentifyResponse>({
-		method: 'POST',
-		path: Endpoints.AUTH_IDENTIFY,
-		target: instanceTargetFromSnapshot(snapshot),
-		body: deviceProof === undefined ? {email} : {email, device_proof: deviceProof},
-		headers: localeHeaders(),
-	});
-	return response.body;
-}
-
-export async function sendEmailCode(
-	ticket: string,
-	registrationUrlCode: string | null,
-	snapshot: RuntimeConfigSnapshot,
-): Promise<EmailCodeSendResponse> {
-	const response = await instanceRequest<EmailCodeSendResponse>({
-		method: 'POST',
-		path: Endpoints.AUTH_EMAIL_CODE_SEND,
-		target: instanceTargetFromSnapshot(snapshot),
-		body: registrationUrlCode === null ? {ticket} : {ticket, registration_url_code: registrationUrlCode},
-		headers: localeHeaders(),
-	});
-	return response.body;
-}
-
-interface VerifyEmailCodeRequest {
-	readonly ticket: string;
-	readonly code: string;
-	readonly consent: boolean;
-	readonly inviteCode: string | null;
-	readonly registrationUrlCode: string | null;
-	readonly profile: NewAccountProfile | null;
-	readonly snapshot: RuntimeConfigSnapshot;
-}
-
-export interface NewAccountProfile {
-	readonly globalName: string;
-	readonly username: string;
-}
-
-export async function verifyEmailCode({
-	ticket,
-	code,
-	consent,
-	inviteCode,
-	registrationUrlCode,
-	profile,
-	snapshot,
-}: VerifyEmailCodeRequest): Promise<AccountEntryResult> {
-	const response = await instanceRequest<EntryTokenResponse | MfaLoginResponse | RegistrationPendingApprovalResponse>({
-		method: 'POST',
-		path: Endpoints.AUTH_EMAIL_CODE_VERIFY,
-		target: instanceTargetFromSnapshot(snapshot),
-		body: {
-			ticket,
-			code,
-			consent,
-			...(inviteCode === null ? {} : {invite_code: inviteCode}),
-			...(registrationUrlCode === null ? {} : {registration_url_code: registrationUrlCode}),
-			...(profile === null ? {} : {global_name: profile.globalName, username: profile.username}),
-		},
-		headers: localeHeaders(),
-	});
-	return toEntryResult(response.body);
 }
 
 interface InstantAccountRequest {
@@ -185,6 +103,5 @@ export async function redeemAccountHandoff({
 		headers: localeHeaders(),
 		auth: 'none',
 	});
-	storeDeviceProof(response.body.user_id, response.body.device_proof);
 	return {payload: toLoginSuccessPayload(response.body), entry: response.body.entry ?? null};
 }

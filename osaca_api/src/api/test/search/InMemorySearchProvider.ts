@@ -288,8 +288,6 @@ function sortMessageDocs(
 function matchesUserFilters(doc: SearchableUser, filters: UserSearchFilters): boolean {
 	if (filters.isBot !== undefined && doc.isBot !== filters.isBot) return false;
 	if (filters.isSystem !== undefined && doc.isSystem !== filters.isSystem) return false;
-	if (filters.emailVerified !== undefined && doc.emailVerified !== filters.emailVerified) return false;
-	if (filters.emailBounced !== undefined && doc.emailBounced !== filters.emailBounced) return false;
 	if (filters.isTempBanned !== undefined && (doc.tempBannedUntil !== null) !== filters.isTempBanned) return false;
 	if (filters.isPendingDeletion !== undefined && (doc.pendingDeletionAt !== null) !== filters.isPendingDeletion) {
 		return false;
@@ -305,7 +303,7 @@ function matchesUserFilters(doc: SearchableUser, filters: UserSearchFilters): bo
 }
 
 function collectUserText(doc: SearchableUser): Array<string | null> {
-	return [doc.id, doc.username, doc.email];
+	return [doc.id, doc.username];
 }
 
 function sortNumericField<TDocument extends SearchableDocument, TFilters>(

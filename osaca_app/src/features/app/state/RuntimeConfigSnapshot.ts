@@ -1,18 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {
-	EmailDeliveryStates,
 	GuildJoinGates,
 	InstantAccountAvailability,
 	InteractionTierModes,
-	VerificationBases,
 } from '@osaca/constants/src/AccountConfigConstants';
-import {
-	type AccountIdentityLockReason,
-	AccountIdentityLockReasons,
-	AccountIdentityModes,
-	TagStyles,
-} from '@osaca/constants/src/AccountIdentityConstants';
 import {BUILT_IN_GUILD_BADGE_KINDS} from '@osaca/constants/src/BadgeConstants';
 import {LIMIT_KEYS, type LimitKey} from '@osaca/constants/src/LimitConfigMetadata';
 import {NO_BUILT_IN_GUILD_BADGE_IMAGES} from '@osaca/instance_bootstrap/src/ClientRuntimeDiscovery';
@@ -250,7 +242,6 @@ function readFeatures(value: unknown): InstanceFeatures {
 			'presigned_attachment_uploads',
 			'features.presigned_attachment_uploads',
 		),
-		emails_enabled: readBoolean(source, 'emails_enabled', 'features.emails_enabled'),
 		phone_verification_enabled: false,
 	};
 	const desktopModulesEnabled = readOptionalBoolean(
@@ -261,7 +252,7 @@ function readFeatures(value: unknown): InstanceFeatures {
 	if (desktopModulesEnabled !== undefined) {
 		features.desktop_modules_enabled = desktopModulesEnabled;
 	}
-	for (const key of ['identifier_first', 'instant_accounts', 'email_codes', 'discovery_enabled'] as const) {
+	for (const key of ['instant_accounts', 'discovery_enabled'] as const) {
 		const value = readOptionalBoolean(source, key, `features.${key}`);
 		if (value !== undefined) {
 			features[key] = value;
@@ -277,17 +268,6 @@ function readFeatures(value: unknown): InstanceFeatures {
 	if (deletionGracePeriod !== undefined) {
 		features.account_deletion_grace_period_hours = deletionGracePeriod;
 	}
-	if (source.account_identity !== undefined) {
-		features.account_identity = readLiteral(
-			source,
-			'account_identity',
-			'features.account_identity',
-			Object.values(AccountIdentityModes),
-		);
-	}
-	if (source.tag_style !== undefined) {
-		features.tag_style = readLiteral(source, 'tag_style', 'features.tag_style', Object.values(TagStyles));
-	}
 	const instantAccountAvailability = readKnownLiteral(
 		source,
 		'instant_account_availability',
@@ -298,13 +278,6 @@ function readFeatures(value: unknown): InstanceFeatures {
 	if (interactionTier !== undefined) features.interaction_tier = interactionTier;
 	const guildJoinGate = readKnownLiteral(source, 'guild_join_gate', GuildJoinGates);
 	if (guildJoinGate !== undefined) features.guild_join_gate = guildJoinGate;
-	const emailDeliveryState = readKnownLiteral(source, 'email_delivery_state', EmailDeliveryStates);
-	if (emailDeliveryState !== undefined) features.email_delivery_state = emailDeliveryState;
-	const verificationBasis = readKnownLiteral(source, 'verification_basis', {
-		CONFIRMED_EMAIL: VerificationBases.CONFIRMED_EMAIL,
-		LOCAL_CREDENTIAL: VerificationBases.LOCAL_CREDENTIAL,
-	});
-	if (verificationBasis !== undefined) features.verification_basis = verificationBasis;
 	return features;
 }
 
@@ -409,26 +382,13 @@ function readLimits(value: unknown): LimitConfigSnapshot {
 	return snapshot;
 }
 
-function readOptionalLockReason(source: Record<string, unknown>): AccountIdentityLockReason | null | undefined {
-	if (!Object.hasOwn(source, 'account_identity_lock_reason')) {
-		return undefined;
-	}
-	const value = source.account_identity_lock_reason;
-	return Object.values(AccountIdentityLockReasons).find((reason) => reason === value) ?? null;
-}
-
 function readAppPublic(value: unknown): InstanceAppPublic {
 	const source = readRecord(value, 'appPublic');
 	const branding = readRecord(source.branding, 'appPublic.branding');
 	const setup = readRecord(source.setup, 'appPublic.setup');
 	const legal = readRecord(source.legal, 'appPublic.legal');
-	const accountIdentityLocked = readOptionalBoolean(
-		setup,
-		'account_identity_locked',
-		'appPublic.setup.account_identity_locked',
-	);
 	const setupTokenRequired = readOptionalBoolean(setup, 'setup_token_required', 'appPublic.setup.setup_token_required');
-	const accountIdentityLockReason = readOptionalLockReason(setup);
+	const adminExists = readOptionalBoolean(setup, 'admin_exists', 'appPublic.setup.admin_exists');
 	return {
 		branding: {
 			product_name: readNonEmptyString(branding, 'product_name', 'appPublic.branding.product_name'),
@@ -457,9 +417,8 @@ function readAppPublic(value: unknown): InstanceAppPublic {
 		setup: {
 			configured: readBoolean(setup, 'configured', 'appPublic.setup.configured'),
 			admin_url: readNullableAbsoluteHttpUrl(setup, 'admin_url', 'appPublic.setup.admin_url'),
-			...(accountIdentityLocked === undefined ? {} : {account_identity_locked: accountIdentityLocked}),
-			...(accountIdentityLockReason === undefined ? {} : {account_identity_lock_reason: accountIdentityLockReason}),
 			...(setupTokenRequired === undefined ? {} : {setup_token_required: setupTokenRequired}),
+			...(adminExists === undefined ? {} : {admin_exists: adminExists}),
 		},
 		legal: {
 			terms_url: readNullableAbsoluteHttpUrl(legal, 'terms_url', 'appPublic.legal.terms_url'),

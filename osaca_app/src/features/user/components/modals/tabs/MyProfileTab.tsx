@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {EmailVerificationAlert} from '@app/features/app/components/dialogs/components/EmailVerificationAlert';
 import {UnclaimedAccountAlert} from '@app/features/app/components/dialogs/components/UnclaimedAccountAlert';
 import {SettingsSection} from '@app/features/app/components/dialogs/shared/SettingsSection';
 import {SettingsTabContainer} from '@app/features/app/components/dialogs/shared/SettingsTabLayout';
@@ -69,7 +68,9 @@ import {
 } from '@app/features/user/utils/UserMessageDescriptors';
 import {setMeaningfulFormValue} from '@app/lib/forms/MeaningfulFormValue';
 import {type RemoteFormResetReason, useRemoteFormReset} from '@app/lib/forms/RemoteFormReset';
-import {AccountTiers, AccountVerificationNeeds, TierGatedActions} from '@osaca/constants/src/AccountTierConstants';
+import {msg} from '@lingui/core/macro';
+import {useLingui} from '@lingui/react/macro';
+import {AccountTiers, TierGatedActions} from '@osaca/constants/src/AccountTierConstants';
 import {isProfileBadgeKey} from '@osaca/constants/src/BadgeConstants';
 import {Permissions} from '@osaca/constants/src/ChannelConstants';
 import {GuildMemberProfileFlags} from '@osaca/constants/src/GuildConstants';
@@ -77,8 +78,6 @@ import {ProfileFieldPrivacyFlags} from '@osaca/constants/src/UserConstants';
 import {getCurrentTimeZoneOffsetMinutes} from '@osaca/date_utils/src/TimeZoneUtils';
 import type {GuildMemberData} from '@osaca/schema/src/domains/guild/GuildMemberSchemas';
 import type {UserProfile} from '@osaca/schema/src/domains/user/UserResponseSchemas';
-import {msg} from '@lingui/core/macro';
-import {useLingui} from '@lingui/react/macro';
 import {observer} from 'mobx-react-lite';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useForm} from 'react-hook-form';
@@ -95,14 +94,6 @@ const WARNING_YOU_HAVE_UNSAVED_CHANGES_PLEASE_SAVE_YOUR_DESCRIPTOR = msg({
 	message: 'You have unsaved changes. Save or reset before leaving.',
 	comment: 'Warning text in the my profile tab. Keep the tone plain and specific.',
 });
-const VERIFY_YOUR_EMAIL_BEFORE_EDITING_THIS_COMMUNITY_PROFILE_DESCRIPTOR = msg({
-	message: 'Confirm your email before editing this community profile. You can still preview it here.',
-	comment: 'Description text in the my profile tab.',
-});
-const VERIFY_YOUR_EMAIL_BEFORE_EDITING_YOUR_PROFILE_YOU_DESCRIPTOR = msg({
-	message: 'Confirm your email before editing your profile. You can still preview it here.',
-	comment: 'Description text in the my profile tab.',
-});
 const EDIT_YOUR_PROFILE_APPEARANCE_AND_SEE_A_LIVE_DESCRIPTOR = msg({
 	message: 'Edit your profile appearance and see a live preview',
 	comment: 'Button or menu action label in the my profile tab. Keep it concise.',
@@ -114,25 +105,6 @@ const PROFILE_CUSTOMIZATION_FORM_DESCRIPTOR = msg({
 const PROFILE_CUSTOMIZATION_FOR_DESCRIPTOR = msg({
 	message: 'Profile customization for {selectedGuildName}',
 	comment: 'Label in the my profile tab. Preserve {selectedGuildName}; it is inserted by code.',
-});
-
-const VERIFY_YOUR_EMAIL_TO_EDIT_THIS_COMMUNITY_PROFILE_DESCRIPTOR = msg({
-	message: 'Confirm your email to edit this community profile',
-	comment: 'Label in the my profile tab.',
-});
-const VERIFY_YOUR_EMAIL_TO_EDIT_YOUR_PROFILE_DESCRIPTOR = msg({
-	message: 'Confirm your email to edit your profile',
-	comment: 'Label in the my profile tab.',
-});
-const VERIFY_YOUR_EMAIL_BEFORE_CHANGING_YOUR_COMMUNITY_NICKNAME_DESCRIPTOR = msg({
-	message:
-		'Confirm your email before changing your community nickname, avatar, banner, bio, pronouns, or accent color.',
-	comment: 'Description text in the my profile tab. Keep the tone plain and specific.',
-});
-const VERIFY_YOUR_EMAIL_BEFORE_CHANGING_YOUR_USERNAME_DISPLAY_DESCRIPTOR = msg({
-	message:
-		'Confirm your email before changing your username, display name, avatar, banner, bio, pronouns, time zone, or badges.',
-	comment: 'Label in the my profile tab.',
 });
 
 const THIS_NICKNAME_WILL_ONLY_BE_VISIBLE_IN_THIS_DESCRIPTOR = msg({
@@ -249,7 +221,6 @@ const MyProfileTabComponent = observer(function MyProfileTabComponent({
 	const [lastFlashTrigger, setLastFlashTrigger] = useState(0);
 	const [ariaAnnouncement, setAriaAnnouncement] = useState('');
 	const profileGate = canPerform(user, TierGatedActions.PROFILE_CUSTOMIZE);
-	const isProfileEmailLocked = !profileGate.allowed && profileGate.need === AccountVerificationNeeds.CONFIRM_EMAIL;
 	const isProfileAccountLimited = user?.accountLimited === true;
 	const isProfileCustomizationLocked = !profileGate.allowed || isProfileAccountLimited;
 	const form = useForm<FormInputs>({
@@ -673,22 +644,13 @@ const MyProfileTabComponent = observer(function MyProfileTabComponent({
 	const isAvatarCustomizationDisabled = isProfileCustomizationLocked || isPerGuildProfileCustomizationDisabled;
 	const isPronounsDisabled = isProfileCustomizationLocked;
 	let profileCustomizationDescription: string;
-	if (isProfileEmailLocked) {
-		if (isPerGuildProfile) {
-			profileCustomizationDescription = i18n._(VERIFY_YOUR_EMAIL_BEFORE_EDITING_THIS_COMMUNITY_PROFILE_DESCRIPTOR);
-		} else {
-			profileCustomizationDescription = i18n._(VERIFY_YOUR_EMAIL_BEFORE_EDITING_YOUR_PROFILE_YOU_DESCRIPTOR);
-		}
-	} else if (!profileGate.allowed) {
+	if (!profileGate.allowed) {
 		profileCustomizationDescription = accountGateReason(i18n, profileGate);
 	} else if (isProfileAccountLimited) {
 		profileCustomizationDescription = i18n._(ACCOUNT_LIMITED_NOTICE_DESCRIPTOR);
 	} else {
 		profileCustomizationDescription = i18n._(EDIT_YOUR_PROFILE_APPEARANCE_AND_SEE_A_LIVE_DESCRIPTOR);
 	}
-	const profileVerificationDescriptor = isPerGuildProfile
-		? VERIFY_YOUR_EMAIL_BEFORE_CHANGING_YOUR_COMMUNITY_NICKNAME_DESCRIPTOR
-		: VERIFY_YOUR_EMAIL_BEFORE_CHANGING_YOUR_USERNAME_DISPLAY_DESCRIPTOR;
 	const hasAvatar =
 		!avatarAsset.hasCleared &&
 		(avatarAsset.hasAsset || (!avatarAsset.isDirty && Boolean(profileRemoteValues?.avatar.hasCustomAsset)));
@@ -738,18 +700,6 @@ const MyProfileTabComponent = observer(function MyProfileTabComponent({
 						description={profileCustomizationDescription}
 						data-flx="user.my-profile-tab.my-profile-tab-component.settings-section"
 					>
-						{isProfileEmailLocked && (
-							<EmailVerificationAlert
-								title={
-									isPerGuildProfile
-										? i18n._(VERIFY_YOUR_EMAIL_TO_EDIT_THIS_COMMUNITY_PROFILE_DESCRIPTOR)
-										: i18n._(VERIFY_YOUR_EMAIL_TO_EDIT_YOUR_PROFILE_DESCRIPTOR)
-								}
-								data-flx="user.my-profile-tab.my-profile-tab-component.email-verification-alert"
-							>
-								{i18n._(profileVerificationDescriptor)}
-							</EmailVerificationAlert>
-						)}
 						{isLoadingProfile ? (
 							<div
 								className={styles.loadingContainer}

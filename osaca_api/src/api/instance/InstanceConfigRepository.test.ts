@@ -64,7 +64,6 @@ function describeConcurrentInstanceConfigWrites(prepareBase: () => Promise<Cassa
 		expect(await readStoredRegistrationConfig()).toEqual({
 			mode: 'closed',
 			admin_registration_urls_enabled: false,
-			allowed_email_domains: [],
 		});
 	});
 
@@ -86,7 +85,6 @@ function describeConcurrentInstanceConfigWrites(prepareBase: () => Promise<Cassa
 		expect(await readStoredRegistrationConfig()).toEqual({
 			mode: 'closed',
 			admin_registration_urls_enabled: false,
-			allowed_email_domains: [],
 		});
 	});
 
@@ -99,7 +97,6 @@ function describeConcurrentInstanceConfigWrites(prepareBase: () => Promise<Cassa
 		expect(await stale.getRegistrationConfig()).toEqual({
 			mode: 'open',
 			admin_registration_urls_enabled: true,
-			allowed_email_domains: [],
 		});
 		executor.watch(REGISTRATION_CONFIG_KEY);
 		let competed = false;
@@ -118,7 +115,6 @@ function describeConcurrentInstanceConfigWrites(prepareBase: () => Promise<Cassa
 		expect(await readStoredRegistrationConfig()).toEqual({
 			mode: 'closed',
 			admin_registration_urls_enabled: false,
-			allowed_email_domains: [],
 		});
 	});
 

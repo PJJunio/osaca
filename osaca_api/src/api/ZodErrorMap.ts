@@ -39,9 +39,7 @@ const osacaZodErrorMap: z.core.$ZodErrorMap = (issue) => {
 			break;
 		}
 		case 'invalid_format': {
-			if (issue.format === 'email') {
-				errorCode = ValidationErrorCodes.INVALID_EMAIL_ADDRESS;
-			} else if (issue.format === 'uuid') {
+			if (issue.format === 'uuid') {
 				errorCode = ValidationErrorCodes.INVALID_SNOWFLAKE;
 			} else {
 				errorCode = ValidationErrorCodes.INVALID_FORMAT;

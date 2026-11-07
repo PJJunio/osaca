@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type {ApiContext} from '@app/api/ApiContext';
-import * as AuthEmail from '@app/api/auth/AuthEmail';
-import * as AuthEmailRevert from '@app/api/auth/AuthEmailRevert';
-import * as AuthIdentify from '@app/api/auth/AuthIdentify';
 import * as AuthInstantAccounts from '@app/api/auth/AuthInstantAccounts';
 import * as AuthLogin from '@app/api/auth/AuthLogin';
 import * as AuthMfa from '@app/api/auth/AuthMfa';
@@ -26,32 +23,22 @@ import {
 } from '@app/api/user/services/WebPushOriginReplacement';
 import {isUsernameTaken} from '@app/api/user/UniqueUsernames';
 import {mapUserToPartialResponse} from '@app/api/user/UserMappers';
-import {parseJsonRecord} from '@app/api/utils/JsonBoundaryUtils';
 import {resolveSessionClientInfo} from '@app/api/utils/SessionClientIdentity';
 import {generateUsernameSuggestions} from '@app/api/utils/UsernameSuggestionUtils';
-import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
-import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
 import {UnauthorizedError} from '@osaca/errors/src/domains/core/UnauthorizedError';
 import type {
 	AccountHandoffRedeemRequest,
 	AccountHandoffRequest,
 	AccountHandoffResponse,
 	AuthLoginResponse,
-	AuthorizeIpRequest,
 	AuthRegisterResponse,
 	AuthRegisterSuccessResponse,
 	AuthTokenWithUserIdResponse,
-	EmailCodeSendResponse,
-	EmailCodeVerifyRequest,
-	EmailCodeVerifyResponse,
-	EmailRevertRequest,
 	HandoffCompleteRequest,
 	HandoffCompleteResponse,
 	HandoffInfoResponse,
 	HandoffInitiateResponse,
 	HandoffStatusResponse,
-	IdentifyResponse,
-	IpAuthorizationPollResponse,
 	LoginRequest,
 	LogoutAuthSessionsRequest,
 	RecoverAccountRequest,
@@ -60,7 +47,6 @@ import type {
 	ResetPasswordRequest,
 	UsernameAvailabilityResponse,
 	UsernameSuggestionsResponse,
-	VerifyEmailRequest,
 	WebAuthnAuthenticateRequest,
 	WebAuthnMfaRequest,
 } from '@osaca/schema/src/domains/auth/AuthSchemas';
@@ -89,11 +75,6 @@ interface AuthRecoverAccountRequest {
 	request: Request;
 }
 
-interface AuthRevertEmailChangeRequest {
-	data: EmailRevertRequest;
-	request: Request;
-}
-
 interface AuthLoginMfaRequest {
 	code: string;
 	ticket: string;
@@ -107,16 +88,8 @@ interface AuthHandoffCompleteRequest {
 	approverOrigin?: string | null;
 }
 
-interface AuthAuthorizeIpRequest {
-	data: AuthorizeIpRequest;
-}
-
 interface AuthUsernameSuggestionsRequest {
 	globalName: string;
-}
-
-interface AuthPollIpRequest {
-	ticket: string;
 }
 
 interface AuthWebAuthnAuthenticateRequest {
@@ -179,13 +152,6 @@ export class AuthRequestService {
 		return await this.toAuthTokenResponse(result);
 	}
 
-	async verifyEmail(data: VerifyEmailRequest): Promise<void> {
-		const success = await AuthEmail.verifyEmail(this.apiContext, data);
-		if (!success) {
-			throw InputValidationError.fromCode('token', ValidationErrorCodes.INVALID_OR_EXPIRED_VERIFICATION_TOKEN);
-		}
-	}
-
 	async validateResetPasswordToken(token: string): Promise<{
 		valid: boolean;
 	}> {
@@ -207,49 +173,11 @@ export class AuthRequestService {
 		};
 	}
 
-	async revertEmailChange({data, request}: AuthRevertEmailChangeRequest): Promise<AuthTokenWithUserIdResponse> {
-		const result = await AuthEmailRevert.revertEmailChange(this.apiContext, {
-			token: data.token,
-			password: data.password,
-			request,
-		});
-		return await this.toAuthTokenResponse(result);
-	}
-
 	async logoutAuthSessions({user, data}: AuthLogoutAuthSessionsRequest): Promise<void> {
 		await AuthSession.logoutAuthSessions(this.apiContext, {
 			user,
 			sessionIdHashes: data.session_id_hashes,
 		});
-	}
-
-	async completeIpAuthorization({data}: AuthAuthorizeIpRequest): Promise<void> {
-		const {cache} = this.apiContext.services;
-		const result = await AuthLogin.completeIpAuthorization(this.apiContext, data.token);
-		const payload = JSON.stringify({token: result.token, user_id: result.user_id});
-		await cache.set(`ip-auth-result:${result.ticket}`, payload, 60);
-	}
-
-	async pollIpAuthorization({ticket}: AuthPollIpRequest): Promise<IpAuthorizationPollResponse> {
-		const {cache} = this.apiContext.services;
-		const result = await cache.get<string>(`ip-auth-result:${ticket}`);
-		if (result) {
-			const parsed = parseJsonRecord(result);
-			if (typeof parsed?.token !== 'string' || typeof parsed.user_id !== 'string') {
-				throw InputValidationError.fromCode('ticket', ValidationErrorCodes.INVALID_OR_EXPIRED_AUTHORIZATION_TICKET);
-			}
-			return {
-				completed: true,
-				token: parsed.token,
-				user_id: parsed.user_id,
-				user: await this.getUserPartial(parsed.user_id),
-			};
-		}
-		const ticketPayload = await cache.get(AuthLogin.getTicketCacheKey(ticket));
-		if (!ticketPayload) {
-			throw InputValidationError.fromCode('ticket', ValidationErrorCodes.INVALID_OR_EXPIRED_AUTHORIZATION_TICKET);
-		}
-		return {completed: false};
 	}
 
 	async authenticateWebAuthnDiscoverable({data, request}: AuthWebAuthnAuthenticateRequest) {
@@ -276,60 +204,6 @@ export class AuthRequestService {
 		return {available: !(await isUsernameTaken(this.apiContext.services.users, username))};
 	}
 
-	identify(params: {
-		identifier: string;
-		deviceProof: string | undefined;
-		registrationUrlCode: string | null | undefined;
-		request: Request;
-		clientIp: string;
-		captcha: AuthIdentify.CaptchaGate;
-	}): Promise<IdentifyResponse> {
-		return AuthIdentify.identify(this.apiContext, params);
-	}
-
-	sendEmailCode(params: {
-		ticket: string;
-		registrationUrlCode: string | null | undefined;
-		request: Request;
-		clientIp: string;
-		captcha: AuthIdentify.CaptchaGate;
-	}): Promise<EmailCodeSendResponse> {
-		return AuthIdentify.sendEmailCode(this.apiContext, params);
-	}
-
-	async verifyEmailCode(params: {
-		data: EmailCodeVerifyRequest;
-		request: Request;
-		clientIp: string;
-		requestCache: RequestCache;
-		tierContext: TierContext;
-		captcha: AuthIdentify.CaptchaGate;
-	}): Promise<EmailCodeVerifyResponse> {
-		const {data} = params;
-		const result = await AuthIdentify.verifyEmailCode(this.apiContext, this.registrationDependencies, {
-			ticket: data.ticket,
-			code: data.code,
-			consent: data.consent,
-			registrationUrlCode: data.registration_url_code,
-			inviteCode: data.invite_code,
-			username: data.username,
-			globalName: data.global_name,
-			request: params.request,
-			clientIp: params.clientIp,
-			requestCache: params.requestCache,
-			tierContext: params.tierContext,
-			captcha: params.captcha,
-		});
-		if (result.kind === 'sign_up') return toAuthRegisterResponse(result.result);
-		if (result.kind === 'mfa') return result.mfa;
-		return {
-			token: result.token,
-			user_id: result.user.id.toString(),
-			user: mapUserToPartialResponse(result.user),
-			device_proof: result.deviceProof,
-		};
-	}
-
 	instantAccountChallengeSteps(
 		request: Request,
 		clientIp: string,
@@ -354,7 +228,7 @@ export class AuthRequestService {
 		requestCache: RequestCache;
 		tierContext: TierContext;
 	}): Promise<AuthRegisterSuccessResponse> {
-		const {user, token, deviceProof, entry} = await AuthInstantAccounts.redeemHandoff(
+		const {user, token, entry} = await AuthInstantAccounts.redeemHandoff(
 			this.apiContext,
 			this.registrationDependencies,
 			{
@@ -371,7 +245,6 @@ export class AuthRequestService {
 			token,
 			user_id: user.id.toString(),
 			user: mapUserToPartialResponse(user),
-			device_proof: deviceProof,
 			entry,
 		};
 	}
@@ -530,7 +403,6 @@ function toAuthRegisterResponse(result: AuthRegistration.AccountCreationResult):
 		token: result.token,
 		user_id: result.user.id.toString(),
 		user: mapUserToPartialResponse(result.user),
-		device_proof: result.deviceProof,
 		entry: result.entry,
 	};
 }

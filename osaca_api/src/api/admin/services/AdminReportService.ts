@@ -109,14 +109,12 @@ function staffOutcome(
 interface ReportLookupCache {
 	channelNsfwByChannelId: Map<string, boolean | null>;
 	guildNsfwLevelByGuildId: Map<string, number | null>;
-	reporterEmailByReporterId: Map<string, Promise<string | null>>;
 }
 
 function createReportLookupCache(): ReportLookupCache {
 	return {
 		channelNsfwByChannelId: new Map(),
 		guildNsfwLevelByGuildId: new Map(),
-		reporterEmailByReporterId: new Map(),
 	};
 }
 
@@ -398,7 +396,6 @@ export class AdminReportService {
 			reporter_username: reporterInfo?.username ?? null,
 			reporter_global_name: reporterInfo?.global_name ?? null,
 			reporter_discriminator: reporterInfo?.discriminator ?? null,
-			reporter_email: canViewReporterPii ? await this.getReporterEmail(report, reportLookupCache) : null,
 			reporter_full_legal_name: canViewReporterPii ? report.reporterFullLegalName : null,
 			reporter_country_of_residence: canViewReporterPii ? report.reporterCountryOfResidence : null,
 			reported_at: report.reportedAt.toISOString(),
@@ -475,21 +472,6 @@ export class AdminReportService {
 			legal_hold_until: report.legalHoldUntil?.toISOString() ?? null,
 			legal_hold_reason: report.legalHoldReason,
 		};
-	}
-
-	private getReporterEmail(report: IARSubmission, reportLookupCache: ReportLookupCache): Promise<string | null> {
-		const reporterId = report.reporterId;
-		if (!reporterId) {
-			return Promise.resolve(report.reporterEmail);
-		}
-		const key = reporterId.toString();
-		const cached = reportLookupCache.reporterEmailByReporterId.get(key);
-		if (cached) {
-			return cached;
-		}
-		const email = this.deps.apiContext.services.users.findUnique(reporterId).then((user) => user?.email ?? null);
-		reportLookupCache.reporterEmailByReporterId.set(key, email);
-		return email;
 	}
 
 	private async getContextAuthorBotFlags(

@@ -21,14 +21,9 @@ describe('extractStringValues', () => {
 
 describe('shouldSkipContentFilterPath', () => {
 	test('skips credential-only request bodies', () => {
-		const paths = [
-			'/users/@me/email-change/verify-original',
-			'/users/@me/mfa/totp/enable',
-			'/users/@me/password-change/complete',
-			'/reports/dsa/email/verify',
-		];
+		const paths = ['/users/@me/mfa/totp/enable', '/users/@me/sudo/mfa-methods', '/auth/login'];
 		const result = paths.map((path) => shouldSkipContentFilterPath(path));
-		expect(result).toEqual([true, true, true, true]);
+		expect(result).toEqual([true, true, true]);
 	});
 	test('does not skip in-app report submissions', () => {
 		const paths = ['/reports/message', '/reports/user', '/reports/flows/message/submissions'];

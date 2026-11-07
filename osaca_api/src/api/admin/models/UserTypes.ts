@@ -42,7 +42,6 @@ export async function mapUserToAdminResponse(
 	acls?: ReadonlySet<string>,
 	locale?: string,
 ): Promise<UserAdminResponse> {
-	const canViewEmail = !acls || hasAdminACL(acls, AdminACLs.USER_VIEW_EMAIL);
 	const canViewIp = !acls || hasAdminACL(acls, AdminACLs.USER_VIEW_IP);
 	const canViewAuditLog = !acls || hasAdminACL(acls, AdminACLs.AUDIT_LOG_VIEW);
 	const [lastActiveIpReverse, profileBadges] = await Promise.all([
@@ -64,9 +63,6 @@ export async function mapUserToAdminResponse(
 		bio: user.bio,
 		pronouns: user.pronouns,
 		accent_color: user.accentColor,
-		email: canViewEmail ? (user.email ?? null) : null,
-		email_verified: canViewEmail ? user.emailVerified : false,
-		email_bounced: canViewEmail ? user.emailBounced : false,
 		locale: user.locale,
 		profile_badges: profileBadges,
 		temp_banned_until:

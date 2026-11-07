@@ -5,34 +5,24 @@ import {revokeAllAuthSessions} from '@app/api/auth/AuthSessionRevocation';
 import {createTestAccount, loginAccount, setUserACLs} from '@app/api/auth/tests/AuthTestUtils';
 import {createApplicationID, createUserID, type UserID} from '@app/api/BrandedTypes';
 import {getConfig} from '@app/api/Config';
-import {createApiContext} from '@app/api/CreateApiContext';
 import {fetchMany} from '@app/api/database/CassandraQueryExecution';
 import type {AuthSessionRow} from '@app/api/database/types/AuthTypes';
 import {decisionBody} from '@app/api/enforcement/tests/EnforcementTestUtils';
 import {getGatewayService} from '@app/api/middleware/ServiceRegistry';
-import {
-	getKVAccountDeletionQueue,
-	getUserActivityBuffer,
-	getUserRepository,
-} from '@app/api/middleware/ServiceSingletons';
+import {getUserActivityBuffer, getUserRepository} from '@app/api/middleware/ServiceSingletons';
 import {OAuth2TokenRepository} from '@app/api/oauth/repositories/OAuth2TokenRepository';
 import {AuthSessions} from '@app/api/Tables';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
-import {createRecordingSmtpServer} from '@app/api/test/RecordingSmtpServer';
 import {HTTP_STATUS} from '@app/api/test/TestConstants';
 import {createBuilder} from '@app/api/test/TestRequestBuilder';
 import {AuthSessionRepository} from '@app/api/user/repositories/auth/AuthSessionRepository';
 import {UserFlags} from '@osaca/constants/src/UserConstants';
 import {MS_PER_DAY, MS_PER_HOUR, MS_PER_MINUTE} from '@osaca/date_utils/src/DateConstants';
-import {EmailService} from '@pkgs/email/src/EmailService';
-import {SmtpEmailProvider} from '@pkgs/email/src/SmtpEmailProvider';
 import {afterEach, beforeEach, describe, expect, test} from 'vitest';
 
 const SESSION_HASH_BYTES = 32;
 const EXTRA_SESSION_COUNT = 250;
 const OAUTH_TOKEN_COUNT = 40;
-const DELETION_GRACE_HOURS = 24;
-const DELETION_QUEUE_LIMIT = 10;
 
 const FETCH_SESSION_ROW_CQL = AuthSessions.selectCql({where: AuthSessions.where.eq('session_id_hash')});
 
@@ -264,82 +254,5 @@ describe('Account closure and credentials', () => {
 		expect(await new AuthSessionRepository().listAuthSessions(userId)).toHaveLength(0);
 		expect(await tokens.getAccessToken(`access-0-${target.userId}`)).toBeNull();
 		expect(await tokens.listRefreshTokensForUser(userId)).toHaveLength(0);
-	});
-
-	test('self deletion revokes sessions before a refused confirmation email completes', async () => {
-		getConfig().deletionGracePeriodHours = DELETION_GRACE_HOURS;
-		const account = await createTestAccount(harness);
-		const userId = createUserID(BigInt(account.userId));
-		const smtp = await createRecordingSmtpServer({firstDelivery: 'hold-and-reject'});
-		const provider = new SmtpEmailProvider({
-			host: '127.0.0.1',
-			port: smtp.port,
-			username: '',
-			password: '',
-			tlsMode: 'none',
-		});
-		const services = createApiContext().services;
-		const previous = services.email;
-		let deletionRequest: ReturnType<ApiTestHarness['requestJson']> | undefined;
-		smtpCleanup = async () => {
-			smtp.release();
-			try {
-				await deletionRequest;
-			} finally {
-				services.email = previous;
-				try {
-					await provider.close();
-				} finally {
-					await smtp.close();
-				}
-			}
-		};
-		services.email = new EmailService(
-			{
-				enabled: true,
-				fromEmail: 'accounts@example.com',
-				fromName: 'Closure test',
-				appBaseUrl: 'https://app.example.com',
-				apiBaseUrl: 'https://api.example.com',
-				appealsEmail: 'appeals@example.com',
-				privacyEmail: 'privacy@example.com',
-				safetyEmail: null,
-				supportEmail: 'support@example.com',
-				productName: 'Closure test',
-				marketingBaseUrl: 'https://example.com',
-				staticCdnBaseUrl: 'https://static.example.com',
-				legalAddress: null,
-				brandLogo: false,
-			},
-			provider,
-		);
-		const requestedAt = Date.now();
-		deletionRequest = harness.requestJson({
-			path: '/users/@me/delete',
-			method: 'POST',
-			body: {password: account.password},
-			headers: {Authorization: account.token},
-		});
-		await smtp.entered;
-		expect(await new AuthSessionRepository().listAuthSessions(userId)).toEqual([]);
-		expect(smtp.delivered).toEqual([]);
-		expect(smtp.attempts).toHaveLength(1);
-		expect(smtp.attempts[0]?.from).toBe('<accounts@example.com>');
-		expect(smtp.attempts[0]?.to).toBe(`<${account.email}>`);
-		smtp.release();
-		const response = await deletionRequest;
-		const respondedAt = Date.now();
-		expect(response.status).toBe(HTTP_STATUS.NO_CONTENT);
-		expect(smtp.delivered).toEqual([]);
-		expect(await new AuthSessionRepository().listAuthSessions(userId)).toEqual([]);
-		const user = await storedUser(userId);
-		const pendingDeletionAt = user.pendingDeletionAt?.getTime() ?? 0;
-		expect(pendingDeletionAt).toBeGreaterThanOrEqual(requestedAt + DELETION_GRACE_HOURS * MS_PER_HOUR);
-		expect(pendingDeletionAt).toBeLessThanOrEqual(respondedAt + DELETION_GRACE_HOURS * MS_PER_HOUR);
-		expect(user.flags & UserFlags.SELF_DELETED).toBe(UserFlags.SELF_DELETED);
-		expect(await getKVAccountDeletionQueue().getReadyDeletions(pendingDeletionAt, DELETION_QUEUE_LIMIT)).toEqual([
-			{userId, deletionReasonCode: 1},
-		]);
-		await createBuilder(harness, account.token).get('/users/@me').expect(HTTP_STATUS.UNAUTHORIZED).execute();
 	});
 });

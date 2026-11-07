@@ -11,12 +11,7 @@ import {
 	parsePublicOrigin,
 	parseWebOrigin,
 } from '@osaca/config/src/EndpointDerivation';
-import {
-	ACCOUNT_IDENTITY_MODE_NAMES,
-	CACHE_PURGE_ADAPTER_NAMES,
-	type MasterConfig,
-	TAG_STYLE_NAMES,
-} from '@osaca/config/src/MasterConfig';
+import {CACHE_PURGE_ADAPTER_NAMES, type MasterConfig} from '@osaca/config/src/MasterConfig';
 
 let cachedConfig: MasterConfig | null = null;
 
@@ -168,14 +163,6 @@ function defaultConfig(): MasterConfig {
 			},
 		},
 		integrations: {
-			email: {
-				enabled: false,
-				provider: 'none',
-				from_email: '',
-				from_name: '',
-				reply_to_email: '',
-				app_base_url: '',
-			},
 			voice: {
 				enabled: false,
 				api_key: '',
@@ -224,8 +211,6 @@ function defaultConfig(): MasterConfig {
 			setup: {
 				configured: false,
 			},
-			account_identity: null,
-			tag_style: null,
 		},
 		dev: {
 			relax_registration_rate_limits: false,
@@ -291,77 +276,6 @@ function applyProfilePseudonymSecret(config: MasterConfig): void {
 		throw missingSetting('OSACA_PROFILE_PSEUDONYM_SECRET');
 	}
 	config.auth.profile_pseudonym_secret = DEVELOPMENT_PROFILE_PSEUDONYM_SECRET;
-}
-
-function validateSingleEmail(value: string, name: string): void {
-	if (value !== '' && !/^[^\s@<>,;"]+@[^\s@<>,;"]+$/.test(value)) {
-		throw new Error(`${name} must be a single email address such as support@example.com`);
-	}
-}
-
-const EMAIL_DOMAIN_PATTERN =
-	/^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/u;
-const DEFAULT_SMTP_PORT = 587;
-const SMTP_HEADER_NAME_PATTERN = /^[\x21-\x39\x3b-\x7e]+$/u;
-const SMTP_HEADER_VALUE_PATTERN = /^[\x20-\x7e\t]*$/u;
-const SMTP_HEADER_MAX_LINE_LENGTH = 998;
-const CORE_SMTP_HEADER_NAMES = new Set([
-	'from',
-	'to',
-	'cc',
-	'bcc',
-	'subject',
-	'reply-to',
-	'message-id',
-	'date',
-	'content-type',
-	'mime-version',
-]);
-
-function validateSmtpHeaders(headers: unknown, envName: string): void {
-	if (headers === undefined) return;
-	if (!isConfigObject(headers)) throw new Error(`${envName} must be a JSON object of header names to strings`);
-	for (const [name, value] of Object.entries(headers)) {
-		if (!SMTP_HEADER_NAME_PATTERN.test(name)) {
-			throw new Error(`${envName} header name ${JSON.stringify(name)} is not a valid header field name`);
-		}
-		if (CORE_SMTP_HEADER_NAMES.has(name.toLowerCase())) {
-			throw new Error(`${envName} must not set the ${name} header`);
-		}
-		if (typeof value !== 'string') throw new Error(`${envName} value of ${name} must be a string`);
-		if (!SMTP_HEADER_VALUE_PATTERN.test(value)) {
-			throw new Error(`${envName} value of ${name} must be printable ASCII without line breaks`);
-		}
-		if (name.length + 2 + value.length > SMTP_HEADER_MAX_LINE_LENGTH) {
-			throw new Error(`${envName} header ${name} must fit on one ${SMTP_HEADER_MAX_LINE_LENGTH} character line`);
-		}
-	}
-}
-
-function normalizeEmailFallbackConfig(config: MasterConfig): void {
-	const email = config.integrations.email;
-	if (!email.fallback) return;
-	const {domains, smtp}: Partial<NonNullable<typeof email.fallback>> = email.fallback;
-	const missing = (envName: string) => new Error(`${envName} is required when an email fallback provider is set`);
-	if (!domains?.length) throw missing('OSACA_EMAIL_FALLBACK_DOMAINS');
-	if (!smtp?.host?.trim()) throw missing('OSACA_EMAIL_FALLBACK_SMTP_HOST');
-	if (!smtp.username?.trim()) throw missing('OSACA_EMAIL_FALLBACK_SMTP_USERNAME');
-	if (!smtp.password?.trim()) throw missing('OSACA_EMAIL_FALLBACK_SMTP_PASSWORD');
-	const port: unknown = smtp.port ?? DEFAULT_SMTP_PORT;
-	assertIntegerInRange(port, 'OSACA_EMAIL_FALLBACK_SMTP_PORT', 1, 65_535);
-	validateSmtpHeaders(smtp.headers, 'OSACA_EMAIL_FALLBACK_SMTP_HEADERS');
-	const normalizedDomains = domains.map((domain) => domain.trim().toLowerCase());
-	if (normalizedDomains.includes('*') && new Set(normalizedDomains).size > 1) {
-		throw new Error('OSACA_EMAIL_FALLBACK_DOMAINS must be either * or a list of domains');
-	}
-	for (const domain of normalizedDomains) {
-		if (domain !== '*' && !EMAIL_DOMAIN_PATTERN.test(domain)) {
-			throw new Error(
-				`OSACA_EMAIL_FALLBACK_DOMAINS entry ${JSON.stringify(domain)} must be a domain such as gmail.com`,
-			);
-		}
-	}
-	email.fallback = {domains: [...new Set(normalizedDomains)], smtp: {...smtp, port}};
 }
 
 function validateUploadRelaySecret(value: string): void {
@@ -610,26 +524,13 @@ function normalizeConfig(config: MasterConfig): MasterConfig {
 	assertOneOf(config.domain.public_scheme, ['http', 'https'], 'OSACA_PUBLIC_SCHEME');
 	assertOneOf(config.database.backend, ['postgres', 'cassandra'], 'OSACA_DATABASE_BACKEND');
 	assertOneOf(config.internal.kv_mode, ['standalone', 'cluster'], 'OSACA_KV_MODE');
-	assertOneOf(config.integrations.email.provider, ['smtp', 'none'], 'OSACA_EMAIL_PROVIDER');
-	if (config.integrations.email.delivery !== undefined) {
-		assertOneOf(config.integrations.email.delivery, ['off', 'smtp'], 'OSACA_EMAIL_DELIVERY');
-	}
 	assertOneOf(config.integrations.search.engine, ['elasticsearch', 'meilisearch', 'none'], 'OSACA_SEARCH_ENGINE');
 	assertOneOf(config.integrations.cache_purge.adapter, CACHE_PURGE_ADAPTER_NAMES, 'OSACA_CACHE_PURGE_ADAPTER');
-	if (config.instance.tag_style !== null) {
-		assertOneOf(config.instance.tag_style, TAG_STYLE_NAMES, 'OSACA_TAG_STYLE');
-	}
-	if (config.instance.account_identity !== null) {
-		assertOneOf(config.instance.account_identity, ACCOUNT_IDENTITY_MODE_NAMES, 'OSACA_ACCOUNT_IDENTITY');
-	}
 	validatePostgresConfig(config);
 	validateApiWorkerConfig(config);
 	validateStorageChangeFeedConfig(config);
 	validateReportRetentionConfig(config);
 	validateCachePurgeConfig(config);
-	validateSingleEmail(config.integrations.email.reply_to_email, 'OSACA_EMAIL_REPLY_TO_EMAIL');
-	validateSingleEmail(config.integrations.email.support_alert_email ?? '', 'OSACA_EMAIL_SUPPORT_ALERT_EMAIL');
-	normalizeEmailFallbackConfig(config);
 	normalizeAppOriginAliases(config);
 	assertIntegerInRange(config.services.api.max_inflight_requests, 'OSACA_API_MAX_INFLIGHT_REQUESTS', 1, 100_000);
 	assertIntegerInRange(
@@ -700,7 +601,7 @@ function applyPublicPort(config: MasterConfig, endpoints: DerivedEndpoints): Mas
 	}
 	const {bluesky, passkeys} = config.auth;
 	const {branding} = config.instance;
-	const {email, voice} = config.integrations;
+	const {voice} = config.integrations;
 	return {
 		...config,
 		domain: {
@@ -735,7 +636,6 @@ function applyPublicPort(config: MasterConfig, endpoints: DerivedEndpoints): Mas
 		},
 		integrations: {
 			...config.integrations,
-			email: {...email, app_base_url: normalize(email.app_base_url)},
 			voice: {...voice, url: normalize(voice.url)},
 		},
 		instance: {

@@ -10,7 +10,7 @@ import {awaitAll} from '@app/api/utils/ConcurrencyUtils';
 export type ContactChangeReason = 'user_requested' | 'admin_action';
 
 interface ContactChange {
-	field: 'email' | 'osaca_tag';
+	field: 'osaca_tag';
 	oldValue: string | null;
 	newValue: string | null;
 }
@@ -37,11 +37,6 @@ export class UserContactChangeLogService {
 	async recordDiff(params: RecordDiffParams): Promise<void> {
 		const {oldUser, newUser, reason, actorUserId, eventAt} = params;
 		const changes: Array<ContactChange> = [
-			{
-				field: 'email',
-				oldValue: oldUser?.email?.toLowerCase() ?? null,
-				newValue: newUser.email?.toLowerCase() ?? null,
-			},
 			{
 				field: 'osaca_tag',
 				oldValue: this.buildOsacaTag(oldUser),

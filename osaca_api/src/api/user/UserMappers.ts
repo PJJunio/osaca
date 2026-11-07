@@ -143,8 +143,6 @@ export function mapUserToPrivateResponse(user: User): UserPrivateResponse {
 		is_staff: isStaff,
 		acls: Array.from(user.acls),
 		traits,
-		email: user.email ?? null,
-		email_bounced: user.emailBounced,
 		has_verified_phone: false,
 		bio: user.bio,
 		pronouns: user.pronouns,
@@ -155,7 +153,6 @@ export function mapUserToPrivateResponse(user: User): UserPrivateResponse {
 		banner_color: user.bannerColor,
 		mfa_enabled: authenticatorTypes.length > 0,
 		authenticator_types: authenticatorTypes,
-		verified: user.emailVerified,
 		hidden_profile_badges: [...user.hiddenProfileBadges].sort(),
 		password_last_changed_at: user.passwordLastChangedAt?.toISOString() ?? null,
 		last_voice_activity_sharing_change_at: user.lastVoiceActivitySharingChangeAt?.toISOString() ?? null,
@@ -206,21 +203,13 @@ export function mapUserToProfileResponse(
 	};
 }
 
-export function mapUserToOAuthResponse(
-	user: User,
-	opts?: {
-		includeEmail?: boolean;
-	},
-) {
-	const includeEmail = opts?.includeEmail && !!user.email;
+export function mapUserToOAuthResponse(user: User) {
 	return {
 		sub: user.id.toString(),
 		id: user.id.toString(),
 		username: user.username,
 		discriminator: user.discriminator.toString().padStart(4, '0'),
 		avatar: stripAvatarForUser(user),
-		verified: includeEmail ? (user.emailVerified ?? false) : undefined,
-		email: includeEmail ? (user.email ?? null) : null,
 		flags: mapUserFlagsToPublicBitfield(user),
 		global_name: user.globalName ?? null,
 		bot: user.isBot,

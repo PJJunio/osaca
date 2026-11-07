@@ -58,6 +58,8 @@ import {formatUserSettingsPath} from '@app/features/user/components/settings_uti
 import PrivacyPreferences from '@app/features/user/state/PrivacyPreferences';
 import {accountGateReason} from '@app/features/user/utils/AccountGatePresentation';
 import {Queue} from '@app/lib/list/ListQueue';
+import type {I18n} from '@lingui/core';
+import {msg} from '@lingui/core/macro';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import type {
 	AllowedMentions,
@@ -65,22 +67,12 @@ import type {
 	MessageReference,
 	MessageStickerItem,
 } from '@osaca/schema/src/domains/message/MessageResponseSchemas';
-import type {I18n} from '@lingui/core';
-import {msg} from '@lingui/core/macro';
 import {reaction} from 'mobx';
 
 const YOUR_MESSAGE_COULD_NOT_BE_DELIVERED_THIS_IS_DESCRIPTOR = msg({
 	message:
 		"Your message could not be delivered. This is usually because you don't share a community with the recipient or the recipient is only accepting direct messages from friends. You may also need to adjust your own direct message privacy settings in {directMessagePrivacySettingsPath}.",
 	comment: 'Label in the message queue state.',
-});
-const YOUR_MESSAGE_COULD_NOT_BE_DELIVERED_YOU_NEED_DESCRIPTOR = msg({
-	message: 'Your message could not be delivered. You need to claim your account to send direct messages.',
-	comment: 'Description text in the message queue state.',
-});
-const YOUR_MESSAGE_COULD_NOT_BE_DELIVERED_YOU_NEED_2_DESCRIPTOR = msg({
-	message: 'Your message could not be delivered. You need to claim your account to send messages.',
-	comment: 'Description text in the message queue state.',
 });
 const YOUR_MESSAGE_COULD_NOT_BE_DELIVERED_BECAUSE_IT_DESCRIPTOR = msg({
 	message:
@@ -223,17 +215,6 @@ function isFileTooLargeError(error: HttpError): boolean {
 
 function isDMRestrictedError(error: HttpError): boolean {
 	return getApiErrorBody(error)?.code === APIErrorCodes.CANNOT_SEND_MESSAGES_TO_USER;
-}
-
-function getUnclaimedAccountErrorCode(error: HttpError): string | undefined {
-	const code = getApiErrorBody(error)?.code;
-	if (
-		code === APIErrorCodes.UNCLAIMED_ACCOUNT_CANNOT_SEND_MESSAGES ||
-		code === APIErrorCodes.UNCLAIMED_ACCOUNT_CANNOT_SEND_DIRECT_MESSAGES
-	) {
-		return code;
-	}
-	return undefined;
 }
 
 function isPresignedUploadEndpointUnreachable(error: unknown): boolean {
@@ -1068,17 +1049,6 @@ class MessageQueue extends Queue<MessageQueuePayload, RestResponse<Message> | un
 		if (tierBlock !== null && promptForAccountTier(error)) {
 			const tierMessage = accountGateReason(i18n, tierBlock);
 			MessageCommands.createOptimistic(channelId, createSystemMessage(channelId, tierMessage).toJSON());
-			return;
-		}
-		const unclaimedErrorCode = getUnclaimedAccountErrorCode(error);
-		if (unclaimedErrorCode) {
-			const systemMessage = createSystemMessage(
-				channelId,
-				unclaimedErrorCode === APIErrorCodes.UNCLAIMED_ACCOUNT_CANNOT_SEND_DIRECT_MESSAGES
-					? i18n._(YOUR_MESSAGE_COULD_NOT_BE_DELIVERED_YOU_NEED_DESCRIPTOR)
-					: i18n._(YOUR_MESSAGE_COULD_NOT_BE_DELIVERED_YOU_NEED_2_DESCRIPTOR),
-			);
-			MessageCommands.createOptimistic(channelId, systemMessage.toJSON());
 			return;
 		}
 		const conversationLimit = getApiErrorBody(error);

@@ -30,17 +30,17 @@ describe('per-IP sign-in limit', () => {
 		await harness?.shutdown();
 	});
 
-	const signIn = (email: string, password: string) =>
+	const signIn = (login: string, password: string) =>
 		createBuilderWithoutAuth(harness)
 			.post('/auth/login')
 			.header('x-forwarded-for', CLIENT_IP)
-			.body({email, password})
+			.body({login, password})
 			.expect(200);
 
 	it('does not spend the IP budget on correct passwords', async () => {
 		for (let i = 0; i < 3; i++) {
 			const account = await createTestAccount(harness);
-			await signIn(account.email, account.password).execute();
+			await signIn(account.username, account.password).execute();
 		}
 		expect((await getRateLimitService().peekLimit(IP_LIMIT)).remaining).toBe(IP_LIMIT.maxAttempts);
 	});
@@ -50,7 +50,7 @@ describe('per-IP sign-in limit', () => {
 		await createBuilderWithoutAuth(harness)
 			.post('/auth/login')
 			.header('x-forwarded-for', CLIENT_IP)
-			.body({email: account.email, password: 'WrongPassword123!'})
+			.body({login: account.username, password: 'WrongPassword123!'})
 			.expect(400)
 			.execute();
 		expect((await getRateLimitService().peekLimit(IP_LIMIT)).remaining).toBe(IP_LIMIT.maxAttempts - 1);

@@ -157,10 +157,6 @@ export const CREATE_DESCRIPTOR = msg({
 	message: 'Create',
 	comment: 'Generic primary action label that creates the item described by the current dialog or form.',
 });
-export const ADD_EMAIL_DESCRIPTOR = msg({
-	message: 'Add email',
-	comment: 'Button that opens or submits the flow to add an email to an account made without one.',
-});
 export const CLAIM_ACCOUNT_DESCRIPTOR = msg({
 	message: 'Claim account',
 	comment: 'Generic account action label that opens or submits the flow to secure an unclaimed account.',
@@ -172,10 +168,6 @@ export const CREATE_COMMUNITY_DESCRIPTOR = msg({
 export const VERIFY_DESCRIPTOR = msg({
 	message: 'Verify',
 	comment: 'Generic primary action label that confirms a code, identity check, or account verification step.',
-});
-export const VERIFY_EMAIL_DESCRIPTOR = msg({
-	message: 'Confirm email',
-	comment: 'Shared action or page-title label for starting or completing email address confirmation.',
 });
 export const ENABLE_TWO_FACTOR_AUTH_DESCRIPTOR = msg({
 	message: 'Enable two-factor auth',
@@ -215,17 +207,9 @@ export const ONLINE_DESCRIPTOR = msg({
 	message: 'Online',
 	comment: 'Generic presence-status label indicating the user is connected and available.',
 });
-export const EMAIL_DESCRIPTOR = msg({
-	message: 'Email',
-	comment: 'Generic form-field label for an email address.',
-});
 export const PASSWORD_DESCRIPTOR = msg({
 	message: 'Password',
 	comment: 'Generic form-field label for a password.',
-});
-export const VERIFICATION_CODE_DESCRIPTOR = msg({
-	message: 'Verification code',
-	comment: 'Generic form-field label for a one-time verification code.',
 });
 export const DIRECT_MESSAGES_DESCRIPTOR = msg({
 	message: 'Direct messages',

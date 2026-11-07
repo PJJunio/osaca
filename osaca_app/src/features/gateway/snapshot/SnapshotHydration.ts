@@ -146,7 +146,7 @@ function parseSnapshot(entries: StateSnapshotEntries, selfUserId: string): Parse
 	if (selfUser == null || selfUser.id !== selfUserId) {
 		throw new Error(`Snapshot is missing private self user ${selfUserId}`);
 	}
-	if (!('email' in selfUser)) {
+	if (!('acls' in selfUser)) {
 		throw new Error(`Snapshot self user ${selfUserId} is not a private user record`);
 	}
 	const accountMetadata = parseSnapshotSingleton(entries, 'account_metadata');

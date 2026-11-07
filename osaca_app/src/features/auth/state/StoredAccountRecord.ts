@@ -97,9 +97,6 @@ function readUserData(value: unknown): UserData | undefined {
 	if (Object.hasOwn(source, 'globalName')) {
 		userData.globalName = readOptionalNullableString(source, 'globalName', 'Stored account global name');
 	}
-	if (Object.hasOwn(source, 'email')) {
-		userData.email = readOptionalNullableString(source, 'email', 'Stored account email');
-	}
 	if (Object.hasOwn(source, 'avatar')) {
 		userData.avatar = readOptionalNullableString(source, 'avatar', 'Stored account avatar');
 	}

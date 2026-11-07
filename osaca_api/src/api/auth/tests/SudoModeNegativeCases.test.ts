@@ -186,7 +186,7 @@ describe('Sudo mode negative cases', () => {
 				})
 				.expect(HTTP_STATUS.NO_CONTENT)
 				.execute();
-			const login = await loginUser(harness, {email: account.email, password: account.password});
+			const login = await loginUser(harness, {login: account.username, password: account.password});
 			if ('mfa' in login && login.mfa) {
 				throw new Error('Expected non-MFA login');
 			}

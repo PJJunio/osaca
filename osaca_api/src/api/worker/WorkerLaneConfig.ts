@@ -72,7 +72,6 @@ const LANE_CONFIG = {
 			'expireAttachments',
 			'reconcileAttachmentDecay',
 			'expireReportSnapshots',
-			'clearAuthenticatedReporterEmails',
 			'expireStaleJobs',
 			'indexChannelMessages',
 			'indexGuildMembers',

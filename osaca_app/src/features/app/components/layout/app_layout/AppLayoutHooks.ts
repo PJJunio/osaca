@@ -30,7 +30,6 @@ import {hasUnavailableElectronNativeContext, isDesktop, isNativeWindows} from '@
 import {isStandalonePwa} from '@app/features/ui/utils/PwaUtils';
 import StatusPage from '@app/features/user/state/StatusPage';
 import Users from '@app/features/user/state/Users';
-import {needsEmailConfirmation} from '@app/features/user/utils/AccountGates';
 import MediaEngine, {useVoiceEngineV2Model} from '@app/features/voice/engine/MediaEngineFacade';
 import {selectVoiceEngineV2AppConnectionWithFallback} from '@app/features/voice/engine/v2/VoiceEngineV2AppSelectors';
 import CallState from '@app/features/voice/state/CallState';
@@ -243,14 +242,6 @@ export const useNagbarConditions = (): NagbarConditions => {
 				!isUnclaimedNagbarSnoozed(user.id),
 		);
 	}
-	let userNeedsVerification: boolean;
-	if (nagbarState.forceHideEmailVerification) {
-		userNeedsVerification = false;
-	} else if (nagbarState.forceEmailVerification) {
-		userNeedsVerification = true;
-	} else {
-		userNeedsVerification = needsEmailConfirmation(user);
-	}
 	let canShowAccountLimited: boolean;
 	if (nagbarState.forceHideAccountLimited) {
 		canShowAccountLimited = false;
@@ -274,7 +265,6 @@ export const useNagbarConditions = (): NagbarConditions => {
 		canShowScheduledMaintenance,
 		canShowInstanceNotice,
 		userIsUnclaimed,
-		userNeedsVerification,
 		canShowAccountLimited,
 		canShowDesktopNotification,
 		canShowDesktopDownload,
@@ -332,12 +322,6 @@ export const useActiveNagbars = (conditions: NagbarConditions): Array<NagbarStat
 				priority: -4,
 				visible: conditions.userIsUnclaimed,
 				dismissible: true,
-			},
-			{
-				type: NagbarType.EMAIL_VERIFICATION,
-				priority: -3,
-				visible: conditions.userNeedsVerification,
-				dismissible: false,
 			},
 			{
 				type: NagbarType.ACCOUNT_LIMITED,

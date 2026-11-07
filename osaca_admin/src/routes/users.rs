@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use crate::{
-    acl,
     api::{
         client::{AdminApiClient, ApiResult, ApiResultExt},
         generated::{snowflake, types::AdminUserMessageShredPreviewRequestEntriesItem},
@@ -33,7 +32,6 @@ const USER_ID_LOOKUP_BATCH: usize = 100;
 #[derive(Deserialize)]
 struct UserListQuery {
     q: Option<String>,
-    email: Option<String>,
     ip: Option<String>,
     ids: Option<String>,
     limit: Option<u32>,
@@ -83,22 +81,13 @@ async fn users_list(
     let config = state.config();
     let params = templates::pages::users_list::UserListParams::from_query(
         query.q,
-        query.email,
         query.ip,
         query.ids,
         query.limit,
         query.page,
     );
     let is_results_fragment = htmx::targets(&headers, "users-results");
-    let admin_acls = auth.0.acls();
     let client = AdminApiClient::new(state.http_client(), config, &auth.0.session);
-    let username_sign_in = state.account_identity(&client).await.is_username();
-    let can_view_email = acl::has_permission(admin_acls, acl::USER_VIEW_EMAIL) && !username_sign_in;
-    let email = match (username_sign_in, can_view_email) {
-        (true, _) => templates::pages::users_list::UserEmailAccess::Hidden,
-        (false, true) => templates::pages::users_list::UserEmailAccess::SearchAndView,
-        (false, false) => templates::pages::users_list::UserEmailAccess::SearchOnly,
-    };
     let results = if params.has_id_lookup() {
         lookup_users_in_batches(&client, &params.requested_ids)
             .await
@@ -109,7 +98,6 @@ async fn users_list(
         client
             .search_users(
                 params.search_query(),
-                params.email_query(),
                 params.ip_query(),
                 params.limit,
                 offset,
@@ -130,7 +118,6 @@ async fn users_list(
                 has_more: result.1,
                 total: result.2,
             }),
-        email,
         output: if is_results_fragment {
             templates::pages::users_list::UserListOutput::Results
         } else {
@@ -171,7 +158,6 @@ async fn user_detail(
     let tq = to_tab_query(&query);
     let admin_acls = auth.0.acls();
     let tab_body = if user.is_some() {
-        let account_identity = state.account_identity_settings(&client).await;
         user_tabs::render(
             &client,
             config,
@@ -180,7 +166,6 @@ async fn user_detail(
             active_tab,
             &tq,
             admin_acls,
-            account_identity,
         )
         .await
     } else {
@@ -316,15 +301,10 @@ async fn create_password_reset_link(
         return Html(password_reset_link_result(Some(&link)).into_string()).into_response();
     }
     let admin_acls = auth.acls();
-    let (user, account_identity) = tokio::join!(
-        async {
-            client
-                .get_user_by_id(user_id)
-                .await
-                .log_error("load user after creating password reset link")
-        },
-        state.account_identity_settings(client)
-    );
+    let user = client
+        .get_user_by_id(user_id)
+        .await
+        .log_error("load user after creating password reset link");
     let tab_body = user_tabs::render_account(
         client,
         config,
@@ -332,8 +312,6 @@ async fn create_password_reset_link(
         user_id,
         &templates::pages::user_detail_tabs::account::AccountTabOptions {
             admin_acls,
-            account_identity: account_identity.mode,
-            reset_link_available: account_identity.admin_reset_links_available(),
             password_reset_link: Some(&link),
         },
     )
@@ -391,7 +369,6 @@ async fn user_tab(
         badge_picks: Vec::new(),
     };
     let admin_acls = auth.0.acls();
-    let account_identity = state.account_identity_settings(&client).await;
     let markup = match user {
         Some(ref u) => user_tabs::render(
             &client,
@@ -401,7 +378,6 @@ async fn user_tab(
             &tab,
             &tq,
             admin_acls,
-            account_identity,
         )
         .await
         .unwrap_or_else(|| templates::pages::user_detail::simple_tab_content(config, u, &tab)),
@@ -423,9 +399,8 @@ async fn user_peek(
         .get_user_by_id(&user_id)
         .await
         .log_error("load user peek");
-    let admin_acls = auth.0.acls();
     let markup = match user {
-        Some(ref u) => templates::pages::user_peek::user_peek_fragment(config, u, admin_acls),
+        Some(ref u) => templates::pages::user_peek::user_peek_fragment(config, u),
         None => maud::html! {
             div class="p-4 text-red-600 text-sm" { "User not found." }
         },

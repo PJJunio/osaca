@@ -15,7 +15,6 @@ export interface UserUpdatePayload {
 	username: string;
 	discriminator: string;
 	global_name?: string | null;
-	email?: string | null;
 	avatar: string | null;
 	flags: number;
 	is_staff?: boolean;

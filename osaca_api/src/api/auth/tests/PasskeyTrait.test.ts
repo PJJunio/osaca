@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {randomBytes} from 'node:crypto';
-import {createAuthHarness, createTestAccount, createUniqueEmail} from '@app/api/auth/tests/AuthTestUtils';
+import {createAuthHarness, createTestAccount} from '@app/api/auth/tests/AuthTestUtils';
 import {
 	createSudoWebAuthnBody,
 	createWebAuthnDevice,
@@ -17,8 +17,6 @@ import {createBuilder, createBuilderWithoutAuth} from '@app/api/test/TestRequest
 import {hasWayBackIn} from '@app/api/user/AccountTier';
 import {UserTraits} from '@app/api/user/UserTraits';
 import {backfillPasskeyTraits} from '@app/api/worker/tasks/BackfillPasskeyTrait';
-import {ClaimAccountNextSteps} from '@osaca/constants/src/AccountConfigConstants';
-import {AccountIdentityModes} from '@osaca/constants/src/AccountIdentityConstants';
 import {AccountTiers} from '@osaca/constants/src/AccountTierConstants';
 import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it} from 'vitest';
 
@@ -79,7 +77,6 @@ describe('Passkey trait', () => {
 
 	async function createUsernameModeUnclaimed(): Promise<Registered> {
 		getConfig().instance.selfHosted = true;
-		await getInstanceConfigRepository().setAccountIdentityMode(AccountIdentityModes.USERNAME, 'setup');
 		await getInstanceConfigRepository().setAppPublicConfig({setup: {configured: true}});
 		await getInstanceConfigRepository().updateAuthConfig({instant_accounts: {enabled: true}});
 		return await createBuilderWithoutAuth<Registered>(harness)
@@ -143,23 +140,5 @@ describe('Passkey trait', () => {
 		expect((await loadUser(holder.userId)).traits.has(UserTraits.PASSKEY)).toBe(true);
 		expect((await loadUser(stale.userId)).traits.has(UserTraits.PASSKEY)).toBe(false);
 		expect(await backfillPasskeyTraits(createApiContext())).toMatchObject({set: 0, cleared: 0, failed: 0});
-	});
-
-	it('lets an email instance without delivery claim with an existing passkey and no password', async () => {
-		await getInstanceConfigRepository().setInstanceIntegrationsConfig({email: {enabled: false}});
-		await getInstanceConfigRepository().isEmailEnabled();
-		const account = await createBuilderWithoutAuth<Registered>(harness)
-			.post('/auth/register')
-			.body({username: 'keyholder', consent: true})
-			.execute();
-		await storeCredentialWithoutTrait(createUserID(BigInt(account.user_id)));
-		await backfillPasskeyTraits(createApiContext());
-		expect((await me(account.token)).account_tier).toBe(AccountTiers.UNCLAIMED);
-		const claimed = await createBuilder<{next_step: string; user: Me}>(harness, account.token)
-			.post('/users/@me/claim')
-			.body({email: createUniqueEmail('keyholder')})
-			.execute();
-		expect(claimed.next_step).toBe(ClaimAccountNextSteps.NONE);
-		expect(claimed.user.account_tier).toBe(AccountTiers.VERIFIED);
 	});
 });

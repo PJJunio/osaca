@@ -2,7 +2,6 @@
 
 import type {RuntimeConfigSnapshot} from '@app/features/app/state/InstanceSnapshotStore';
 import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
-import {usesUsernameSignIn} from '@app/features/app/utils/AccountIdentityFeatures';
 import * as AuthenticationCommands from '@app/features/auth/commands/AuthenticationCommands';
 import {SIGN_IN_AGAIN_AS_DESCRIPTOR} from '@app/features/auth/components/accounts/AccountList';
 import {AccountSwitcherAuthShell} from '@app/features/auth/components/accounts/account_switcher_modal/AccountSwitcherAuthShell';
@@ -15,11 +14,9 @@ import {
 } from '@app/features/auth/components/accounts/account_switcher_modal/AccountSwitcherAuthTypes';
 import {AccountSwitcherLoginStep} from '@app/features/auth/components/accounts/account_switcher_modal/AccountSwitcherLoginStep';
 import {AccountSwitcherRegisterStep} from '@app/features/auth/components/accounts/account_switcher_modal/AccountSwitcherRegisterStep';
-import forgotStyles from '@app/features/auth/components/pages/ForgotPasswordPage.module.css';
 import {RecoverAccountForm} from '@app/features/auth/components/pages/RecoverAccountPage';
 import {AccountRestrictionScreen} from '@app/features/auth/flow/AccountRestrictionScreen';
 import {shouldRenderInstanceStep} from '@app/features/auth/flow/auth_login_core/AuthLoginInstanceStep';
-import {ForgotPasswordForm} from '@app/features/auth/flow/ForgotPasswordForm';
 import MFAScreen from '@app/features/auth/flow/MfaScreen';
 import Authentication from '@app/features/auth/state/Authentication';
 import type {LoginSuccessPayload} from '@app/features/auth/state/AuthFlow';
@@ -34,7 +31,6 @@ import {
 	CANCEL_DESCRIPTOR,
 	SIGN_IN_DESCRIPTOR,
 } from '@app/features/i18n/utils/CommonMessageDescriptors';
-import {flxElementClassName} from '@app/lib/react';
 import type {I18n} from '@lingui/core';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
@@ -102,27 +98,6 @@ function requireSelectedRuntimeSnapshot(runtimeTarget: AuthRuntimeTarget): Runti
 		throw new Error('Account-switcher authentication requires its selected instance runtime');
 	}
 	return runtimeSnapshot;
-}
-
-function renderForgotPasswordContainer(children: React.ReactNode, isSent: boolean): React.ReactElement {
-	if (isSent) {
-		return (
-			<flx-auth-account-switcher-forgot-password-confirmation
-				className={flxElementClassName(forgotStyles.container)}
-				data-flx="auth.accounts.account-switcher-modal.account-switcher-forgot-password-step.confirmation"
-			>
-				{children}
-			</flx-auth-account-switcher-forgot-password-confirmation>
-		);
-	}
-	return (
-		<flx-auth-account-switcher-forgot-password
-			className={flxElementClassName()}
-			data-flx="auth.accounts.account-switcher-modal.account-switcher-forgot-password-step.root"
-		>
-			{children}
-		</flx-auth-account-switcher-forgot-password>
-	);
 }
 
 export const AccountSwitcherAuthFlow = observer(function AccountSwitcherAuthFlow({
@@ -289,27 +264,15 @@ export const AccountSwitcherAuthFlow = observer(function AccountSwitcherAuthFlow
 						data-flx="auth.accounts.account-switcher-modal.account-switcher-auth-flow.register-step"
 					/>
 				);
-			case AccountSwitcherAuthStep.FORGOT: {
-				const runtimeSnapshot = requireSelectedRuntimeSnapshot(authRuntimeTarget);
-				if (usesUsernameSignIn(runtimeSnapshot.features)) {
-					return (
-						<RecoverAccountForm
-							runtimeSnapshot={runtimeSnapshot}
-							onRecovered={handleAccountRecovered}
-							onStepTitleChange={stepTitleChange}
-							data-flx="auth.accounts.account-switcher-modal.account-switcher-auth-flow.recover-account-step"
-						/>
-					);
-				}
+			case AccountSwitcherAuthStep.FORGOT:
 				return (
-					<ForgotPasswordForm
-						runtimeSnapshot={runtimeSnapshot}
-						renderContainer={renderForgotPasswordContainer}
+					<RecoverAccountForm
+						runtimeSnapshot={requireSelectedRuntimeSnapshot(authRuntimeTarget)}
+						onRecovered={handleAccountRecovered}
 						onStepTitleChange={stepTitleChange}
-						data-flx="auth.accounts.account-switcher-modal.account-switcher-auth-flow.forgot-password-step"
+						data-flx="auth.accounts.account-switcher-modal.account-switcher-auth-flow.recover-account-step"
 					/>
 				);
-			}
 			case AccountSwitcherAuthStep.LOGIN:
 				return (
 					<AccountSwitcherLoginStep

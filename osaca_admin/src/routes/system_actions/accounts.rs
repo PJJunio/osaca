@@ -4,10 +4,8 @@ use super::{parse_choice, parse_form_number};
 use crate::{
     api::types::{
         AccountsConfigUpdateRequest, AuthConfigUpdateRequest, CLEANUP_INACTIVE_DAYS_RANGE,
-        INACTIVITY_WARNING_LEAD_DAYS_RANGE,
-        INSTANT_ACCOUNTS_ESCALATION_RANGE, InactivityDeletionUpdateRequest,
-        InstanceConfigUpdateRequest, InstantAccountsConfigUpdateRequest,
-        UnclaimedAccountCleanupUpdateRequest,
+        INSTANT_ACCOUNTS_ESCALATION_RANGE, InstanceConfigUpdateRequest,
+        InstantAccountsConfigUpdateRequest, UnclaimedAccountCleanupUpdateRequest,
     },
     utils::forms::MultiValueForm,
 };
@@ -46,28 +44,8 @@ pub(super) fn build_accounts_update(
             "After the last sign-out",
         )?,
     };
-    let inactivity = InactivityDeletionUpdateRequest {
-        mode: parse_choice(
-            form,
-            "accounts_inactivity_deletion_mode",
-            "Inactive accounts",
-        )?,
-        inactive_days: parse_form_days(
-            form,
-            "accounts_inactivity_deletion_inactive_days",
-            "Days without use",
-            &CLEANUP_INACTIVE_DAYS_RANGE,
-        )?,
-        warning_lead_days: parse_form_days(
-            form,
-            "accounts_inactivity_deletion_warning_lead_days",
-            "Days between warning and deletion",
-            &INACTIVITY_WARNING_LEAD_DAYS_RANGE,
-        )?,
-    };
     Ok(InstanceConfigUpdateRequest {
         auth: Some(AuthConfigUpdateRequest {
-            identifier_first: parse_choice(form, "auth_identifier_first", "Start sign-in")?,
             instant_accounts: Some(InstantAccountsConfigUpdateRequest {
                 enabled: Some(form.bool_value("auth_instant_accounts_enabled")),
                 pow_escalation_per_hour: parse_form_number(
@@ -81,20 +59,11 @@ pub(super) fn build_accounts_update(
         }),
         accounts: Some(AccountsConfigUpdateRequest {
             interaction_tier: parse_choice(form, "accounts_interaction_tier", "Account limits")?,
-            verification_basis: parse_choice(
-                form,
-                "accounts_verification_basis",
-                "What finishes setting up an account",
-            )?,
             guild_join_gate: parse_choice(form, "accounts_guild_join_gate", "Joining a community")?,
             unclaimed_account_cleanup: (unclaimed.mode.is_some()
                 || unclaimed.inactive_days.is_some()
                 || unclaimed.on_last_session_end.is_some())
             .then_some(unclaimed),
-            inactivity_deletion: (inactivity.mode.is_some()
-                || inactivity.inactive_days.is_some()
-                || inactivity.warning_lead_days.is_some())
-            .then_some(inactivity),
             ..Default::default()
         }),
         ..Default::default()

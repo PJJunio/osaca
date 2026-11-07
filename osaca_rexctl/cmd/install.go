@@ -281,12 +281,6 @@ func (in *installer) missingFlags() error {
 	terminal := f.SetupWhere == "terminal" || (f.SetupWhere == "" && f.Setup.passed(in.c))
 	if terminal && !f.NoStart {
 		s := f.Setup
-		if s.SignIn == "" {
-			missing = append(missing, "--sign-in email or --sign-in username")
-		}
-		if s.SignIn == string(setup.SignInEmail) && s.Email == "" {
-			missing = append(missing, "--admin-email")
-		}
 		if s.Username == "" {
 			missing = append(missing, "--admin-username")
 		}
@@ -295,9 +289,6 @@ func (in *installer) missingFlags() error {
 		}
 		if s.Name == "" {
 			missing = append(missing, "--name")
-		}
-		if s.SignIn == string(setup.SignInEmail) && !s.SkipEmail && s.SMTPHost == "" {
-			missing = append(missing, "--smtp-host or --skip-email")
 		}
 	}
 	if len(missing) == 0 {
@@ -340,9 +331,6 @@ func validateInstallFlags(f *installFlags) error {
 	}
 	if !projectPattern.MatchString(f.Project) {
 		return ui.Usage("Pass --project with lowercase letters, numbers, dashes or underscores.")
-	}
-	if err := validTLS(f.Setup.SMTPTLS, "smtp-tls"); err != nil {
-		return err
 	}
 	if f.TakeOver && f.DeleteOld {
 		return ui.Usage("Pass --take-over or --delete-old-data, not both.")
@@ -953,7 +941,7 @@ func (in *installer) collectAnswers(domain string) error {
 	if in.f.SetupWhere != "terminal" || in.app.UI.Interactive() || in.f.NoStart {
 		return nil
 	}
-	a, err := askSetup(in.app, in.c, domain, &in.f.Setup)
+	a, err := askSetup(in.app, in.c, &in.f.Setup)
 	if err != nil {
 		return err
 	}

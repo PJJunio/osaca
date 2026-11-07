@@ -50,13 +50,12 @@ These operations need a solved challenge while the check is on.
 | POST | /v1/auth/register | [Register an account](/http-api/authentication/#register-an-account) |
 | POST | /v1/auth/register/handoff | [Start an account for the website](/http-api/authentication/#start-an-account-for-the-website) |
 | POST | /v1/auth/login | [Log in with a password](/http-api/authentication/#log-in-with-a-password) |
-| POST | /v1/auth/forgot | [Request password recovery](/http-api/authentication/#request-password-recovery) |
 | POST | /v1/auth/recover | [Recover an account](/http-api/authentication/#recover-an-account) |
 | POST | /v1/oauth2/applications | [Create application](/http-api/applications/#create-application) |
 | POST | /v1/users/@me/channels | [Create private channel](/http-api/users/private-channels/#create-private-channel) |
 | PUT | /v1/channels/{channel_id}/recipients/{user_id} | [Add group direct message recipient](/http-api/channels/#add-group-direct-message-recipient) |
 
-Create private channel needs a challenge only when the body has `recipients`, which makes a group direct message. [Send an email code](/http-api/authentication/#send-an-email-code) needs one on sign-up. Send an email code, [identify an account](/http-api/authentication/#identify-an-account) and [verify an email code](/http-api/authentication/#verify-an-email-code) also need one after heavy use from one network, for one email address or across the instance.
+Create private channel needs a challenge only when the body has `recipients`, which makes a group direct message.
 
 Some accounts skip the check. Handle a challenge on every gated operation anyway.
 

@@ -26,7 +26,6 @@ interface SudoMfaMethodsResponse {
 	webauthn: boolean;
 	backup_codes: boolean;
 	has_mfa: boolean;
-	email_code?: boolean;
 	password?: boolean;
 }
 
@@ -106,7 +105,7 @@ describe('Sudo mode recovery for passkey two-factor accounts without TOTP', () =
 		const me = await fetchMe(harness, account.token);
 		expect(me.authenticator_types).toEqual([]);
 		expect(me.mfa_enabled).toBe(false);
-		const login = await loginUser(harness, {email: account.email, password: account.password});
+		const login = await loginUser(harness, {login: account.username, password: account.password});
 		expect('mfa' in login).toBe(false);
 	});
 	it('advertises the backup code option in the sudo methods endpoint and the sudo mode challenge alike', async () => {
@@ -119,7 +118,6 @@ describe('Sudo mode recovery for passkey two-factor accounts without TOTP', () =
 			webauthn: true,
 			backup_codes: true,
 			has_mfa: true,
-			email_code: false,
 			password: false,
 		});
 		const challenge = await createBuilder<SudoModeRequiredResponse>(harness, account.token)
@@ -132,7 +130,6 @@ describe('Sudo mode recovery for passkey two-factor accounts without TOTP', () =
 			totp: methods.totp,
 			webauthn: methods.webauthn,
 			backup_codes: methods.backup_codes,
-			email_code: methods.email_code,
 			password: methods.password,
 		});
 	});
@@ -183,7 +180,6 @@ describe('Sudo mode recovery for passkey two-factor accounts without TOTP', () =
 			webauthn: true,
 			backup_codes: false,
 			has_mfa: true,
-			email_code: false,
 			password: true,
 		});
 		await withTotpReplayProtection(async () => {

@@ -10,21 +10,16 @@ import {
 	AuthLoginMethodPicker,
 } from '@app/features/auth/flow/auth_login_core/AuthLoginMethodPicker';
 import styles from '@app/features/auth/flow/auth_login_core/AuthLoginMethodStep.module.css';
-import type {LoginIdentifierField} from '@app/features/auth/utils/AccountSignInIdentifier';
 import {CHANGE_INSTANCE_DESCRIPTOR} from '@app/features/i18n/utils/CommonMessageDescriptors';
 import {remFromPx} from '@app/features/theme/layout/RemFromPx';
 import {Button, ButtonVariant} from '@app/features/ui/button/Button';
 import {ArrowLeftIcon} from '@app/features/ui/icons/DirectionalIcons';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
-import {BrowserIcon, EnvelopeSimpleIcon, KeyIcon, UserIcon, UserPlusIcon} from '@phosphor-icons/react';
+import {BrowserIcon, KeyIcon, UserIcon, UserPlusIcon} from '@phosphor-icons/react';
 import {clsx} from 'clsx';
 import {cloneElement, type ReactElement, type ReactNode} from 'react';
 
-const SIGN_IN_WITH_EMAIL_DESCRIPTOR = msg({
-	message: 'Sign in with email',
-	comment: 'Button label on the authentication method picker.',
-});
 const SIGN_IN_WITH_USERNAME_DESCRIPTOR = msg({
 	message: 'Sign in with username',
 	comment: 'Button label on the authentication method picker when the instance signs people in with a username.',
@@ -41,7 +36,6 @@ function resolveShowPasskeyAction(showPasskeyOption: boolean, passkeyAvailableFo
 interface AuthLoginMethodStepProps {
 	readonly disabled: boolean;
 	readonly extraTopContent: ReactNode;
-	readonly identifierField: LoginIdentifierField;
 	readonly leadingAction: ReactNode;
 	readonly passkeyAvailableForInstance: boolean;
 	readonly registerLink: ReactElement<Record<string, unknown>>;
@@ -51,7 +45,7 @@ interface AuthLoginMethodStepProps {
 	readonly switchError: string | null;
 	readonly title: ReactNode;
 	readonly onBrowserLogin: () => void;
-	readonly onEmailLogin: () => void;
+	readonly onPasswordLogin: () => void;
 	readonly onPasskeyLogin: () => void;
 	readonly onBackToInstance: (() => void) | null;
 }
@@ -59,7 +53,6 @@ interface AuthLoginMethodStepProps {
 export function AuthLoginMethodStep({
 	disabled,
 	extraTopContent,
-	identifierField,
 	leadingAction,
 	passkeyAvailableForInstance,
 	registerLink,
@@ -69,7 +62,7 @@ export function AuthLoginMethodStep({
 	switchError,
 	title,
 	onBrowserLogin,
-	onEmailLogin,
+	onPasswordLogin,
 	onPasskeyLogin,
 	onBackToInstance,
 }: AuthLoginMethodStepProps) {
@@ -174,18 +167,10 @@ export function AuthLoginMethodStep({
 			<AuthLoginMethodPicker
 				primaryAction={{
 					disabled,
-					id: 'email',
-					label: i18n._(identifierField === 'login' ? SIGN_IN_WITH_USERNAME_DESCRIPTOR : SIGN_IN_WITH_EMAIL_DESCRIPTOR),
-					icon:
-						identifierField === 'login' ? (
-							<UserIcon size={remFromPx(16)} data-flx="auth.flow.auth-login-core.auth-login-method-step.user-icon" />
-						) : (
-							<EnvelopeSimpleIcon
-								size={remFromPx(16)}
-								data-flx="auth.flow.auth-login-core.auth-login-method-step.envelope-simple-icon"
-							/>
-						),
-					onSelect: onEmailLogin,
+					id: 'username',
+					label: i18n._(SIGN_IN_WITH_USERNAME_DESCRIPTOR),
+					icon: <UserIcon size={remFromPx(16)} data-flx="auth.flow.auth-login-core.auth-login-method-step.user-icon" />,
+					onSelect: onPasswordLogin,
 					stepFocus: true,
 					submitting: false,
 					variant: ButtonVariant.PRIMARY,

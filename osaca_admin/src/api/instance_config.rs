@@ -4,9 +4,8 @@ use reqwest::Method;
 
 use super::client::{AdminApiClient, ApiResult};
 use super::types::{
-    AccountIdentitySettings, BrandingAssetKind, BrandingAssetUploadRequest,
-    CreateRegistrationUrlRequest, CreateRegistrationUrlResponse, InstanceAccountIdentityDiscovery,
-    InstanceConfigResponse, InstanceConfigUpdateRequest, InstanceEmailSmtpTestResponse,
+    BrandingAssetKind, BrandingAssetUploadRequest, CreateRegistrationUrlRequest,
+    CreateRegistrationUrlResponse, InstanceConfigResponse, InstanceConfigUpdateRequest,
     InstanceDiscovery, PendingRegistrationListResponse, PendingRegistrationResponse,
     PendingRegistrationStatus,
 };
@@ -18,17 +17,6 @@ impl AdminApiClient {
 
     pub async fn get_instance_discovery(&self) -> ApiResult<InstanceDiscovery> {
         self.get("/.well-known/osaca", None).await
-    }
-
-    pub async fn get_instance_account_identity(&self) -> ApiResult<AccountIdentitySettings> {
-        let discovery: InstanceAccountIdentityDiscovery =
-            self.get("/.well-known/osaca", None).await?;
-        let mode = discovery.features.account_identity;
-        Ok(AccountIdentitySettings {
-            mode,
-            tag_style: discovery.features.tag_style,
-            emails_enabled: discovery.features.emails_enabled,
-        })
     }
 
     pub async fn update_instance_config(
@@ -48,23 +36,6 @@ impl AdminApiClient {
             Method::POST,
             "/admin/instance/config/branding-assets",
             Some(&BrandingAssetUploadRequest { kind, image }),
-            None,
-        )
-        .await
-    }
-
-    pub async fn test_saved_instance_smtp_config(
-        &self,
-        send_to: Option<&str>,
-    ) -> ApiResult<InstanceEmailSmtpTestResponse> {
-        let body = match send_to {
-            Some(address) => serde_json::json!({"send_to": address}),
-            None => serde_json::json!({}),
-        };
-        self.send(
-            Method::POST,
-            "/admin/instance/config/smtp-tests",
-            Some(&body),
             None,
         )
         .await

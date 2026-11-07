@@ -9,20 +9,17 @@ import {RecoveryKitRepository} from '@app/api/auth/services/RecoveryKitRepositor
 import {resolveWebAuthnSecondFactor} from '@app/api/auth/services/WebAuthnSecondFactor';
 import {createUserID, type UserID} from '@app/api/BrandedTypes';
 import type {UserRecoveryKitRow} from '@app/api/database/types/AuthTypes';
-import {usesUsernameSignIn} from '@app/api/instance/AccountIdentityModeCache';
 import {
 	REGISTRATION_PENDING_APPROVAL_TRAIT,
 	REGISTRATION_REJECTED_TRAIT,
 } from '@app/api/instance/InstanceConfigRepository';
 import {Logger} from '@app/api/Logger';
-import {getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
 import type {User} from '@app/api/models/User';
 import {findPersonByLoginHandle, parseLoginHandle} from '@app/api/user/UniqueUsernames';
 import {hashPassword} from '@app/api/utils/PasswordUtils';
 import {createRateLimitError} from '@app/api/utils/RateLimitUtils';
 import {requireConfiguredClientIp} from '@app/api/utils/RequestClientIp';
 import {secretMatchesHash, sha256Hex} from '@app/api/utils/SecretHash';
-import {AccountIdentityModes} from '@osaca/constants/src/AccountIdentityConstants';
 import {
 	generateRecoveryKey,
 	normalizeRecoveryKey,
@@ -128,21 +125,11 @@ export async function createRecoveryKit(userId: UserID): Promise<RecoveryKitCrea
 	return {recovery_key: issued.formatted, created_at: issued.createdAt.toISOString()};
 }
 
-async function instanceUsesRecoveryKits(): Promise<boolean> {
-	return (await getInstanceConfigRepository().getAccountIdentityMode()) === AccountIdentityModes.USERNAME;
-}
-
 export async function deleteRecoveryKit(userId: UserID): Promise<void> {
-	if (!(await instanceUsesRecoveryKits())) {
-		return;
-	}
 	await recoveryKits.delete(userId);
 }
 
 export async function findRecoveryKitCreatedAt(userId: UserID): Promise<Date | null> {
-	if (!(await instanceUsesRecoveryKits())) {
-		return null;
-	}
 	return (await recoveryKits.find(userId))?.created_at ?? null;
 }
 
@@ -217,9 +204,6 @@ export async function recoverAccount(
 }
 
 export async function applyPendingRecovery(ctx: ApiContext, user: User, ticket: string): Promise<User> {
-	if (!usesUsernameSignIn()) {
-		return user;
-	}
 	const {cache, users} = ctx.services;
 	const key = pendingRecoveryKey(ticket);
 	const pending = await cache.get<PendingRecovery>(key);

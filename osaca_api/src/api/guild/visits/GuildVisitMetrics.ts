@@ -6,10 +6,7 @@ export const guildVisitStartTotal = registerCounter(
 	'osaca_api_guild_visit_start_total',
 	'Guild visits started, by source and account tier',
 );
-export const guildVisitEndedTotal = registerCounter(
-	'osaca_api_guild_visit_end_total',
-	'Guild visits ended, by reason',
-);
+export const guildVisitEndedTotal = registerCounter('osaca_api_guild_visit_end_total', 'Guild visits ended, by reason');
 export const guildVisitJoinTotal = registerCounter(
 	'osaca_api_guild_visit_join_total',
 	'Guild visits converted into membership',
@@ -20,5 +17,5 @@ export const guildVisitorRateLimitedTotal = registerCounter(
 );
 export const guildVisitHistoryWindowTotal = registerCounter(
 	'osaca_api_guild_visit_history_window_total',
-	'Visitor reads that hit the history window for accounts without a confirmed email',
+	'Visitor reads that hit the history window for unclaimed accounts',
 );

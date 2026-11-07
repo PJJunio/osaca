@@ -2,7 +2,7 @@
 
 import {Config} from '@app/api/Config';
 import type {User} from '@app/api/models/User';
-import {noticeEmailAddress, systemDmsHidden} from '@app/api/user/services/SystemDmMessage';
+import {systemDmsHidden} from '@app/api/user/services/SystemDmMessage';
 import {getWorkerDependencies} from '@app/api/worker/WorkerContext';
 import {AdminACLs} from '@osaca/constants/src/AdminACLs';
 import {UserFlags} from '@osaca/constants/src/UserConstants';
@@ -35,16 +35,6 @@ async function findReviewers(): Promise<Array<User>> {
 	return users.filter(canReviewRegistrations);
 }
 
-async function emailReviewers(reviewers: Array<User>): Promise<void> {
-	const {instanceConfigRepository, emailService} = getWorkerDependencies();
-	for (const reviewer of reviewers) {
-		const email = await noticeEmailAddress(reviewer, instanceConfigRepository);
-		if (email) {
-			await emailService.send('registration_pending', email, {reviewUrl: pendingRegistrationsUrl()}, reviewer.locale);
-		}
-	}
-}
-
 const notifyRegistrationApprovers: WorkerTaskHandler = async (payload, helpers) => {
 	const {kvClient, instanceConfigRepository} = getWorkerDependencies();
 	const {user_id: userId} = PayloadSchema.parse(payload);
@@ -57,10 +47,7 @@ const notifyRegistrationApprovers: WorkerTaskHandler = async (payload, helpers) 
 	}
 	helpers.logger.info({userId, recipients: recipients.length}, 'Notifying registration approvers');
 	if (recipients.length === 0) return;
-	if (await systemDmsHidden(instanceConfigRepository)) {
-		await emailReviewers(recipients);
-		return;
-	}
+	if (await systemDmsHidden(instanceConfigRepository)) return;
 	await helpers.addJob('sendSystemDm', {
 		content: registrationApprovalNoticeContent(),
 		user_ids: recipients.map((user) => user.id.toString()),

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type {RuntimeConfigSnapshot} from '@app/features/app/state/InstanceSnapshotStore';
-import {usesUsernameSignIn} from '@app/features/app/utils/AccountIdentityFeatures';
 import {AuthBottomLink} from '@app/features/auth/flow/AuthBottomLink';
 import sharedStyles from '@app/features/auth/flow/AuthPageStyles.module.css';
 import {AuthRegisterFormCore} from '@app/features/auth/flow/AuthRegisterFormCore';
@@ -70,7 +69,6 @@ const RegisterPageContent = observer(function RegisterPageContent({runtimeSnapsh
 	});
 	const clientIntro = useDesktopClientIntroFlow(isDesktop(), {skipWelcome: true});
 	const registerStep = selectRegisterPageStep(clientIntro.showPreferences, clientIntro.permission);
-	const usernameSignIn = usesUsernameSignIn(runtimeSnapshot.features);
 	const renderRegistrationStep = (): ReactNode => {
 		if (registerStep === RegisterPageStep.PREFERENCES) {
 			return (
@@ -99,10 +97,10 @@ const RegisterPageContent = observer(function RegisterPageContent({runtimeSnapsh
 				</h1>
 				<div className={sharedStyles.container} data-flx="auth.register-page.register-page-content.div">
 					<AuthRegisterFormCore
-						fields={credentialRegisterFields(usernameSignIn)}
+						fields={credentialRegisterFields()}
 						submitLabel={<Trans>Create account</Trans>}
 						redirectPath={redirectTo}
-						offerRecoveryKit={usernameSignIn}
+						offerRecoveryKit
 						runtimeSnapshot={runtimeSnapshot}
 						onAuthenticated={runtimeTarget.reset}
 						data-flx="auth.register-page.register-page-content.auth-register-form-core"

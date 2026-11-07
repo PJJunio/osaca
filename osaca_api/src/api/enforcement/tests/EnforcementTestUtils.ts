@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {createTestAccount, listTestEmails, setUserACLs, type TestAccount} from '@app/api/auth/tests/AuthTestUtils';
+import {createTestAccount, setUserACLs, type TestAccount} from '@app/api/auth/tests/AuthTestUtils';
 import {createUserID} from '@app/api/BrandedTypes';
 import {getUserRepository} from '@app/api/middleware/ServiceSingletons';
 import type {User} from '@app/api/models/User';
@@ -100,10 +100,6 @@ export async function listDecisions(harness: ApiTestHarness, staff: TestAccount,
 
 export async function loadUser(account: TestAccount): Promise<User> {
 	return (await getUserRepository().findUnique(createUserID(BigInt(account.userId))))!;
-}
-
-export async function emailsTo(harness: ApiTestHarness, account: TestAccount, type: string) {
-	return (await listTestEmails(harness, {recipient: account.email})).filter((email) => email.type === type);
 }
 
 export function closeRequest(

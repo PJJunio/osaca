@@ -71,7 +71,7 @@ func compareEnv(set *stack.Set, custom []byte, s *State, env map[string]string) 
 		}
 	}
 	proxies := map[string]string{"HTTP_PROXY": settings.HTTPProxy, "HTTPS_PROXY": settings.HTTPSProxy, "NO_PROXY": settings.NoProxy}
-	admin := twinsToAdmin(maps.Clone(env), true)
+	admin := twinsToAdmin(maps.Clone(env))
 	var out []EnvChange
 	var unused []string
 	seen := map[string]bool{}

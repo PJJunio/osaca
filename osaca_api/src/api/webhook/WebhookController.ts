@@ -618,13 +618,4 @@ export function WebhookController(app: HonoApp) {
 		});
 		return response;
 	});
-	app.post('/webhooks/sweego', async (ctx) => {
-		const response = await ctx.get('webhookRequestService').handleSweegoWebhook({
-			body: await ctx.req.text(),
-			webhookId: ctx.req.header('webhook-id') ?? undefined,
-			timestamp: ctx.req.header('webhook-timestamp') ?? undefined,
-			signature: ctx.req.header('webhook-signature') ?? undefined,
-		});
-		return response;
-	});
 }

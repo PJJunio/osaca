@@ -23,7 +23,7 @@ describe('KVAccountDeletionQueueService rebuild', () => {
 	it('does not requeue accounts the deletion worker refuses to process', async () => {
 		setCassandraQueryExecutorForTesting(new InMemoryCassandraQueryExecutor());
 		const kvClient = new MockKVProvider();
-		const userRepository = new UserRepository(kvClient);
+		const userRepository = new UserRepository();
 		for (const row of [
 			userRow(1400000000000000001n, {bot: true}),
 			userRow(1400000000000000002n, {flags: UserFlags.APP_STORE_REVIEWER}),

@@ -3,18 +3,12 @@
 import {
 	DELETE_ACCOUNT_DESCRIPTOR,
 	DISABLE_ACCOUNT_DESCRIPTOR,
-	EMAIL_DESCRIPTOR,
 	PASSWORD_DESCRIPTOR,
 	TWO_FACTOR_AUTHENTICATION_DESCRIPTOR,
 } from '@app/features/i18n/utils/CommonMessageDescriptors';
-import {
-	shouldShowClaimedAccountSettings,
-	shouldShowEmailAccountSettings,
-	shouldShowRecoveryKitSettings,
-} from '@app/features/user/components/settings_utils/SettingsVisibility';
+import {shouldShowClaimedAccountSettings} from '@app/features/user/components/settings_utils/SettingsVisibility';
 import type {SearchableSettingDescriptor} from '@app/features/user/components/settings_utils/search_index/SearchIndexTypes';
 import {
-	ADDRESS_DESCRIPTOR,
 	AUTHENTICATION_DESCRIPTOR,
 	AUTHENTICATOR_DESCRIPTOR,
 	BACKUP_CODES_DESCRIPTOR,
@@ -23,12 +17,10 @@ import {
 	CHANGE_PASSWORD_DESCRIPTOR,
 	CLOSE_ACCOUNT_DESCRIPTOR,
 	CODES_DESCRIPTOR,
-	CONTACT_DESCRIPTOR,
 	CREDENTIALS_DESCRIPTOR,
 	DELETE_DESCRIPTOR,
 	FINGERPRINT_DESCRIPTOR,
 	LOGIN_DESCRIPTOR,
-	MAIL_DESCRIPTOR,
 	PASSKEY_DESCRIPTOR,
 	PASSKEYS_DESCRIPTOR,
 	PASSWORDLESS_DESCRIPTOR,
@@ -41,10 +33,6 @@ import {
 } from '@app/features/user/components/settings_utils/section_registry/SharedDescriptors';
 import {msg} from '@lingui/core/macro';
 
-const CHANGE_YOUR_EMAIL_ADDRESS_DESCRIPTOR = msg({
-	message: 'Change your email address',
-	comment: 'Settings search entry description. One-line summary of what the settings search entry controls.',
-});
 const RECOVERY_KIT_DESCRIPTOR = msg({
 	message: 'Recovery kit',
 	comment: 'Settings search entry label for the account recovery kit used to reset a forgotten password.',
@@ -152,15 +140,6 @@ const DELETE_YOUR_ACCOUNT_DESCRIPTOR = msg({
 });
 export const accountSecurityIndex: Array<SearchableSettingDescriptor> = [
 	{
-		id: 'account-email',
-		tabType: 'account_security',
-		sectionId: 'account',
-		label: EMAIL_DESCRIPTOR,
-		keywords: [EMAIL_DESCRIPTOR, MAIL_DESCRIPTOR, ADDRESS_DESCRIPTOR, CONTACT_DESCRIPTOR],
-		description: CHANGE_YOUR_EMAIL_ADDRESS_DESCRIPTOR,
-		isVisible: shouldShowEmailAccountSettings,
-	},
-	{
 		id: 'account-password',
 		tabType: 'account_security',
 		sectionId: 'account',
@@ -188,7 +167,7 @@ export const accountSecurityIndex: Array<SearchableSettingDescriptor> = [
 			PASSWORD_DESCRIPTOR,
 		],
 		description: CREATE_A_RECOVERY_KIT_DESCRIPTOR,
-		isVisible: shouldShowRecoveryKitSettings,
+		isVisible: shouldShowClaimedAccountSettings,
 	},
 	{
 		id: 'account-2fa',

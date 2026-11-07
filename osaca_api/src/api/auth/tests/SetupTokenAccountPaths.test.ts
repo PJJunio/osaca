@@ -1,13 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {createHash, randomBytes} from 'node:crypto';
-import {
-	clearTestEmails,
-	createUniqueEmail,
-	createUniqueUsername,
-	findLastTestEmail,
-	listTestEmails,
-} from '@app/api/auth/tests/AuthTestUtils';
+import {createUniqueUsername} from '@app/api/auth/tests/AuthTestUtils';
 import {createUserID} from '@app/api/BrandedTypes';
 import {Config} from '@app/api/Config';
 import {getInstanceConfigRepository, getUserRepository} from '@app/api/middleware/ServiceSingletons';
@@ -44,10 +38,9 @@ describe('Setup token on every way to create an account', () => {
 	});
 	beforeEach(async () => {
 		await harness.reset();
-		await clearTestEmails(harness);
 		const repository = getInstanceConfigRepository();
 		await repository.updateCaptchaConfig({enabled: true});
-		await repository.updateAuthConfig({identifier_first: true, instant_accounts: {enabled: true}});
+		await repository.updateAuthConfig({instant_accounts: {enabled: true}});
 		Config.internal.trustedCallers = [
 			...originalTrustedCallers,
 			{
@@ -105,23 +98,11 @@ describe('Setup token on every way to create an account', () => {
 		return {nonce, hash: createHash('sha256').update(nonce).digest('hex')};
 	}
 
-	async function identify(email: string): Promise<string> {
-		const {status, json} = await post('/auth/identify', {email});
-		expect(status).toBe(HTTP_STATUS.OK);
-		return json.ticket!;
-	}
-
-	async function signUpCode(email: string): Promise<string> {
-		const record = findLastTestEmail(await listTestEmails(harness, {recipient: email}), 'sign_up_code');
-		expect(record).not.toBeNull();
-		return record!.metadata['code']!;
-	}
-
 	function registerWithSetupToken(): Promise<{status: number; json: GateResponse}> {
 		return post('/auth/register', {
-			email: createUniqueEmail('setupadmin'),
 			username: createUniqueUsername('setupadmin'),
 			global_name: 'Setup Admin',
+			password: 'setup-admin-password',
 			consent: true,
 			setup_token: SETUP_TOKEN,
 		});
@@ -132,25 +113,6 @@ describe('Setup token on every way to create an account', () => {
 		expect(status).toBe(HTTP_STATUS.OK);
 		return json.user_id!;
 	}
-
-	it('sends no sign-up code before the first admin exists', async () => {
-		openSetupTokenGate();
-		const email = createUniqueEmail('gatedcode');
-		const ticket = await identify(email);
-		expectSetupTokenRequired(await post('/auth/email-code/send', {ticket}));
-		expect(await listTestEmails(harness, {recipient: email})).toEqual([]);
-	});
-
-	it('creates no account from a sign-up code that was sent before the gate applied', async () => {
-		const email = createUniqueEmail('earlycode');
-		const ticket = await identify(email);
-		expect((await post('/auth/email-code/send', {ticket})).status).toBe(HTTP_STATUS.OK);
-		const code = await signUpCode(email);
-		openSetupTokenGate();
-		expectSetupTokenRequired(await post('/auth/email-code/verify', {ticket, code, consent: true}));
-		expect(await getUserRepository().findByEmail(email)).toBeNull();
-		await expect(getInstanceConfigRepository().isAdminBootstrapped()).resolves.toBe(false);
-	});
 
 	it('creates no account without an email before the first admin exists', async () => {
 		openSetupTokenGate();
@@ -182,20 +144,21 @@ describe('Setup token on every way to create an account', () => {
 		const adminId = await registerAdmin();
 		const admin = await getUserRepository().findUniqueAssert(createUserID(BigInt(adminId)));
 		expect([...admin.acls]).toEqual([AdminACLs.WILDCARD]);
-		const email = createUniqueEmail('aftersetup');
-		const ticket = await identify(email);
-		const beforeFinish = await post('/auth/email-code/send', {ticket});
-		expect(beforeFinish.status).toBe(HTTP_STATUS.FORBIDDEN);
-		expect(beforeFinish.json.code).toBe(APIErrorCodes.REGISTRATION_CLOSED);
+		const memberBody = {
+			username: createUniqueUsername('aftersetup'),
+			global_name: 'Member',
+			password: 'member-after-setup',
+			consent: true,
+		};
+		expect((await post('/auth/register', memberBody)).json.code).toBe(APIErrorCodes.REGISTRATION_CLOSED);
 		expect((await post('/auth/register', {global_name: 'Early', consent: true})).json.code).toBe(
 			APIErrorCodes.REGISTRATION_CLOSED,
 		);
 		await getInstanceConfigRepository().setAppPublicConfig({setup: {configured: true}});
-		expect((await post('/auth/email-code/send', {ticket})).status).toBe(HTTP_STATUS.OK);
-		const signedUp = await post('/auth/email-code/verify', {ticket, code: await signUpCode(email), consent: true});
+		const signedUp = await post('/auth/register', memberBody);
 		expect(signedUp.status).toBe(HTTP_STATUS.OK);
-		const emailUser = await getUserRepository().findUniqueAssert(createUserID(BigInt(signedUp.json.user_id!)));
-		expect([...emailUser.acls]).toEqual([]);
+		const member = await getUserRepository().findUniqueAssert(createUserID(BigInt(signedUp.json.user_id!)));
+		expect([...member.acls]).toEqual([]);
 		const instant = await post('/auth/register', {global_name: 'Newcomer', consent: true});
 		expect(instant.status).toBe(HTTP_STATUS.OK);
 		const {nonce, hash} = nonceWithHash();

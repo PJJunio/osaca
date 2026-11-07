@@ -5,7 +5,7 @@ use crate::{
     api::{
         audit::SearchAuditLogsParams,
         client::{AdminApiClient, ApiResultExt},
-        types::{AccountIdentitySettings, CustomBadgeType},
+        types::CustomBadgeType,
     },
     config::AdminConfig,
     templates::{
@@ -31,7 +31,6 @@ pub struct TabQuery {
     pub badge_picks: Vec<String>,
 }
 
-#[allow(clippy::too_many_arguments)]
 pub async fn render(
     client: &AdminApiClient,
     config: &AdminConfig,
@@ -40,7 +39,6 @@ pub async fn render(
     tab: &str,
     query: &TabQuery,
     admin_acls: &[String],
-    account_identity: AccountIdentitySettings,
 ) -> Option<maud::Markup> {
     match tab {
         "overview" => {
@@ -89,7 +87,6 @@ pub async fn render(
                     limit_config: limit_config.as_ref(),
                     custom_badges: custom_badges.as_ref(),
                 },
-                account_identity.mode.is_username(),
             ))
         }
         "account" => {
@@ -100,8 +97,6 @@ pub async fn render(
                 user_id,
                 &tabs::account::AccountTabOptions {
                     admin_acls,
-                    account_identity: account_identity.mode,
-                    reset_link_available: account_identity.admin_reset_links_available(),
                     password_reset_link: None,
                 },
             )

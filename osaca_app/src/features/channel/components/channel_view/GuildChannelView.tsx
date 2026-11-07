@@ -58,10 +58,10 @@ import {
 } from '@app/features/voice/utils/MobileVoiceTextChatHistory';
 import {useOsacaDocumentTitle} from '@app/features/window/hooks/useOsacaDocumentTitle';
 import Window from '@app/features/window/state/Window';
-import {AccountVerificationNeeds, TierGatedActions} from '@osaca/constants/src/AccountTierConstants';
-import {ChannelTypes, Permissions} from '@osaca/constants/src/ChannelConstants';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
+import {TierGatedActions} from '@osaca/constants/src/AccountTierConstants';
+import {ChannelTypes, Permissions} from '@osaca/constants/src/ChannelConstants';
 import {clsx} from 'clsx';
 import {observer} from 'mobx-react-lite';
 import type React from 'react';
@@ -390,13 +390,6 @@ export const GuildChannelView = observer(({channelId, guildId}: GuildChannelView
 						/>
 					);
 				}
-				case 'unverified_email':
-					return (
-						<AccountGateBarrier
-							gate={{action: TierGatedActions.GUILD_VERIFICATION, need: AccountVerificationNeeds.CONFIRM_EMAIL}}
-							data-flx="channel.channel-view.guild-channel-view.render-chat-area.unverified-email-barrier"
-						/>
-					);
 				case 'account_too_new':
 					return (
 						<AccountTooNewBarrier

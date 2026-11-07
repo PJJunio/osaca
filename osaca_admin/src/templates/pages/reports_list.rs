@@ -204,7 +204,6 @@ fn reporter_label(report: &ReportEntry) -> Markup {
         (report
             .reporter_tag
             .as_deref()
-            .or(report.reporter_email.as_deref())
             .unwrap_or("Anonymous"))
     }
 }

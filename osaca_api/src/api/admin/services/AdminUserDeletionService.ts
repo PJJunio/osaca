@@ -4,7 +4,6 @@ import type {ApiContext} from '@app/api/ApiContext';
 import {mapUserToAdminResponse} from '@app/api/admin/models/UserTypes';
 import type {AdminAuditService} from '@app/api/admin/services/AdminAuditService';
 import type {AdminBanManagementService} from '@app/api/admin/services/AdminBanManagementService';
-import {trySendAdminNotification} from '@app/api/admin/services/AdminNotification';
 import {collectKnownUserIps} from '@app/api/admin/services/KnownUserIps';
 import {type ReporterResolutionNotifier, wasReporterNotified} from '@app/api/admin/services/ReporterResolutionNotifier';
 import {revokeAllAuthSessions} from '@app/api/auth/AuthSessionRevocation';
@@ -21,7 +20,6 @@ import {
 } from '@app/api/enforcement/EnforcementDecisionService';
 import type {EnforcementNoticeDelivery} from '@app/api/enforcement/EnforcementNoticeDelivery';
 import type {SkippedNetwork} from '@app/api/enforcement/NetworkBlocks';
-import {formatNoticeDate} from '@app/api/enforcement/NoticeDates';
 import {emitAdminAction} from '@app/api/infrastructure/activity/AccountChangeEvents';
 import type {KVAccountDeletionQueueService} from '@app/api/infrastructure/KVAccountDeletionQueueService';
 import {Logger} from '@app/api/Logger';
@@ -219,11 +217,6 @@ export class AdminUserDeletionService {
 				decisionId: null,
 			});
 		}
-		const notificationSent =
-			basis.type === 'enforcement' || immediate
-				? null
-				: await this.sendScheduledEmail(user, basis.type, pendingDeletionAt);
-		const notificationSentValue = notificationSent ? 'true' : 'false';
 		await this.deps.auditService.createAuditLog({
 			adminUserId: actor.adminUserId,
 			targetType: 'user',
@@ -237,13 +230,11 @@ export class AdminUserDeletionService {
 				['pending_deletion_at', pendingDeletionAt.toISOString()],
 				...(immediate ? ([['immediate', 'true']] as Array<[string, string]>) : []),
 				...describePendingDeletion(user, 'replaced'),
-				...(recorded
-					? [...decisionAuditMetadata(recorded.decision), ...networkBlockAuditMetadata(recorded)]
-					: ([['notification_sent', notificationSentValue]] as Array<[string, string]>)),
+				...(recorded ? [...decisionAuditMetadata(recorded.decision), ...networkBlockAuditMetadata(recorded)] : []),
 			]),
 		});
 		const decision = recorded?.decision ?? null;
-		const knownIps = decision ? await this.banIdentifiers(user, decision, actor) : new Set<string>();
+		const knownIps = decision ? await this.banIdentifiers(user, decision) : new Set<string>();
 		if (decision && reportResolvingDeletionReasons.has(decision.reason_code)) {
 			await this.resolvePendingReportsAgainstUser({user, adminUserId: actor.adminUserId});
 		}
@@ -281,8 +272,6 @@ export class AdminUserDeletionService {
 		const enforcementClosure = isEnforcementDeletionReason(user.deletionReasonCode);
 		if (enforcementClosure) {
 			await this.deps.delivery.sendLegacyEnded(user);
-		} else {
-			await this.sendCancelledEmail(user);
 		}
 		await this.deps.auditService.createAuditLog({
 			adminUserId: actor.adminUserId,
@@ -292,7 +281,7 @@ export class AdminUserDeletionService {
 			auditLogReason: actor.internalNote,
 			metadata: new Map([
 				...describePendingDeletion(user, 'cancelled'),
-				['notice', enforcementClosure ? 'enforcement_ended' : 'account_deletion_cancelled'],
+				...(enforcementClosure ? ([['notice', 'enforcement_ended']] as Array<[string, string]>) : []),
 			]),
 		});
 		await emitAdminAction(actor.adminUserId, userId, 'cancel_deletion');
@@ -332,49 +321,10 @@ export class AdminUserDeletionService {
 		return closed;
 	}
 
-	private async sendScheduledEmail(
-		user: User,
-		basis: keyof typeof BASIS_DELETION_REASONS,
-		deletionDate: Date,
-	): Promise<boolean> {
-		const {email: emailService} = this.deps.apiContext.services;
-		const email = user.email;
-		if (!email) return false;
-		const date = formatNoticeDate(deletionDate, user.locale);
-		return trySendAdminNotification(
-			() =>
-				basis === 'holder_request'
-					? emailService.send('account_deletion_scheduled_requested', email, {deletionDate: date}, user.locale)
-					: emailService.send('account_deletion_scheduled_inactivity', email, {deletionDate: date}, user.locale),
-			{action: 'schedule_deletion', targetId: user.id.toString()},
-		);
-	}
-
-	private async sendCancelledEmail(user: User): Promise<void> {
-		const {email: emailService} = this.deps.apiContext.services;
-		const email = user.email;
-		if (!email) return;
-		await trySendAdminNotification(() => emailService.send('account_deletion_cancelled', email, {}, user.locale), {
-			action: 'cancel_deletion',
-			targetId: user.id.toString(),
-		});
-	}
-
-	private async banIdentifiers(
-		user: User,
-		decision: EnforcementDecisionRow,
-		actor: EnforcementActor,
-	): Promise<ReadonlySet<string>> {
+	private async banIdentifiers(user: User, decision: EnforcementDecisionRow): Promise<ReadonlySet<string>> {
 		const {rule} = ENFORCEMENT_REASONS[decision.reason_code];
 		if (!ENFORCEMENT_RULES[rule].barsNewAccounts) {
 			return new Set();
-		}
-		if (user.email) {
-			try {
-				await this.deps.banManagementService.banEmail({email: user.email}, actor.adminUserId, actor.internalNote);
-			} catch (error) {
-				Logger.warn({error, userId: user.id.toString()}, 'Failed to ban the email of a closed account');
-			}
 		}
 		return collectKnownUserIps(this.deps.apiContext.services.users, user);
 	}

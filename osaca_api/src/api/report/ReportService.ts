@@ -1,17 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {createHash, randomBytes, randomInt} from 'node:crypto';
 import type {ChannelID, GuildID, InviteCode, MessageID, ReportID, UserID, WebhookID} from '@app/api/BrandedTypes';
-import {
-	createAttachmentID,
-	createChannelID,
-	createGuildID,
-	createInviteCode,
-	createMessageID,
-	createReportID,
-	createUserID,
-	guildIdToRoleId,
-} from '@app/api/BrandedTypes';
+import {createAttachmentID, createReportID} from '@app/api/BrandedTypes';
 import {Config} from '@app/api/Config';
 import type {ChannelRepository} from '@app/api/channel/ChannelRepository';
 import type {AuthenticatedChannel} from '@app/api/channel/services/AuthenticatedChannel';
@@ -28,7 +18,6 @@ import {resolveNsfwScopeChannel} from '@app/api/channel/utils/ThreadNsfwScope';
 import {isSyntheticUserId} from '@app/api/constants/Core';
 import type {MessageAttachment} from '@app/api/database/types/MessageTypes';
 import type {
-	DSAReportTicketRow,
 	GuildReportSubmissionByReporterRow,
 	MessageReportSubmissionByReporterRow,
 	UserReportSubmissionByReporterRow,
@@ -37,7 +26,6 @@ import {isDecisionExpired} from '@app/api/enforcement/DecisionStatus';
 import {listActiveFeatureLimits} from '@app/api/enforcement/FeatureLimitState';
 import type {ThreadViewer} from '@app/api/experiment/ChannelThreadsGate';
 import type {GuildRepository} from '@app/api/guild/repositories/GuildRepository';
-import {channelToVisitorInput} from '@app/api/guild/visits/GuildVisitorAccess';
 import {emitActivity} from '@app/api/infrastructure/activity/ActivityEvents';
 import type {
 	ReporterTier,
@@ -46,11 +34,9 @@ import type {
 	ResolvedBy,
 } from '@app/api/infrastructure/activity/Contract.generated';
 import {emitReportResolved} from '@app/api/infrastructure/activity/ModerationEvents';
-import type {EmailDnsValidationService} from '@app/api/infrastructure/EmailDnsValidationService';
 import type {IGatewayService} from '@app/api/infrastructure/IGatewayService';
 import type {ISnowflakeService} from '@app/api/infrastructure/ISnowflakeService';
 import type {IStorageService} from '@app/api/infrastructure/IStorageService';
-import {usesUniqueUsernames} from '@app/api/instance/AccountIdentityModeCache';
 import type {InviteRepository} from '@app/api/invite/InviteRepository';
 import {Logger} from '@app/api/Logger';
 import {getEnforcementDecisionRepository} from '@app/api/middleware/ServiceSingletons';
@@ -61,7 +47,6 @@ import type {GuildMember} from '@app/api/models/GuildMember';
 import type {Message} from '@app/api/models/Message';
 import type {User} from '@app/api/models/User';
 import type {Webhook} from '@app/api/models/Webhook';
-import {resolveReportFlowAnswers, resolveReportFlowLocale} from '@app/api/report/flows/ReportFlowRegistry';
 import {
 	type IARMessageContextRow,
 	type IARSubmission,
@@ -72,36 +57,23 @@ import {
 import type {ReportRepository} from '@app/api/report/ReportRepository';
 import type {IReportSearchService} from '@app/api/search/IReportSearchService';
 import type {UserRepository} from '@app/api/user/repositories/UserRepository';
-import {findPersonByLoginHandle, type ParsedLoginHandle, parseLoginHandle} from '@app/api/user/UniqueUsernames';
 import {isAccountClosed} from '@app/api/user/UserHelpers';
 import {dispatchUserUpdate} from '@app/api/user/UserMappers';
 import type {WebhookRepository} from '@app/api/webhook/WebhookRepository';
 import {buildHashedAssetKey} from '@app/api/worker/utils/AssetArchiveHelpers';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
-import {ME} from '@osaca/constants/src/AppConstants';
-import {InviteTypes, MessageFlags, Permissions} from '@osaca/constants/src/ChannelConstants';
+import {MessageFlags, Permissions} from '@osaca/constants/src/ChannelConstants';
 import {GuildFeatures} from '@osaca/constants/src/GuildConstants';
-import {
-	computeGuildVisitorChannelPermissions,
-	GUILD_VISITOR_PERMISSIONS_MASK,
-} from '@osaca/constants/src/GuildVisitConstants';
 import {DELETED_USER_USERNAME, UserFlags} from '@osaca/constants/src/UserConstants';
-import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {CannotReportOwnMessageError} from '@osaca/errors/src/domains/channel/CannotReportOwnMessageError';
 import {UnknownChannelError} from '@osaca/errors/src/domains/channel/UnknownChannelError';
 import {UnknownMessageError} from '@osaca/errors/src/domains/channel/UnknownMessageError';
 import {ConflictError} from '@osaca/errors/src/domains/core/ConflictError';
-import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
 import {RateLimitError} from '@osaca/errors/src/domains/core/RateLimitError';
-import {ServiceUnavailableError} from '@osaca/errors/src/domains/core/ServiceUnavailableError';
 import {CannotReportGuildError} from '@osaca/errors/src/domains/guild/CannotReportGuildError';
 import {CannotReportOwnGuildError} from '@osaca/errors/src/domains/guild/CannotReportOwnGuildError';
 import {UnknownGuildError} from '@osaca/errors/src/domains/guild/UnknownGuildError';
-import {UnknownInviteError} from '@osaca/errors/src/domains/invite/UnknownInviteError';
 import {CannotReportYourselfError} from '@osaca/errors/src/domains/moderation/CannotReportYourselfError';
-import {InvalidDsaReportTargetError} from '@osaca/errors/src/domains/moderation/InvalidDsaReportTargetError';
-import {InvalidDsaTicketError} from '@osaca/errors/src/domains/moderation/InvalidDsaTicketError';
-import {InvalidDsaVerificationCodeError} from '@osaca/errors/src/domains/moderation/InvalidDsaVerificationCodeError';
 import {ReportBannedError} from '@osaca/errors/src/domains/moderation/ReportBannedError';
 import {UnknownReportError} from '@osaca/errors/src/domains/moderation/UnknownReportError';
 import {UnknownUserError} from '@osaca/errors/src/domains/user/UnknownUserError';
@@ -114,16 +86,12 @@ import {
 	type ReportProfileUserSnapshot,
 	serializeReportProfileSnapshot,
 } from '@osaca/schema/src/domains/report/ReportProfileSnapshotSchemas';
-import type {DsaReportRequest} from '@osaca/schema/src/domains/report/ReportSchemas';
-import {SnowflakeType} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {snowflakeToDate} from '@osaca/snowflake/src/Snowflake';
-import type {IEmailService} from '@pkgs/email/src/IEmailService';
 import type {IRateLimitService} from '@pkgs/rate_limit/src/IRateLimitService';
 import {ms} from 'itty-time';
 
 interface ReporterMetadata {
 	id: UserID | null;
-	email: string | null;
 	fullLegalName: string | null;
 	countryOfResidence: string | null;
 	tier?: ReporterTier;
@@ -144,11 +112,6 @@ interface ReportedAuthor {
 	webhookAvatarHash: string | null;
 }
 
-interface DsaReportClassification {
-	category: string;
-	flow: ReportFlowRecord | null;
-}
-
 type MessageContextScope = 'window' | 'target';
 
 interface ProfileSnapshotSubject {
@@ -160,11 +123,6 @@ interface ProfileSnapshotSubject {
 interface ClonedReportAttachments {
 	preserved: Array<MessageAttachment>;
 	missing: Array<MessageAttachment>;
-}
-
-interface DsaReportDraft {
-	row: IARSubmissionRow;
-	profileSubject: ProfileSnapshotSubject;
 }
 
 type ReportFlowColumns = Pick<
@@ -248,16 +206,6 @@ const MESSAGE_REPORT_USER_GUILD_RATE_LIMIT_MAX = 4;
 const MESSAGE_REPORT_USER_CHANNEL_RATE_LIMIT_MAX = 3;
 const MESSAGE_REPORT_TARGET_MESSAGE_RATE_LIMIT_MAX = 20;
 const MESSAGE_CONTEXT_WINDOW = 25;
-const DSA_CODE_CHARSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-const DSA_CODE_SEGMENT_LENGTH = 4;
-const DSA_CODE_SEPARATOR = '-';
-const DSA_TICKET_BYTES = 32;
-const DSA_EMAIL_SEND_RECIPIENT_MAX = 3;
-const DSA_EMAIL_SEND_RECIPIENT_WINDOW = ms('1 hour');
-const DSA_EMAIL_RESEND_COOLDOWN = ms('1 minute');
-const DSA_EMAIL_VERIFY_ADDRESS_MAX = 5;
-const DSA_EMAIL_VERIFY_ADDRESS_WINDOW = ms('10 minutes');
-
 async function emitReportFiled(
 	row: IARSubmissionRow,
 	target: ReportTarget,
@@ -292,8 +240,6 @@ export class ReportService {
 		private guildRepository: GuildRepository,
 		private userRepository: UserRepository,
 		private inviteRepository: InviteRepository,
-		private emailService: IEmailService,
-		private emailDnsValidationService: EmailDnsValidationService,
 		private snowflakeService: ISnowflakeService,
 		private storageService: IStorageService,
 		private gatewayService: IGatewayService,
@@ -347,7 +293,6 @@ export class ReportService {
 		const reportData: IARSubmissionRow = {
 			report_id: reportId,
 			reporter_id: reporter.id,
-			reporter_email: null,
 			reporter_full_legal_name: reporter.fullLegalName,
 			reporter_country_of_residence: reporter.countryOfResidence,
 			reported_at: new Date(),
@@ -434,7 +379,6 @@ export class ReportService {
 		const reportData: IARSubmissionRow = {
 			report_id: reportId,
 			reporter_id: reporter.id,
-			reporter_email: null,
 			reporter_full_legal_name: reporter.fullLegalName,
 			reporter_country_of_residence: reporter.countryOfResidence,
 			reported_at: new Date(),
@@ -518,7 +462,6 @@ export class ReportService {
 		const reportData: IARSubmissionRow = {
 			report_id: reportId,
 			reporter_id: reporter.id,
-			reporter_email: null,
 			reporter_full_legal_name: reporter.fullLegalName,
 			reporter_country_of_residence: reporter.countryOfResidence,
 			reported_at: new Date(),
@@ -599,403 +542,6 @@ export class ReportService {
 			if (invite && invite.guildId === guild.id) return;
 		}
 		throw new CannotReportGuildError();
-	}
-
-	async sendDsaReportVerificationCode(email: string, locale: string | null = null): Promise<void> {
-		const normalizedEmail = this.normalizeEmail(email);
-		await this.ensureDsaResendCooldown(normalizedEmail);
-		const recipientLimit = await this.rateLimitService.checkLimit({
-			identifier: `dsa:report:email:send:recipient:${normalizedEmail}`,
-			maxAttempts: DSA_EMAIL_SEND_RECIPIENT_MAX,
-			windowMs: DSA_EMAIL_SEND_RECIPIENT_WINDOW,
-		});
-		if (!recipientLimit.allowed) {
-			throw new RateLimitError({
-				retryAfter: recipientLimit.retryAfter,
-				retryAfterDecimal: recipientLimit.retryAfterDecimal,
-				limit: recipientLimit.limit,
-				resetTime: recipientLimit.resetTime,
-				resetAfterDecimal: recipientLimit.resetAfterDecimal,
-			});
-		}
-		const hasValidDns = await this.emailDnsValidationService.hasValidDnsRecords(normalizedEmail);
-		if (!hasValidDns) {
-			throw InputValidationError.fromCode('email', ValidationErrorCodes.EMAIL_DOMAIN_CANNOT_RECEIVE_MAIL);
-		}
-		const verificationCode = this.generateDsaVerificationCode();
-		const codeHash = this.hashVerificationCode(verificationCode);
-		const expiresAt = new Date(Date.now() + ms('10 minutes'));
-		await this.reportRepository.upsertDsaEmailVerification({
-			email_lower: normalizedEmail,
-			code_hash: codeHash,
-			expires_at: expiresAt,
-			last_sent_at: new Date(),
-		});
-		await this.rateLimitService.resetLimit(this.createDsaVerifyAttemptIdentifier(normalizedEmail));
-		const sent = await this.emailService.send(
-			'dsa_report_verification',
-			normalizedEmail,
-			{code: verificationCode, expiresAt},
-			locale,
-		);
-		if (!sent) {
-			await this.reportRepository.consumeDsaEmailVerification(normalizedEmail, codeHash);
-			Logger.warn({template: 'dsa_report_verification'}, 'DSA report verification email was not sent');
-			throw new ServiceUnavailableError();
-		}
-	}
-
-	private async ensureDsaResendCooldown(normalizedEmail: string): Promise<void> {
-		const current = await this.reportRepository.getDsaEmailVerification(normalizedEmail);
-		if (!current) {
-			return;
-		}
-		const now = Date.now();
-		if (current.expires_at.getTime() < now) {
-			return;
-		}
-		const remainingMs = current.last_sent_at.getTime() + DSA_EMAIL_RESEND_COOLDOWN - now;
-		if (remainingMs <= 0) {
-			return;
-		}
-		throw new RateLimitError({
-			retryAfter: Math.ceil(remainingMs / 1000),
-			retryAfterDecimal: remainingMs / 1000,
-			limit: 1,
-			resetTime: new Date(now + remainingMs),
-			resetAfterDecimal: remainingMs / 1000,
-		});
-	}
-
-	private createDsaVerifyAttemptIdentifier(normalizedEmail: string): string {
-		return `dsa:report:email:verify:address:${normalizedEmail}`;
-	}
-
-	async verifyDsaReportEmail(email: string, code: string): Promise<string> {
-		const normalizedEmail = this.normalizeEmail(email);
-		const verificationRow = await this.reportRepository.getDsaEmailVerification(normalizedEmail);
-		const attempt = await this.rateLimitService.checkLimit({
-			identifier: this.createDsaVerifyAttemptIdentifier(normalizedEmail),
-			maxAttempts: DSA_EMAIL_VERIFY_ADDRESS_MAX,
-			windowMs: DSA_EMAIL_VERIFY_ADDRESS_WINDOW,
-		});
-		if (!attempt.allowed) {
-			if (verificationRow) {
-				await this.reportRepository.consumeDsaEmailVerification(normalizedEmail, verificationRow.code_hash);
-			}
-			throw new InvalidDsaVerificationCodeError();
-		}
-		if (!verificationRow || verificationRow.expires_at.getTime() < Date.now()) {
-			throw new InvalidDsaVerificationCodeError();
-		}
-		if (this.hashVerificationCode(code) !== verificationRow.code_hash) {
-			throw new InvalidDsaVerificationCodeError();
-		}
-		const consumed = await this.reportRepository.consumeDsaEmailVerification(
-			normalizedEmail,
-			verificationRow.code_hash,
-		);
-		if (!consumed) {
-			throw new InvalidDsaVerificationCodeError();
-		}
-		const ticket = randomBytes(DSA_TICKET_BYTES).toString('hex');
-		await this.reportRepository.createDsaTicket({
-			ticket,
-			email_lower: normalizedEmail,
-			expires_at: new Date(Date.now() + ms('1 hour')),
-			created_at: new Date(),
-		});
-		return ticket;
-	}
-
-	async createDsaReport(report: DsaReportRequest, requestLocale: string | null = null): Promise<IARSubmission> {
-		const ticket = await this.readDsaTicket(report.ticket);
-		const classification = this.classifyDsaReport(report, requestLocale);
-		const reporterMeta: ReporterMetadata = {
-			id: null,
-			email: ticket.email_lower,
-			fullLegalName: report.reporter_full_legal_name ?? null,
-			countryOfResidence: report.reporter_country_of_residence,
-		};
-		const reporterKey = this.getReporterRateLimitKey(reporterMeta);
-		await this.ensureReportRateLimit(this.createReportRateLimitIdentifier(reporterKey), REPORT_RATE_LIMIT_MAX, false);
-		const reportId = createReportID(await this.snowflakeService.generate());
-		const {row: reportRow, profileSubject} = await this.buildDsaReportRow(
-			reportId,
-			report,
-			reporterMeta,
-			classification,
-		);
-		await this.ensureReportRateLimit(this.createReportRateLimitIdentifier(reporterKey), REPORT_RATE_LIMIT_MAX, true);
-		const claimed = await this.reportRepository.consumeDsaTicket(report.ticket, ticket.email_lower);
-		if (!claimed) {
-			throw new InvalidDsaTicketError();
-		}
-		reportRow.reported_profile_snapshot = await this.captureProfileSnapshot(reportId, profileSubject);
-		const createdReport = await this.reportRepository.createReport(reportRow);
-		await emitReportFiled(reportRow, 'dsa');
-		await this.reportSearchService?.indexReport(createdReport).catch((error) => {
-			Logger.error({error, reportId: createdReport.reportId}, 'Failed to index DSA report in search');
-		});
-		await this.sendDsaReportReceipt(
-			ticket.email_lower,
-			createdReport.reportId,
-			report.report_type,
-			classification.flow?.locale ?? requestLocale,
-		);
-		return createdReport;
-	}
-
-	private async sendDsaReportReceipt(
-		email: string,
-		reportId: ReportID,
-		targetKind: DsaReportRequest['report_type'],
-		locale: string | null,
-	): Promise<void> {
-		try {
-			const sent = await this.emailService.send(
-				'report_received',
-				email,
-				{reportId: reportId.toString(), targetKind},
-				locale,
-			);
-			if (!sent) {
-				Logger.warn({template: 'report_received', reportId}, 'DSA report receipt was not sent');
-			}
-		} catch (error) {
-			Logger.error({error, reportId}, 'Failed to send DSA report receipt');
-		}
-	}
-
-	private classifyDsaReport(report: DsaReportRequest, requestLocale: string | null): DsaReportClassification {
-		if (!report.steps || !report.revision_hash) {
-			if (!report.category) {
-				throw InputValidationError.fromCode('category', ValidationErrorCodes.INVALID_FORMAT);
-			}
-			return {category: report.category, flow: null};
-		}
-		const answers = resolveReportFlowAnswers({
-			target: report.report_type,
-			surface: 'dsa',
-			revisionHash: report.revision_hash,
-			steps: report.steps,
-		});
-		if (!answers.isCurrentRevision) {
-			Logger.warn(
-				{
-					clientRevision: report.revision_hash,
-					currentRevision: answers.currentRevisionHash,
-					target: report.report_type,
-				},
-				'Accepted a DSA report flow submission from an outdated revision',
-			);
-		}
-		if (answers.legacyCategory !== 'child_safety' && !report.reporter_full_legal_name) {
-			throw InputValidationError.fromCode('reporter_full_legal_name', ValidationErrorCodes.INVALID_FORMAT);
-		}
-		return {
-			category: answers.legacyCategory,
-			flow: {
-				reason: answers.reason,
-				revisionHash: report.revision_hash,
-				stepsJson: answers.stepsJson,
-				locale: resolveReportFlowLocale(report.locale ?? requestLocale),
-				surface: 'dsa',
-			},
-		};
-	}
-
-	private async buildDsaReportRow(
-		reportId: ReportID,
-		report: DsaReportRequest,
-		reporter: ReporterMetadata,
-		classification: DsaReportClassification,
-	): Promise<DsaReportDraft> {
-		switch (report.report_type) {
-			case 'message':
-				return this.buildDsaMessageReportRow(reportId, report, reporter, classification);
-			case 'user':
-				return this.buildDsaUserReportRow(reportId, report, reporter, classification);
-			case 'guild':
-				return this.buildDsaGuildReportRow(reportId, report, reporter, classification);
-			default:
-				throw new InvalidDsaReportTargetError();
-		}
-	}
-
-	private async buildDsaMessageReportRow(
-		reportId: ReportID,
-		report: Extract<
-			DsaReportRequest,
-			{
-				report_type: 'message';
-			}
-		>,
-		reporter: ReporterMetadata,
-		classification: DsaReportClassification,
-	): Promise<DsaReportDraft> {
-		const {guildSegment, channelId, messageId} = this.extractChannelAndMessageFromLink(report.message_link);
-		const channel = await this.channelRepository.channelData.findUnique(channelId);
-		if (!channel || guildSegment !== (channel.guildId?.toString() ?? ME)) {
-			throw new UnknownMessageError();
-		}
-		const message = await this.channelRepository.messages.getMessage(channelId, messageId);
-		if (!message || message.channelId !== channelId) {
-			throw new UnknownMessageError();
-		}
-		const author = await this.resolveReportedAuthor(message);
-		if (!author) {
-			throw new UnknownMessageError();
-		}
-		if (report.reported_user_tag && !(await this.isTagOfUser(report.reported_user_tag, author.userId))) {
-			throw new UnknownMessageError();
-		}
-		const reportedUser = author.userId ? await this.userRepository.findUnique(author.userId) : null;
-		if (author.userId && !reportedUser) {
-			throw new UnknownMessageError();
-		}
-		const scope: MessageContextScope = (await this.isChannelReadableByEveryone(channel)) ? 'window' : 'target';
-		const [messageContext, webhookColumns] = await Promise.all([
-			this.gatherMessageContext(channelId, messageId, author, undefined, scope),
-			this.snapshotReportedWebhook(author),
-		]);
-		const guild = channel.guildId ? await this.guildRepository.findUnique(channel.guildId) : null;
-		const contentWarningSnapshot = await this.buildContentWarningSnapshot(guild, channel);
-		const row: IARSubmissionRow = {
-			report_id: reportId,
-			reporter_id: null,
-			reporter_email: reporter.email,
-			reporter_full_legal_name: reporter.fullLegalName,
-			reporter_country_of_residence: reporter.countryOfResidence,
-			reported_at: new Date(),
-			status: ReportStatus.PENDING,
-			report_type: ReportType.MESSAGE,
-			category: classification.category,
-			additional_info: report.additional_info ?? null,
-			reported_user_id: author.userId,
-			reported_user_avatar_hash: reportedUser?.avatarHash || null,
-			reported_guild_id: channel.guildId || null,
-			reported_guild_name: guild?.name ?? null,
-			reported_guild_icon_hash: guild?.iconHash ?? null,
-			reported_message_id: messageId,
-			reported_channel_id: channelId,
-			reported_channel_name: channel.name || null,
-			message_context: messageContext,
-			guild_context_id: channel.guildId || null,
-			resolved_at: null,
-			resolved_by_admin_id: null,
-			public_comment: null,
-			audit_log_reason: null,
-			reported_guild_invite_code: null,
-			...contentWarningSnapshot,
-			...buildReportFlowColumns(classification.flow),
-			...webhookColumns,
-		};
-		return {row, profileSubject: {user: reportedUser, memberGuildId: channel.guildId}};
-	}
-
-	private async buildDsaUserReportRow(
-		reportId: ReportID,
-		report: Extract<
-			DsaReportRequest,
-			{
-				report_type: 'user';
-			}
-		>,
-		reporter: ReporterMetadata,
-		classification: DsaReportClassification,
-	): Promise<DsaReportDraft> {
-		const target = await this.resolveDsaUser(report.user_id ?? undefined, report.user_tag ?? undefined);
-		const contentWarningSnapshot = await this.buildContentWarningSnapshot(null, null);
-		const row: IARSubmissionRow = {
-			report_id: reportId,
-			reporter_id: null,
-			reporter_email: reporter.email,
-			reporter_full_legal_name: reporter.fullLegalName,
-			reporter_country_of_residence: reporter.countryOfResidence,
-			reported_at: new Date(),
-			status: ReportStatus.PENDING,
-			report_type: ReportType.USER,
-			category: classification.category,
-			additional_info: report.additional_info ?? null,
-			reported_user_id: target.id,
-			reported_user_avatar_hash: target.avatarHash || null,
-			reported_guild_id: null,
-			reported_guild_name: null,
-			reported_guild_icon_hash: null,
-			reported_message_id: null,
-			reported_channel_id: null,
-			reported_channel_name: null,
-			message_context: null,
-			guild_context_id: null,
-			resolved_at: null,
-			resolved_by_admin_id: null,
-			public_comment: null,
-			audit_log_reason: null,
-			reported_guild_invite_code: null,
-			...contentWarningSnapshot,
-			...buildReportFlowColumns(classification.flow),
-			...buildReportedWebhookColumns(null),
-		};
-		return {row, profileSubject: {user: target}};
-	}
-
-	private async buildDsaGuildReportRow(
-		reportId: ReportID,
-		report: Extract<
-			DsaReportRequest,
-			{
-				report_type: 'guild';
-			}
-		>,
-		reporter: ReporterMetadata,
-		classification: DsaReportClassification,
-	): Promise<DsaReportDraft> {
-		const guildId = createGuildID(report.guild_id);
-		const guild = await this.guildRepository.findUnique(guildId);
-		if (!guild) {
-			throw new UnknownGuildError();
-		}
-		let inviteCode: string | null = null;
-		if (report.invite_code) {
-			inviteCode = this.sanitizeInviteCode(report.invite_code);
-			if (!inviteCode) {
-				throw new InvalidDsaReportTargetError();
-			}
-			await this.validateInviteForGuild(inviteCode, guildId);
-		}
-		const contentWarningSnapshot = await this.buildContentWarningSnapshot(guild, null);
-		const row: IARSubmissionRow = {
-			report_id: reportId,
-			reporter_id: null,
-			reporter_email: reporter.email,
-			reporter_full_legal_name: reporter.fullLegalName,
-			reporter_country_of_residence: reporter.countryOfResidence,
-			reported_at: new Date(),
-			status: ReportStatus.PENDING,
-			report_type: ReportType.GUILD,
-			category: classification.category,
-			additional_info: report.additional_info ?? null,
-			reported_user_id: null,
-			reported_user_avatar_hash: null,
-			reported_guild_id: guildId,
-			reported_guild_name: guild.name,
-			reported_guild_icon_hash: guild.iconHash || null,
-			reported_message_id: null,
-			reported_channel_id: null,
-			reported_channel_name: null,
-			message_context: null,
-			guild_context_id: guildId,
-			resolved_at: null,
-			resolved_by_admin_id: null,
-			public_comment: null,
-			audit_log_reason: null,
-			reported_guild_invite_code: inviteCode,
-			...contentWarningSnapshot,
-			...buildReportFlowColumns(classification.flow),
-			...buildReportedWebhookColumns(null),
-		};
-		return {row, profileSubject: {guild}};
 	}
 
 	private async getReportableMessageForReporter({
@@ -1143,158 +689,6 @@ export class ReportService {
 			reported_channel_effective_content_warning_level: effectiveLevel,
 			reported_channel_effective_content_warning_text: effectiveText,
 		};
-	}
-
-	private async resolveDsaUser(userId?: bigint, userTag?: string | null): Promise<User> {
-		if (userId != null) {
-			const user = await this.userRepository.findUnique(createUserID(userId));
-			if (!user) {
-				throw new UnknownUserError();
-			}
-			if (userTag) {
-				const taggedUser = await this.findUserByTag(userTag);
-				if (taggedUser.id !== user.id) {
-					throw new InvalidDsaReportTargetError();
-				}
-			}
-			return user;
-		}
-		if (userTag) {
-			return this.findUserByTag(userTag);
-		}
-		throw new InvalidDsaReportTargetError();
-	}
-
-	private async findUserByTag(tag: string): Promise<User> {
-		const parsed = this.parseOsacaTag(tag);
-		if (!parsed) {
-			throw new InvalidDsaReportTargetError();
-		}
-		const user = await this.lookupTaggedUser(parsed);
-		if (!user) {
-			throw new UnknownUserError();
-		}
-		return user;
-	}
-
-	private async isTagOfUser(tag: string, userId: UserID | null): Promise<boolean> {
-		const parsed = this.parseOsacaTag(tag);
-		if (!parsed || !userId) {
-			return false;
-		}
-		const user = await this.lookupTaggedUser(parsed);
-		return user?.id === userId;
-	}
-
-	private async lookupTaggedUser(parsed: ParsedLoginHandle): Promise<User | null> {
-		if (parsed.discriminator === null) {
-			return findPersonByLoginHandle(this.userRepository, parsed);
-		}
-		return this.userRepository.findByUsernameDiscriminator(parsed.username, parsed.discriminator);
-	}
-
-	private async isChannelReadableByEveryone(channel: Channel): Promise<boolean> {
-		if (!channel.guildId) {
-			return false;
-		}
-		const everyoneRole = await this.guildRepository.getRole(guildIdToRoleId(channel.guildId), channel.guildId);
-		if (!everyoneRole) {
-			return false;
-		}
-		const permissions = computeGuildVisitorChannelPermissions({
-			guildId: channel.guildId.toString(),
-			everyonePermissions: everyoneRole.permissions,
-			guildNsfw: false,
-			channel: channelToVisitorInput(channel),
-			adultContentAllowed: true,
-		});
-		return (permissions & GUILD_VISITOR_PERMISSIONS_MASK) === GUILD_VISITOR_PERMISSIONS_MASK;
-	}
-
-	private async readDsaTicket(ticket: string): Promise<DSAReportTicketRow> {
-		const ticketRow = await this.reportRepository.getDsaTicket(ticket);
-		if (!ticketRow || ticketRow.expires_at.getTime() < Date.now()) {
-			throw new InvalidDsaTicketError();
-		}
-		return ticketRow;
-	}
-
-	private generateDsaVerificationCode(): string {
-		const segments: Array<string> = [];
-		for (let i = 0; i < 2; i += 1) {
-			let segment = '';
-			for (let j = 0; j < DSA_CODE_SEGMENT_LENGTH; j += 1) {
-				segment += DSA_CODE_CHARSET[randomInt(DSA_CODE_CHARSET.length)];
-			}
-			segments.push(segment);
-		}
-		return segments.join(DSA_CODE_SEPARATOR);
-	}
-
-	private hashVerificationCode(code: string): string {
-		return createHash('sha256').update(code).digest('hex');
-	}
-
-	private normalizeEmail(email: string): string {
-		return email.trim().toLowerCase();
-	}
-
-	private parseOsacaTag(tag: string): ParsedLoginHandle | null {
-		const trimmed = tag.trim();
-		const match = /^(.+)#(\d{4})$/.exec(trimmed);
-		if (match) {
-			return {
-				username: match[1],
-				discriminator: Number.parseInt(match[2], 10),
-			};
-		}
-		if (!usesUniqueUsernames()) return null;
-		const handle = parseLoginHandle(trimmed);
-		return handle?.discriminator === null ? handle : null;
-	}
-
-	private extractChannelAndMessageFromLink(link: string): {
-		guildSegment: string;
-		channelId: ChannelID;
-		messageId: MessageID;
-	} {
-		let parsed: URL;
-		try {
-			parsed = new URL(link);
-		} catch {
-			throw new UnknownMessageError();
-		}
-		const segments = parsed.pathname.split('/').filter((segment) => segment.length > 0);
-		if (segments.length < 4 || segments[0] !== 'channels') {
-			throw new UnknownMessageError();
-		}
-		const channelId = SnowflakeType.safeParse(segments[2]);
-		const messageId = SnowflakeType.safeParse(segments[3]);
-		if (!channelId.success || !messageId.success) {
-			throw new UnknownMessageError();
-		}
-		return {
-			guildSegment: segments[1],
-			channelId: createChannelID(channelId.data),
-			messageId: createMessageID(messageId.data),
-		};
-	}
-
-	private sanitizeInviteCode(raw: string): string {
-		const trimmed = raw.trim();
-		const segments = trimmed.split('/').filter((segment) => segment.length > 0);
-		const candidate = segments.length > 0 ? segments[segments.length - 1] : trimmed;
-		return candidate;
-	}
-
-	private async validateInviteForGuild(code: string, guildId: GuildID): Promise<void> {
-		const invite = await this.inviteRepository.findUnique(createInviteCode(code));
-		if (!invite) {
-			throw new UnknownInviteError();
-		}
-		if (invite.type !== InviteTypes.GUILD || !invite.guildId || invite.guildId !== guildId) {
-			throw new InvalidDsaReportTargetError();
-		}
 	}
 
 	async getReport(reportId: ReportID): Promise<IARSubmission> {
@@ -1640,9 +1034,6 @@ export class ReportService {
 	private getReporterRateLimitKey(reporter: ReporterMetadata): string {
 		if (reporter.id) {
 			return `user:${reporter.id.toString()}`;
-		}
-		if (reporter.email) {
-			return `email:${reporter.email.toLowerCase()}`;
 		}
 		return 'anonymous';
 	}

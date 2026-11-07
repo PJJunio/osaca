@@ -149,34 +149,6 @@ const NAMED_OSACA_ENV_OVERRIDES: Record<string, NamedEnvOverride> = {
 	OSACA_AUTH_BLUESKY_TOS_URI: {path: ['auth', 'bluesky', 'tos_uri']},
 	OSACA_AUTH_BLUESKY_POLICY_URI: {path: ['auth', 'bluesky', 'policy_uri']},
 	OSACA_AUTH_BLUESKY_KEYS: {path: ['auth', 'bluesky', 'keys'], parse: parseJsonArray},
-	OSACA_EMAIL_ENABLED: {path: ['integrations', 'email', 'enabled'], parse: parseBoolean},
-	OSACA_EMAIL_PROVIDER: {path: ['integrations', 'email', 'provider']},
-	OSACA_EMAIL_DELIVERY: {path: ['integrations', 'email', 'delivery']},
-	OSACA_EMAIL_FROM_EMAIL: {path: ['integrations', 'email', 'from_email']},
-	OSACA_EMAIL_FROM_NAME: {path: ['integrations', 'email', 'from_name']},
-	OSACA_EMAIL_REPLY_TO_EMAIL: {path: ['integrations', 'email', 'reply_to_email']},
-	OSACA_EMAIL_SUPPORT_ALERT_EMAIL: {path: ['integrations', 'email', 'support_alert_email']},
-	OSACA_EMAIL_APP_BASE_URL: {path: ['integrations', 'email', 'app_base_url']},
-	OSACA_EMAIL_WEBHOOK_SECRET: {path: ['integrations', 'email', 'webhook_secret']},
-	OSACA_EMAIL_SMTP_HOST: {path: ['integrations', 'email', 'smtp', 'host']},
-	OSACA_EMAIL_SMTP_PORT: {path: ['integrations', 'email', 'smtp', 'port'], parse: parseInteger},
-	OSACA_EMAIL_SMTP_USERNAME: {path: ['integrations', 'email', 'smtp', 'username']},
-	OSACA_EMAIL_SMTP_PASSWORD: {path: ['integrations', 'email', 'smtp', 'password']},
-	OSACA_EMAIL_SMTP_TLS_MODE: {path: ['integrations', 'email', 'smtp', 'tls_mode'], parse: parseSmtpTlsMode},
-	OSACA_EMAIL_SMTP_SECURE: {path: ['integrations', 'email', 'smtp', 'secure'], parse: parseBoolean},
-	OSACA_EMAIL_FALLBACK_DOMAINS: {path: ['integrations', 'email', 'fallback', 'domains'], parse: parseCsv},
-	OSACA_EMAIL_FALLBACK_SMTP_HOST: {path: ['integrations', 'email', 'fallback', 'smtp', 'host']},
-	OSACA_EMAIL_FALLBACK_SMTP_PORT: {path: ['integrations', 'email', 'fallback', 'smtp', 'port'], parse: parseInteger},
-	OSACA_EMAIL_FALLBACK_SMTP_USERNAME: {path: ['integrations', 'email', 'fallback', 'smtp', 'username']},
-	OSACA_EMAIL_FALLBACK_SMTP_PASSWORD: {path: ['integrations', 'email', 'fallback', 'smtp', 'password']},
-	OSACA_EMAIL_FALLBACK_SMTP_TLS_MODE: {
-		path: ['integrations', 'email', 'fallback', 'smtp', 'tls_mode'],
-		parse: parseSmtpTlsMode,
-	},
-	OSACA_EMAIL_FALLBACK_SMTP_HEADERS: {
-		path: ['integrations', 'email', 'fallback', 'smtp', 'headers'],
-		parse: parseJsonObject,
-	},
 	OSACA_LIVEKIT_ENABLED: {path: ['integrations', 'voice', 'enabled'], parse: parseBoolean},
 	OSACA_LIVEKIT_API_KEY: {path: ['integrations', 'voice', 'api_key']},
 	OSACA_LIVEKIT_API_SECRET: {path: ['integrations', 'voice', 'api_secret']},
@@ -238,8 +210,6 @@ const NAMED_OSACA_ENV_OVERRIDES: Record<string, NamedEnvOverride> = {
 	OSACA_APP_STATUS_PAGE_INCIDENT_HISTORY_URL: {path: ['instance', 'branding', 'status_page_incident_history_url']},
 	OSACA_INSTANCE_SETUP_CONFIGURED: {path: ['instance', 'setup', 'configured'], parse: parseBoolean},
 	OSACA_SETUP_TOKEN: {path: ['instance', 'setup', 'token']},
-	OSACA_ACCOUNT_IDENTITY: {path: ['instance', 'account_identity'], parse: parseAccountIdentity},
-	OSACA_TAG_STYLE: {path: ['instance', 'tag_style'], parse: parseTagStyle},
 	OSACA_DISCOVERY_ENABLED: {path: ['discovery', 'enabled'], parse: parseBoolean},
 	OSACA_DISCOVERY_MIN_MEMBER_COUNT: {path: ['discovery', 'min_member_count'], parse: parseInteger},
 	OSACA_DELETION_GRACE_PERIOD_HOURS: {path: ['deletion_grace_period_hours'], parse: parseInteger},
@@ -285,24 +255,6 @@ function parseBoolean(raw: string): boolean {
 		default:
 			throw new Error('must be true or false');
 	}
-}
-
-function parseAccountIdentity(raw: string): string {
-	const value = raw.trim().toLowerCase();
-	if (value === 'email' || value === 'username') return value;
-	throw new Error('must be email or username');
-}
-
-function parseTagStyle(raw: string): string {
-	const value = raw.trim().toLowerCase();
-	if (value === 'none' || value === 'random') return value;
-	throw new Error('must be none or random');
-}
-
-function parseSmtpTlsMode(raw: string): string {
-	const value = raw.trim().toLowerCase();
-	if (value === 'implicit' || value === 'starttls' || value === 'opportunistic' || value === 'none') return value;
-	throw new Error('must be implicit, starttls, opportunistic or none');
 }
 
 function parseJson(raw: string): unknown {

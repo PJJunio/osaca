@@ -25,8 +25,6 @@ export function isDeletionComplete(user: Pick<User, 'flags' | 'pendingDeletionAt
 }
 
 const FIELDS_CLEARED_ON_DELETION = [
-	'email',
-	'email_bounced',
 	'password_hash',
 	'password_last_changed_at',
 	'totp_secret',
@@ -56,7 +54,6 @@ export function deletedUserIdentity() {
 		username: DELETED_USER_USERNAME,
 		discriminator: DELETED_USER_DISCRIMINATOR,
 		global_name: DELETED_USER_GLOBAL_NAME,
-		email_verified: false,
 		timezone_privacy_flags: ProfileFieldPrivacyFlags.EVERYONE,
 		flags: UserFlags.DELETED,
 	} satisfies Partial<UserRow>;

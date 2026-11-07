@@ -44,7 +44,7 @@ describe('OAuth2 grants follow the account standing', () => {
 		const code = await authorizeOAuth2(harness, setup.endUser.token, {
 			client_id: setup.application.id,
 			redirect_uri: setup.redirectURI,
-			scope: 'identify email',
+			scope: 'identify',
 		});
 		const tokens = await exchangeOAuth2AuthorizationCode(harness, {
 			client_id: setup.application.id,

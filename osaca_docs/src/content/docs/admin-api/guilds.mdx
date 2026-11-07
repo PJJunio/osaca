@@ -458,7 +458,7 @@ Bans a user from a guild, whether or not they're a member, and can delete their 
 | 403 | [error response](/admin-api/#error-response) | `MISSING_PERMISSIONS` when the user owns the guild |
 | 404 | [error response](/admin-api/#error-response) | `UNKNOWN_GUILD` or `UNKNOWN_USER` when the guild or the user doesn't exist, or `UNKNOWN_MEMBER` for the system user |
 
-Like any [guild ban](/http-api/guild-moderation/#guild-ban-object), it also blocks the user's email address and last IP address. The guild gets [Guild Ban Add](/gateway/events/#guild-ban-add). If the user is a member, they're removed and the guild gets [Guild Member Remove](/gateway/events/#guild-member-remove).
+Like any [guild ban](/http-api/guild-moderation/#guild-ban-object), it also blocks the user's last IP address. The guild gets [Guild Ban Add](/gateway/events/#guild-ban-add). If the user is a member, they're removed and the guild gets [Guild Member Remove](/gateway/events/#guild-member-remove).
 
 The rate limit is 100 requests per minute, on the `admin:guild:modify` bucket.
 

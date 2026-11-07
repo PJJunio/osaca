@@ -62,7 +62,7 @@ Opens a direct message with one account, or creates a group DM.
 
 Send `recipient_id` to open a direct message or `recipients` to create a group DM. Opening a direct message you already have returns the same channel.
 
-An account that is not [verified](/http-api/users/#account-tiers) gets 403 `UNCLAIMED_ACCOUNT_CANNOT_JOIN_GROUP_DMS`, `UNCLAIMED_ACCOUNT_CANNOT_SEND_DIRECT_MESSAGES`, `DIRECT_MESSAGE_EMAIL_VERIFICATION_REQUIRED` or `ACCOUNT_VERIFICATION_REQUIRED`.
+An account that is not [verified](/http-api/users/#account-tiers) gets 403 `ACCOUNT_VERIFICATION_REQUIRED`.
 
 When the instance [community policy](/http-api/instance/#community-policy-object) sets `direct_messages_disabled`, every request gets 400 `DIRECT_MESSAGES_DISABLED`.
 

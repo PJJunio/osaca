@@ -32,7 +32,7 @@ async function loginWithTotp(harness: ApiTestHarness, account: TestAccount): Pro
 		ticket: string;
 	}>(harness)
 		.post('/auth/login')
-		.body({email: account.email, password: account.password})
+		.body({login: account.username, password: account.password})
 		.expect(HTTP_STATUS.OK)
 		.execute();
 	const mfaResp = await createBuilderWithoutAuth<{

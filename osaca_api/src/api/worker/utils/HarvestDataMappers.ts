@@ -170,9 +170,6 @@ export function buildUserDataJson(params: UserDataJsonParams) {
 			discriminator: user.discriminator,
 			bot: user.isBot,
 			system: user.isSystem,
-			email: user.email,
-			email_verified: user.emailVerified,
-			email_bounced: user.emailBounced,
 			avatar_hash: user.avatarHash,
 			avatar_url: user.avatarHash
 				? `${Config.endpoints.media}/avatars/${userId}/${user.avatarHash}.${getAnimatedAssetExtension(user.avatarHash)}`

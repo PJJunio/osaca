@@ -17,10 +17,6 @@ const NONE_NORMAL_BEHAVIOR_DESCRIPTOR = msg({
 	message: 'None (normal behavior)',
 	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
 });
-const UNVERIFIED_EMAIL_DESCRIPTOR = msg({
-	message: 'Unverified email',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
 const UNCLAIMED_ACCOUNT_DESCRIPTOR = msg({
 	message: 'Unclaimed account',
 	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
@@ -58,7 +54,6 @@ export const getVerificationBarrierOptions = (): Array<
 > => [
 	{value: 'none', label: NONE_NORMAL_BEHAVIOR_DESCRIPTOR},
 	{value: 'unclaimed_account', label: UNCLAIMED_ACCOUNT_DESCRIPTOR},
-	{value: 'unverified_email', label: UNVERIFIED_EMAIL_DESCRIPTOR},
 	{value: 'account_too_new', label: ACCOUNT_TOO_NEW_DESCRIPTOR},
 	{value: 'not_member_long', label: NOT_A_MEMBER_LONG_ENOUGH_DESCRIPTOR},
 	{value: 'account_limited', label: ACCOUNT_LIMITED_DESCRIPTOR},

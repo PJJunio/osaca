@@ -16,15 +16,10 @@ import {
 	REGISTRATION_PENDING_APPROVAL_TRAIT,
 	REGISTRATION_REJECTED_TRAIT,
 } from '@app/api/instance/InstanceConfigRepository';
-import {
-	getAdminRepository,
-	getInstanceConfigRepository,
-	getUserRepository,
-} from '@app/api/middleware/ServiceSingletons';
+import {getAdminRepository, getUserRepository} from '@app/api/middleware/ServiceSingletons';
 import type {ApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {server} from '@app/api/test/msw/server';
 import {createBuilder, createBuilderWithoutAuth} from '@app/api/test/TestRequestBuilder';
-import {AccountIdentityModes} from '@osaca/constants/src/AccountIdentityConstants';
 import {AdminACLs} from '@osaca/constants/src/AdminACLs';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {UserFlags} from '@osaca/constants/src/UserConstants';
@@ -79,7 +74,6 @@ describe('Recovery kit', () => {
 		originalSelfHosted = config.instance.selfHosted;
 		originalBreachedPasswordCheck = config.breachedPasswordCheck.enabled;
 		config.instance.selfHosted = true;
-		await getInstanceConfigRepository().setAccountIdentityMode(AccountIdentityModes.USERNAME, 'setup');
 	});
 	afterEach(() => {
 		const config = getConfig();
@@ -426,8 +420,6 @@ describe('Recovery kit', () => {
 		expect(await findRecoveryKitCreatedAt(userId)).toBeNull();
 		const kit = await createKit(account);
 		expect((await findRecoveryKitCreatedAt(userId))?.toISOString()).toBe(kit.created_at);
-		await getInstanceConfigRepository().setAccountIdentityMode(AccountIdentityModes.EMAIL, 'setup');
-		expect(await findRecoveryKitCreatedAt(userId)).toBeNull();
 	});
 
 	it('limits attempts per account from one source without locking out others', async () => {
@@ -507,15 +499,6 @@ describe('Recovery kit', () => {
 			.execute();
 	});
 
-	it('is refused with USERNAME_SIGN_IN_ONLY on email instances', async () => {
-		const account = await createAccount();
-		const kit = await createKit(account);
-		await getInstanceConfigRepository().setAccountIdentityMode(AccountIdentityModes.EMAIL, 'setup');
-		await assertUsernameSignInOnly(account, kit.recovery_key);
-		getConfig().instance.selfHosted = false;
-		await assertUsernameSignInOnly(account, kit.recovery_key);
-	});
-
 	async function createAdmin(acls: Array<string>): Promise<TestAccount> {
 		const account = await createAccount();
 		await createBuilder(harness, '').post(`/test/users/${account.userId}/acls`).body({acls}).execute();
@@ -570,7 +553,7 @@ describe('Recovery kit', () => {
 		expect(audit?.adminUserId.toString()).toBe(admin.userId);
 	});
 
-	it('needs its own ACL to revoke a kit and refuses email instances', async () => {
+	it('needs its own ACL to revoke a kit', async () => {
 		const admin = await createAdmin([AdminACLs.AUTHENTICATE, AdminACLs.USER_CREATE_PASSWORD_RESET_LINK]);
 		const account = await createAccount();
 		await createKit(account);
@@ -580,11 +563,11 @@ describe('Recovery kit', () => {
 			.execute();
 		expect(await hasKit(account)).toBe(true);
 		const wildcard = await createAdmin([AdminACLs.WILDCARD]);
-		await getInstanceConfigRepository().setAccountIdentityMode(AccountIdentityModes.EMAIL, 'setup');
 		await createBuilder(harness, wildcard.token)
 			.delete(`/admin/users/${account.userId}/recovery-kit`)
-			.expect(400, APIErrorCodes.USERNAME_SIGN_IN_ONLY)
+			.expect(204)
 			.execute();
+		expect(await hasKit(account)).toBe(false);
 	});
 
 	it('refuses a reset link or a revocation for an account holding ACLs the caller lacks', async () => {
@@ -593,7 +576,7 @@ describe('Recovery kit', () => {
 			AdminACLs.USER_CREATE_PASSWORD_RESET_LINK,
 			AdminACLs.USER_DELETE_RECOVERY_KIT,
 		]);
-		const target = await createAdmin([AdminACLs.AUTHENTICATE, AdminACLs.USER_UPDATE_EMAIL]);
+		const target = await createAdmin([AdminACLs.AUTHENTICATE, AdminACLs.USER_UPDATE_USERNAME]);
 		await createKit(target);
 		await createBuilder(harness, admin.token)
 			.post(`/admin/users/${target.userId}/password-reset-link`)
@@ -631,42 +614,4 @@ describe('Recovery kit', () => {
 		expect((await findRecoveryKitCreatedAt(userId))?.toISOString()).toBe(kit.created_at);
 		expect((await users.findUniqueAssert(userId)).passwordLastChangedAt).toEqual(changedBefore);
 	});
-
-	it('ignores a pending recovery once the instance is no longer a username instance', async () => {
-		const account = await createAccount();
-		const kit = await createKit(account);
-		const secret = await enableTotp(account);
-		const userId = createUserID(BigInt(account.userId));
-		const changedBefore = (await getUserRepository().findUniqueAssert(userId)).passwordLastChangedAt;
-		const recovered = await createBuilderWithoutAuth<RecoverMfaResponse>(harness)
-			.post('/auth/recover')
-			.body({login: account.username, recovery_key: kit.recovery_key, password: NEW_PASSWORD})
-			.execute();
-		await getInstanceConfigRepository().setAccountIdentityMode(AccountIdentityModes.EMAIL, 'setup');
-		const login = await createBuilderWithoutAuth<{token: string; user_id: string}>(harness)
-			.post('/auth/login/mfa/totp')
-			.body({ticket: recovered.ticket, code: totpCodeNow(secret)})
-			.execute();
-		expect(login.user_id).toBe(account.userId);
-		await createBuilder(harness, account.token).get('/users/@me').expect(200).execute();
-		const user = await getUserRepository().findUniqueAssert(userId);
-		expect(user.passwordLastChangedAt).toEqual(changedBefore);
-	});
-
-	async function assertUsernameSignInOnly(account: TestAccount & {username: string}, key: string): Promise<void> {
-		await createBuilder(harness, account.token)
-			.get('/users/@me/recovery-kit')
-			.expect(400, APIErrorCodes.USERNAME_SIGN_IN_ONLY)
-			.execute();
-		await createBuilder(harness, account.token)
-			.post('/users/@me/recovery-kit')
-			.body({password: account.password})
-			.expect(400, APIErrorCodes.USERNAME_SIGN_IN_ONLY)
-			.execute();
-		await createBuilderWithoutAuth(harness)
-			.post('/auth/recover')
-			.body({login: account.username, recovery_key: key, password: NEW_PASSWORD})
-			.expect(400, APIErrorCodes.USERNAME_SIGN_IN_ONLY)
-			.execute();
-	}
 });

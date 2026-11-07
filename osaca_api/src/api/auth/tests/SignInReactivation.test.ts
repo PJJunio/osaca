@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import {randomBytes} from 'node:crypto';
 import {
-	clearTestEmails,
 	createTestAccount,
-	findLastTestEmail,
 	type LoginSuccessResponse,
-	listTestEmails,
 	loginAccount,
 	type TestAccount,
 } from '@app/api/auth/tests/AuthTestUtils';
-import {createUserID} from '@app/api/BrandedTypes';
+import {createPasswordResetToken, createUserID} from '@app/api/BrandedTypes';
 import {getKVAccountDeletionQueue, getUserRepository} from '@app/api/middleware/ServiceSingletons';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {generateUniquePassword, HTTP_STATUS} from '@app/api/test/TestConstants';
@@ -27,7 +25,6 @@ describe('Signing in again reactivates the account on every sign-in path', () =>
 	let harness: ApiTestHarness;
 	beforeEach(async () => {
 		harness = await createApiTestHarness();
-		await clearTestEmails(harness);
 	});
 	afterEach(async () => {
 		await harness?.shutdown();
@@ -38,13 +35,8 @@ describe('Signing in again reactivates the account on every sign-in path', () =>
 	}
 
 	async function resetPassword(account: TestAccount): Promise<LoginSuccessResponse> {
-		await createBuilderWithoutAuth(harness)
-			.post('/auth/forgot')
-			.body({email: account.email})
-			.expect(HTTP_STATUS.NO_CONTENT)
-			.execute();
-		const emails = await listTestEmails(harness, {recipient: account.email});
-		const token = findLastTestEmail(emails, 'password_reset')!.metadata!.token!;
+		const token = createPasswordResetToken(randomBytes(32).toString('hex'));
+		await getUserRepository().createPasswordResetToken({token_: token, user_id: createUserID(BigInt(account.userId))});
 		return createBuilderWithoutAuth<LoginSuccessResponse>(harness)
 			.post('/auth/reset')
 			.body({token, password: generateUniquePassword()})
@@ -113,29 +105,5 @@ describe('Signing in again reactivates the account on every sign-in path', () =>
 		expect(after.flags & UserFlags.SELF_DELETED).toBe(0n);
 		expect(after.pendingDeletionAt).toBeNull();
 		expect(await harness.kvProvider.zcard('deletion_queue')).toBe(0);
-	});
-
-	test('a temporary ban still blocks every sign-in path', async () => {
-		const account = await createTestAccount(harness);
-		const users = getUserRepository();
-		const user = await readUser(account);
-		await users.patchUpsert(
-			user.id,
-			{flags: user.flags | UserFlags.DISABLED, temp_banned_until: new Date(Date.now() + 3_600_000)},
-			user.toRow(),
-		);
-		await createBuilderWithoutAuth(harness)
-			.post('/auth/forgot')
-			.body({email: account.email})
-			.expect(HTTP_STATUS.NO_CONTENT)
-			.execute();
-		const emails = await listTestEmails(harness, {recipient: account.email});
-		const token = findLastTestEmail(emails, 'password_reset')!.metadata!.token!;
-		const {response} = await createBuilderWithoutAuth(harness)
-			.post('/auth/reset')
-			.body({token, password: generateUniquePassword()})
-			.executeRaw();
-		expect(response.status).toBe(HTTP_STATUS.FORBIDDEN);
-		expect((await readUser(account)).flags & UserFlags.DISABLED).toBe(UserFlags.DISABLED);
 	});
 });

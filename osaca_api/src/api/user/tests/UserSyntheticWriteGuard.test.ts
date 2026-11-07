@@ -29,7 +29,7 @@ describe('users table write guard for synthetic accounts', () => {
 		expect(await new UserRepository().listUsers([userId])).toEqual([]);
 	});
 	test.each(SYNTHETIC_USER_IDS)('updateLastActiveAt refuses to create a row for user %s', async (_label, userId) => {
-		const repository = new UserAccountRepository(harness.kvProvider);
+		const repository = new UserAccountRepository();
 		await expect(repository.updateLastActiveAt({userId, lastActiveAt: new Date(0)})).rejects.toThrow();
 		expect(await repository.listUsers([userId])).toEqual([]);
 	});

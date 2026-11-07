@@ -3,7 +3,6 @@
 import {Routes} from '@app/app/Routes';
 import {useHashParam} from '@app/features/app/hooks/useHashParam';
 import type {RuntimeConfigSnapshot} from '@app/features/app/state/InstanceSnapshotStore';
-import {usesUsernameSignIn} from '@app/features/app/utils/AccountIdentityFeatures';
 import * as AuthenticationCommands from '@app/features/auth/commands/AuthenticationCommands';
 import styles from '@app/features/auth/components/pages/ResetPasswordPage.module.css';
 import {resolveMissingResetTokenRedirect} from '@app/features/auth/flow/AccountRecoveryRedirects';
@@ -39,7 +38,7 @@ const RESET_PASSWORD_DESCRIPTOR = msg({
 	comment: 'Short label in the authentication reset password page. Keep the tone plain and specific.',
 });
 const INVALID_RESET_TOKEN_DESCRIPTOR = msg({
-	message: "This link isn't valid. Open the link from your email again.",
+	message: "This link isn't valid. Ask an admin for a new one.",
 	comment: 'Validation error shown when a password reset URL has no usable reset token.',
 });
 
@@ -92,10 +91,9 @@ const ResetPasswordPageContent = observer(function ResetPasswordPageContent({
 			return undefined;
 		},
 	});
-	const usernameSignIn = usesUsernameSignIn(runtimeSnapshot.features);
 	useEffect(() => {
 		if (!token) {
-			RouterUtils.replaceWith(resolveMissingResetTokenRedirect(runtimeSnapshot));
+			RouterUtils.replaceWith(resolveMissingResetTokenRedirect());
 			return;
 		}
 		const settled = takeSettledResetPasswordTokenCheck(token, requestTarget);
@@ -135,35 +133,20 @@ const ResetPasswordPageContent = observer(function ResetPasswordPageContent({
 				<h1 className={styles.title} data-flx="auth.reset-password-page.title--2">
 					<Trans>Reset link invalid or expired</Trans>
 				</h1>
-				{usernameSignIn ? (
-					<>
-						<p className={styles.description} data-flx="auth.reset-password-page.description--username">
-							<Trans>
-								This reset link has expired or was already used. Ask an admin for a new one, or use your recovery kit.
-							</Trans>
-						</p>
-						<div className={styles.footer} data-flx="auth.reset-password-page.footer--username">
-							<AuthRouterLink
-								to={Routes.RECOVER_ACCOUNT}
-								className={styles.link}
-								data-flx="auth.reset-password-page.link--recover"
-							>
-								<Trans>Use your recovery kit</Trans>
-							</AuthRouterLink>
-						</div>
-					</>
-				) : (
-					<>
-						<p className={styles.description} data-flx="auth.reset-password-page.description">
-							<Trans>This reset link has expired. Reset links last 1 hour. Please request a new one.</Trans>
-						</p>
-						<div className={styles.footer} data-flx="auth.reset-password-page.footer">
-							<AuthRouterLink to="/forgot" className={styles.link} data-flx="auth.reset-password-page.link">
-								<Trans>Request a new reset link</Trans>
-							</AuthRouterLink>
-						</div>
-					</>
-				)}
+				<p className={styles.description} data-flx="auth.reset-password-page.description--username">
+					<Trans>
+						This reset link has expired or was already used. Ask an admin for a new one, or use your recovery kit.
+					</Trans>
+				</p>
+				<div className={styles.footer} data-flx="auth.reset-password-page.footer--username">
+					<AuthRouterLink
+						to={Routes.RECOVER_ACCOUNT}
+						className={styles.link}
+						data-flx="auth.reset-password-page.link--recover"
+					>
+						<Trans>Use your recovery kit</Trans>
+					</AuthRouterLink>
+				</div>
 			</>
 		);
 	}

@@ -102,7 +102,6 @@ export class AdminSearchService {
 	async searchUsers(
 		data: {
 			query?: string;
-			email?: string;
 			last_active_ip?: string;
 			acl?: string;
 			limit: number;
@@ -112,15 +111,6 @@ export class AdminSearchService {
 		locale?: string,
 	) {
 		const {users: userRepository, cache: cacheService} = this.deps.apiContext.services;
-		const email = data.email?.trim();
-		if (email) {
-			const user = await userRepository.findByEmail(email);
-			if (!user) {
-				return {users: [], total: 0};
-			}
-			const response = await mapUserToAdminResponse(user, cacheService, acls, locale);
-			return {users: [response], total: 1};
-		}
 		const lastActiveIp = data.last_active_ip?.trim();
 		if (lastActiveIp) {
 			const {userIds, total} = await userRepository.listUserIdsByLastActiveIp(lastActiveIp, data.limit, data.offset);

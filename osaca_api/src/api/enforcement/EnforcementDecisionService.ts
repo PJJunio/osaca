@@ -53,7 +53,6 @@ import type {ReportService} from '@app/api/report/ReportService';
 import {AdminACLs} from '@osaca/constants/src/AdminACLs';
 import {
 	ENFORCEMENT_REASONS,
-	ENFORCEMENT_RULES,
 	type EnforcementKind,
 	type EnforcementLimit,
 	isAccountKind,
@@ -332,20 +331,18 @@ export class EnforcementDecisionService {
 	}
 
 	async get(decisionId: bigint, acls: ReadonlySet<string>): Promise<EnforcementDecisionResponse> {
-		const {repository, delivery} = this.deps;
+		const {repository} = this.deps;
 		const decision = await this.requireDecision(decisionId);
-		const [notes, evidence, subject, recipient, networkBlocks] = await Promise.all([
+		const [notes, evidence, subject, networkBlocks] = await Promise.all([
 			repository.listNotes(decisionId),
 			repository.getEvidence(decisionId),
 			this.findUserSubject(decision),
-			delivery.findRecipient(decision),
 			this.deps.banManagementService.listDecisionNetworkBlocks(decisionId),
 		]);
 		const notice = loadDecisionNotice(this.deps, decision, {
 			messages: evidence?.messages ?? [],
 			channelKinds: evidence?.message_locations ?? null,
 			networkBlocks,
-			accountHasEmail: Boolean(recipient?.email),
 			locale: 'en-US',
 		});
 		return toAdminDecisionResponse({decision, subject, notes, evidence, networkBlocks, notice: await notice, acls});
@@ -498,7 +495,7 @@ export class EnforcementDecisionService {
 		if (request.outcome === 'lifted' && !UNDOABLE_KINDS.has(decision.kind)) {
 			throw InputValidationError.fromCode('outcome', ValidationErrorCodes.ENFORCEMENT_OUTCOME_NOT_ALLOWED);
 		}
-		const inForce = await this.undo(decision, request, endedBy, internalNote);
+		const inForce = await this.undo(decision, request, endedBy);
 		const ended: EnforcementDecisionRow & {ended_at: Date} = {
 			...decision,
 			status: 'ended',
@@ -536,7 +533,6 @@ export class EnforcementDecisionService {
 		decision: EnforcementDecisionRow,
 		request: EnforcementDecisionEndRequest,
 		actorId: UserID,
-		internalNote: string | null,
 	): Promise<boolean> {
 		const subjectId = createUserID(decision.subject_id);
 		switch (decision.kind) {
@@ -564,10 +560,6 @@ export class EnforcementDecisionService {
 				}
 				await cancelClosure(this.deps, user);
 				await this.deps.banManagementService.removeDecisionNetworkBlocks([decision.decision_id]);
-				const {rule} = ENFORCEMENT_REASONS[decision.reason_code];
-				if (ENFORCEMENT_RULES[rule].barsNewAccounts && user.email) {
-					await this.deps.banManagementService.unbanEmail({email: user.email}, actorId, internalNote);
-				}
 				await emitAdminAction(actorId, subjectId, 'cancel_deletion');
 				return true;
 			}

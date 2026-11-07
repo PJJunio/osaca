@@ -182,7 +182,6 @@ func (c *Client) RevokeInvite(ctx context.Context, id string) error {
 type PendingRegistration struct {
 	ID          string `json:"id"`
 	Username    string `json:"username"`
-	Email       string `json:"email,omitempty"`
 	RequestedAt string `json:"requested_at"`
 }
 
@@ -193,11 +192,7 @@ func (c *Client) PendingRegistrations(ctx context.Context) ([]PendingRegistratio
 	}
 	out := []PendingRegistration{}
 	for _, p := range resp.PendingRegistrations {
-		pr := PendingRegistration{ID: p.UserId, Username: p.Username, RequestedAt: p.RequestedAt.UTC().Format(time.RFC3339)}
-		if p.Email != nil {
-			pr.Email = *p.Email
-		}
-		out = append(out, pr)
+		out = append(out, PendingRegistration{ID: p.UserId, Username: p.Username, RequestedAt: p.RequestedAt.UTC().Format(time.RFC3339)})
 	}
 	return out, nil
 }
@@ -232,101 +227,6 @@ func (c *Client) ReviewRegistration(ctx context.Context, id string, approve bool
 		return nil, err
 	}
 	return found, nil
-}
-
-type SMTPSettings struct {
-	Host     string
-	Port     int
-	TLS      string
-	Username string
-	Password string
-	FromName string
-	FromAddr string
-}
-
-var TLSModes = []string{"starttls", "implicit", "opportunistic", "none"}
-
-func TLSModeFor(port int) string {
-	if port == 465 {
-		return "implicit"
-	}
-	return "starttls"
-}
-
-func StartTLSFailed(message string) bool {
-	return strings.Contains(strings.ToLower(message), "starttls")
-}
-
-func (c *Client) SavedTLSMode(ctx context.Context, host string, port int) (string, error) {
-	cfg, err := c.RawConfig(ctx)
-	if err != nil {
-		return "", err
-	}
-	savedHost, _ := lookup(cfg, "integrations.email.smtp.host")
-	savedPort, _ := lookup(cfg, "integrations.email.smtp.port")
-	mode, _ := lookup(cfg, "integrations.email.smtp.tls_mode")
-	h, _ := savedHost.(string)
-	n, _ := savedPort.(float64)
-	m, _ := mode.(string)
-	if !strings.EqualFold(h, host) || int(n) != port {
-		return "", nil
-	}
-	return m, nil
-}
-
-func (c *Client) SetSMTP(ctx context.Context, s SMTPSettings) error {
-	tls := s.TLS
-	if tls == "" {
-		tls = TLSModeFor(s.Port)
-	}
-	smtp := map[string]any{
-		"host":     s.Host,
-		"port":     s.Port,
-		"tls_mode": tls,
-		"username": s.Username,
-	}
-	if s.Password != "" {
-		smtp["password"] = s.Password
-	}
-	email := map[string]any{
-		"delivery":   "smtp",
-		"from_email": s.FromAddr,
-		"smtp":       smtp,
-	}
-	if s.FromName != "" {
-		email["from_name"] = s.FromName
-	}
-	return c.PatchConfig(ctx, map[string]any{"integrations": map[string]any{"email": email}})
-}
-
-func (c *Client) EmailOff(ctx context.Context) error {
-	return c.PatchConfig(ctx, map[string]any{"integrations": map[string]any{"email": map[string]any{"delivery": "off"}}})
-}
-
-type SMTPTestResult struct {
-	OK             bool
-	Error          string
-	ServerResponse string
-}
-
-func (c *Client) TestSMTP(ctx context.Context, sendTo string) (*SMTPTestResult, error) {
-	req := InstanceEmailSmtpTestRequest{}
-	if sendTo != "" {
-		to := EmailType(sendTo)
-		req.SendTo = &to
-	}
-	var resp InstanceEmailSmtpTestResponse
-	if err := c.Call(ctx, http.MethodPost, "/admin/instance/config/smtp-tests", nil, req, &resp); err != nil {
-		return nil, err
-	}
-	out := &SMTPTestResult{OK: resp.Ok}
-	if resp.Error != nil {
-		out.Error = *resp.Error
-	}
-	if resp.ServerResponse != nil {
-		out.ServerResponse = *resp.ServerResponse
-	}
-	return out, nil
 }
 
 func (c *Client) UploadBranding(ctx context.Context, kind BrandingAssetUploadRequestKind, image []byte) error {

@@ -168,30 +168,6 @@ export function getReportFlowAnswerLabels(
 	return labels;
 }
 
-export function walkToReportFlowOption(flow: ReportFlowResponse, optionId: string): ReportFlowWalk | null {
-	const parents = new Map<string, {screenId: string; optionId: string} | null>([[flow.start_screen_id, null]]);
-	const queue = [flow.start_screen_id];
-	for (let index = 0; index < queue.length; index++) {
-		const screen = getReportFlowScreen(flow, queue[index]);
-		if (!screen || getReportFlowScreenKind(screen) !== 'choice') continue;
-		if (screen.options.some((option) => option.id === optionId)) {
-			const path = [optionId];
-			for (let parent = parents.get(screen.id); parent; parent = parents.get(parent.screenId)) {
-				path.unshift(parent.optionId);
-			}
-			const walk = path.reduce((current, id) => chooseReportFlowOption(flow, current, id), startReportFlowWalk(flow));
-			return walk.steps.length === path.length && (walk.phase === 'screen' || walk.phase === 'summary') ? walk : null;
-		}
-		for (const option of screen.options) {
-			const next = option.outcome.type === 'screen' ? option.outcome.screen_id : null;
-			if (next === null || parents.has(next)) continue;
-			parents.set(next, {screenId: screen.id, optionId: option.id});
-			queue.push(next);
-		}
-	}
-	return null;
-}
-
 export function isReportFlowWalkUrgent(flow: ReportFlowResponse, walk: ReportFlowWalk): boolean {
 	return walk.steps.some((step) => getReportFlowScreen(flow, step.screen_id)?.urgent === true);
 }

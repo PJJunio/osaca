@@ -2,7 +2,6 @@
 
 import assert from 'node:assert/strict';
 import {showGenericErrorModal} from '@app/features/app/components/alerts/GenericErrorModalCommands';
-import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
 import Authentication from '@app/features/auth/state/Authentication';
 import type {Channel} from '@app/features/channel/models/Channel';
 import Channels from '@app/features/channel/state/Channels';
@@ -175,6 +174,7 @@ import {
 } from '@app/features/voice/utils/VoicePermissionUtils';
 import {getActiveVoiceProcessingMode} from '@app/features/voice/utils/VoiceProcessingProfile';
 import type {NativeAudioStartOptions} from '@app/types/electron.d';
+import {type I18n, i18n as linguiI18n, type MessageDescriptor} from '@lingui/core';
 import {AccountTiers, type TierGatedAction, TierGatedActions} from '@osaca/constants/src/AccountTierConstants';
 import {resolveVerificationNeed} from '@osaca/constants/src/AccountTierRules';
 import {ME} from '@osaca/constants/src/AppConstants';
@@ -196,7 +196,6 @@ import type {
 	VoiceEngineV2VoiceStats,
 } from '@osaca/voice_engine_v2/src/protocol/types';
 import type {VoiceEngineV2Controller} from '@osaca/voice_engine_v2/src/runtime/VoiceEngineV2Controller';
-import {type I18n, i18n as linguiI18n, type MessageDescriptor} from '@lingui/core';
 import type {
 	ConnectionQuality as LiveKitConnectionQuality,
 	Participant,
@@ -1082,13 +1081,7 @@ class MediaEngineFacade extends Store {
 		const i18n = this.i18n;
 		if (!i18n) return;
 		const user = Users.getCurrentUser();
-		const need =
-			user?.verificationNeed ??
-			resolveVerificationNeed({
-				tier: AccountTiers.UNCLAIMED,
-				identityMode: RuntimeConfig.accountIdentity,
-				hasEmail: user?.email != null,
-			});
+		const need = user?.verificationNeed ?? resolveVerificationNeed(AccountTiers.UNCLAIMED);
 		if (need === null) return;
 		openAccountGateFlow(i18n, {action, need});
 	}

@@ -4,7 +4,7 @@ use crate::{api::client::with_proxy_client_ip_header, config::AdminConfig};
 use base64::{Engine as _, engine::general_purpose::STANDARD};
 use serde::Deserialize;
 
-pub const ADMIN_OAUTH_SCOPE: &str = "identify email";
+pub const ADMIN_OAUTH_SCOPE: &str = "identify";
 
 #[derive(Debug, Deserialize)]
 pub struct TokenResponse {

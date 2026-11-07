@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type {TestAccount} from '@app/api/auth/tests/AuthTestUtils';
-import {createTestAccount, createUniqueEmail, setUserACLs} from '@app/api/auth/tests/AuthTestUtils';
+import {createTestAccount, setUserACLs} from '@app/api/auth/tests/AuthTestUtils';
 import {getConfig} from '@app/api/Config';
 import {getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {HTTP_STATUS} from '@app/api/test/TestConstants';
-import {createBuilder, createBuilderWithoutAuth} from '@app/api/test/TestRequestBuilder';
-import {EmailDeliveryModes, VerificationBases} from '@osaca/constants/src/AccountConfigConstants';
+import {createBuilder} from '@app/api/test/TestRequestBuilder';
 import {AdminACLs} from '@osaca/constants/src/AdminACLs';
-import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import type {InstanceConfigResponse} from '@osaca/schema/src/domains/admin/AdminSchemas';
 import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it} from 'vitest';
@@ -79,51 +77,5 @@ describe('instance account settings', () => {
 			'auth.instant_accounts.enabled',
 			ValidationErrorCodes.INSTANT_ACCOUNTS_REQUIRE_CAPTCHA,
 		);
-	});
-
-	it('refuses a confirmed email as the verification basis while no email can be sent', async () => {
-		await patch({integrations: {email: {delivery: EmailDeliveryModes.OFF}}}).execute();
-		await expectRejected(
-			{accounts: {verification_basis: VerificationBases.CONFIRMED_EMAIL}},
-			'accounts.verification_basis',
-			ValidationErrorCodes.VERIFICATION_BASIS_REQUIRES_EMAIL_DELIVERY,
-		);
-	});
-
-	it('refuses to turn email delivery off while accounts need a confirmed email', async () => {
-		const repository = getInstanceConfigRepository();
-		if ((await repository.getEmailDeliveryState()) !== 'on') {
-			await repository.setInstanceIntegrationsConfig({
-				email: {
-					delivery: EmailDeliveryModes.SMTP,
-					from_email: 'noreply@example.com',
-					smtp: {host: 'smtp.example.com', port: 587, username: 'user', password: 'secret'},
-				},
-			});
-		}
-		await patch({accounts: {verification_basis: VerificationBases.CONFIRMED_EMAIL}}).execute();
-		await expectRejected(
-			{integrations: {email: {delivery: EmailDeliveryModes.OFF}}},
-			'integrations.email.delivery',
-			ValidationErrorCodes.VERIFICATION_BASIS_REQUIRES_EMAIL_DELIVERY,
-		);
-	});
-
-	it('refuses an email-only sign-up that could never sign in again while email delivery is off', async () => {
-		await getInstanceConfigRepository().setInstanceIntegrationsConfig({email: {delivery: EmailDeliveryModes.OFF}});
-		await createBuilderWithoutAuth(harness)
-			.post('/auth/register')
-			.body({email: createUniqueEmail('nodelivery'), global_name: 'Nobody', consent: true})
-			.expect(HTTP_STATUS.BAD_REQUEST, APIErrorCodes.REGISTRATION_CREDENTIAL_REQUIRED)
-			.execute();
-		await createBuilderWithoutAuth(harness)
-			.post('/auth/register')
-			.body({
-				email: createUniqueEmail('nodelivery'),
-				global_name: 'Somebody',
-				password: 'a-strong-password-123',
-				consent: true,
-			})
-			.execute();
 	});
 });

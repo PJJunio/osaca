@@ -5,8 +5,8 @@ import {showGenericErrorModal} from '@app/features/app/components/alerts/Generic
 import {promptForAccountTier} from '@app/features/auth/utils/AccountTierPrompt';
 import {failureCode, failureMessage} from '@app/features/platform/utils/ResponseInspection';
 import {FRIENDS_DISABLED_DESCRIPTOR} from '@app/features/relationship/utils/RelationshipMessageDescriptors';
-import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {msg} from '@lingui/core/macro';
+import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 
 const SEND_FRIEND_REQUEST_FAILED_TITLE_DESCRIPTOR = msg({
 	message: "Couldn't send friend request",
@@ -29,15 +29,6 @@ const ALREADY_FRIENDS_MESSAGE_DESCRIPTOR = msg({
 	message: "You're already friends with this user.",
 	comment: 'Body of the friend-request error modal when the users are already friends.',
 });
-const FINISH_SIGNING_UP_TO_SEND_MESSAGE_DESCRIPTOR = msg({
-	message: 'Finish signing up to send friend requests.',
-	comment:
-		'Body of the friend-request error modal when the current account is an unclaimed (guest) account. "Finish signing up" means complete account claim.',
-});
-const VERIFY_EMAIL_TO_SEND_MESSAGE_DESCRIPTOR = msg({
-	message: 'Confirm your email before sending friend requests.',
-	comment: 'Body of the friend-request error modal when the current account email is unverified.',
-});
 const FRIENDS_LIST_FULL_MESSAGE_DESCRIPTOR = msg({
 	message: 'Your friends list is full, or theirs is. Remove someone and try again.',
 	comment: 'Body of the friend-request error modal when the relationship limit is reached for either user.',
@@ -54,10 +45,6 @@ const ACCEPT_FRIEND_REQUEST_FAILED_TITLE_DESCRIPTOR = msg({
 const REQUEST_NO_LONGER_AVAILABLE_MESSAGE_DESCRIPTOR = msg({
 	message: 'That friend request is no longer available. Refresh and try again.',
 	comment: 'Body of the accept-friend-request error modal when the request no longer exists.',
-});
-const CLAIM_TO_ACCEPT_MESSAGE_DESCRIPTOR = msg({
-	message: 'Finish signing up to accept friend requests.',
-	comment: 'Body of the accept-friend-request error modal when the current account is an unclaimed (guest) account.',
 });
 const ACCEPT_FRIEND_REQUEST_FAILED_MESSAGE_DESCRIPTOR = msg({
 	message: "Couldn't accept the friend request. Try again.",
@@ -136,12 +123,6 @@ export function showSendFriendRequestErrorModal(error: unknown): void {
 				case APIErrorCodes.ALREADY_FRIENDS:
 					message = i18n._(ALREADY_FRIENDS_MESSAGE_DESCRIPTOR);
 					break;
-				case APIErrorCodes.UNCLAIMED_ACCOUNT_CANNOT_SEND_FRIEND_REQUESTS:
-					message = i18n._(FINISH_SIGNING_UP_TO_SEND_MESSAGE_DESCRIPTOR);
-					break;
-				case APIErrorCodes.FRIEND_REQUEST_EMAIL_VERIFICATION_REQUIRED:
-					message = i18n._(VERIFY_EMAIL_TO_SEND_MESSAGE_DESCRIPTOR);
-					break;
 				case APIErrorCodes.MAX_FRIENDS:
 					message = i18n._(FRIENDS_LIST_FULL_MESSAGE_DESCRIPTOR);
 					break;
@@ -171,9 +152,6 @@ export function showAcceptFriendRequestErrorModal(error: unknown): void {
 				case APIErrorCodes.UNKNOWN_USER:
 				case APIErrorCodes.FRIEND_REQUEST_BLOCKED:
 					message = i18n._(REQUEST_NO_LONGER_AVAILABLE_MESSAGE_DESCRIPTOR);
-					break;
-				case APIErrorCodes.UNCLAIMED_ACCOUNT_CANNOT_ACCEPT_FRIEND_REQUESTS:
-					message = i18n._(CLAIM_TO_ACCEPT_MESSAGE_DESCRIPTOR);
 					break;
 				case APIErrorCodes.MAX_FRIENDS:
 					message = i18n._(FRIENDS_LIST_FULL_MESSAGE_DESCRIPTOR);

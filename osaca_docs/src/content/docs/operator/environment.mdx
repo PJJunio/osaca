@@ -56,7 +56,7 @@ The LiveKit API secret that goes with `LIVEKIT_API_KEY`, at least 32 characters.
 
 ### `OSACA_SUDO_MODE_SECRET`
 
-The key OSACA signs sudo mode tokens with and derives a few other internal signing keys from. Changing it ends every active sudo mode session, voids codes already emailed and makes every remembered device count as new. Keep it secret.
+The key OSACA signs sudo mode tokens with and derives a few other internal signing keys from. Changing it ends every active sudo mode session and voids pending captcha proofs. Keep it secret.
 
 ### `OSACA_CONNECTION_INITIATION_SECRET`
 
@@ -634,7 +634,7 @@ Hosts the Rust services other than the app-proxy connect to without the proxy, s
 
 ### `OSACA_NODE_EXTRA_CA_CERTS`
 
-The path of a PEM file of CA certificates that the api and worker trust for outgoing TLS on top of Node's built-in ones. Use it when your email server has a certificate from your own CA. The path is inside their containers. With Docker Compose they see the ca folder of your instance at `/etc/osaca/ca`, and nothing else from the instance folder. A file you set replaces the system bundle. Node's built-in CAs still apply, and the file can have only your own CA. The Rust services don't use it and take their CA certificates from `SSL_CERT_FILE`. The default is `/etc/ssl/certs/ca-certificates.crt`. With rexctl, use `rexctl config set OSACA_NODE_EXTRA_CA_CERTS`.
+The path of a PEM file of CA certificates that the api and worker trust for outgoing TLS on top of Node's built-in ones. Use it when a service the api calls, such as an S3 store, has a certificate from your own CA. The path is inside their containers. With Docker Compose they see the ca folder of your instance at `/etc/osaca/ca`, and nothing else from the instance folder. A file you set replaces the system bundle. Node's built-in CAs still apply, and the file can have only your own CA. The Rust services don't use it and take their CA certificates from `SSL_CERT_FILE`. The default is `/etc/ssl/certs/ca-certificates.crt`. With rexctl, use `rexctl config set OSACA_NODE_EXTRA_CA_CERTS`.
 
 ## Sign-in
 
@@ -649,94 +649,6 @@ The title browsers show for OSACA when someone creates or uses a passkey. When i
 ### `OSACA_PASSKEY_ADDITIONAL_ALLOWED_ORIGINS`
 
 Every origin where passkeys work, separated by commas. When it's empty, Docker Compose uses `OSACA_PUBLIC_ORIGIN`, or `OSACA_PUBLIC_SCHEME` followed by `://` and `OSACA_DOMAIN`. A list you set replaces it and must include the web app origin. Set a list when `OSACA_APP_ENDPOINT` is on another origin. Each entry is an http or https origin or an Android app, written as `android:apk-key-hash:` followed by its signing certificate's SHA-256 hash in unpadded base64url. With rexctl, use `rexctl config set OSACA_PASSKEY_ADDITIONAL_ALLOWED_ORIGINS`.
-
-## Email
-
-The admin panel can also save the delivery mode, the sender and the SMTP server. A value saved there is used first.
-
-### `OSACA_EMAIL_ENABLED`
-
-The older way to turn email on. Use `OSACA_EMAIL_DELIVERY`. With rexctl, use `rexctl config set integrations.email.delivery`.
-
-### `OSACA_EMAIL_PROVIDER`
-
-The older way to pick the email transport, which takes `smtp` or `none`. Use `OSACA_EMAIL_DELIVERY`. With rexctl, use `rexctl config set integrations.email.delivery`.
-
-### `OSACA_EMAIL_DELIVERY`
-
-How OSACA sends email. Use `smtp` or `off`. When it's empty, `OSACA_EMAIL_ENABLED` and `OSACA_EMAIL_PROVIDER` decide, and email is off when those are empty too. With rexctl, use `rexctl config set integrations.email.delivery`.
-
-### `OSACA_EMAIL_FROM_EMAIL`
-
-The address OSACA sends email from. When it's empty, OSACA uses `noreply@` followed by `OSACA_DOMAIN`. With rexctl, use `rexctl config set integrations.email.from_email`.
-
-### `OSACA_EMAIL_FROM_NAME`
-
-The sender name on email from OSACA. When it's empty, OSACA uses the product name of the instance. With rexctl, use `rexctl config set integrations.email.from_name`.
-
-### `OSACA_EMAIL_REPLY_TO_EMAIL`
-
-The address replies go to, sent as the Reply-To header on every email, such as `support@example.com`. When it's empty, OSACA sends no Reply-To header. With rexctl, use `rexctl config set OSACA_EMAIL_REPLY_TO_EMAIL`.
-
-### `OSACA_EMAIL_APP_BASE_URL`
-
-The base URL OSACA uses for links in emails, an http or https URL with no credentials, query or fragment. When it's empty, OSACA uses `OSACA_APP_ENDPOINT`. With rexctl, use `rexctl config set OSACA_EMAIL_APP_BASE_URL`.
-
-### `OSACA_EMAIL_WEBHOOK_SECRET`
-
-The base64 secret OSACA uses to check the signature on bounce and complaint webhooks from the Sweego email service. When it's empty, OSACA turns those webhooks away. Keep it secret. With rexctl, use `rexctl config set OSACA_EMAIL_WEBHOOK_SECRET`.
-
-### `OSACA_EMAIL_SMTP_HOST`
-
-The hostname of your SMTP server. With rexctl, use `rexctl config set integrations.email.smtp.host`.
-
-### `OSACA_EMAIL_SMTP_PORT`
-
-The port of your SMTP server. When it's empty, OSACA uses `587`. With rexctl, use `rexctl config set integrations.email.smtp.port`.
-
-### `OSACA_EMAIL_SMTP_USERNAME`
-
-The username OSACA signs in to your SMTP server with. With rexctl, use `rexctl config set integrations.email.smtp.username`.
-
-### `OSACA_EMAIL_SMTP_PASSWORD`
-
-The password OSACA signs in to your SMTP server with. Keep it secret. With rexctl, use `rexctl config set integrations.email.smtp.password`.
-
-### `OSACA_EMAIL_SMTP_TLS_MODE`
-
-How the SMTP connection is encrypted. Use `implicit` for TLS from the start, usually on port 465, `starttls` to upgrade before signing in, usually on port 587, `opportunistic` to upgrade when the server offers it, or `none`. When it's empty, `OSACA_EMAIL_SMTP_SECURE` decides. When both are empty, OSACA uses `implicit` on port 465 and `starttls` on any other port. With rexctl, use `rexctl config set integrations.email.smtp.tls_mode`.
-
-### `OSACA_EMAIL_SMTP_SECURE`
-
-The older way to set `OSACA_EMAIL_SMTP_TLS_MODE`, used only while that is empty. Use `true` for `implicit` on port 465 and `starttls` on any other port, or `false` for `opportunistic`. With rexctl, use `rexctl config set integrations.email.smtp.tls_mode`.
-
-### `OSACA_EMAIL_FALLBACK_DOMAINS`
-
-Recipient domains, separated by commas, whose mail goes through the fallback SMTP provider, such as `gmail.com,googlemail.com`. Only exact domain matches count, and `*` alone sends all mail through the fallback provider. With rexctl, use `rexctl config set OSACA_EMAIL_FALLBACK_DOMAINS`.
-
-### `OSACA_EMAIL_FALLBACK_SMTP_HOST`
-
-The hostname of the fallback SMTP provider. With rexctl, use `rexctl config set OSACA_EMAIL_FALLBACK_SMTP_HOST`.
-
-### `OSACA_EMAIL_FALLBACK_SMTP_PORT`
-
-The port of the fallback SMTP provider, from 1 to 65535. When it's empty, OSACA uses `587`. With rexctl, use `rexctl config set OSACA_EMAIL_FALLBACK_SMTP_PORT`.
-
-### `OSACA_EMAIL_FALLBACK_SMTP_USERNAME`
-
-The username OSACA signs in to the fallback SMTP provider with. OSACA doesn't start when a fallback provider is set without it. With rexctl, use `rexctl config set OSACA_EMAIL_FALLBACK_SMTP_USERNAME`.
-
-### `OSACA_EMAIL_FALLBACK_SMTP_PASSWORD`
-
-The password OSACA signs in to the fallback SMTP provider with. OSACA doesn't start when a fallback provider is set without it. Keep it secret. With rexctl, use `rexctl config set OSACA_EMAIL_FALLBACK_SMTP_PASSWORD`.
-
-### `OSACA_EMAIL_FALLBACK_SMTP_TLS_MODE`
-
-How OSACA encrypts the connection to the fallback provider. Use `implicit`, `starttls`, `opportunistic` or `none`. When it's empty, OSACA uses `implicit` on port 465 and `starttls` on any other port. With rexctl, use `rexctl config set OSACA_EMAIL_FALLBACK_SMTP_TLS_MODE`.
-
-### `OSACA_EMAIL_FALLBACK_SMTP_HEADERS`
-
-Extra headers added to every message sent through the fallback provider, as a JSON object that maps header names to string values. Core headers such as From, To, Subject and Reply-To can't be set here. With rexctl, use `rexctl config set OSACA_EMAIL_FALLBACK_SMTP_HEADERS`.
 
 ## Push notifications
 
@@ -1150,7 +1062,7 @@ OSACA uses the product name, images, theme colour and status page links set here
 
 ### `OSACA_APP_PRODUCT_NAME`
 
-The product name the apps show and OSACA uses in emails and system messages. When it's empty or set to `OSACA` on a self-hosted instance, OSACA uses the hostname of the web app. With rexctl, use `rexctl config set app_public.branding.product_name`.
+The product name the apps show and OSACA uses in system messages. When it's empty or set to `OSACA` on a self-hosted instance, OSACA uses the hostname of the web app. With rexctl, use `rexctl config set app_public.branding.product_name`.
 
 ### `OSACA_APP_ICON_URL`
 
@@ -1195,14 +1107,6 @@ The URL of the incident history on your status page. The apps don't use it yet. 
 ### `OSACA_INSTANCE_SETUP_CONFIGURED`
 
 Whether a new instance starts as already set up. Use `true` or `false`. With `true`, the setup wizard is skipped and registration opens without making the first account an admin. Once a setup state is saved, this has no effect. When it's empty, OSACA uses `false`. With rexctl, use `rexctl config set OSACA_INSTANCE_SETUP_CONFIGURED`.
-
-### `OSACA_ACCOUNT_IDENTITY`
-
-How people sign in on a new instance. Use `username` or `email`. OSACA uses it only on the first start with no saved sign-in method. When it's empty, OSACA uses `email` if email delivery is set up and `username` otherwise. When `OSACA_INSTANCE_SETUP_CONFIGURED` is `true` or any account exists, OSACA uses email sign-in with random tags and ignores this. Otherwise the setup wizard asks again, and its answer replaces this value. With rexctl, use `rexctl config set OSACA_ACCOUNT_IDENTITY`.
-
-### `OSACA_TAG_STYLE`
-
-How usernames are tagged on a new instance that signs in by email. Use `none` for unique usernames with no tag or `random` for a random tag on every account. Username sign-in always uses `none`. OSACA reads this setting only on the first start. When it's empty, OSACA uses `none`. When `OSACA_INSTANCE_SETUP_CONFIGURED` is `true` or any account exists, OSACA uses random tags and ignores this. Otherwise the setup wizard asks again, and its answer replaces this value. With rexctl, use `rexctl config set OSACA_TAG_STYLE`.
 
 ### `OSACA_AUTO_JOIN_INVITE_CODE`
 

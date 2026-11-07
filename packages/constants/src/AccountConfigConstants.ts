@@ -19,53 +19,6 @@ export const GuildJoinGates = {
 
 export type GuildJoinGate = ValueOf<typeof GuildJoinGates>;
 
-export const IdentifierFirstModes = {
-	AUTO: 'auto',
-	ON: 'on',
-	OFF: 'off',
-} as const;
-
-export type IdentifierFirstMode = ValueOf<typeof IdentifierFirstModes>;
-
-export const VerificationBases = {
-	AUTO: 'auto',
-	CONFIRMED_EMAIL: 'confirmed_email',
-	LOCAL_CREDENTIAL: 'local_credential',
-} as const;
-
-export type VerificationBasis = ValueOf<typeof VerificationBases>;
-
-export type EffectiveVerificationBasis = Exclude<VerificationBasis, typeof VerificationBases.AUTO>;
-
-export const EmailDeliveryModes = {
-	OFF: 'off',
-	SMTP: 'smtp',
-} as const;
-
-export type EmailDeliveryMode = ValueOf<typeof EmailDeliveryModes>;
-
-export function emailDeliveryFromLegacy(params: {enabled: boolean; provider: 'smtp' | 'none'}): EmailDeliveryMode {
-	return params.enabled && params.provider === 'smtp' ? EmailDeliveryModes.SMTP : EmailDeliveryModes.OFF;
-}
-
-export const EmailDeliveryStates = {
-	ON: 'on',
-	OFF_USERNAME_MODE: 'off_username_mode',
-	OFF_DISABLED: 'off_disabled',
-	OFF_INCOMPLETE: 'off_incomplete',
-} as const;
-
-export type EmailDeliveryState = ValueOf<typeof EmailDeliveryStates>;
-
-export const EmailCodeAvailability = {
-	AVAILABLE: 'available',
-	IDENTITY_MODE_USERNAME: 'identity_mode_username',
-	DELIVERY_OFF: 'delivery_off',
-	NO_OWNED_EMAIL: 'no_owned_email',
-} as const;
-
-export type EmailCodeAvailability = ValueOf<typeof EmailCodeAvailability>;
-
 export const InstantAccountAvailability = {
 	AVAILABLE: 'available',
 	DISABLED: 'disabled',
@@ -94,17 +47,10 @@ export const LastSessionCleanupModes = {
 	AFTER_GRACE: 'after_grace',
 } as const;
 
-export const ClaimAccountNextSteps = {
-	NONE: 'none',
-	CONFIRM_EMAIL: 'confirm_email',
-} as const;
-
 export const AccountCleanupDefaults = {
 	SCHEDULED_DELETION_GRACE_MS: 24 * HOUR_MS,
 	MIN_ACCOUNT_AGE_MS: 24 * HOUR_MS,
 	UNCLAIMED_INACTIVE_DAYS: 90,
-	INACTIVITY_DAYS: 730,
-	INACTIVITY_WARNING_LEAD_DAYS: 30,
 	MIN_INACTIVE_DAYS: 1,
 	MAX_INACTIVE_DAYS: 3650,
 } as const;

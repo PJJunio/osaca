@@ -8,9 +8,7 @@ import {revokeAllAuthSessions} from '@app/api/auth/AuthSessionRevocation';
 import * as AuthUtility from '@app/api/auth/AuthUtility';
 import {RecoveryKitRepository} from '@app/api/auth/services/RecoveryKitRepository';
 import {resolveWebAuthnSecondFactor} from '@app/api/auth/services/WebAuthnSecondFactor';
-import {createPasswordResetToken} from '@app/api/BrandedTypes';
 import {Config} from '@app/api/Config';
-import {getContentMessage} from '@app/api/content_i18n/ContentI18n';
 import type {UserRow} from '@app/api/database/types/UserTypes';
 import {Logger} from '@app/api/Logger';
 import {getKVClient} from '@app/api/middleware/ServiceRegistry';
@@ -19,15 +17,11 @@ import {PASSWORD_RESET_TOKEN_TTL_SECONDS} from '@app/api/user/repositories/auth/
 import {EXTERNAL_RESPONSE_LIMITS} from '@app/api/utils/ExternalResponseLimits';
 import * as FetchUtils from '@app/api/utils/FetchUtils';
 import {hashPassword} from '@app/api/utils/PasswordUtils';
-import * as RandomUtils from '@app/api/utils/RandomUtils';
-import {createRateLimitError} from '@app/api/utils/RateLimitUtils';
-import {requireConfiguredClientIp} from '@app/api/utils/RequestClientIp';
 import {OSACA_USER_AGENT} from '@osaca/constants/src/Core';
 import {UserAuthenticatorTypes, UserFlags} from '@osaca/constants/src/UserConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
-import {getSameIpDecisionKey} from '@osaca/ip_utils/src/IpAddress';
-import type {ForgotPasswordRequest, ResetPasswordRequest} from '@osaca/schema/src/domains/auth/AuthSchemas';
+import type {ResetPasswordRequest} from '@osaca/schema/src/domains/auth/AuthSchemas';
 import {ms} from 'itty-time';
 
 const PWNED_PASSWORDS_TIMEOUT_MS = ms('5 seconds');
@@ -79,11 +73,6 @@ class PwnedPasswordCache {
 	clear(): void {
 		this.cache.clear();
 	}
-}
-
-interface ForgotPasswordParams {
-	data: ForgotPasswordRequest;
-	request: Request;
 }
 
 interface ResetPasswordParams {
@@ -185,49 +174,6 @@ export async function isPasswordPwned(_ctx: ApiContext, password: string): Promi
 	}
 }
 
-export async function forgotPassword(ctx: ApiContext, {data, request}: ForgotPasswordParams): Promise<void> {
-	const {users, email, rateLimit, emailDnsValidation, config} = ctx.services;
-	const clientIp = requireConfiguredClientIp(request, config.proxy);
-	const ipRateLimit = await rateLimit.checkLimit({
-		identifier: `password_reset:ip:${getSameIpDecisionKey(clientIp) ?? clientIp}`,
-		maxAttempts: 20,
-		windowMs: ms('30 minutes'),
-	});
-	const emailRateLimit = await rateLimit.checkLimit({
-		identifier: `password_reset:email:${data.email.toLowerCase()}`,
-		maxAttempts: 5,
-		windowMs: ms('30 minutes'),
-	});
-	if (!ipRateLimit.allowed) {
-		throw createRateLimitError(ipRateLimit);
-	}
-	if (!emailRateLimit.allowed) {
-		throw createRateLimitError(emailRateLimit);
-	}
-	const hasValidDns = await emailDnsValidation.hasValidDnsRecords(data.email);
-	if (!hasValidDns) {
-		throw InputValidationError.fromCode('email', ValidationErrorCodes.EMAIL_DOMAIN_CANNOT_RECEIVE_MAIL);
-	}
-	const user = await users.findByEmail(data.email);
-	if (!user) {
-		return;
-	}
-	AuthUtility.assertNonBotUser(ctx, user);
-	const token = createPasswordResetToken(await RandomUtils.randomString(64));
-	await users.createPasswordResetToken({
-		token_: token,
-		user_id: user.id,
-		email: user.email!,
-	});
-	const location = getContentMessage('auth.unknown_location', user.locale);
-	await email.send('password_reset', user.email!, {resetToken: token, ipAddress: clientIp, location}, user.locale);
-}
-
-function resetTokenMatchesUser(user: User, tokenEmail: string | null): boolean {
-	if (tokenEmail === null) return !user.email;
-	return !!user.email && user.email.trim().toLowerCase() === tokenEmail.trim().toLowerCase();
-}
-
 export async function validateResetToken(ctx: ApiContext, token: string): Promise<boolean> {
 	const {users} = ctx.services;
 	const tokenData = await users.getPasswordResetToken(token);
@@ -238,7 +184,7 @@ export async function validateResetToken(ctx: ApiContext, token: string): Promis
 	if (!user) {
 		return false;
 	}
-	if (user.flags & UserFlags.DELETED || !resetTokenMatchesUser(user, tokenData.email)) {
+	if (user.flags & UserFlags.DELETED) {
 		return false;
 	}
 	return true;
@@ -274,7 +220,7 @@ export async function resetPassword(
 		throw InputValidationError.fromCode('token', ValidationErrorCodes.INVALID_OR_EXPIRED_RESET_TOKEN);
 	}
 	AuthUtility.assertNonBotUser(ctx, user);
-	if (user.flags & UserFlags.DELETED || !resetTokenMatchesUser(user, tokenData.email)) {
+	if (user.flags & UserFlags.DELETED) {
 		throw InputValidationError.fromCode('token', ValidationErrorCodes.INVALID_OR_EXPIRED_RESET_TOKEN);
 	}
 	const currentUser = await AuthUtility.assertSignInAllowed(ctx, user);

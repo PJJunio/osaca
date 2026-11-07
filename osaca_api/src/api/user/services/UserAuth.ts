@@ -41,8 +41,7 @@ async function assertSudoVerifiedForMfa(
 	user: User,
 	sudoContext: SudoVerificationResult,
 ): Promise<void> {
-	const identityVerifiedViaSudo =
-		sudoContext.method === 'mfa' || sudoContext.method === 'sudo_token' || sudoContext.method === 'email_code';
+	const identityVerifiedViaSudo = sudoContext.method === 'mfa' || sudoContext.method === 'sudo_token';
 	const identityVerifiedViaPassword = sudoContext.method === 'password';
 	if (identityVerifiedViaSudo || identityVerifiedViaPassword) {
 		return;

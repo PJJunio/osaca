@@ -2,7 +2,6 @@
 
 import i18nGlobal from '@app/app/I18n';
 import {ConfirmModal} from '@app/features/app/components/dialogs/ConfirmModal';
-import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
 import {Logger} from '@app/features/platform/utils/AppLogger';
 import * as ModalCommands from '@app/features/ui/commands/ModalCommands';
 import {modal} from '@app/features/ui/commands/ModalCommands';
@@ -60,7 +59,7 @@ function openRecoveryKitPrompt(): void {
 export const RecoveryKitReminderGate = observer(() => {
 	const user = Users.currentUser;
 	const userId = user?.id ?? null;
-	const eligible = RuntimeConfig.usesUsernameSignIn && Boolean(user?.isClaimed()) && Boolean(user?.hasPassword);
+	const eligible = Boolean(user?.isClaimed()) && Boolean(user?.hasPassword);
 	useEffect(() => {
 		if (!eligible || !userId || RecoveryKitStatus.hasShownPrompt(userId)) return;
 		const timer = window.setTimeout(async () => {

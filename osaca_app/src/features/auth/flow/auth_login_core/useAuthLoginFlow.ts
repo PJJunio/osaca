@@ -80,7 +80,7 @@ type AuthLoginFlowAction =
 	| {type: 'backToAccountList'}
 	| {type: 'changeInstance'}
 	| {type: 'continueFromInstance'}
-	| {type: 'selectEmailMethod'}
+	| {type: 'selectPasswordMethod'}
 	| {type: 'enterBrowserStep'}
 	| {type: 'backFromCredentials'; allowReturnToAccountList: boolean}
 	| {type: 'backFromBrowser'}
@@ -164,7 +164,7 @@ function reduceAuthLoginFlow(state: AuthLoginFlowState, action: AuthLoginFlowAct
 			};
 		case 'continueFromInstance':
 			return {...state, hasCompletedInstanceStep: true, showBrowserStep: false, error: null};
-		case 'selectEmailMethod':
+		case 'selectPasswordMethod':
 			return {
 				...state,
 				hasSelectedLoginMethod: true,
@@ -207,7 +207,7 @@ export interface AuthLoginFlow extends AuthLoginFlowState {
 	backToAccountList: () => void;
 	changeInstance: () => void;
 	continueFromInstance: () => void;
-	selectEmailMethod: () => void;
+	selectPasswordMethod: () => void;
 	enterBrowserStep: () => void;
 	backFromCredentials: (allowReturnToAccountList: boolean) => void;
 	backFromBrowser: () => void;
@@ -225,7 +225,7 @@ export function useAuthLoginFlow(init: AuthLoginFlowInit): AuthLoginFlow {
 			backToAccountList: () => startTransition(() => dispatch({type: 'backToAccountList'})),
 			changeInstance: () => startTransition(() => dispatch({type: 'changeInstance'})),
 			continueFromInstance: () => startTransition(() => dispatch({type: 'continueFromInstance'})),
-			selectEmailMethod: () => startTransition(() => dispatch({type: 'selectEmailMethod'})),
+			selectPasswordMethod: () => startTransition(() => dispatch({type: 'selectPasswordMethod'})),
 			enterBrowserStep: () => startTransition(() => dispatch({type: 'enterBrowserStep'})),
 			backFromCredentials: (allowReturnToAccountList: boolean) =>
 				startTransition(() => dispatch({type: 'backFromCredentials', allowReturnToAccountList})),

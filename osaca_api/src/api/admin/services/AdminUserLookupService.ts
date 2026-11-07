@@ -4,7 +4,6 @@ import type {ApiContext} from '@app/api/ApiContext';
 import {mapUserToAdminResponse} from '@app/api/admin/models/UserTypes';
 import {createUserID} from '@app/api/BrandedTypes';
 import {isSyntheticUserId} from '@app/api/constants/Core';
-import {usesUniqueUsernames} from '@app/api/instance/AccountIdentityModeCache';
 import {Logger} from '@app/api/Logger';
 import type {User} from '@app/api/models/User';
 import {findPersonByLoginHandle, parseLoginHandle} from '@app/api/user/UniqueUsernames';
@@ -41,8 +40,6 @@ export class AdminUserLookupService {
 				Logger.debug({query, error}, 'Failed to lookup user by numeric ID, invalid ID format');
 				user = null;
 			}
-		} else if (query.includes('@')) {
-			user = await userRepository.findByEmail(query);
 		} else {
 			user = await this.findPersonByBareUsername(query);
 		}
@@ -52,7 +49,6 @@ export class AdminUserLookupService {
 	}
 
 	private async findPersonByBareUsername(query: string): Promise<User | null> {
-		if (!usesUniqueUsernames()) return null;
 		const handle = parseLoginHandle(query);
 		if (!handle || handle.discriminator !== null) return null;
 		return await findPersonByLoginHandle(this.deps.apiContext.services.users, handle);

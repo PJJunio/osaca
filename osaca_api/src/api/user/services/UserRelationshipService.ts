@@ -5,7 +5,6 @@ import type {UserID} from '@app/api/BrandedTypes';
 import {emitActivity} from '@app/api/infrastructure/activity/ActivityEvents';
 import type {IGatewayService} from '@app/api/infrastructure/IGatewayService';
 import type {UserCacheService} from '@app/api/infrastructure/UserCacheService';
-import {usesUniqueUsernames} from '@app/api/instance/AccountIdentityModeCache';
 import type {LimitConfigService} from '@app/api/limits/LimitConfigService';
 import {resolveLimitSafe} from '@app/api/limits/LimitConfigUtils';
 import {createLimitMatchContext} from '@app/api/limits/LimitMatchContextBuilder';
@@ -111,9 +110,6 @@ export class UserRelationshipService {
 
 	private async findFriendRequestTarget(username: string, discriminator: number | undefined): Promise<User | null> {
 		if (discriminator === undefined) {
-			if (!usesUniqueUsernames()) {
-				throw new InvalidDiscriminatorError();
-			}
 			return await findPersonByLoginHandle(this.userRepository, {username, discriminator: null});
 		}
 		if (!Number.isInteger(discriminator) || discriminator < 0 || discriminator > 9999) {

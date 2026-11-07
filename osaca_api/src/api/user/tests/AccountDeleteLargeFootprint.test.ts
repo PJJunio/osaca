@@ -61,7 +61,6 @@ describe('Deleting an account with a large footprint', () => {
 				expires_at: null,
 				reason: null,
 				ip: null,
-				email: account.email,
 			});
 		}
 		for (let index = 0; index < NOTES_ABOUT_USER; index++) {

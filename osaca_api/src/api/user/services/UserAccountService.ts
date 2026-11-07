@@ -39,7 +39,6 @@ interface UpdateUserParams {
 	data: UserUpdateRequest;
 	request: Request;
 	sudoContext?: SudoVerificationResult;
-	emailVerifiedViaToken?: boolean;
 }
 
 interface UpdateUserResult {
@@ -75,7 +74,6 @@ export class UserAccountService {
 		const {
 			users: userAccountRepository,
 			gateway: gatewayService,
-			email: emailService,
 			rateLimit: rateLimitService,
 		} = this.apiContext.services;
 		this.userUpdateDeps = {userCacheService, gatewayService, userRepository: userAccountRepository, guildRepository};
@@ -123,24 +121,19 @@ export class UserAccountService {
 			apiContext: this.apiContext,
 			userAccountRepository,
 			guildRepository,
-			emailService,
 			userUpdateDeps: this.userUpdateDeps,
 			kvDeletionQueue,
 		});
 	}
 
 	async update(params: UpdateUserParams): Promise<UpdateUserResult> {
-		const {user, oldAuthSession, data, request, sudoContext, emailVerifiedViaToken = false} = params;
+		const {user, oldAuthSession, data, request, sudoContext} = params;
 		const profileResult = await this.profileService.processProfileUpdates({user, data});
 		const securityResult = await this.securityService.processSecurityUpdates({user, data, sudoContext});
 		const updates = {
 			...securityResult.updates,
 			...profileResult.updates,
 		};
-		const emailChanged = data.email !== undefined;
-		if (emailChanged) {
-			updates.email_verified = !!emailVerifiedViaToken;
-		}
 		let updatedUser: User;
 		try {
 			updatedUser = await this.userAccountRepository.patchUpsert(user.id, updates, user.toRow());

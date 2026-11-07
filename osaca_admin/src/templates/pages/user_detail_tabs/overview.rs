@@ -42,7 +42,7 @@ pub fn overview_tab(
         change_log,
         ..OverviewSources::default()
     };
-    render_overview_tab(config, user, admin_acls, csrf_token, &sources, false, false)
+    render_overview_tab(config, user, admin_acls, csrf_token, &sources, false)
 }
 
 pub fn overview_tab_with_sources(
@@ -51,7 +51,6 @@ pub fn overview_tab_with_sources(
     admin_acls: &[String],
     csrf_token: &str,
     sources: &OverviewSources,
-    username_sign_in: bool,
 ) -> Markup {
     render_overview_tab(
         config,
@@ -60,7 +59,6 @@ pub fn overview_tab_with_sources(
         csrf_token,
         sources,
         true,
-        username_sign_in,
     )
 }
 
@@ -71,7 +69,6 @@ fn render_overview_tab(
     csrf_token: &str,
     sources: &OverviewSources,
     show_traits: bool,
-    username_sign_in: bool,
 ) -> Markup {
     let OverviewSources {
         change_log,
@@ -145,18 +142,6 @@ fn render_overview_tab(
                             span class="text-neutral-400" { "Not set" }
                         }
                     }))
-                    @if acl::has_permission(admin_acls, acl::USER_VIEW_EMAIL) && !username_sign_in {
-                        (detail_row("Email", html! {
-                            @if let Some(ref email) = user.email {
-                                (email)
-                                @if user.email_verified { span class="ml-1 text-green-600" { "verified" } }
-                                @else { span class="ml-1 text-red-600" { "unverified" } }
-                                @if user.email_bounced { span class="ml-1 text-orange-600" { "(bounced)" } }
-                            } @else {
-                                span class="text-neutral-400" { "Not set" }
-                            }
-                        }))
-                    }
                     @if let Some(tier) = user.account_tier {
                         (detail_row("Account Tier", html! {
                             (account_tier_label(tier))

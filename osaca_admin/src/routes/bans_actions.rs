@@ -13,8 +13,6 @@ pub struct BanFormData {
     #[serde(default)]
     pub ip: Option<String>,
     #[serde(default)]
-    pub email: Option<String>,
-    #[serde(default)]
     pub domain: Option<String>,
     #[serde(default)]
     pub phrase: Option<String>,
@@ -45,7 +43,6 @@ pub struct BanFormData {
 pub fn extract_value(form: &BanFormData, field: &str) -> String {
     let v = match field {
         "ip" => form.ip.as_deref(),
-        "email" => form.email.as_deref(),
         "phrase" => form.phrase.as_deref(),
         "url" => form.url.as_deref(),
         "sha256_hex" => form.sha256_hex.as_deref(),
@@ -149,7 +146,6 @@ async fn execute_single_ban(
     audit_log_reason: Option<&str>,
 ) -> (&'static str, String) {
     let result = match ban_type {
-        "email-bans" => client.ban_email(value, audit_log_reason).await,
         "phrase-bans" => client.ban_phrase(value, audit_log_reason).await,
         "url-bans" => client.ban_url(value, audit_log_reason).await,
         "file-sha-bans" => client.ban_file_sha(value, audit_log_reason).await,
@@ -166,7 +162,6 @@ async fn execute_single_ban(
 fn blocklist_type(ban_type: &str) -> Option<&'static str> {
     match ban_type {
         "ip-bans" => Some("ip"),
-        "email-bans" => Some("email"),
         "phrase-bans" => Some("phrase"),
         "url-bans" => Some("url"),
         "file-sha-bans" => Some("file-sha"),
@@ -252,7 +247,6 @@ fn ban_action_result(
     }
 }
 
-#[allow(clippy::too_many_arguments)]
 pub fn flash_response(
     config: &crate::config::AdminConfig,
     auth: &AuthContext,
@@ -261,20 +255,13 @@ pub fn flash_response(
     message: &str,
     ban_cfg: &templates::pages::bans::BanConfig,
     csrf_token: &str,
-    username_sign_in: bool,
 ) -> Response {
     if is_htmx {
         render_inline_flash(level, message)
     } else {
         let flash = to_flash(level, message);
-        let markup = templates::pages::bans::bans_page(
-            config,
-            auth,
-            ban_cfg,
-            Some(&flash),
-            csrf_token,
-            username_sign_in,
-        );
+        let markup =
+            templates::pages::bans::bans_page(config, auth, ban_cfg, Some(&flash), csrf_token);
         Html(markup.into_string()).into_response()
     }
 }

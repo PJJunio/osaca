@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import styles from '@app/features/app/components/setup/SelfHostedSetupWizardGate.module.css';
-import {Note, StepHeader} from '@app/features/app/components/setup/SetupWizardSteps';
+import {StepHeader} from '@app/features/app/components/setup/SetupWizardSteps';
 import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
 import {AuthRegisterFormCore} from '@app/features/auth/flow/AuthRegisterFormCore';
 import type {MissingField} from '@app/features/auth/flow/SubmitTooltip';
 import type {AuthRegisterFormDraft} from '@app/features/auth/state/AuthRegisterDraftContext';
-import type {ThemeType} from '@osaca/constants/src/UserConstants';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
+import type {ThemeType} from '@osaca/constants/src/UserConstants';
 import {makeAutoObservable, observableRef} from 'mobx';
 import {observer} from 'mobx-react-lite';
 import type {ReactNode, RefObject} from 'react';
@@ -21,10 +21,6 @@ const ACCOUNT_BODY_DESCRIPTOR = msg({
 	message: 'This is your own account, and it can change every setting on this instance.',
 	comment: 'Setup wizard body for creating the administrator account.',
 });
-const ACCOUNT_NO_EMAIL_DESCRIPTOR = msg({
-	message: "Your instance can't send email yet, so keep this password safe.",
-	comment: 'Extra line on the setup wizard account screen when the instance has no email service.',
-});
 export const CREATE_ACCOUNT_DESCRIPTOR = msg({
 	message: 'Create account',
 	comment: 'Button that creates the administrator account in the setup wizard.',
@@ -32,7 +28,6 @@ export const CREATE_ACCOUNT_DESCRIPTOR = msg({
 
 export interface SetupAccountValues {
 	username: string;
-	email: string;
 }
 
 export class SetupAccountDraft {
@@ -44,7 +39,6 @@ export class SetupAccountDraft {
 	constructor(restoredDraft: Partial<Record<keyof SetupAccountValues, unknown>> | null) {
 		this.values = {
 			username: typeof restoredDraft?.username === 'string' ? restoredDraft.username : '',
-			email: typeof restoredDraft?.email === 'string' ? restoredDraft.email : '',
 		};
 		this.restoredDraft = {...this.values};
 		makeAutoObservable<this, 'drafts' | 'restoredDraft'>(
@@ -57,7 +51,7 @@ export class SetupAccountDraft {
 	getRegisterFormDraft(draftKey: string): AuthRegisterFormDraft | undefined {
 		const draft = this.drafts.get(draftKey);
 		if (draft) return {...draft, formValues: {...draft.formValues}};
-		if (!this.restoredDraft.username && !this.restoredDraft.email) return undefined;
+		if (!this.restoredDraft.username) return undefined;
 		return {
 			formValues: {...this.restoredDraft},
 			selectedMonth: '',
@@ -68,7 +62,7 @@ export class SetupAccountDraft {
 
 	setRegisterFormDraft(draftKey: string, draft: AuthRegisterFormDraft): void {
 		this.drafts.set(draftKey, {...draft, formValues: {...draft.formValues}});
-		this.values = {username: draft.formValues.username ?? '', email: draft.formValues.email ?? ''};
+		this.values = {username: draft.formValues.username ?? ''};
 	}
 
 	clearRegisterFormDraft(draftKey: string): void {
@@ -83,8 +77,6 @@ export class SetupAccountDraft {
 
 export const AccountStep = observer(
 	({
-		usernameSignIn,
-		emailLater,
 		theme,
 		setupToken,
 		formId,
@@ -92,8 +84,6 @@ export const AccountStep = observer(
 		onSetupTokenRejected,
 		onPasswordRegistered,
 	}: {
-		usernameSignIn: boolean;
-		emailLater: boolean;
 		theme: ThemeType;
 		setupToken: string | undefined;
 		formId: string;
@@ -109,13 +99,9 @@ export const AccountStep = observer(
 					body={i18n._(ACCOUNT_BODY_DESCRIPTOR)}
 					data-flx="app.setup.setup-wizard-steps.account-step.step-header"
 				/>
-				{emailLater && (
-					<Note data-flx="app.setup.setup-wizard-steps.account-step.note">{i18n._(ACCOUNT_NO_EMAIL_DESCRIPTOR)}</Note>
-				)}
 				<div className={styles.accountForm} data-flx="app.self-hosted-setup-wizard-gate.account-form">
 					<AuthRegisterFormCore
 						fields={{
-							showEmail: !usernameSignIn,
 							showPassword: true,
 							showPasswordConfirmation: true,
 							showUsernameValidation: true,

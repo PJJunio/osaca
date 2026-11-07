@@ -124,7 +124,6 @@ function projectFeatures(features: Readonly<Partial<InstanceFeatures>>): Instanc
 			features.presigned_attachment_uploads,
 			'features.presigned_attachment_uploads',
 		),
-		emails_enabled: requireDefined(features.emails_enabled, 'features.emails_enabled'),
 		phone_verification_enabled: false,
 	};
 }

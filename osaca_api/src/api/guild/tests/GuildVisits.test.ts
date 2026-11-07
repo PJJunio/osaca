@@ -274,7 +274,6 @@ describe('Guild visits', () => {
 		expect(anonymous.guild).not.toHaveProperty('visits_enabled');
 	});
 
-
 	it('ends visits when the guild turns them off later', async () => {
 		const {owner, guildId, code, channelId} = await createVisitGuild();
 		const visitor = await createUnclaimed();

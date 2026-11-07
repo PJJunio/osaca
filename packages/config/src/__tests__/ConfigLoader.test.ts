@@ -234,7 +234,6 @@ describe('ConfigLoader', () => {
 	test('inserts the public port into every other public url the config contains', async () => {
 		stubMinimalEnv({
 			OSACA_S3_PUBLIC_ENDPOINT: 'http://localhost/s3',
-			OSACA_EMAIL_APP_BASE_URL: 'http://localhost',
 			OSACA_AUTH_BLUESKY_CLIENT_URI: 'http://localhost',
 			OSACA_AUTH_BLUESKY_TOS_URI: 'http://localhost/terms',
 			OSACA_APP_ICON_URL: 'http://localhost/icon.png',
@@ -244,7 +243,6 @@ describe('ConfigLoader', () => {
 		const config = await loadConfig();
 
 		expect(config.s3?.presigned_url_base).toBe('http://localhost:8088/s3');
-		expect(config.integrations.email.app_base_url).toBe('http://localhost:8088');
 		expect(config.auth.bluesky.client_uri).toBe('http://localhost:8088');
 		expect(config.auth.bluesky.tos_uri).toBe('http://localhost:8088/terms');
 		expect(config.instance.branding.icon_url).toBe('http://localhost:8088/icon.png');

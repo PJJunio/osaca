@@ -89,12 +89,6 @@ export const BANNED_IP_COLUMNS = [
 	'decision_id',
 ] as const satisfies ReadonlyArray<keyof BannedIpRow>;
 
-export interface BannedEmailRow {
-	email_lower: string;
-}
-
-export const BANNED_EMAIL_COLUMNS = ['email_lower'] as const satisfies ReadonlyArray<keyof BannedEmailRow>;
-
 export interface BannedPhraseRow {
 	phrase: string;
 }

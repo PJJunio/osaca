@@ -8,19 +8,6 @@ use super::client::{AdminApiClient, ApiError, ApiResult};
 use super::types::{BanCheckResult, BlocklistEntryPage, BulkBanResult};
 
 impl AdminApiClient {
-    pub async fn ban_email(&self, email: &str, audit_log_reason: Option<&str>) -> ApiResult<()> {
-        self.create_blocklist_entry(
-            "email",
-            generated_types::AdminBlocklistEntryCreateRequest::from(
-                generated_types::BanEmailRequest {
-                    email: generated_types::EmailBlocklistEntryType::from(email.to_owned()),
-                },
-            ),
-            audit_log_reason,
-        )
-        .await
-    }
-
     pub async fn ban_ip(
         &self,
         ip: &str,

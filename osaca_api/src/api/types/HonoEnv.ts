@@ -55,8 +55,6 @@ import type {ThemeService} from '@app/api/theme/ThemeService';
 import type {EntranceSoundPlayService} from '@app/api/user/entrance_sound/EntranceSoundPlayService';
 import type {EntranceSoundService} from '@app/api/user/entrance_sound/EntranceSoundService';
 import type {UserRepository} from '@app/api/user/repositories/UserRepository';
-import type {EmailChangeService} from '@app/api/user/services/EmailChangeService';
-import type {MfaBackupCodesChallengeService} from '@app/api/user/services/MfaBackupCodesChallengeService';
 import type {PasswordChangeService} from '@app/api/user/services/PasswordChangeService';
 import type {UserAccountRequestService} from '@app/api/user/services/UserAccountRequestService';
 import type {UserActivityBuffer} from '@app/api/user/services/UserActivityBuffer';
@@ -72,7 +70,6 @@ import type {WebhookRequestService} from '@app/api/webhook/WebhookRequestService
 import type {WebhookService} from '@app/api/webhook/WebhookService';
 import type {WorkerTaskName} from '@app/api/worker/WorkerLaneConfig';
 import type {ICacheService} from '@pkgs/cache/src/ICacheService';
-import type {IEmailService} from '@pkgs/email/src/IEmailService';
 import type {IRateLimitService} from '@pkgs/rate_limit/src/IRateLimitService';
 import type {IWorkerService} from '@pkgs/worker/src/contracts/IWorkerService';
 import type {Hono} from 'hono';
@@ -113,9 +110,6 @@ export interface HonoEnv {
 		connectionRequestService: ConnectionRequestService;
 		blueskyOAuthService: IBlueskyOAuthService | null;
 		streamService: StreamService;
-		emailService: IEmailService;
-		emailChangeService: EmailChangeService;
-		mfaBackupCodesChallengeService: MfaBackupCodesChallengeService;
 		passwordChangeService: PasswordChangeService;
 		entityAssetService: EntityAssetService;
 		entranceSoundService: EntranceSoundService;

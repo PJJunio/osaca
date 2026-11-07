@@ -88,7 +88,6 @@ pub struct ReportEntry {
     pub reporter_username: Option<String>,
     pub reporter_global_name: Option<String>,
     pub reporter_discriminator: Option<String>,
-    pub reporter_email: Option<String>,
     pub reporter_full_legal_name: Option<String>,
     pub reporter_country_of_residence: Option<String>,
     pub reported_at: String,

@@ -440,7 +440,6 @@ const harvestUserData: ArchiveTaskHandler = async (payload, helpers, attempt) =>
 		applicationRepository,
 		connectionRepository,
 		storageService,
-		emailService,
 		instanceConfigRepository,
 	} = dependencies;
 	const adminRequestedBy = validated.adminRequestedBy ? BigInt(validated.adminRequestedBy) : null;
@@ -614,24 +613,9 @@ const harvestUserData: ArchiveTaskHandler = async (payload, helpers, attempt) =>
 		if (attempt.isLastAttempt) throw new ArchiveTerminalFailureError(message);
 		throw error;
 	}
-	const {user, totalMessages, archive} = prepared;
+	const {archive} = prepared;
 	await progressReporter.markAsCompleted(archive.storageKey, archive.fileSize, archive.expiresAt);
 	Logger.debug({userId, harvestId}, 'Marked harvest as completed');
-	if (!isAdminArchive && user.email && (await instanceConfigRepository.isEmailEnabled())) {
-		const sent = await emailService.send(
-			'harvest_completed',
-			user.email,
-			{
-				downloadUrl: archive.downloadUrl,
-				totalMessages,
-				fileSize: Number(archive.fileSize),
-				expiresAt: archive.expiresAt,
-			},
-			user.locale,
-		);
-		if (!sent) throw new Error(`Completion email for harvest ${harvestId} was not sent`);
-		Logger.debug({userId, harvestId, totalMessages}, 'Sent harvest completion email');
-	}
 	Logger.info(
 		{
 			userId,

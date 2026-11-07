@@ -13,11 +13,10 @@ import {createOperatorServer} from '@app/api/admin/operator/OperatorSocket';
 import {createAdminApiKey} from '@app/api/admin/tests/AdminTestUtils';
 import {createTestAccount, setUserACLs} from '@app/api/auth/tests/AuthTestUtils';
 import {getConfig} from '@app/api/Config';
-import {getAdminRepository, getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
+import {getAdminRepository} from '@app/api/middleware/ServiceSingletons';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {HTTP_STATUS} from '@app/api/test/TestConstants';
 import {createBuilder, createBuilderWithoutAuth} from '@app/api/test/TestRequestBuilder';
-import {AccountIdentityModes} from '@osaca/constants/src/AccountIdentityConstants';
 import {AdminACLs} from '@osaca/constants/src/AdminACLs';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {afterAll, beforeAll, beforeEach, describe, expect, it} from 'vitest';
@@ -182,7 +181,6 @@ describe('operator channel', () => {
 	});
 
 	it('creates an admin whose reset link works', async () => {
-		await getInstanceConfigRepository().setInstanceIntegrationsConfig({email: {delivery: 'off'}});
 		const email = `operator-created-${Date.now()}@example.com`;
 		const response = await socketRequest(socketPath, 'POST', '/admin/users', {
 			body: {username: 'firstadmin', email, admin: true},
@@ -256,7 +254,6 @@ describe('operator channel', () => {
 		const selfHosted = config.instance.selfHosted;
 		config.instance.selfHosted = true;
 		try {
-			await getInstanceConfigRepository().setAccountIdentityMode(AccountIdentityModes.USERNAME, 'setup');
 			await expectUsernameInstanceCreation();
 		} finally {
 			config.instance.selfHosted = selfHosted;
@@ -264,10 +261,6 @@ describe('operator channel', () => {
 	});
 
 	async function expectUsernameInstanceCreation(): Promise<void> {
-		const refused = await socketRequest(socketPath, 'POST', '/admin/users', {
-			body: {username: 'withemail', email: 'nope@example.com'},
-		});
-		expect((refused.body as {code: string}).code).toBe(APIErrorCodes.USERNAME_SIGN_IN_ONLY);
 		const response = await socketRequest(socketPath, 'POST', '/admin/users', {body: {username: 'plainmember'}});
 		expect(response.status).toBe(HTTP_STATUS.OK);
 		const created = response.body as CreatedUser;
@@ -284,7 +277,7 @@ describe('operator channel', () => {
 		]);
 		await createBuilder(harness, admin.token)
 			.post('/admin/users')
-			.body({username: 'notallowed', email: 'notallowed@example.com'})
+			.body({username: 'notallowed'})
 			.expect(HTTP_STATUS.FORBIDDEN)
 			.execute();
 	});

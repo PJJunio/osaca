@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {openClaimAccountModal} from '@app/features/auth/components/modals/ClaimAccountModal';
-import {failureCode} from '@app/features/platform/utils/ResponseInspection';
 import {handleAccountLimitedError} from '@app/features/user/utils/AccountLimitUtils';
-import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
+import {msg} from '@lingui/core/macro';
 import {ChannelTypes} from '@osaca/constants/src/ChannelConstants';
 import type {TemplateSerializedGuild} from '@osaca/schema/src/domains/guild/GuildTemplateSchemas';
-import {msg} from '@lingui/core/macro';
 import React from 'react';
 
 export type AddGuildModalView = 'landing' | 'create_guild' | 'join_guild' | 'import_template';
@@ -85,9 +82,6 @@ export function parseTemplateCode(input: string): string | null {
 export function handleGuildCreationError(error: unknown): never {
 	if (handleAccountLimitedError(error)) {
 		throw new DOMException('Guild create skipped', 'AbortError');
-	}
-	if (failureCode(error) === APIErrorCodes.UNCLAIMED_ACCOUNT_CANNOT_CREATE_GUILDS) {
-		openClaimAccountModal();
 	}
 	throw error;
 }

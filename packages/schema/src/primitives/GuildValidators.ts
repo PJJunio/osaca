@@ -18,7 +18,7 @@ const RETIRED_GUILD_VERIFICATION_LEVEL = 4;
 export const GuildVerificationLevelSchema = createInt32EnumType(
 	[
 		[GuildVerificationLevel.NONE, 'NONE', 'Unrestricted'],
-		[GuildVerificationLevel.LOW, 'LOW', 'Must have verified email'],
+		[GuildVerificationLevel.LOW, 'LOW', 'Must have a password or passkey on the account'],
 		[GuildVerificationLevel.MEDIUM, 'MEDIUM', 'Registered for more than 5 minutes'],
 		[GuildVerificationLevel.HIGH, 'HIGH', 'Member of the server for more than 10 minutes'],
 	],

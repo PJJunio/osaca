@@ -1,21 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {createIpAuthorizationToken, type UserID} from '@app/api/BrandedTypes';
+import type {UserID} from '@app/api/BrandedTypes';
 import {deleteOneOrMany, fetchMany, fetchOne, upsertOne} from '@app/api/database/CassandraQueryExecution';
-import type {
-	AuthorizedIpRow,
-	AuthorizedIpTrustKeyRow,
-	IpAuthorizationTokenRow,
-} from '@app/api/database/types/AuthTypes';
-import {AuthorizedIps, AuthorizedIpTrustKeys, IpAuthorizationTokens} from '@app/api/Tables';
-import type {UserAccountRepository} from '@app/api/user/repositories/account/UserAccountRepository';
-import {UserFlags} from '@osaca/constants/src/UserConstants';
+import type {AuthorizedIpRow, AuthorizedIpTrustKeyRow} from '@app/api/database/types/AuthTypes';
+import {AuthorizedIps, AuthorizedIpTrustKeys} from '@app/api/Tables';
 import {getSameIpDecisionKey, normalizeIpString, parseIpAddress} from '@osaca/ip_utils/src/IpAddress';
 
-const AUTHORIZE_IP_BY_TOKEN_CQL = IpAuthorizationTokens.selectCql({
-	where: IpAuthorizationTokens.where.eq('token_'),
-	limit: 1,
-});
 const CHECK_IP_AUTHORIZED_CQL = AuthorizedIps.selectCql({
 	where: [AuthorizedIps.where.eq('user_id'), AuthorizedIps.where.eq('ip')],
 	limit: 1,
@@ -40,8 +30,6 @@ function getAuthorizedIpTrustKey(ip: string): string | null {
 }
 
 export class IpAuthorizationRepository {
-	constructor(private userAccountRepository: UserAccountRepository) {}
-
 	async checkIpAuthorized(userId: UserID, ip: string): Promise<boolean> {
 		const normalizedIp = normalizeAuthorizedIp(ip);
 		const trustKey = getAuthorizedIpTrustKey(normalizedIp);
@@ -78,37 +66,6 @@ export class IpAuthorizationRepository {
 		const normalizedIp = normalizeAuthorizedIp(ip);
 		await upsertOne(AuthorizedIps.insert({user_id: userId, ip: normalizedIp}));
 		await this.createAuthorizedIpTrustKeyFromIp(userId, normalizedIp);
-	}
-
-	async createIpAuthorizationToken(userId: UserID, token: string, email: string): Promise<void> {
-		await upsertOne(
-			IpAuthorizationTokens.insert({
-				token_: createIpAuthorizationToken(token),
-				user_id: userId,
-				email,
-			}),
-		);
-	}
-
-	async authorizeIpByToken(token: string): Promise<{
-		userId: UserID;
-		email: string;
-	} | null> {
-		const result = await fetchOne<IpAuthorizationTokenRow>(AUTHORIZE_IP_BY_TOKEN_CQL, {token_: token});
-		if (!result) {
-			return null;
-		}
-		await deleteOneOrMany(
-			IpAuthorizationTokens.deleteByPk({
-				token_: createIpAuthorizationToken(token),
-				user_id: result.user_id,
-			}),
-		);
-		const user = await this.userAccountRepository.findUnique(result.user_id);
-		if (!user || user.flags & UserFlags.DELETED) {
-			return null;
-		}
-		return {userId: result.user_id, email: result.email};
 	}
 
 	async getAuthorizedIps(userId: UserID): Promise<

@@ -3534,7 +3534,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Ends an active decision as lifted or reversed, undoes what can be undone and emails the holder. Ending a suspension lifts it, and returns 409 when a later decision replaced it. Warnings, removals and suspensions that ended as expired can only be reversed. Creates audit log entry. Requires ENFORCEMENT_VIEW permission plus the permission of the route that made the decision, such as USER_TEMP_BAN for a suspension or USER_UPDATE_FLAGS for a warning.",
+				"description": "Ends an active decision as lifted or reversed, undoes what can be undone and tells the holder by system DM. Ending a suspension lifts it, and returns 409 when a later decision replaced it. Warnings, removals and suspensions that ended as expired can only be reversed. Creates audit log entry. Requires ENFORCEMENT_VIEW permission plus the permission of the route that made the decision, such as USER_TEMP_BAN for a suspension or USER_UPDATE_FLAGS for a warning.",
 				"security": [{"adminApiKey": []}],
 				"parameters": [
 					{
@@ -5271,63 +5271,6 @@
 				}
 			}
 		},
-		"/admin/instance/config/smtp-tests": {
-			"post": {
-				"operationId": "create_admin_instance_smtp_test",
-				"summary": "Run an SMTP configuration test",
-				"tags": ["Admin"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/InstanceEmailSmtpTestResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Validates that an SMTP configuration can authenticate and accept a connection. Fields left out of the body come from the saved configuration, and the saved password is reused only for the saved host and username. An empty body tests what outgoing email uses and fails when email is off or incomplete. With send_to, it also sends a short test message from the configured from address and returns what the server answered, or the error it gave. Requires INSTANCE_CONFIG_UPDATE permission.",
-				"security": [{"adminApiKey": []}],
-				"requestBody": {
-					"required": false,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/InstanceEmailSmtpTestRequest"}}}
-				}
-			}
-		},
 		"/admin/instance/pending-registrations": {
 			"get": {
 				"operationId": "list_admin_pending_registrations",
@@ -5434,7 +5377,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Decides a registration waiting for manual review and returns the registrations still waiting. Approving removes its pending registration trait and joins the account to the community it was invited to and the single community. Rejecting stops the account from signing in and queues it for deletion right away without sending a notice, unless a deletion is already scheduled. Once the account is deleted, its email address can register again. Requires REGISTRATION_REVIEW permission.",
+				"description": "Decides a registration waiting for manual review and returns the registrations still waiting. Approving removes its pending registration trait and joins the account to the community it was invited to and the single community. Rejecting stops the account from signing in and queues it for deletion right away without sending a notice, unless a deletion is already scheduled. Once the account is deleted, its username can be registered again. Requires REGISTRATION_REVIEW permission.",
 				"security": [{"adminApiKey": []}],
 				"parameters": [
 					{
@@ -6639,7 +6582,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Moves a report to the resolved status. resolution is required. actioned also needs the outcome for the reported item, and no_violation sets the outcome no_violation. duplicate needs duplicate_of and takes the outcome stored on that report. The reporter is told the outcome: an account reporter by system DM and email, a Digital Services Act notifier by email. The system DM is left out when the instance has direct messages turned off. A duplicate of a report with no outcome yet is resolved without telling the reporter. notify_reporter false leaves the public comment out of that notice. Nothing is sent when the reporter account is deleted, or barred from reporting when the report was filed. Creates an audit log entry. Requires REPORT_RESOLVE permission.",
+				"description": "Moves a report to the resolved status. resolution is required. actioned also needs the outcome for the reported item, and no_violation sets the outcome no_violation. duplicate needs duplicate_of and takes the outcome stored on that report. The reporter is told the outcome by system DM unless the instance has direct messages turned off. A duplicate of a report with no outcome yet is resolved without telling the reporter. notify_reporter false leaves the public comment out of that notice. Nothing is sent when the reporter account is deleted, or barred from reporting when the report was filed. Creates an audit log entry. Requires REPORT_RESOLVE permission.",
 				"security": [{"adminApiKey": []}],
 				"parameters": [
 					{
@@ -7190,7 +7133,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Lists and searches users. Exactly one selector is honoured, in this precedence order: user_id, resolve, email, last_active_ip, acl, then the indexed q search. The acl selector lists the users granted one admin permission, ordered by user ID. The resolve selector takes one exact identifier, which may be a username#discriminator tag, a user ID, an email address, or a Stripe subscription ID. The email and user_id selectors ignore limit and offset. Requires USER_LOOKUP permission.",
+				"description": "Lists and searches users. Exactly one selector is honoured, in this precedence order: user_id, resolve, last_active_ip, acl, then the indexed q search. The acl selector lists the users granted one admin permission, ordered by user ID. The resolve selector takes one exact identifier, a username or a user ID. The user_id selector ignores limit and offset. Requires USER_LOOKUP permission.",
 				"security": [{"adminApiKey": []}],
 				"parameters": [
 					{
@@ -7220,21 +7163,8 @@
 						"name": "resolve",
 						"in": "query",
 						"required": false,
-						"schema": {
-							"description": "Resolve one exact identifier: a username#discriminator tag, a user ID, an email address, or a Stripe subscription ID",
-							"type": "string"
-						},
-						"description": "Resolve one exact identifier: a username#discriminator tag, a user ID, an email address, or a Stripe subscription ID"
-					},
-					{
-						"name": "email",
-						"in": "query",
-						"required": false,
-						"schema": {
-							"description": "Restrict the results to the user with this exact email address",
-							"type": "string"
-						},
-						"description": "Restrict the results to the user with this exact email address"
+						"schema": {"description": "Resolve one exact identifier: a username or a user ID", "type": "string"},
+						"description": "Resolve one exact identifier: a username or a user ID"
 					},
 					{
 						"name": "last_active_ip",
@@ -7324,7 +7254,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Create an account with no password and return a one-time password reset link for it. Hand the link to the new user, who opens it to choose a password. It works once and expires after an hour. On an instance where people sign in with email, an email address is required, and it is verified like a new registration when the instance sends email. Set admin to give the account full admin access. Creates audit log entries. Requires the * permission.",
+				"description": "Create an account with no password and return a one-time password reset link for it. Hand the link to the new user, who opens it to choose a password. It works once and expires after an hour. Set admin to give the account full admin access. Creates audit log entries. Requires the * permission.",
 				"security": [{"adminApiKey": []}],
 				"requestBody": {
 					"required": true,
@@ -7434,7 +7364,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Look up one detailed user profile by ID. Returns account status, permissions, and metadata. The email address, date of birth, and IP address are redacted without the matching view permissions. Requires USER_LOOKUP permission.",
+				"description": "Look up one detailed user profile by ID. Returns account status, permissions, and metadata. The IP address is redacted without the matching view permission. Requires USER_LOOKUP permission.",
 				"security": [{"adminApiKey": []}],
 				"parameters": [
 					{
@@ -7886,7 +7816,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Lift a suspension that no enforcement decision owns, such as one from before decisions existed. Returns 409 with the decision ID when a decision owns the suspension, which is then ended through its end route. Emails the user that the restriction ended when the suspension was still in force. Creates audit log entry. Requires USER_TEMP_BAN permission.",
+				"description": "Lift a suspension that no enforcement decision owns, such as one from before decisions existed. Returns 409 with the decision ID when a decision owns the suspension, which is then ended through its end route. Tells the user by system DM that the restriction ended when the suspension was still in force. Creates audit log entry. Requires USER_TEMP_BAN permission.",
 				"security": [{"adminApiKey": []}],
 				"parameters": [
 					{
@@ -8016,7 +7946,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Retrieve the identity and contact change log history for a user. Shows all profile modifications, admin actions, and account changes with timestamps. Email values are redacted without USER_VIEW_EMAIL. Requires USER_VIEW_CONTACT_LOG permission.",
+				"description": "Retrieve the identity and contact change log history for a user. Shows all profile modifications, admin actions, and account changes with timestamps. Requires USER_VIEW_CONTACT_LOG permission.",
 				"security": [{"adminApiKey": []}],
 				"parameters": [
 					{
@@ -8092,7 +8022,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Close the account and schedule its deletion. The basis says why. A broken rule records an enforcement decision kind closure, keeps the account for at least 74 days so an appeal can be reviewed first (14 days on a self-hosted instance, which has no appeals), sends the notice and, when the rule bars new accounts, bans the account email. The X-Audit-Log-Reason header is then required and becomes the first note. A holder request or housekeeping keeps the account for at least 14 days, sends a neutral email, and is cancelled when the holder signs in. Those two return 409 while an enforcement decision owns the account state. When a deletion is already scheduled, the request must name it in replace_pending_deletion_at or it returns 409. block_networks works as on the suspend route and is refused for the other bases. Executing the deletion removes the blocks. Creates audit log entry. Requires USER_DELETE permission, plus MESSAGE_LOOKUP for evidence, REPORT_VIEW and REPORT_RESOLVE for reports, MESSAGE_SHRED for remove_evidence, and BAN_IP_ADD and USER_VIEW_IP for block_networks.",
+				"description": "Close the account and schedule its deletion. The basis says why. A broken rule records an enforcement decision kind closure, keeps the account for at least 74 days so an appeal can be reviewed first (14 days on a self-hosted instance, which has no appeals), sends the notice. The X-Audit-Log-Reason header is then required and becomes the first note. A holder request or housekeeping keeps the account for at least 14 days, sends a neutral email, and is cancelled when the holder signs in. Those two return 409 while an enforcement decision owns the account state. When a deletion is already scheduled, the request must name it in replace_pending_deletion_at or it returns 409. block_networks works as on the suspend route and is refused for the other bases. Executing the deletion removes the blocks. Creates audit log entry. Requires USER_DELETE permission, plus MESSAGE_LOOKUP for evidence, REPORT_VIEW and REPORT_RESOLVE for reports, MESSAGE_SHRED for remove_evidence, and BAN_IP_ADD and USER_VIEW_IP for block_networks.",
 				"security": [{"adminApiKey": []}],
 				"parameters": [
 					{
@@ -8156,7 +8086,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Cancel a scheduled deletion that no enforcement decision owns, named by expected_pending_deletion_at, such as one the holder asked for, an inactivity deletion or a closure from before decisions existed. Returns 409 with the decision ID when a decision owns the deletion, which is then ended through its end route, 409 when a different deletion is pending and 400 when none is. Emails the user that the deletion was cancelled, or that the restriction ended for a closure from before decisions existed. Creates audit log entry recording the cancelled deletion. Requires USER_DELETE permission.",
+				"description": "Cancel a scheduled deletion that no enforcement decision owns, named by expected_pending_deletion_at, such as one the holder asked for or a closure from before decisions existed. Returns 409 with the decision ID when a decision owns the deletion, which is then ended through its end route, 409 when a different deletion is pending and 400 when none is. Tells the user by system DM that the restriction ended for a closure from before decisions existed. Creates audit log entry recording the cancelled deletion. Requires USER_DELETE permission.",
 				"security": [{"adminApiKey": []}],
 				"parameters": [
 					{
@@ -8273,134 +8203,6 @@
 				]
 			}
 		},
-		"/admin/users/{user_id}/email": {
-			"patch": {
-				"operationId": "update_admin_user_email",
-				"summary": "Change user email",
-				"tags": ["Admin"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/UserMutationResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Change user email address. New email must be valid and unique. Marks email as verified. Creates audit log entry. Requires USER_UPDATE_EMAIL permission.",
-				"security": [{"adminApiKey": []}],
-				"parameters": [
-					{
-						"name": "user_id",
-						"in": "path",
-						"required": true,
-						"schema": {"description": "The ID of the user", "allOf": [{"$ref": "#/components/schemas/SnowflakeType"}]},
-						"description": "The ID of the user"
-					}
-				],
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/AdminUserEmailUpdateRequest"}}}
-				}
-			}
-		},
-		"/admin/users/{user_id}/email-verification": {
-			"put": {
-				"operationId": "verify_admin_user_email",
-				"summary": "Verify user email",
-				"tags": ["Admin"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/UserMutationResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Manually verify user email address without requiring confirmation link. Bypasses email verification requirement. Creates audit log entry. Requires USER_UPDATE_EMAIL permission.",
-				"security": [{"adminApiKey": []}],
-				"parameters": [
-					{
-						"name": "user_id",
-						"in": "path",
-						"required": true,
-						"schema": {"description": "The ID of the user", "allOf": [{"$ref": "#/components/schemas/SnowflakeType"}]},
-						"description": "The ID of the user"
-					}
-				]
-			}
-		},
 		"/admin/users/{user_id}/feature-limits": {
 			"put": {
 				"operationId": "limit_admin_user_features",
@@ -8450,7 +8252,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Record an enforcement decision that limits one feature and send its notice by email and system DM, leaving out the system DM when the instance has direct messages turned off. Direct messages set SPAMMER and are allowed for spam, automation, fraud and malware reasons only. Reports set REPORT_BANNED until ends_at, 90 days by default and at most 365, and expire on their own. Purchases set PURCHASE_DISABLED for payment reasons. The X-Audit-Log-Reason header is required and becomes the first note. Requires USER_UPDATE_FLAGS permission, plus MESSAGE_LOOKUP for evidence and REPORT_VIEW and REPORT_RESOLVE for reports.",
+				"description": "Record an enforcement decision that limits one feature and send its notice by system DM unless the instance has direct messages turned off. Direct messages set SPAMMER and are allowed for spam, automation, fraud and malware reasons only. Reports set REPORT_BANNED until ends_at, 90 days by default and at most 365, and expire on their own. Purchases set PURCHASE_DISABLED for payment reasons. The X-Audit-Log-Reason header is required and becomes the first note. Requires USER_UPDATE_FLAGS permission, plus MESSAGE_LOOKUP for evidence and REPORT_VIEW and REPORT_RESOLVE for reports.",
 				"security": [{"adminApiKey": []}],
 				"parameters": [
 					{
@@ -9027,65 +8829,6 @@
 				]
 			}
 		},
-		"/admin/users/{user_id}/password-reset": {
-			"post": {
-				"operationId": "send_admin_user_password_reset",
-				"summary": "Send user password reset",
-				"tags": ["Admin"],
-				"responses": {
-					"204": {"description": "No Content"},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Send password reset email to user with reset link. User must use link within expiry window. Creates audit log entry. Requires USER_UPDATE_EMAIL permission. Fails with EMAIL_DELIVERY_OFF while the instance does not send email.",
-				"security": [{"adminApiKey": []}],
-				"parameters": [
-					{
-						"name": "user_id",
-						"in": "path",
-						"required": true,
-						"schema": {"description": "The ID of the user", "allOf": [{"$ref": "#/components/schemas/SnowflakeType"}]},
-						"description": "The ID of the user"
-					}
-				]
-			}
-		},
 		"/admin/users/{user_id}/password-reset-link": {
 			"post": {
 				"operationId": "create_admin_user_password_reset_link",
@@ -9135,7 +8878,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Create a one-time password reset link on an instance where people sign in with a username, or on an email instance that does not send email. Hand the link to the user yourself. It works once and expires after an hour. Deletes the recovery kit of the account. Creates audit log entry. Requires USER_CREATE_PASSWORD_RESET_LINK permission and every ACL the target account holds. Fails with USERNAME_SIGN_IN_ONLY on an email instance that sends email, where people reset their password themselves.",
+				"description": "Create a one-time password reset link. Hand the link to the user yourself. It works once and expires after an hour. Deletes the recovery kit of the account. Creates audit log entry. Requires USER_CREATE_PASSWORD_RESET_LINK permission and every ACL the target account holds.",
 				"security": [{"adminApiKey": []}],
 				"parameters": [
 					{
@@ -9197,7 +8940,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Clears profile fields such as the bio, avatar or display name. An enforcement basis saves the old values as evidence, records a profile reset decision and sends its notice by system DM and email, leaving out the system DM when the instance has direct messages turned off. Creates audit log entry. Requires USER_UPDATE_PROFILE permission.",
+				"description": "Clears profile fields such as the bio, avatar or display name. An enforcement basis saves the old values as evidence, records a profile reset decision and sends its notice by system DM unless the instance has direct messages turned off. Creates audit log entry. Requires USER_UPDATE_PROFILE permission.",
 				"security": [{"adminApiKey": []}],
 				"parameters": [
 					{
@@ -9260,7 +9003,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Deletes the recovery kit of an account on an instance where people sign in with a username, so its key stops working. Creates audit log entry. Requires USER_DELETE_RECOVERY_KIT permission and every ACL the target account holds. Fails with USERNAME_SIGN_IN_ONLY on email instances.",
+				"description": "Deletes the recovery kit of an account, so its key stops working. Creates audit log entry. Requires USER_DELETE_RECOVERY_KIT permission and every ACL the target account holds.",
 				"security": [{"adminApiKey": []}],
 				"parameters": [
 					{
@@ -9657,7 +9400,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Create a one-time sign-in link for an account that holds `*`. Opening the link signs that account in and authorizes the IP address of the browser, without a password or an email. It works once and expires after 15 minutes. Only served on the operator socket. Creates audit log entry, and using the link creates another.",
+				"description": "Create a one-time sign-in link for an account that holds `*`. Opening the link signs that account in and authorizes the IP address of the browser, without a password. It works once and expires after 15 minutes. Only served on the operator socket. Creates audit log entry, and using the link creates another.",
 				"security": [{"adminApiKey": []}],
 				"parameters": [
 					{
@@ -9868,65 +9611,6 @@
 				}
 			}
 		},
-		"/admin/users/{user_id}/verification-email": {
-			"post": {
-				"operationId": "resend_admin_user_verification_email",
-				"summary": "Resend user verification email",
-				"tags": ["Admin"],
-				"responses": {
-					"204": {"description": "No Content"},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Resend the account verification email for a user. Creates audit log entry and honours email verification resend limits. Requires USER_UPDATE_EMAIL permission.",
-				"security": [{"adminApiKey": []}],
-				"parameters": [
-					{
-						"name": "user_id",
-						"in": "path",
-						"required": true,
-						"schema": {"description": "The ID of the user", "allOf": [{"$ref": "#/components/schemas/SnowflakeType"}]},
-						"description": "The ID of the user"
-					}
-				]
-			}
-		},
 		"/admin/users/{user_id}/warnings": {
 			"post": {
 				"operationId": "warn_admin_user",
@@ -9976,7 +9660,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Record a warning decision and send its notice by email and system DM, leaving out the system DM when the instance has direct messages turned off. Nothing about the account changes. The X-Audit-Log-Reason header is required and becomes the first note. Refused for reasons that only allow a suspension or content removal. Requires USER_UPDATE_FLAGS permission, plus MESSAGE_LOOKUP for evidence and REPORT_VIEW and REPORT_RESOLVE for reports.",
+				"description": "Record a warning decision and send its notice by system DM unless the instance has direct messages turned off. Nothing about the account changes. The X-Audit-Log-Reason header is required and becomes the first note. Refused for reasons that only allow a suspension or content removal. Requires USER_UPDATE_FLAGS permission, plus MESSAGE_LOOKUP for evidence and REPORT_VIEW and REPORT_RESOLVE for reports.",
 				"security": [{"adminApiKey": []}],
 				"parameters": [
 					{
@@ -12255,16 +11939,6 @@
 				},
 				"required": ["limit", "decision"]
 			},
-			"AdminUserEmailUpdateRequest": {
-				"type": "object",
-				"properties": {
-					"email": {
-						"description": "New email address for the user",
-						"allOf": [{"$ref": "#/components/schemas/EmailType"}]
-					}
-				},
-				"required": ["email"]
-			},
 			"AdminUserDmChannelType": {
 				"description": "Kind of direct message channel to list",
 				"x-enumNames": ["DM", "GROUP_DM"],
@@ -12436,7 +12110,7 @@
 					},
 					"block_networks": {"allOf": [{"$ref": "#/components/schemas/NetworkBlockRequest"}]},
 					"immediate": {
-						"description": "Self-hosted instances only. Delete the account now instead of after days_until_deletion, with no notice email. This cannot be undone",
+						"description": "Self-hosted instances only. Delete the account now instead of after days_until_deletion. This cannot be undone",
 						"type": "boolean"
 					}
 				},
@@ -12577,7 +12251,7 @@
 				"type": "object",
 				"properties": {
 					"acls": {
-						"maxItems": 115,
+						"maxItems": 110,
 						"type": "array",
 						"items": {"$ref": "#/components/schemas/AdminAclType"},
 						"description": "List of access control permissions to assign"
@@ -12606,10 +12280,6 @@
 					"username": {
 						"description": "Username for the new account",
 						"allOf": [{"$ref": "#/components/schemas/UsernameType"}]
-					},
-					"email": {
-						"description": "Email address for the new account. Required on an instance where people sign in with email, and refused where they sign in with a username",
-						"allOf": [{"$ref": "#/components/schemas/EmailType"}]
 					},
 					"admin": {
 						"default": false,
@@ -12652,9 +12322,6 @@
 					"badge:delete",
 					"badge:list",
 					"badge:update",
-					"ban:email:add",
-					"ban:email:check",
-					"ban:email:remove",
 					"ban:phrase:add",
 					"ban:phrase:check",
 					"ban:phrase:remove",
@@ -12727,12 +12394,10 @@
 					"user:lookup",
 					"user:remove:relationship",
 					"user:view:contact_log",
-					"user:view:email",
 					"user:view:ip",
 					"user:temp_ban",
 					"user:update:badges",
 					"user:update:bot_status",
-					"user:update:email",
 					"user:update:flags",
 					"user:update:mfa",
 					"user:update:profile",
@@ -12974,7 +12639,6 @@
 					"reporter_username": {"nullable": true, "type": "string"},
 					"reporter_global_name": {"nullable": true, "type": "string"},
 					"reporter_discriminator": {"nullable": true, "type": "string"},
-					"reporter_email": {"nullable": true, "type": "string"},
 					"reporter_full_legal_name": {"nullable": true, "type": "string"},
 					"reporter_country_of_residence": {"nullable": true, "type": "string"},
 					"reported_at": {"type": "string"},
@@ -13366,7 +13030,6 @@
 					"reporter_username",
 					"reporter_global_name",
 					"reporter_discriminator",
-					"reporter_email",
 					"reporter_full_legal_name",
 					"reporter_country_of_residence",
 					"reported_at",
@@ -13751,7 +13414,6 @@
 					"auth": {
 						"type": "object",
 						"properties": {
-							"identifier_first": {"allOf": [{"$ref": "#/components/schemas/IdentifierFirstModeSchema"}]},
 							"instant_accounts": {
 								"type": "object",
 								"properties": {
@@ -13774,7 +13436,7 @@
 								"allOf": [{"$ref": "#/components/schemas/InstantAccountAvailabilitySchema"}]
 							}
 						},
-						"required": ["identifier_first", "instant_accounts", "instant_account_availability"],
+						"required": ["instant_accounts", "instant_account_availability"],
 						"additionalProperties": false
 					},
 					"accounts": {"$ref": "#/components/schemas/AccountsConfigSchema"},
@@ -13785,10 +13447,6 @@
 						"properties": {
 							"mode": {"allOf": [{"$ref": "#/components/schemas/InstanceRegistrationModeSchema"}]},
 							"admin_registration_urls_enabled": {"type": "boolean"},
-							"allowed_email_domains": {
-								"description": "Email domains that public sign-ups and email changes must use. Empty allows any domain",
-								"allOf": [{"$ref": "#/components/schemas/AllowedEmailDomainsSchema"}]
-							},
 							"urls": {
 								"type": "array",
 								"items": {
@@ -13852,28 +13510,10 @@
 								}
 							}
 						},
-						"required": ["mode", "admin_registration_urls_enabled", "allowed_email_domains", "urls"],
+						"required": ["mode", "admin_registration_urls_enabled", "urls"],
 						"additionalProperties": false
 					},
 					"self_hosted": {"type": "boolean"},
-					"account_identity": {
-						"type": "object",
-						"properties": {
-							"mode": {
-								"description": "Sign-in method in effect on this instance",
-								"allOf": [{"$ref": "#/components/schemas/AccountIdentityModeSchema"}]
-							},
-							"locked": {"type": "boolean", "description": "Whether the sign-in method can no longer change"},
-							"tag_style": {"allOf": [{"$ref": "#/components/schemas/TagStyleSchema"}]},
-							"lock_reason": {
-								"nullable": true,
-								"description": "Why the sign-in method can no longer change, or null while it still can",
-								"allOf": [{"$ref": "#/components/schemas/AccountIdentityLockReasonSchema"}]
-							}
-						},
-						"required": ["mode", "locked", "tag_style", "lock_reason"],
-						"additionalProperties": false
-					},
 					"app_public": {
 						"type": "object",
 						"properties": {
@@ -13991,90 +13631,6 @@
 								"required": ["api_key_set", "effective_available"],
 								"additionalProperties": false
 							},
-							"email": {
-								"type": "object",
-								"properties": {
-									"delivery": {
-										"nullable": true,
-										"description": "Saved delivery mode, or null to use the environment",
-										"allOf": [{"$ref": "#/components/schemas/EmailDeliveryModeSchema"}]
-									},
-									"effective_delivery": {"allOf": [{"$ref": "#/components/schemas/EmailDeliveryModeSchema"}]},
-									"delivery_state": {"allOf": [{"$ref": "#/components/schemas/EmailDeliveryStateSchema"}]},
-									"enabled": {"nullable": true, "description": "Deprecated, use delivery", "type": "boolean"},
-									"effective_enabled": {
-										"type": "boolean",
-										"description": "Whether the instance sends email, same as delivery_state being on"
-									},
-									"provider": {
-										"nullable": true,
-										"type": "string",
-										"enum": ["smtp", "none"],
-										"description": "Deprecated, use delivery"
-									},
-									"effective_provider": {
-										"type": "string",
-										"enum": ["smtp", "none"],
-										"description": "Deprecated, use delivery"
-									},
-									"from_email": {"nullable": true, "type": "string"},
-									"from_name": {"nullable": true, "type": "string"},
-									"smtp": {
-										"type": "object",
-										"properties": {
-											"host": {"nullable": true, "type": "string"},
-											"port": {"nullable": true, "type": "integer", "minimum": 1, "maximum": 65535},
-											"username": {"nullable": true, "type": "string"},
-											"password_set": {"type": "boolean"},
-											"tls_mode": {
-												"nullable": true,
-												"description": "Saved TLS mode, or null to pick one from the port",
-												"x-enumNames": ["IMPLICIT", "STARTTLS", "OPPORTUNISTIC", "NONE"],
-												"x-enumDescriptions": [
-													"TLS from the first byte, usually on port 465",
-													"Plain connection that must upgrade with STARTTLS, usually on port 587",
-													"Plain connection upgraded with STARTTLS when the server offers it",
-													"No TLS, even when the server offers STARTTLS"
-												],
-												"enum": ["implicit", "starttls", "opportunistic", "none"],
-												"type": "string"
-											},
-											"effective_tls_mode": {
-												"nullable": true,
-												"description": "How the SMTP connection is encrypted",
-												"x-enumNames": ["IMPLICIT", "STARTTLS", "OPPORTUNISTIC", "NONE"],
-												"x-enumDescriptions": [
-													"TLS from the first byte, usually on port 465",
-													"Plain connection that must upgrade with STARTTLS, usually on port 587",
-													"Plain connection upgraded with STARTTLS when the server offers it",
-													"No TLS, even when the server offers STARTTLS"
-												],
-												"enum": ["implicit", "starttls", "opportunistic", "none"],
-												"type": "string"
-											}
-										},
-										"required": ["host", "port", "username", "password_set", "tls_mode", "effective_tls_mode"],
-										"additionalProperties": false
-									},
-									"disable_new_ip_authorization": {"type": "boolean"},
-									"effective_disable_new_ip_authorization": {"type": "boolean"}
-								},
-								"required": [
-									"delivery",
-									"effective_delivery",
-									"delivery_state",
-									"enabled",
-									"effective_enabled",
-									"provider",
-									"effective_provider",
-									"from_email",
-									"from_name",
-									"smtp",
-									"disable_new_ip_authorization",
-									"effective_disable_new_ip_authorization"
-								],
-								"additionalProperties": false
-							},
 							"bluesky": {
 								"type": "object",
 								"properties": {
@@ -14100,7 +13656,7 @@
 								"additionalProperties": false
 							}
 						},
-						"required": ["youtube", "email", "bluesky"],
+						"required": ["youtube", "bluesky"],
 						"additionalProperties": false
 					},
 					"media": {
@@ -14229,7 +13785,6 @@
 					"experiment_delivery",
 					"registration",
 					"self_hosted",
-					"account_identity",
 					"app_public",
 					"policy",
 					"integrations",
@@ -14353,59 +13908,6 @@
 				"required": ["pending_registrations"],
 				"additionalProperties": false
 			},
-			"InstanceEmailSmtpTestRequest": {
-				"type": "object",
-				"properties": {
-					"host": {"nullable": true, "type": "string", "minLength": 1, "maxLength": 255},
-					"port": {"nullable": true, "type": "integer", "minimum": 1, "maximum": 65535},
-					"username": {"nullable": true, "type": "string", "minLength": 1, "maxLength": 320},
-					"password": {"nullable": true, "type": "string", "minLength": 1, "maxLength": 4096},
-					"tls_mode": {
-						"nullable": true,
-						"description": "How the SMTP connection is encrypted",
-						"x-enumNames": ["IMPLICIT", "STARTTLS", "OPPORTUNISTIC", "NONE"],
-						"x-enumDescriptions": [
-							"TLS from the first byte, usually on port 465",
-							"Plain connection that must upgrade with STARTTLS, usually on port 587",
-							"Plain connection upgraded with STARTTLS when the server offers it",
-							"No TLS, even when the server offers STARTTLS"
-						],
-						"enum": ["implicit", "starttls", "opportunistic", "none"],
-						"type": "string"
-					},
-					"from_email": {
-						"description": "The from address for the test message, in place of the saved one",
-						"nullable": true,
-						"allOf": [{"$ref": "#/components/schemas/EmailType"}]
-					},
-					"from_name": {
-						"description": "The from name for the test message, in place of the saved one",
-						"nullable": true,
-						"type": "string",
-						"minLength": 1,
-						"maxLength": 120
-					},
-					"send_to": {
-						"description": "When set, the test also sends a short message to this address and reports what the server answered",
-						"nullable": true,
-						"allOf": [{"$ref": "#/components/schemas/EmailType"}]
-					}
-				}
-			},
-			"InstanceEmailSmtpTestResponse": {
-				"type": "object",
-				"properties": {
-					"ok": {"type": "boolean"},
-					"error": {"nullable": true, "type": "string"},
-					"server_response": {
-						"description": "What the server answered when it accepted the test message, present only when send_to was set",
-						"nullable": true,
-						"type": "string"
-					}
-				},
-				"required": ["ok", "error"],
-				"additionalProperties": false
-			},
 			"BrandingAssetUploadRequest": {
 				"type": "object",
 				"properties": {
@@ -14445,8 +13947,7 @@
 						"type": "object",
 						"properties": {
 							"mode": {"allOf": [{"$ref": "#/components/schemas/InstanceRegistrationModeSchema"}]},
-							"admin_registration_urls_enabled": {"type": "boolean"},
-							"allowed_email_domains": {"allOf": [{"$ref": "#/components/schemas/AllowedEmailDomainsSchema"}]}
+							"admin_registration_urls_enabled": {"type": "boolean"}
 						}
 					},
 					"app_public": {
@@ -14502,51 +14003,6 @@
 								"nullable": true,
 								"type": "object",
 								"properties": {"api_key": {"nullable": true, "type": "string", "maxLength": 4096}}
-							},
-							"email": {
-								"nullable": true,
-								"type": "object",
-								"properties": {
-									"delivery": {
-										"description": "How the instance sends email, or null to use the environment",
-										"nullable": true,
-										"allOf": [{"$ref": "#/components/schemas/EmailDeliveryModeSchema"}]
-									},
-									"enabled": {"description": "Deprecated, use delivery", "nullable": true, "type": "boolean"},
-									"provider": {
-										"nullable": true,
-										"type": "string",
-										"enum": ["smtp", "none"],
-										"description": "Deprecated, use delivery"
-									},
-									"from_email": {"nullable": true, "type": "string", "maxLength": 320},
-									"from_name": {"nullable": true, "type": "string", "maxLength": 120},
-									"smtp": {
-										"nullable": true,
-										"type": "object",
-										"properties": {
-											"host": {"nullable": true, "type": "string", "maxLength": 255},
-											"port": {"nullable": true, "type": "integer", "minimum": 1, "maximum": 65535},
-											"username": {"nullable": true, "type": "string", "maxLength": 320},
-											"password": {"nullable": true, "type": "string", "maxLength": 4096},
-											"tls_mode": {
-												"nullable": true,
-												"description": "How the SMTP connection is encrypted",
-												"x-enumNames": ["IMPLICIT", "STARTTLS", "OPPORTUNISTIC", "NONE"],
-												"x-enumDescriptions": [
-													"TLS from the first byte, usually on port 465",
-													"Plain connection that must upgrade with STARTTLS, usually on port 587",
-													"Plain connection upgraded with STARTTLS when the server offers it",
-													"No TLS, even when the server offers STARTTLS"
-												],
-												"enum": ["implicit", "starttls", "opportunistic", "none"],
-												"type": "string"
-											},
-											"secure": {"description": "Deprecated, use tls_mode", "nullable": true, "type": "boolean"}
-										}
-									},
-									"disable_new_ip_authorization": {"nullable": true, "type": "boolean"}
-								}
 							},
 							"bluesky": {
 								"nullable": true,
@@ -15429,7 +14885,7 @@
 						"enum": ["lifted", "reversed"],
 						"description": "Lifted ends a restriction that was correct. Reversed says the decision was wrong"
 					},
-					"statement": {"description": "Note to the user, shown in the email", "type": "string"}
+					"statement": {"description": "Note to the user, shown in the notice", "type": "string"}
 				},
 				"required": ["outcome"]
 			},
@@ -15479,7 +14935,7 @@
 					"ended_by": {"nullable": true, "allOf": [{"$ref": "#/components/schemas/SnowflakeStringType"}]},
 					"end_statement": {"nullable": true, "type": "string"},
 					"notice_status": {"type": "string", "enum": ["pending", "sent", "undelivered"]},
-					"notice_channels": {"type": "array", "items": {"type": "string", "enum": ["email", "system_dm", "sign_in"]}},
+					"notice_channels": {"type": "array", "items": {"type": "string", "enum": ["system_dm", "sign_in"]}},
 					"notice_locale": {"nullable": true, "type": "string"},
 					"notice_text": {"nullable": true, "description": "The plain text that was sent", "type": "string"},
 					"notice_sent_at": {"nullable": true, "type": "string"},
@@ -15609,13 +15065,9 @@
 										"nullable": true,
 										"description": "Last day to appeal, already formatted for the reader",
 										"type": "string"
-									},
-									"account_has_email": {
-										"type": "boolean",
-										"description": "Whether the account has an email address to write from"
 									}
 								},
-								"required": ["email", "deadline", "account_has_email"],
+								"required": ["email", "deadline"],
 								"additionalProperties": false
 							},
 							"redress": {
@@ -15720,10 +15172,7 @@
 								"ended_by": {"nullable": true, "allOf": [{"$ref": "#/components/schemas/SnowflakeStringType"}]},
 								"end_statement": {"nullable": true, "type": "string"},
 								"notice_status": {"type": "string", "enum": ["pending", "sent", "undelivered"]},
-								"notice_channels": {
-									"type": "array",
-									"items": {"type": "string", "enum": ["email", "system_dm", "sign_in"]}
-								},
+								"notice_channels": {"type": "array", "items": {"type": "string", "enum": ["system_dm", "sign_in"]}},
 								"notice_locale": {"nullable": true, "type": "string"},
 								"notice_text": {"nullable": true, "description": "The plain text that was sent", "type": "string"},
 								"notice_sent_at": {"nullable": true, "type": "string"},
@@ -16075,7 +15524,7 @@
 			},
 			"AdminBlocklistListType": {
 				"type": "string",
-				"enum": ["ip", "email", "phrase", "url", "url-domain", "file-sha", "avatar-hash", "profile-substring"],
+				"enum": ["ip", "phrase", "url", "url-domain", "file-sha", "avatar-hash", "profile-substring"],
 				"description": "The blocklist an entry belongs to"
 			},
 			"AdminBlocklistEntryUpdateRequest": {
@@ -16129,7 +15578,6 @@
 			"AdminBlocklistEntryCreateRequest": {
 				"anyOf": [
 					{"$ref": "#/components/schemas/BanIpRequest"},
-					{"$ref": "#/components/schemas/BanEmailRequest"},
 					{"$ref": "#/components/schemas/BanPhraseRequest"},
 					{"$ref": "#/components/schemas/BanUrlRequest"},
 					{"$ref": "#/components/schemas/BanUrlDomainRequest"},
@@ -16753,7 +16201,7 @@
 					},
 					"acls": {
 						"description": "Replacement list of access control permissions for the key",
-						"maxItems": 115,
+						"maxItems": 110,
 						"type": "array",
 						"items": {"$ref": "#/components/schemas/AdminAclType"}
 					}
@@ -16771,7 +16219,7 @@
 						"type": "string"
 					},
 					"acls": {
-						"maxItems": 115,
+						"maxItems": 110,
 						"type": "array",
 						"items": {"type": "string"},
 						"description": "List of access control permissions for the key"
@@ -16801,7 +16249,7 @@
 						"maximum": 365
 					},
 					"acls": {
-						"maxItems": 115,
+						"maxItems": 110,
 						"type": "array",
 						"items": {"$ref": "#/components/schemas/AdminAclType"},
 						"description": "List of access control permissions for the key"
@@ -16822,7 +16270,7 @@
 						"type": "string"
 					},
 					"acls": {
-						"maxItems": 115,
+						"maxItems": 110,
 						"type": "array",
 						"items": {"type": "string"},
 						"description": "List of access control permissions for the key"
@@ -16835,7 +16283,7 @@
 				"type": "object",
 				"properties": {
 					"acls": {
-						"maxItems": 115,
+						"maxItems": 110,
 						"type": "array",
 						"items": {"type": "string", "minLength": 1, "maxLength": 64},
 						"description": "Every admin access control permission the admin API recognises"
@@ -17127,16 +16575,6 @@
 				},
 				"required": ["phrase"]
 			},
-			"BanEmailRequest": {
-				"type": "object",
-				"properties": {
-					"email": {
-						"description": "Email address to ban, or a domain written as @example.com to ban every address at it and its subdomains",
-						"allOf": [{"$ref": "#/components/schemas/EmailBlocklistEntryType"}]
-					}
-				},
-				"required": ["email"]
-			},
 			"BanIpRequest": {
 				"type": "object",
 				"properties": {
@@ -17150,7 +16588,6 @@
 				},
 				"required": ["ip"]
 			},
-			"EmailBlocklistEntryType": {"type": "string"},
 			"CheckAvatarHashRequest": {
 				"type": "object",
 				"properties": {"hashes": {"minItems": 1, "maxItems": 1000, "type": "array", "items": {"type": "string"}}},
@@ -19141,13 +18578,9 @@
 								"nullable": true,
 								"description": "Last day to appeal, already formatted for the reader",
 								"type": "string"
-							},
-							"account_has_email": {
-								"type": "boolean",
-								"description": "Whether the account has an email address to write from"
 							}
 						},
-						"required": ["email", "deadline", "account_has_email"],
+						"required": ["email", "deadline"],
 						"additionalProperties": false
 					},
 					"redress": {
@@ -19295,7 +18728,7 @@
 				"x-enumNames": ["NONE", "LOW", "MEDIUM", "HIGH"],
 				"x-enumDescriptions": [
 					"Unrestricted",
-					"Must have verified email",
+					"Must have a password or passkey on the account",
 					"Registered for more than 5 minutes",
 					"Member of the server for more than 10 minutes"
 				]
@@ -19394,7 +18827,7 @@
 				"x-enumNames": ["NONE", "LOW", "MEDIUM", "HIGH"],
 				"x-enumDescriptions": [
 					"Unrestricted",
-					"Must have verified email",
+					"Must have a password or passkey on the account",
 					"Registered for more than 5 minutes",
 					"Member of the server for more than 10 minutes"
 				],
@@ -19740,14 +19173,6 @@
 				"x-enumNames": ["INCOMING", "CHANNEL_FOLLOWER"],
 				"x-enumDescriptions": ["Incoming webhook", "Channel follower webhook"]
 			},
-			"EmailDeliveryModeSchema": {
-				"description": "How the instance sends email",
-				"x-enumNames": ["OFF", "SMTP"],
-				"x-enumDescriptions": ["The instance does not send email", "The instance sends email through SMTP"],
-				"enum": ["off", "smtp"],
-				"type": "string"
-			},
-			"AllowedEmailDomainsSchema": {"maxItems": 100, "type": "array", "items": {"type": "string"}},
 			"InstanceRegistrationModeSchema": {
 				"description": "Registration mode",
 				"x-enumNames": ["open", "approval", "closed"],
@@ -19801,7 +19226,6 @@
 				"type": "object",
 				"properties": {
 					"interaction_tier": {"allOf": [{"$ref": "#/components/schemas/InteractionTierModeSchema"}]},
-					"verification_basis": {"allOf": [{"$ref": "#/components/schemas/VerificationBasisSchema"}]},
 					"guild_join_gate": {"allOf": [{"$ref": "#/components/schemas/GuildJoinGateSchema"}]},
 					"unclaimed_account_cleanup": {
 						"type": "object",
@@ -19819,39 +19243,12 @@
 							"on_last_session_end": {"allOf": [{"$ref": "#/components/schemas/LastSessionCleanupModeSchema"}]}
 						}
 					},
-					"inactivity_deletion": {
-						"type": "object",
-						"properties": {
-							"mode": {
-								"description": "Whether accounts unused for a long time are deleted. An account is only deleted after a warning email reached it",
-								"allOf": [{"$ref": "#/components/schemas/CleanupModeSchema"}]
-							},
-							"inactive_days": {
-								"type": "integer",
-								"minimum": 1,
-								"maximum": 3650,
-								"description": "Days without use before the warning email is sent"
-							},
-							"warning_lead_days": {
-								"type": "integer",
-								"minimum": 1,
-								"maximum": 365,
-								"description": "Days between the warning email and the deletion"
-							}
-						}
-					},
 					"abandoned_account_cleanup": {"description": "Deprecated, use unclaimed_account_cleanup", "type": "boolean"}
 				}
 			},
 			"AuthConfigUpdateRequest": {
 				"type": "object",
 				"properties": {
-					"identifier_first": {
-						"anyOf": [
-							{"allOf": [{"$ref": "#/components/schemas/IdentifierFirstModeSchema"}]},
-							{"type": "boolean", "description": "Deprecated: true means on and false means off"}
-						]
-					},
 					"instant_accounts": {
 						"type": "object",
 						"properties": {
@@ -19958,15 +19355,14 @@
 				"enum": ["none", "altcha"],
 				"type": "string"
 			},
-			"IdentifierFirstModeSchema": {
-				"description": "Whether clients show the single sign-in entry that starts with an email",
-				"x-enumNames": ["AUTO", "ON", "OFF"],
+			"LastSessionCleanupModeSchema": {
+				"description": "What happens when an account with no way back in signs out of its last session",
+				"x-enumNames": ["OFF", "AFTER_GRACE"],
 				"x-enumDescriptions": [
-					"On while people sign in with an email and the instance sends email",
-					"On while people sign in with an email",
-					"Off"
+					"Signing out of the last session deletes nothing",
+					"Signing out of the last session schedules the account for deletion after a grace period"
 				],
-				"enum": ["auto", "on", "off"],
+				"enum": ["off", "after_grace"],
 				"type": "string"
 			},
 			"CleanupModeSchema": {
@@ -19977,16 +19373,6 @@
 					"Accounts are deleted after the set number of days without use"
 				],
 				"enum": ["off", "after_inactivity"],
-				"type": "string"
-			},
-			"LastSessionCleanupModeSchema": {
-				"description": "What happens when an account with no way back in signs out of its last session",
-				"x-enumNames": ["OFF", "AFTER_GRACE"],
-				"x-enumDescriptions": [
-					"Signing out of the last session deletes nothing",
-					"Signing out of the last session schedules the account for deletion after a grace period"
-				],
-				"enum": ["off", "after_grace"],
 				"type": "string"
 			},
 			"GuildJoinGateSchema": {
@@ -20000,17 +19386,6 @@
 				"enum": ["off", "visits_capable", "always"],
 				"type": "string"
 			},
-			"VerificationBasisSchema": {
-				"description": "What an account needs to finish setting up",
-				"x-enumNames": ["AUTO", "CONFIRMED_EMAIL", "LOCAL_CREDENTIAL"],
-				"x-enumDescriptions": [
-					"A confirmed email while the instance sends email, otherwise a password or passkey",
-					"Accounts finish setting up by confirming an email",
-					"Accounts finish setting up by adding a password or passkey"
-				],
-				"enum": ["auto", "confirmed_email", "local_credential"],
-				"type": "string"
-			},
 			"InteractionTierModeSchema": {
 				"description": "Which limits apply to accounts that have not finished setting up",
 				"x-enumNames": ["LEGACY", "ENFORCED"],
@@ -20021,7 +19396,6 @@
 				"enum": ["legacy", "enforced"],
 				"type": "string"
 			},
-			"EmailType": {"type": "string"},
 			"PendingRegistrationResponse": {
 				"type": "object",
 				"properties": {
@@ -20029,7 +19403,6 @@
 					"username": {"type": "string"},
 					"discriminator": {"type": "integer", "minimum": 0, "maximum": 9999},
 					"global_name": {"nullable": true, "type": "string"},
-					"email": {"nullable": true, "type": "string"},
 					"requested_at": {
 						"type": "string",
 						"format": "date-time",
@@ -20044,7 +19417,6 @@
 					"username",
 					"discriminator",
 					"global_name",
-					"email",
 					"requested_at",
 					"registration_url_id",
 					"client_ip",
@@ -20079,47 +19451,6 @@
 				"required": ["id", "message", "url", "starts_at", "ends_at"],
 				"additionalProperties": false,
 				"description": "Notice from the instance administrator shown to everyone, such as planned maintenance"
-			},
-			"EmailDeliveryStateSchema": {
-				"description": "Whether the instance sends email, and why not",
-				"x-enumNames": ["ON", "OFF_USERNAME_MODE", "OFF_DISABLED", "OFF_INCOMPLETE"],
-				"x-enumDescriptions": [
-					"The instance sends email",
-					"People sign in with a username, so no email is sent",
-					"Email delivery is turned off",
-					"Email delivery is on but its settings are incomplete"
-				],
-				"enum": ["on", "off_username_mode", "off_disabled", "off_incomplete"],
-				"type": "string"
-			},
-			"AccountIdentityLockReasonSchema": {
-				"description": "Why the sign-in method can no longer change",
-				"x-enumNames": ["SETUP_CONFIGURED", "EXISTING_INSTANCE", "ADMIN_EXISTS", "ACCOUNTS_EXIST"],
-				"x-enumDescriptions": [
-					"The instance configuration marks setup as finished",
-					"The instance was in use before username sign-in existed, so it stays on email",
-					"The instance already has an administrator",
-					"The instance already has accounts"
-				],
-				"enum": ["setup_configured", "existing_instance", "admin_exists", "accounts_exist"],
-				"type": "string"
-			},
-			"TagStyleSchema": {
-				"description": "How usernames are tagged",
-				"x-enumNames": ["NONE", "RANDOM"],
-				"x-enumDescriptions": ["Usernames are unique and shown without a tag", "Every account gets a random tag"],
-				"enum": ["none", "random"],
-				"type": "string"
-			},
-			"AccountIdentityModeSchema": {
-				"description": "How people identify themselves when they sign in",
-				"x-enumNames": ["EMAIL", "USERNAME"],
-				"x-enumDescriptions": [
-					"People sign in with an email address",
-					"People sign in with a username and no email is collected"
-				],
-				"enum": ["email", "username"],
-				"type": "string"
 			},
 			"ExperimentDeliveryConfigResponse": {
 				"type": "object",
@@ -20175,7 +19506,6 @@
 				"type": "object",
 				"properties": {
 					"interaction_tier": {"allOf": [{"$ref": "#/components/schemas/InteractionTierModeSchema"}]},
-					"verification_basis": {"allOf": [{"$ref": "#/components/schemas/VerificationBasisSchema"}]},
 					"guild_join_gate": {"allOf": [{"$ref": "#/components/schemas/GuildJoinGateSchema"}]},
 					"unclaimed_account_cleanup": {
 						"type": "object",
@@ -20194,38 +19524,9 @@
 						},
 						"required": ["mode", "inactive_days", "on_last_session_end"],
 						"additionalProperties": false
-					},
-					"inactivity_deletion": {
-						"type": "object",
-						"properties": {
-							"mode": {
-								"description": "Whether accounts unused for a long time are deleted. An account is only deleted after a warning email reached it",
-								"allOf": [{"$ref": "#/components/schemas/CleanupModeSchema"}]
-							},
-							"inactive_days": {
-								"type": "integer",
-								"minimum": 1,
-								"maximum": 3650,
-								"description": "Days without use before the warning email is sent"
-							},
-							"warning_lead_days": {
-								"type": "integer",
-								"minimum": 1,
-								"maximum": 365,
-								"description": "Days between the warning email and the deletion"
-							}
-						},
-						"required": ["mode", "inactive_days", "warning_lead_days"],
-						"additionalProperties": false
 					}
 				},
-				"required": [
-					"interaction_tier",
-					"verification_basis",
-					"guild_join_gate",
-					"unclaimed_account_cleanup",
-					"inactivity_deletion"
-				],
+				"required": ["interaction_tier", "guild_join_gate", "unclaimed_account_cleanup"],
 				"additionalProperties": false
 			},
 			"InstantAccountAvailabilitySchema": {
@@ -20465,9 +19766,6 @@
 					"bio": {"nullable": true, "type": "string"},
 					"pronouns": {"nullable": true, "type": "string"},
 					"accent_color": {"nullable": true, "allOf": [{"$ref": "#/components/schemas/Int32Type"}]},
-					"email": {"nullable": true, "type": "string"},
-					"email_verified": {"type": "boolean"},
-					"email_bounced": {"type": "boolean"},
 					"locale": {"nullable": true, "type": "string"},
 					"profile_badges": {
 						"type": "array",
@@ -20503,7 +19801,7 @@
 						"description": "The enforcement decision behind the current suspension or closure, null when none owns it",
 						"allOf": [{"$ref": "#/components/schemas/SnowflakeStringType"}]
 					},
-					"acls": {"maxItems": 115, "type": "array", "items": {"type": "string"}},
+					"acls": {"maxItems": 110, "type": "array", "items": {"type": "string"}},
 					"traits": {"maxItems": 100, "type": "array", "items": {"type": "string"}},
 					"badge_ids": {"allOf": [{"$ref": "#/components/schemas/CustomBadgeIdListResponse"}]},
 					"has_totp": {"type": "boolean"},
@@ -20529,9 +19827,6 @@
 					"bio",
 					"pronouns",
 					"accent_color",
-					"email",
-					"email_verified",
-					"email_bounced",
 					"locale",
 					"profile_badges",
 					"temp_banned_until",
@@ -20560,13 +19855,12 @@
 			},
 			"AccountTierSchema": {
 				"description": "How far the account has got with setting up a way to sign in",
-				"x-enumNames": ["UNCLAIMED", "UNVERIFIED", "VERIFIED"],
+				"x-enumNames": ["UNCLAIMED", "VERIFIED"],
 				"x-enumDescriptions": [
 					"The account has no way to sign in from another device yet",
-					"The account has an email address that is not confirmed yet",
 					"The account has finished setting up and can use everything"
 				],
-				"enum": ["unclaimed", "unverified", "verified"],
+				"enum": ["unclaimed", "verified"],
 				"type": "string"
 			},
 			"DeletionReasonCode": {
@@ -21048,7 +20342,6 @@
 					"BLUESKY_OAUTH_AUTHORIZATION_FAILED",
 					"BLUESKY_OAUTH_NOT_ENABLED",
 					"ACCOUNT_LIMITED",
-					"ACCOUNT_IDENTITY_LOCKED",
 					"ACCOUNT_SUSPENDED_PERMANENTLY",
 					"ACCOUNT_SUSPENDED_TEMPORARILY",
 					"ACCOUNT_TOO_NEW_FOR_GUILD",
@@ -21100,11 +20393,6 @@
 					"DISCOVERY_INSUFFICIENT_MEMBERS",
 					"DISCOVERY_NOT_DISCOVERABLE",
 					"DISCRIMINATOR_REQUIRED",
-					"EMAIL_DELIVERY_OFF",
-					"EMAIL_SERVICE_NOT_TESTABLE",
-					"EMAIL_UNAVAILABLE_ON_INSTANCE",
-					"EMAIL_VERIFICATION_REQUIRED",
-					"DIRECT_MESSAGE_EMAIL_VERIFICATION_REQUIRED",
 					"ENFORCEMENT_ACCOUNT_CLOSED",
 					"ENFORCEMENT_DECISION_ENDED",
 					"ENFORCEMENT_DECISION_OWNS_STATE",
@@ -21112,22 +20400,13 @@
 					"ENFORCEMENT_DELETION_STARTED",
 					"FOLLOW_TARGET_CONTENT_WARNING_REQUIRED",
 					"FOLLOW_TARGET_NOT_AGE_RESTRICTED",
-					"FRIEND_REQUEST_EMAIL_VERIFICATION_REQUIRED",
-					"GUILD_CREATION_EMAIL_VERIFICATION_REQUIRED",
 					"GUILD_CREATION_PERMISSION_REQUIRED",
-					"GUILD_EMAIL_VERIFICATION_REQUIRED",
 					"INVALID_FOLLOW_TARGET_CHANNEL",
 					"MESSAGE_ALREADY_CROSSPOSTED",
 					"MESSAGE_CROSSPOST_RATE_LIMITED",
 					"MESSAGE_NOT_CROSSPOSTABLE",
-					"MFA_EMAIL_VERIFICATION_REQUIRED",
-					"PROFILE_EMAIL_VERIFICATION_REQUIRED",
 					"PUBLISHED_MESSAGE_EDIT_RATE_LIMITED",
-					"PURCHASE_EMAIL_VERIFICATION_REQUIRED",
-					"REACTION_EMAIL_VERIFICATION_REQUIRED",
-					"REPORT_EMAIL_VERIFICATION_REQUIRED",
 					"REGISTRATION_CLOSED",
-					"REGISTRATION_CREDENTIAL_REQUIRED",
 					"REGISTRATION_CREDENTIALS_REQUIRED",
 					"REGISTRATION_PENDING_APPROVAL",
 					"REGISTRATION_REJECTED",
@@ -21160,9 +20439,6 @@
 					"INVALID_CAPTCHA",
 					"INVALID_CHANNEL_TYPE_FOR_CALL",
 					"INVALID_CHANNEL_TYPE",
-					"INVALID_DSA_REPORT_TARGET",
-					"INVALID_DSA_TICKET",
-					"INVALID_DSA_VERIFICATION_CODE",
 					"INVALID_FLAGS_FORMAT",
 					"INVALID_FORM_BODY",
 					"INVALID_HANDOFF_CODE",
@@ -21183,9 +20459,6 @@
 					"INVALID_WEBAUTHN_CREDENTIAL",
 					"INVALID_WEBAUTHN_PUBLIC_KEY_FORMAT",
 					"INVITES_DISABLED",
-					"IP_AUTHORIZATION_REQUIRED",
-					"IP_AUTHORIZATION_RESEND_COOLDOWN",
-					"IP_AUTHORIZATION_RESEND_LIMIT_EXCEEDED",
 					"GLOBAL_IP_BANNED",
 					"GLOBAL_IP_TEMPORARILY_BANNED",
 					"IP_BAN_DECLINED",
@@ -21267,18 +20540,9 @@
 					"TWO_FA_ALREADY_ENABLED",
 					"TWO_FACTOR_REQUIRED",
 					"UNAUTHORIZED",
-					"UNCLAIMED_ACCOUNT_CANNOT_ACCEPT_FRIEND_REQUESTS",
-					"UNCLAIMED_ACCOUNT_CANNOT_ADD_REACTIONS",
-					"UNCLAIMED_ACCOUNT_CANNOT_CREATE_APPLICATIONS",
-					"UNCLAIMED_ACCOUNT_CANNOT_CREATE_GUILDS",
-					"UNCLAIMED_ACCOUNT_CANNOT_JOIN_GROUP_DMS",
 					"UNCLAIMED_ACCOUNT_CANNOT_JOIN_ONE_ON_ONE_VOICE_CALLS",
 					"UNCLAIMED_ACCOUNT_CANNOT_JOIN_VOICE_CHANNELS",
 					"UNCLAIMED_ACCOUNT_CANNOT_MAKE_PURCHASES",
-					"UNCLAIMED_ACCOUNT_CANNOT_SEND_DIRECT_MESSAGES",
-					"UNCLAIMED_ACCOUNT_CANNOT_SEND_FRIEND_REQUESTS",
-					"UNCLAIMED_ACCOUNT_CANNOT_SEND_MESSAGES",
-					"UNCLAIMED_ACCOUNT_CANNOT_SUBMIT_REPORTS",
 					"UNKNOWN_BADGE",
 					"UNKNOWN_CHANNEL",
 					"UNKNOWN_EMOJI",
@@ -21309,7 +20573,6 @@
 					"WEBHOOK_SERVICE_FORUM_UNSUPPORTED",
 					"WEBHOOK_THREAD_NAME_REQUIRES_FORUM",
 					"USERNAME_NOT_AVAILABLE",
-					"USERNAME_SIGN_IN_ONLY",
 					"UPDATE_FAILED",
 					"USER_BANNED_FROM_GUILD",
 					"USER_IP_BANNED_FROM_GUILD",
@@ -21329,19 +20592,10 @@
 					"VOICE_SERVER_ID_IN_USE",
 					"WEBAUTHN_CREDENTIAL_LIMIT_REACHED",
 					"ACCOUNT_VERIFICATION_REQUIRED",
-					"UNKNOWN_SIGN_IN_TICKET",
-					"INVALID_SIGN_IN_CODE",
-					"SIGN_IN_CODE_EXPIRED",
-					"EMAIL_CODE_RESEND_COOLDOWN",
-					"EMAIL_CODES_UNAVAILABLE",
-					"PASSWORD_SIGN_IN_REQUIRED",
-					"SUDO_SECOND_FACTOR_REQUIRED",
 					"INSTANT_ACCOUNTS_DISABLED",
 					"UNKNOWN_ACCOUNT_HANDOFF",
 					"INVALID_ACCOUNT_HANDOFF_NONCE",
 					"ACCOUNT_ALREADY_CLAIMED",
-					"USE_CLAIM_ROUTE",
-					"PASSWORD_REQUIRED_TO_CLAIM",
 					"GUILD_VISITS_DISABLED",
 					"GUILD_VISIT_NOT_FOUND"
 				],
@@ -21353,8 +20607,7 @@
 					"Bad request.",
 					"We couldn't resolve that Bluesky handle. Please check it and try again.",
 					"Bluesky connections are not enabled on this instance.",
-					"Messaging is paused on your account. Check your email for a quick step to continue.",
-					"The sign-in method is already set and can't be changed.",
+					"Messaging is paused on your account.",
 					"This account has been permanently suspended.",
 					"This account has been temporarily suspended.",
 					"Your account is too new to send messages in this community.",
@@ -21406,11 +20659,6 @@
 					"This community doesn't have enough members to be listed in Explore.",
 					"This community isn't listed in Explore.",
 					"Discriminator is required.",
-					"This instance doesn't send email. Create a password reset link instead.",
-					"Email service is temporarily unavailable. Please try again later.",
-					"This instance doesn't use email.",
-					"Email verification is required for this action.",
-					"Email verification is required for this action.",
 					"This account is closed, so it can't be suspended.",
 					"This decision has already ended.",
 					"An enforcement decision owns this restriction. End the decision instead.",
@@ -21418,22 +20666,13 @@
 					"The deletion of this account has already started, so the decision can no longer be ended.",
 					"Updates from a channel with a content warning can only go to a channel with a content warning or an age restriction.",
 					"Updates from an age-restricted channel can only go to an age-restricted channel.",
-					"Email verification is required for this action.",
-					"Email verification is required for this action.",
 					"You don't have permission to create communities on this instance. Contact your instance administrator to request access.",
-					"Email verification is required for this action.",
 					"Followed channels can only post into text channels.",
 					"This message has already been published.",
 					"This channel is at its publishing limit. It can publish 10 messages in a row, then one more every 6 minutes.",
 					"This message cannot be published.",
-					"Confirm your email address to use two-factor authentication or passkeys.",
-					"Email verification is required for this action.",
 					"This published message is at its editing limit. It allows 3 quick edits, then 1 every 20 minutes.",
-					"Email verification is required for this action.",
-					"Email verification is required for this action.",
-					"Email verification is required for this action.",
 					"Registration is closed on this instance.",
-					"Choose a password to sign up. This instance can't send email codes to confirm your address.",
 					"This instance reviews new accounts. Sign up from the sign-up page with a password so you can sign in once approved.",
 					"This registration is waiting for admin approval.",
 					"This registration request was rejected.",
@@ -21466,9 +20705,6 @@
 					"Verification failed. Try again.",
 					"Calls can only be made in direct messages or group DMs.",
 					"Invalid channel type.",
-					"Invalid DSA report target.",
-					"Invalid DSA ticket.",
-					"Invalid DSA verification code.",
 					"Invalid flags format.",
 					"Invalid form body.",
 					"Invalid handoff code.",
@@ -21489,9 +20725,6 @@
 					"Failed to verify WebAuthn credential.",
 					"Invalid WebAuthn public key format.",
 					"Invites are disabled.",
-					"IP authorization is required.",
-					"IP authorization resend is on cooldown.",
-					"IP authorization resend limit exceeded.",
 					"{reason, select, shown {{product_name} blocked access from this network because of activity that broke its rules.} other {{product_name} blocked access from this network.}} If you share this network, for example at school, at work, on public Wi-Fi, through your mobile carrier or a VPN, this block may have nothing to do with you. The quickest fix is to switch networks, for example to mobile data instead of Wi-Fi, or to turn your VPN on or off.{appealEmail, select, null {} other { If you think this block is a mistake, email {appealEmail} and include your IP address, {ipAddress}.}}",
 					"{reason, select, shown {{product_name} blocked access from this network because of activity that broke its rules.} other {{product_name} blocked access from this network.}} The block ends on {expiresAt}. If you share this network, for example at school, at work, on public Wi-Fi, through your mobile carrier or a VPN, this block may have nothing to do with you. The quickest fix is to switch networks, for example to mobile data instead of Wi-Fi, or to turn your VPN on or off.{appealEmail, select, null {} other { If you think this block is a mistake, email {appealEmail} and include your IP address, {ipAddress}.}}",
 					"This IP address cannot be added to the blocklist.",
@@ -21573,18 +20806,9 @@
 					"Two-factor authentication is already enabled.",
 					"Two-factor authentication is required.",
 					"Unauthorized.",
-					"Claim your account to accept friend requests.",
-					"Claim your account to add reactions.",
-					"Claim your account to create applications.",
-					"Claim your account to create communities.",
-					"Claim your account to join group chats.",
 					"Claim your account to start or join calls.",
 					"Claim your account to join voice channels.",
 					"Claim your account to make purchases.",
-					"Claim your account to send direct messages.",
-					"Claim your account to send friend requests.",
-					"Claim your account to send messages.",
-					"Claim your account to submit reports.",
 					"Badge wasn't found.",
 					"Channel wasn't found.",
 					"Unknown emoji.",
@@ -21615,7 +20839,6 @@
 					"This webhook service can't post to a forum or media channel without a `thread_id`.",
 					"`thread_name` and `applied_tags` only work in forum and media channels.",
 					"This username is not available.",
-					"This is only available on instances where people sign in with a username.",
 					"We couldn't update the resource. Please try again.",
 					"This user is banned from this community.",
 					"This user's IP is banned from this community.",
@@ -21634,20 +20857,11 @@
 					"Another voice server already uses this API key.",
 					"Another voice server already uses this ID.",
 					"You can't have more than {count, plural, one {# WebAuthn credential} other {# WebAuthn credentials}}.",
-					"{need, select, add_email {{action, select, message {Add an email to your account to send messages.} typing {Add an email to your account to send messages.} reaction {Add an email to your account to add reactions.} direct_message {Add an email to your account to send direct messages.} direct_message_open {Add an email to your account to start direct messages.} group_dm {Add an email to your account to join group chats.} friend_request {Add an email to your account to send friend requests.} friend_accept {Add an email to your account to accept friend requests.} invite_create {Add an email to your account to create invites.} guild_join {Add an email to your account to join this community.} guild_create {Add an email to your account to create a community.} voice {Add an email to your account to join voice channels.} call {Add an email to your account to start calls.} group_call {Add an email to your account to join group calls.} thread_join {Add an email to your account to join threads.} channel_follow {Add an email to your account to follow channels.} ownership_transfer {This person needs to add an email to their account before they can own a community.} application_create {Add an email to your account to create applications.} gift_redeem {Add an email to your account to redeem gifts.} profile_customize {Add an email to your account to change your profile.} report {Add an email to your account to submit reports.} mfa {Add an email to your account to turn on two-factor authentication.} guild_verification {Add an email to your account to talk in this community.} other {Add an email to your account to do this.}}} confirm_email {{action, select, message {Confirm your email to send messages.} typing {Confirm your email to send messages.} reaction {Confirm your email to add reactions.} direct_message {Confirm your email to send direct messages.} direct_message_open {Confirm your email to start direct messages.} group_dm {Confirm your email to join group chats.} friend_request {Confirm your email to send friend requests.} friend_accept {Confirm your email to accept friend requests.} invite_create {Confirm your email to create invites.} guild_join {Confirm your email to join this community.} guild_create {Confirm your email to create a community.} voice {Confirm your email to join voice channels.} call {Confirm your email to start calls.} group_call {Confirm your email to join group calls.} thread_join {Confirm your email to join threads.} channel_follow {Confirm your email to follow channels.} ownership_transfer {This person needs to confirm their email before they can own a community.} application_create {Confirm your email to create applications.} gift_redeem {Confirm your email to redeem gifts.} profile_customize {Confirm your email to change your profile.} report {Confirm your email to submit reports.} mfa {Confirm your email to turn on two-factor authentication.} guild_verification {Confirm your email to talk in this community.} other {Confirm your email to do this.}}} password {{action, select, message {Set a password to send messages.} typing {Set a password to send messages.} reaction {Set a password to add reactions.} direct_message {Set a password to send direct messages.} direct_message_open {Set a password to start direct messages.} group_dm {Set a password to join group chats.} friend_request {Set a password to send friend requests.} friend_accept {Set a password to accept friend requests.} invite_create {Set a password to create invites.} guild_join {Set a password to join this community.} guild_create {Set a password to create a community.} voice {Set a password to join voice channels.} call {Set a password to start calls.} group_call {Set a password to join group calls.} thread_join {Set a password to join threads.} channel_follow {Set a password to follow channels.} ownership_transfer {This person needs to set a password before they can own a community.} application_create {Set a password to create applications.} gift_redeem {Set a password to redeem gifts.} profile_customize {Set a password to change your profile.} report {Set a password to submit reports.} mfa {Set a password to turn on two-factor authentication.} guild_verification {Set a password to talk in this community.} other {Set a password to do this.}}} other {{action, select, message {Claim your account to send messages.} typing {Claim your account to send messages.} reaction {Claim your account to add reactions.} direct_message {Claim your account to send direct messages.} direct_message_open {Claim your account to start direct messages.} group_dm {Claim your account to join group chats.} friend_request {Claim your account to send friend requests.} friend_accept {Claim your account to accept friend requests.} invite_create {Claim your account to create invites.} guild_join {Claim your account to join this community.} guild_create {Claim your account to create a community.} voice {Claim your account to join voice channels.} call {Claim your account to start calls.} group_call {Claim your account to join group calls.} thread_join {Claim your account to join threads.} channel_follow {Claim your account to follow channels.} ownership_transfer {This person needs to claim their account before they can own a community.} application_create {Claim your account to create applications.} gift_redeem {Claim your account to redeem gifts.} profile_customize {Claim your account to change your profile.} report {Claim your account to submit reports.} mfa {Claim your account to turn on two-factor authentication.} guild_verification {Claim your account to talk in this community.} other {Claim your account to do this.}}}}",
-					"This sign-in attempt has expired. Start again.",
-					"That code isn't right. Check it and try again.",
-					"This code has expired. Ask for a new one.",
-					"Wait a moment before asking for another code.",
-					"This instance can't send email codes. Use your password instead.",
-					"Sign in to this account with its password.",
-					"Confirm it's you with your authenticator app, passkey or a backup code.",
+					"{need, select, password {{action, select, message {Set a password to send messages.} typing {Set a password to send messages.} reaction {Set a password to add reactions.} direct_message {Set a password to send direct messages.} direct_message_open {Set a password to start direct messages.} group_dm {Set a password to join group chats.} friend_request {Set a password to send friend requests.} friend_accept {Set a password to accept friend requests.} invite_create {Set a password to create invites.} guild_join {Set a password to join this community.} guild_create {Set a password to create a community.} voice {Set a password to join voice channels.} call {Set a password to start calls.} group_call {Set a password to join group calls.} thread_join {Set a password to join threads.} channel_follow {Set a password to follow channels.} ownership_transfer {This person needs to set a password before they can own a community.} application_create {Set a password to create applications.} gift_redeem {Set a password to redeem gifts.} profile_customize {Set a password to change your profile.} report {Set a password to submit reports.} mfa {Set a password to turn on two-factor authentication.} guild_verification {Set a password to talk in this community.} other {Set a password to do this.}}} other {{action, select, message {Claim your account to send messages.} typing {Claim your account to send messages.} reaction {Claim your account to add reactions.} direct_message {Claim your account to send direct messages.} direct_message_open {Claim your account to start direct messages.} group_dm {Claim your account to join group chats.} friend_request {Claim your account to send friend requests.} friend_accept {Claim your account to accept friend requests.} invite_create {Claim your account to create invites.} guild_join {Claim your account to join this community.} guild_create {Claim your account to create a community.} voice {Claim your account to join voice channels.} call {Claim your account to start calls.} group_call {Claim your account to join group calls.} thread_join {Claim your account to join threads.} channel_follow {Claim your account to follow channels.} ownership_transfer {This person needs to claim their account before they can own a community.} application_create {Claim your account to create applications.} gift_redeem {Claim your account to redeem gifts.} profile_customize {Claim your account to change your profile.} report {Claim your account to submit reports.} mfa {Claim your account to turn on two-factor authentication.} guild_verification {Claim your account to talk in this community.} other {Claim your account to do this.}}}}",
 					"Creating an account from just a display name isn't available right now.",
 					"This sign-up link has expired or was already used.",
 					"This sign-up link isn't valid.",
 					"This account is already set up to sign in from other devices.",
-					"Add an email address to your account first.",
-					"{reason, select, email_delivery_off {Set a password to keep this account. This instance can't send email codes.} local_credential_basis {Set a password to keep this account. This instance asks every account for a password or passkey.} other {Set a password to keep this account.}}",
 					"This community asks people to join before previewing it.",
 					"You're not previewing this community anymore."
 				]
@@ -21669,7 +20883,6 @@
 						"tokenUrl": "/oauth2/token",
 						"scopes": {
 							"identify": "Read basic user identity information.",
-							"email": "Read the user email address.",
 							"guilds": "Read guild membership information for the current user.",
 							"connections": "Read linked third-party account connections for the current user.",
 							"bot": "Add a bot user to a guild."

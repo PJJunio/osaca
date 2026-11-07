@@ -3,7 +3,6 @@
 import type {ApiContext} from '@app/api/ApiContext';
 import {mapUserToAdminResponse} from '@app/api/admin/models/UserTypes';
 import type {AdminAuditService} from '@app/api/admin/services/AdminAuditService';
-import {confirmEmailOwnership} from '@app/api/auth/EmailOwnership';
 import {createUserID, type UserID} from '@app/api/BrandedTypes';
 import type {EnforcementDecisionRow} from '@app/api/database/types/EnforcementTypes';
 import type {EnforcementActor} from '@app/api/enforcement/EnforcementActor';
@@ -11,8 +10,6 @@ import {decisionAuditMetadata, type EnforcementDecisionService} from '@app/api/e
 import type {GuildRepository} from '@app/api/guild/repositories/GuildRepository';
 import type {DiscriminatorService} from '@app/api/infrastructure/DiscriminatorService';
 import type {EntityAssetService, PreparedAssetUpload} from '@app/api/infrastructure/EntityAssetService';
-import {getEmailDeliveryState} from '@app/api/instance/AccountsConfigCache';
-import {getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
 import type {User} from '@app/api/models/User';
 import {
 	type PartialUserChangePropagationDeps,
@@ -20,18 +17,15 @@ import {
 } from '@app/api/user/services/PartialUserChangePropagation';
 import {assertNoDiscriminatorChange} from '@app/api/user/UniqueUsernames';
 import {renameUser} from '@app/api/user/UserRename';
-import {EmailDeliveryStates} from '@osaca/constants/src/AccountConfigConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {AccessDeniedError} from '@osaca/errors/src/domains/core/AccessDeniedError';
 import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
 import type {
 	AdminUserClearFieldsRequest,
-	ChangeEmailRequest,
 	ChangeUsernameRequest,
 	SetUserBotStatusRequest,
 	SetUserSystemStatusRequest,
 	UserProfileField,
-	VerifyUserEmailRequest,
 } from '@osaca/schema/src/domains/admin/AdminUserSchemas';
 
 interface AdminUserProfileServiceDeps {
@@ -187,31 +181,6 @@ export class AdminUserProfileService {
 		};
 	}
 
-	async verifyUserEmail(
-		data: VerifyUserEmailRequest,
-		adminUserId: UserID,
-		auditLogReason: string | null,
-		acls: ReadonlySet<string>,
-	) {
-		const {users: userRepository, cache: cacheService} = this.deps.apiContext.services;
-		const {auditService, userUpdateDeps} = this.deps;
-		const userId = createUserID(data.user_id);
-		const user = await userRepository.findUniqueAssert(userId);
-		const updatedUser = await confirmEmailOwnership(this.deps.apiContext, user);
-		await propagateUserUpdate(userUpdateDeps, user, updatedUser);
-		await auditService.createAuditLog({
-			adminUserId,
-			targetType: 'user',
-			targetId: BigInt(userId),
-			action: 'verify_email',
-			auditLogReason,
-			metadata: new Map([['email', user.email ?? 'null']]),
-		});
-		return {
-			user: await mapUserToAdminResponse(updatedUser, cacheService, acls),
-		};
-	}
-
 	async changeUsername(
 		data: ChangeUsernameRequest,
 		adminUserId: UserID,
@@ -221,7 +190,7 @@ export class AdminUserProfileService {
 		const {users: userRepository, cache: cacheService} = this.deps.apiContext.services;
 		const userId = createUserID(data.user_id);
 		const user = await userRepository.findUniqueAssert(userId);
-		if (!user.isBot && (await getInstanceConfigRepository().usesUniqueUsernames())) {
+		if (!user.isBot) {
 			assertNoDiscriminatorChange(data.discriminator, user.discriminator);
 		}
 		const updatedUser = await renameUser(
@@ -240,51 +209,6 @@ export class AdminUserProfileService {
 				['old_username', user.username],
 				['new_username', data.username],
 				['discriminator', updatedUser.discriminator.toString()],
-			]),
-		});
-		return {
-			user: await mapUserToAdminResponse(updatedUser, cacheService, acls),
-		};
-	}
-
-	async changeEmail(
-		data: ChangeEmailRequest,
-		adminUserId: UserID,
-		auditLogReason: string | null,
-		acls: ReadonlySet<string>,
-	) {
-		const {
-			users: userRepository,
-			cache: cacheService,
-			contactChangeLog: contactChangeLogService,
-		} = this.deps.apiContext.services;
-		const {auditService, userUpdateDeps} = this.deps;
-		const userId = createUserID(data.user_id);
-		const user = await userRepository.findUniqueAssert(userId);
-		const updatedUser = await userRepository.patchUpsert(
-			userId,
-			{
-				email: data.email,
-				email_verified: getEmailDeliveryState() !== EmailDeliveryStates.ON,
-			},
-			user.toRow(),
-		);
-		await propagateUserUpdate(userUpdateDeps, user, updatedUser);
-		await contactChangeLogService.recordDiff({
-			oldUser: user,
-			newUser: updatedUser,
-			reason: 'admin_action',
-			actorUserId: adminUserId,
-		});
-		await auditService.createAuditLog({
-			adminUserId,
-			targetType: 'user',
-			targetId: BigInt(userId),
-			action: 'change_email',
-			auditLogReason,
-			metadata: new Map([
-				['old_email', user.email ?? 'null'],
-				['new_email', data.email],
 			]),
 		});
 		return {

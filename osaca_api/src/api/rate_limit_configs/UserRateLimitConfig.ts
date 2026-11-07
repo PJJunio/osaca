@@ -20,62 +20,6 @@ export const UserRateLimitConfigs = {
 		bucket: 'user:update',
 		config: {limit: 20, windowMs: ms('1 minute')},
 	} as RouteRateLimitConfig,
-	USER_EMAIL_CHANGE_START: {
-		bucket: 'user:email_change:start',
-		config: {limit: 10, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
-	USER_EMAIL_CHANGE_RESEND_ORIGINAL: {
-		bucket: 'user:email_change:resend_original',
-		config: {limit: 10, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
-	USER_EMAIL_CHANGE_VERIFY_ORIGINAL: {
-		bucket: 'user:email_change:verify_original',
-		config: {limit: 20, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
-	USER_EMAIL_CHANGE_REQUEST_NEW: {
-		bucket: 'user:email_change:request_new',
-		config: {limit: 10, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
-	USER_EMAIL_CHANGE_RESEND_NEW: {
-		bucket: 'user:email_change:resend_new',
-		config: {limit: 10, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
-	USER_EMAIL_CHANGE_VERIFY_NEW: {
-		bucket: 'user:email_change:verify_new',
-		config: {limit: 20, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
-	USER_EMAIL_CHANGE_APPLY: {
-		bucket: 'user:email_change:apply',
-		config: {limit: 20, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
-	USER_EMAIL_CHANGE_BOUNCED_REQUEST_NEW: {
-		bucket: 'user:email_change:bounced:request_new',
-		config: {limit: 10, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
-	USER_EMAIL_CHANGE_BOUNCED_RESEND_NEW: {
-		bucket: 'user:email_change:bounced:resend_new',
-		config: {limit: 10, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
-	USER_EMAIL_CHANGE_BOUNCED_VERIFY_NEW: {
-		bucket: 'user:email_change:bounced:verify_new',
-		config: {limit: 20, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
-	USER_PASSWORD_CHANGE_START: {
-		bucket: 'user:password_change:start',
-		config: {limit: 10, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
-	USER_PASSWORD_CHANGE_RESEND: {
-		bucket: 'user:password_change:resend',
-		config: {limit: 10, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
-	USER_PASSWORD_CHANGE_VERIFY: {
-		bucket: 'user:password_change:verify',
-		config: {limit: 20, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
-	USER_PASSWORD_CHANGE_COMPLETE: {
-		bucket: 'user:password_change:complete',
-		config: {limit: 10, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
 	USER_PASSWORD_UPDATE: {
 		bucket: 'user:password:update',
 		config: {limit: 10, windowMs: ms('1 minute')},
@@ -200,22 +144,6 @@ export const UserRateLimitConfigs = {
 		bucket: 'user:recovery_kit:create',
 		config: {limit: 6, windowMs: ms('1 minute')},
 	} as RouteRateLimitConfig,
-	USER_MFA_BACKUP_CODES_CHALLENGE_START: {
-		bucket: 'user:mfa:backup_codes_challenge:start',
-		config: {limit: 6, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
-	USER_MFA_BACKUP_CODES_CHALLENGE_RESEND: {
-		bucket: 'user:mfa:backup_codes_challenge:resend',
-		config: {limit: 6, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
-	USER_MFA_BACKUP_CODES_CHALLENGE_VERIFY: {
-		bucket: 'user:mfa:backup_codes_challenge:verify',
-		config: {limit: 20, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
-	USER_MFA_BACKUP_CODES_CHALLENGE_REGENERATE: {
-		bucket: 'user:mfa:backup_codes_challenge:regenerate',
-		config: {limit: 6, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
 	USER_PUSH_SUBSCRIBE: {
 		bucket: 'user:push:subscribe',
 		config: {limit: 20, windowMs: ms('1 minute')},
@@ -259,13 +187,5 @@ export const UserRateLimitConfigs = {
 	USER_CLAIM: {
 		bucket: 'user:claim',
 		config: {limit: 5, windowMs: ms('1 hour')},
-	} as RouteRateLimitConfig,
-	USER_EMAIL_VERIFICATION: {
-		bucket: 'user:email_verification',
-		config: {limit: 3, windowMs: ms('15 minutes')},
-	} as RouteRateLimitConfig,
-	USER_EMAIL_VERIFICATION_CONFIRM: {
-		bucket: 'user:email_verification:confirm',
-		config: {limit: 10, windowMs: ms('1 minute')},
 	} as RouteRateLimitConfig,
 } as const;

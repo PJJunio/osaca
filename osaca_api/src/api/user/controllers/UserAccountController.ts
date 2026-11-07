@@ -2,16 +2,10 @@
 
 import {deleteRecoveryKit} from '@app/api/auth/AuthRecoveryKit';
 import * as AuthSession from '@app/api/auth/AuthSession';
-import {userHasMfa} from '@app/api/auth/services/SudoMethods';
 import {requireSudoMode} from '@app/api/auth/services/SudoVerificationService';
 import {createGuildID, createUserID} from '@app/api/BrandedTypes';
 import {Config} from '@app/api/Config';
 import {viewerFromCtx} from '@app/api/experiment/ChannelThreadsGate';
-import {
-	RequireEmailAccountIdentity,
-	RequireEmailCodesAvailable,
-	RequireUsernameAccountIdentity,
-} from '@app/api/middleware/AccountIdentityMiddleware';
 import {DefaultUserOnly, LoginRequired} from '@app/api/middleware/AuthMiddleware';
 import {requireOAuth2ScopeForBearer} from '@app/api/middleware/OAuth2ScopeMiddleware';
 import {RateLimitMiddleware} from '@app/api/middleware/RateLimitMiddleware';
@@ -24,7 +18,6 @@ import {classifyWebPushOrigin} from '@app/api/user/services/WebPushOriginReplace
 import {gateChannelOverrideFlags, mapUserGuildSettingsForViewer} from '@app/api/user/UserGuildSettingsThreadView';
 import {dispatchUserUpdate, mapUserSettingsToResponse, mapUserToPrivateResponse} from '@app/api/user/UserMappers';
 import {CHANNEL_THREADS_CLIENT_FEATURE} from '@app/api/utils/featureUtils';
-import {requireRequestClientIp} from '@app/api/utils/RequestClientIp';
 import {Validator} from '@app/api/Validator';
 import {UnknownUserError} from '@osaca/errors/src/domains/user/UnknownUserError';
 import {SudoVerificationSchema} from '@osaca/schema/src/domains/auth/AuthSchemas';
@@ -41,17 +34,7 @@ import {
 import {
 	BulkDeleteSelfMessagesRequest,
 	DeviceIdParam,
-	EmailChangeApplyRequest,
-	EmailChangeBouncedRequestNewRequest,
-	EmailChangeBouncedVerifyNewRequest,
-	EmailChangeRequestNewRequest,
-	EmailChangeTicketRequest,
-	EmailChangeVerifyNewRequest,
-	EmailChangeVerifyOriginalRequest,
 	EmptyBodyRequest,
-	PasswordChangeCompleteRequest,
-	PasswordChangeTicketRequest,
-	PasswordChangeVerifyRequest,
 	PreloadMessagesRequest,
 	PushRotateRequest,
 	PushSubscribeRequest,
@@ -68,14 +51,7 @@ import {
 	VoiceActivitySharingUpdateRequest,
 } from '@osaca/schema/src/domains/user/UserRequestSchemas';
 import {
-	EmailChangeRequestNewResponse,
-	EmailChangeStartResponse,
-	EmailChangeVerifyOriginalResponse,
-	EmailTokenResponse,
 	MobileDevicesListResponse,
-	PasswordChangeCompleteResponse,
-	PasswordChangeStartResponse,
-	PasswordChangeVerifyResponse,
 	PreloadMessagesResponse,
 	PushSubscribeResponse,
 	PushSubscriptionsListResponse,
@@ -107,7 +83,7 @@ export function UserAccountController(app: HonoApp) {
 			security: ['botToken', 'bearerToken', 'sessionToken'],
 			tags: ['Users'],
 			description:
-				"Retrieves the current authenticated user's profile information, including account details and settings. OAuth2 bearer tokens require identify scope, and email is returned only when the email scope is also present. Bearer tokens receive a reduced response with only identity and profile fields. Session and bot tokens return the full user object with all private fields.",
+				"Retrieves the current authenticated user's profile information, including account details and settings. OAuth2 bearer tokens require identify scope. Bearer tokens receive a reduced response with only identity and profile fields. Session and bot tokens return the full user object with all private fields.",
 		}),
 		async (ctx) => {
 			const userAccountRequestService = ctx.get('userAccountRequestService');
@@ -153,388 +129,10 @@ export function UserAccountController(app: HonoApp) {
 		},
 	);
 	app.post(
-		'/users/@me/email-change/start',
-		RateLimitMiddleware(RateLimitConfigs.USER_EMAIL_CHANGE_START),
-		LoginRequired,
-		DefaultUserOnly,
-		RequireEmailAccountIdentity,
-		RequireEmailCodesAvailable,
-		Validator('json', EmptyBodyRequest),
-		OpenAPI({
-			operationId: 'start_email_change',
-			summary: 'Start email change',
-			responseSchema: EmailChangeStartResponse,
-			statusCode: 200,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				'Initiates an email change process. Generates a ticket for verifying the original email address before requesting a new email. Returns ticket for use in subsequent email change steps.',
-		}),
-		async (ctx) => {
-			const user = ctx.get('user');
-			const result = await ctx.get('emailChangeService').start(user);
-			return ctx.json(result);
-		},
-	);
-	app.post(
-		'/users/@me/email-change/resend-original',
-		RateLimitMiddleware(RateLimitConfigs.USER_EMAIL_CHANGE_RESEND_ORIGINAL),
-		LoginRequired,
-		DefaultUserOnly,
-		RequireEmailAccountIdentity,
-		RequireEmailCodesAvailable,
-		Validator('json', EmailChangeTicketRequest),
-		OpenAPI({
-			operationId: 'resend_original_email_confirmation',
-			summary: 'Resend original email confirmation',
-			responseSchema: null,
-			statusCode: 204,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				"Resends a confirmation code to the user's original email address during the email change process. Use this if the original confirmation email was not received. Requires valid email change ticket.",
-		}),
-		async (ctx) => {
-			const user = ctx.get('user');
-			const body = ctx.req.valid('json');
-			await ctx.get('emailChangeService').resendOriginal(user, body.ticket);
-			return ctx.body(null, 204);
-		},
-	);
-	app.post(
-		'/users/@me/email-change/verify-original',
-		RateLimitMiddleware(RateLimitConfigs.USER_EMAIL_CHANGE_VERIFY_ORIGINAL),
-		LoginRequired,
-		DefaultUserOnly,
-		RequireEmailAccountIdentity,
-		Validator('json', EmailChangeVerifyOriginalRequest),
-		OpenAPI({
-			operationId: 'verify_original_email_address',
-			summary: 'Verify original email address',
-			responseSchema: EmailChangeVerifyOriginalResponse,
-			statusCode: 200,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				'Verifies ownership of the original email address by validating a confirmation code sent to that address. Must be completed before requesting a new email address. Returns proof token for use in new email request.',
-		}),
-		async (ctx) => {
-			const user = ctx.get('user');
-			const body = ctx.req.valid('json');
-			const result = await ctx.get('emailChangeService').verifyOriginal(user, body.ticket, body.code);
-			return ctx.json(result);
-		},
-	);
-	app.post(
-		'/users/@me/email-change/request-new',
-		RateLimitMiddleware(RateLimitConfigs.USER_EMAIL_CHANGE_REQUEST_NEW),
-		LoginRequired,
-		DefaultUserOnly,
-		RequireEmailAccountIdentity,
-		Validator('json', EmailChangeRequestNewRequest),
-		OpenAPI({
-			operationId: 'request_new_email_address',
-			summary: 'Request new email address',
-			responseSchema: EmailChangeRequestNewResponse,
-			statusCode: 200,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				'Requests to change email to a new address. Requires proof of original email verification. Sends confirmation code to new email address for verification.',
-		}),
-		async (ctx) => {
-			const user = ctx.get('user');
-			const body = ctx.req.valid('json');
-			const result = await ctx
-				.get('emailChangeService')
-				.requestNewEmail(
-					user,
-					body.ticket,
-					body.new_email,
-					body.original_proof,
-					requireRequestClientIp(ctx),
-					body.new_password,
-				);
-			return ctx.json(result);
-		},
-	);
-	app.post(
-		'/users/@me/email-change/resend-new',
-		RateLimitMiddleware(RateLimitConfigs.USER_EMAIL_CHANGE_RESEND_NEW),
-		LoginRequired,
-		DefaultUserOnly,
-		RequireEmailAccountIdentity,
-		Validator('json', EmailChangeTicketRequest),
-		OpenAPI({
-			operationId: 'resend_new_email_confirmation',
-			summary: 'Resend new email confirmation',
-			responseSchema: null,
-			statusCode: 204,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				'Resends a confirmation code to the new email address during the email change process. Use this if the new email confirmation was not received. Requires valid email change ticket.',
-		}),
-		async (ctx) => {
-			const user = ctx.get('user');
-			const body = ctx.req.valid('json');
-			await ctx.get('emailChangeService').resendNew(user, body.ticket, requireRequestClientIp(ctx));
-			return ctx.body(null, 204);
-		},
-	);
-	app.post(
-		'/users/@me/email-change/verify-new',
-		RateLimitMiddleware(RateLimitConfigs.USER_EMAIL_CHANGE_VERIFY_NEW),
-		LoginRequired,
-		DefaultUserOnly,
-		RequireEmailAccountIdentity,
-		Validator('json', EmailChangeVerifyNewRequest),
-		OpenAPI({
-			operationId: 'verify_new_email_address',
-			summary: 'Verify new email address',
-			responseSchema: EmailTokenResponse,
-			statusCode: 200,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				'Completes the email change process by verifying the new email address with a confirmation code. Returns an email token that confirms the email change. After this step, the user may need to re-authenticate.',
-		}),
-		async (ctx) => {
-			const user = ctx.get('user');
-			const body = ctx.req.valid('json');
-			const emailToken = await ctx
-				.get('emailChangeService')
-				.verifyNew(user, body.ticket, body.code, body.original_proof);
-			return ctx.json({email_token: emailToken});
-		},
-	);
-	app.post(
-		'/users/@me/email-change/apply',
-		RateLimitMiddleware(RateLimitConfigs.USER_EMAIL_CHANGE_APPLY),
-		LoginRequired,
-		DefaultUserOnly,
-		RequireEmailAccountIdentity,
-		SudoModeMiddleware,
-		Validator('json', EmailChangeApplyRequest),
-		OpenAPI({
-			operationId: 'apply_email_change',
-			summary: 'Apply a verified email change',
-			responseSchema: UserPrivateResponse,
-			statusCode: 200,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				"Applies a previously verified email_token to the current user's account. Requires sudo mode verification (password for users without MFA, MFA proof for users with MFA). Returns the updated private user object. This is a dedicated alternative to PATCH /users/@me that cannot accidentally drag in unrelated profile edits.",
-		}),
-		async (ctx) => {
-			const userAccountRequestService = ctx.get('userAccountRequestService');
-			const user = ctx.get('user');
-			const body = ctx.req.valid('json');
-			return ctx.json(
-				await userAccountRequestService.applyEmailChange({
-					ctx,
-					user,
-					body,
-					authSession: ctx.get('authSession'),
-				}),
-			);
-		},
-	);
-	app.post(
-		'/users/@me/email-change/bounced/request-new',
-		RateLimitMiddleware(RateLimitConfigs.USER_EMAIL_CHANGE_BOUNCED_REQUEST_NEW),
-		LoginRequired,
-		DefaultUserOnly,
-		RequireEmailAccountIdentity,
-		Validator('json', EmailChangeBouncedRequestNewRequest),
-		OpenAPI({
-			operationId: 'request_bounced_email_replacement',
-			summary: 'Request replacement email for bounced address',
-			responseSchema: EmailChangeRequestNewResponse,
-			statusCode: 200,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				'Starts a dedicated bounced-email recovery flow. Sends a verification code to the replacement email without requiring verification of the old bounced email address.',
-		}),
-		async (ctx) => {
-			const user = ctx.get('user');
-			const body = ctx.req.valid('json');
-			const result = await ctx
-				.get('emailChangeService')
-				.requestBouncedNewEmail(user, body.new_email, requireRequestClientIp(ctx));
-			return ctx.json(result);
-		},
-	);
-	app.post(
-		'/users/@me/email-change/bounced/resend-new',
-		RateLimitMiddleware(RateLimitConfigs.USER_EMAIL_CHANGE_BOUNCED_RESEND_NEW),
-		LoginRequired,
-		DefaultUserOnly,
-		RequireEmailAccountIdentity,
-		Validator('json', EmailChangeTicketRequest),
-		OpenAPI({
-			operationId: 'resend_bounced_email_replacement_code',
-			summary: 'Resend replacement email code',
-			responseSchema: null,
-			statusCode: 204,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				'Resends the verification code for the bounced-email recovery flow to the replacement email address.',
-		}),
-		async (ctx) => {
-			const user = ctx.get('user');
-			const body = ctx.req.valid('json');
-			await ctx.get('emailChangeService').resendBouncedNew(user, body.ticket, requireRequestClientIp(ctx));
-			return ctx.body(null, 204);
-		},
-	);
-	app.post(
-		'/users/@me/email-change/bounced/verify-new',
-		RateLimitMiddleware(RateLimitConfigs.USER_EMAIL_CHANGE_BOUNCED_VERIFY_NEW),
-		LoginRequired,
-		DefaultUserOnly,
-		RequireEmailAccountIdentity,
-		Validator('json', EmailChangeBouncedVerifyNewRequest),
-		OpenAPI({
-			operationId: 'verify_bounced_email_replacement',
-			summary: 'Verify replacement email for bounced address',
-			responseSchema: UserPrivateResponse,
-			statusCode: 200,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				'Completes bounced-email recovery by verifying the replacement email code, and updating the account email.',
-		}),
-		async (ctx) => {
-			const user = ctx.get('user');
-			const body = ctx.req.valid('json');
-			const updatedUser = await ctx.get('emailChangeService').verifyBouncedNew(user, body.ticket, body.code);
-			await ctx.get('contactChangeLogService').recordDiff({
-				oldUser: user,
-				newUser: updatedUser,
-				reason: 'user_requested',
-				actorUserId: user.id,
-			});
-			await dispatchUserUpdate(ctx.get('gatewayService'), updatedUser);
-			return ctx.json(mapUserToPrivateResponse(updatedUser));
-		},
-	);
-	app.post(
-		'/users/@me/password-change/start',
-		RateLimitMiddleware(RateLimitConfigs.USER_PASSWORD_CHANGE_START),
-		LoginRequired,
-		DefaultUserOnly,
-		RequireEmailAccountIdentity,
-		Validator('json', EmptyBodyRequest),
-		OpenAPI({
-			operationId: 'start_password_change',
-			summary: 'Start password change',
-			responseSchema: PasswordChangeStartResponse,
-			statusCode: 200,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				"Initiates a password change process. Sends a verification code to the user's email address. Returns a ticket for use in subsequent password change steps.",
-		}),
-		async (ctx) => {
-			const user = ctx.get('user');
-			const result = await ctx.get('passwordChangeService').start(user);
-			return ctx.json(result);
-		},
-	);
-	app.post(
-		'/users/@me/password-change/resend',
-		RateLimitMiddleware(RateLimitConfigs.USER_PASSWORD_CHANGE_RESEND),
-		LoginRequired,
-		DefaultUserOnly,
-		RequireEmailAccountIdentity,
-		Validator('json', PasswordChangeTicketRequest),
-		OpenAPI({
-			operationId: 'resend_password_change_code',
-			summary: 'Resend password change verification code',
-			responseSchema: null,
-			statusCode: 204,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				'Resends the verification code for a password change. Use if the original code was not received. Requires a valid password change ticket.',
-		}),
-		async (ctx) => {
-			const user = ctx.get('user');
-			const body = ctx.req.valid('json');
-			await ctx.get('passwordChangeService').resend(user, body.ticket);
-			return ctx.body(null, 204);
-		},
-	);
-	app.post(
-		'/users/@me/password-change/verify',
-		RateLimitMiddleware(RateLimitConfigs.USER_PASSWORD_CHANGE_VERIFY),
-		LoginRequired,
-		DefaultUserOnly,
-		RequireEmailAccountIdentity,
-		Validator('json', PasswordChangeVerifyRequest),
-		OpenAPI({
-			operationId: 'verify_password_change_code',
-			summary: 'Verify password change code',
-			responseSchema: PasswordChangeVerifyResponse,
-			statusCode: 200,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				'Verifies the email code sent during password change. Returns a proof token needed to complete the password change.',
-		}),
-		async (ctx) => {
-			const user = ctx.get('user');
-			const body = ctx.req.valid('json');
-			const result = await ctx.get('passwordChangeService').verify(user, body.ticket, body.code);
-			return ctx.json(result);
-		},
-	);
-	app.post(
-		'/users/@me/password-change/complete',
-		RateLimitMiddleware(RateLimitConfigs.USER_PASSWORD_CHANGE_COMPLETE),
-		LoginRequired,
-		DefaultUserOnly,
-		RequireEmailAccountIdentity,
-		SudoModeMiddleware,
-		Validator('json', PasswordChangeCompleteRequest),
-		OpenAPI({
-			operationId: 'complete_password_change',
-			summary: 'Complete password change',
-			responseSchema: PasswordChangeCompleteResponse,
-			statusCode: 200,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				'Completes the password change after email verification. Requires the verification proof and new password, and sudo mode verification with the second factor when the account has two-factor authentication. Invalidates all existing sessions and returns the replacement session token.',
-		}),
-		async (ctx) => {
-			const user = ctx.get('user');
-			const body = ctx.req.valid('json');
-			if (userHasMfa(user)) await requireSudoMode(ctx, user, body);
-			await ctx.get('passwordChangeService').complete(user, body.ticket, body.verification_proof, body.new_password);
-			const apiContext = ctx.get('apiContext');
-			const authSession = ctx.get('authSession');
-			await ctx.get('userRepository').deleteAllPasswordResetTokens(user.id);
-			const replacement = await AuthSession.replaceCurrentAuthSession(apiContext, {
-				user,
-				currentAuthSession: authSession,
-				request: ctx.req.raw,
-			});
-			return ctx.json({
-				token: replacement.token,
-				auth_session_id_hash: replacement.newAuthSessionIdHash,
-			});
-		},
-	);
-	app.post(
 		'/users/@me/password',
 		RateLimitMiddleware(RateLimitConfigs.USER_PASSWORD_UPDATE),
 		LoginRequired,
 		DefaultUserOnly,
-		RequireUsernameAccountIdentity,
 		SudoModeMiddleware,
 		Validator('json', UserPasswordUpdateRequest),
 		OpenAPI({
@@ -545,7 +143,7 @@ export function UserAccountController(app: HonoApp) {
 			security: ['bearerToken', 'sessionToken'],
 			tags: ['Users'],
 			description:
-				'Changes the password on instances where people sign in with a username. Requires sudo mode verification. Ends every other session, deletes the recovery kit and returns a token for a new session that replaces the current one. Fails with USERNAME_SIGN_IN_ONLY on email instances.',
+				'Changes the password. Requires sudo mode verification. Ends every other session, deletes the recovery kit and returns a token for a new session that replaces the current one.',
 		}),
 		async (ctx) => {
 			const user = ctx.get('user');
@@ -1263,7 +861,7 @@ export function UserAccountController(app: HonoApp) {
 			security: ['bearerToken', 'sessionToken'],
 			tags: ['Users'],
 			description:
-				'Immediately deletes messages the caller has authored, subject to optional date-range and per-context filters (DMs, group DMs, guilds, with optional guild exclusions; or an inaccessible-only mode for contexts the caller is no longer a member of). Requires sudo mode verification. The deletion runs asynchronously. When it completes, the caller gets the totals in a system DM, or by email when the instance has direct messages turned off and sends email.',
+				'Immediately deletes messages the caller has authored, subject to optional date-range and per-context filters (DMs, group DMs, guilds, with optional guild exclusions; or an inaccessible-only mode for contexts the caller is no longer a member of). Requires sudo mode verification. The deletion runs asynchronously. When it completes, the caller gets the totals in a system DM unless the instance has direct messages turned off.',
 		}),
 		async (ctx) => {
 			const user = ctx.get('user');

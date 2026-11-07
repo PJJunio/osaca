@@ -34,10 +34,6 @@ const UNCLAIMED_ACCOUNT_NAGBAR_DESCRIPTOR = msg({
 	message: 'Unclaimed account nagbar',
 	comment: 'Developer control label for the unclaimed-account banner.',
 });
-const EMAIL_VERIFICATION_NAGBAR_DESCRIPTOR = msg({
-	message: 'Email verification nagbar',
-	comment: 'Developer control label for the email-verification banner.',
-});
 const DESKTOP_NOTIFICATION_NAGBAR_DESCRIPTOR = msg({
 	message: 'Desktop notification nagbar',
 	comment: 'Developer control label for the desktop-notification banner.',
@@ -87,10 +83,6 @@ const FORCE_DISABLED = msg({
 const USING_ACTUAL_ACCOUNT_STATE = msg({
 	message: 'Using actual account state',
 	comment: 'Developer nagbar status: banner follows real account state.',
-});
-const USING_ACTUAL_VERIFICATION_STATE = msg({
-	message: 'Using actual verification state',
-	comment: 'Developer nagbar status: banner follows real email verification state.',
 });
 const CURRENTLY_DISMISSED = msg({
 	message: 'Currently dismissed',
@@ -145,14 +137,6 @@ export const getNagbarControls = (): Array<NagbarControlDefinition> => [
 		forceHideKey: 'forceHideUnclaimedAccount',
 		resetKeys: ['forceUnclaimedAccount'],
 		actualStatus: USING_ACTUAL_ACCOUNT_STATE,
-	}),
-	createNagbarControl({
-		key: 'forceEmailVerification',
-		label: EMAIL_VERIFICATION_NAGBAR_DESCRIPTOR,
-		forceKey: 'forceEmailVerification',
-		forceHideKey: 'forceHideEmailVerification',
-		resetKeys: ['forceEmailVerification'],
-		actualStatus: USING_ACTUAL_VERIFICATION_STATE,
 	}),
 	createNagbarControl({
 		key: 'forceAccountLimited',

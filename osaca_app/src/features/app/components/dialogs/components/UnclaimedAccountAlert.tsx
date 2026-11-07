@@ -3,7 +3,6 @@
 import {openClaimAccountModal} from '@app/features/auth/components/modals/ClaimAccountModal';
 import {Button} from '@app/features/ui/button/Button';
 import {WarningAlert} from '@app/features/ui/warning_alert/WarningAlert';
-import Users from '@app/features/user/state/Users';
 import {
 	getUnclaimedAccountPresentation,
 	UnclaimedAccountSurfaces,
@@ -13,11 +12,7 @@ import {observer} from 'mobx-react-lite';
 
 export const UnclaimedAccountAlert = observer(() => {
 	const {i18n} = useLingui();
-	const presentation = getUnclaimedAccountPresentation(
-		i18n,
-		UnclaimedAccountSurfaces.ALERT,
-		Users.currentUser?.verificationNeed,
-	);
+	const presentation = getUnclaimedAccountPresentation(i18n, UnclaimedAccountSurfaces.ALERT);
 	return (
 		<WarningAlert
 			title={<Trans>Unclaimed account</Trans>}

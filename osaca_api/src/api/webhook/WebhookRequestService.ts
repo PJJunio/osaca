@@ -13,7 +13,6 @@ import type {LiveKitWebhookService} from '@app/api/infrastructure/LiveKitWebhook
 import type {UserCacheService} from '@app/api/infrastructure/UserCacheService';
 import type {RequestCache} from '@app/api/middleware/RequestCacheMiddleware';
 import type {Message} from '@app/api/models/Message';
-import type {SweegoWebhookService} from '@app/api/webhook/SweegoWebhookService';
 import {transformSlackWebhookRequest} from '@app/api/webhook/transformers/SlackTransformer';
 import {
 	createWebhookSourceResolver,
@@ -143,20 +142,12 @@ interface LiveKitWebhookParams {
 	authHeader?: string;
 }
 
-interface SweegoWebhookParams {
-	body: string;
-	webhookId?: string;
-	timestamp?: string;
-	signature?: string;
-}
-
 export class WebhookRequestService {
 	constructor(
 		private readonly webhookService: WebhookService,
 		private readonly channelRepository: ChannelRepository,
 		private readonly userCacheService: UserCacheService,
 		private readonly liveKitWebhookService: LiveKitWebhookService | null,
-		private readonly sweegoWebhookService: SweegoWebhookService,
 		private readonly gatewayService: IGatewayService,
 	) {}
 
@@ -333,20 +324,6 @@ export class WebhookRequestService {
 		const response = await this.liveKitWebhookService.handleWebhookRequest({
 			body: params.body,
 			authHeader: params.authHeader,
-		});
-		return new Response(response.body, {status: response.status});
-	}
-
-	async handleSweegoWebhook(params: SweegoWebhookParams): Promise<Response> {
-		if (!Config.email.enabled) {
-			return new Response('Email not enabled', {status: 404});
-		}
-		const response = await this.sweegoWebhookService.handleWebhook({
-			body: params.body,
-			webhookId: params.webhookId,
-			timestamp: params.timestamp,
-			signature: params.signature,
-			secret: Config.email.webhookSecret,
 		});
 		return new Response(response.body, {status: response.status});
 	}

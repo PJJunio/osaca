@@ -90,7 +90,6 @@ fn notice_status_label(status: &str) -> &'static str {
 
 fn notice_channel_label(channel: &str) -> &'static str {
     match channel {
-        "email" => "Email",
         "system_dm" => "System DM",
         _ => "Sign-in screen",
     }
@@ -213,7 +212,7 @@ pub fn end_decision_form(form: &EndDecisionForm<'_>) -> Markup {
                         "Reversed says the decision was wrong."
                     }
                 }
-                (statement_field(&prefix, "Shown to the user in the email. Never name or describe other people."))
+                (statement_field(&prefix, "Shown to the user in the notice. Never name or describe other people."))
                 (internal_note_field(&prefix, "Staff only. Saved in the audit log."))
                 (form_actions(submit_button("End decision")))
             }

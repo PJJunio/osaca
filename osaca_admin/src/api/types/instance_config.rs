@@ -5,19 +5,13 @@ use serde::{Deserialize, Serialize};
 use crate::api::generated::types as generated_types;
 
 pub use generated_types::{
-    AccountIdentityLockReasonSchema as AccountIdentityLockReason,
     AccountsConfigSchema as AccountsConfigResponse, AccountsConfigUpdateRequest,
-    AccountsConfigUpdateRequestInactivityDeletion as InactivityDeletionUpdateRequest,
     AccountsConfigUpdateRequestUnclaimedAccountCleanup as UnclaimedAccountCleanupUpdateRequest,
     CaptchaProviderSchema as CaptchaProvider, CleanupModeSchema as CleanupMode,
-    EmailDeliveryModeSchema as EmailDeliveryMode,
-    EmailDeliveryStateSchema as EmailDeliveryState, GuildJoinGateSchema as GuildJoinGate,
-    IdentifierFirstModeSchema as IdentifierFirstMode,
-    InstanceConfigResponseAuth as AuthConfigResponse,
+    GuildJoinGateSchema as GuildJoinGate, InstanceConfigResponseAuth as AuthConfigResponse,
     InstantAccountAvailabilitySchema as InstantAccountAvailability,
     InteractionTierModeSchema as InteractionTierMode,
     LastSessionCleanupModeSchema as LastSessionCleanupMode,
-    VerificationBasisSchema as VerificationBasis,
 };
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -27,8 +21,6 @@ pub struct InstanceConfigResponse {
     pub registration: InstanceRegistrationResponse,
     #[serde(default)]
     pub self_hosted: bool,
-    #[serde(default)]
-    pub account_identity: AccountIdentityConfigResponse,
     #[serde(default)]
     pub app_public: AppPublicConfigResponse,
     #[serde(default)]
@@ -71,100 +63,6 @@ pub struct InstanceNoticeUpdateRequest {
     pub starts_at: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ends_at: Option<String>,
-}
-
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub enum AccountIdentityMode {
-    #[default]
-    Email,
-    Username,
-}
-
-impl AccountIdentityMode {
-    pub fn is_username(self) -> bool {
-        matches!(self, Self::Username)
-    }
-
-    pub fn label(self) -> &'static str {
-        match self {
-            Self::Email => "Email",
-            Self::Username => "Username",
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize, Eq, PartialEq)]
-#[serde(rename_all = "snake_case")]
-pub enum TagStyle {
-    None,
-    #[default]
-    #[serde(other)]
-    Random,
-}
-
-impl TagStyle {
-    pub fn is_none(self) -> bool {
-        matches!(self, Self::None)
-    }
-
-    pub fn label(self) -> &'static str {
-        match self {
-            Self::None => "No tags",
-            Self::Random => "Random tags",
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize)]
-pub struct AccountIdentityConfigResponse {
-    #[serde(default)]
-    pub mode: AccountIdentityMode,
-    #[serde(default)]
-    pub locked: bool,
-    #[serde(default)]
-    pub tag_style: TagStyle,
-    #[serde(default)]
-    pub lock_reason: Option<AccountIdentityLockReason>,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct AccountIdentitySettings {
-    pub mode: AccountIdentityMode,
-    pub tag_style: TagStyle,
-    pub emails_enabled: bool,
-}
-
-impl Default for AccountIdentitySettings {
-    fn default() -> Self {
-        Self {
-            mode: AccountIdentityMode::default(),
-            tag_style: TagStyle::default(),
-            emails_enabled: true,
-        }
-    }
-}
-
-impl AccountIdentitySettings {
-    pub fn admin_reset_links_available(self) -> bool {
-        self.mode.is_username() || !self.emails_enabled
-    }
-}
-
-#[derive(Clone, Debug, Default, Deserialize)]
-pub struct InstanceAccountIdentityDiscovery {
-    #[serde(default)]
-    pub features: InstanceAccountIdentityDiscoveryFeatures,
-}
-
-#[derive(Clone, Debug, Default, Deserialize)]
-pub struct InstanceAccountIdentityDiscoveryFeatures {
-    #[serde(default)]
-    pub emails_enabled: bool,
-    #[serde(default)]
-    pub account_identity: AccountIdentityMode,
-    #[serde(default)]
-    pub tag_style: TagStyle,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -237,7 +135,6 @@ pub struct InstanceServicesAvailable {
 pub struct InstanceIntegrationsResponse {
     #[serde(default)]
     pub youtube: InstanceYoutubeIntegrationResponse,
-    pub email: InstanceEmailIntegrationResponse,
     #[serde(default)]
     pub bluesky: InstanceBlueskyIntegrationResponse,
 }
@@ -248,31 +145,6 @@ pub struct InstanceYoutubeIntegrationResponse {
     pub api_key_set: bool,
     #[serde(default)]
     pub effective_available: bool,
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct InstanceEmailIntegrationResponse {
-    pub delivery: Option<EmailDeliveryMode>,
-    pub delivery_state: EmailDeliveryState,
-    pub from_email: Option<String>,
-    pub from_name: Option<String>,
-    #[serde(default)]
-    pub smtp: InstanceEmailSmtpIntegrationResponse,
-    #[serde(default)]
-    pub disable_new_ip_authorization: bool,
-    #[serde(default)]
-    pub effective_disable_new_ip_authorization: bool,
-}
-
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
-pub struct InstanceEmailSmtpIntegrationResponse {
-    pub host: Option<String>,
-    pub port: Option<u16>,
-    pub username: Option<String>,
-    #[serde(default)]
-    pub password_set: bool,
-    pub tls_mode: Option<String>,
-    pub effective_tls_mode: Option<String>,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
@@ -653,8 +525,6 @@ pub struct InstanceRegistrationResponse {
     #[serde(default = "default_registration_urls_enabled")]
     pub admin_registration_urls_enabled: bool,
     #[serde(default)]
-    pub allowed_email_domains: Vec<String>,
-    #[serde(default)]
     pub urls: Vec<RegistrationUrlResponse>,
 }
 
@@ -663,7 +533,6 @@ impl Default for InstanceRegistrationResponse {
         Self {
             mode: RegistrationMode::Open,
             admin_registration_urls_enabled: true,
-            allowed_email_domains: Vec::new(),
             urls: Vec::new(),
         }
     }
@@ -716,7 +585,6 @@ pub struct PendingRegistrationResponse {
     pub username: String,
     pub discriminator: u16,
     pub global_name: Option<String>,
-    pub email: Option<String>,
     pub requested_at: String,
     pub registration_url_id: Option<String>,
     pub client_ip: Option<String>,
@@ -889,8 +757,6 @@ pub struct InstanceIntegrationsUpdateRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub youtube: Option<InstanceYoutubeIntegrationUpdateRequest>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub email: Option<InstanceEmailIntegrationUpdateRequest>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub bluesky: Option<InstanceBlueskyIntegrationUpdateRequest>,
 }
 
@@ -898,34 +764,6 @@ pub struct InstanceIntegrationsUpdateRequest {
 pub struct InstanceYoutubeIntegrationUpdateRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub api_key: Option<String>,
-}
-
-#[derive(Clone, Debug, Default, Serialize)]
-pub struct InstanceEmailIntegrationUpdateRequest {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub delivery: Option<Option<EmailDeliveryMode>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub from_email: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub from_name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub smtp: Option<InstanceEmailSmtpIntegrationUpdateRequest>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub disable_new_ip_authorization: Option<bool>,
-}
-
-#[derive(Clone, Debug, Default, Serialize)]
-pub struct InstanceEmailSmtpIntegrationUpdateRequest {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub host: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub port: Option<u16>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub username: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub password: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tls_mode: Option<Option<String>>,
 }
 
 #[derive(Clone, Debug, Default, Serialize)]
@@ -978,15 +816,6 @@ pub struct InstanceAttachmentDecayUpdateRequest {
     pub renew_threshold_days: Option<Option<u32>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub renew_window_days: Option<Option<u32>>,
-}
-
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
-pub struct InstanceEmailSmtpTestResponse {
-    #[serde(default)]
-    pub ok: bool,
-    pub error: Option<String>,
-    #[serde(default)]
-    pub server_response: Option<String>,
 }
 
 #[derive(Clone, Debug, Default, Serialize)]
@@ -1053,8 +882,6 @@ pub struct InstanceRegistrationConfigUpdateRequest {
     pub mode: Option<RegistrationMode>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub admin_registration_urls_enabled: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub allowed_email_domains: Option<Vec<String>>,
 }
 
 #[derive(Clone, Debug, Default, Serialize)]
@@ -1097,7 +924,6 @@ pub struct CreateRegistrationUrlResponse {
 
 pub const INSTANT_ACCOUNTS_ESCALATION_RANGE: std::ops::RangeInclusive<u32> = 10..=1_000_000;
 pub const CLEANUP_INACTIVE_DAYS_RANGE: std::ops::RangeInclusive<u32> = 1..=3_650;
-pub const INACTIVITY_WARNING_LEAD_DAYS_RANGE: std::ops::RangeInclusive<u32> = 1..=365;
 pub const SCHEDULED_DELETION_GRACE_HOURS: u32 = 24;
 
 #[derive(Clone, Debug, Default, Serialize)]
@@ -1110,8 +936,6 @@ pub struct InstantAccountsConfigUpdateRequest {
 
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct AuthConfigUpdateRequest {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub identifier_first: Option<IdentifierFirstMode>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub instant_accounts: Option<InstantAccountsConfigUpdateRequest>,
 }

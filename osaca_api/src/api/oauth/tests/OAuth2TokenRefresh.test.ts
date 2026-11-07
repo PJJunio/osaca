@@ -25,7 +25,7 @@ describe('OAuth2 Token Refresh', () => {
 		const authCodeResponse = await authorizeOAuth2(harness, endUser.token, {
 			client_id: application.id,
 			redirect_uri: redirectURI,
-			scope: 'identify email',
+			scope: 'identify',
 		});
 		const initialTokens = await exchangeOAuth2AuthorizationCode(harness, {
 			client_id: application.id,
@@ -45,7 +45,7 @@ describe('OAuth2 Token Refresh', () => {
 		expect(refreshedTokens.expires_in).toBeGreaterThan(0);
 		expect(refreshedTokens.refresh_token).toBeTruthy();
 		expect(refreshedTokens.scope).toContain('identify');
-		expect(refreshedTokens.scope).toContain('email');
+		expect(refreshedTokens.scope).toContain('identify');
 		const userInfo = await getOAuth2UserInfo(harness, refreshedTokens.access_token);
 		expect(userInfo.sub).toBe(endUser.userId);
 	});

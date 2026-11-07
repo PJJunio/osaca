@@ -2,15 +2,7 @@
 
 import {type AdminAuditLog, AdminRepository} from '@app/api/admin/AdminRepository';
 import {reportReference} from '@app/api/admin/services/ReporterResolutionNotifier';
-import {
-	clearTestEmails,
-	createTestAccount,
-	createUniqueEmail,
-	findLastTestEmail,
-	listTestEmails,
-	setUserACLs,
-	type TestAccount,
-} from '@app/api/auth/tests/AuthTestUtils';
+import {createTestAccount, setUserACLs, type TestAccount} from '@app/api/auth/tests/AuthTestUtils';
 import {createReportID, createUserID} from '@app/api/BrandedTypes';
 import {Config} from '@app/api/Config';
 import {sendChannelMessage, setupTestGuildWithMembers} from '@app/api/channel/tests/ChannelTestUtils';
@@ -37,14 +29,14 @@ import {drainSearchTasks} from '@app/api/search/SearchTaskTracker';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {createTestWorkerHelpers} from '@app/api/test/SyncTaskWorkerService';
 import {HTTP_STATUS} from '@app/api/test/TestConstants';
-import {createBuilder, createBuilderWithoutAuth} from '@app/api/test/TestRequestBuilder';
+import {createBuilder} from '@app/api/test/TestRequestBuilder';
 import {systemDmBody} from '@app/api/user/services/SystemDmMessage';
 import bulkScheduleUserDeletion from '@app/api/worker/tasks/admin_bulk/BulkScheduleUserDeletion';
 import {clearWorkerDependencies, setWorkerDependenciesForTest} from '@app/api/worker/WorkerContext';
 import {DeletionReasons} from '@osaca/constants/src/Core';
 import {UserFlags} from '@osaca/constants/src/UserConstants';
-import {emailLinkUrls, renderEmailTemplateText, reportResolvedSlots} from '@pkgs/email/src/EmailService';
 import {getEmailTemplate} from '@pkgs/email/src/email_i18n/EmailI18n';
+import {noticeLinkUrls, renderNoticeText, reportResolvedSlots} from '@pkgs/email/src/NoticeText';
 import type {WorkerTaskResult} from '@pkgs/worker/src/contracts/WorkerTask';
 import type {WorkerJobPayload} from '@pkgs/worker/src/contracts/WorkerTypes';
 import {afterEach, beforeEach, describe, expect, test} from 'vitest';
@@ -157,12 +149,6 @@ async function autoResolveSummary(targetUserId: string): Promise<Record<string, 
 	return Object.fromEntries(logs[0]!.metadata);
 }
 
-async function reportResolvedEmails(harness: ApiTestHarness, reporter: TestAccount) {
-	return (await listTestEmails(harness, {recipient: reporter.email})).filter(
-		(email) => email.type === 'report_resolved',
-	);
-}
-
 async function systemDmMessages(harness: ApiTestHarness, account: TestAccount): Promise<Array<string>> {
 	const channels = await createBuilder<Array<{id: string; recipients?: Array<{id: string}>}>>(harness, account.token)
 		.get('/users/@me/channels')
@@ -194,7 +180,7 @@ async function renderRestrictedNotice(reportId: string): Promise<{subject: strin
 		reply: 'no',
 	} as const;
 	const rendered = getEmailTemplate('report_resolved', null, variables, getInstanceProductName());
-	const body = renderEmailTemplateText(
+	const body = renderNoticeText(
 		'report_resolved',
 		null,
 		variables,
@@ -202,7 +188,7 @@ async function renderRestrictedNotice(reportId: string): Promise<{subject: strin
 		(template) => reportResolvedSlots(template, reportId, ''),
 		{
 			format: 'markdown',
-			urls: emailLinkUrls({appBaseUrl: Config.endpoints.webApp, marketingBaseUrl: Config.endpoints.marketing}),
+			urls: noticeLinkUrls({marketingBaseUrl: Config.endpoints.marketing}),
 		},
 	);
 	if (!rendered.ok || body === null) {
@@ -255,7 +241,6 @@ describe('bulkScheduleUserDeletion', () => {
 		expect(targetLog!.metadata.get('reason_code')).toBe(DeletionReasons.SPAM.toString());
 		expect(targetLog!.metadata.get('days')).toBe('90');
 		expect(await isSessionAlive(harness, target.token)).toBe(false);
-		expect(await new AdminRepository().isEmailBanned(target.email)).toBe(true);
 		expect(await autoResolveSummary(target.userId)).toEqual({
 			outcome: 'completed',
 			found_count: '1',
@@ -293,7 +278,6 @@ describe('bulkScheduleUserDeletion', () => {
 		expect(targetLog!.auditLogReason).toBe(AUDIT_LOG_REASON);
 		expect(targetLog!.metadata.get('reason_code')).toBe(DeletionReasons.SPAM.toString());
 		expect(await isSessionAlive(harness, target.token)).toBe(false);
-		expect(await new AdminRepository().isEmailBanned(target.email)).toBe(true);
 		expect((await autoResolveSummary(target.userId)).notified_count).toBe('1');
 	});
 	test('an auto-resolved report sends the reporter the generic notice through the bulk job', async () => {
@@ -302,12 +286,7 @@ describe('bulkScheduleUserDeletion', () => {
 		const reporter = await createTestAccount(harness);
 		const target = await createTestAccount(harness);
 		const reportId = await reportUser(harness, reporter, target.userId);
-		await clearTestEmails(harness);
 		await runBulkJob([target.userId], admin.userId);
-		const sent = await reportResolvedEmails(harness, reporter);
-		expect(sent.map((email) => email.metadata)).toEqual([
-			{report_id: reportId, public_comment: '', outcome: 'restricted'},
-		]);
 		const notice = await renderRestrictedNotice(reportId);
 		expect(notice.body).toContain(reportId);
 		expect(`${notice.subject}\n${notice.body}`).not.toMatch(DELETION_WORDING);
@@ -315,56 +294,13 @@ describe('bulkScheduleUserDeletion', () => {
 			systemDmBody((await renderRestrictedNotice(reportId)).body),
 		]);
 	});
-	test('an auto-resolved report sends the reporter a DM and an email with no deletion wording', async () => {
+	test('an auto-resolved report sends the reporter a DM with no deletion wording', async () => {
 		const reporter = await createTestAccount(harness);
 		const target = await createTestAccount(harness);
 		const reportId = await reportUser(harness, reporter, target.userId);
-		await clearTestEmails(harness);
 		await scheduleDeletionThroughEndpoint(harness, target);
-		const sent = await reportResolvedEmails(harness, reporter);
-		expect(sent.map((email) => email.metadata)).toEqual([
-			{report_id: reportId, public_comment: '', outcome: 'restricted'},
-		]);
 		const dms = await systemDmMessages(harness, reporter);
 		expect(dms).toEqual([systemDmBody((await renderRestrictedNotice(reportId)).body)]);
-		expect(await listTestEmails(harness, {recipient: reporter.email})).toHaveLength(1);
-	});
-	test('an auto-resolved DSA notice sends the notifier the decision email', async () => {
-		const target = await createTestAccount(harness);
-		const email = createUniqueEmail('dsa-auto-resolve');
-		await createBuilderWithoutAuth(harness)
-			.post('/reports/dsa/email/send')
-			.body({email})
-			.expect(HTTP_STATUS.OK)
-			.execute();
-		const code = findLastTestEmail(await listTestEmails(harness, {recipient: email}), 'dsa_report_verification')
-			?.metadata.code;
-		const {ticket} = await createBuilderWithoutAuth<{ticket: string}>(harness)
-			.post('/reports/dsa/email/verify')
-			.body({email, code})
-			.expect(HTTP_STATUS.OK)
-			.execute();
-		const report = await createBuilderWithoutAuth<ReportResponse>(harness)
-			.post('/reports/dsa')
-			.body({
-				ticket,
-				report_type: 'user',
-				category: 'harassment',
-				user_id: target.userId,
-				reporter_full_legal_name: 'Jane Doe',
-				reporter_country_of_residence: 'NL',
-			})
-			.expect(HTTP_STATUS.OK)
-			.execute();
-		await drainSearchTasks();
-		await clearTestEmails(harness);
-		await scheduleDeletionThroughEndpoint(harness, target);
-		expect(await getReportStatus(report.report_id)).toBe(ReportStatus.RESOLVED);
-		const sent = (await listTestEmails(harness)).filter((entry) => entry.to === email);
-		expect(sent.map((entry) => [entry.type, entry.metadata])).toEqual([
-			['dsa_report_resolved', {report_id: report.report_id, public_comment: '', outcome: 'restricted'}],
-		]);
-		expect((await autoResolveSummary(target.userId)).notified_count).toBe('1');
 	});
 	test('a deletion with no pending reports records a completed run with zero counts', async () => {
 		const admin = await createTestAccount(harness);
@@ -413,7 +349,6 @@ describe('bulkScheduleUserDeletion', () => {
 		const result = await runBulkJob([target.userId], admin.userId, {type: 'holder_request'});
 		expect(result.successful_count).toBe(1);
 		expect(await getReportStatus(reportId)).toBe(ReportStatus.PENDING);
-		expect(await new AdminRepository().isEmailBanned(target.email)).toBe(false);
 		const perUserLogs = await listAuditLogs('schedule_deletion');
 		expect(perUserLogs.filter((log) => log.targetId === BigInt(target.userId))).toHaveLength(1);
 	});
@@ -466,7 +401,6 @@ describe('bulkScheduleUserDeletion', () => {
 		const target = await createTestAccount(harness);
 		const underageReportId = await reportUser(harness, underageReporter, target.userId, 'underage_user');
 		const spamReportId = await reportUser(harness, spamReporter, target.userId);
-		await clearTestEmails(harness);
 		const result = await runBulkJob(
 			[target.userId],
 			admin.userId,
@@ -475,8 +409,7 @@ describe('bulkScheduleUserDeletion', () => {
 		expect(result.successful_count).toBe(1);
 		expect(await getReportStatus(spamReportId)).toBe(ReportStatus.RESOLVED);
 		expect(await getReportStatus(underageReportId)).toBe(ReportStatus.PENDING);
-		expect(await reportResolvedEmails(harness, spamReporter)).toHaveLength(1);
-		expect(await reportResolvedEmails(harness, underageReporter)).toEqual([]);
+		expect(await systemDmMessages(harness, spamReporter)).toHaveLength(1);
 		expect(await systemDmMessages(harness, underageReporter)).toEqual([]);
 		expect(await autoResolveSummary(target.userId)).toEqual({
 			outcome: 'completed',
@@ -492,13 +425,10 @@ describe('bulkScheduleUserDeletion', () => {
 		const reporter = await createTestAccount(harness);
 		const target = await createTestAccount(harness);
 		const reportId = await reportUser(harness, reporter, target.userId);
-		await clearTestEmails(harness);
 		const result = await runBulkJob([target.userId], admin.userId, enforcementBasis(DeletionReasons.GRAPHIC_VIOLENCE));
 		expect(result.successful_count).toBe(1);
 		expect(await getReportStatus(reportId)).toBe(ReportStatus.PENDING);
-		expect(await reportResolvedEmails(harness, reporter)).toEqual([]);
 		expect(await systemDmMessages(harness, reporter)).toEqual([]);
-		expect(await new AdminRepository().isEmailBanned(target.email)).toBe(true);
 	});
 	test('restricted reasons cannot close accounts in bulk', async () => {
 		const admin = await createTestAccount(harness);
@@ -518,14 +448,10 @@ describe('bulkScheduleUserDeletion', () => {
 		await setUserACLs(harness, admin, ['admin:authenticate', 'bulk:delete:users']);
 		const first = await createTestAccount(harness);
 		const second = await createTestAccount(harness);
-		await clearTestEmails(harness);
 		const result = await runBulkJob([first.userId, second.userId], admin.userId);
 		expect(result.successful_count).toBe(2);
 		const decisionIds = new Set<string>();
 		for (const target of [first, second]) {
-			const emails = await listTestEmails(harness, {recipient: target.email});
-			expect(emails.map((email) => email.type)).toEqual(['enforcement_notice']);
-			expect(emails[0]?.metadata.statement).toBe('These accounts sent the same invite link to many people.');
 			const user = await getUserRepository().findUnique(createUserID(BigInt(target.userId)));
 			expect(user?.enforcementDecisionId).not.toBeNull();
 			decisionIds.add(user!.enforcementDecisionId!.toString());
@@ -633,10 +559,9 @@ describe('auto-resolve on scheduled deletion without report search', () => {
 			.expect(HTTP_STATUS.OK)
 			.execute();
 		expect(getReportSearchService()).toBeNull();
-		await clearTestEmails(harness);
 		await scheduleDeletionThroughEndpoint(harness, target);
 		expect(await getReportStatus(report.report_id)).toBe(ReportStatus.PENDING);
-		expect(await reportResolvedEmails(harness, reporter)).toEqual([]);
+		expect(await systemDmMessages(harness, reporter)).toEqual([]);
 		expect(await autoResolveSummary(target.userId)).toEqual({
 			outcome: 'search_unavailable',
 			found_count: '0',

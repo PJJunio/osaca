@@ -373,22 +373,11 @@ describe('Report flows', () => {
 				.execute();
 		});
 
-		test('an unverified reporter is refused before the walk is checked', async () => {
-			const target = await setupMessage(harness);
-			const unverified = await createTestAccount(harness, {skipEmailVerification: true});
-			await submitMessage(harness, unverified.token, messageBody(target, [{screen_id: 'nope', option_id: 'x'}]))
-				.expect(HTTP_STATUS.FORBIDDEN, APIErrorCodes.REPORT_EMAIL_VERIFICATION_REQUIRED)
-				.execute();
-			await submitUser(harness, unverified.token, userBody(target.author.userId))
-				.expect(HTTP_STATUS.FORBIDDEN, APIErrorCodes.REPORT_EMAIL_VERIFICATION_REQUIRED)
-				.execute();
-		});
-
 		test('an unclaimed reporter is refused', async () => {
 			const target = await setupMessage(harness);
 			await unclaimAccount(harness, target.reporter.userId);
 			await submitMessage(harness, target.reporter.token, messageBody(target))
-				.expect(HTTP_STATUS.FORBIDDEN, APIErrorCodes.UNCLAIMED_ACCOUNT_CANNOT_SUBMIT_REPORTS)
+				.expect(HTTP_STATUS.FORBIDDEN, APIErrorCodes.ACCOUNT_VERIFICATION_REQUIRED)
 				.execute();
 		});
 

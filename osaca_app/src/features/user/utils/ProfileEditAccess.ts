@@ -3,11 +3,10 @@
 import type {Profile} from '@app/features/user/models/Profile';
 import Users from '@app/features/user/state/Users';
 import {type AccountGateUser, canPerform} from '@app/features/user/utils/AccountGates';
-import {AccountTiers, TierGatedActions} from '@osaca/constants/src/AccountTierConstants';
+import {TierGatedActions} from '@osaca/constants/src/AccountTierConstants';
 
 export function canOpenProfileEditor(user: AccountGateUser | null | undefined): boolean {
-	const gate = canPerform(user, TierGatedActions.PROFILE_CUSTOMIZE);
-	return gate.allowed || gate.tier === AccountTiers.UNVERIFIED;
+	return canPerform(user, TierGatedActions.PROFILE_CUSTOMIZE).allowed;
 }
 
 export function canEditOwnProfileBadges(

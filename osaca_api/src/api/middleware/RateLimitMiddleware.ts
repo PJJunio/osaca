@@ -5,7 +5,6 @@ import * as AuthSession from '@app/api/auth/AuthSession';
 import {Config} from '@app/api/Config';
 import type {HonoEnv} from '@app/api/types/HonoEnv';
 import {getRequestClientIp} from '@app/api/utils/RequestClientIp';
-import {readRequestJsonBody} from '@app/api/utils/RequestJsonBody';
 import {constantTimeEquals} from '@app/api/utils/SecretHash';
 import {UserFlags} from '@osaca/constants/src/UserConstants';
 import {RateLimitError} from '@osaca/errors/src/domains/core/RateLimitError';
@@ -21,10 +20,6 @@ export interface RouteRateLimitConfig {
 	config: BucketConfig;
 	scope?: RateLimitScope;
 	trustForwardedClientIp?: boolean;
-	emailBucket?: {
-		bucket: string;
-		config: BucketConfig;
-	};
 }
 
 const TEST_ENABLE_RATE_LIMITS_HEADER = 'x-osaca-test-enable-rate-limits';
@@ -100,16 +95,6 @@ function getClientIdentifier(ctx: Context<HonoEnv>, routeConfig: RouteRateLimitC
 	return `ip:${getSameIpDecisionKey(ip) ?? ip}`;
 }
 
-async function getRequestEmailIdentifier(ctx: Context<HonoEnv>): Promise<string | null> {
-	const body = await readRequestJsonBody(ctx.req);
-	if (!body.parsed || typeof body.value !== 'object' || body.value === null) return null;
-	const email = Reflect.get(body.value, 'email');
-	if (typeof email !== 'string') return null;
-	const normalizedEmail = email.trim().toLowerCase();
-	if (!normalizedEmail) return null;
-	return `email:${createHash('sha256').update(normalizedEmail).digest('hex').slice(0, 32)}`;
-}
-
 function getGlobalRateLimit(ctx: Context<HonoEnv>): number {
 	const user = ctx.get('user');
 	if (user?.flags && (user.flags & UserFlags.HIGH_GLOBAL_RATE_LIMIT) !== 0n) {
@@ -169,7 +154,6 @@ async function revokeAuthenticatedSessionOnGlobalRateLimit(ctx: Context<HonoEnv>
 
 export function RateLimitMiddleware(routeConfig: RouteRateLimitConfig): MiddlewareHandler<HonoEnv> {
 	const routeBucketHash = getBucketHash(routeConfig.bucket);
-	const emailBucketHash = routeConfig.emailBucket ? getBucketHash(routeConfig.emailBucket.bucket) : undefined;
 	return createMiddleware<HonoEnv>(async (ctx, next) => {
 		if (!shouldEnforceRateLimits(ctx)) {
 			await next();
@@ -216,27 +200,6 @@ export function RateLimitMiddleware(routeConfig: RouteRateLimitConfig): Middlewa
 				bucketHash: routeBucketHash,
 				scope: routeConfig.scope ?? 'user',
 			});
-		}
-		const emailBucketConfig = routeConfig.emailBucket;
-		if (emailBucketConfig) {
-			const emailIdentifier = await getRequestEmailIdentifier(ctx);
-			if (emailIdentifier) {
-				const emailBucketResult = await rateLimitService.checkBucketLimit(
-					resolveBucket(emailBucketConfig.bucket, emailIdentifier, ctx),
-					emailBucketConfig.config,
-				);
-				if (!emailBucketResult.allowed) {
-					throw new RateLimitError({
-						retryAfter: getRetryAfterSeconds(emailBucketResult),
-						retryAfterDecimal: emailBucketResult.retryAfterDecimal,
-						limit: emailBucketResult.limit,
-						resetTime: emailBucketResult.resetTime,
-						resetAfterDecimal: emailBucketResult.resetAfterDecimal,
-						bucketHash: emailBucketHash,
-						scope: 'shared',
-					});
-				}
-			}
 		}
 		if (showHeaders) {
 			setRateLimitHeaders(ctx, bucketResult, routeBucketHash);

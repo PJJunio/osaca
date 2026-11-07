@@ -103,9 +103,6 @@ fn pending_registration_row(
                 @if let Some(global_name) = pending.global_name.as_deref() {
                     p class="truncate text-xs text-neutral-500" title=(global_name) { (global_name) }
                 }
-                @if let Some(email) = pending.email.as_deref() {
-                    p class="truncate text-xs text-neutral-500" title=(email) { (email) }
-                }
                 p class="whitespace-nowrap text-xs text-neutral-500" { "ID: " (&pending.user_id) }
             }
             td class="px-4 py-3 align-top text-neutral-700 whitespace-nowrap" {

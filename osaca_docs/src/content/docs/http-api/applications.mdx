@@ -227,7 +227,7 @@ Creates an application and its bot account, and returns the [application](#appli
 | 403 | [error response](/http-api/#error-response) | `CONTENT_BLOCKED` when the name, a redirect URI or the bot username is blocked |
 | 500 | [error response](/http-api/#error-response) | `BOT_USER_GENERATION_FAILED` when no bot username is free |
 
-<sup>2</sup> The error code is `UNCLAIMED_ACCOUNT_CANNOT_CREATE_APPLICATIONS`
+<sup>2</sup> The error code is `ACCOUNT_VERIFICATION_REQUIRED`
 
 The rate limit is 10 requests per hour, on the `oauth_dev:clients:create` bucket.
 

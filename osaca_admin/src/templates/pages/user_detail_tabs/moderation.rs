@@ -256,7 +256,7 @@ fn legacy_suspension_restriction(
                     (csrf_input(csrf_token))
                     div class="space-y-3" {
                         (internal_note_field("lift", "Staff only. Saved in the audit log."))
-                        p class=(FIELD_HELP_CLASS) { "The user is told by email that the suspension was lifted." }
+                        p class=(FIELD_HELP_CLASS) { "The user is told by system DM that the suspension was lifted." }
                         (form_actions(submit_button("Lift suspension")))
                     }
                 }
@@ -447,7 +447,6 @@ fn legacy_deletion_restriction(
                     input type="hidden" name="expected_pending_deletion_at" value=(pending);
                     div class="space-y-3" {
                         (internal_note_field("cancel-deletion", "Staff only. Saved in the audit log."))
-                        p class=(FIELD_HELP_CLASS) { "The user is told by email that the deletion was cancelled." }
                         (Checkbox {
                             name: "confirm",
                             value: "true",
@@ -526,7 +525,7 @@ fn delete_immediately_fields() -> Markup {
                 enabled: true,
             }.render())
             p class=(FIELD_HELP_CLASS) {
-                "Skips the waiting period and sends no email. The account and its data are deleted \
+                "Skips the waiting period. The account and its data are deleted \
                  within a minute and cannot be restored."
             }
             div class="space-y-1" {

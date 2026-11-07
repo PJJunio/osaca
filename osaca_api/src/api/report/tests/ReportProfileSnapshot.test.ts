@@ -1,13 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {
-	clearTestEmails,
-	createTestAccount,
-	createUniqueEmail,
-	findLastTestEmail,
-	listTestEmails,
-	type TestAccount,
-} from '@app/api/auth/tests/AuthTestUtils';
+import {createTestAccount, type TestAccount} from '@app/api/auth/tests/AuthTestUtils';
 import {createGuildID, createReportID, createUserID} from '@app/api/BrandedTypes';
 import {Config} from '@app/api/Config';
 import {loadFixture} from '@app/api/channel/tests/AttachmentTestUtils';
@@ -23,7 +16,7 @@ import {ensureSessionStarted} from '@app/api/message/tests/MessageTestUtils';
 import {ReportRepository} from '@app/api/report/ReportRepository';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {HTTP_STATUS} from '@app/api/test/TestConstants';
-import {createBuilder, createBuilderWithoutAuth} from '@app/api/test/TestRequestBuilder';
+import {createBuilder} from '@app/api/test/TestRequestBuilder';
 import {UserRepository} from '@app/api/user/repositories/UserRepository';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {UserFlags} from '@osaca/constants/src/UserConstants';
@@ -91,35 +84,6 @@ function reportGuild(harness: ApiTestHarness, token: string, guildId: string) {
 	return createBuilder<ReportResponse>(harness, token)
 		.post('/reports/guild')
 		.body({guild_id: guildId, category: 'harassment'});
-}
-
-async function issueTicket(harness: ApiTestHarness): Promise<string> {
-	await clearTestEmails(harness);
-	const email = createUniqueEmail('dsa-profile');
-	await createBuilderWithoutAuth(harness)
-		.post('/reports/dsa/email/send')
-		.body({email})
-		.expect(HTTP_STATUS.OK)
-		.execute();
-	const code = findLastTestEmail(await listTestEmails(harness), 'dsa_report_verification')?.metadata.code;
-	const {ticket} = await createBuilderWithoutAuth<{ticket: string}>(harness)
-		.post('/reports/dsa/email/verify')
-		.body({email, code})
-		.expect(HTTP_STATUS.OK)
-		.execute();
-	return ticket;
-}
-
-function submitDsa(harness: ApiTestHarness, ticket: string, target: Record<string, unknown>) {
-	return createBuilderWithoutAuth<ReportResponse>(harness)
-		.post('/reports/dsa')
-		.body({
-			ticket,
-			category: 'harassment',
-			reporter_full_legal_name: 'Jane Doe',
-			reporter_country_of_residence: 'DE',
-			...target,
-		});
 }
 
 async function setupProfile(
@@ -340,52 +304,5 @@ describe('Report profile snapshots', () => {
 			.execute();
 		expect(harness.storageService.getCopiedObjects()).toHaveLength(copiesBefore);
 		expect(await countReports()).toBe(2);
-	});
-
-	test('notices filed through the DSA form keep the same snapshots', async () => {
-		const {owner, target, guild, profile} = await setupProfile(harness);
-		const named = await updateGuild(harness, owner.token, guild.id, {name: 'Original Guild', icon: FIRST_IMAGE});
-		const channel = await createChannel(harness, owner.token, guild.id, 'profile-evidence');
-		const message = await sendChannelMessage(harness, target.token, channel.id, 'Reported message');
-		const userNotice = await submitDsa(harness, await issueTicket(harness), {
-			report_type: 'user',
-			user_id: target.userId,
-		})
-			.expect(HTTP_STATUS.OK)
-			.execute();
-		const userSnapshot = await readSnapshot(userNotice.report_id);
-		expect(userSnapshot.user).toMatchObject({
-			id: target.userId,
-			username: profile.username,
-			bio: 'Original bio',
-			avatar: {hash: profile.avatar, key: `reports/${userNotice.report_id}/profile/user_avatar/${profile.avatar}`},
-		});
-		expect(userSnapshot.member).toBeNull();
-		expect(userSnapshot.guild).toBeNull();
-		expect(reportsBucketHas(harness, userSnapshot.user?.avatar?.key)).toBe(true);
-		const guildNotice = await submitDsa(harness, await issueTicket(harness), {
-			report_type: 'guild',
-			guild_id: guild.id,
-		})
-			.expect(HTTP_STATUS.OK)
-			.execute();
-		const guildSnapshot = await readSnapshot(guildNotice.report_id);
-		expect(guildSnapshot.user).toBeNull();
-		expect(guildSnapshot.guild).toMatchObject({
-			id: guild.id,
-			name: 'Original Guild',
-			icon: {hash: named.icon, key: `reports/${guildNotice.report_id}/profile/guild_icon/${named.icon}`},
-		});
-		expect(reportsBucketHas(harness, guildSnapshot.guild?.icon?.key)).toBe(true);
-		const messageNotice = await submitDsa(harness, await issueTicket(harness), {
-			report_type: 'message',
-			message_link: `https://web.osaca.example/channels/${guild.id}/${channel.id}/${message.id}`,
-		})
-			.expect(HTTP_STATUS.OK)
-			.execute();
-		const messageSnapshot = await readSnapshot(messageNotice.report_id);
-		expect(messageSnapshot.user).toMatchObject({id: target.userId, bio: 'Original bio'});
-		expect(messageSnapshot.member).toMatchObject({guild_id: guild.id, nick: 'Original Nick'});
-		expect(messageSnapshot.guild).toBeNull();
 	});
 });

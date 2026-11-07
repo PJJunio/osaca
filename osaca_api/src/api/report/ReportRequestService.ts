@@ -26,14 +26,10 @@ import type {
 	ReportFlowUserSubmissionRequest,
 } from '@osaca/schema/src/domains/report/ReportFlowSchemas';
 import type {
-	DsaReportEmailSendRequest,
-	DsaReportEmailVerifyRequest,
-	DsaReportRequest,
 	ReportGuildRequest,
 	ReportMessageRequest,
 	ReportResponse,
 	ReportUserRequest,
-	TicketResponse,
 } from '@osaca/schema/src/domains/report/ReportSchemas';
 import {createSnowflakeFromTimestamp} from '@osaca/snowflake/src/Snowflake';
 
@@ -41,11 +37,6 @@ interface ReportUserRequestContext<T> {
 	user: User;
 	data: T;
 	request: Request;
-}
-
-interface ReportDsaRequestContext<T> {
-	data: T;
-	locale?: string | null;
 }
 
 interface ReportFlowSubmissionContext<T> {
@@ -165,23 +156,6 @@ export class ReportRequestService {
 		return this.toReportResponse(report);
 	}
 
-	async sendDsaReportVerificationEmail({
-		data,
-		locale,
-	}: ReportDsaRequestContext<DsaReportEmailSendRequest>): Promise<void> {
-		await this.reportService.sendDsaReportVerificationCode(data.email, locale ?? null);
-	}
-
-	async verifyDsaReportEmail({data}: ReportDsaRequestContext<DsaReportEmailVerifyRequest>): Promise<TicketResponse> {
-		const ticket = await this.reportService.verifyDsaReportEmail(data.email, data.code);
-		return {ticket};
-	}
-
-	async createDsaReport({data, locale}: ReportDsaRequestContext<DsaReportRequest>): Promise<ReportResponse> {
-		const report = await this.reportService.createDsaReport(data, locale ?? null);
-		return this.toReportResponse(report);
-	}
-
 	private resolveInAppFlow(
 		target: ReportFlowTargetType,
 		data: ReportFlowAnswersInput,
@@ -237,7 +211,6 @@ export class ReportRequestService {
 	private createReporter(user: User) {
 		return {
 			id: user.id,
-			email: user.email,
 			fullLegalName: null,
 			countryOfResidence: null,
 			tier: getAccountTier(user),

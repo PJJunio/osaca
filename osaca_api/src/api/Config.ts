@@ -5,8 +5,6 @@ import {parseIpBanEntry} from '@app/api/utils/IpRangeUtils';
 import {trimTrailingSlash} from '@app/api/utils/UrlUtils';
 import type {WorkerTaskName} from '@app/api/worker/WorkerLaneConfig';
 import type {MasterConfig} from '@osaca/config/src/MasterConfig';
-import {EmailDeliveryModes} from '@osaca/constants/src/AccountConfigConstants';
-import {smtpTlsModeFromSecure} from '@osaca/constants/src/SmtpConstants';
 import {parseIpAddress} from '@osaca/ip_utils/src/IpAddress';
 import {normalizeString} from '@osaca/schema/src/primitives/SchemaPrimitives';
 
@@ -15,51 +13,6 @@ function extractHostname(url: string): string {
 		return new URL(url).hostname;
 	} catch {
 		throw new Error(`Invalid URL: ${url}`);
-	}
-}
-
-function resolveEmailAppBaseUrl(master: MasterConfig): string {
-	const configuredAppBaseUrl = master.integrations.email.app_base_url.trim();
-	if (!configuredAppBaseUrl) return trimTrailingSlash(master.endpoints.app);
-	try {
-		const appBaseUrl = new URL(configuredAppBaseUrl);
-		if (
-			(appBaseUrl.protocol !== 'http:' && appBaseUrl.protocol !== 'https:') ||
-			appBaseUrl.username ||
-			appBaseUrl.password ||
-			appBaseUrl.search ||
-			appBaseUrl.hash
-		) {
-			throw new Error(`Invalid email app base URL: ${configuredAppBaseUrl}`);
-		}
-		return trimTrailingSlash(appBaseUrl.toString());
-	} catch {
-		throw new Error(`Invalid email app base URL: ${configuredAppBaseUrl}`);
-	}
-}
-
-function toSmtpConfig(
-	smtp: NonNullable<MasterConfig['integrations']['email']['smtp']>,
-): NonNullable<APIConfig['email']['smtp']> {
-	return {
-		host: smtp.host,
-		port: smtp.port,
-		username: smtp.username,
-		password: smtp.password,
-		tlsMode: smtp.tls_mode ?? smtpTlsModeFromSecure(smtp.secure, smtp.port),
-	};
-}
-
-function resolveEnvEmailSwitch(
-	email: MasterConfig['integrations']['email'],
-): Pick<APIConfig['email'], 'enabled' | 'provider'> {
-	switch (email.delivery) {
-		case undefined:
-			return {enabled: email.enabled, provider: email.provider};
-		case EmailDeliveryModes.SMTP:
-			return {enabled: true, provider: 'smtp'};
-		case EmailDeliveryModes.OFF:
-			return {enabled: false, provider: email.provider};
 	}
 }
 
@@ -292,25 +245,6 @@ export function buildAPIConfigFromMaster(master: MasterConfig): APIConfig {
 			secretAccessKey: s3Config.secret_access_key,
 			buckets: s3Buckets,
 		},
-		email: {
-			...resolveEnvEmailSwitch(master.integrations.email),
-			webhookSecret: master.integrations.email.webhook_secret ?? undefined,
-			fromEmail: master.integrations.email.from_email,
-			fromName: master.integrations.email.from_name,
-			replyToEmail: master.integrations.email.reply_to_email,
-			supportAlertEmail: master.integrations.email.support_alert_email?.trim() || null,
-			appBaseUrl: resolveEmailAppBaseUrl(master),
-			smtp: master.integrations.email.smtp ? toSmtpConfig(master.integrations.email.smtp) : undefined,
-			fallback: master.integrations.email.fallback
-				? {
-						domains: master.integrations.email.fallback.domains,
-						smtp: {
-							...toSmtpConfig(master.integrations.email.fallback.smtp),
-							headers: master.integrations.email.fallback.smtp.headers,
-						},
-					}
-				: undefined,
-		},
 		blocklistFeeds: {
 			enabled: master.integrations.blocklist_feeds.enabled ?? !master.instance.self_hosted,
 		},
@@ -387,8 +321,6 @@ export function buildAPIConfigFromMaster(master: MasterConfig): APIConfig {
 				configured: master.instance.setup.configured,
 				token: resolveSetupToken(master),
 			},
-			accountIdentity: master.instance.account_identity,
-			tagStyle: master.instance.tag_style,
 		},
 		discovery: {
 			enabled: master.discovery.enabled,
@@ -405,7 +337,6 @@ export function buildAPIConfigFromMaster(master: MasterConfig): APIConfig {
 		presignedHarvestDownloadsEnabled: master.services.api.presigned_harvest_downloads_enabled ?? true,
 		attachmentDecayEnabled: master.attachment_decay_enabled,
 		deletionGracePeriodHours: master.dev.test_mode_enabled ? 0.01 : master.deletion_grace_period_hours,
-		inactivityDeletionThresholdDays: master.inactivity_deletion_threshold_days,
 		reportRetention: {
 			days: master.report_retention.days,
 			dryRun: master.report_retention.dry_run,

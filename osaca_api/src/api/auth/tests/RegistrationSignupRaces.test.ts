@@ -3,7 +3,6 @@
 import {
 	createAuthHarness,
 	createTestAccount,
-	createUniqueEmail,
 	createUniqueUsername,
 	setUserACLs,
 	type TestAccount,
@@ -49,7 +48,6 @@ interface RegistrationResponse {
 
 function registrationBody(prefix: string, registrationUrlCode?: string) {
 	return {
-		email: createUniqueEmail(prefix),
 		username: createUniqueUsername(prefix),
 		global_name: 'Signup Race',
 		password: 'a-strong-password',
@@ -66,7 +64,7 @@ describe('signups racing on registration URLs and pending approvals', () => {
 	let writeFailure: WriteFailure | null = null;
 	let expectedFailure: WriteFailure | null = null;
 	let observedFailure: WriteFailure | null = null;
-	let failureEmail: string | null = null;
+	let failureUsername: string | null = null;
 	let failureUserId: UserID | null = null;
 	const requests = new Set<Promise<unknown>>();
 
@@ -79,7 +77,7 @@ describe('signups racing on registration URLs and pending approvals', () => {
 				if (
 					metadata?.table.name === 'users' &&
 					metadata.action === 'patch' &&
-					query.params.email === failureEmail &&
+					query.params.username === failureUsername &&
 					typeof query.params.user_id === 'bigint'
 				) {
 					failureUserId = createUserID(query.params.user_id);
@@ -127,7 +125,7 @@ describe('signups racing on registration URLs and pending approvals', () => {
 			setCassandraQueryExecutorForTesting(storage);
 			expectedFailure = null;
 			observedFailure = null;
-			failureEmail = null;
+			failureUsername = null;
 			failureUserId = null;
 			requests.clear();
 		}
@@ -146,7 +144,7 @@ describe('signups racing on registration URLs and pending approvals', () => {
 	function register(prefix: string, registrationUrlCode?: string) {
 		const body = registrationBody(prefix, registrationUrlCode);
 		if (writeFailure) {
-			failureEmail = body.email;
+			failureUsername = body.username;
 		}
 		const operation = createBuilderWithoutAuth<RegistrationResponse>(harness)
 			.post('/auth/register')
@@ -183,7 +181,7 @@ describe('signups racing on registration URLs and pending approvals', () => {
 	async function expectFailedWriteRowPresent(): Promise<void> {
 		assert(failureUserId);
 		const row = await fetchOne<UserRow>(Users.selectCql({where: Users.where.eq('user_id')}), {user_id: failureUserId});
-		expect(row?.email).toBe(failureEmail);
+		expect(row?.username).toBe(failureUsername);
 		expect(row?.traits?.has(REGISTRATION_PENDING_APPROVAL_TRAIT)).toBe(true);
 	}
 
@@ -330,7 +328,6 @@ describe('signups racing on registration URLs and pending approvals', () => {
 					username: 'stored_pending',
 					discriminator: 1,
 					global_name: null,
-					email: account.email,
 					requested_at: '2026-09-01T00:00:00.000Z',
 					registration_url_id: null,
 					client_ip: '127.0.0.1',

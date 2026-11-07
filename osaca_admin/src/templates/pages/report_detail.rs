@@ -73,9 +73,6 @@ fn reporter_label(report: &ReportEntry) -> String {
         let discriminator = report.reporter_discriminator.as_deref().unwrap_or("0000");
         return user_tag(username, discriminator, false);
     }
-    if let Some(email) = &report.reporter_email {
-        return email.to_owned();
-    }
     "Anonymous".to_owned()
 }
 
@@ -116,9 +113,6 @@ fn basic_info_section(config: &AdminConfig, report: &ReportEntry, show_pii: bool
                     (data_field_text("Reporter", &reporter_label(report)))
                 }
                 @if show_pii {
-                    @if let Some(ref value) = report.reporter_email {
-                        (data_field_text("Reporter Email", value))
-                    }
                     @if let Some(ref value) = report.reporter_full_legal_name {
                         (data_field_text("Full Legal Name", value))
                     }

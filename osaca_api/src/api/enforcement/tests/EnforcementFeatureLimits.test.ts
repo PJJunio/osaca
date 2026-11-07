@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {clearTestEmails, createTestAccount, type TestAccount} from '@app/api/auth/tests/AuthTestUtils';
+import {createTestAccount, type TestAccount} from '@app/api/auth/tests/AuthTestUtils';
 import {upsertOne} from '@app/api/database/CassandraQueryExecution';
 import {Db} from '@app/api/database/CassandraTypes';
 import {
 	createStaff,
 	decisionBody,
-	emailsTo,
 	endDecision,
 	getDecision,
 	INTERNAL_NOTE,
@@ -70,20 +69,6 @@ describe('Enforcement feature limits', () => {
 			.body(body);
 	}
 
-	test('a direct message limit records one limit, sets the spammer flag and notifies by email and DM', async () => {
-		const target = await createTestAccount(harness);
-		await clearTestEmails(harness);
-		const decisionId = await limitFeatures(harness, staff, target.userId, 'direct_messages');
-		expect((await loadUser(target)).flags & UserFlags.SPAMMER).toBe(UserFlags.SPAMMER);
-		const decision = await getDecision(harness, staff, decisionId);
-		expect(decision).toMatchObject({kind: 'feature_limit', limit: 'direct_messages', ends_at: null});
-		expect(decision.notice_channels).toEqual(['email', 'system_dm']);
-		expect(decision.notice_text).toContain('We limited a feature on your account.');
-		expect(decision.notice_text).toContain('Your one-to-one messages and friend requests are not delivered');
-		const [email] = await emailsTo(harness, target, 'enforcement_notice');
-		expect(email?.metadata.kind_label).toBe('feature_limit');
-	});
-
 	test.each([
 		['harassment', DeletionReasons.HARASSMENT_OR_BULLYING, ValidationErrorCodes.ENFORCEMENT_KIND_NOT_ALLOWED],
 		['misuse of reporting', DeletionReasons.REPORTING_ABUSE, ValidationErrorCodes.ENFORCEMENT_LIMIT_NOT_ALLOWED],
@@ -105,7 +90,7 @@ describe('Enforcement feature limits', () => {
 			const decisionId = await limitFeatures(harness, staff, target.userId, 'reports', REPORT_ABUSE);
 			const decision = await getDecision(harness, staff, decisionId);
 			expect(Math.round((new Date(decision.ends_at!).getTime() - Date.now()) / ms('1 day'))).toBe(90);
-			expect(decision.notice_text).toContain('use the safety route on our company information page');
+			expect(decision.notice_text).toContain('use the safety route on our [company information page]');
 			const {json} = await limitRequest(harness, staff, target.userId, {
 				limit: 'reports',
 				ends_at: new Date(Date.now() + ms('400 days')).toISOString(),
@@ -144,20 +129,6 @@ describe('Enforcement feature limits', () => {
 			const reported = await createTestAccount(harness);
 			await getUserRepository().updateFlags((await loadUser(reporter)).id, (flags) => flags | UserFlags.REPORT_BANNED);
 			await reportUser(reporter, reported).expect(HTTP_STATUS.FORBIDDEN, APIErrorCodes.REPORT_BANNED).execute();
-		});
-
-		test('a limited reporter still hears the outcome of reports filed before the limit', async () => {
-			const reporter = await createTestAccount(harness);
-			const reported = await createTestAccount(harness);
-			const {report_id: reportId} = await reportUser(reporter, reported).expect(HTTP_STATUS.OK).execute();
-			await limitFeatures(harness, staff, reporter.userId, 'reports', REPORT_ABUSE);
-			await clearTestEmails(harness);
-			await createBuilder(harness, staff.token)
-				.patch(`/admin/reports/${reportId}`)
-				.body({status: 'resolved', resolution: 'no_violation', public_comment: 'Handled'})
-				.expect(HTTP_STATUS.OK)
-				.execute();
-			expect(await emailsTo(harness, reporter, 'report_resolved')).toHaveLength(1);
 		});
 	});
 

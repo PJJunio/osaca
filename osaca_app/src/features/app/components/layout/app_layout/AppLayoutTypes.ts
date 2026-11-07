@@ -9,7 +9,6 @@ export const NagbarType = {
 	SCHEDULED_MAINTENANCE: 'scheduled-maintenance',
 	INSTANCE_NOTICE: 'instance-notice',
 	UNCLAIMED_ACCOUNT: 'unclaimed-account',
-	EMAIL_VERIFICATION: 'email-verification',
 	ACCOUNT_LIMITED: 'account-limited',
 	DESKTOP_NOTIFICATION: 'desktop-notification',
 	DESKTOP_DOWNLOAD: 'desktop-download',
@@ -43,7 +42,6 @@ export interface NagbarConditions {
 	canShowScheduledMaintenance: boolean;
 	canShowInstanceNotice: boolean;
 	userIsUnclaimed: boolean;
-	userNeedsVerification: boolean;
 	canShowAccountLimited: boolean;
 	canShowDesktopNotification: boolean;
 	canShowDesktopDownload: boolean;

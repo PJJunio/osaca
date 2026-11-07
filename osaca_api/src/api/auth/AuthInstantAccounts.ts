@@ -127,7 +127,7 @@ export async function redeemHandoff(
 		requestCache: RequestCache;
 		tierContext: TierContext;
 	},
-): Promise<{user: User; token: string; deviceProof: string; entry: GuildEntryResult | null}> {
+): Promise<{user: User; token: string; entry: GuildEntryResult | null}> {
 	await assertAccountCreationPastSetup(
 		ctx,
 		deps.instanceConfigRepository,
@@ -151,8 +151,6 @@ export async function redeemHandoff(
 	try {
 		result = await createAccount(ctx, deps, {
 			input: {
-				email: null,
-				emailProven: false,
 				globalName: params.globalName ?? record.global_name,
 				consent: params.consent,
 				locale: record.locale,
@@ -169,5 +167,5 @@ export async function redeemHandoff(
 		throw error;
 	}
 	if (result.pendingApproval) throw new RegistrationClosedError();
-	return {user: result.user, token: result.token, deviceProof: result.deviceProof, entry: result.entry};
+	return {user: result.user, token: result.token, entry: result.entry};
 }

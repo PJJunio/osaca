@@ -251,52 +251,6 @@ export class AdminBanManagementService {
 		}
 	}
 
-	async banEmail(
-		data: {
-			email: string;
-		},
-		adminUserId: UserID,
-		auditLogReason: string | null,
-	) {
-		const {adminRepository} = this.deps;
-		await adminRepository.banEmail(data.email);
-		await this.deps.auditService.createAuditLog({
-			targetId: 0n,
-			adminUserId,
-			targetType: 'email',
-			action: 'ban_email',
-			auditLogReason,
-			metadata: new Map([['email', data.email]]),
-		});
-	}
-
-	async unbanEmail(
-		data: {
-			email: string;
-		},
-		adminUserId: UserID,
-		auditLogReason: string | null,
-	) {
-		const {adminRepository} = this.deps;
-		await adminRepository.unbanEmail(data.email);
-		await this.deps.auditService.createAuditLog({
-			targetId: 0n,
-			adminUserId,
-			targetType: 'email',
-			action: 'unban_email',
-			auditLogReason,
-			metadata: new Map([['email', data.email]]),
-		});
-	}
-
-	async checkEmailBan(data: {email: string}): Promise<{
-		banned: boolean;
-	}> {
-		const {adminRepository} = this.deps;
-		const banned = await adminRepository.isEmailBanned(data.email);
-		return {banned};
-	}
-
 	async banPhrase(
 		data: {
 			phrase: string;
@@ -786,10 +740,6 @@ export class AdminBanManagementService {
 						created_at: toIsoOrNull(row.createdAt),
 					}),
 				);
-			}
-			case 'email': {
-				const rows = await adminRepository.loadAllBannedEmails();
-				return rows.map((value) => createBlocklistEntry(listType, value));
 			}
 			case 'phrase': {
 				const rows = await adminRepository.loadAllBannedPhrases();

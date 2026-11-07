@@ -10,9 +10,7 @@ import {Config} from '@app/api/Config';
 import {ChannelRepository} from '@app/api/channel/ChannelRepository';
 import {AttachmentUploadTraceRepository} from '@app/api/channel/repositories/message/AttachmentUploadTraceRepository';
 import {StreamPreviewService} from '@app/api/channel/services/StreamPreviewService';
-import type {APIConfig} from '@app/api/config/APIConfig';
 import {ConnectionRepository} from '@app/api/connection/ConnectionRepository';
-import {createEmailProvider} from '@app/api/email/EmailProviderFactory';
 import {EnforcementDecisionRepository} from '@app/api/enforcement/EnforcementDecisionRepository';
 import {FavoriteMemeRepository} from '@app/api/favorite_meme/FavoriteMemeRepository';
 import {GatewayRequestService} from '@app/api/gateway/GatewayRequestService';
@@ -25,7 +23,6 @@ import {AvatarService} from '@app/api/infrastructure/AvatarService';
 import {CachePurgeQueue, type IPurgeQueue, NoopPurgeQueue} from '@app/api/infrastructure/CachePurgeQueue';
 import {DisabledVirusScanService} from '@app/api/infrastructure/DisabledVirusScanService';
 import {DiscriminatorService} from '@app/api/infrastructure/DiscriminatorService';
-import {EmailDnsValidationService} from '@app/api/infrastructure/EmailDnsValidationService';
 import {EmbedService} from '@app/api/infrastructure/EmbedService';
 import {EntityAssetService} from '@app/api/infrastructure/EntityAssetService';
 import {ErrorI18nService} from '@app/api/infrastructure/ErrorI18nService';
@@ -41,11 +38,9 @@ import {createStorageService} from '@app/api/infrastructure/StorageServiceFactor
 import {UserCacheService} from '@app/api/infrastructure/UserCacheService';
 import {createUsersServiceClient} from '@app/api/infrastructure/UsersServiceClient';
 import {VirusScanService} from '@app/api/infrastructure/VirusScanService';
-import {type ContactEmails, resolveContactEmails, resolveLegalAddress} from '@app/api/instance/ContactEmails';
 import {CustomBadgeCatalog} from '@app/api/instance/custom_badges/CustomBadgeCatalog';
 import {InstanceConfigRepository} from '@app/api/instance/InstanceConfigRepository';
 import {NatsConfigPublisher} from '@app/api/instance/NatsConfigPublisher';
-import {getInstanceProductName} from '@app/api/instance/ProductName';
 import {ensureSetupToken} from '@app/api/instance/SetupToken';
 import {InviteRepository} from '@app/api/invite/InviteRepository';
 import {Logger} from '@app/api/Logger';
@@ -74,8 +69,6 @@ import {ThemeService} from '@app/api/theme/ThemeService';
 import {EntranceSoundPlayService} from '@app/api/user/entrance_sound/EntranceSoundPlayService';
 import {EntranceSoundRepository} from '@app/api/user/entrance_sound/EntranceSoundRepository';
 import {EntranceSoundService} from '@app/api/user/entrance_sound/EntranceSoundService';
-import {EmailChangeRepository} from '@app/api/user/repositories/auth/EmailChangeRepository';
-import {PasswordChangeRepository} from '@app/api/user/repositories/auth/PasswordChangeRepository';
 import {UserContactChangeLogRepository} from '@app/api/user/repositories/UserContactChangeLogRepository';
 import {UserRepository} from '@app/api/user/repositories/UserRepository';
 import {UserActivityBuffer} from '@app/api/user/services/UserActivityBuffer';
@@ -84,19 +77,14 @@ import {awaitAll} from '@app/api/utils/ConcurrencyUtils';
 import {UserPermissionUtils} from '@app/api/utils/UserPermissionUtils';
 import {VoiceP2pConnectionReportRepository} from '@app/api/voice/VoiceP2pConnectionReportRepository';
 import {VoiceRepository} from '@app/api/voice/VoiceRepository';
-import {SweegoWebhookService} from '@app/api/webhook/SweegoWebhookService';
 import {WebhookRepository} from '@app/api/webhook/WebhookRepository';
 import type {ICacheService} from '@pkgs/cache/src/ICacheService';
 import {KVCacheProvider} from '@pkgs/cache/src/providers/KVCacheProvider';
-import type {EmailConfig, UserBouncedEmailChecker} from '@pkgs/email/src/EmailProviderTypes';
-import {EmailService} from '@pkgs/email/src/EmailService';
-import type {IEmailService} from '@pkgs/email/src/IEmailService';
-import {TestEmailService} from '@pkgs/email/src/TestEmailService';
 import {NatsConnectionManager} from '@pkgs/nats/src/NatsConnectionManager';
 import {RateLimitService} from '@pkgs/rate_limit/src/RateLimitService';
 import type {IVirusScanService} from '@pkgs/virus_scan/src/IVirusScanService';
 
-export const getUserRepository = singleton(() => new UserRepository(getKVClient()));
+export const getUserRepository = singleton(() => new UserRepository());
 export const getGuildRepository = singleton(() => new GuildRepository());
 export const getChannelRepository = singleton(() => new ChannelRepository());
 export const getInviteRepository = singleton(() => new InviteRepository());
@@ -113,8 +101,6 @@ export const getVoiceRepository = singleton(() => new VoiceRepository());
 export const getApplicationRepository = singleton(() => new ApplicationRepository());
 export const getOAuth2TokenRepository = singleton(() => new OAuth2TokenRepository());
 export const getGuildDiscoveryRepository = singleton(() => new GuildDiscoveryRepository());
-export const getEmailChangeRepository = singleton(() => new EmailChangeRepository());
-export const getPasswordChangeRepository = singleton(() => new PasswordChangeRepository());
 const getUserContactChangeLogRepository = singleton(() => new UserContactChangeLogRepository());
 const getAdminApiKeyRepository = singleton(() => new AdminApiKeyRepository());
 let instanceConfigRepositoryInstance: InstanceConfigRepository | null = null;
@@ -158,58 +144,6 @@ export const getCustomBadgeCatalog = singleton(
 		}),
 );
 export const getRateLimitService = singleton(() => new RateLimitService(getKVClient()));
-export const getEmailDnsValidationService = singleton(() => new EmailDnsValidationService());
-
-function createEmailServiceForConfig(
-	emailConfigSource: APIConfig['email'],
-	contactEmails: ContactEmails,
-	productName: string,
-	bouncedEmailChecker: UserBouncedEmailChecker,
-): IEmailService {
-	const emailConfig: EmailConfig = {
-		enabled: emailConfigSource.enabled,
-		fromEmail: emailConfigSource.fromEmail,
-		fromName: emailConfigSource.fromName.trim() || productName,
-		replyTo: emailConfigSource.replyToEmail || null,
-		appBaseUrl: emailConfigSource.appBaseUrl,
-		apiBaseUrl: Config.endpoints.apiPublic,
-		appealsEmail: contactEmails.appealsEmail,
-		privacyEmail: contactEmails.privacyEmail,
-		safetyEmail: contactEmails.safetyEmail,
-		supportEmail: contactEmails.supportEmail,
-		productName,
-		marketingBaseUrl: Config.endpoints.marketing,
-		staticCdnBaseUrl: Config.endpoints.staticCdn,
-		legalAddress: resolveLegalAddress(),
-		brandLogo: !Config.instance.selfHosted,
-	};
-	return new EmailService(emailConfig, createEmailProvider(emailConfigSource), bouncedEmailChecker);
-}
-
-function createRuntimeEmailService(bouncedEmailChecker: UserBouncedEmailChecker): IEmailService {
-	return new Proxy({} as IEmailService, {
-		get(_target, property) {
-			return async (...args: Array<unknown>): Promise<boolean> => {
-				const instanceConfigRepository = getInstanceConfigRepository();
-				const emailConfig = await instanceConfigRepository.getEffectiveEmailConfig();
-				const delegate = createEmailServiceForConfig(
-					emailConfig,
-					resolveContactEmails(),
-					getInstanceProductName(),
-					bouncedEmailChecker,
-				);
-				const method = delegate[property as keyof IEmailService];
-				if (typeof method !== 'function') {
-					throw new Error(`Unknown email service method: ${String(property)}`);
-				}
-				return (method as (this: IEmailService, ...methodArgs: Array<unknown>) => Promise<boolean>).apply(
-					delegate,
-					args,
-				);
-			};
-		},
-	});
-}
 
 let _injectedStorageService: IStorageService | undefined;
 
@@ -269,17 +203,6 @@ export const getVirusScanServiceInstance: () => IVirusScanService = singleton(()
 	return service;
 });
 
-export const getEmailService: () => IEmailService = singleton(() => {
-	if (Config.dev.testModeEnabled) return new TestEmailService();
-	const userRepository = getUserRepository();
-	const bouncedEmailChecker: UserBouncedEmailChecker = {
-		isEmailBounced: async (email: string) => {
-			const user = await userRepository.findByEmail(email);
-			return user?.emailBounced ?? false;
-		},
-	};
-	return createRuntimeEmailService(bouncedEmailChecker);
-});
 let _injectedUnfurlerService: IUnfurlerService | undefined;
 
 export function setInjectedUnfurlerService(service: IUnfurlerService | undefined): void {
@@ -326,9 +249,6 @@ export const getUserPermissionUtils = singleton(
 );
 export const getContactChangeLogService = singleton(
 	() => new UserContactChangeLogService(getUserContactChangeLogRepository()),
-);
-export const getSweegoWebhookService = singleton(
-	() => new SweegoWebhookService(getUserRepository(), getGatewayService()),
 );
 export const getStreamPreviewService = singleton(
 	() => new StreamPreviewService(getStorageService(), getCacheService()),
@@ -413,7 +333,6 @@ export async function initializeServiceSingletons(): Promise<void> {
 			owner.limitConfigService = limitConfigService;
 			await getInstanceConfigRepository().initialize();
 			assertServiceSingletonInitializationActive(owner);
-			await getInstanceConfigRepository().ensureAccountIdentityMode();
 			await getInstanceConfigRepository().ensureAccountsDefaults();
 			assertServiceSingletonInitializationActive(owner);
 			await ensureSetupToken(

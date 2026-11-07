@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type {ApiContext} from '@app/api/ApiContext';
-import {trySendAdminNotification} from '@app/api/admin/services/AdminNotification';
 import type {UserID} from '@app/api/BrandedTypes';
 import {Config} from '@app/api/Config';
 import {listActiveFeatureLimits} from '@app/api/enforcement/FeatureLimitState';
@@ -14,8 +13,8 @@ import {type IARSubmission, ReportType} from '@app/api/report/ReportModels';
 import {type SystemDmDeps, systemDmBody, trySendSystemDm} from '@app/api/user/services/SystemDmMessage';
 import {UserFlags} from '@osaca/constants/src/UserConstants';
 import type {ReportItemOutcome} from '@osaca/schema/src/domains/admin/AdminSchemas';
-import {emailLinkUrls, renderEmailTemplateText, reportResolvedSlots} from '@pkgs/email/src/EmailService';
 import type {ReportReference} from '@pkgs/email/src/email_i18n/EmailI18nTypes';
+import {noticeLinkUrls, renderNoticeText, reportResolvedSlots} from '@pkgs/email/src/NoticeText';
 
 interface ReporterResolutionNotifierDeps {
 	apiContext: ApiContext;
@@ -26,19 +25,17 @@ type ReporterNoticeSkipReason =
 	| 'reporter_account_deleted'
 	| 'reporter_report_banned'
 	| 'reporter_lookup_failed'
-	| 'no_reporter_email';
+	| 'no_reporter_account';
 
 interface ReporterNoticeResult {
 	dmSent: boolean;
-	emailSent: boolean;
-	dsaEmailSent: boolean;
 	skipped: ReporterNoticeSkipReason | null;
 }
 
 type ReporterToldOutcome = Exclude<ReportItemOutcome, 'warned'>;
 
 function skippedNotice(reason: ReporterNoticeSkipReason): ReporterNoticeResult {
-	return {dmSent: false, emailSent: false, dsaEmailSent: false, skipped: reason};
+	return {dmSent: false, skipped: reason};
 }
 
 export function reportReference(report: IARSubmission): ReportReference {
@@ -77,14 +74,12 @@ export function reportReference(report: IARSubmission): ReportReference {
 }
 
 export function wasReporterNotified(result: ReporterNoticeResult): boolean {
-	return result.dmSent || result.emailSent || result.dsaEmailSent;
+	return result.dmSent;
 }
 
 export function describeReporterNotice(result: ReporterNoticeResult): Array<[string, string]> {
 	return [
 		['reporter_dm_sent', result.dmSent ? 'true' : 'false'],
-		['reporter_email_sent', result.emailSent ? 'true' : 'false'],
-		['reporter_dsa_email_sent', result.dsaEmailSent ? 'true' : 'false'],
 		...(result.skipped ? [['reporter_notice_skipped', result.skipped] as [string, string]] : []),
 	];
 }
@@ -99,10 +94,10 @@ export class ReporterResolutionNotifier {
 	): Promise<ReporterNoticeResult> {
 		const comment = publicComment ?? '';
 		const told = outcome === 'warned' ? 'action_taken' : outcome;
-		if (report.reporterId) {
-			return this.notifyAccountReporter(report, report.reporterId, comment, told);
+		if (!report.reporterId) {
+			return skippedNotice('no_reporter_account');
 		}
-		return this.notifyDsaReporter(report, comment, told);
+		return this.notifyAccountReporter(report, report.reporterId, comment, told);
 	}
 
 	private async notifyAccountReporter(
@@ -111,7 +106,7 @@ export class ReporterResolutionNotifier {
 		comment: string,
 		outcome: ReporterToldOutcome,
 	): Promise<ReporterNoticeResult> {
-		const {users: userRepository, email: emailService} = this.deps.apiContext.services;
+		const {users: userRepository} = this.deps.apiContext.services;
 		const reportId = report.reportId.toString();
 		let reporter: User | null;
 		try {
@@ -130,20 +125,7 @@ export class ReporterResolutionNotifier {
 			return skippedNotice('reporter_report_banned');
 		}
 		const dmSent = await this.sendSystemDm(reporter, report, comment, outcome);
-		const email = reporter.email;
-		const emailSent = email
-			? await trySendAdminNotification(
-					() =>
-						emailService.send(
-							'report_resolved',
-							email,
-							{reportId, publicComment: comment, outcome, reference: reportReference(report)},
-							reporter.locale,
-						),
-					{action: 'resolve_report', targetId: reportId},
-				)
-			: false;
-		return {dmSent, emailSent, dsaEmailSent: false, skipped: null};
+		return {dmSent, skipped: null};
 	}
 
 	private async isReportBannedWhenFiled(reporter: User, report: IARSubmission): Promise<boolean> {
@@ -157,30 +139,6 @@ export class ReporterResolutionNotifier {
 		return limits.some((decision) => decision.created_at.getTime() < report.reportedAt.getTime());
 	}
 
-	private async notifyDsaReporter(
-		report: IARSubmission,
-		comment: string,
-		outcome: ReporterToldOutcome,
-	): Promise<ReporterNoticeResult> {
-		const email = report.reporterEmail;
-		if (!email) {
-			return skippedNotice('no_reporter_email');
-		}
-		const {email: emailService} = this.deps.apiContext.services;
-		const reportId = report.reportId.toString();
-		const dsaEmailSent = await trySendAdminNotification(
-			() =>
-				emailService.send(
-					'dsa_report_resolved',
-					email,
-					{reportId, publicComment: comment, outcome, reference: reportReference(report)},
-					report.flowLocale,
-				),
-			{action: 'resolve_report', targetId: reportId},
-		);
-		return {dmSent: false, emailSent: false, dsaEmailSent, skipped: null};
-	}
-
 	private async sendSystemDm(
 		reporter: User,
 		report: IARSubmission,
@@ -192,7 +150,7 @@ export class ReporterResolutionNotifier {
 			return false;
 		}
 		const reportId = report.reportId.toString();
-		const text = renderEmailTemplateText(
+		const text = renderNoticeText(
 			'report_resolved',
 			reporter.locale,
 			{...reportReference(report), outcome, appeals_email: resolveContactEmails().appealsEmail},
@@ -200,13 +158,13 @@ export class ReporterResolutionNotifier {
 			(template) => reportResolvedSlots(template, reportId, comment),
 			{
 				format: 'markdown',
-				urls: emailLinkUrls({appBaseUrl: Config.endpoints.webApp, marketingBaseUrl: Config.endpoints.marketing}),
+				urls: noticeLinkUrls({marketingBaseUrl: Config.endpoints.marketing}),
 			},
 		);
 		if (text === null) {
 			Logger.warn(
 				{reportId, reporterId: reporter.id.toString(), locale: reporter.locale},
-				'Skipping report review system DM because the email template could not be resolved',
+				'Skipping report review system DM because the notice template could not be resolved',
 			);
 			return false;
 		}

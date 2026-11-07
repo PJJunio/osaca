@@ -205,7 +205,7 @@ export default defineConfig({
 						'http-api/users/current-user',
 						'http-api/users/settings',
 						'http-api/users/settings-protobuf',
-						'http-api/users/email-and-password',
+						'http-api/users/password-and-recovery',
 						'http-api/users/mfa',
 						'http-api/users/relationships',
 						'http-api/users/notes',

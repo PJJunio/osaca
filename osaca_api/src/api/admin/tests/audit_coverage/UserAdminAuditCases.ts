@@ -93,34 +93,13 @@ export const UserAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase> = [
 		async prepare({harness}) {
 			const target = await createTestAccount(harness);
 			return {
-				request: {path: `/admin/users?resolve=${encodeURIComponent(target.email)}`},
+				request: {path: `/admin/users?resolve=${encodeURIComponent(target.username)}`},
 				expected: {
 					action: 'search_users',
 					targetType: 'user',
 					targetId: '0',
 					metadata: {
 						selector: 'resolve',
-						result_count: '1',
-						total: '1',
-					},
-				},
-			};
-		},
-	},
-	{
-		method: 'GET',
-		route: '/admin/users',
-		name: 'email',
-		async prepare({harness}) {
-			const target = await createTestAccount(harness);
-			return {
-				request: {path: `/admin/users?email=${encodeURIComponent(target.email)}&limit=10`},
-				expected: {
-					action: 'search_users',
-					targetType: 'user',
-					targetId: '0',
-					metadata: {
-						selector: 'email',
 						result_count: '1',
 						total: '1',
 					},

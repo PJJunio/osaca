@@ -24,7 +24,7 @@ Limits such as attachment counts differ between instances, and [instance discove
 | [Current user](/http-api/users/current-user/) | Your account, profile, lifecycle and policy acceptance |
 | [User settings](/http-api/users/settings/) | Account, notification and privacy settings, guild folders |
 | [User settings Protobuf](/http-api/users/settings-protobuf/) | Structured client preference messages |
-| [Email and password changes](/http-api/users/email-and-password/) | The ticketed credential change flows |
+| [Password and recovery kit](/http-api/users/password-and-recovery/) | Password changes and recovery kits |
 | [Multi-factor authentication](/http-api/users/mfa/) | TOTP, backup codes, WebAuthn credentials, sudo verification |
 | [Relationships](/http-api/users/relationships/) | Friends, friend requests, blocks |
 | [User notes](/http-api/users/notes/) | Private notes on users |

@@ -3,7 +3,6 @@
 import {Routes} from '@app/app/Routes';
 import Accessibility from '@app/features/accessibility/state/Accessibility';
 import type {RuntimeConfigSnapshot} from '@app/features/app/state/InstanceSnapshotStore';
-import {usesUniqueUsernames} from '@app/features/app/utils/AccountIdentityFeatures';
 import * as AuthenticationCommands from '@app/features/auth/commands/AuthenticationCommands';
 import FormField from '@app/features/auth/flow/AuthFormField';
 import styles from '@app/features/auth/flow/AuthPageStyles.module.css';
@@ -22,7 +21,6 @@ import {
 } from '@app/features/auth/state/AuthRegisterDraftContext';
 import {
 	DISPLAY_NAME_OPTIONAL_DESCRIPTOR,
-	EMAIL_DESCRIPTOR,
 	PASSWORD_DESCRIPTOR,
 	PASSWORDS_DO_NOT_MATCH_DESCRIPTOR,
 	USERNAME_DESCRIPTOR,
@@ -122,7 +120,6 @@ export const AuthRegisterFormCore = observer(function AuthRegisterFormCore({
 }: AuthRegisterFormCoreProps) {
 	const {i18n} = useLingui();
 	const {
-		showEmail = false,
 		showPassword = false,
 		showPasswordConfirmation = false,
 		showUsername = true,
@@ -131,9 +128,7 @@ export const AuthRegisterFormCore = observer(function AuthRegisterFormCore({
 	} = fields;
 	const flx = showUsername ? 'auth.flow.auth-register-form-core' : 'auth.flow.auth-minimal-register-form-core';
 	let firstFieldName: string;
-	if (showEmail) {
-		firstFieldName = 'email';
-	} else if (requireUsername || hideDisplayName) {
+	if (requireUsername || hideDisplayName) {
 		firstFieldName = 'username';
 	} else {
 		firstFieldName = 'global_name';
@@ -147,7 +142,6 @@ export const AuthRegisterFormCore = observer(function AuthRegisterFormCore({
 	const registrationTarget = useMemo(() => instanceTargetFromSnapshot(runtimeSnapshot), [runtimeSnapshot]);
 	const isPublicRegistrationClosed = runtimeSnapshot.registration.mode === 'closed' && !registrationUrlCode;
 	const {getRegisterFormDraft, setRegisterFormDraft, clearRegisterFormDraft} = useAuthRegisterDraftContext();
-	const emailId = useId();
 	const globalNameId = useId();
 	const usernameId = useId();
 	const usernameHelperId = useId();
@@ -173,7 +167,6 @@ export const AuthRegisterFormCore = observer(function AuthRegisterFormCore({
 		global_name: initialDraft.formValues.global_name ?? '',
 	};
 	if (showUsername) initialValues.username = initialDraft.formValues.username ?? '';
-	if (showEmail) initialValues.email = initialDraft.formValues.email ?? '';
 	if (showPassword) initialValues.password = initialDraft.formValues.password ?? '';
 	if (showPassword && showPasswordConfirmation) {
 		initialValues.confirm_password = initialDraft.formValues.confirm_password ?? '';
@@ -206,7 +199,6 @@ export const AuthRegisterFormCore = observer(function AuthRegisterFormCore({
 				{
 					global_name: values.global_name || undefined,
 					username: (requireUsername ? values.username.trim() : values.username) || undefined,
-					email: showEmail ? values.email : undefined,
 					password: showPassword ? values.password : undefined,
 					consent: true,
 					invite_code: inviteCode,
@@ -294,9 +286,6 @@ export const AuthRegisterFormCore = observer(function AuthRegisterFormCore({
 	});
 	const missingFields = useMemo(() => {
 		const missing: Array<MissingField> = [];
-		if (showEmail && !form.getValue('email')) {
-			missing.push({key: 'email', label: i18n._(EMAIL_DESCRIPTOR)});
-		}
 		if (requireUsername && !form.getValue('username')?.trim()) {
 			missing.push({key: 'username', label: i18n._(USERNAME_DESCRIPTOR)});
 		}
@@ -307,15 +296,7 @@ export const AuthRegisterFormCore = observer(function AuthRegisterFormCore({
 			missing.push({key: 'confirm_password', label: i18n._(CONFIRM_PASSWORD_DESCRIPTOR)});
 		}
 		return missing;
-	}, [
-		form,
-		showEmail,
-		requireUsername,
-		showPassword,
-		showPasswordConfirmation,
-		showUsername,
-		i18n.locale,
-	]);
+	}, [form, requireUsername, showPassword, showPasswordConfirmation, showUsername, i18n.locale]);
 	type HelperTextState =
 		| {type: 'error'; message: string}
 		| {type: 'hint'; message: string}
@@ -324,11 +305,10 @@ export const AuthRegisterFormCore = observer(function AuthRegisterFormCore({
 	const usernameValue = form.getValue('username');
 	const trimmedUsername = usernameValue?.trim() || '';
 	const usernameFormatValid = trimmedUsername.length <= MAX_USERNAME_LENGTH && USERNAME_PATTERN.test(trimmedUsername);
-	const uniqueUsernames = usesUniqueUsernames(runtimeSnapshot.features);
 	const usernameAvailability = useUsernameAvailability(
 		registrationTarget,
 		trimmedUsername,
-		showUsername && uniqueUsernames && trimmedUsername.length > 0 && usernameFormatValid,
+		showUsername && trimmedUsername.length > 0 && usernameFormatValid,
 	);
 	const helperTextState = useMemo<HelperTextState>(() => {
 		if ((showUsernameValidation || requireUsername) && trimmedUsername.length > 0) {
@@ -342,34 +322,25 @@ export const AuthRegisterFormCore = observer(function AuthRegisterFormCore({
 				return {type: 'error', message: i18n._(ONLY_LETTERS_NUMBERS_AND_UNDERSCORES_DESCRIPTOR)};
 			}
 		}
-		if (uniqueUsernames && usernameAvailability === 'taken') {
+		if (usernameAvailability === 'taken') {
 			return {type: 'error', message: i18n._(USERNAME_TAKEN_DESCRIPTOR)};
 		}
-		if (uniqueUsernames && usernameAvailability === 'available') {
+		if (usernameAvailability === 'available') {
 			return {type: 'hint', message: i18n._(USERNAME_AVAILABLE_DESCRIPTOR)};
 		}
 		if (trimmedUsername.length === 0 && suggestions.length === 1) {
 			return {type: 'suggestion', username: suggestions[0]};
 		}
-		if (requireUsername && !showEmail) {
+		if (requireUsername) {
 			return {type: 'hint', message: i18n._(USERNAME_SIGN_IN_HINT_DESCRIPTOR)};
 		}
 		return null;
-	}, [
-		trimmedUsername,
-		suggestions,
-		showUsernameValidation,
-		requireUsername,
-		showEmail,
-		uniqueUsernames,
-		usernameAvailability,
-		i18n.locale,
-	]);
+	}, [trimmedUsername, suggestions, showUsernameValidation, requireUsername, usernameAvailability, i18n.locale]);
 	const submitDisabled =
 		isLoading ||
 		form.isSubmitting ||
 		(requireUsername && !usernameFormatValid) ||
-		(uniqueUsernames && usernameAvailability === 'taken') ||
+		usernameAvailability === 'taken' ||
 		shouldDisableSubmit(missingFields);
 	if (isPublicRegistrationClosed) {
 		return (
@@ -407,20 +378,6 @@ export const AuthRegisterFormCore = observer(function AuthRegisterFormCore({
 					{formError}
 				</div>
 			) : null}
-			{showEmail && (
-				<FormField
-					id={emailId}
-					name="email"
-					type="email"
-					autoComplete="email"
-					required
-					label={i18n._(EMAIL_DESCRIPTOR)}
-					value={form.getValue('email')}
-					onChange={(value) => setDraftedFormValue('email', value)}
-					error={form.getError('email') || fieldErrors?.get('email')}
-					data-flx="auth.flow.auth-register-form-core.form-field.set-drafted-form-value.email"
-				/>
-			)}
 			{!hideDisplayName && (
 				<FormField
 					id={globalNameId}

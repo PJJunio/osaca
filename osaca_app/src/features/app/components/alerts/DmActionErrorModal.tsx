@@ -15,8 +15,8 @@ import {
 	ACCOUNT_LIMITED_NOTICE_DESCRIPTOR,
 	ACCOUNT_LIMITED_TITLE_DESCRIPTOR,
 } from '@app/features/user/utils/AccountLimitUtils';
-import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {msg} from '@lingui/core/macro';
+import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 
 const CANNOT_MESSAGE_USER_TITLE_DESCRIPTOR = msg({
 	message: "You can't message this user",
@@ -33,22 +33,6 @@ const USER_NOT_FOUND_TITLE_DESCRIPTOR = msg({
 const USER_NOT_FOUND_MESSAGE_DESCRIPTOR = msg({
 	message: 'This user no longer exists. Refresh and try again.',
 	comment: 'Body of the error modal shown when the recipient of a DM no longer exists.',
-});
-const CLAIM_ACCOUNT_TITLE_DESCRIPTOR = msg({
-	message: 'Claim your account',
-	comment: 'Title of the error modal shown when an unclaimed account tries to start a DM.',
-});
-const CLAIM_ACCOUNT_MESSAGE_DESCRIPTOR = msg({
-	message: 'You need to claim your account before you can start a direct message.',
-	comment: 'Body of the error modal shown when an unclaimed account tries to start a DM.',
-});
-const VERIFY_EMAIL_TITLE_DESCRIPTOR = msg({
-	message: 'Confirm your email',
-	comment: 'Title of the error modal shown when an unverified account tries to start a DM.',
-});
-const VERIFY_EMAIL_MESSAGE_DESCRIPTOR = msg({
-	message: 'You need to confirm your email address before you can start a direct message.',
-	comment: 'Body of the error modal shown when an unverified account tries to start a DM.',
 });
 const TOO_MANY_PEOPLE_TITLE_DESCRIPTOR = msg({
 	message: 'This group has too many people',
@@ -97,16 +81,6 @@ function resolveDmActionErrorContent(code: string | undefined, apiMessage?: stri
 			return {
 				title: i18nGlobal._(RATE_LIMITED_ERROR_TITLE_DESCRIPTOR),
 				message: i18nGlobal._(RATE_LIMITED_ERROR_BODY_DESCRIPTOR),
-			};
-		case APIErrorCodes.UNCLAIMED_ACCOUNT_CANNOT_SEND_DIRECT_MESSAGES:
-			return {
-				title: i18nGlobal._(CLAIM_ACCOUNT_TITLE_DESCRIPTOR),
-				message: i18nGlobal._(CLAIM_ACCOUNT_MESSAGE_DESCRIPTOR),
-			};
-		case APIErrorCodes.DIRECT_MESSAGE_EMAIL_VERIFICATION_REQUIRED:
-			return {
-				title: i18nGlobal._(VERIFY_EMAIL_TITLE_DESCRIPTOR),
-				message: i18nGlobal._(VERIFY_EMAIL_MESSAGE_DESCRIPTOR),
 			};
 		case APIErrorCodes.MAX_GROUP_DM_RECIPIENTS:
 			return {

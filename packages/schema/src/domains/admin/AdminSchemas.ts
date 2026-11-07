@@ -6,13 +6,8 @@ import {
 	SystemChannelFlagsDescriptions,
 } from '@osaca/constants/src/GuildConstants';
 import {LIMIT_KEY_METADATA, LIMIT_KEYS} from '@osaca/constants/src/LimitConfigMetadata';
-import {SmtpTlsModes} from '@osaca/constants/src/SmtpConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
-import {
-	EmailDeliveryModeSchema,
-	EmailDeliveryStateSchema,
-	InstantAccountAvailabilitySchema,
-} from '@osaca/schema/src/domains/account/AccountTierSchemas';
+import {InstantAccountAvailabilitySchema} from '@osaca/schema/src/domains/account/AccountTierSchemas';
 import {
 	AccountsConfigSchema,
 	AccountsConfigUpdateRequest,
@@ -44,13 +39,7 @@ import {
 	ExperimentDeliveryConfigUpdateRequest,
 } from '@osaca/schema/src/domains/experiment/ExperimentSchemas';
 import {GuildMemberResponse} from '@osaca/schema/src/domains/guild/GuildMemberSchemas';
-import {
-	AccountIdentityLockReasonSchema,
-	AccountIdentityModeSchema,
-	InstanceNoticeSchema,
-	InstanceRegistrationModeSchema,
-	TagStyleSchema,
-} from '@osaca/schema/src/domains/instance/InstanceSchemas';
+import {InstanceNoticeSchema, InstanceRegistrationModeSchema} from '@osaca/schema/src/domains/instance/InstanceSchemas';
 import {MessageEmbedResponse} from '@osaca/schema/src/domains/message/EmbedSchemas';
 import {MessageResponseSchema} from '@osaca/schema/src/domains/message/MessageResponseSchemas';
 import {ChannelTypeSchema} from '@osaca/schema/src/primitives/ChannelValidators';
@@ -76,7 +65,6 @@ import {
 	SnowflakeType,
 	withOpenApiType,
 } from '@osaca/schema/src/primitives/SchemaPrimitives';
-import {EmailBlocklistEntryType, EmailType} from '@osaca/schema/src/primitives/UserValidators';
 import {WebhookTypeSchema} from '@osaca/schema/src/primitives/WebhookValidators';
 import {schemaMetadata} from '@osaca/schema/src/SchemaMetadata';
 import {z} from 'zod';
@@ -360,14 +348,6 @@ export const BanIpRequest = z.object({
 
 export type BanIpRequest = z.infer<typeof BanIpRequest>;
 
-export const BanEmailRequest = z.object({
-	email: EmailBlocklistEntryType.describe(
-		'Email address to ban, or a domain written as @example.com to ban every address at it and its subdomains',
-	),
-});
-
-export type BanEmailRequest = z.infer<typeof BanEmailRequest>;
-
 export const BanPhraseRequest = z.object({
 	phrase: createStringType(1, 500).describe(
 		'Phrase to ban. Matching is case-insensitive and also normalizes common bypass tricks such as inserted whitespace, punctuation, invisible characters, and compatibility glyphs.',
@@ -469,14 +449,9 @@ export const BanProfileSubstringRequest = z.object({
 
 export type BanProfileSubstringRequest = z.infer<typeof BanProfileSubstringRequest>;
 
-export const AllowedEmailDomainsSchema = z.array(z.string()).max(100);
-
 const InstanceRegistrationConfigResponse = z.object({
 	mode: InstanceRegistrationModeSchema,
 	admin_registration_urls_enabled: z.boolean(),
-	allowed_email_domains: AllowedEmailDomainsSchema.describe(
-		'Email domains that public sign-ups and email changes must use. Empty allows any domain',
-	),
 });
 
 const RegistrationUrlResponse = z.object({
@@ -500,7 +475,6 @@ export const PendingRegistrationResponse = z.object({
 	username: z.string(),
 	discriminator: z.number().int().min(0).max(9999),
 	global_name: z.string().nullable(),
-	email: z.string().nullable(),
 	requested_at: z.iso.datetime(),
 	registration_url_id: createStringType(1, 128).nullable(),
 	client_ip: z.string().nullable(),
@@ -616,18 +590,6 @@ const InstancePolicyResponse = z.object({
 	}),
 });
 
-const EmailProviderSchema = z.enum(['smtp', 'none']).describe('Deprecated, use delivery');
-
-const SmtpTlsModeSchema = createNamedStringLiteralUnion(
-	[
-		[SmtpTlsModes.IMPLICIT, 'IMPLICIT', 'TLS from the first byte, usually on port 465'],
-		[SmtpTlsModes.STARTTLS, 'STARTTLS', 'Plain connection that must upgrade with STARTTLS, usually on port 587'],
-		[SmtpTlsModes.OPPORTUNISTIC, 'OPPORTUNISTIC', 'Plain connection upgraded with STARTTLS when the server offers it'],
-		[SmtpTlsModes.NONE, 'NONE', 'No TLS, even when the server offers STARTTLS'],
-	],
-	'How the SMTP connection is encrypted',
-);
-
 const AttachmentDecayEffectiveResponse = z.object({
 	enabled: z.boolean(),
 	min_size_mb: z.number().positive(),
@@ -660,27 +622,6 @@ const InstanceIntegrationsResponse = z.object({
 		api_key_set: z.boolean(),
 		effective_available: z.boolean(),
 	}),
-	email: z.object({
-		delivery: EmailDeliveryModeSchema.nullable().describe('Saved delivery mode, or null to use the environment'),
-		effective_delivery: EmailDeliveryModeSchema,
-		delivery_state: EmailDeliveryStateSchema,
-		enabled: z.boolean().nullable().describe('Deprecated, use delivery'),
-		effective_enabled: z.boolean().describe('Whether the instance sends email, same as delivery_state being on'),
-		provider: EmailProviderSchema.nullable(),
-		effective_provider: EmailProviderSchema,
-		from_email: z.string().nullable(),
-		from_name: z.string().nullable(),
-		smtp: z.object({
-			host: z.string().nullable(),
-			port: z.number().int().min(1).max(65535).nullable(),
-			username: z.string().nullable(),
-			password_set: z.boolean(),
-			tls_mode: SmtpTlsModeSchema.nullable().describe('Saved TLS mode, or null to pick one from the port'),
-			effective_tls_mode: SmtpTlsModeSchema.nullable(),
-		}),
-		disable_new_ip_authorization: z.boolean(),
-		effective_disable_new_ip_authorization: z.boolean(),
-	}),
 	bluesky: z.object({
 		enabled: z.boolean().nullable(),
 		effective_enabled: z.boolean(),
@@ -691,15 +632,6 @@ const InstanceIntegrationsResponse = z.object({
 		policy_uri: z.string().nullable(),
 		key_count: z.number().int().min(0),
 	}),
-});
-
-const InstanceAccountIdentityConfigResponse = z.object({
-	mode: AccountIdentityModeSchema.describe('Sign-in method in effect on this instance'),
-	locked: z.boolean().describe('Whether the sign-in method can no longer change'),
-	tag_style: TagStyleSchema.describe('How usernames are tagged'),
-	lock_reason: AccountIdentityLockReasonSchema.nullable().describe(
-		'Why the sign-in method can no longer change, or null while it still can',
-	),
 });
 
 export const InstanceConfigResponse = z.object({
@@ -717,7 +649,6 @@ export const InstanceConfigResponse = z.object({
 	experiment_delivery: ExperimentDeliveryConfigResponse,
 	registration: InstanceRegistrationResponse,
 	self_hosted: z.boolean(),
-	account_identity: InstanceAccountIdentityConfigResponse,
 	app_public: AppPublicConfigResponse,
 	policy: InstancePolicyResponse,
 	integrations: InstanceIntegrationsResponse,
@@ -774,7 +705,6 @@ export const InstanceConfigUpdateRequest = z.object({
 		.object({
 			mode: InstanceRegistrationModeSchema.optional(),
 			admin_registration_urls_enabled: z.boolean().optional(),
-			allowed_email_domains: AllowedEmailDomainsSchema.optional(),
 		})
 		.nullish(),
 	app_public: AppPublicConfigUpdateRequest.nullish(),
@@ -783,29 +713,6 @@ export const InstanceConfigUpdateRequest = z.object({
 			youtube: z
 				.object({
 					api_key: z.string().trim().max(4096).nullish(),
-				})
-				.nullish(),
-			email: z
-				.object({
-					delivery: EmailDeliveryModeSchema.nullish().describe(
-						'How the instance sends email, or null to use the environment',
-					),
-					enabled: z.boolean().nullish().describe('Deprecated, use delivery'),
-					provider: EmailProviderSchema.nullish(),
-					from_email: z.string().trim().max(320).nullish(),
-					from_name: z.string().trim().max(120).nullish(),
-					smtp: z
-						.object({
-							host: z.string().trim().max(255).nullish(),
-							port: z.number().int().min(1).max(65535).nullish(),
-							username: z.string().trim().max(320).nullish(),
-							password: z.string().trim().max(4096).nullish(),
-							tls_mode: SmtpTlsModeSchema.nullish(),
-							secure: z.boolean().nullish().describe('Deprecated, use tls_mode'),
-						})
-						.register(schemaMetadata, {preserveNullFields: true})
-						.nullish(),
-					disable_new_ip_authorization: z.boolean().nullish(),
 				})
 				.nullish(),
 			bluesky: z
@@ -885,39 +792,6 @@ export const BrandingAssetUploadRequest = z.object({
 });
 
 export type BrandingAssetUploadRequest = z.infer<typeof BrandingAssetUploadRequest>;
-
-export const InstanceEmailSmtpTestRequest = z.object({
-	host: z.string().trim().min(1).max(255).nullish(),
-	port: z.number().int().min(1).max(65535).nullish(),
-	username: z.string().trim().min(1).max(320).nullish(),
-	password: z.string().trim().min(1).max(4096).nullish(),
-	tls_mode: SmtpTlsModeSchema.nullish(),
-	from_email: EmailType.nullish().describe('The from address for the test message, in place of the saved one'),
-	from_name: z
-		.string()
-		.trim()
-		.min(1)
-		.max(120)
-		.nullish()
-		.describe('The from name for the test message, in place of the saved one'),
-	send_to: EmailType.nullish().describe(
-		'When set, the test also sends a short message to this address and reports what the server answered',
-	),
-});
-
-export type InstanceEmailSmtpTestRequest = z.infer<typeof InstanceEmailSmtpTestRequest>;
-
-export const InstanceEmailSmtpTestResponse = z.object({
-	ok: z.boolean(),
-	error: z.string().nullable(),
-	server_response: z
-		.string()
-		.nullable()
-		.optional()
-		.describe('What the server answered when it accepted the test message, present only when send_to was set'),
-});
-
-export type InstanceEmailSmtpTestResponse = z.infer<typeof InstanceEmailSmtpTestResponse>;
 
 export const CreateRegistrationUrlRequest = z.object({
 	label: z.string().trim().min(1).max(120).nullish(),
@@ -1635,7 +1509,6 @@ export const ReportAdminResponseSchema = z.object({
 	reporter_username: z.string().nullable(),
 	reporter_global_name: z.string().nullable(),
 	reporter_discriminator: z.string().nullable(),
-	reporter_email: z.string().nullable(),
 	reporter_full_legal_name: z.string().nullable(),
 	reporter_country_of_residence: z.string().nullable(),
 	reported_at: z.string(),

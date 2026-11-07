@@ -154,7 +154,7 @@ voice_access_error_infos() ->
                 permission_denied},
         voice_account_verification_required =>
             {<<"VOICE_ACCOUNT_VERIFICATION_REQUIRED">>,
-                <<"Confirm an email address to join voice">>, permission_denied},
+                <<"Set a password to join voice">>, permission_denied},
         voice_camera_user_limit =>
             {<<"VOICE_CAMERA_USER_LIMIT">>, <<"Too many users in channel to enable camera">>,
                 permission_denied},

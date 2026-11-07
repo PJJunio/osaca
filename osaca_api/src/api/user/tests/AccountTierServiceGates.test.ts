@@ -7,12 +7,7 @@ import {createGuildID, createUserID} from '@app/api/BrandedTypes';
 import {Config} from '@app/api/Config';
 import {createApiContext} from '@app/api/CreateApiContext';
 import {EMPTY_USER_ROW, type UserRow} from '@app/api/database/types/UserTypes';
-import {setCachedAccountIdentity} from '@app/api/instance/AccountIdentityModeCache';
-import {
-	hostedAccountsDefaults,
-	setCachedAccountsConfig,
-	setCachedEmailDeliveryState,
-} from '@app/api/instance/AccountsConfigCache';
+import {hostedAccountsDefaults, setCachedAccountsConfig} from '@app/api/instance/AccountsConfigCache';
 import {
 	getGuildRepository,
 	getInstanceConfigRepository,
@@ -22,7 +17,6 @@ import {SUDO_MODE_HEADER} from '@app/api/middleware/SudoModeMiddleware';
 import {User} from '@app/api/models/User';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {createBuilder} from '@app/api/test/TestRequestBuilder';
-import {EmailDeliveryStates} from '@osaca/constants/src/AccountConfigConstants';
 import {AdminACLs} from '@osaca/constants/src/AdminACLs';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {HttpStatus} from '@osaca/constants/src/HttpConstants';
@@ -36,10 +30,8 @@ function createUser(overrides: Partial<UserRow> = {}): User {
 		...EMPTY_USER_ROW,
 		user_id: createUserID(10n),
 		username: 'service_user',
-		discriminator: 1,
+		discriminator: 0,
 		bot: false,
-		email: 'person@example.com',
-		email_verified: true,
 		password_hash: 'hash',
 		traits: new Set<string>(),
 		flags: UserFlags.HAS_SESSION_STARTED,
@@ -47,16 +39,13 @@ function createUser(overrides: Partial<UserRow> = {}): User {
 	});
 }
 
-const UNCLAIMED = createUser({email: null, email_verified: false, password_hash: null});
-const UNVERIFIED = createUser({email_verified: false});
+const UNCLAIMED = createUser({password_hash: null});
 const VERIFIED = createUser();
 
 const selfHosted = Config.instance.selfHosted;
 
 afterEach(() => {
 	setCachedAccountsConfig(null);
-	setCachedEmailDeliveryState(null);
-	setCachedAccountIdentity(null);
 	Config.instance.selfHosted = selfHosted;
 });
 
@@ -70,7 +59,6 @@ async function authenticate(fixture: User): Promise<{user: User; token: string}>
 		...fixture.toRow(),
 		user_id: id,
 		username: `service_${id}`,
-		email: fixture.email === null ? null : `service_${id}@example.com`,
 	});
 	const [token] = await createAuthSession(createApiContext(), {
 		user,
@@ -86,7 +74,6 @@ beforeAll(async () => {
 beforeEach(async () => {
 	await harness.reset();
 	setCachedAccountsConfig({...hostedAccountsDefaults().accounts, interaction_tier: 'legacy'});
-	setCachedEmailDeliveryState(EmailDeliveryStates.ON);
 	recipient = (await authenticate(VERIFIED)).user;
 });
 
@@ -95,12 +82,12 @@ afterAll(async () => {
 });
 
 describe('account tier service wiring', () => {
-	it('requires a confirmed email to open a DM and stores the allowed conversation', async () => {
-		const unverified = await authenticate(UNVERIFIED);
+	it('requires a password to open a DM and stores the allowed conversation', async () => {
+		const unverified = await authenticate(UNCLAIMED);
 		await createBuilder(harness, unverified.token)
 			.post('/users/@me/channels')
 			.body({recipient_id: recipient.id.toString()})
-			.expect(HttpStatus.FORBIDDEN, APIErrorCodes.DIRECT_MESSAGE_EMAIL_VERIFICATION_REQUIRED)
+			.expect(HttpStatus.FORBIDDEN, APIErrorCodes.ACCOUNT_VERIFICATION_REQUIRED)
 			.execute();
 		expect(await getUserRepository().findExistingDmState(unverified.user.id, recipient.id)).toBeNull();
 		const verified = await authenticate(VERIFIED);
@@ -116,14 +103,14 @@ describe('account tier service wiring', () => {
 	});
 
 	it('gates TOTP enrollment before storing the credential and backup codes', async () => {
-		const unverified = await authenticate(UNVERIFIED);
+		const unverified = await authenticate(UNCLAIMED);
 		const secret = createTotpSecret();
 		const unverifiedSudoToken = await getSudoModeService().generateSudoToken(unverified.user.id);
 		await createBuilder(harness, unverified.token)
 			.post('/users/@me/mfa/totp/enable')
 			.header(SUDO_MODE_HEADER, unverifiedSudoToken)
 			.body({secret, code: totpCodeNow(secret)})
-			.expect(HttpStatus.FORBIDDEN, APIErrorCodes.MFA_EMAIL_VERIFICATION_REQUIRED)
+			.expect(HttpStatus.FORBIDDEN, APIErrorCodes.ACCOUNT_VERIFICATION_REQUIRED)
 			.execute();
 		expect((await getUserRepository().findUnique(unverified.user.id))?.totpSecret).toBeNull();
 		const verified = await authenticate(VERIFIED);
@@ -146,7 +133,7 @@ describe('account tier service wiring', () => {
 		await createBuilder(harness, unclaimed.token)
 			.post('/guilds')
 			.body({name: 'Gate'})
-			.expect(HttpStatus.FORBIDDEN, APIErrorCodes.UNCLAIMED_ACCOUNT_CANNOT_CREATE_GUILDS)
+			.expect(HttpStatus.FORBIDDEN, APIErrorCodes.ACCOUNT_VERIFICATION_REQUIRED)
 			.execute();
 		const verified = await authenticate(VERIFIED);
 		const created = await createBuilder<{id: string; owner_id: string}>(harness, verified.token)
@@ -170,7 +157,7 @@ describe('account tier service wiring', () => {
 		await createBuilder(harness, admin.token)
 			.patch('/admin/instance/config')
 			.body({policy: {single_community_enabled: true, single_community_name: 'Stock'}})
-			.expect(HttpStatus.FORBIDDEN, APIErrorCodes.UNCLAIMED_ACCOUNT_CANNOT_CREATE_GUILDS)
+			.expect(HttpStatus.FORBIDDEN, APIErrorCodes.ACCOUNT_VERIFICATION_REQUIRED)
 			.execute();
 		expect((await getInstanceConfigRepository().getInstancePolicyConfig()).single_community_guild_id).toBeNull();
 	});

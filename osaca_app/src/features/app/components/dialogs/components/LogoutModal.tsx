@@ -32,11 +32,7 @@ export const LogoutModal = observer(() => {
 	const {i18n} = useLingui();
 	const user = Users.currentUser;
 	if (user?.isClaimed() === false) {
-		const presentation = getUnclaimedAccountPresentation(
-			i18n,
-			UnclaimedAccountSurfaces.SIGN_OUT,
-			user.verificationNeed,
-		);
+		const presentation = getUnclaimedAccountPresentation(i18n, UnclaimedAccountSurfaces.SIGN_OUT);
 		return (
 			<ConfirmModal
 				title={i18n._(SIGN_OUT_DESCRIPTOR)}

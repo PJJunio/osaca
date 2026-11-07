@@ -278,58 +278,6 @@ Writes every setting into the instance folder for docker compose and stops rexct
 rexctl eject
 ```
 
-## rexctl email
-
-Set up how your instance sends email.
-
-### rexctl email off
-
-Stop sending email.
-
-```sh
-rexctl email off
-```
-
-### rexctl email set
-
-Set the SMTP server.
-
-```sh
-rexctl email set [flags]
-```
-
-- `--from string`
-
-  Sender, like Example Chat \<noreply@chat.example.com>.
-
-- `--host string`
-
-  The SMTP server.
-
-- `--password-file string`
-
-  File with the SMTP password, or - for stdin.
-
-- `--port int`
-
-  The SMTP port. The default is `587`.
-
-- `--tls string`
-
-  How the connection is encrypted (starttls, implicit, opportunistic or none). Picked from the port when left out.
-
-- `--username string`
-
-  The username for the SMTP server.
-
-### rexctl email test
-
-Send a test email.
-
-```sh
-rexctl email test [address]
-```
-
 ## rexctl install
 
 Install OSACA on this machine, or take over an existing install.
@@ -337,10 +285,6 @@ Install OSACA on this machine, or take over an existing install.
 ```sh
 rexctl install [flags]
 ```
-
-- `--admin-email string`
-
-  Email address for your admin account.
 
 - `--admin-password-file string`
 
@@ -417,38 +361,6 @@ rexctl install [flags]
 - `--setup-podman`
 
   Start Podman's API socket and start OSACA with the machine. The default is `true`.
-
-- `--sign-in string`
-
-  How people sign in (email or username).
-
-- `--skip-email`
-
-  Set up email later.
-
-- `--smtp-from string`
-
-  Sender, like Example Chat \<noreply@chat.example.com>.
-
-- `--smtp-host string`
-
-  The SMTP server.
-
-- `--smtp-password-file string`
-
-  File with the SMTP password, or - for stdin.
-
-- `--smtp-port int`
-
-  The SMTP port. The default is `587`.
-
-- `--smtp-tls string`
-
-  How the connection is encrypted (starttls, implicit, opportunistic or none). Picked from the port when left out.
-
-- `--smtp-username string`
-
-  The username for the SMTP server.
 
 - `--storage-access-key string`
 
@@ -689,10 +601,6 @@ Create the admin account and finish setup in the terminal.
 rexctl setup [flags]
 ```
 
-- `--admin-email string`
-
-  Email address for your admin account.
-
 - `--admin-password-file string`
 
   File with your admin password, or - for stdin.
@@ -708,38 +616,6 @@ rexctl setup [flags]
 - `--registration string`
 
   Who can create an account (invite, approval, open or closed).
-
-- `--sign-in string`
-
-  How people sign in (email or username).
-
-- `--skip-email`
-
-  Set up email later.
-
-- `--smtp-from string`
-
-  Sender, like Example Chat \<noreply@chat.example.com>.
-
-- `--smtp-host string`
-
-  The SMTP server.
-
-- `--smtp-password-file string`
-
-  File with the SMTP password, or - for stdin.
-
-- `--smtp-port int`
-
-  The SMTP port. The default is `587`.
-
-- `--smtp-tls string`
-
-  How the connection is encrypted (starttls, implicit, opportunistic or none). Picked from the port when left out.
-
-- `--smtp-username string`
-
-  The username for the SMTP server.
 
 ### rexctl setup token
 
@@ -880,10 +756,6 @@ rexctl users create <username> [flags]
 - `--admin`
 
   Make the account an admin.
-
-- `--email string`
-
-  Email address for the account.
 
 ### rexctl users delete
 

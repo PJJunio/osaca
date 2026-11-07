@@ -109,7 +109,6 @@ interface AvailableMfaMethods {
 	webauthn: boolean;
 	backup_codes: boolean;
 	has_mfa: boolean;
-	email_code: boolean;
 	password: boolean;
 }
 
@@ -649,7 +648,7 @@ export async function getAvailableMfaMethods(ctx: ApiContext, userId: UserID): P
 	const {users} = ctx.services;
 	const user = await users.findUnique(userId);
 	if (!user) {
-		return {totp: false, webauthn: false, backup_codes: false, has_mfa: false, email_code: false, password: false};
+		return {totp: false, webauthn: false, backup_codes: false, has_mfa: false, password: false};
 	}
 	const credentials = await users.listWebAuthnCredentials(userId);
 	const hasPasskeyCredentials = credentials.length > 0;
@@ -659,7 +658,6 @@ export async function getAvailableMfaMethods(ctx: ApiContext, userId: UserID): P
 		webauthn: methods.webauthn,
 		backup_codes: methods.backup_codes,
 		has_mfa: userHasSudoCapability(user, hasPasskeyCredentials),
-		email_code: methods.email_code,
 		password: methods.password,
 	};
 }

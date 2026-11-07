@@ -10,25 +10,6 @@
     ]
   },
   {
-    "key": "accounts.inactivity_deletion.inactive_days",
-    "type": "integer",
-    "help": "Days without use before the warning email is sent"
-  },
-  {
-    "key": "accounts.inactivity_deletion.mode",
-    "type": "string",
-    "help": "Whether accounts unused for a long time are deleted. An account is only deleted after a warning email reached it",
-    "options": [
-      "off",
-      "after_inactivity"
-    ]
-  },
-  {
-    "key": "accounts.inactivity_deletion.warning_lead_days",
-    "type": "integer",
-    "help": "Days between the warning email and the deletion"
-  },
-  {
     "key": "accounts.interaction_tier",
     "type": "string",
     "help": "Which limits apply to accounts that have not finished setting up",
@@ -58,16 +39,6 @@
     "options": [
       "off",
       "after_grace"
-    ]
-  },
-  {
-    "key": "accounts.verification_basis",
-    "type": "string",
-    "help": "What an account needs to finish setting up",
-    "options": [
-      "auto",
-      "confirmed_email",
-      "local_credential"
     ]
   },
   {
@@ -170,16 +141,6 @@
     "type": "string",
     "help": "Legal terms URL",
     "nullable": true
-  },
-  {
-    "key": "auth.identifier_first",
-    "type": "string",
-    "help": "Whether clients show the single sign-in entry that starts with an email",
-    "options": [
-      "auto",
-      "on",
-      "off"
-    ]
   },
   {
     "key": "auth.instant_accounts.enabled",
@@ -385,71 +346,6 @@
     "nullable": true
   },
   {
-    "key": "integrations.email.delivery",
-    "type": "string",
-    "help": "How the instance sends email, or null to use the environment",
-    "options": [
-      "off",
-      "smtp"
-    ],
-    "nullable": true
-  },
-  {
-    "key": "integrations.email.disable_new_ip_authorization",
-    "type": "boolean",
-    "help": "Email disable new IP authorization",
-    "nullable": true
-  },
-  {
-    "key": "integrations.email.from_email",
-    "type": "string",
-    "help": "Email from email",
-    "nullable": true
-  },
-  {
-    "key": "integrations.email.from_name",
-    "type": "string",
-    "help": "Email from name",
-    "nullable": true
-  },
-  {
-    "key": "integrations.email.smtp.host",
-    "type": "string",
-    "help": "SMTP host",
-    "nullable": true
-  },
-  {
-    "key": "integrations.email.smtp.password",
-    "type": "secret",
-    "help": "SMTP password",
-    "secret_set": "integrations.email.smtp.password_set",
-    "nullable": true
-  },
-  {
-    "key": "integrations.email.smtp.port",
-    "type": "integer",
-    "help": "SMTP port",
-    "nullable": true
-  },
-  {
-    "key": "integrations.email.smtp.tls_mode",
-    "type": "string",
-    "help": "How the SMTP connection is encrypted",
-    "options": [
-      "implicit",
-      "starttls",
-      "opportunistic",
-      "none"
-    ],
-    "nullable": true
-  },
-  {
-    "key": "integrations.email.smtp.username",
-    "type": "string",
-    "help": "SMTP username",
-    "nullable": true
-  },
-  {
     "key": "integrations.youtube.api_key",
     "type": "secret",
     "help": "Youtube API key",
@@ -577,11 +473,6 @@
     "key": "registration.admin_registration_urls_enabled",
     "type": "boolean",
     "help": "Registration admin registration URLs enabled"
-  },
-  {
-    "key": "registration.allowed_email_domains",
-    "type": "list",
-    "help": "Email domains that public sign-ups and email changes must use. Empty allows any domain"
   },
   {
     "key": "registration.mode",

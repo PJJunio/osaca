@@ -26,8 +26,6 @@ interface OAuth2TokenResponse {
 interface UserMeResponse {
 	id: string;
 	username: string;
-	email?: string | null;
-	verified?: boolean;
 	terms_agreed_at?: string | null;
 }
 
@@ -88,7 +86,7 @@ describe('OAuth2 Scope Enforcement', () => {
 		});
 		test('GET /users/@me/settings rejects OAuth2 bearer tokens on unsupported endpoints', async () => {
 			const account = await createTestAccount(harness);
-			const oauth2Token = await createOAuth2Token(harness, account.userId, ['identify', 'email']);
+			const oauth2Token = await createOAuth2Token(harness, account.userId, ['identify']);
 			await createBuilder(harness, `Bearer ${oauth2Token.token}`)
 				.get('/users/@me/settings')
 				.expect(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED')
@@ -205,28 +203,18 @@ describe('OAuth2 Scope Enforcement', () => {
 		});
 	});
 	describe('Multiple scope scenarios', () => {
-		test('Token with identify but not email cannot access email in response', async () => {
+		test('Token with identify returns no email in the response', async () => {
 			const account = await createTestAccount(harness);
 			const oauth2Token = await createOAuth2Token(harness, account.userId, ['identify']);
 			const json = await createBuilder<UserMeResponse>(harness, `Bearer ${oauth2Token.token}`)
 				.get('/users/@me')
 				.expect(HTTP_STATUS.OK)
 				.execute();
-			expect(json.email).toBeNull();
-			expect(json.verified).toBe(false);
+			expect(json).not.toHaveProperty('email');
+			expect(json).not.toHaveProperty('verified');
 			expect(json.terms_agreed_at).toBeNull();
 			expect(json).not.toHaveProperty('timezone');
 			expect(json).not.toHaveProperty('account_tier');
-		});
-		test('Token with identify and email can access both user info and email', async () => {
-			const account = await createTestAccount(harness);
-			const oauth2Token = await createOAuth2Token(harness, account.userId, ['identify', 'email']);
-			const json = await createBuilder<UserMeResponse>(harness, `Bearer ${oauth2Token.token}`)
-				.get('/users/@me')
-				.expect(HTTP_STATUS.OK)
-				.execute();
-			expect(json.id).toBe(account.userId);
-			expect(json.email).toBe(account.email);
 		});
 	});
 	describe('Edge cases', () => {
@@ -264,7 +252,7 @@ describe('OAuth2 Scope Enforcement', () => {
 			const oauth2Token = await createOAuth2Token(
 				harness,
 				admin.userId,
-				['identify', 'email'],
+				['identify'],
 				ADMIN_OAUTH2_APPLICATION_ID.toString(),
 			);
 			await createBuilder(harness, `Bearer ${oauth2Token.token}`)
@@ -275,7 +263,7 @@ describe('OAuth2 Scope Enforcement', () => {
 		test('third-party OAuth2 token cannot access admin endpoints even with proper user ACL', async () => {
 			const admin = await createTestAccount(harness);
 			await setUserACLs(harness, admin, ['admin:authenticate', 'user:lookup']);
-			const oauth2Token = await createOAuth2Token(harness, admin.userId, ['identify', 'email']);
+			const oauth2Token = await createOAuth2Token(harness, admin.userId, ['identify']);
 			await createBuilder(harness, `Bearer ${oauth2Token.token}`)
 				.get(`/admin/users/${admin.userId}`)
 				.expect(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED')
@@ -293,7 +281,7 @@ describe('OAuth2 Scope Enforcement', () => {
 			const oauth2Token = await createOAuth2Token(
 				harness,
 				admin.userId,
-				['identify', 'email'],
+				['identify'],
 				ADMIN_OAUTH2_APPLICATION_ID.toString(),
 			);
 			await createBuilder(harness, `Bearer ${oauth2Token.token}`)
@@ -306,7 +294,7 @@ describe('OAuth2 Scope Enforcement', () => {
 			const oauth2Token = await createOAuth2Token(
 				harness,
 				user.userId,
-				['identify', 'email'],
+				['identify'],
 				ADMIN_OAUTH2_APPLICATION_ID.toString(),
 			);
 			await createBuilder(harness, `Bearer ${oauth2Token.token}`)
@@ -336,7 +324,7 @@ describe('OAuth2 Scope Enforcement', () => {
 				.expect(HTTP_STATUS.OK)
 				.execute();
 			expect(userJson.id).toBe(endUser.userId);
-			expect(userJson.email).toBeNull();
+			expect(userJson).not.toHaveProperty('email');
 			await createBuilder(harness, `Bearer ${tokenResponse.access_token}`)
 				.get('/users/@me/guilds')
 				.expect(HTTP_STATUS.FORBIDDEN, 'MISSING_OAUTH_SCOPE')

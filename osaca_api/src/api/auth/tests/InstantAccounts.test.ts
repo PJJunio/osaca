@@ -104,7 +104,7 @@ describe('Username-only accounts', () => {
 	}
 
 	function redeem(handoffCode: string, nonce: string, extra: Record<string, unknown> = {consent: true}) {
-		return createBuilderWithoutAuth<{token: string; user_id: string; device_proof: string}>(harness)
+		return createBuilderWithoutAuth<{token: string; user_id: string}>(harness)
 			.post('/auth/register/handoff/redeem')
 			.body({handoff_code: handoffCode, nonce, ...extra});
 	}
@@ -201,7 +201,6 @@ describe('Username-only accounts', () => {
 		await expectConsentRefused(redeem(handoff_code, nonce, {consent: false}));
 		const redeemed = await redeem(handoff_code, nonce).execute();
 		expect(redeemed.token).toBeTruthy();
-		expect(redeemed.device_proof).toBeTruthy();
 		const user = await getUserRepository().findUniqueAssert(createUserID(BigInt(redeemed.user_id)));
 		expect(user.username).toBe('Web_Visitor');
 		expect(user.globalName).toBe('Web Visitor');

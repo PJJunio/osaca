@@ -29,40 +29,24 @@ type LoginResponse = LoginSuccessResponse | LoginMfaResponse;
 
 export interface UserMeResponse {
 	id: string;
-	email: string | null;
 	username: string;
 	global_name: string | null;
 }
 
-export interface TestEmailRecord {
-	to: string;
-	subject: string;
-	type: string;
-	timestamp: string;
-	metadata: Record<string, string>;
-}
-
 export interface TestAccount {
-	email: string;
+	username: string;
 	password: string;
 	userId: string;
 	token: string;
 	ipAddress?: string;
-	username?: string;
 }
 
 interface CreateTestAccountParams {
-	email?: string;
 	password?: string;
 	username?: string;
 	globalName?: string;
 	ipAddress?: string;
 	skipSessionStart?: boolean;
-	skipEmailVerification?: boolean;
-}
-
-export function createUniqueEmail(prefix = 'integration'): string {
-	return `${prefix}-${randomUUID()}@example.com`;
 }
 
 function createRandomHexId(): string {
@@ -89,14 +73,12 @@ export async function createTestAccount(
 	harness: ApiTestHarness,
 	params?: CreateTestAccountParams,
 ): Promise<TestAccount> {
-	const email = params?.email ?? createUniqueEmail('account');
 	const password = params?.password ?? TEST_CREDENTIALS.STRONG_PASSWORD;
 	const username = params?.username ?? createUniqueUsername('account');
 	const ipAddress = params?.ipAddress;
 	const registrationBuilder = createBuilder<RegisterResponse>(harness, '')
 		.post('/auth/register')
 		.body({
-			email,
 			username,
 			global_name: params?.globalName ?? TEST_USER_DATA.DEFAULT_GLOBAL_NAME,
 			password,
@@ -118,22 +100,13 @@ export async function createTestAccount(
 		}
 		await sessionStartBuilder.execute();
 	}
-	if (!params?.skipEmailVerification) {
-		const securityFlagsBuilder = createBuilder(harness, '').post(`/test/users/${reg.user_id}/security-flags`).body({
-			email_verified: true,
-		});
-		if (ipAddress) {
-			securityFlagsBuilder.header('x-forwarded-for', ipAddress);
-		}
-		await securityFlagsBuilder.execute();
-	}
-	return {email, password, userId: reg.user_id, token: reg.token, username, ipAddress};
+	return {password, userId: reg.user_id, token: reg.token, username, ipAddress};
 }
 
 export async function loginUser(
 	harness: ApiTestHarness,
 	body: {
-		email: string;
+		login: string;
 		password: string;
 		invite_code?: string | null;
 	},
@@ -151,7 +124,7 @@ export async function loginUser(
 export async function loginAccount(harness: ApiTestHarness, account: TestAccount): Promise<TestAccount> {
 	const login = await loginUser(
 		harness,
-		{email: account.email, password: account.password},
+		{login: account.username, password: account.password},
 		{ipAddress: account.ipAddress},
 	);
 	if ('mfa' in login) {
@@ -189,39 +162,6 @@ export async function fetchSettings(
 		.expect(expectedStatus)
 		.executeRaw();
 	return {response, json};
-}
-
-export async function listTestEmails(
-	harness: ApiTestHarness,
-	params?: {
-		recipient?: string;
-	},
-): Promise<Array<TestEmailRecord>> {
-	const query = params?.recipient ? `?recipient=${encodeURIComponent(params.recipient)}` : '';
-	const response = await createBuilder<{
-		emails: Array<TestEmailRecord>;
-	}>(harness, '')
-		.get(`/test/emails${query}`)
-		.execute();
-	return response.emails;
-}
-
-export async function clearTestEmails(harness: ApiTestHarness): Promise<void> {
-	await createBuilder(harness, '').delete('/test/emails').expect(204).execute();
-}
-
-export function findLastTestEmail(emails: Array<TestEmailRecord>, type: string): TestEmailRecord | null {
-	for (let i = emails.length - 1; i >= 0; i--) {
-		const email = emails[i];
-		if (email?.type === type) return email;
-	}
-	return null;
-}
-
-export function titleCaseEmail(email: string): string {
-	return email
-		.toLowerCase()
-		.replace(/(^|[.@])([a-z])/g, (_match, prefix: string, char: string) => `${prefix}${char.toUpperCase()}`);
 }
 
 export interface BackupCodesResponse {
@@ -272,7 +212,7 @@ export async function loginWithTotp(
 	account: TestAccount,
 	secret: string,
 ): Promise<TestAccount> {
-	const login = await loginUser(harness, {email: account.email, password: account.password});
+	const login = await loginUser(harness, {login: account.username, password: account.password});
 	if (!('mfa' in login)) {
 		throw new Error('Expected MFA login');
 	}
@@ -312,28 +252,12 @@ export async function setUserACLs(
 	return await loginAccount(harness, account);
 }
 
-export async function createEmailCodeSudoBody(
-	harness: ApiTestHarness,
-	account: {token: string; email: string},
-): Promise<{mfa_method: 'email_code'; email_code_ticket: string; email_code: string}> {
-	const {ticket} = await createBuilder<{ticket: string}>(harness, account.token)
-		.post('/users/@me/sudo/email-code')
-		.body(null)
-		.execute();
-	const email = findLastTestEmail(await listTestEmails(harness, {recipient: account.email}), 'reauth_code');
-	return {mfa_method: 'email_code', email_code_ticket: ticket, email_code: email!.metadata['code']!};
-}
-
-export async function confirmTestEmail(harness: ApiTestHarness, userId: string): Promise<void> {
-	await createBuilder(harness, '').post(`/test/users/${userId}/security-flags`).body({email_verified: true}).execute();
-}
-
 export async function unclaimAccount(harness: ApiTestHarness, userId: string): Promise<void> {
 	await createBuilder(harness, '').post(`/test/users/${userId}/unclaim`).body(null).execute();
 }
 
 export async function createSessionFromLogin(harness: ApiTestHarness, account: TestAccount): Promise<string> {
-	const login = await loginUser(harness, {email: account.email, password: account.password});
+	const login = await loginUser(harness, {login: account.username, password: account.password});
 	if ('mfa' in login && login.mfa) {
 		throw new Error('Expected non-MFA login for test account');
 	}

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {createTestAccount, setUserACLs} from '@app/api/auth/tests/AuthTestUtils';
-import {createGuildID, createUserID, type GuildID} from '@app/api/BrandedTypes';
+import type {GuildID} from '@app/api/BrandedTypes';
 import {createTestBotAccount} from '@app/api/bot/tests/BotTestUtils';
 import {createPermissionOverwrite} from '@app/api/channel/tests/ChannelTestUtils';
 import {threadsRequest} from '@app/api/channel/tests/ThreadTestUtils';
@@ -174,42 +174,6 @@ describe('Discovery Search and Join', () => {
 		});
 	});
 	describe('join', () => {
-		test('should block discovery join for an email ban on a different user and IP', async () => {
-			const owner = await createTestAccount(harness);
-			const guild = await createGuild(harness, owner.token, 'Email Discovery Ban');
-			await setGuildMemberCount(harness, guild.id, 10);
-			const admin = await createTestAccount(harness);
-			await setUserACLs(harness, admin, ['admin:authenticate', 'discovery:review']);
-			await applyAndApprove(
-				harness,
-				owner.token,
-				admin.token,
-				guild.id,
-				'Join this community',
-				DiscoveryCategories.GAMING,
-			);
-			const bannedUser = await createTestAccount(harness);
-			const joiner = await createTestAccount(harness, {ipAddress: '203.0.113.42'});
-			await getGuildRepository().upsertBan({
-				guild_id: createGuildID(BigInt(guild.id)),
-				user_id: createUserID(BigInt(bannedUser.userId)),
-				moderator_id: createUserID(BigInt(owner.userId)),
-				banned_at: new Date(),
-				expires_at: null,
-				reason: null,
-				ip: null,
-				email: joiner.email.toLowerCase(),
-			});
-			await createBuilder(harness, joiner.token)
-				.post(`/discovery/guilds/${guild.id}/join`)
-				.header('x-forwarded-for', joiner.ipAddress!)
-				.expect(HTTP_STATUS.FORBIDDEN, APIErrorCodes.USER_BANNED_FROM_GUILD)
-				.execute();
-			expect(
-				await getGuildRepository().getMember(createGuildID(BigInt(guild.id)), createUserID(BigInt(joiner.userId))),
-			).toBeNull();
-		});
-
 		test('should block discovery join for same /64 IPv6 guild ban', async () => {
 			const owner = await createTestAccount(harness);
 			const guild = await createGuild(harness, owner.token, 'IPv6 Discovery Ban');

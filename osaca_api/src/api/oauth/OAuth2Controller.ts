@@ -12,10 +12,7 @@ import {RateLimitConfigs} from '@app/api/RateLimitConfig';
 import type {HonoApp} from '@app/api/types/HonoEnv';
 import {Validator} from '@app/api/Validator';
 import {SudoVerificationSchema} from '@osaca/schema/src/domains/auth/AuthSchemas';
-import {
-	ApplicationAuthorizationIdParam,
-	ApplicationIdParam,
-} from '@osaca/schema/src/domains/common/CommonParamSchemas';
+import {ApplicationAuthorizationIdParam, ApplicationIdParam} from '@osaca/schema/src/domains/common/CommonParamSchemas';
 import {
 	ApplicationPublicResponse,
 	ApplicationResponse,
@@ -166,8 +163,7 @@ export function OAuth2Controller(app: HonoApp) {
 			statusCode: 200,
 			security: ['bearerToken'],
 			tags: ['OAuth2'],
-			description:
-				'Retrieves authenticated user information using a valid access token. Requires identify scope and supports email scope for email fields.',
+			description: 'Retrieves authenticated user information using a valid access token. Requires identify scope.',
 		}),
 		async (ctx) => {
 			return ctx.json(await ctx.get('oauth2RequestService').userInfo(ctx.req.header('authorization') ?? undefined));

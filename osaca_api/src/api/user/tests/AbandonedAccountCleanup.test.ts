@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {createTestAccount} from '@app/api/auth/tests/AuthTestUtils';
+import {createTestAccount, createUniqueUsername} from '@app/api/auth/tests/AuthTestUtils';
 import {createUserID} from '@app/api/BrandedTypes';
 import {getKVClient} from '@app/api/middleware/ServiceRegistry';
 import {getInstanceConfigRepository, getUserRepository} from '@app/api/middleware/ServiceSingletons';
@@ -28,7 +28,7 @@ describe('Abandoned account cleanup', () => {
 	async function registerWithToken(body: Record<string, unknown>): Promise<{user_id: string; token: string}> {
 		return await createBuilderWithoutAuth<{user_id: string; token: string}>(harness)
 			.post('/auth/register')
-			.body({username: 'wanderer', consent: true, ...body})
+			.body({username: createUniqueUsername('wanderer'), consent: true, ...body})
 			.execute();
 	}
 

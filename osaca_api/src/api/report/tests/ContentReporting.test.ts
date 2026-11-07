@@ -1,15 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {reportReference} from '@app/api/admin/services/ReporterResolutionNotifier';
-import {
-	clearTestEmails,
-	createTestAccount,
-	createUniqueEmail,
-	findLastTestEmail,
-	listTestEmails,
-	setUserACLs,
-	type TestAccount,
-} from '@app/api/auth/tests/AuthTestUtils';
+import {createTestAccount, setUserACLs, type TestAccount} from '@app/api/auth/tests/AuthTestUtils';
 import {createGuildID, createReportID, createUserID} from '@app/api/BrandedTypes';
 import {Config} from '@app/api/Config';
 import {loadFixture, sendMessageWithAttachments} from '@app/api/channel/tests/AttachmentTestUtils';
@@ -35,7 +27,7 @@ import {ReportRepository} from '@app/api/report/ReportRepository';
 import {Users} from '@app/api/Tables';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {HTTP_STATUS, TEST_IDS} from '@app/api/test/TestConstants';
-import {createBuilder, createBuilderWithoutAuth} from '@app/api/test/TestRequestBuilder';
+import {createBuilder} from '@app/api/test/TestRequestBuilder';
 import {systemDmBody} from '@app/api/user/services/SystemDmMessage';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {Permissions} from '@osaca/constants/src/ChannelConstants';
@@ -43,7 +35,7 @@ import {DELETED_USER_USERNAME} from '@osaca/constants/src/UserConstants';
 import type {GuildResponse} from '@osaca/schema/src/domains/guild/GuildResponseSchemas';
 import {compareSnowflakes} from '@osaca/snowflake/src/SnowflakeComparison';
 import {extractTimestamp} from '@osaca/snowflake/src/SnowflakeUtils';
-import {emailLinkUrls, renderEmailTemplateText, reportResolvedSlots} from '@pkgs/email/src/EmailService';
+import {noticeLinkUrls, renderNoticeText, reportResolvedSlots} from '@pkgs/email/src/NoticeText';
 import {afterEach, beforeEach, describe, expect, test} from 'vitest';
 
 interface ReportResponse {
@@ -177,7 +169,7 @@ describe('Content Reporting', () => {
 				.execute();
 			expect(await countReports()).toBe(0);
 		});
-		test('sends a localized system DM and email marker when a report is reviewed with a public comment', async () => {
+		test('sends a localized system DM when a report is reviewed with a public comment', async () => {
 			const reporter = await createTestAccount(harness);
 			const targetUser = await createTestAccount(harness);
 			let admin = await createTestAccount(harness);
@@ -195,7 +187,6 @@ describe('Content Reporting', () => {
 				})
 				.expect(HTTP_STATUS.OK)
 				.execute();
-			await clearTestEmails(harness);
 			const publicComment = 'Nous avons examiné votre signalement et pris des mesures.';
 			await createBuilder<{
 				report_id: string;
@@ -212,18 +203,13 @@ describe('Content Reporting', () => {
 				})
 				.expect(HTTP_STATUS.OK)
 				.execute();
-			const sentEmails = await listTestEmails(harness, {recipient: reporter.email});
-			const email = findLastTestEmail(sentEmails, 'report_resolved');
-			expect(email).not.toBeNull();
-			expect(email?.metadata['report_id']).toBe(report.report_id);
-			expect(email?.metadata['public_comment']).toBe(publicComment);
 			const systemMessages = await listSystemDmMessages(harness, reporter.token);
 			expect(systemMessages).toHaveLength(1);
 			const stored = await new ReportRepository().getReport(createReportID(BigInt(report.report_id)));
 			if (!stored) {
 				throw new Error('report not found');
 			}
-			const text = renderEmailTemplateText(
+			const text = renderNoticeText(
 				'report_resolved',
 				'fr',
 				{...reportReference(stored), outcome: 'restricted', appeals_email: resolveContactEmails().appealsEmail},
@@ -231,7 +217,7 @@ describe('Content Reporting', () => {
 				(template) => reportResolvedSlots(template, report.report_id, publicComment),
 				{
 					format: 'markdown',
-					urls: emailLinkUrls({appBaseUrl: Config.endpoints.webApp, marketingBaseUrl: Config.endpoints.marketing}),
+					urls: noticeLinkUrls({marketingBaseUrl: Config.endpoints.marketing}),
 				},
 			);
 			expect(text).not.toBeNull();
@@ -735,107 +721,7 @@ describe('Content Reporting', () => {
 			for (const result of results) {
 				const report = await readReport(result.report_id);
 				expect(report.reporterId?.toString()).toBe(reporter.userId);
-				expect(report.reporterEmail).toBeNull();
 			}
-		});
-	});
-	describe('DSA Report Flow', () => {
-		test('should reject DSA message report with a non-numeric message link segment', async () => {
-			await clearTestEmails(harness);
-			const email = createUniqueEmail('dsa-reporter');
-			await createBuilderWithoutAuth(harness).post('/reports/dsa/email/send').body({email}).execute();
-			const emails = await listTestEmails(harness);
-			const dsaEmail = findLastTestEmail(emails, 'dsa_report_verification');
-			const code = dsaEmail!.metadata.code;
-			const verifyResponse = await createBuilder<{
-				ticket: string;
-			}>(harness, '')
-				.post('/reports/dsa/email/verify')
-				.body({email, code})
-				.expect(HTTP_STATUS.OK)
-				.execute();
-			await createBuilderWithoutAuth(harness)
-				.post('/reports/dsa')
-				.body({
-					ticket: verifyResponse.ticket,
-					report_type: 'message',
-					category: 'harassment',
-					message_link: 'https://osaca.test/channels/1/abc/def',
-					reporter_full_legal_name: 'John Doe',
-					reporter_country_of_residence: 'DE',
-				})
-				.expect(HTTP_STATUS.NOT_FOUND, APIErrorCodes.UNKNOWN_MESSAGE)
-				.execute();
-		});
-		test('should reject DSA message report with an out-of-range message link segment', async () => {
-			await clearTestEmails(harness);
-			const email = createUniqueEmail('dsa-reporter');
-			await createBuilderWithoutAuth(harness).post('/reports/dsa/email/send').body({email}).execute();
-			const emails = await listTestEmails(harness);
-			const dsaEmail = findLastTestEmail(emails, 'dsa_report_verification');
-			const code = dsaEmail!.metadata.code;
-			const verifyResponse = await createBuilder<{
-				ticket: string;
-			}>(harness, '')
-				.post('/reports/dsa/email/verify')
-				.body({email, code})
-				.expect(HTTP_STATUS.OK)
-				.execute();
-			await createBuilderWithoutAuth(harness)
-				.post('/reports/dsa')
-				.body({
-					ticket: verifyResponse.ticket,
-					report_type: 'message',
-					category: 'harassment',
-					message_link: 'https://osaca.test/channels/1/99999999999999999999/1',
-					reporter_full_legal_name: 'John Doe',
-					reporter_country_of_residence: 'DE',
-				})
-				.expect(HTTP_STATUS.NOT_FOUND, APIErrorCodes.UNKNOWN_MESSAGE)
-				.execute();
-		});
-		test('should reject DSA report with invalid ticket', async () => {
-			const targetUser = await createTestAccount(harness);
-			await createBuilderWithoutAuth(harness)
-				.post('/reports/dsa')
-				.body({
-					ticket: 'invalid-ticket-value',
-					report_type: 'user',
-					category: 'harassment',
-					user_id: targetUser.userId.toString(),
-					reporter_full_legal_name: 'John Doe',
-					reporter_country_of_residence: 'DE',
-				})
-				.expect(HTTP_STATUS.BAD_REQUEST)
-				.execute();
-		});
-		test('should require EU country for DSA report', async () => {
-			await clearTestEmails(harness);
-			const email = createUniqueEmail('dsa-reporter');
-			const targetUser = await createTestAccount(harness);
-			await createBuilderWithoutAuth(harness).post('/reports/dsa/email/send').body({email}).execute();
-			const emails = await listTestEmails(harness);
-			const dsaEmail = findLastTestEmail(emails, 'dsa_report_verification');
-			const code = dsaEmail!.metadata.code;
-			const verifyResponse = await createBuilderWithoutAuth<{
-				ticket: string;
-			}>(harness)
-				.post('/reports/dsa/email/verify')
-				.body({email, code})
-				.expect(HTTP_STATUS.OK)
-				.execute();
-			await createBuilderWithoutAuth(harness)
-				.post('/reports/dsa')
-				.body({
-					ticket: verifyResponse.ticket,
-					report_type: 'user',
-					category: 'harassment',
-					user_id: targetUser.userId.toString(),
-					reporter_full_legal_name: 'John Doe',
-					reporter_country_of_residence: 'US',
-				})
-				.expect(HTTP_STATUS.BAD_REQUEST)
-				.execute();
 		});
 	});
 });

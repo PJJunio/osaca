@@ -129,12 +129,6 @@ secrets:
     # OSACA_S3_SESSION_TOKEN: ""
     # Comma-separated base64 secrets that sign attachment URLs.
     # OSACA_MEDIA_PROXY_ATTACHMENT_URL_SECRETS_BASE64: ""
-    # SMTP password for outgoing email.
-    # OSACA_EMAIL_SMTP_PASSWORD: ""
-    # SMTP password of the email fallback provider.
-    # OSACA_EMAIL_FALLBACK_SMTP_PASSWORD: ""
-    # Secret that authenticates email provider webhooks.
-    # OSACA_EMAIL_WEBHOOK_SECRET: ""
     # Stripe secret key.
     # OSACA_STRIPE_SECRET_KEY: ""
     # Stripe webhook signing secret.

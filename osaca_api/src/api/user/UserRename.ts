@@ -6,7 +6,6 @@ import type {GuildRepository} from '@app/api/guild/repositories/GuildRepository'
 import {GuildMemberSearchIndexService} from '@app/api/guild/services/member/GuildMemberSearchIndexService';
 import type {DiscriminatorService} from '@app/api/infrastructure/DiscriminatorService';
 import {Logger} from '@app/api/Logger';
-import {getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
 import type {User} from '@app/api/models/User';
 import {
 	type PartialUserChangePropagationDeps,
@@ -60,7 +59,7 @@ export async function renameUser(
 	{reason, actorUserId}: {reason: ContactChangeReason; actorUserId: UserID | null},
 ): Promise<User> {
 	const {users, cache, contactChangeLog} = deps.apiContext.services;
-	const uniqueUsernames = !user.isBot && (await getInstanceConfigRepository().usesUniqueUsernames());
+	const uniqueUsernames = !user.isBot;
 	const reservation = uniqueUsernames ? await reserveUsername({users, cache}, tag.username, user.id) : null;
 	let updatedUser: User;
 	try {

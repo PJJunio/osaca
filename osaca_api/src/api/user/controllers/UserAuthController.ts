@@ -7,11 +7,6 @@ import {
 	getPasskeyMigrationRegistrationOptions,
 } from '@app/api/auth/services/PasskeyMigrationService';
 import {requireSudoMode} from '@app/api/auth/services/SudoVerificationService';
-import {
-	RequireEmailAccountIdentity,
-	RequireEmailCodesAvailable,
-	RequireUsernameAccountIdentity,
-} from '@app/api/middleware/AccountIdentityMiddleware';
 import {DefaultUserOnly, LoginRequired} from '@app/api/middleware/AuthMiddleware';
 import {RateLimitMiddleware} from '@app/api/middleware/RateLimitMiddleware';
 import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
@@ -23,11 +18,6 @@ import {Validator} from '@app/api/Validator';
 import {
 	DisableTotpRequest,
 	EnableMfaTotpRequest,
-	MfaBackupCodesChallengeRegenerateRequest,
-	MfaBackupCodesChallengeResendRequest,
-	MfaBackupCodesChallengeStartResponse,
-	MfaBackupCodesChallengeVerifyRequest,
-	MfaBackupCodesChallengeVerifyResponse,
 	MfaBackupCodesRequest,
 	MfaBackupCodesResponse,
 	SudoMfaMethodsResponse,
@@ -44,7 +34,6 @@ import {
 	PasskeyMigrationResponse,
 } from '@osaca/schema/src/domains/auth/PasskeyMigrationSchemas';
 import {CredentialIdParam} from '@osaca/schema/src/domains/common/CommonParamSchemas';
-import {EmptyBodyRequest} from '@osaca/schema/src/domains/user/UserRequestSchemas';
 import {RecoveryKitCreateResponse, RecoveryKitStatusResponse} from '@osaca/schema/src/domains/user/UserResponseSchemas';
 
 export function UserAuthController(app: HonoApp) {
@@ -137,7 +126,6 @@ export function UserAuthController(app: HonoApp) {
 		RateLimitMiddleware(RateLimitConfigs.USER_RECOVERY_KIT_GET),
 		LoginRequired,
 		DefaultUserOnly,
-		RequireUsernameAccountIdentity,
 		OpenAPI({
 			operationId: 'get_recovery_kit_status',
 			summary: 'Get recovery kit status',
@@ -146,7 +134,7 @@ export function UserAuthController(app: HonoApp) {
 			security: ['bearerToken', 'sessionToken'],
 			tags: ['Users'],
 			description:
-				'Check whether the current account has a recovery kit and when it was created. Only available on instances where people sign in with a username. The recovery key itself is never returned here.',
+				'Check whether the current account has a recovery kit and when it was created.. The recovery key itself is never returned here.',
 		}),
 		async (ctx) => {
 			return ctx.json(await getRecoveryKitStatus(ctx.get('user').id));
@@ -157,7 +145,6 @@ export function UserAuthController(app: HonoApp) {
 		RateLimitMiddleware(RateLimitConfigs.USER_RECOVERY_KIT_CREATE),
 		LoginRequired,
 		DefaultUserOnly,
-		RequireUsernameAccountIdentity,
 		SudoModeMiddleware,
 		Validator('json', SudoVerificationSchema),
 		OpenAPI({
@@ -168,110 +155,12 @@ export function UserAuthController(app: HonoApp) {
 			security: ['bearerToken', 'sessionToken'],
 			tags: ['Users'],
 			description:
-				'Create a recovery kit for the current account and return its recovery key. The key is shown only once and any previous kit stops working. Only available on instances where people sign in with a username. Requires sudo mode verification.',
+				'Create a recovery kit for the current account and return its recovery key. The key is shown only once and any previous kit stops working.. Requires sudo mode verification.',
 		}),
 		async (ctx) => {
 			const user = ctx.get('user');
 			await requireSudoMode(ctx, user, ctx.req.valid('json'));
 			return ctx.json(await createRecoveryKit(user.id));
-		},
-	);
-	app.post(
-		'/users/@me/mfa/backup-codes/challenge',
-		RateLimitMiddleware(RateLimitConfigs.USER_MFA_BACKUP_CODES_CHALLENGE_START),
-		LoginRequired,
-		DefaultUserOnly,
-		RequireEmailAccountIdentity,
-		RequireEmailCodesAvailable,
-		Validator('json', EmptyBodyRequest),
-		OpenAPI({
-			operationId: 'start_backup_codes_challenge',
-			summary: 'Start backup codes challenge',
-			responseSchema: MfaBackupCodesChallengeStartResponse,
-			statusCode: 200,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				"Initiates the challenge required to view existing backup codes. Sends a verification code to the user's email address. Returns a ticket for use in the remaining challenge steps.",
-		}),
-		async (ctx) => {
-			const user = ctx.get('user');
-			return ctx.json(await ctx.get('mfaBackupCodesChallengeService').start(user));
-		},
-	);
-	app.post(
-		'/users/@me/mfa/backup-codes/challenge/resend',
-		RateLimitMiddleware(RateLimitConfigs.USER_MFA_BACKUP_CODES_CHALLENGE_RESEND),
-		LoginRequired,
-		DefaultUserOnly,
-		RequireEmailAccountIdentity,
-		RequireEmailCodesAvailable,
-		Validator('json', MfaBackupCodesChallengeResendRequest),
-		OpenAPI({
-			operationId: 'resend_backup_codes_challenge',
-			summary: 'Resend backup codes challenge code',
-			responseSchema: null,
-			statusCode: 204,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				'Resends the verification code for a backup codes challenge. Use if the original code was not received. Requires a valid backup codes challenge ticket.',
-		}),
-		async (ctx) => {
-			const user = ctx.get('user');
-			const body = ctx.req.valid('json');
-			await ctx.get('mfaBackupCodesChallengeService').resend(user, body.ticket);
-			return ctx.body(null, 204);
-		},
-	);
-	app.post(
-		'/users/@me/mfa/backup-codes/challenge/verify',
-		RateLimitMiddleware(RateLimitConfigs.USER_MFA_BACKUP_CODES_CHALLENGE_VERIFY),
-		LoginRequired,
-		DefaultUserOnly,
-		RequireEmailAccountIdentity,
-		RequireEmailCodesAvailable,
-		Validator('json', MfaBackupCodesChallengeVerifyRequest),
-		OpenAPI({
-			operationId: 'verify_backup_codes_challenge',
-			summary: 'Verify backup codes challenge code',
-			responseSchema: MfaBackupCodesChallengeVerifyResponse,
-			statusCode: 200,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				'Verifies the email code sent during a backup codes challenge and returns the existing backup codes along with a proof token. The code is consumed on success and the proof token authorizes regeneration on the same ticket.',
-		}),
-		async (ctx) => {
-			const user = ctx.get('user');
-			const body = ctx.req.valid('json');
-			return ctx.json(await ctx.get('mfaBackupCodesChallengeService').verify(user, body.ticket, body.code));
-		},
-	);
-	app.post(
-		'/users/@me/mfa/backup-codes/challenge/regenerate',
-		RateLimitMiddleware(RateLimitConfigs.USER_MFA_BACKUP_CODES_CHALLENGE_REGENERATE),
-		LoginRequired,
-		DefaultUserOnly,
-		RequireEmailAccountIdentity,
-		RequireEmailCodesAvailable,
-		Validator('json', MfaBackupCodesChallengeRegenerateRequest),
-		OpenAPI({
-			operationId: 'regenerate_backup_codes_challenge',
-			summary: 'Regenerate backup codes with a verified challenge',
-			responseSchema: MfaBackupCodesResponse,
-			statusCode: 200,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				'Replaces the account backup codes using the proof token from a verified backup codes challenge. Old codes are invalidated.',
-		}),
-		async (ctx) => {
-			const user = ctx.get('user');
-			const body = ctx.req.valid('json');
-			return ctx.json(
-				await ctx.get('mfaBackupCodesChallengeService').regenerate(user, body.ticket, body.verification_proof),
-			);
 		},
 	);
 	app.delete(
@@ -516,7 +405,7 @@ export function UserAuthController(app: HonoApp) {
 			security: ['bearerToken', 'sessionToken'],
 			tags: ['Users'],
 			description:
-				'Choose whether registered passkeys are required as a second factor when signing in with email and password. Enabling requires at least one registered credential and mints backup codes when the account has none. Requires sudo mode verification.',
+				'Choose whether registered passkeys are required as a second factor when signing in with a password. Enabling requires at least one registered credential and mints backup codes when the account has none. Requires sudo mode verification.',
 		}),
 		async (ctx) => {
 			const user = ctx.get('user');

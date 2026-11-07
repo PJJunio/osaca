@@ -9,10 +9,7 @@ import Authentication from '@app/features/auth/state/Authentication';
 import {type InstanceHTTPTarget, instanceRequest} from '@app/features/platform/transport/InstanceHTTP';
 import {HttpError} from '@app/features/platform/types/EndpointError';
 import {Logger} from '@app/features/platform/utils/AppLogger';
-import {failureCode, ipAuthorizationRequiredResponseFromError} from '@app/features/platform/utils/ResponseInspection';
 import {getCurrentOrDetectedLocale} from '@app/features/user/utils/LocaleUtils';
-import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
-import type {ValueOf} from '@osaca/constants/src/ValueOf';
 import type {
 	AuthRegistrationPendingApprovalResponse,
 	DesktopHandoffReturnMethod,
@@ -34,18 +31,7 @@ function isRouteUnimplemented(error: unknown): boolean {
 	return error instanceof HttpError && (error.status === 404 || error.status === 405);
 }
 
-export const VerificationResult = {
-	SUCCESS: 'SUCCESS',
-	EXPIRED_TOKEN: 'EXPIRED_TOKEN',
-	RATE_LIMITED: 'RATE_LIMITED',
-	SERVER_ERROR: 'SERVER_ERROR',
-} as const;
-
-export type VerificationResult = ValueOf<typeof VerificationResult>;
-
-export type AuthResponseUser = UserPartial & {
-	email?: string | null;
-};
+export type AuthResponseUser = UserPartial;
 
 export interface AuthTokenResponse {
 	user_id: string;
@@ -70,17 +56,7 @@ export interface MfaLoginResponse {
 
 type LoginResponse = StandardLoginResponse | MfaLoginResponse;
 
-export interface IpAuthorizationRequiredResponse {
-	ip_authorization_required: true;
-	ticket: string;
-	email: string;
-	resend_available_in: number;
-}
-
-export type AuthResponseUserIdentity = Pick<
-	AuthResponseUser,
-	'username' | 'discriminator' | 'global_name' | 'avatar' | 'email'
->;
+export type AuthResponseUserIdentity = Pick<AuthResponseUser, 'username' | 'discriminator' | 'global_name' | 'avatar'>;
 
 export function authResponseUserToUserData(user?: AuthResponseUserIdentity | null): UserData | undefined {
 	if (!user) {
@@ -92,9 +68,6 @@ export function authResponseUserToUserData(user?: AuthResponseUserIdentity | nul
 		globalName: user.global_name,
 		avatar: user.avatar,
 	};
-	if (user.email !== undefined) {
-		userData.email = user.email;
-	}
 	return userData;
 }
 
@@ -103,12 +76,6 @@ export type RegistrationPendingApprovalResponse = AuthRegistrationPendingApprova
 export type RegisterResponse =
 	| (TokenResponse & {entry?: GuildEntryResult | null})
 	| RegistrationPendingApprovalResponse;
-
-export function isIpAuthorizationRequiredResponse(
-	response: LoginResponse | IpAuthorizationRequiredResponse,
-): response is IpAuthorizationRequiredResponse {
-	return (response as IpAuthorizationRequiredResponse).ip_authorization_required === true;
-}
 
 export function isRegistrationPendingApprovalResponse(
 	response: RegisterResponse,
@@ -160,9 +127,8 @@ interface DesktopHandoffCompleteResponse {
 	return_url?: string;
 }
 
-export type LoginIdentifier = {email: string; login?: undefined} | {login: string; email?: undefined};
-
-type LoginParams = LoginIdentifier & {
+type LoginParams = {
+	login: string;
 	password: string;
 	inviteCode?: string;
 	target: InstanceHTTPTarget;
@@ -199,25 +165,16 @@ interface WebAuthnLoginRequest {
 	target: InstanceHTTPTarget;
 }
 
-interface IpAuthorizationTicketRequest {
-	ticket: string;
-	target: InstanceHTTPTarget;
-}
-
 function withInviteCode<T extends object>(body: T, inviteCode?: string): T & {invite_code?: string} {
 	return inviteCode ? {...body, invite_code: inviteCode} : body;
 }
 
 function loginBody(params: LoginParams): {
-	email?: string;
-	login?: string;
+	login: string;
 	password: string;
 	invite_code?: string;
 } {
-	if (params.login !== undefined) {
-		return withInviteCode({login: params.login, password: params.password}, params.inviteCode);
-	}
-	return withInviteCode({email: params.email, password: params.password}, params.inviteCode);
+	return withInviteCode({login: params.login, password: params.password}, params.inviteCode);
 }
 
 function mfaTotpBody(
@@ -253,42 +210,7 @@ function tokenBody(token: string): {token: string} {
 	return {token};
 }
 
-class MalformedIpAuthorizationChallengeError extends HttpError {
-	constructor(error: HttpError) {
-		super({
-			method: error.method,
-			path: error.path,
-			status: error.status,
-			body: error.body,
-			responseHeaders: error.responseHeaders,
-		});
-		this.name = 'MalformedIpAuthorizationChallengeError';
-	}
-}
-
-function loginIpAuthorizationResponse(error: HttpError): IpAuthorizationRequiredResponse | null {
-	if (error.status !== 403 || failureCode(error) !== APIErrorCodes.IP_AUTHORIZATION_REQUIRED) {
-		return null;
-	}
-	const challenge = ipAuthorizationRequiredResponseFromError(error);
-	if (challenge === null) {
-		throw new MalformedIpAuthorizationChallengeError(error);
-	}
-	return challenge;
-}
-
-function verificationResultFromError(
-	error: unknown,
-	invalidResult: VerificationResult,
-	invalidStatus: number,
-): VerificationResult {
-	const responseErr = error as {
-		status?: number;
-	};
-	return responseErr.status === invalidStatus ? invalidResult : VerificationResult.SERVER_ERROR;
-}
-
-export async function login(params: LoginParams): Promise<LoginResponse | IpAuthorizationRequiredResponse> {
+export async function login(params: LoginParams): Promise<LoginResponse> {
 	try {
 		const response = await instanceRequest<LoginResponse>({
 			method: 'POST',
@@ -300,13 +222,6 @@ export async function login(params: LoginParams): Promise<LoginResponse | IpAuth
 		logger.debug('Login successful', {mfa: response.body?.mfa});
 		return response.body;
 	} catch (error) {
-		if (error instanceof HttpError) {
-			const ipAuthorization = loginIpAuthorizationResponse(error);
-			if (ipAuthorization) {
-				logger.info('Login requires IP authorization', {email: params.email});
-				return ipAuthorization;
-			}
-		}
 		logger.error('Login failed', error);
 		throw error;
 	}
@@ -468,22 +383,6 @@ export async function checkUsernameAvailability(
 	return response.body.available;
 }
 
-export async function forgotPassword(email: string, target: InstanceHTTPTarget): Promise<void> {
-	try {
-		await instanceRequest({
-			method: 'POST',
-			path: Endpoints.AUTH_FORGOT_PASSWORD,
-			target: target,
-			body: {email},
-			headers: withAuthLocaleHeader(),
-		});
-		logger.debug('Password reset email sent');
-	} catch (error) {
-		logger.error('Password reset request failed', error);
-		throw error;
-	}
-}
-
 export async function validateResetPasswordToken(token: string, target: InstanceHTTPTarget): Promise<boolean> {
 	try {
 		const response = await instanceRequest<{valid: boolean}>({
@@ -548,71 +447,6 @@ export async function recoverAccount({
 	}
 }
 
-export async function revertEmailChange(
-	token: string,
-	password: string,
-	target: InstanceHTTPTarget,
-): Promise<TokenResponse> {
-	try {
-		const response = await instanceRequest<TokenResponse>({
-			method: 'POST',
-			path: Endpoints.AUTH_EMAIL_REVERT,
-			target: target,
-			body: {token, password},
-			headers: withAuthLocaleHeader(),
-		});
-		const responseBody = response.body;
-		logger.info('Email revert successful');
-		return responseBody;
-	} catch (error) {
-		logger.error('Email revert failed', error);
-		throw error;
-	}
-}
-
-export async function verifyEmail(token: string, target: InstanceHTTPTarget): Promise<VerificationResult> {
-	try {
-		await instanceRequest({
-			method: 'POST',
-			path: Endpoints.AUTH_VERIFY_EMAIL,
-			target: target,
-			body: tokenBody(token),
-			headers: withAuthLocaleHeader(),
-		});
-		logger.info('Email verification successful');
-		return VerificationResult.SUCCESS;
-	} catch (error) {
-		const result = verificationResultFromError(error, VerificationResult.EXPIRED_TOKEN, 400);
-		if (result === VerificationResult.EXPIRED_TOKEN) {
-			logger.warn('Email verification failed - expired or invalid token');
-			return result;
-		}
-		logger.error('Email verification failed - server error', error);
-		return result;
-	}
-}
-
-export async function resendVerificationEmail(target: InstanceHTTPTarget): Promise<VerificationResult> {
-	try {
-		await instanceRequest({
-			method: 'POST',
-			path: Endpoints.AUTH_RESEND_VERIFICATION,
-			target,
-			headers: withAuthLocaleHeader(),
-		});
-		logger.info('Verification email resent');
-		return VerificationResult.SUCCESS;
-	} catch (error) {
-		const result = verificationResultFromError(error, VerificationResult.RATE_LIMITED, 429);
-		if (result === VerificationResult.RATE_LIMITED) {
-			logger.warn('Rate limited when resending verification email');
-			return result;
-		}
-		logger.error('Failed to resend verification email - server error', error);
-		return result;
-	}
-}
-
 export async function logout(options: {notifyServer?: boolean} = {}): Promise<void> {
 	await Accounts.logout(options);
 }
@@ -623,58 +457,6 @@ export async function redeemSignInLink(token: string, target: InstanceHTTPTarget
 		path: Endpoints.AUTH_SIGN_IN_LINK,
 		target,
 		body: tokenBody(token),
-		headers: withAuthLocaleHeader(),
-	});
-	return response.body;
-}
-
-export async function authorizeIp(token: string, target: InstanceHTTPTarget): Promise<VerificationResult> {
-	try {
-		await instanceRequest({
-			method: 'POST',
-			path: Endpoints.AUTH_AUTHORIZE_IP,
-			target: target,
-			body: tokenBody(token),
-			headers: withAuthLocaleHeader(),
-		});
-		logger.info('IP authorization successful');
-		return VerificationResult.SUCCESS;
-	} catch (error) {
-		const result = verificationResultFromError(error, VerificationResult.EXPIRED_TOKEN, 400);
-		if (result === VerificationResult.EXPIRED_TOKEN) {
-			logger.warn('IP authorization failed - expired or invalid token');
-			return result;
-		}
-		logger.error('IP authorization failed - server error', error);
-		return result;
-	}
-}
-
-export async function resendIpAuthorization({ticket, target}: IpAuthorizationTicketRequest): Promise<void> {
-	await instanceRequest({
-		method: 'POST',
-		path: Endpoints.AUTH_IP_AUTHORIZATION_RESEND,
-		target,
-		body: ticketBody(ticket),
-		headers: withAuthLocaleHeader(),
-	});
-}
-
-export interface IpAuthorizationPollResult {
-	completed: boolean;
-	token?: string;
-	user_id?: string;
-	user?: AuthResponseUser | null;
-}
-
-export async function pollIpAuthorization({
-	ticket,
-	target,
-}: IpAuthorizationTicketRequest): Promise<IpAuthorizationPollResult> {
-	const response = await instanceRequest<IpAuthorizationPollResult>({
-		method: 'GET',
-		path: Endpoints.AUTH_IP_AUTHORIZATION_POLL(ticket),
-		target,
 		headers: withAuthLocaleHeader(),
 	});
 	return response.body;

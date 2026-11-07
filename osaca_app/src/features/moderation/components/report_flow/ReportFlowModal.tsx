@@ -70,11 +70,11 @@ import {SteppedCarousel} from '@app/features/ui/stepped_carousel/SteppedCarousel
 import {openExternalUrl} from '@app/features/ui/utils/NativeUtils';
 import type {User} from '@app/features/user/models/User';
 import {accountGateReason} from '@app/features/user/utils/AccountGatePresentation';
+import type {I18n} from '@lingui/core';
+import {useLingui} from '@lingui/react/macro';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {HttpStatus} from '@osaca/constants/src/HttpConstants';
 import type {ReportFlowOption, ReportFlowResponse} from '@osaca/schema/src/domains/report/ReportFlowSchemas';
-import type {I18n} from '@lingui/core';
-import {useLingui} from '@lingui/react/macro';
 import {observer} from 'mobx-react-lite';
 import type React from 'react';
 import {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
@@ -142,11 +142,7 @@ function getContextGuildId(context: ReportFlowContext): string | null | undefine
 	return Channels.getChannel(context.message.channelId)?.guildId ?? context.message.guildId;
 }
 
-const REPORT_TIER_CODES: ReadonlySet<string> = new Set([
-	APIErrorCodes.ACCOUNT_VERIFICATION_REQUIRED,
-	APIErrorCodes.REPORT_EMAIL_VERIFICATION_REQUIRED,
-	APIErrorCodes.UNCLAIMED_ACCOUNT_CANNOT_SUBMIT_REPORTS,
-]);
+const REPORT_TIER_CODES: ReadonlySet<string> = new Set([APIErrorCodes.ACCOUNT_VERIFICATION_REQUIRED]);
 
 function isTerminalSubmitFailure(code: string | undefined): boolean {
 	return (

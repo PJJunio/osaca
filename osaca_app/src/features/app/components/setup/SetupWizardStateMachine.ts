@@ -1,19 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {type AccountIdentityMode, AccountIdentityModes} from '@osaca/constants/src/AccountIdentityConstants';
-
 export type WizardStep =
 	| 'welcome'
 	| 'setup_token'
-	| 'sign_in_method'
-	| 'sign_in_locked'
-	| 'shared_usernames'
-	| 'email_delivery'
 	| 'sign_in_to_finish'
 	| 'account'
 	| 'recovery_kit'
-	| 'email_service'
-	| 'email_sender'
 	| 'name'
 	| 'look'
 	| 'communities'
@@ -25,17 +17,11 @@ export type WizardStep =
 	| 'review'
 	| 'done';
 
-export type EmailDeliveryAnswer = 'now' | 'later';
-
 export interface WizardConditions {
 	isAuthenticated: boolean;
-	accountIdentity: AccountIdentityMode;
-	identityLocked: boolean;
 	adminExists: boolean;
 	setupTokenRequired: boolean;
 	setupTokenRejected: boolean;
-	emailsEnabled: boolean;
-	emailAnswer: EmailDeliveryAnswer;
 	finished: boolean;
 }
 
@@ -49,39 +35,11 @@ interface StepDefinition {
 const beforeAccount = (conditions: WizardConditions): boolean => !conditions.isAuthenticated && !conditions.finished;
 const createsAccount = (conditions: WizardConditions): boolean => beforeAccount(conditions) && !conditions.adminExists;
 const afterAccount = (conditions: WizardConditions): boolean => conditions.isAuthenticated && !conditions.finished;
-const usesEmail = (conditions: WizardConditions): boolean => conditions.accountIdentity === AccountIdentityModes.EMAIL;
-const connectsEmailNow = (conditions: WizardConditions): boolean =>
-	afterAccount(conditions) && usesEmail(conditions) && !conditions.emailsEnabled && conditions.emailAnswer === 'now';
-
 const STEP_DEFINITIONS: ReadonlyArray<StepDefinition> = [
 	{id: 'welcome', shown: beforeAccount, counted: false, beforeAccount: true},
 	{
 		id: 'setup_token',
 		shown: (c) => createsAccount(c) && (c.setupTokenRequired || c.setupTokenRejected),
-		counted: true,
-		beforeAccount: true,
-	},
-	{
-		id: 'sign_in_method',
-		shown: (c) => createsAccount(c) && !c.identityLocked,
-		counted: true,
-		beforeAccount: true,
-	},
-	{
-		id: 'sign_in_locked',
-		shown: (c) => createsAccount(c) && c.identityLocked,
-		counted: true,
-		beforeAccount: true,
-	},
-	{
-		id: 'shared_usernames',
-		shown: (c) => createsAccount(c) && !c.identityLocked && usesEmail(c),
-		counted: true,
-		beforeAccount: true,
-	},
-	{
-		id: 'email_delivery',
-		shown: (c) => createsAccount(c) && usesEmail(c) && !c.emailsEnabled,
 		counted: true,
 		beforeAccount: true,
 	},
@@ -92,14 +50,7 @@ const STEP_DEFINITIONS: ReadonlyArray<StepDefinition> = [
 		beforeAccount: true,
 	},
 	{id: 'account', shown: createsAccount, counted: true, beforeAccount: true},
-	{
-		id: 'recovery_kit',
-		shown: (c) => afterAccount(c) && c.accountIdentity === AccountIdentityModes.USERNAME,
-		counted: true,
-		beforeAccount: false,
-	},
-	{id: 'email_service', shown: connectsEmailNow, counted: true, beforeAccount: false},
-	{id: 'email_sender', shown: connectsEmailNow, counted: true, beforeAccount: false},
+	{id: 'recovery_kit', shown: afterAccount, counted: true, beforeAccount: false},
 	{id: 'name', shown: afterAccount, counted: true, beforeAccount: false},
 	{id: 'look', shown: afterAccount, counted: true, beforeAccount: false},
 	{id: 'communities', shown: afterAccount, counted: true, beforeAccount: false},

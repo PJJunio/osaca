@@ -5,8 +5,6 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import type {IARMessageContextRow} from '@app/api/database/types/ReportTypes';
 import {
-	DSAReportEmailVerifications,
-	DSAReportTickets,
 	GuildReportSubmissionsByReporter,
 	IARReportNotes,
 	IARSubmissions,
@@ -57,9 +55,11 @@ const REPORT_TABLES = [
 	MessageReportSubmissionsByReporter,
 	UserReportSubmissionsByReporter,
 	GuildReportSubmissionsByReporter,
-	DSAReportEmailVerifications,
-	DSAReportTickets,
 ];
+
+const RETIRED_COLUMNS: Readonly<Record<string, ReadonlyArray<string>>> = {
+	iar_submissions: ['reporter_email'],
+};
 
 function sortedFields(fields: Iterable<[string, string]>): Array<[string, string]> {
 	return [...fields].sort(([left], [right]) => left.localeCompare(right));
@@ -79,7 +79,9 @@ describe('Cassandra UDT parity', () => {
 		(name, table) => {
 			const schemaTable = SCHEMA.tables.find((entry) => entry.name === name);
 			expect(schemaTable).toBeDefined();
-			expect(schemaTable!.columns.map((column) => column.name).sort()).toEqual([...table.columns].sort());
+			const retired = RETIRED_COLUMNS[name] ?? [];
+			const columns = schemaTable!.columns.map((column) => column.name).filter((column) => !retired.includes(column));
+			expect(columns.sort()).toEqual([...table.columns].sort());
 		},
 	);
 });

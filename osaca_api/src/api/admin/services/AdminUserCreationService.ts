@@ -4,24 +4,16 @@ import type {ApiContext} from '@app/api/ApiContext';
 import {mapUserToAdminResponse} from '@app/api/admin/models/UserTypes';
 import type {AdminAuditService} from '@app/api/admin/services/AdminAuditService';
 import type {AdminUserSecurityService} from '@app/api/admin/services/AdminUserSecurityService';
-import {sendVerificationEmail} from '@app/api/auth/AuthEmail';
 import {resolveRegistrationUsername} from '@app/api/auth/AuthRegistration';
 import {createUserID, type UserID} from '@app/api/BrandedTypes';
 import {EMPTY_USER_ROW, type UserRow} from '@app/api/database/types/UserTypes';
 import {emitActivity} from '@app/api/infrastructure/activity/ActivityEvents';
 import type {DiscriminatorService} from '@app/api/infrastructure/DiscriminatorService';
-import {withAccountIdentitySetupLock} from '@app/api/instance/AccountIdentitySetupLock';
-import {getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
 import type {User} from '@app/api/models/User';
 import {UserSettings} from '@app/api/models/UserSettings';
 import {reserveUsername, type UsernameReservation} from '@app/api/user/UniqueUsernames';
-import {EmailDeliveryStates} from '@osaca/constants/src/AccountConfigConstants';
-import {AccountIdentityModes, TagStyles} from '@osaca/constants/src/AccountIdentityConstants';
 import {AdminACLs} from '@osaca/constants/src/AdminACLs';
 import {ProfileFieldPrivacyFlags} from '@osaca/constants/src/UserConstants';
-import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
-import {UsernameSignInOnlyError} from '@osaca/errors/src/domains/auth/UsernameSignInOnlyError';
-import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
 import type {AdminUserCreateRequest, AdminUserCreateResponse} from '@osaca/schema/src/domains/admin/AdminUserSchemas';
 
 interface AdminUserCreationServiceDeps {
@@ -40,12 +32,8 @@ export class AdminUserCreationService {
 		auditLogReason: string | null,
 		acls: ReadonlySet<string>,
 	): Promise<AdminUserCreateResponse> {
-		const {config, cache} = this.deps.apiContext.services;
-		const repository = getInstanceConfigRepository();
-		const user =
-			!config.instance.selfHosted || (await repository.isAccountIdentityLocked())
-				? await this.createAccount(data)
-				: await withAccountIdentitySetupLock(cache, () => this.createAccount(data));
+		const {cache} = this.deps.apiContext.services;
+		const user = await this.createAccount(data);
 		await this.deps.auditService.createAuditLog({
 			adminUserId,
 			targetType: 'user',
@@ -71,25 +59,10 @@ export class AdminUserCreationService {
 
 	private async createAccount(data: AdminUserCreateRequest): Promise<User> {
 		const {users, snowflake, cache} = this.deps.apiContext.services;
-		const repository = getInstanceConfigRepository();
-		const accountIdentity = await repository.getAccountIdentity();
-		const usernameMode = accountIdentity.mode === AccountIdentityModes.USERNAME;
-		const uniqueUsernames = accountIdentity.tagStyle === TagStyles.NONE;
-		const emailEnabled = (await repository.getEmailDeliveryState()) === EmailDeliveryStates.ON;
-		const email = data.email ?? null;
-		if (usernameMode && email !== null) {
-			throw new UsernameSignInOnlyError();
-		}
-		if (!usernameMode && email === null) {
-			throw InputValidationError.fromCode('email', ValidationErrorCodes.EMAIL_IS_REQUIRED);
-		}
-		if (email !== null && (await users.findByEmail(email))) {
-			throw InputValidationError.fromCode('email', ValidationErrorCodes.EMAIL_ALREADY_IN_USE);
-		}
 		const {username, discriminator} = await resolveRegistrationUsername({
 			users,
 			discriminatorService: this.deps.discriminatorService,
-			uniqueUsernames,
+			uniqueUsernames: true,
 			requestedUsername: data.username,
 			explicitlyRequested: true,
 			globalName: undefined,
@@ -105,9 +78,6 @@ export class AdminUserCreationService {
 			global_name: null,
 			bot: false,
 			system: false,
-			email,
-			email_verified: email === null || !emailEnabled,
-			email_bounced: false,
 			password_hash: null,
 			password_last_changed_at: null,
 			authenticator_types: new Set(),
@@ -123,9 +93,7 @@ export class AdminUserCreationService {
 		let reservation: UsernameReservation | null = null;
 		let user: User;
 		try {
-			if (uniqueUsernames) {
-				reservation = await reserveUsername({users, cache}, username);
-			}
+			reservation = await reserveUsername({users, cache}, username);
 			user = await users.create(userRow);
 		} finally {
 			await reservation?.release();
@@ -138,7 +106,6 @@ export class AdminUserCreationService {
 				user_id: user.id.toString(),
 				method: 'other',
 				source: 'app',
-				email,
 				username,
 				username_user_chosen: true,
 				global_name: null,
@@ -150,9 +117,6 @@ export class AdminUserCreationService {
 			null,
 			user.id.toString(),
 		);
-		if (email !== null && emailEnabled) {
-			await sendVerificationEmail(this.deps.apiContext, {user, email});
-		}
 		return user;
 	}
 }

@@ -28,9 +28,9 @@ import {modal} from '@app/features/ui/commands/ModalCommands';
 import * as ToastCommands from '@app/features/ui/commands/ToastCommands';
 import type {User} from '@app/features/user/models/User';
 import * as NicknameUtils from '@app/features/user/utils/NicknameUtils';
-import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import type {I18n} from '@lingui/core';
 import {msg} from '@lingui/core/macro';
+import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 
 const THIS_USER_ISN_T_ACCEPTING_FRIEND_REQUESTS_RIGHT_DESCRIPTOR = msg({
 	message: "They're not accepting friend requests right now.",
@@ -49,15 +49,6 @@ const YOU_CAN_T_SEND_A_FRIEND_REQUEST_TO_DESCRIPTOR = msg({
 const YOU_RE_ALREADY_FRIENDS_WITH_THIS_USER_DESCRIPTOR = msg({
 	message: "You're already friends with this user.",
 	comment: 'Error toast when sending a friend request fails because the users are already friends.',
-});
-const YOU_NEED_TO_CLAIM_YOUR_ACCOUNT_TO_SEND_DESCRIPTOR = msg({
-	message: 'Finish signing up to send friend requests.',
-	comment:
-		'Error toast when sending a friend request fails because the current user is on an unclaimed (guest) account. "Claim your account" means complete sign-up.',
-});
-const VERIFY_EMAIL_TO_SEND_FRIEND_REQUESTS_DESCRIPTOR = msg({
-	message: 'Confirm your email before sending friend requests.',
-	comment: 'Error toast when sending a friend request fails because the current account email is unverified.',
 });
 const FAILED_TO_SEND_FRIEND_REQUEST_PLEASE_TRY_AGAIN_DESCRIPTOR = msg({
 	message: "Couldn't send the friend request. Try again.",
@@ -135,10 +126,6 @@ export function getSendFriendRequestErrorMessage(
 			return i18n._(YOU_CAN_T_SEND_A_FRIEND_REQUEST_TO_DESCRIPTOR);
 		case APIErrorCodes.ALREADY_FRIENDS:
 			return i18n._(YOU_RE_ALREADY_FRIENDS_WITH_THIS_USER_DESCRIPTOR);
-		case APIErrorCodes.UNCLAIMED_ACCOUNT_CANNOT_SEND_FRIEND_REQUESTS:
-			return i18n._(YOU_NEED_TO_CLAIM_YOUR_ACCOUNT_TO_SEND_DESCRIPTOR);
-		case APIErrorCodes.FRIEND_REQUEST_EMAIL_VERIFICATION_REQUIRED:
-			return i18n._(VERIFY_EMAIL_TO_SEND_FRIEND_REQUESTS_DESCRIPTOR);
 		case APIErrorCodes.FRIENDS_DISABLED:
 			return i18n._(FRIENDS_DISABLED_DESCRIPTOR);
 		default:

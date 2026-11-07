@@ -15,8 +15,12 @@ import {ENFORCEMENT_RULES, type EnforcementRuleKey} from '@osaca/constants/src/E
 import {UserFlags} from '@osaca/constants/src/UserConstants';
 import {AdminUserClearFieldsRequest} from '@osaca/schema/src/domains/admin/AdminUserSchemas';
 import type {EnforcementNotice} from '@osaca/schema/src/domains/auth/EnforcementNoticeSchemas';
-import {enforcementEndedSlots, renderEmailTemplateText, reportResolvedSlots} from '@pkgs/email/src/EmailService';
 import {getEmailTemplate} from '@pkgs/email/src/email_i18n/EmailI18n';
+import {
+	enforcementEndedSlots,
+	renderNoticeText as renderNoticeTemplate,
+	reportResolvedSlots,
+} from '@pkgs/email/src/NoticeText';
 import {afterEach, describe, expect, it} from 'vitest';
 
 const REPORT_REFERENCE = {
@@ -60,7 +64,7 @@ function decision(overrides: Partial<EnforcementDecisionRow> = {}): EnforcementD
 		ended_by: null,
 		end_statement: null,
 		notice_status: 'sent',
-		notice_channels: new Set(['email']),
+		notice_channels: new Set(['system_dm']),
 		notice_locale: 'en-US',
 		notice_text: null,
 		notice_sent_at: CREATED_AT,
@@ -92,11 +96,7 @@ function notice(
 	evidence: ReadonlyArray<EvidenceMessageLocation> = IN_CHANNEL,
 	locale = 'en-US',
 ): EnforcementNotice {
-	return buildEnforcementNotice(
-		{type: 'decision', decision: row, evidence, networksBlockedUntil: null, accountHasEmail: true},
-		locale,
-		NOW,
-	);
+	return buildEnforcementNotice({type: 'decision', decision: row, evidence, networksBlockedUntil: null}, locale, NOW);
 }
 
 function legacyUser(overrides: Partial<typeof EMPTY_USER_ROW>): User {
@@ -104,7 +104,6 @@ function legacyUser(overrides: Partial<typeof EMPTY_USER_ROW>): User {
 		...EMPTY_USER_ROW,
 		user_id: 41n as UserID,
 		username: 'legacy',
-		email: 'legacy@example.com',
 		...overrides,
 	});
 }
@@ -205,7 +204,7 @@ describe('buildEnforcementNotice', () => {
 			facts: ["We don't have more detail on record for this decision."],
 			statement: null,
 			how_we_decided: [],
-			appeal: {email: 'appeals@osaca.example', deadline: null, account_has_email: true},
+			appeal: {email: 'appeals@osaca.example', deadline: null},
 		});
 		const banned = buildEnforcementNotice(
 			{
@@ -254,7 +253,7 @@ describe('buildEnforcementNotice', () => {
 		}
 	});
 
-	it('names no product or address in any email or reporter notice on an unnamed self-hosted instance', () => {
+	it('names no product or address in any notice on an unnamed self-hosted instance', () => {
 		config.instance.selfHosted = true;
 		setCachedProductName(null);
 		const productName = getInstanceProductName();
@@ -262,10 +261,10 @@ describe('buildEnforcementNotice', () => {
 		const full = <T extends Parameters<typeof getEmailTemplate>[0]>(
 			key: T,
 			variables: Parameters<typeof getEmailTemplate<T>>[2],
-			slots?: Parameters<typeof renderEmailTemplateText<T>>[4],
+			slots?: Parameters<typeof renderNoticeTemplate<T>>[4],
 		) => {
 			const template = getEmailTemplate(key, 'en-US', {...variables, reply: 'no'}, productName);
-			const text = renderEmailTemplateText(key, 'en-US', variables, productName, slots);
+			const text = renderNoticeTemplate(key, 'en-US', variables, productName, slots);
 			return template.ok && text !== null ? `${template.value.subject}\n${text}` : null;
 		};
 		const rendered = [
@@ -277,13 +276,8 @@ describe('buildEnforcementNotice', () => {
 					enforcementEndedSlots,
 				),
 			),
-			full('account_deletion_scheduled_requested', {deletion_date: 'Dec 13, 2026'}),
-			full('account_deletion_scheduled_inactivity', {deletion_date: 'Dec 13, 2026'}),
 			...(['removed', 'restricted', 'action_taken', 'no_violation'] as const).flatMap((outcome) => [
 				full('report_resolved', {...REPORT_REFERENCE, outcome, appeals_email: contacts.appealsEmail}, (template) =>
-					reportResolvedSlots(template, '1', ''),
-				),
-				full('dsa_report_resolved', {...REPORT_REFERENCE, outcome, appeals_email: contacts.appealsEmail}, (template) =>
 					reportResolvedSlots(template, '1', ''),
 				),
 			]),

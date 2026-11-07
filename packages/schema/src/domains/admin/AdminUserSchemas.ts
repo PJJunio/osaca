@@ -23,7 +23,7 @@ import {
 	SnowflakeStringType,
 	SnowflakeType,
 } from '@osaca/schema/src/primitives/SchemaPrimitives';
-import {DiscriminatorType, EmailType, UsernameType} from '@osaca/schema/src/primitives/UserValidators';
+import {DiscriminatorType, UsernameType} from '@osaca/schema/src/primitives/UserValidators';
 import {z} from 'zod';
 
 const DeletionReasonCodeType = createInt32EnumType(
@@ -45,9 +45,6 @@ export const UserAdminResponseSchema = z.object({
 	bio: z.string().nullable(),
 	pronouns: z.string().nullable(),
 	accent_color: Int32Type.nullable(),
-	email: z.string().nullable(),
-	email_verified: z.boolean(),
-	email_bounced: z.boolean(),
 	locale: z.string().nullable(),
 	profile_badges: z
 		.array(AdminProfileBadgeResponse)
@@ -300,18 +297,6 @@ export const SetUserSystemStatusRequest = z.object({
 
 export type SetUserSystemStatusRequest = z.infer<typeof SetUserSystemStatusRequest>;
 
-export const VerifyUserEmailRequest = z.object({
-	user_id: SnowflakeType.describe('ID of the user to verify email for'),
-});
-
-export type VerifyUserEmailRequest = z.infer<typeof VerifyUserEmailRequest>;
-
-export const ResendVerificationEmailRequest = z.object({
-	user_id: SnowflakeType.describe('ID of the user to resend verification email to'),
-});
-
-export type ResendVerificationEmailRequest = z.infer<typeof ResendVerificationEmailRequest>;
-
 export const SendPasswordResetRequest = z.object({
 	user_id: SnowflakeType.describe('ID of the user to send password reset to'),
 });
@@ -334,9 +319,6 @@ export type AdminSignInLinkResponse = z.infer<typeof AdminSignInLinkResponse>;
 
 export const AdminUserCreateRequest = z.object({
 	username: UsernameType.describe('Username for the new account'),
-	email: EmailType.optional().describe(
-		'Email address for the new account. Required on an instance where people sign in with email, and refused where they sign in with a username',
-	),
 	admin: z.boolean().default(false).describe('Whether to give the new account full admin access'),
 });
 
@@ -358,13 +340,6 @@ export const ChangeUsernameRequest = z.object({
 });
 
 export type ChangeUsernameRequest = z.infer<typeof ChangeUsernameRequest>;
-
-export const ChangeEmailRequest = z.object({
-	user_id: SnowflakeType.describe('ID of the user to change email for'),
-	email: EmailType.describe('New email address for the user'),
-});
-
-export type ChangeEmailRequest = z.infer<typeof ChangeEmailRequest>;
 
 export const TerminateSessionsRequest = z.object({
 	user_id: SnowflakeType.describe('ID of the user to terminate sessions for'),
@@ -503,12 +478,7 @@ export const AdminUserListQuery = z.object({
 		.union([SnowflakeStringType, z.array(SnowflakeStringType).max(100)])
 		.optional()
 		.describe('Restrict the results to these users. Repeat the parameter to pass more than one.'),
-	resolve: createStringType(1, 1024)
-		.optional()
-		.describe(
-			'Resolve one exact identifier: a username#discriminator tag, a user ID, an email address, or a Stripe subscription ID',
-		),
-	email: createStringType(1, 320).optional().describe('Restrict the results to the user with this exact email address'),
+	resolve: createStringType(1, 1024).optional().describe('Resolve one exact identifier: a username or a user ID'),
 	last_active_ip: createStringType(1, 64)
 		.optional()
 		.describe('Restrict the results to the users whose last active IP address matches this one exactly'),
@@ -609,10 +579,6 @@ export const AdminUserUsernameUpdateRequest = ChangeUsernameRequest.omit({user_i
 
 export type AdminUserUsernameUpdateRequest = z.infer<typeof AdminUserUsernameUpdateRequest>;
 
-export const AdminUserEmailUpdateRequest = ChangeEmailRequest.omit({user_id: true});
-
-export type AdminUserEmailUpdateRequest = z.infer<typeof AdminUserEmailUpdateRequest>;
-
 export const AdminUserDeletionScheduleRequest = z.object({
 	days_until_deletion: DaysUntilDeletionType,
 	replace_pending_deletion_at: z.iso
@@ -633,7 +599,7 @@ export const AdminUserDeletionScheduleRequest = z.object({
 		.boolean()
 		.optional()
 		.describe(
-			'Self-hosted instances only. Delete the account now instead of after days_until_deletion, with no notice email. This cannot be undone',
+			'Self-hosted instances only. Delete the account now instead of after days_until_deletion. This cannot be undone',
 		),
 });
 

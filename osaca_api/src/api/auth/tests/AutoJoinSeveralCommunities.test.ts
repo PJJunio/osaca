@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {createUniqueEmail, createUniqueUsername} from '@app/api/auth/tests/AuthTestUtils';
+import {createUniqueUsername} from '@app/api/auth/tests/AuthTestUtils';
 import {Config} from '@app/api/Config';
 import {createChannelInvite, createGuild, setupTestGuildWithMembers} from '@app/api/guild/tests/GuildTestUtils';
 import {parseInviteCodeList} from '@app/api/instance/AutoJoinInviteCodes';
@@ -47,7 +47,6 @@ describe('auto-join several communities on sign-up', () => {
 		const registered = await createBuilderWithoutAuth<{user_id: string}>(harness)
 			.post('/auth/register')
 			.body({
-				email: createUniqueEmail('autojoin'),
 				username: createUniqueUsername('autojoin'),
 				global_name: 'New member',
 				password: 'joins-two-communities',

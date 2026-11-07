@@ -17,11 +17,7 @@ import {observer} from 'mobx-react-lite';
 
 export const UnclaimedAccountNagbar = observer(({isMobile}: {isMobile: boolean}) => {
 	const {i18n} = useLingui();
-	const presentation = getUnclaimedAccountPresentation(
-		i18n,
-		UnclaimedAccountSurfaces.NAGBAR,
-		Users.currentUser?.verificationNeed,
-	);
+	const presentation = getUnclaimedAccountPresentation(i18n, UnclaimedAccountSurfaces.NAGBAR);
 	const handleDismiss = () => {
 		const userId = Users.currentUser?.id;
 		if (userId) snoozeUnclaimedNagbar(userId);

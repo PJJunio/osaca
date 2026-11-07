@@ -3,7 +3,7 @@
 import {domainToASCII} from 'node:url';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
-import {AllowedEmailDomainsSchema, InstanceConfigResponse} from '@osaca/schema/src/domains/admin/AdminSchemas';
+import {InstanceConfigResponse} from '@osaca/schema/src/domains/admin/AdminSchemas';
 
 const DOMAIN_LABEL_REGEX = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
 const TrustedDomainsSchema = InstanceConfigResponse.shape.app_public.shape.branding.shape.trusted_domains;
@@ -12,16 +12,12 @@ function throwInvalidDomain(field: string, domain: string): never {
 	throw InputValidationError.fromCode(field, ValidationErrorCodes.INVALID_ALLOWED_DOMAIN, {domain});
 }
 
-export function normalizeAllowedEmailDomains(domains: unknown, field: string): Array<string> {
-	return normalizeDomainList(AllowedEmailDomainsSchema, domains, field, false);
-}
-
 export function normalizeTrustedDomains(domains: unknown, field: string): Array<string> {
 	return normalizeDomainList(TrustedDomainsSchema, domains, field, true);
 }
 
 function normalizeDomainList(
-	schema: typeof AllowedEmailDomainsSchema,
+	schema: typeof TrustedDomainsSchema,
 	domains: unknown,
 	field: string,
 	allowWildcard: boolean,

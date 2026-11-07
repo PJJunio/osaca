@@ -62,7 +62,6 @@ type EnforcementNoticeSource =
 			decision: EnforcementDecisionRow;
 			evidence: ReadonlyArray<EvidenceMessageLocation>;
 			networksBlockedUntil: Date | null;
-			accountHasEmail: boolean;
 	  }
 	| {type: 'legacy'; user: User};
 
@@ -112,7 +111,7 @@ function redressLines(ctx: NoticeContext): Array<string> {
 	];
 }
 
-function appealOf(ctx: NoticeContext, from: Date | null, accountHasEmail: boolean): EnforcementNotice['appeal'] {
+function appealOf(ctx: NoticeContext, from: Date | null): EnforcementNotice['appeal'] {
 	if (!ctx.appealsEmail) {
 		return null;
 	}
@@ -121,7 +120,6 @@ function appealOf(ctx: NoticeContext, from: Date | null, accountHasEmail: boolea
 		deadline: from
 			? formatNoticeDate(new Date(from.getTime() + ms(`${ENFORCEMENT_APPEAL_WINDOW_DAYS} days`)), ctx.locale)
 			: null,
-		account_has_email: accountHasEmail,
 	};
 }
 
@@ -335,7 +333,7 @@ function howWeDecided(ctx: NoticeContext, decision: EnforcementDecisionRow): Arr
 
 function buildDecisionNotice(
 	ctx: NoticeContext,
-	{decision, evidence, networksBlockedUntil, accountHasEmail}: Extract<EnforcementNoticeSource, {type: 'decision'}>,
+	{decision, evidence, networksBlockedUntil}: Extract<EnforcementNoticeSource, {type: 'decision'}>,
 ): EnforcementNotice {
 	const reason = ENFORCEMENT_REASONS[decision.reason_code];
 	const target: NoticeTarget = {
@@ -355,7 +353,7 @@ function buildDecisionNotice(
 		facts: decisionFacts(ctx, decision, evidence),
 		statement: reason.handling === 'restricted' ? null : decision.statement,
 		how_we_decided: howWeDecided(ctx, decision),
-		appeal: appealOf(ctx, decision.notice_sent_at, accountHasEmail),
+		appeal: appealOf(ctx, decision.notice_sent_at),
 		redress: redressLines(ctx),
 	};
 }
@@ -402,7 +400,7 @@ function buildLegacyNotice(ctx: NoticeContext, user: User, now: Date): Enforceme
 		facts: statement ? [] : [text(ctx, 'enforcement.lead.legacy')],
 		statement,
 		how_we_decided: [],
-		appeal: appealOf(ctx, closed ? user.deletionScheduledAt : null, user.email !== null),
+		appeal: appealOf(ctx, closed ? user.deletionScheduledAt : null),
 		redress: redressLines(ctx),
 	};
 }

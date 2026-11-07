@@ -203,8 +203,6 @@ export const OAuth2UserInfoResponse = z.object({
 	discriminator: z.string().describe('The discriminator of the user'),
 	global_name: z.string().nullable().describe('The global display name of the user'),
 	avatar: z.string().nullable().describe('The avatar hash of the user'),
-	email: z.string().nullable().optional().describe('The email address of the user'),
-	verified: z.boolean().nullable().optional().describe('Whether the user has verified their email'),
 	flags: createBitflagInt32Type(
 		PublicUserFlags,
 		PublicUserFlagsDescriptions,
@@ -259,8 +257,6 @@ export const OAuth2MeResponse = z.object({
 			bot: z.boolean().optional().describe('Whether the user is a bot'),
 			system: z.boolean().optional().describe('Whether the user is a system user'),
 			flags: createBitflagInt32Type(PublicUserFlags, PublicUserFlagsDescriptions, 'The user flags', 'PublicUserFlags'),
-			email: z.string().nullable().optional().describe('The email address of the user'),
-			verified: z.boolean().nullable().optional().describe('Whether the user has verified their email'),
 		})
 		.optional()
 		.describe('The user associated with the token'),

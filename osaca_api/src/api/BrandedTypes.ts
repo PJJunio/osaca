@@ -31,11 +31,7 @@ export type ApplicationID = Brand<bigint, 'ApplicationID'>;
 export type EntranceSoundID = Brand<bigint, 'EntranceSoundID'>;
 export type InviteCode = Brand<string, 'InviteCode'>;
 export type VanityURLCode = Brand<string, 'VanityURLCode'>;
-export type EmailVerificationToken = Brand<string, 'EmailVerificationToken'>;
 export type PasswordResetToken = Brand<string, 'PasswordResetToken'>;
-export type EmailRevertToken = Brand<string, 'EmailRevertToken'>;
-export type IpAuthorizationToken = Brand<string, 'IpAuthorizationToken'>;
-type IpAuthorizationTicket = Brand<string, 'IpAuthorizationTicket'>;
 type MfaTicket = Brand<string, 'MfaTicket'>;
 export type WebhookToken = Brand<string, 'WebhookToken'>;
 export type MfaBackupCode = Brand<string, 'MfaBackupCode'>;
@@ -100,32 +96,10 @@ export function createVanityURLCode<T extends string>(code: T extends BrandedVal
 	return brand<T, 'VanityURLCode'>(code);
 }
 
-export function createEmailVerificationToken<T extends string>(
-	token: T extends BrandedValue ? never : T,
-): EmailVerificationToken {
-	return brand<T, 'EmailVerificationToken'>(token);
-}
-
 export function createPasswordResetToken<T extends string>(
 	token: T extends BrandedValue ? never : T,
 ): PasswordResetToken {
 	return brand<T, 'PasswordResetToken'>(token);
-}
-
-export function createEmailRevertToken<T extends string>(token: T extends BrandedValue ? never : T): EmailRevertToken {
-	return brand<T, 'EmailRevertToken'>(token);
-}
-
-export function createIpAuthorizationToken<T extends string>(
-	token: T extends BrandedValue ? never : T,
-): IpAuthorizationToken {
-	return brand<T, 'IpAuthorizationToken'>(token);
-}
-
-export function createIpAuthorizationTicket<T extends string>(
-	ticket: T extends BrandedValue ? never : T,
-): IpAuthorizationTicket {
-	return brand<T, 'IpAuthorizationTicket'>(ticket);
 }
 
 export function createMfaTicket<T extends string>(ticket: T extends BrandedValue ? never : T): MfaTicket {

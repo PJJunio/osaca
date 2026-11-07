@@ -19,7 +19,7 @@ import {observer} from 'mobx-react-lite';
 import {useState} from 'react';
 
 const MESSAGING_PAUSED_HELP_BODY_DESCRIPTOR = msg({
-	message: 'Email {supportEmail} and a person will check your account. You can also reply to the email we sent you.',
+	message: 'Email {supportEmail} and a person will check your account.',
 	comment:
 		'Body of the help dialog opened from "My text didn\'t go through" while messaging is paused on the account. supportEmail is the support email address. Keep it short, calm and neutral.',
 });

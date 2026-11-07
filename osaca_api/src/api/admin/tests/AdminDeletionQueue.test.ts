@@ -1,14 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {randomInt} from 'node:crypto';
-import {
-	clearTestEmails,
-	createTestAccount,
-	findLastTestEmail,
-	listTestEmails,
-	setUserACLs,
-	type TestAccount,
-} from '@app/api/auth/tests/AuthTestUtils';
+import {createTestAccount, setUserACLs, type TestAccount} from '@app/api/auth/tests/AuthTestUtils';
 import {createUserID} from '@app/api/BrandedTypes';
 import {getAdminRepository} from '@app/api/middleware/ServiceSingletons';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
@@ -244,33 +237,6 @@ describe('Admin Deletion Queue', () => {
 				.body({expected_pending_deletion_at: new Date().toISOString()})
 				.expect(HTTP_STATUS.BAD_REQUEST, 'NO_PENDING_DELETION')
 				.execute();
-		});
-
-		test('cancel records whose deletion it cancelled and always tells the holder', async () => {
-			const scheduler = await createAdmin();
-			const canceller = await createAdmin();
-			const target = await createTestAccount(harness);
-			const scheduled = await scheduleAs(scheduler, target, 'Review');
-			await clearTestEmails(harness);
-			await createBuilder(harness, canceller.token)
-				.delete(`/admin/users/${target.userId}/deletion`)
-				.header('X-Audit-Log-Reason', 'Private cancel note')
-				.body({expected_pending_deletion_at: scheduled.user.pending_deletion_at})
-				.expect(HTTP_STATUS.OK)
-				.execute();
-			const emails = await listTestEmails(harness, {recipient: target.email});
-			const email = findLastTestEmail(emails, 'account_deletion_cancelled');
-			expect(email).not.toBeNull();
-			expect(JSON.stringify(email)).not.toContain('Private cancel note');
-			expect(findLastTestEmail(emails, 'enforcement_ended')).toBeNull();
-			const logs = await getAdminRepository().listAllAuditLogsPaginated(1000);
-			const log = logs.find(
-				(entry) => entry.action === 'cancel_deletion' && entry.targetId.toString() === target.userId,
-			);
-			expect(log?.metadata.get('cancelled_pending_deletion_at')).toBe(scheduled.user.pending_deletion_at);
-			expect(log?.metadata.get('cancelled_scheduled_by')).toBe(scheduler.userId);
-			expect(log?.metadata.get('cancelled_reason_code')).toBe(DeletionReasons.USER_REQUESTED.toString());
-			expect(log?.metadata.get('notice')).toBe('account_deletion_cancelled');
 		});
 	});
 });

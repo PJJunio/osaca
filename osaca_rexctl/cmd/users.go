@@ -16,7 +16,7 @@ import (
 	"github.com/PJJunio/osaca/osaca_rexctl/internal/ui"
 )
 
-const userArg = "a username, email address or user ID"
+const userArg = "a username or user ID"
 
 type adminFunc func(ctx context.Context, api *adminapi.Client, inst *instance.Instance) error
 
@@ -101,9 +101,9 @@ func newUsersCmd(app *App) *cobra.Command {
 			}
 			rows := make([][]string, 0, len(users))
 			for _, u := range users {
-				rows = append(rows, []string{u.Username, u.Email, u.ID, shortDate(u.CreatedAt), userStatus(u)})
+				rows = append(rows, []string{u.Username, u.ID, shortDate(u.CreatedAt), userStatus(u)})
 			}
-			app.UI.Table([]string{"Username", "Email", "ID", "Joined", "Status"}, rows)
+			app.UI.Table([]string{"Username", "ID", "Joined", "Status"}, rows)
 			return nil
 		})
 	}
@@ -123,18 +123,12 @@ func newUsersCmd(app *App) *cobra.Command {
 			if u.LastActiveAt != nil {
 				lastActive = shortDate(*u.LastActiveAt)
 			}
-			email := u.Email
-			if email == "" {
-				email = "none"
-			}
 			acls := "none"
 			if len(u.ACLs) > 0 {
 				acls = strings.Join(u.ACLs, ", ")
 			}
 			app.UI.Table([]string{"Account", u.Username}, [][]string{
 				{"ID", u.ID},
-				{"Email", email},
-				{"Email confirmed", yesNo(u.Verified)},
 				{"Joined", shortDate(u.CreatedAt)},
 				{"Last active", lastActive},
 				{"Admin", yesNo(u.Admin)},
@@ -148,18 +142,12 @@ func newUsersCmd(app *App) *cobra.Command {
 		})
 	}
 
-	var email string
 	var admin bool
 	create := &cobra.Command{Use: "create <username>", Short: "Create an account and print a link to set its password", Args: exactArgs("a username")}
-	create.Flags().StringVar(&email, "email", "", "email address for the account")
 	create.Flags().BoolVar(&admin, "admin", false, "make the account an admin")
 	create.RunE = func(c *cobra.Command, args []string) error {
 		return adminWrite(c, app, func(ctx context.Context, api *adminapi.Client, _ *instance.Instance) error {
-			created, err := api.CreateUser(ctx, args[0], email, admin)
-			var apiErr *adminapi.APIError
-			if email != "" && errors.As(err, &apiErr) && apiErr.Code == "USERNAME_SIGN_IN_ONLY" {
-				return ui.Refused("People on your instance sign in with a username and don't have an email address on their account.", "Run the command again without --email.")
-			}
+			created, err := api.CreateUser(ctx, args[0], admin)
 			if err != nil {
 				return err
 			}
@@ -184,10 +172,6 @@ func newUsersCmd(app *App) *cobra.Command {
 				return err
 			}
 			link, expires, err := api.ResetLink(ctx, u.ID)
-			var apiErr *adminapi.APIError
-			if errors.As(err, &apiErr) && apiErr.Code == "USERNAME_SIGN_IN_ONLY" {
-				return ui.Failed("People on your instance reset their password by email from the sign-in page.", "If email has stopped working, run rexctl email off, then try again.")
-			}
 			if err != nil {
 				return err
 			}

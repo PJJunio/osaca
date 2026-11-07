@@ -33,6 +33,10 @@ const NON_DSL_DEFAULTS: Record<string, number | null> = {
 	billing_webhook_events: null,
 	donor_magic_link_tokens: null,
 	donor_magic_link_tokens_by_email: null,
+	dsa_report_email_verifications: null,
+	dsa_report_tickets: null,
+	email_revert_tokens: null,
+	email_verification_tokens: null,
 	forensic_identifier_by_key_day: null,
 	forensic_identifier_by_request: null,
 	forensic_request_meta_by_actor_day: null,
@@ -41,6 +45,7 @@ const NON_DSL_DEFAULTS: Record<string, number | null> = {
 	forensic_resource_exposure_by_request: null,
 	forensic_resource_exposure_by_route_day_shard: null,
 	forensic_resource_exposure_by_subject_day: null,
+	ip_authorization_tokens: null,
 };
 
 const OWN_EXPIRY_PASS = new Set(['jobs_by_id', 'jobs_by_day_bucket']);

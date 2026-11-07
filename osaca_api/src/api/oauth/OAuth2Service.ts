@@ -349,8 +349,7 @@ export class OAuth2Service {
 		if (!user) {
 			throw new InvalidTokenError();
 		}
-		const includeEmail = token.scope.has('email');
-		return mapUserToOAuthResponse(user, {includeEmail});
+		return mapUserToOAuthResponse(user);
 	}
 
 	async introspect(

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {EXAMPLE_OSACA_TAG_FULL, EXAMPLE_USERNAME} from '@app/features/app/config/I18nDisplayConstants';
-import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
+import {EXAMPLE_USERNAME} from '@app/features/app/config/I18nDisplayConstants';
 import styles from '@app/features/channel/components/direct_message/AddFriendForm.module.css';
 import {failureCode, failureMessage} from '@app/features/platform/utils/ResponseInspection';
 import * as RelationshipCommands from '@app/features/relationship/commands/RelationshipCommands';
@@ -13,10 +12,10 @@ import MobileLayout from '@app/features/ui/state/MobileLayout';
 import Users from '@app/features/user/state/Users';
 import {AccountGateSlate} from '@app/features/user/utils/AccountGatePresentation';
 import {canPerform} from '@app/features/user/utils/AccountGates';
-import {TierGatedActions} from '@osaca/constants/src/AccountTierConstants';
-import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
+import {TierGatedActions} from '@osaca/constants/src/AccountTierConstants';
+import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {clsx} from 'clsx';
 import {observer} from 'mobx-react-lite';
 import type React from 'react';
@@ -25,11 +24,6 @@ import {useState} from 'react';
 const NO_USER_FOUND_WITH_THAT_USERNAME_DESCRIPTOR = msg({
 	message: 'No user found with that username.',
 	comment: 'Empty-state text in the channel and chat add friend form.',
-});
-const PLEASE_ENTER_A_VALID_USERNAME_DESCRIPTOR = msg({
-	message: 'Enter a valid username ({exampleOsacaTagFull}).',
-	comment:
-		'Description text in the channel and chat add friend form. Preserve {exampleOsacaTagFull}; it is inserted by code.',
 });
 const ENTER_A_VALID_USERNAME_DESCRIPTOR = msg({
 	message: 'Enter a valid username.',
@@ -55,7 +49,6 @@ export const AddFriendForm: React.FC<AddFriendFormProps> = observer(({onSuccess}
 	const [resultStatus, setResultStatus] = useState<'success' | 'error' | null>(null);
 	const [errorCode, setErrorCode] = useState<string | null>(null);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
-	const usernameOnly = RuntimeConfig.usesUniqueUsernames;
 	const friendRequestGate = canPerform(Users.currentUser, TierGatedActions.FRIEND_REQUEST);
 	if (!friendRequestGate.allowed) {
 		return (
@@ -66,7 +59,7 @@ export const AddFriendForm: React.FC<AddFriendFormProps> = observer(({onSuccess}
 		const parts = input['split']('#');
 		if (parts.length > 1) {
 			const discriminator = parts.slice(1).join('#');
-			return [parts[0], usernameOnly && /^0{1,4}$/.test(discriminator) ? '0000' : discriminator];
+			return [parts[0], /^0{1,4}$/.test(discriminator) ? '0000' : discriminator];
 		}
 		return [input, '0000'];
 	};
@@ -86,8 +79,7 @@ export const AddFriendForm: React.FC<AddFriendFormProps> = observer(({onSuccess}
 			return i18n._(NO_USER_FOUND_WITH_THAT_USERNAME_DESCRIPTOR);
 		}
 		if (errorCode === APIErrorCodes.DISCRIMINATOR_REQUIRED) {
-			if (usernameOnly) return i18n._(ENTER_A_VALID_USERNAME_DESCRIPTOR);
-			return i18n._(PLEASE_ENTER_A_VALID_USERNAME_DESCRIPTOR, {exampleOsacaTagFull: EXAMPLE_OSACA_TAG_FULL});
+			return i18n._(ENTER_A_VALID_USERNAME_DESCRIPTOR);
 		}
 		if (errorCode === APIErrorCodes.NEW_CONVERSATIONS_LIMITED) {
 			return getSendFriendRequestErrorMessage(i18n, errorCode, errorMessage);
@@ -142,7 +134,7 @@ export const AddFriendForm: React.FC<AddFriendFormProps> = observer(({onSuccess}
 					type="text"
 					value={input}
 					onChange={handleInputChange}
-					placeholder={usernameOnly ? EXAMPLE_USERNAME : EXAMPLE_OSACA_TAG_FULL}
+					placeholder={EXAMPLE_USERNAME}
 					className={clsx(
 						styles.input,
 						!isMobile && styles.inputDesktop,

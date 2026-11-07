@@ -6,7 +6,6 @@ import {
 	type AccountTier,
 	AccountTiers,
 	type AccountVerificationNeed,
-	AccountVerificationNeeds,
 	TierExemptions,
 	type TierGatedAction,
 } from '@osaca/constants/src/AccountTierConstants';
@@ -15,7 +14,6 @@ import {evaluateTierGate, resolveVerificationNeed, type TierGateDenial} from '@o
 export interface AccountGateUser {
 	readonly accountTier: AccountTier;
 	readonly verificationNeed: AccountVerificationNeed | null;
-	readonly email: string | null | undefined;
 }
 
 export interface AccountGateContext {
@@ -38,23 +36,14 @@ export function canPerform(
 	ctx: AccountGateContext = {},
 ): AccountGateResult {
 	const tier = user?.accountTier ?? AccountTiers.UNCLAIMED;
-	const hasEmail = user?.email != null;
 	const result = evaluateTierGate({
 		tier,
 		mode: RuntimeConfig.interactionTier,
 		action,
-		identityMode: RuntimeConfig.accountIdentity,
-		hasEmail,
 		guildJoinGateApplies: RuntimeConfig.guildJoinGate !== GuildJoinGates.OFF,
 		exemptions: ctx.isGuildOwner ? [TierExemptions.GUILD_OWNER] : [],
 	});
 	if (!result.allowed) return result;
-	const need = user
-		? user.verificationNeed
-		: resolveVerificationNeed({tier, identityMode: RuntimeConfig.accountIdentity, hasEmail});
+	const need = user ? user.verificationNeed : resolveVerificationNeed(tier);
 	return {allowed: true, action, tier, need, errorCode: null};
-}
-
-export function needsEmailConfirmation(user: Pick<AccountGateUser, 'verificationNeed'> | null | undefined): boolean {
-	return RuntimeConfig.emailsEnabled && user?.verificationNeed === AccountVerificationNeeds.CONFIRM_EMAIL;
 }

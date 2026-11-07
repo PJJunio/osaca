@@ -8,15 +8,14 @@ import {openExternalUrl} from '@app/features/ui/utils/NativeUtils';
 import * as UserCommands from '@app/features/user/commands/UserCommands';
 import styles from '@app/features/user/components/modals/tabs/privacy_safety_tab/DataDeletionTab.module.css';
 import {
-	accountGetsEmail,
 	DataRequestModal,
 	EXPORT_TAB_DESCRIPTION,
 } from '@app/features/user/components/modals/tabs/privacy_safety_tab/data_request_modal/DataRequestModal';
 import * as DateUtils from '@app/features/user/utils/DateFormatting';
 import * as FormUtils from '@app/lib/forms';
-import type {HarvestStatusResponse} from '@osaca/schema/src/domains/user/UserHarvestSchemas';
 import {msg} from '@lingui/core/macro';
 import {Trans, useLingui} from '@lingui/react/macro';
+import type {HarvestStatusResponse} from '@osaca/schema/src/domains/user/UserHarvestSchemas';
 import {observer} from 'mobx-react-lite';
 import type React from 'react';
 import {useCallback, useEffect, useState} from 'react';
@@ -100,13 +99,11 @@ const DataExportStatus = observer(
 
 export const DataExportTabContent: React.FC = observer(() => {
 	const {i18n} = useLingui();
-	const showInAppStatus = !accountGetsEmail();
 	const [harvest, setHarvest] = useState<HarvestStatusResponse | null>(null);
 	const [refreshToken, setRefreshToken] = useState(0);
 	const [downloading, setDownloading] = useState(false);
 	const inProgress = isHarvestInProgress(harvest);
 	useEffect(() => {
-		if (!showInAppStatus) return;
 		let cancelled = false;
 		let timer: number | null = null;
 		const load = async () => {
@@ -124,7 +121,7 @@ export const DataExportTabContent: React.FC = observer(() => {
 			cancelled = true;
 			if (timer !== null) window.clearTimeout(timer);
 		};
-	}, [showInAppStatus, refreshToken]);
+	}, [refreshToken]);
 	const handleExportRequested = useCallback(() => setRefreshToken((value) => value + 1), []);
 	const handleOpen = useCallback(() => {
 		ModalCommands.push(
@@ -160,7 +157,7 @@ export const DataExportTabContent: React.FC = observer(() => {
 			>
 				{i18n._(EXPORT_TAB_DESCRIPTION)}
 			</Modal.Description>
-			{showInAppStatus && harvest && (
+			{harvest && (
 				<DataExportStatus
 					harvest={harvest}
 					onDownload={handleDownload}
@@ -170,7 +167,7 @@ export const DataExportTabContent: React.FC = observer(() => {
 			)}
 			<Button
 				variant="primary"
-				disabled={showInAppStatus && inProgress}
+				disabled={inProgress}
 				onClick={handleOpen}
 				data-flx="user.privacy-safety-tab.data-export-tab.data-export-tab-content.button.open-modal"
 			>

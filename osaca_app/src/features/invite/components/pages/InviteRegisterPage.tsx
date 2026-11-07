@@ -2,7 +2,6 @@
 
 import {Routes} from '@app/app/Routes';
 import type {RuntimeConfigSnapshot} from '@app/features/app/state/InstanceSnapshotStore';
-import {usesUsernameSignIn} from '@app/features/app/utils/AccountIdentityFeatures';
 import * as AccountEntryCommands from '@app/features/auth/commands/AccountEntryCommands';
 import * as AuthenticationCommands from '@app/features/auth/commands/AuthenticationCommands';
 import {AuthBottomLink} from '@app/features/auth/flow/AuthBottomLink';
@@ -15,10 +14,9 @@ import {
 	instantAccountErrors,
 	NO_INSTANT_ACCOUNT_ERRORS,
 } from '@app/features/auth/flow/InstantAccountForm';
+import {offersInstantAccount} from '@app/features/auth/flow/InstantAccountOffer';
 import {InviteHeader} from '@app/features/auth/flow/InviteHeader';
-import {PENDING_APPROVAL_DESCRIPTOR} from '@app/features/auth/flow/identifier_first/AuthIdentifierFirstStep';
-import {offersInstantAccount} from '@app/features/auth/flow/identifier_first/IdentifierFirstState';
-import {linkRegisterFields, readRegistrationUrlCode} from '@app/features/auth/flow/RegisterFormFields';
+import {credentialRegisterFields, readRegistrationUrlCode} from '@app/features/auth/flow/RegisterFormFields';
 import {getRegistrationLegalConsentConfig} from '@app/features/auth/flow/RegistrationLegalNotice';
 import {useAuthPresentation} from '@app/features/auth/flow/useAuthPresentation';
 import {AuthCardVariant} from '@app/features/auth/state/AuthLayoutContext';
@@ -32,9 +30,15 @@ import {
 } from '@app/features/invite/components/pages/InviteAuthPageState';
 import {setPathQueryParams} from '@app/features/messaging/utils/MessagingUrlUtils';
 import {useLocation, useParams} from '@app/features/platform/components/router/RouterReact';
+import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
 import {observer} from 'mobx-react-lite';
 import {useMemo, useState} from 'react';
+
+const PENDING_APPROVAL_DESCRIPTOR = msg({
+	message: 'Your account request is pending approval. You can sign in after an admin approves it.',
+	comment: 'Notice after creating an account on an instance where admins approve new accounts.',
+});
 
 interface InviteRegisterPageContentProps {
 	readonly runtimeSnapshot: RuntimeConfigSnapshot;
@@ -138,7 +142,6 @@ const InviteRegisterPageContent = observer(function InviteRegisterPageContent({
 			/>
 		);
 
-	const usernameSignIn = usesUsernameSignIn(runtimeSnapshot.features);
 	const registrationUrlCode = readRegistrationUrlCode(params);
 	const instantAccount = guildInvite !== null && offersInstantAccount(runtimeSnapshot.features, null);
 	return (
@@ -160,10 +163,10 @@ const InviteRegisterPageContent = observer(function InviteRegisterPageContent({
 					/>
 				) : (
 					<AuthRegisterFormCore
-						fields={linkRegisterFields(runtimeSnapshot, registrationUrlCode)}
+						fields={credentialRegisterFields()}
 						submitLabel={i18n._(CREATE_ACCOUNT_DESCRIPTOR)}
 						redirectPath="/"
-						offerRecoveryKit={usernameSignIn}
+						offerRecoveryKit
 						inviteCode={code}
 						runtimeSnapshot={runtimeSnapshot}
 						onAuthenticated={runtimeTarget.reset}

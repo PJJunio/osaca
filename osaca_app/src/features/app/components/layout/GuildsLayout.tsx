@@ -1273,7 +1273,6 @@ const SKELETON_NAGBAR_ROW_SHAPES: Record<NagbarType, SkeletonNagbarRowShape> = {
 	[NagbarType.SCHEDULED_MAINTENANCE]: {tone: SkeletonNagbarTone.MAINTENANCE_SCHEDULED, hasActions: true},
 	[NagbarType.INSTANCE_NOTICE]: {tone: SkeletonNagbarTone.MAINTENANCE, hasActions: true},
 	[NagbarType.UNCLAIMED_ACCOUNT]: {tone: SkeletonNagbarTone.NEUTRAL, hasActions: true},
-	[NagbarType.EMAIL_VERIFICATION]: {tone: SkeletonNagbarTone.NEUTRAL, hasActions: true},
 	[NagbarType.ACCOUNT_LIMITED]: {tone: SkeletonNagbarTone.NEUTRAL, hasActions: false},
 	[NagbarType.DESKTOP_NOTIFICATION]: {tone: SkeletonNagbarTone.BRAND, hasActions: true},
 	[NagbarType.DESKTOP_DOWNLOAD]: {tone: SkeletonNagbarTone.BRAND, hasActions: true},

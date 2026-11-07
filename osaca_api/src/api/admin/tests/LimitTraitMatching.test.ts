@@ -63,14 +63,6 @@ describe('limit rules and traits on a self-hosted instance', () => {
 		await createBuilder(harness, admin.token).put(`/admin/users/${account.userId}/traits`).body({traits}).execute();
 	}
 
-	async function changeTag(account: TestAccount, discriminator: string): Promise<number> {
-		const {response} = await createBuilder(harness, account.token)
-			.patch('/users/@me')
-			.body({discriminator, password: account.password})
-			.executeRaw();
-		return response.status;
-	}
-
 	async function clientLimits(account: TestAccount) {
 		const {json: me} = await fetchUserMe(harness, account.token);
 		const discovery = await createBuilderWithoutAuth<WellKnownOsacaResponse>(harness)
@@ -106,15 +98,13 @@ describe('limit rules and traits on a self-hosted instance', () => {
 		const {limits} = await clientLimits(member);
 		expect(limits.feature_animated_banner).toBe(1);
 		expect(limits.max_guilds).toBe(DEFAULT_LIMITS.max_guilds);
-		expect(await changeTag(member, '4244')).toBe(200);
 	});
 
 	it('gives a trait rule to an account that an admin gave the trait, whatever its case', async () => {
 		await saveSupporterRule();
 		const member = await createTestAccount(harness);
-		expect(await changeTag(member, '4242')).toBe(400);
+		expect((await clientLimits(member)).limits.feature_custom_discriminator).toBe(0);
 		await setTraits(member, ['SUPPORTER']);
-		expect(await changeTag(member, '4243')).toBe(200);
 		const {traits, limits} = await clientLimits(member);
 		expect(traits).toEqual(['supporter']);
 		expect(limits.feature_custom_discriminator).toBe(1);

@@ -74,7 +74,6 @@
 {{- $_ := set $c "OSACA_LIVEKIT_DEFAULT_REGION" $v.livekit.defaultRegion }}
 {{- end }}
 {{- $_ := set $c "OSACA_API_PRESIGNED_HARVEST_DOWNLOADS_ENABLED" "false" }}
-{{- $_ := set $c "OSACA_EMAIL_FROM_EMAIL" "noreply@localhost" }}
 {{- $_ := set $c "OSACA_VAPID_EMAIL" ($v.email | default (printf "admin@%s" $v.domain)) }}
 {{- $_ := set $c "OSACA_INTERNAL_API_ENDPOINT" "http://api:8080" }}
 {{- $_ := set $c "OSACA_INTERNAL_MEDIA_PROXY_ENDPOINT" "http://media-proxy:8080" }}

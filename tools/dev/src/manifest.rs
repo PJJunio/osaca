@@ -16,7 +16,6 @@ pub const GATEWAY_PORT: u16 = 8771;
 pub const MEDIA_PROXY_PORT: u16 = 8082;
 pub const PUSH_PORT: u16 = 8126;
 pub const LIVEKIT_PORT: u16 = 7880;
-pub const DEVMAIL_PORT: u16 = 8025;
 
 pub const LOCAL_APP_URL: &str = "http://localhost:8088";
 
@@ -63,13 +62,6 @@ pub const PROXY_ROUTES: &[ProxyRoute] = &[
         host: "livekit",
         port: LIVEKIT_PORT,
         strip_prefix: true,
-        alternate_ports: &[],
-    },
-    ProxyRoute {
-        prefix: "/devmail",
-        host: "mailpit",
-        port: DEVMAIL_PORT,
-        strip_prefix: false,
         alternate_ports: &[],
     },
     ProxyRoute {

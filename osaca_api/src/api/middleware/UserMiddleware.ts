@@ -26,7 +26,6 @@ const SKIP_PATHS = new Set([
 	'/voice/join/preview',
 	'/voice/join',
 	'/voice/node',
-	'/webhooks/sweego',
 	'/webhooks/app-store',
 	'/webhooks/google-play',
 ]);

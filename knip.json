@@ -24,14 +24,10 @@
 		"osaca_api": {
 			"ignoreDependencies": [
 				"@messageformat/parser",
-				"@pdf-lib/fontkit",
 				"@vvo/tzdb",
-				"bidi-js",
 				"emoji-regex",
-				"harfbuzzjs",
 				"ioredis",
 				"maxmind",
-				"nodemailer",
 				"pg",
 				"pino",
 				"undici",

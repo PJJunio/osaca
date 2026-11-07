@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {EMAIL_DESCRIPTOR, PASSWORD_DESCRIPTOR} from '@app/features/i18n/utils/CommonMessageDescriptors';
+import {PASSWORD_DESCRIPTOR} from '@app/features/i18n/utils/CommonMessageDescriptors';
 import {shouldShowClaimedAccountSettings} from '@app/features/user/components/settings_utils/SettingsVisibility';
 import type {SectionDefinition} from '@app/features/user/components/settings_utils/section_registry/SectionRegistryTypes';
 import {
@@ -75,7 +75,7 @@ const PERMANENT_DELETION_DESCRIPTOR = msg({
 const SIGN_IN_DETAILS_DESCRIPTOR = msg({
 	message: 'Sign-in details',
 	context: 'security-settings-section',
-	comment: 'Account and security settings section for email address and password controls.',
+	comment: 'Account and security settings section for password and recovery controls.',
 });
 const SECURITY_DESCRIPTOR = msg({
 	message: 'Security',
@@ -95,7 +95,6 @@ export const accountSecuritySections = [
 		label: SIGN_IN_DETAILS_DESCRIPTOR,
 		keywords: [
 			ACCOUNT_DESCRIPTOR,
-			EMAIL_DESCRIPTOR,
 			MAIL_DESCRIPTOR,
 			ADDRESS_DESCRIPTOR,
 			CONTACT_DESCRIPTOR,

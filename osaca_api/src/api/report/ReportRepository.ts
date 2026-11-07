@@ -19,8 +19,6 @@ import {
 } from '@app/api/database/CassandraQueryExecution';
 import {Db} from '@app/api/database/CassandraTypes';
 import type {
-	DSAReportEmailVerificationRow,
-	DSAReportTicketRow,
 	GuildReportSubmissionByReporterRow,
 	IARReportNoteRow,
 	MessageReportSubmissionByReporterRow,
@@ -36,8 +34,6 @@ import {
 	ReportType,
 } from '@app/api/report/ReportModels';
 import {
-	DSAReportEmailVerifications,
-	DSAReportTickets,
 	GuildReportSubmissionsByReporter,
 	IARReportNotes,
 	IARSubmissions,
@@ -62,15 +58,6 @@ const createFetchAllReportsPaginatedQuery = (limit: number) =>
 		where: IARSubmissions.where.tokenGt('report_id', 'last_report_id'),
 		limit,
 	});
-const GET_DSA_EMAIL_VERIFICATION_QUERY = DSAReportEmailVerifications.select({
-	where: DSAReportEmailVerifications.where.eq('email_lower'),
-	limit: 1,
-});
-const GET_DSA_REPORT_TICKET_QUERY = DSAReportTickets.select({
-	where: DSAReportTickets.where.eq('ticket'),
-	limit: 1,
-});
-const DSA_EMAIL_VERIFICATION_WRITE_ATTEMPTS = 5;
 function createFetchAllReportsFirstPageQuery(limit: number) {
 	return IARSubmissions.select({limit});
 }
@@ -212,16 +199,6 @@ export class ReportRepository {
 		);
 	}
 
-	async clearReporterEmail(reportId: ReportID, reporterId: UserID): Promise<boolean> {
-		return executeConditional(
-			IARSubmissions.conditionalPatchByPk(
-				{report_id: reportId},
-				{reporter_email: Db.set(null)},
-				{reporter_id: reporterId},
-			),
-		);
-	}
-
 	async deleteReport(reportId: ReportID): Promise<void> {
 		const report = await this.getReport(reportId);
 		if (!report) {
@@ -265,7 +242,6 @@ export class ReportRepository {
 		return {
 			reportId: createReportID(row.report_id),
 			reporterId: row.reporter_id ? createUserID(row.reporter_id) : null,
-			reporterEmail: row.reporter_email,
 			reporterFullLegalName: row.reporter_full_legal_name,
 			reporterCountryOfResidence: row.reporter_country_of_residence,
 			reportedAt: row.reported_at,
@@ -339,56 +315,6 @@ export class ReportRepository {
 			reports = await fetchMany<IARSubmissionRow>(query.bind({}));
 		}
 		return reports.map((report) => this.mapRowToSubmission(report));
-	}
-
-	async upsertDsaEmailVerification(row: DSAReportEmailVerificationRow): Promise<void> {
-		for (let attempt = 0; attempt < DSA_EMAIL_VERIFICATION_WRITE_ATTEMPTS; attempt++) {
-			const current = await this.getDsaEmailVerification(row.email_lower);
-			const written = await executeConditional(
-				current
-					? DSAReportEmailVerifications.conditionalPatchByPk(
-							{email_lower: row.email_lower},
-							{
-								code_hash: Db.set(row.code_hash),
-								expires_at: Db.set(row.expires_at),
-								last_sent_at: Db.set(row.last_sent_at),
-							},
-							{code_hash: current.code_hash},
-						)
-					: DSAReportEmailVerifications.insertIfNotExists(row),
-			);
-			if (written) return;
-		}
-		throw new Error('DSA email verification kept changing during write');
-	}
-
-	async getDsaEmailVerification(emailLower: string): Promise<DSAReportEmailVerificationRow | null> {
-		const row = await fetchOne<DSAReportEmailVerificationRow>(
-			GET_DSA_EMAIL_VERIFICATION_QUERY.bind({email_lower: emailLower}),
-		);
-		return row ?? null;
-	}
-
-	async consumeDsaEmailVerification(emailLower: string, codeHash: string): Promise<boolean> {
-		return executeConditional(
-			DSAReportEmailVerifications.conditionalDeleteByPk({email_lower: emailLower}, {code_hash: codeHash}),
-		);
-	}
-
-	async createDsaTicket(row: DSAReportTicketRow): Promise<void> {
-		const created = await executeConditional(DSAReportTickets.insertIfNotExists(row));
-		if (!created) {
-			throw new Error('DSA ticket already exists');
-		}
-	}
-
-	async getDsaTicket(ticket: string): Promise<DSAReportTicketRow | null> {
-		const row = await fetchOne<DSAReportTicketRow>(GET_DSA_REPORT_TICKET_QUERY.bind({ticket}));
-		return row ?? null;
-	}
-
-	async consumeDsaTicket(ticket: string, emailLower: string): Promise<boolean> {
-		return executeConditional(DSAReportTickets.conditionalDeleteByPk({ticket}, {email_lower: emailLower}));
 	}
 
 	private mapMessageContext(rawContext: Array<IARMessageContextRow>): Array<IARMessageContext> {

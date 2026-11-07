@@ -9,7 +9,7 @@ type EnforcementAutomation = 'none' | 'flagged' | 'automated';
 type EnforcementStatus = 'active' | 'ended';
 export type EnforcementEndOutcome = 'lifted' | 'reversed' | 'expired';
 export type EnforcementNoticeStatus = 'pending' | 'sent' | 'undelivered';
-export type EnforcementNoticeChannel = 'email' | 'system_dm' | 'sign_in';
+export type EnforcementNoticeChannel = 'system_dm' | 'sign_in';
 export type EvidenceChannelKind = 'direct_message' | 'group_message' | 'channel';
 
 export interface EnforcementDecisionRow {

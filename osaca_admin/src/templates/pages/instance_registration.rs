@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use super::instance_config::{
-    REGISTRATION_ALLOWED_EMAIL_DOMAINS_FIELD, allowed_domains_input,
-    format_optional_admin_timestamp,
-};
+use super::instance_config::format_optional_admin_timestamp;
 use crate::templates::pages::instance_config::ConfigForm;
 use crate::{
-    api::types::{AccountIdentityMode, InstanceRegistrationResponse, RegistrationUrlResponse},
+    api::types::{InstanceRegistrationResponse, RegistrationUrlResponse},
     config::AdminConfig,
     templates::components::{
         badge::{BadgeVariant, badge},
@@ -24,7 +21,6 @@ pub(super) fn registration_config_section(
     config: &AdminConfig,
     config_form: ConfigForm<'_>,
     registration: &InstanceRegistrationResponse,
-    account_identity: AccountIdentityMode,
 ) -> Markup {
     let base = &config.base_path;
     section_card_with_description(
@@ -32,7 +28,7 @@ pub(super) fn registration_config_section(
         "Control public registration and admin-issued registration URLs.",
         html! {
             div class="space-y-8" {
-                (registration_policy_form(base, config_form, registration, account_identity))
+                (registration_policy_form(base, config_form, registration))
                 (create_registration_url_form(base, config_form.csrf_token))
                 (registration_url_list(config, config_form.csrf_token, &registration.urls))
             }
@@ -44,7 +40,6 @@ fn registration_policy_form(
     base: &str,
     config_form: ConfigForm<'_>,
     registration: &InstanceRegistrationResponse,
-    account_identity: AccountIdentityMode,
 ) -> Markup {
     html! {
         div class="space-y-4" {
@@ -67,13 +62,6 @@ fn registration_policy_form(
                                 enabled: true,
                             }.render())
                         }
-                    }
-                    @if !account_identity.is_username() {
-                        (allowed_domains_input(
-                            REGISTRATION_ALLOWED_EMAIL_DOMAINS_FIELD,
-                            &registration.allowed_email_domains.join("\n"),
-                            "Only email addresses on these domains (one per line) can sign up, claim an account or become an account's new email. People with an admin-issued registration URL can use any domain. Leave empty to allow any domain.",
-                        ))
                     }
                     (form_actions(html! {
                         (submit_button("Save Registration Policy"))

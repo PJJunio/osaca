@@ -12,7 +12,6 @@ interface SudoMfaMethodsResponse {
 	webauthn: boolean;
 	backup_codes: boolean;
 	has_mfa: boolean;
-	email_code?: boolean;
 	password?: boolean;
 }
 
@@ -52,7 +51,6 @@ describe('MFA Consistency Tests', () => {
 				webauthn: false,
 				backup_codes: false,
 				has_mfa: false,
-				email_code: false,
 				password: true,
 			});
 			const errorResp = await createBuilder<SudoModeRequiredResponse>(harness, account.token)
@@ -65,7 +63,6 @@ describe('MFA Consistency Tests', () => {
 				totp: methods.totp,
 				webauthn: methods.webauthn,
 				backup_codes: methods.backup_codes,
-				email_code: methods.email_code,
 				password: methods.password,
 			});
 		});
@@ -89,7 +86,6 @@ describe('MFA Consistency Tests', () => {
 				webauthn: false,
 				backup_codes: true,
 				has_mfa: true,
-				email_code: false,
 				password: false,
 			});
 			const errorResp = await createBuilder<SudoModeRequiredResponse>(harness, loggedIn.token)
@@ -102,7 +98,6 @@ describe('MFA Consistency Tests', () => {
 				totp: methods.totp,
 				webauthn: methods.webauthn,
 				backup_codes: methods.backup_codes,
-				email_code: methods.email_code,
 				password: methods.password,
 			});
 		});

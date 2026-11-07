@@ -17,9 +17,6 @@ export class User {
 	readonly globalName: string | null;
 	readonly isBot: boolean;
 	readonly isSystem: boolean;
-	readonly email: string | null;
-	readonly emailVerified: boolean;
-	readonly emailBounced: boolean;
 	readonly passwordHash: string | null;
 	readonly passwordLastChangedAt: Date | null;
 	readonly totpSecret: string | null;
@@ -67,9 +64,6 @@ export class User {
 		this.globalName = row.global_name ?? null;
 		this.isBot = row.bot ?? false;
 		this.isSystem = row.system ?? false;
-		this.email = row.email ?? null;
-		this.emailVerified = row.email_verified ?? false;
-		this.emailBounced = row.email_bounced ?? false;
 		this.passwordHash = row.password_hash ?? null;
 		this.passwordLastChangedAt = row.password_last_changed_at ?? null;
 		this.totpSecret = row.totp_secret ?? null;
@@ -127,9 +121,6 @@ export class User {
 			global_name: this.globalName,
 			bot: this.isBot,
 			system: this.isSystem,
-			email: this.email,
-			email_verified: this.emailVerified,
-			email_bounced: this.emailBounced,
 			password_hash: this.passwordHash,
 			password_last_changed_at: this.passwordLastChangedAt,
 			totp_secret: this.totpSecret,

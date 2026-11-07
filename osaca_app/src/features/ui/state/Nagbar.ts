@@ -17,7 +17,6 @@ interface NagbarSettings {
 	guildMfaRequirementDismissed: Record<string, boolean>;
 	guildMembershipCtaDismissed: boolean;
 	forceConnectionNotice: boolean;
-	forceEmailVerification: boolean;
 	forceAccountLimited: boolean;
 	forceUnclaimedAccount: boolean;
 	forceDesktopNotification: boolean;
@@ -31,7 +30,6 @@ interface NagbarSettings {
 	forceGuildMfaRequirement: boolean;
 	forceDomainMoved: boolean;
 	forceHideConnectionNotice: boolean;
-	forceHideEmailVerification: boolean;
 	forceHideAccountLimited: boolean;
 	forceHideUnclaimedAccount: boolean;
 	forceHideDesktopNotification: boolean;
@@ -64,7 +62,6 @@ export class Nagbar implements NagbarSettings {
 	buildEnvironmentDismissedThisSession = false;
 	scheduledMaintenanceDismissalVersion = 0;
 	unclaimedAccountDismissedThisSession = false;
-	forceEmailVerification = false;
 	forceAccountLimited = false;
 	forceUnclaimedAccount = false;
 	forceDesktopNotification = false;
@@ -78,7 +75,6 @@ export class Nagbar implements NagbarSettings {
 	forceGuildMfaRequirement = false;
 	forceDomainMoved = false;
 	forceConnectionNotice = false;
-	forceHideEmailVerification = false;
 	forceHideAccountLimited = false;
 	forceHideUnclaimedAccount = false;
 	forceHideDesktopNotification = false;
@@ -200,7 +196,6 @@ export class Nagbar implements NagbarSettings {
 		this.guildMembershipCtaDismissed = false;
 		this.buildEnvironmentDismissedThisSession = false;
 		this.unclaimedAccountDismissedThisSession = false;
-		this.forceEmailVerification = false;
 		this.forceAccountLimited = false;
 		this.forceUnclaimedAccount = false;
 		this.forceDesktopNotification = false;
@@ -214,7 +209,6 @@ export class Nagbar implements NagbarSettings {
 		this.forceGuildMfaRequirement = false;
 		this.forceDomainMoved = false;
 		this.forceConnectionNotice = false;
-		this.forceHideEmailVerification = false;
 		this.forceHideAccountLimited = false;
 		this.forceHideUnclaimedAccount = false;
 		this.forceHideDesktopNotification = false;

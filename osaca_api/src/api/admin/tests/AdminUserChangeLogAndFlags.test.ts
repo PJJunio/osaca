@@ -3,17 +3,9 @@
 import {createTestAccount, setUserACLs} from '@app/api/auth/tests/AuthTestUtils';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {HTTP_STATUS} from '@app/api/test/TestConstants';
-import {createBuilder, createBuilderWithoutAuth} from '@app/api/test/TestRequestBuilder';
+import {createBuilder} from '@app/api/test/TestRequestBuilder';
 import {AdminACLs} from '@osaca/constants/src/AdminACLs';
-import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi} from 'vitest';
-
-interface VerifyEmailMutationResponse {
-	user: {
-		id: string;
-		email_verified: boolean;
-		email_bounced: boolean;
-	};
-}
+import {afterAll, afterEach, beforeAll, beforeEach, describe, test, vi} from 'vitest';
 
 describe('Admin User Change Log and Flags', () => {
 	let harness: ApiTestHarness;
@@ -47,38 +39,6 @@ describe('Admin User Change Log and Flags', () => {
 			const target = await createTestAccount(harness);
 			await createBuilder(harness, `${admin.token}`)
 				.delete(`/admin/users/${target.userId}/mfa`)
-				.expect(HTTP_STATUS.FORBIDDEN)
-				.execute();
-		});
-	});
-	describe('PUT /admin/users/{user_id}/email-verification', () => {
-		test('verifying email clears email_bounced', async () => {
-			const admin = await createTestAccount(harness);
-			await setUserACLs(harness, admin, [AdminACLs.AUTHENTICATE, AdminACLs.WILDCARD]);
-			const target = await createTestAccount(harness);
-			await createBuilderWithoutAuth(harness)
-				.post(`/test/users/${target.userId}/security-flags`)
-				.body({
-					email_bounced: true,
-					email_verified: false,
-				})
-				.expect(HTTP_STATUS.OK)
-				.execute();
-			const result = await createBuilder<VerifyEmailMutationResponse>(harness, `${admin.token}`)
-				.put(`/admin/users/${target.userId}/email-verification`)
-				.expect(HTTP_STATUS.OK)
-				.execute();
-			expect(result.user.email_verified).toBe(true);
-			expect(result.user.email_bounced).toBe(false);
-		});
-	});
-	describe('POST /admin/users/{user_id}/verification-email', () => {
-		test('requires USER_UPDATE_EMAIL ACL', async () => {
-			const admin = await createTestAccount(harness);
-			await setUserACLs(harness, admin, [AdminACLs.AUTHENTICATE, AdminACLs.USER_LOOKUP]);
-			const target = await createTestAccount(harness);
-			await createBuilder(harness, `${admin.token}`)
-				.post(`/admin/users/${target.userId}/verification-email`)
 				.expect(HTTP_STATUS.FORBIDDEN)
 				.execute();
 		});

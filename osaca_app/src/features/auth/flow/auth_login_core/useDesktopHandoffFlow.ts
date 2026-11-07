@@ -11,11 +11,11 @@ import type {UserData} from '@app/features/auth/state/AccountStorageContract';
 import {type InstanceHTTPTarget, instanceTargetFromSnapshot} from '@app/features/platform/transport/InstanceHTTP';
 import {Logger} from '@app/features/platform/utils/AppLogger';
 import * as FormUtils from '@app/lib/forms';
+import {msg} from '@lingui/core/macro';
+import {useLingui} from '@lingui/react/macro';
 import {officialClientApiEndpointForAlias} from '@osaca/instance_bootstrap/src/OfficialInstance';
 import type {DesktopHandoffReturnMethod} from '@osaca/schema/src/domains/auth/AuthSchemas';
 import {formatDesktopHandoffCode, parseDesktopHandoffCode} from '@osaca/schema/src/domains/auth/DesktopHandoffCode';
-import {msg} from '@lingui/core/macro';
-import {useLingui} from '@lingui/react/macro';
 import {useCallback, useMemo, useRef, useState} from 'react';
 
 const HANDOFF_REQUEST_EXPIRED_DESCRIPTOR = msg({
@@ -68,7 +68,7 @@ function readDesktopHandoffRequest(search: string): DesktopHandoffRequest {
 	return {
 		code: code == null ? null : formatDesktopHandoffCode(code),
 		apiOrigin: originOf(params.get('api')),
-		identifier: params.get('email') ?? params.get('login'),
+		identifier: params.get('login'),
 	};
 }
 
@@ -88,7 +88,7 @@ function isSameInstanceOrigin(left: string, right: string): boolean {
 
 function matchesIdentifier(identifier: string, userData: UserData): boolean {
 	const wanted = identifier.trim().toLowerCase();
-	return wanted === userData.username.toLowerCase() || wanted === userData.email?.toLowerCase();
+	return wanted === userData.username.toLowerCase();
 }
 
 interface Options {

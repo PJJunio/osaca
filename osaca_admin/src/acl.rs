@@ -18,9 +18,6 @@ pub const BADGE_CREATE: &str = "badge:create";
 pub const BADGE_DELETE: &str = "badge:delete";
 pub const BADGE_LIST: &str = "badge:list";
 pub const BADGE_UPDATE: &str = "badge:update";
-pub const BAN_EMAIL_ADD: &str = "ban:email:add";
-pub const BAN_EMAIL_CHECK: &str = "ban:email:check";
-pub const BAN_EMAIL_REMOVE: &str = "ban:email:remove";
 pub const BAN_PHRASE_ADD: &str = "ban:phrase:add";
 pub const BAN_PHRASE_CHECK: &str = "ban:phrase:check";
 pub const BAN_PHRASE_REMOVE: &str = "ban:phrase:remove";
@@ -93,12 +90,10 @@ pub const USER_LIST_SESSIONS: &str = "user:list:sessions";
 pub const USER_LOOKUP: &str = "user:lookup";
 pub const USER_REMOVE_RELATIONSHIP: &str = "user:remove:relationship";
 pub const USER_VIEW_CONTACT_LOG: &str = "user:view:contact_log";
-pub const USER_VIEW_EMAIL: &str = "user:view:email";
 pub const USER_VIEW_IP: &str = "user:view:ip";
 pub const USER_TEMP_BAN: &str = "user:temp_ban";
 pub const USER_UPDATE_BADGES: &str = "user:update:badges";
 pub const USER_UPDATE_BOT_STATUS: &str = "user:update:bot_status";
-pub const USER_UPDATE_EMAIL: &str = "user:update:email";
 pub const USER_UPDATE_FLAGS: &str = "user:update:flags";
 pub const USER_UPDATE_MFA: &str = "user:update:mfa";
 pub const USER_UPDATE_PROFILE: &str = "user:update:profile";
@@ -134,9 +129,6 @@ pub const ALL_ACLS: &[&str] = &[
     BADGE_DELETE,
     BADGE_LIST,
     BADGE_UPDATE,
-    BAN_EMAIL_ADD,
-    BAN_EMAIL_CHECK,
-    BAN_EMAIL_REMOVE,
     BAN_PHRASE_ADD,
     BAN_PHRASE_CHECK,
     BAN_PHRASE_REMOVE,
@@ -209,12 +201,10 @@ pub const ALL_ACLS: &[&str] = &[
     USER_LOOKUP,
     USER_REMOVE_RELATIONSHIP,
     USER_VIEW_CONTACT_LOG,
-    USER_VIEW_EMAIL,
     USER_VIEW_IP,
     USER_TEMP_BAN,
     USER_UPDATE_BADGES,
     USER_UPDATE_BOT_STATUS,
-    USER_UPDATE_EMAIL,
     USER_UPDATE_FLAGS,
     USER_UPDATE_MFA,
     USER_UPDATE_PROFILE,

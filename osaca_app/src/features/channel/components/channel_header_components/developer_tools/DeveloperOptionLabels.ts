@@ -85,10 +85,6 @@ const VANITY_URL_DISCLAIMER_DESCRIPTOR = msg({
 	message: 'Vanity URL disclaimer',
 	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
 });
-const EMAIL_VERIFIED_DESCRIPTOR = msg({
-	message: 'Email verified',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
 const UNCLAIMED_ACCOUNT_LABEL_DESCRIPTOR = msg({
 	message: 'Unclaimed account',
 	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
@@ -216,8 +212,6 @@ const getDeveloperOptionLabel = (key: keyof DeveloperOptionsState): MessageDescr
 			return SELF_HOSTED_MODE_DESCRIPTOR;
 		case 'forceShowVanityURLDisclaimer':
 			return VANITY_URL_DISCLAIMER_DESCRIPTOR;
-		case 'emailVerifiedOverride':
-			return EMAIL_VERIFIED_DESCRIPTOR;
 		case 'unclaimedAccountOverride':
 			return UNCLAIMED_ACCOUNT_LABEL_DESCRIPTOR;
 		case 'mockVerificationBarrier':

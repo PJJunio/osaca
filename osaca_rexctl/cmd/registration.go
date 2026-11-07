@@ -59,9 +59,9 @@ func newRegistrationCmd(app *App) *cobra.Command {
 			}
 			rows := make([][]string, 0, len(list))
 			for _, p := range list {
-				rows = append(rows, []string{p.ID, p.Username, p.Email, shortDate(p.RequestedAt)})
+				rows = append(rows, []string{p.ID, p.Username, shortDate(p.RequestedAt)})
 			}
-			app.UI.Table([]string{"ID", "Username", "Email", "Asked on"}, rows)
+			app.UI.Table([]string{"ID", "Username", "Asked on"}, rows)
 			return nil
 		})
 	}

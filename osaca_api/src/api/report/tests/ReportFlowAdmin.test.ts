@@ -7,8 +7,7 @@ import type {IARMessageContextRow, IARSubmissionRow} from '@app/api/database/typ
 import {ReportRepository} from '@app/api/report/ReportRepository';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {HTTP_STATUS} from '@app/api/test/TestConstants';
-import {createBuilder, createBuilderWithoutAuth} from '@app/api/test/TestRequestBuilder';
-import {deleteAccount, setPendingDeletionAt} from '@app/api/user/tests/UserTestUtils';
+import {createBuilder} from '@app/api/test/TestRequestBuilder';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {ReportAdminResponseSchema} from '@osaca/schema/src/domains/admin/AdminSchemas';
 import {
@@ -20,35 +19,8 @@ import type {z} from 'zod';
 
 type AdminReport = z.infer<typeof ReportAdminResponseSchema>;
 
-interface ReportResponse {
-	report_id: string;
-}
-
-interface AdminReportList {
-	reports: Array<AdminReport>;
-	total: number;
-	offset: number;
-	limit: number;
-}
-
-async function submitLegacyUser(harness: ApiTestHarness, reporter: TestAccount, userId: string): Promise<string> {
-	const result = await createBuilder<ReportResponse>(harness, reporter.token)
-		.post('/reports/user')
-		.body({user_id: userId, category: 'harassment'})
-		.expect(HTTP_STATUS.OK)
-		.execute();
-	return result.report_id;
-}
-
 async function createReportAdmin(harness: ApiTestHarness, acls = ['admin:authenticate', 'report:view']) {
 	return setUserACLs(harness, await createTestAccount(harness), acls);
-}
-
-function listReports(harness: ApiTestHarness, admin: TestAccount, query: string): Promise<AdminReportList> {
-	return createBuilder<AdminReportList>(harness, admin.token)
-		.get(`/admin/reports?${query}`)
-		.expect(HTTP_STATUS.OK)
-		.execute();
 }
 
 function getAdminReport(harness: ApiTestHarness, admin: TestAccount, reportId: string): Promise<AdminReport> {
@@ -68,7 +40,6 @@ function nextSeedId(): bigint {
 function buildReportRow(overrides: Partial<IARSubmissionRow> & Pick<IARSubmissionRow, 'report_id'>): IARSubmissionRow {
 	return {
 		reporter_id: null,
-		reporter_email: null,
 		reporter_full_legal_name: null,
 		reporter_country_of_residence: null,
 		reported_at: new Date(),
@@ -312,84 +283,6 @@ describe('Report flow admin', () => {
 			});
 			expect((await getAdminReport(harness, admin, withoutSnapshot)).reported_profile_snapshot).toBeNull();
 			expect((await getAdminReport(harness, admin, unreadable)).reported_profile_snapshot).toBeNull();
-		});
-	});
-
-	describe('Reporter contact details', () => {
-		test('the reporter email shown is the one on the reporter account', async () => {
-			const reporter = await createTestAccount(harness);
-			const target = await createTestAccount(harness);
-			const filed = await submitLegacyUser(harness, reporter, target.userId);
-			const seeded = await seedReport({
-				report_type: 1,
-				reporter_id: BigInt(reporter.userId),
-				reporter_email: 'address-at-report-time@example.com',
-				reported_user_id: BigInt(target.userId),
-			});
-			const admin = await createReportAdmin(harness, ['admin:authenticate', 'report:view', 'report:view:reporter_pii']);
-			const adminWithoutContact = await createReportAdmin(harness);
-
-			for (const reportId of [filed, seeded]) {
-				expect((await getAdminReport(harness, admin, reportId)).reporter_email).toBe(reporter.email);
-				expect((await getAdminReport(harness, adminWithoutContact, reportId)).reporter_email).toBeNull();
-			}
-			const listed = await listReports(harness, admin, 'status=pending');
-			expect(listed.reports.map((report) => report.reporter_email)).toEqual([reporter.email]);
-			expect((await listReports(harness, adminWithoutContact, 'status=pending')).reports[0].reporter_email).toBeNull();
-		});
-
-		test('a report from a deleted account shows no reporter email', async () => {
-			const reporter = await createTestAccount(harness);
-			const target = await createTestAccount(harness);
-			const filed = await submitLegacyUser(harness, reporter, target.userId);
-			const seeded = await seedReport({
-				report_type: 1,
-				reporter_id: BigInt(reporter.userId),
-				reporter_email: reporter.email,
-				reported_user_id: BigInt(target.userId),
-			});
-			const admin = await createReportAdmin(harness, ['admin:authenticate', 'report:view', 'report:view:reporter_pii']);
-			expect((await getAdminReport(harness, admin, filed)).reporter_email).toBe(reporter.email);
-
-			await deleteAccount(harness, reporter.token, reporter.password);
-			await setPendingDeletionAt(harness, reporter.userId, new Date(Date.now() - 60_000));
-			await createBuilderWithoutAuth(harness)
-				.post(`/test/worker/process-pending-deletion/${reporter.userId}`)
-				.expect(HTTP_STATUS.OK)
-				.execute();
-
-			for (const reportId of [filed, seeded]) {
-				const report = await getAdminReport(harness, admin, reportId);
-				expect(report.reporter_id).toBe(reporter.userId);
-				expect(report.reporter_email).toBeNull();
-				expect(JSON.stringify(report)).not.toContain(reporter.email);
-			}
-		});
-
-		test('a report from an account that no longer exists shows no reporter email', async () => {
-			const seeded = await seedReport({
-				report_type: 1,
-				reporter_id: nextSeedId(),
-				reporter_email: 'address-at-report-time@example.com',
-			});
-			const admin = await createReportAdmin(harness, ['admin:authenticate', 'report:view', 'report:view:reporter_pii']);
-			expect((await getAdminReport(harness, admin, seeded)).reporter_email).toBeNull();
-		});
-
-		test('a DSA report keeps the email the reporter verified', async () => {
-			const seeded = await seedReport({
-				report_type: 1,
-				reporter_email: 'dsa-reporter@example.com',
-				reporter_full_legal_name: 'Dana Reporter',
-				reporter_country_of_residence: 'DE',
-			});
-			const admin = await createReportAdmin(harness, ['admin:authenticate', 'report:view', 'report:view:reporter_pii']);
-			const adminWithoutContact = await createReportAdmin(harness);
-			const report = await getAdminReport(harness, admin, seeded);
-			expect(report.reporter_id).toBeNull();
-			expect(report.reporter_email).toBe('dsa-reporter@example.com');
-			expect(report.reporter_full_legal_name).toBe('Dana Reporter');
-			expect((await getAdminReport(harness, adminWithoutContact, seeded)).reporter_email).toBeNull();
 		});
 	});
 

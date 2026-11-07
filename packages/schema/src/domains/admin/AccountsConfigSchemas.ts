@@ -4,10 +4,8 @@ import {AccountCleanupDefaults, InstantAccountLimits} from '@osaca/constants/src
 import {
 	CleanupModeSchema,
 	GuildJoinGateSchema,
-	IdentifierFirstModeSchema,
 	InteractionTierModeSchema,
 	LastSessionCleanupModeSchema,
-	VerificationBasisSchema,
 } from '@osaca/schema/src/domains/account/AccountTierSchemas';
 import {z} from 'zod';
 
@@ -22,7 +20,6 @@ const InstantAccountsConfigSchema = z.object({
 });
 
 export const AuthConfigSchema = z.object({
-	identifier_first: IdentifierFirstModeSchema,
 	instant_accounts: InstantAccountsConfigSchema,
 });
 
@@ -40,28 +37,15 @@ const UnclaimedAccountCleanupSchema = z.object({
 	on_last_session_end: LastSessionCleanupModeSchema,
 });
 
-const InactivityDeletionSchema = z.object({
-	mode: CleanupModeSchema.describe(
-		'Whether accounts unused for a long time are deleted. An account is only deleted after a warning email reached it',
-	),
-	inactive_days: InactiveDaysSchema.describe('Days without use before the warning email is sent'),
-	warning_lead_days: z.number().int().min(1).max(365).describe('Days between the warning email and the deletion'),
-});
-
 export const AccountsConfigSchema = z.object({
 	interaction_tier: InteractionTierModeSchema,
-	verification_basis: VerificationBasisSchema,
 	guild_join_gate: GuildJoinGateSchema,
 	unclaimed_account_cleanup: UnclaimedAccountCleanupSchema,
-	inactivity_deletion: InactivityDeletionSchema,
 });
 
 export type AccountsConfig = z.infer<typeof AccountsConfigSchema>;
 
 export const AuthConfigUpdateRequest = z.object({
-	identifier_first: z
-		.union([IdentifierFirstModeSchema, z.boolean().describe('Deprecated: true means on and false means off')])
-		.optional(),
 	instant_accounts: InstantAccountsConfigSchema.partial().optional(),
 });
 
@@ -69,14 +53,9 @@ export type AuthConfigUpdateRequest = z.infer<typeof AuthConfigUpdateRequest>;
 
 export const AccountsConfigUpdateRequest = z.object({
 	interaction_tier: InteractionTierModeSchema.optional(),
-	verification_basis: VerificationBasisSchema.optional(),
 	guild_join_gate: GuildJoinGateSchema.optional(),
 	unclaimed_account_cleanup: UnclaimedAccountCleanupSchema.partial().optional(),
-	inactivity_deletion: InactivityDeletionSchema.partial().optional(),
-	abandoned_account_cleanup: z
-		.boolean()
-		.optional()
-		.describe('Deprecated, use unclaimed_account_cleanup'),
+	abandoned_account_cleanup: z.boolean().optional().describe('Deprecated, use unclaimed_account_cleanup'),
 });
 
 export type AccountsConfigUpdateRequest = z.infer<typeof AccountsConfigUpdateRequest>;

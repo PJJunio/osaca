@@ -24,7 +24,7 @@ An [Admin API key](/admin-api/api-keys/) acts as the account that created it and
 
 ## ACL evaluation
 
-Each route needs one or more ACLs, and the caller needs at least one of them. The wildcard `*` satisfies every ACL, including ones added later. Some routes need extra ACLs depending on the request, such as `user:view:email` on [List users](/admin-api/users/#list-users) when you filter by email, and you need every one of those.
+Each route needs one or more ACLs, and the caller needs at least one of them. The wildcard `*` satisfies every ACL, including ones added later. Some routes need extra ACLs depending on the request, and you need every one of those.
 
 [Update guild](/admin-api/guilds/#update-guild) and [Queue bulk job](/admin-api/bulk-jobs/#queue-bulk-job) need a different ACL depending on what the request body changes.
 
@@ -54,9 +54,6 @@ Each route needs one or more ACLs, and the caller needs at least one of them. Th
 | badge:delete | Deletes custom badges |
 | badge:list | Reads custom badges |
 | badge:update | Updates custom badges |
-| ban:email:add | Adds and updates `email` [blocklist](/admin-api/blocklists/) entries |
-| ban:email:check | Reads the `email` blocklist |
-| ban:email:remove | Removes `email` blocklist entries |
 | ban:phrase:add | Adds and updates `phrase` blocklist entries |
 | ban:phrase:check | Reads the `phrase` blocklist |
 | ban:phrase:remove | Removes `phrase` blocklist entries |
@@ -104,7 +101,7 @@ Each route needs one or more ACLs, and the caller needs at least one of them. Th
 | guild:update:name | Updates a guild name |
 | guild:update:settings | Updates general guild settings and clears guild fields |
 | guild:update:vanity | Updates a guild custom invite code |
-| instance:config:update | Updates [instance](/admin-api/instance/) configuration and branding, tests SMTP, and manages registration URLs |
+| instance:config:update | Updates [instance](/admin-api/instance/) configuration and branding, and manages registration URLs |
 | instance:config:view | Reads instance configuration |
 | instance:limit_config:update | Replaces the instance-wide limit configuration |
 | instance:limit_config:view | Reads the instance-wide limit configuration |
@@ -128,13 +125,11 @@ Each route needs one or more ACLs, and the caller needs at least one of them. Th
 | user:list:sessions | Reads a user's login sessions and lists app sessions by platform |
 | user:lookup | Reads and searches the base Admin [user](/admin-api/users/) resource |
 | user:remove:relationship | Removes one relationship or every relationship in one category |
-| user:view:contact_log | Reads a user's identity and contact change log |
-| user:view:email | Unredacts user email addresses and email verification state |
+| user:view:contact_log | Reads a user's tag change log |
 | user:view:ip | Unredacts the last active IP address and the location derived from it |
 | user:temp_ban | Suspends accounts and lifts suspensions |
 | user:update:badges | Replaces the custom badges of an account |
 | user:update:bot_status | Updates bot and system account state |
-| user:update:email | Updates the email address, verifies it, resends verification, and sends a password reset |
 | user:update:flags | Updates account flags, and ends every login session of an account |
 | user:update:mfa | Reads and removes a user's WebAuthn credentials, and removes MFA state |
 | user:update:profile | Clears profile fields |
@@ -158,7 +153,7 @@ An ACL that unredacts a field doesn't give access to any route by itself. It onl
 
 An Admin audit entry records one Admin action against one target. Almost every Admin route records an entry, reads included. A request refused by authentication, ACLs, rate limits or validation records nothing.
 
-Read entries store IDs, filters and counts, never query text, email addresses, IP addresses or other free-form input.
+Read entries store IDs, filters and counts, never query text, IP addresses or other free-form input.
 
 ### Structure
 
@@ -288,7 +283,6 @@ Expect values that aren't in this table.
 | voice_region | Voice region |
 | voice_server | Voice server registration |
 | ip | IP blocklist entry |
-| email | Exact email blocklist entry |
 | phrase | Phrase blocklist entry |
 | url | Exact URL blocklist entry |
 | url_domain | URL domain blocklist entry |
@@ -377,7 +371,6 @@ These entries have `access` set to `write`.
 | approve_registration | A pending registration was approved |
 | auto_resolve_reports_on_deletion | The pending reports against an account were processed as part of its deletion |
 | ban_avatar_hash | An avatar hash was added to the avatar blocklist |
-| ban_email | An address was added to the email blocklist |
 | ban_file_sha | A file hash was added to the attachment blocklist |
 | ban_ip | An address was added to the IP blocklist |
 | ban_ip_skipped_exempt | An IP blocklist entry was skipped because the address is exempt |
@@ -395,7 +388,6 @@ These entries have `access` set to `write`.
 | cancel_bulk_message_deletion | A bulk message deletion an account scheduled for itself was canceled |
 | cancel_deletion | A scheduled account deletion was canceled |
 | cancel_job | Cancellation of a job was requested |
-| change_email | An email address was changed |
 | change_username | A username or discriminator was changed |
 | clear_fields | Profile fields of an account, or fields of a guild, were cleared |
 | clear_report_legal_hold | The legal hold on a report was cleared |
@@ -446,7 +438,6 @@ These entries have `access` set to `write`.
 | rename_registration_url | A registration URL was given a new label |
 | reorder_badges | The display order of the custom badges was changed |
 | replace_built_in_badge_image | The image of a built-in badge was replaced |
-| resend_verification_email | An email verification message was requested again for an account |
 | reset_built_in_badge_image | A built-in badge went back to its built-in image |
 | resolve_report | A report was updated or resolved |
 | revoke_admin_api_key | An Admin API key was revoked |
@@ -465,13 +456,11 @@ These entries have `access` set to `write`.
 | system_dm.send | A system DM broadcast was created |
 | temp_ban | An account was suspended for a time or permanently |
 | terminate_sessions | Every login session of an account was revoked |
-| test_smtp_connection | An SMTP connection test was run |
 | transfer_ownership | Ownership of a guild or an OAuth2 application was transferred |
 | trigger_guild_archive | A guild archive was created |
 | trigger_user_archive | A user archive was created |
 | unban | A suspension without an enforcement decision was lifted |
 | unban_avatar_hash | An avatar hash was removed from the avatar blocklist |
-| unban_email | An address was removed from the email blocklist |
 | unban_file_sha | A file hash was removed from the attachment blocklist |
 | unban_ip | An address was removed from the IP blocklist |
 | unban_member | A guild ban was removed |
@@ -498,7 +487,6 @@ These entries have `access` set to `write`.
 | update_voice_server | A registered voice server was updated |
 | upload_branding_asset | An instance branding asset was uploaded or cleared |
 | use_sign_in_link | An admin signed in with a sign-in link |
-| verify_email | An email address was marked verified |
 | warn_user | A warning decision was recorded for an account |
 
 <a id="audit-reasons-and-effects"></a>

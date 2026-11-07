@@ -13,31 +13,6 @@ export const NICKNAME_DESCRIPTOR = msg({
 	comment: 'Settings search synonym. Used to match this term when the user types it in the settings search bar.',
 });
 
-export const NEW_EMAIL_FORM_DESCRIPTOR = msg({
-	message: 'New email form',
-	comment: 'Short label in the email change modal. Keep it concise.',
-});
-
-export const NEW_EMAIL_DESCRIPTOR = msg({
-	message: 'New email',
-	comment: 'Short label in the email change modal. Keep it concise.',
-});
-
-export const INVALID_OR_EXPIRED_CODE_DESCRIPTOR = msg({
-	message: 'Invalid or expired code',
-	comment: 'Error message in the password change modal. Keep the tone plain and specific.',
-});
-
-export const UNABLE_TO_RESEND_CODE_RIGHT_NOW_DESCRIPTOR = msg({
-	message: 'Unable to resend code right now',
-	comment: 'Error message in the password change modal. Keep the tone plain and specific.',
-});
-
-export const EMAIL_CHANGED_DESCRIPTOR = msg({
-	message: 'Email changed',
-	comment: 'Short label in the email change modal. Keep it concise.',
-});
-
 export const WHAT_S_HAPPENING_DESCRIPTOR = msg({
 	message: "What's happening?",
 	comment: 'Placeholder question in the custom status text field.',

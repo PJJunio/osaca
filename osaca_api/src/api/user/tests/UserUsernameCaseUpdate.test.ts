@@ -13,7 +13,6 @@ async function runCaseUpdateTest(
 		account: {
 			userId: string;
 			token: string;
-			email: string;
 			password: string;
 		};
 		initialUser: {
@@ -53,25 +52,16 @@ describe('User Username Case Update', () => {
 			expect(updated.json.discriminator).toBe(initialUser.discriminator);
 		});
 	});
-	test('a username change refuses a tag that is already taken', async () => {
-		await runCaseUpdateTest(harness, async ({account, initialUser}) => {
+	test('a username change refuses a username that is already taken', async () => {
+		await runCaseUpdateTest(harness, async ({account}) => {
 			const otherAccount = await createTestAccount(harness);
 			const {json: otherUser} = await fetchUserMe(harness, otherAccount.token);
-			await createBuilder(harness, otherAccount.token)
-				.patch(`/test/users/${otherAccount.userId}/discriminator`)
-				.body({discriminator: initialUser.discriminator})
-				.expect(HTTP_STATUS.OK)
-				.execute();
 			const {response, text} = await createBuilder(harness, account.token)
 				.patch('/users/@me')
-				.body({
-					username: otherUser.username,
-					discriminator: initialUser.discriminator,
-					password: account.password,
-				})
+				.body({username: otherUser.username, password: account.password})
 				.executeRaw();
 			expect(response.status).toBe(HTTP_STATUS.BAD_REQUEST);
-			expect(text).toContain('TAG_ALREADY_TAKEN');
+			expect(text).toContain('USERNAME_ALREADY_TAKEN');
 		});
 	});
 });

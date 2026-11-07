@@ -142,23 +142,14 @@ Instance-wide switches to check before you offer a feature.
 | voice_enabled | boolean | Whether voice and video calls are enabled |
 | self_hosted | boolean | Whether the instance is self-hosted |
 | presigned_attachment_uploads | boolean | Whether you can request presigned attachment upload URLs |
-| emails_enabled | boolean | Whether the instance sends email |
 | phone_verification_enabled | boolean | Deprecated. Always false |
 | discovery_enabled? | boolean | Whether the Explore community directory is available, true when missing |
-| account_identity | string | How people sign in, one of the [account identity modes](#account-identity-modes) |
-| tag_style | string | How usernames are tagged, one of the [tag styles](#tag-styles) |
 | desktop_modules_enabled? | boolean | Whether the desktop app can load downloadable modules |
 | account_deletion_grace_period_hours? | integer | Hours between a deletion request and permanent deletion (1-8,760) |
-| identifier_first? | boolean | Whether sign-in starts with [identify an account](/http-api/authentication/#identify-an-account) |
 | instant_accounts? | boolean | Whether [register an account](/http-api/authentication/#register-an-account) accepts an account with only a display name |
-| email_codes? | boolean | Whether [send an email code](/http-api/authentication/#send-an-email-code) works |
 | instant_account_availability? | string | Whether sign-up can create an instant account, one of the [instant account availability](#instant-account-availability) values |
 | interaction_tier? | string | How the [account tiers](/http-api/users/#account-tiers) apply, `legacy` or `enforced` |
 | guild_join_gate? | string | When joining a guild needs a verified account, `off`, `visits_capable` (only for clients that can visit guilds) or `always` |
-| email_delivery_state? | string | Whether the instance sends email and why not, one of the [email delivery states](#email-delivery-states) |
-| verification_basis? | string | What an account needs to be verified, `confirmed_email` or `local_credential` |
-
-When `emails_enabled` is false, email verification, password recovery and IP authorization don't work.
 
 ### Instant account availability
 
@@ -169,31 +160,6 @@ When `emails_enabled` is false, email verification, password recovery and IP aut
 | captcha_off | Instant accounts are on, but the CAPTCHA they need is off |
 | registration_closed | Public registration is closed |
 | approval_required | New accounts wait for admin approval |
-
-### Email delivery states
-
-| Value | Description |
-| --- | --- |
-| on | The instance sends email |
-| off_username_mode | The instance uses usernames and never sends email |
-| off_disabled | An admin or the configuration turned email off |
-| off_incomplete | Email is on, but the SMTP settings or sender address are incomplete |
-
-### Account identity modes
-
-| Value | Description |
-| --- | --- |
-| email | People register and sign in with an email address |
-| username | People register and sign in with a username, and the instance collects no email address |
-
-On a `username` instance, email routes return 400 `EMAIL_UNAVAILABLE_ON_INSTANCE`. On an `email` instance, username-only routes such as [recover an account](/http-api/authentication/#recover-an-account) return 400 `USERNAME_SIGN_IN_ONLY`.
-
-### Tag styles
-
-| Value | Description |
-| --- | --- |
-| none | Usernames are unique and have no tag, and every account that isn't a bot has the discriminator `0000` |
-| random | Every account gets a random tag that can be changed |
 
 ## Registration policy object
 
@@ -319,7 +285,7 @@ A `feature_` key is `1` when the feature is available and `0` when it isn't. The
 | emoji_max_size | Maximum emoji upload size in bytes, up to 104857600 (guild) |
 | feature_animated_avatar | Animated avatar uploads (user) |
 | feature_animated_banner | Animated banner uploads (user) |
-| feature_custom_discriminator | Choosing a custom discriminator, ignored with the `none` tag style (user) |
+| feature_custom_discriminator | Choosing a custom discriminator, ignored for user accounts (user) |
 | feature_custom_notification_sounds | Custom notification sounds (user) |
 | feature_early_access | Beta features (user) |
 | feature_global_expressions | Using expressions in every guild (user) |
@@ -408,20 +374,10 @@ What a client needs before anyone signs in.
 | --- | --- | --- |
 | configured | boolean | Whether setup is finished |
 | admin_url | ?string | The admin app URL to finish setup in, or null |
-| account_identity_locked? | boolean | Whether the sign-in method can no longer change |
-| account_identity_lock_reason? | ?string | One of the [account identity lock reasons](#account-identity-lock-reasons), or null while the method can change |
 | setup_token_required? | boolean | Whether [register an account](/http-api/authentication/#register-an-account) needs `setup_token` |
+| admin_exists? | boolean | Whether the first admin account exists |
 
-`account_identity_locked`, `account_identity_lock_reason` and `setup_token_required` are sent only while a self-hosted instance isn't configured.
-
-### Account identity lock reasons
-
-| Value | Description |
-| --- | --- |
-| setup_configured | Setup is finished |
-| existing_instance | The instance had an admin, accounts or finished setup when its sign-in method was first set, so it stays on `email` |
-| admin_exists | The instance has an admin account |
-| accounts_exist | The instance has accounts, none of them an admin |
+`setup_token_required` and `admin_exists` are sent only while a self-hosted instance isn't configured.
 
 ## Public legal configuration object
 
@@ -441,15 +397,6 @@ What a client needs before anyone signs in.
 | --- | --- | --- |
 | countryCode | string | The ISO 3166-1 alpha-2 country code |
 | regionCode | ?string | The ISO 3166-2 subdivision code, or null for the whole country |
-
-## Account identity object
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| mode | string | The [account identity mode](#account-identity-modes) in effect |
-| tag_style | string | One of the [tag styles](#tag-styles) |
 
 ## Get instance discovery
 
@@ -529,32 +476,6 @@ Checks a setup token without using it up.
 | 429 | [rate limit response](/topics/rate-limits/#rate-limit-response-object) | Too many requests, or too many wrong tokens from your IP address |
 
 The rate limit is 10 requests per minute, on the `instance:setup:token_check` bucket.
-
-## Set the setup sign-in method
-
-<RouteHeader method="PUT" path="/v1/instance/setup/account-identity" unauthenticated />
-
-Sets how people sign in on a new self-hosted instance and, for `email`, whether usernames have tags. Returns an [account identity](#account-identity-object) object. It works until one of the [account identity lock reasons](#account-identity-lock-reasons) applies, such as setup being finished or the first account existing. Send `setup_token` while `setup_token_required` is true in the [public setup state](#public-setup-state-object).
-
-### JSON body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| mode | string | The [account identity mode](#account-identity-modes) |
-| tag_style? | string | One of the [tag styles](#tag-styles), `none` by default and always `none` for `username` |
-| setup_token? | ?string | The setup token (1-256 characters) |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | [account identity](#account-identity-object) object | The sign-in method was saved |
-| 400 | [error response](/http-api/#error-response) | `TAG_STYLE_REQUIRES_EMAIL_SIGN_IN` for `random` with `username`, or the setup token is missing or wrong |
-| 409 | [error response](/http-api/#error-response) | `ACCOUNT_IDENTITY_LOCKED` when the sign-in method can no longer change |
-| 423 | [error response](/http-api/#error-response) | `GENERAL_ERROR` when another registration or setup call held the setup lock for 15 seconds. Retry after `Retry-After` |
-| 429 | [rate limit response](/topics/rate-limits/#rate-limit-response-object) | Too many requests, or too many wrong tokens from your IP address |
-
-The rate limit is 10 requests per minute, on the `instance:setup:account_identity` bucket.
 
 ## Get OpenAPI document
 

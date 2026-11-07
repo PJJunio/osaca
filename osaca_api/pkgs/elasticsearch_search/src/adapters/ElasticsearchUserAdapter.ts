@@ -20,8 +20,6 @@ function buildUserFilters(filters: UserSearchFilters): Array<ElasticsearchFilter
 	const clauses: Array<ElasticsearchFilter | undefined> = [];
 	if (filters.isBot !== undefined) clauses.push(esTermFilter('isBot', filters.isBot));
 	if (filters.isSystem !== undefined) clauses.push(esTermFilter('isSystem', filters.isSystem));
-	if (filters.emailVerified !== undefined) clauses.push(esTermFilter('emailVerified', filters.emailVerified));
-	if (filters.emailBounced !== undefined) clauses.push(esTermFilter('emailBounced', filters.emailBounced));
 	if (filters.isTempBanned !== undefined) {
 		clauses.push(filters.isTempBanned ? esExistsFilter('tempBannedUntil') : esNotExistsFilter('tempBannedUntil'));
 	}

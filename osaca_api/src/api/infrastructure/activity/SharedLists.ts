@@ -2,7 +2,6 @@
 
 import {LISTS_BUCKET, SHARED_LISTS} from '@app/api/infrastructure/activity/Contract.generated';
 import {Logger} from '@app/api/Logger';
-import type {LoggerInterface} from '@osaca/logger/src/LoggerInterface';
 import {
 	type ConsumerMessages,
 	DeliverPolicy,
@@ -10,6 +9,7 @@ import {
 	JetStreamApiError,
 	type JetStreamClient,
 } from '@nats-io/jetstream';
+import type {LoggerInterface} from '@osaca/logger/src/LoggerInterface';
 
 export type SharedListName = (typeof SHARED_LISTS)[number];
 
@@ -56,11 +56,6 @@ export function applySharedListUpdate(name: string, value: string | null): void 
 export function sharedListHas(name: SharedListName, value: string | null | undefined): boolean {
 	if (!value) return false;
 	return lists.get(name)?.has(value.trim().toLowerCase()) ?? false;
-}
-
-export function isBlockedEmailDomain(domain: string | null | undefined): boolean {
-	const tld = domain?.split('.').pop();
-	return !!tld && sharedListHas('email_tld_blocked', tld);
 }
 
 function sharedListSizes(): Record<SharedListName, number | null> {

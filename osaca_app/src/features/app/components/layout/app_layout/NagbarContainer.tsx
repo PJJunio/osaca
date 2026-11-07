@@ -10,7 +10,6 @@ import {CustomCssOffNagbar} from '@app/features/app/components/layout/app_layout
 import {DesktopDownloadNagbar} from '@app/features/app/components/layout/app_layout/nagbars/DesktopDownloadNagbar';
 import {DesktopNotificationNagbar} from '@app/features/app/components/layout/app_layout/nagbars/DesktopNotificationNagbar';
 import {DomainMovedNagbar} from '@app/features/app/components/layout/app_layout/nagbars/DomainMovedNagbar';
-import {EmailVerificationNagbar} from '@app/features/app/components/layout/app_layout/nagbars/EmailVerificationNagbar';
 import {GuildMembershipCtaNagbar} from '@app/features/app/components/layout/app_layout/nagbars/GuildMembershipCtaNagbar';
 import {InstanceNoticeNagbar} from '@app/features/app/components/layout/app_layout/nagbars/InstanceNoticeNagbar';
 import {ScheduledMaintenanceNagbar} from '@app/features/app/components/layout/app_layout/nagbars/ScheduledMaintenanceNagbar';
@@ -47,7 +46,6 @@ const NAGBARS: Record<NagbarType, NagbarEntry> = {
 	[NagbarType.SCHEDULED_MAINTENANCE]: {Component: ScheduledMaintenanceNagbar},
 	[NagbarType.INSTANCE_NOTICE]: {Component: InstanceNoticeNagbar},
 	[NagbarType.UNCLAIMED_ACCOUNT]: {Component: UnclaimedAccountNagbar},
-	[NagbarType.EMAIL_VERIFICATION]: {Component: EmailVerificationNagbar},
 	[NagbarType.ACCOUNT_LIMITED]: {Component: AccountLimitedNagbar},
 	[NagbarType.DESKTOP_NOTIFICATION]: {Component: DesktopNotificationNagbar},
 	[NagbarType.DESKTOP_DOWNLOAD]: {Component: DesktopDownloadNagbar},

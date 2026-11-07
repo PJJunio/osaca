@@ -2,8 +2,6 @@
 
 import type {WorkerTaskName} from '@app/api/worker/WorkerLaneConfig';
 import type {CachePurgeAdapterName, VoiceTurnServerConfig} from '@osaca/config/src/MasterConfig';
-import type {AccountIdentityMode, TagStyle} from '@osaca/constants/src/AccountIdentityConstants';
-import type {SmtpTlsMode} from '@osaca/constants/src/SmtpConstants';
 
 export type APIWorkerMode = 'all_lanes' | 'single_lane' | 'single_task';
 export type APIWorkerLaneName = 'realtime' | 'unfurl' | 'lifecycle' | 'batch' | 'crosspost';
@@ -12,14 +10,6 @@ export interface TrustedCallerConfig {
 	name: string;
 	key: string;
 	buckets: Array<string>;
-}
-
-interface SmtpConfig {
-	host: string;
-	port: number;
-	username: string;
-	password: string;
-	tlsMode: SmtpTlsMode | null;
 }
 
 interface APICachePurgeTarget {
@@ -143,21 +133,6 @@ export interface APIConfig {
 			harvests: string;
 		};
 	};
-	email: {
-		enabled: boolean;
-		provider: 'smtp' | 'none';
-		webhookSecret?: string;
-		fromEmail: string;
-		fromName: string;
-		replyToEmail: string;
-		supportAlertEmail: string | null;
-		appBaseUrl: string;
-		smtp?: SmtpConfig;
-		fallback?: {
-			domains: Array<string>;
-			smtp: SmtpConfig & {headers?: Record<string, string>};
-		};
-	};
 	blocklistFeeds: {
 		enabled: boolean;
 	};
@@ -228,8 +203,6 @@ export interface APIConfig {
 			configured: boolean;
 			token: string | null;
 		};
-		accountIdentity: AccountIdentityMode | null;
-		tagStyle: TagStyle | null;
 	};
 	discovery: {
 		enabled: boolean;
@@ -250,7 +223,6 @@ export interface APIConfig {
 		days: number;
 		dryRun: boolean;
 	};
-	inactivityDeletionThresholdDays?: number;
 	push: {
 		publicVapidKey?: string;
 	};

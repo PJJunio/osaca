@@ -11,7 +11,6 @@ export class GuildBan {
 	readonly expiresAt: Date | null;
 	readonly reason: string | null;
 	readonly ipAddress: string | null;
-	readonly email: string | null;
 
 	constructor(row: GuildBanRow) {
 		this.guildId = row.guild_id;
@@ -21,7 +20,6 @@ export class GuildBan {
 		this.expiresAt = row.expires_at ?? null;
 		this.reason = row.reason ?? null;
 		this.ipAddress = row.ip ?? null;
-		this.email = row.email ?? null;
 	}
 
 	toRow(): GuildBanRow {
@@ -33,7 +31,6 @@ export class GuildBan {
 			expires_at: this.expiresAt,
 			reason: this.reason,
 			ip: this.ipAddress,
-			email: this.email,
 		};
 	}
 }

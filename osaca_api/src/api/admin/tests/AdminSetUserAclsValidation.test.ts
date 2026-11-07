@@ -69,21 +69,6 @@ describe('Admin set user ACLs validation', () => {
 			.execute();
 		expect(lookup.users[0]!.acls).toEqual([AdminACLs.USER_LOOKUP]);
 	});
-	test('saves ACLs for an account that holds a retired ACL', async () => {
-		const admin = await setUserACLs(harness, await createTestAccount(harness), [
-			AdminACLs.AUTHENTICATE,
-			AdminACLs.ACL_SET_USER,
-			AdminACLs.USER_LOOKUP,
-			AdminACLs.USER_VIEW_EMAIL,
-		]);
-		const target = await setUserACLs(harness, await createTestAccount(harness), [AdminACLs.USER_LOOKUP, RETIRED_ACL]);
-		const result = await createBuilder<AdminUserMutationResponse>(harness, `${admin.token}`)
-			.put(`/admin/users/${target.userId}/acls`)
-			.body({acls: [AdminACLs.USER_LOOKUP, AdminACLs.USER_VIEW_EMAIL]})
-			.expect(HTTP_STATUS.OK)
-			.execute();
-		expect(result.user.acls.sort()).toEqual([AdminACLs.USER_LOOKUP, AdminACLs.USER_VIEW_EMAIL].sort());
-	});
 	test('returns the current admin when every registry ACL and a retired ACL are stored', async () => {
 		const admin = await setUserACLs(harness, await createTestAccount(harness), [
 			...Object.values(AdminACLs),

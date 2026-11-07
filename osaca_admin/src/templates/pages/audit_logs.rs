@@ -38,13 +38,11 @@ fn filters_section(base: &str, params: &AuditLogsParams<'_>) -> Markup {
         ("user", "User"),
         ("guild", "Guild"),
         ("bulk_job", "Bulk job"),
-        ("email_domain", "Email domain"),
         ("ip", "IP"),
         ("phrase", "Phrase"),
         ("url", "URL"),
         ("url_domain", "URL domain"),
         ("file_sha", "File SHA"),
-        ("email", "Email"),
     ];
     let access_options: &[(&str, &str)] = &[
         ("", "All entries"),

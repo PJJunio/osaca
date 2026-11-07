@@ -34,7 +34,6 @@ import {
 import {
 	BanAvatarHashRequest,
 	BanCheckResponseSchema,
-	BanEmailRequest,
 	BanFileShaRequest,
 	BanIpRequest,
 	BanPhraseRequest,
@@ -59,17 +58,6 @@ const BLOCKLIST_CATALOG = [
 			'IPv4/IPv6 addresses and CIDR ranges denied service. Applies to live connections and can be applied retroactively. An entry can carry an expiry, after which it stops applying and is removed.',
 		value_field: 'ip',
 		fields: ['duration_hours'],
-		scoped: false,
-		supports_bulk_create: false,
-		supports_bulk_delete: false,
-		supports_update: false,
-	},
-	{
-		list_type: 'email' as const,
-		description:
-			'Email addresses that cannot be used to register or be set on an account. An entry written as @example.com covers every address at that domain and its subdomains.',
-		value_field: 'email',
-		fields: [],
 		scoped: false,
 		supports_bulk_create: false,
 		supports_bulk_delete: false,
@@ -142,7 +130,6 @@ const BLOCKLIST_CATALOG = [
 
 const BLOCKLIST_TYPE_ACLS: Record<AdminBlocklistListType, {add: string; check: string; remove: string}> = {
 	ip: {add: AdminACLs.BAN_IP_ADD, check: AdminACLs.BAN_IP_CHECK, remove: AdminACLs.BAN_IP_REMOVE},
-	email: {add: AdminACLs.BAN_EMAIL_ADD, check: AdminACLs.BAN_EMAIL_CHECK, remove: AdminACLs.BAN_EMAIL_REMOVE},
 	phrase: {add: AdminACLs.BAN_PHRASE_ADD, check: AdminACLs.BAN_PHRASE_CHECK, remove: AdminACLs.BAN_PHRASE_REMOVE},
 	url: {add: AdminACLs.BAN_URL_ADD, check: AdminACLs.BAN_URL_CHECK, remove: AdminACLs.BAN_URL_REMOVE},
 	'url-domain': {
@@ -169,7 +156,6 @@ const BLOCKLIST_TYPE_ACLS: Record<AdminBlocklistListType, {add: string; check: s
 
 const BLOCKLIST_AUDIT_TARGET_TYPES: Record<AdminBlocklistListType, string> = {
 	ip: 'ip',
-	email: 'email',
 	phrase: 'phrase',
 	url: 'url',
 	'url-domain': 'url_domain',
@@ -233,8 +219,6 @@ async function checkBlocklistEntry(
 	switch (listType) {
 		case 'ip':
 			return bans.checkIpBan({ip: entryValue});
-		case 'email':
-			return bans.checkEmailBan({email: entryValue});
 		case 'phrase':
 			return bans.checkPhraseBan({phrase: entryValue});
 		case 'url':
@@ -349,9 +333,6 @@ export function BanAdminController(app: HonoApp) {
 			switch (listType) {
 				case 'ip':
 					await bans.banIp(await parseBlocklistBody(BanIpRequest, raw), adminUserId, auditLogReason);
-					break;
-				case 'email':
-					await bans.banEmail(await parseBlocklistBody(BanEmailRequest, raw), adminUserId, auditLogReason);
 					break;
 				case 'phrase':
 					await bans.banPhrase(await parseBlocklistBody(BanPhraseRequest, raw), adminUserId, auditLogReason);
@@ -595,9 +576,6 @@ export function BanAdminController(app: HonoApp) {
 			switch (listType) {
 				case 'ip':
 					await bans.unbanIp({ip: entryValue}, adminUserId, auditLogReason);
-					break;
-				case 'email':
-					await bans.unbanEmail({email: entryValue}, adminUserId, auditLogReason);
 					break;
 				case 'phrase':
 					await bans.unbanPhrase({phrase: entryValue}, adminUserId, auditLogReason);

@@ -26,7 +26,7 @@ import {useCallback, useRef, useState} from 'react';
 
 const SIGN_IN_DETAILS_DESCRIPTOR = msg({
 	message: 'Sign-in details',
-	comment: 'Section title for email address and password controls in the account security tab. Keep it concise.',
+	comment: 'Section title for password and recovery controls in the account security tab. Keep it concise.',
 });
 const COULD_NOT_LOAD_AUTHORIZED_APPS_DESCRIPTOR = msg({
 	message: "Couldn't load authorized apps",
@@ -41,13 +41,11 @@ interface AccountSecuritySectionsProps {
 	user: User;
 	isClaimed: boolean;
 	passkeys: ReadonlyArray<WebAuthnCredential>;
-	showMaskedEmail: boolean;
-	setShowMaskedEmail: (show: boolean) => void;
 	targetSection?: AccountSettingsManagementSectionId | null;
 }
 
 export const AccountSecuritySections: React.FC<AccountSecuritySectionsProps> = observer(
-	({user, isClaimed, passkeys, showMaskedEmail, setShowMaskedEmail, targetSection}) => {
+	({user, isClaimed, passkeys, targetSection}) => {
 		const {i18n} = useLingui();
 		const [authorizedAppsSubmitting, setAuthorizedAppsSubmitting] = useState(false);
 		const authorizedAppsSubmittingRef = useRef(false);
@@ -86,12 +84,7 @@ export const AccountSecuritySections: React.FC<AccountSecuritySectionsProps> = o
 					title={i18n._(SIGN_IN_DETAILS_DESCRIPTOR)}
 					data-flx="user.account-security-sections.account"
 				>
-					<AccountTabContent
-						user={user}
-						showMaskedEmail={showMaskedEmail}
-						setShowMaskedEmail={setShowMaskedEmail}
-						data-flx="user.account-security-sections.account-tab-content"
-					/>
+					<AccountTabContent user={user} data-flx="user.account-security-sections.account-tab-content" />
 				</SettingsSection>
 				<SettingsSection
 					id="security"

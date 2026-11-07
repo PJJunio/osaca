@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type {RuntimeConfigSnapshot} from '@app/features/app/state/InstanceSnapshotStore';
-import {usesUsernameSignIn} from '@app/features/app/utils/AccountIdentityFeatures';
 import type * as AuthenticationCommands from '@app/features/auth/commands/AuthenticationCommands';
 import authStyles from '@app/features/auth/components/accounts/account_switcher_modal/AccountSwitcherAuthFlow.module.css';
 import pageStyles from '@app/features/auth/flow/AuthPageStyles.module.css';
@@ -34,7 +33,6 @@ export const AccountSwitcherRegisterStep = observer(function AccountSwitcherRegi
 	const {i18n} = useLingui();
 	useReportStepTitle(onStepTitleChange, i18n._(CREATE_AN_ACCOUNT_DESCRIPTOR));
 	const showTitle = onStepTitleChange == null;
-	const usernameSignIn = usesUsernameSignIn(runtimeSnapshot.features);
 	return (
 		<>
 			{showTitle ? (
@@ -50,10 +48,10 @@ export const AccountSwitcherRegisterStep = observer(function AccountSwitcherRegi
 				data-flx="auth.accounts.account-switcher-modal.account-switcher-register-step.container"
 			>
 				<AuthRegisterFormCore
-					fields={credentialRegisterFields(usernameSignIn)}
+					fields={credentialRegisterFields()}
 					submitLabel={<Trans>Create account</Trans>}
 					redirectPath=""
-					offerRecoveryKit={usernameSignIn}
+					offerRecoveryKit
 					runtimeSnapshot={runtimeSnapshot}
 					onRegister={onRegister}
 					showLegalConsent

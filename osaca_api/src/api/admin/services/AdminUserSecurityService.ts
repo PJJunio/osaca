@@ -3,7 +3,6 @@
 import type {ApiContext} from '@app/api/ApiContext';
 import {mapUserToAdminResponse} from '@app/api/admin/models/UserTypes';
 import type {AdminAuditService} from '@app/api/admin/services/AdminAuditService';
-import * as AuthEmail from '@app/api/auth/AuthEmail';
 import * as AuthMfa from '@app/api/auth/AuthMfa';
 import {revokeAllAuthSessions} from '@app/api/auth/AuthSessionRevocation';
 import * as AuthUtility from '@app/api/auth/AuthUtility';
@@ -43,7 +42,6 @@ import type {
 	ListAppSessionsQuery,
 	ListAppSessionsResponse,
 	ListWebAuthnCredentialsRequest,
-	ResendVerificationEmailRequest,
 	SendPasswordResetRequest,
 	SetUserAclsRequest,
 	SetUserTraitsRequest,
@@ -250,31 +248,6 @@ export class AdminUserSecurityService {
 		});
 	}
 
-	async sendPasswordReset(data: SendPasswordResetRequest, adminUserId: UserID, auditLogReason: string | null) {
-		const {users: userRepository, email: emailService} = this.deps.apiContext.services;
-		const {auditService} = this.deps;
-		const userId = createUserID(data.user_id);
-		const user = await userRepository.findUniqueAssert(userId);
-		if (!user.email) {
-			throw InputValidationError.fromCode('email', ValidationErrorCodes.USER_DOES_NOT_HAVE_AN_EMAIL_ADDRESS);
-		}
-		const token = createPasswordResetToken(await RandomUtils.randomString(64));
-		await userRepository.createPasswordResetToken({
-			token_: token,
-			user_id: userId,
-			email: user.email,
-		});
-		await emailService.send('password_reset', user.email, {resetToken: token}, user.locale);
-		await auditService.createAuditLog({
-			adminUserId,
-			targetType: 'user',
-			targetId: BigInt(userId),
-			action: 'send_password_reset',
-			auditLogReason,
-			metadata: new Map([['email', user.email]]),
-		});
-	}
-
 	async createPasswordResetLink(
 		data: SendPasswordResetRequest,
 		adminUserId: UserID,
@@ -294,7 +267,6 @@ export class AdminUserSecurityService {
 		await userRepository.createPasswordResetToken({
 			token_: token,
 			user_id: userId,
-			email: user.email ?? null,
 		});
 		await auditService.createAuditLog({
 			adminUserId,
@@ -305,7 +277,7 @@ export class AdminUserSecurityService {
 			metadata: new Map(),
 		});
 		return {
-			url: `${Config.email.appBaseUrl}/reset#token=${token}`,
+			url: `${Config.endpoints.webApp}/reset#token=${token}`,
 			expires_at: expiresAt.toISOString(),
 		};
 	}
@@ -328,29 +300,6 @@ export class AdminUserSecurityService {
 			action: 'revoke_recovery_kit',
 			auditLogReason,
 			metadata: new Map(),
-		});
-	}
-
-	async resendVerificationEmail(
-		data: ResendVerificationEmailRequest,
-		adminUserId: UserID,
-		auditLogReason: string | null,
-	) {
-		const {users: userRepository} = this.deps.apiContext.services;
-		const {apiContext, auditService} = this.deps;
-		const userId = createUserID(data.user_id);
-		const user = await userRepository.findUniqueAssert(userId);
-		if (!user.email) {
-			throw InputValidationError.fromCode('email', ValidationErrorCodes.USER_DOES_NOT_HAVE_AN_EMAIL_ADDRESS);
-		}
-		await AuthEmail.resendVerificationEmail(apiContext, user);
-		await auditService.createAuditLog({
-			adminUserId,
-			targetType: 'user',
-			targetId: BigInt(userId),
-			action: 'resend_verification_email',
-			auditLogReason,
-			metadata: new Map([['email', user.email]]),
 		});
 	}
 

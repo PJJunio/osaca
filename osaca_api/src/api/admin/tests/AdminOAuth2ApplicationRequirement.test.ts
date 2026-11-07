@@ -33,7 +33,7 @@ async function createOAuth2Token(
 async function createAdminOAuth2Token(
 	harness: ApiTestHarness,
 	userId: string,
-	scopes: Array<string> = ['identify', 'email'],
+	scopes: Array<string> = ['identify'],
 ): Promise<OAuth2TokenResponse> {
 	return createOAuth2Token(harness, userId, scopes, ADMIN_OAUTH2_APPLICATION_ID.toString());
 }
@@ -48,7 +48,7 @@ describe('Admin OAuth2 Application Requirement', () => {
 		test('cannot access multiple admin endpoints with wildcard user ACLs', async () => {
 			const admin = await createTestAccount(harness);
 			await setUserACLs(harness, admin, ['*']);
-			const oauth2Token = await createOAuth2Token(harness, admin.userId, ['identify', 'email']);
+			const oauth2Token = await createOAuth2Token(harness, admin.userId, ['identify']);
 
 			await createBuilder(harness, `Bearer ${oauth2Token.token}`)
 				.get(`/admin/users/${admin.userId}`)

@@ -9,12 +9,9 @@ import {makeAutoObservable, observableRef, reaction, runInAction} from 'mobx';
 
 const CURRENT_USER_PRIVATE_WIRE_KEYS = [
 	'is_staff',
-	'email',
-	'email_bounced',
 	'account_limited',
 	'mfa_enabled',
 	'authenticator_types',
-	'verified',
 	'hidden_profile_badges',
 	'password_last_changed_at',
 	'last_voice_activity_sharing_change_at',

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use crate::{
-    acl,
     api::types::{AdminUser, account_tier_label},
     config::AdminConfig,
     templates::components::{
@@ -26,9 +25,8 @@ fn status_badge(user: &AdminUser) -> Markup {
     }
 }
 
-pub fn user_peek_fragment(config: &AdminConfig, user: &AdminUser, admin_acls: &[String]) -> Markup {
+pub fn user_peek_fragment(config: &AdminConfig, user: &AdminUser) -> Markup {
     let base = &config.base_path;
-    let can_view_email = acl::has_permission(admin_acls, acl::USER_VIEW_EMAIL);
     let display = user
         .global_name
         .as_deref()
@@ -68,12 +66,6 @@ pub fn user_peek_fragment(config: &AdminConfig, user: &AdminUser, admin_acls: &[
             (data_grid(2, html! {
                 (data_field_mono("User ID", &user.id))
                 (data_field_muted("Created", &snowflake_creation_date(&user.id)))
-                @if can_view_email {
-                    @if let Some(ref email) = user.email {
-                        (data_field_text("Email", email))
-                        (data_field_text("Email status", email_status_label(user)))
-                    }
-                }
                 @if let Some(tier) = user.account_tier {
                     (data_field_text("Account tier", account_tier_label(tier)))
                 }
@@ -118,18 +110,5 @@ fn peek_link(href: &str, label: &str) -> Markup {
                    focus-visible:ring-brand-primary focus-visible:ring-offset-2" {
             (label)
         }
-    }
-}
-
-fn email_status_label(user: &AdminUser) -> &'static str {
-    if user.email.is_none() {
-        return "\u{2014}";
-    }
-    if user.email_bounced {
-        "Bounced"
-    } else if user.email_verified {
-        "Verified"
-    } else {
-        "Unverified"
     }
 }

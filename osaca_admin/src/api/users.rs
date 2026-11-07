@@ -19,7 +19,6 @@ impl AdminApiClient {
     pub async fn search_users(
         &self,
         query: Option<&str>,
-        email: Option<&str>,
         last_active_ip: Option<&str>,
         limit: u32,
         offset: u64,
@@ -30,7 +29,6 @@ impl AdminApiClient {
             .generated()
             .list_admin_users(
                 None,
-                nonempty(email),
                 nonempty(last_active_ip),
                 Some(limit.as_str()),
                 Some(offset.as_str()),
@@ -241,24 +239,6 @@ impl AdminApiClient {
         Ok(())
     }
 
-    pub async fn resend_verification_email(&self, user_id: &str) -> ApiResult<()> {
-        self.generated()
-            .resend_admin_user_verification_email(&snowflake(user_id))
-            .await
-            .map_err(|e| self.generated_error(e))?;
-        Ok(())
-    }
-
-    pub async fn verify_email(&self, user_id: &str) -> ApiResult<AdminUser> {
-        let response = self
-            .generated()
-            .verify_admin_user_email(&snowflake(user_id))
-            .await
-            .map_err(|e| self.generated_error(e))?;
-        let resp: UserMutationResponse = self.generated_value(response.into_inner())?;
-        Ok(resp.user)
-    }
-
     pub async fn clear_user_fields(
         &self,
         user_id: &str,
@@ -332,19 +312,6 @@ impl AdminApiClient {
         Ok(resp.user)
     }
 
-    pub async fn change_email(&self, user_id: &str, email: &str) -> ApiResult<AdminUser> {
-        let body = generated_types::AdminUserEmailUpdateRequest {
-            email: generated_types::EmailType::from(email.to_owned()),
-        };
-        let response = self
-            .generated()
-            .update_admin_user_email(&snowflake(user_id), &body)
-            .await
-            .map_err(|e| self.generated_error(e))?;
-        let resp: UserMutationResponse = self.generated_value(response.into_inner())?;
-        Ok(resp.user)
-    }
-
     pub async fn unban_user(
         &self,
         user_id: &str,
@@ -377,14 +344,6 @@ impl AdminApiClient {
             )
             .await?;
         Ok(resp.user)
-    }
-
-    pub async fn send_password_reset(&self, user_id: &str) -> ApiResult<()> {
-        self.generated()
-            .send_admin_user_password_reset(&snowflake(user_id))
-            .await
-            .map_err(|e| self.generated_error(e))?;
-        Ok(())
     }
 
     pub async fn create_password_reset_link(

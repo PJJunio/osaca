@@ -46,7 +46,6 @@ export const AuthLoginStep = Object.freeze({
 	METHOD: 'method',
 	BROWSER: 'browser',
 	CREDENTIALS: 'credentials',
-	IP_AUTHORIZATION: 'ip_authorization',
 	DESKTOP_HANDOFF_APPROVAL: 'desktop_handoff_approval',
 } as const);
 
@@ -69,7 +68,6 @@ export const AUTH_LOGIN_METHOD_QUERY_PARAM = Object.freeze({
 export interface AuthLoginStepSelection {
 	desktopHandoff: boolean;
 	handoffMode: DesktopHandoffMode;
-	hasIpAuthorizationChallenge: boolean;
 	hasStoredAccounts: boolean;
 	shouldShowBrowserStep: boolean;
 	clientPermission: PermissionKind | null;
@@ -82,7 +80,6 @@ export interface AuthLoginStepSelection {
 export function selectAuthLoginStep({
 	desktopHandoff,
 	handoffMode,
-	hasIpAuthorizationChallenge,
 	hasStoredAccounts,
 	shouldShowBrowserStep,
 	clientPermission,
@@ -93,7 +90,6 @@ export function selectAuthLoginStep({
 }: AuthLoginStepSelection): AuthLoginStep {
 	if (desktopHandoff && handoffMode === DesktopHandoffMode.SELECTING) return AuthLoginStep.DESKTOP_HANDOFF_ACCOUNT;
 	if (desktopHandoff && isApprovalFlowMode(handoffMode)) return AuthLoginStep.DESKTOP_HANDOFF_APPROVAL;
-	if (hasIpAuthorizationChallenge) return AuthLoginStep.IP_AUTHORIZATION;
 	if (showAccountSelector && hasStoredAccounts && !desktopHandoff) return AuthLoginStep.ACCOUNT;
 	if (shouldShowClientPreferencesStep) return AuthLoginStep.CLIENT_PREFERENCES;
 	if (clientPermission != null) return CLIENT_PERMISSION_STEPS[clientPermission];

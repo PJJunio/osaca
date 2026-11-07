@@ -153,7 +153,7 @@ export function EnforcementAdminController(app: HonoApp) {
 			security: 'adminApiKey',
 			tags: 'Admin',
 			description:
-				'Ends an active decision as lifted or reversed, undoes what can be undone and emails the holder. Ending a suspension lifts it, and returns 409 when a later decision replaced it. Warnings, removals and suspensions that ended as expired can only be reversed. Creates audit log entry. Requires ENFORCEMENT_VIEW permission plus the permission of the route that made the decision, such as USER_TEMP_BAN for a suspension or USER_UPDATE_FLAGS for a warning.',
+				'Ends an active decision as lifted or reversed, undoes what can be undone and tells the holder by system DM. Ending a suspension lifts it, and returns 409 when a later decision replaced it. Warnings, removals and suspensions that ended as expired can only be reversed. Creates audit log entry. Requires ENFORCEMENT_VIEW permission plus the permission of the route that made the decision, such as USER_TEMP_BAN for a suspension or USER_UPDATE_FLAGS for a warning.',
 		}),
 		async (ctx) => {
 			const {decision_id: decisionId} = ctx.req.valid('param');

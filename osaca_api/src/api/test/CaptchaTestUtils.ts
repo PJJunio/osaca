@@ -32,9 +32,9 @@ export async function solveCaptchaChallenge(body: CaptchaErrorBody): Promise<str
 
 export async function issueSolvedCaptchaToken(harness: ApiTestHarness): Promise<string> {
 	const {json} = await createBuilderWithoutAuth<CaptchaErrorBody>(harness)
-		.post('/auth/forgot')
+		.post('/auth/login')
 		.header(CAPTCHA_TEST_HEADER, 'true')
-		.body({email: 'captcha-token-source@example.com'})
+		.body({login: 'captcha-token-source', password: 'not-a-real-password'})
 		.expect(HTTP_STATUS.BAD_REQUEST, APIErrorCodes.CAPTCHA_REQUIRED)
 		.executeWithResponse();
 	return await solveCaptchaChallenge(json);

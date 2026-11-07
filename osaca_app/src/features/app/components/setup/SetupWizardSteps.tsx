@@ -8,12 +8,6 @@ import {LanguageSelector} from '@app/features/user/components/modals/tabs/Langua
 import * as LocaleUtils from '@app/features/user/utils/LocaleUtils';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
-import {
-	type AccountIdentityLockReason,
-	AccountIdentityLockReasons,
-	type AccountIdentityMode,
-	AccountIdentityModes,
-} from '@osaca/constants/src/AccountIdentityConstants';
 import {CheckCircleIcon} from '@phosphor-icons/react';
 import {observer} from 'mobx-react-lite';
 import type React from 'react';
@@ -37,19 +31,6 @@ const LANGUAGE_LABEL_DESCRIPTOR = msg({
 	comment: 'Label for the language selector on the first setup wizard screen.',
 });
 
-const SIGN_IN_LOCKED_EMAIL_TITLE_DESCRIPTOR = msg({
-	message: 'People sign in with their email address',
-	comment: 'Setup wizard title when the instance is fixed to email sign-in.',
-});
-const SIGN_IN_LOCKED_USERNAME_TITLE_DESCRIPTOR = msg({
-	message: 'People sign in with a username',
-	comment: 'Setup wizard title when the instance is fixed to username sign-in.',
-});
-const LOCK_ACCOUNTS_EXIST_DESCRIPTOR = msg({
-	message:
-		"This instance already has accounts, so how people sign in can't change anymore. To use a different sign-in method, start again with an empty database.",
-	comment: 'Setup wizard explanation of why the sign-in method is fixed: accounts already exist.',
-});
 const SIGN_IN_TO_FINISH_TITLE_DESCRIPTOR = msg({
 	message: 'Sign in to finish setup',
 	comment: 'Setup wizard title shown to someone signed out after the administrator account was created.',
@@ -57,18 +38,6 @@ const SIGN_IN_TO_FINISH_TITLE_DESCRIPTOR = msg({
 const SIGN_IN_TO_FINISH_BODY_DESCRIPTOR = msg({
 	message: 'This instance already has an administrator. Sign in with that account to finish setting it up.',
 	comment: 'Setup wizard body shown to someone signed out after the administrator account was created.',
-});
-const LOCK_SETUP_CONFIGURED_DESCRIPTOR = msg({
-	message: "Setup was marked as finished in this instance's configuration, so how people sign in can't change anymore.",
-	comment: 'Setup wizard explanation of why the sign-in method is fixed: the configuration says setup is done.',
-});
-const LOCK_EXISTING_INSTANCE_DESCRIPTOR = msg({
-	message: 'This instance was upgraded from a version of OSACA that used email sign-in, so it stays on email.',
-	comment: 'Setup wizard explanation of why the sign-in method is fixed: the instance is older than username sign-in.',
-});
-const LOCK_UNKNOWN_DESCRIPTOR = msg({
-	message: "How people sign in on this instance can't change anymore.",
-	comment: 'Setup wizard explanation when the sign-in method is fixed for a reason the app does not know.',
 });
 
 export const REGISTRATION_CLOSED_NAME_DESCRIPTOR = msg({
@@ -189,38 +158,6 @@ export const WelcomeStep = observer(() => {
 	);
 });
 
-function lockReasonDescriptor(reason: AccountIdentityLockReason | null | undefined) {
-	switch (reason) {
-		case AccountIdentityLockReasons.ACCOUNTS_EXIST:
-			return LOCK_ACCOUNTS_EXIST_DESCRIPTOR;
-		case AccountIdentityLockReasons.SETUP_CONFIGURED:
-			return LOCK_SETUP_CONFIGURED_DESCRIPTOR;
-		case AccountIdentityLockReasons.EXISTING_INSTANCE:
-			return LOCK_EXISTING_INSTANCE_DESCRIPTOR;
-		default:
-			return LOCK_UNKNOWN_DESCRIPTOR;
-	}
-}
-
-export const SignInLockedStep = observer(
-	({mode, reason}: {mode: AccountIdentityMode; reason: AccountIdentityLockReason | null | undefined}) => {
-		const {i18n} = useLingui();
-		return (
-			<section className={styles.step} data-flx="app.self-hosted-setup-wizard-gate.sign-in-locked-step">
-				<StepHeader
-					title={i18n._(
-						mode === AccountIdentityModes.USERNAME
-							? SIGN_IN_LOCKED_USERNAME_TITLE_DESCRIPTOR
-							: SIGN_IN_LOCKED_EMAIL_TITLE_DESCRIPTOR,
-					)}
-					body={i18n._(lockReasonDescriptor(reason))}
-					data-flx="app.setup.setup-wizard-steps.sign-in-locked-step.step-header"
-				/>
-			</section>
-		);
-	},
-);
-
 export const SignInToFinishStep = observer(() => {
 	const {i18n} = useLingui();
 	return (
@@ -330,9 +267,7 @@ export const StepError = ({error}: {error: string | null}) =>
 	) : null;
 
 export const SUMMARY_DESCRIPTORS = {
-	signIn: msg({message: 'Sign-in', comment: 'Review row label for how people sign in.'}),
 	account: msg({message: 'Your account', comment: 'Review row label for the administrator account.'}),
-	email: msg({message: 'Email', comment: 'Review row label for the email service.'}),
 	name: msg({message: 'Name', comment: 'Review row label for the instance name.'}),
 	look: msg({message: 'Look', comment: 'Review row label for the theme color and images.'}),
 	communities: msg({message: 'Communities', comment: 'Review row label for one community or many.'}),
@@ -341,21 +276,6 @@ export const SUMMARY_DESCRIPTORS = {
 	registration: msg({message: 'Who can create an account', comment: 'Review row label for the registration mode.'}),
 	youtube: msg({message: 'YouTube previews', comment: 'Review row label for YouTube link previews.'}),
 	attachments: msg({message: 'Old attachments', comment: 'Review row label for automatic attachment expiry.'}),
-	usernames: msg({message: 'Usernames', comment: 'Review value when people sign in with a username.'}),
-	emailAddressesUnique: msg({
-		message: 'Email addresses, every username is unique',
-		comment: 'Review value for email sign-in where each username belongs to one person.',
-	}),
-	emailAddressesShared: msg({
-		message: 'Email addresses, usernames get a number',
-		comment: 'Review value for email sign-in where usernames get a random number.',
-	}),
-	emailLater: msg({message: 'Set up later', comment: 'Review value when the email service will be added later.'}),
-	emailAlreadySet: msg({message: 'Already set up', comment: 'Review value when an email service was already set up.'}),
-	emailFrom: msg({
-		message: '{host}, sending as {from}',
-		comment: 'Review value for the email service. host is the SMTP server and from is the sender address.',
-	}),
 	singleCommunity: msg({
 		message: 'One community, {name}',
 		comment: 'Review value for single community mode. name is the community name.',

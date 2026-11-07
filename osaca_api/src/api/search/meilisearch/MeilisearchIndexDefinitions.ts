@@ -62,17 +62,8 @@ export const MEILISEARCH_INDEX_DEFINITIONS: Record<OsacaSearchIndexName, Meilise
 	users: {
 		uid: 'users',
 		primaryKey: 'id',
-		searchableAttributes: ['username', 'email', 'id'],
-		filterableAttributes: [
-			'isBot',
-			'isSystem',
-			'emailVerified',
-			'emailBounced',
-			'tempBannedUntil',
-			'pendingDeletionAt',
-			'acls',
-			'createdAt',
-		],
+		searchableAttributes: ['username', 'id'],
+		filterableAttributes: ['isBot', 'isSystem', 'tempBannedUntil', 'pendingDeletionAt', 'acls', 'createdAt'],
 		sortableAttributes: ['createdAt', 'lastActiveAt', 'id'],
 	},
 	reports: {

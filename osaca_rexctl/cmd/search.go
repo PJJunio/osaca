@@ -189,3 +189,15 @@ func thousands(n int64) string {
 	}
 	return s
 }
+
+func sentenceOf(s string) string {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return ""
+	}
+	s = strings.ToUpper(s[:1]) + s[1:]
+	if !strings.HasSuffix(s, ".") {
+		s += "."
+	}
+	return s
+}

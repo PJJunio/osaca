@@ -19,7 +19,6 @@ import {
 	GUILD_ROLE_COLUMNS,
 	GUILD_STICKER_COLUMNS,
 	type GuildAuditLogRow,
-	type GuildBanByEmailRow,
 	type GuildBanByUserIdRow,
 	type GuildBanRow,
 	type GuildEmojiRow,
@@ -49,7 +48,6 @@ import {
 	GuildAuditLogsByUser,
 	GuildAuditLogsByUserAction,
 	GuildBans,
-	GuildBansByEmail,
 	GuildBansByUserId,
 	GuildEmojis,
 	GuildEmojisByEmojiId,
@@ -135,11 +133,6 @@ const FETCH_GUILD_BAN_BY_GUILD_AND_USER_ID_QUERY = GuildBans.selectCql({
 
 const FETCH_GUILD_BANS_BY_GUILD_ID_QUERY = GuildBans.selectCql({
 	where: GuildBans.where.eq('guild_id'),
-});
-
-const FETCH_GUILD_BAN_BY_EMAIL_QUERY = GuildBansByEmail.selectCql({
-	where: [GuildBansByEmail.where.eq('guild_id'), GuildBansByEmail.where.eq('email')],
-	limit: 1,
 });
 
 const FETCH_GUILD_BANS_BY_USER_ID_QUERY = GuildBansByUserId.selectCql({
@@ -452,33 +445,24 @@ export class GuildRepository {
 		const byUserRow: GuildBanByUserIdRow = {
 			user_id: data.user_id,
 			guild_id: data.guild_id,
-			email: data.email,
 		};
 		if (data.expires_at) {
 			const now = Date.now();
 			const ttl = Math.max(0, Math.ceil((data.expires_at.getTime() - now) / 1000));
 			batch.addPrepared(GuildBans.insertWithTtl(data, ttl));
 			batch.addPrepared(GuildBansByUserId.insertWithTtl(byUserRow, ttl));
-			if (data.email)
-				batch.addPrepared(
-					GuildBansByEmail.insertWithTtl({guild_id: data.guild_id, email: data.email, user_id: data.user_id}, ttl),
-				);
 		} else {
 			batch.addPrepared(GuildBans.insert(data));
 			batch.addPrepared(GuildBansByUserId.insert(byUserRow));
-			if (data.email)
-				batch.addPrepared(GuildBansByEmail.insert({guild_id: data.guild_id, email: data.email, user_id: data.user_id}));
 		}
 		await batch.execute();
 		return new GuildBan(data);
 	}
 
 	async deleteBan(guildId: GuildID, userId: UserID): Promise<void> {
-		const ban = await this.getBan(guildId, userId);
 		const batch = new BatchBuilder();
 		batch.addPrepared(GuildBans.deleteByPk({guild_id: guildId, user_id: userId}));
 		batch.addPrepared(GuildBansByUserId.deleteByPk({user_id: userId, guild_id: guildId}));
-		if (ban?.email) batch.addPrepared(GuildBansByEmail.deleteByPk({guild_id: guildId, email: ban.email}));
 		await batch.execute();
 	}
 
@@ -488,15 +472,8 @@ export class GuildRepository {
 			bans.map((ban) => [
 				GuildBans.deleteByPk({guild_id: ban.guild_id, user_id: userId}),
 				GuildBansByUserId.deleteByPk({user_id: userId, guild_id: ban.guild_id}),
-				...(ban.email ? [GuildBansByEmail.deleteByPk({guild_id: ban.guild_id, email: ban.email})] : []),
 			]),
 		);
-	}
-
-	async getBanByEmail(guildId: GuildID, email: string): Promise<GuildBan | null> {
-		const row = await fetchOne<GuildBanByEmailRow>(FETCH_GUILD_BAN_BY_EMAIL_QUERY, {guild_id: guildId, email});
-		if (!row) return null;
-		return this.getBan(guildId, row.user_id);
 	}
 
 	async createAuditLog(data: GuildAuditLogRow): Promise<GuildAuditLog> {

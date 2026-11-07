@@ -16,18 +16,6 @@ export const AuthRateLimitConfigs = {
 		bucket: 'auth:login:mfa',
 		config: {limit: 5, windowMs: ms('1 minute')},
 	} as RouteRateLimitConfig,
-	AUTH_VERIFY_EMAIL: {
-		bucket: 'auth:verify',
-		config: {limit: 10, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
-	AUTH_RESEND_VERIFICATION: {
-		bucket: 'auth:verify:resend',
-		config: {limit: 10, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
-	AUTH_FORGOT_PASSWORD: {
-		bucket: 'auth:forgot',
-		config: {limit: 5, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
 	AUTH_RESET_PASSWORD: {
 		bucket: 'auth:reset',
 		config: {limit: 10, windowMs: ms('1 minute')},
@@ -39,18 +27,6 @@ export const AuthRateLimitConfigs = {
 	AUTH_USERNAME_AVAILABILITY: {
 		bucket: 'auth:username_availability',
 		config: {limit: 30, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
-	AUTH_IDENTIFY: {
-		bucket: 'auth:identify',
-		config: {limit: 10, windowMs: ms('10 seconds')},
-	} as RouteRateLimitConfig,
-	AUTH_EMAIL_CODE_SEND: {
-		bucket: 'auth:email_code:send',
-		config: {limit: 5, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
-	AUTH_EMAIL_CODE_VERIFY: {
-		bucket: 'auth:email_code:verify',
-		config: {limit: 10, windowMs: ms('1 minute')},
 	} as RouteRateLimitConfig,
 	AUTH_REGISTER_HANDOFF: {
 		bucket: 'auth:register:handoff',
@@ -70,10 +46,6 @@ export const AuthRateLimitConfigs = {
 		bucket: 'auth:reset:validate',
 		config: {limit: 20, windowMs: ms('1 minute')},
 	} as RouteRateLimitConfig,
-	AUTH_EMAIL_REVERT: {
-		bucket: 'auth:email_revert',
-		config: {limit: 10, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
 	AUTH_SESSIONS_GET: {
 		bucket: 'auth:sessions',
 		config: {limit: 40, windowMs: ms('10 seconds')},
@@ -85,14 +57,6 @@ export const AuthRateLimitConfigs = {
 	AUTH_AUTHORIZE_IP: {
 		bucket: 'auth:authorize_ip',
 		config: {limit: 5, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
-	AUTH_IP_AUTHORIZATION_RESEND: {
-		bucket: 'auth:ip_authorization_resend',
-		config: {limit: 5, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
-	AUTH_IP_AUTHORIZATION_POLL: {
-		bucket: 'auth:ip_authorization_poll',
-		config: {limit: 60, windowMs: ms('1 minute')},
 	} as RouteRateLimitConfig,
 	AUTH_LOGOUT: {
 		bucket: 'auth:logout',
@@ -193,9 +157,5 @@ export const AuthRateLimitConfigs = {
 	SUDO_MFA_METHODS: {
 		bucket: 'sudo:mfa:methods',
 		config: {limit: 20, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
-	USER_SUDO_EMAIL_CODE: {
-		bucket: 'sudo:email_code',
-		config: {limit: 5, windowMs: ms('15 minutes')},
 	} as RouteRateLimitConfig,
 } as const;

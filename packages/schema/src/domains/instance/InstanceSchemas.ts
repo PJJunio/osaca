@@ -2,11 +2,6 @@
 
 import {RegistrationModes} from '@osaca/constants/src/AccountConfigConstants';
 import {
-	AccountIdentityLockReasons,
-	AccountIdentityModes,
-	TagStyles,
-} from '@osaca/constants/src/AccountIdentityConstants';
-import {
 	BUILT_IN_GUILD_BADGE_KINDS,
 	CUSTOM_BADGE_LOOKUP_IDS_MAX,
 	CUSTOM_BADGE_PAGE_LIMIT_DEFAULT,
@@ -15,8 +10,6 @@ import {
 } from '@osaca/constants/src/BadgeConstants';
 import {
 	CaptchaProviderSchema,
-	EffectiveVerificationBasisSchema,
-	EmailDeliveryStateSchema,
 	GuildJoinGateSchema,
 	InstantAccountAvailabilitySchema,
 	InteractionTierModeSchema,
@@ -99,44 +92,21 @@ export const InstanceBrandingSchema = z
 	.describe('Branding values safe to expose to clients');
 export type InstanceBranding = z.infer<typeof InstanceBrandingSchema>;
 
-export const AccountIdentityLockReasonSchema = createNamedStringLiteralUnion(
-	[
-		[
-			AccountIdentityLockReasons.SETUP_CONFIGURED,
-			'SETUP_CONFIGURED',
-			'The instance configuration marks setup as finished',
-		],
-		[
-			AccountIdentityLockReasons.EXISTING_INSTANCE,
-			'EXISTING_INSTANCE',
-			'The instance was in use before username sign-in existed, so it stays on email',
-		],
-		[AccountIdentityLockReasons.ADMIN_EXISTS, 'ADMIN_EXISTS', 'The instance already has an administrator'],
-		[AccountIdentityLockReasons.ACCOUNTS_EXIST, 'ACCOUNTS_EXIST', 'The instance already has accounts'],
-	],
-	'Why the sign-in method can no longer change',
-);
-
 export const InstanceSetupSchema = z
 	.object({
 		configured: z.boolean().describe('Whether the instance administrator has completed initial setup'),
 		admin_url: z.string().nullable().describe('Admin panel URL to continue instance setup'),
-		account_identity_locked: z
-			.boolean()
-			.optional()
-			.describe(
-				'Present only while a self-hosted instance is unconfigured. True when the sign-in method can no longer change',
-			),
-		account_identity_lock_reason: AccountIdentityLockReasonSchema.nullable()
-			.optional()
-			.describe(
-				'Present only while a self-hosted instance is unconfigured. Why the sign-in method can no longer change, or null while it still can',
-			),
 		setup_token_required: z
 			.boolean()
 			.optional()
 			.describe(
 				'Present only while a self-hosted instance is unconfigured. True when registration needs the setup token',
+			),
+		admin_exists: z
+			.boolean()
+			.optional()
+			.describe(
+				'Present only while a self-hosted instance is unconfigured. True once the first administrator account exists',
 			),
 	})
 	.describe('Initial setup state for self-hosted instances');
@@ -190,28 +160,11 @@ export const InstanceCaptchaSchema = z
 	.describe('Captcha configuration');
 export type InstanceCaptcha = z.infer<typeof InstanceCaptchaSchema>;
 
-export const AccountIdentityModeSchema = createNamedStringLiteralUnion(
-	[
-		[AccountIdentityModes.EMAIL, 'EMAIL', 'People sign in with an email address'],
-		[AccountIdentityModes.USERNAME, 'USERNAME', 'People sign in with a username and no email is collected'],
-	],
-	'How people identify themselves when they sign in',
-);
-
-export const TagStyleSchema = createNamedStringLiteralUnion(
-	[
-		[TagStyles.NONE, 'NONE', 'Usernames are unique and shown without a tag'],
-		[TagStyles.RANDOM, 'RANDOM', 'Every account gets a random tag'],
-	],
-	'How usernames are tagged',
-);
-
 export const InstanceFeaturesSchema = z
 	.object({
 		voice_enabled: z.boolean().describe('Whether voice/video calling is enabled'),
 		self_hosted: z.boolean().describe('Whether this is a self-hosted instance'),
 		presigned_attachment_uploads: z.boolean().describe('Whether clients can request presigned attachment upload URLs'),
-		emails_enabled: z.boolean().describe('Whether the instance sends emails (verification, password reset, etc.)'),
 		phone_verification_enabled: z.boolean().describe('Deprecated. Always false.'),
 		discovery_enabled: z
 			.boolean()
@@ -225,22 +178,10 @@ export const InstanceFeaturesSchema = z
 			.max(8760)
 			.optional()
 			.describe('Hours between a deletion request and the permanent deletion of the account'),
-		account_identity: AccountIdentityModeSchema.optional().describe(
-			'How people sign in on this instance. Clients treat a missing value as email',
-		),
-		tag_style: TagStyleSchema.optional().describe('How usernames are tagged. Clients treat a missing value as random'),
-		identifier_first: z
-			.boolean()
-			.optional()
-			.describe('Whether clients show the single sign-in entry that starts with an email. Missing means false'),
 		instant_accounts: z
 			.boolean()
 			.optional()
-			.describe('Whether accounts can be created without an email, from a display name. Missing means false'),
-		email_codes: z
-			.boolean()
-			.optional()
-			.describe('Whether the instance can send sign-in and verification codes by email. Missing means false'),
+			.describe('Whether accounts can be created from just a display name. Missing means false'),
 		instant_account_availability: InstantAccountAvailabilitySchema.optional().describe(
 			'Whether accounts can be created from just a display name through public sign-up, and why not. Missing means instant_accounts decides',
 		),
@@ -249,12 +190,6 @@ export const InstanceFeaturesSchema = z
 		),
 		guild_join_gate: GuildJoinGateSchema.optional().describe(
 			'When joining a community needs a finished account while interaction_tier is enforced. Missing means always',
-		),
-		email_delivery_state: EmailDeliveryStateSchema.optional().describe(
-			'Whether the instance sends email, and why not. Missing means emails_enabled decides',
-		),
-		verification_basis: EffectiveVerificationBasisSchema.optional().describe(
-			'What an account needs to finish setting up right now. Missing means confirmed_email while emails_enabled, otherwise local_credential',
 		),
 	})
 	.describe('Feature flags for this instance');
@@ -459,27 +394,8 @@ export const WellKnownOsacaResponse = z.object({
 
 export type WellKnownOsacaResponse = z.infer<typeof WellKnownOsacaResponse>;
 
-export const InstanceAccountIdentityUpdateRequest = z.object({
-	mode: AccountIdentityModeSchema.describe('Sign-in method for the new instance'),
-	tag_style: TagStyleSchema.optional().describe(
-		'How usernames are tagged. Defaults to none. Username sign-in accepts only none',
-	),
-	setup_token: createStringType(1, 256)
-		.nullish()
-		.describe('Setup token of a new self-hosted instance. Required until the first admin account exists'),
-});
-
-export type InstanceAccountIdentityUpdateRequest = z.infer<typeof InstanceAccountIdentityUpdateRequest>;
-
 export const InstanceSetupTokenCheckRequest = z.object({
 	setup_token: createStringType(1, 256).describe('Setup token of a new self-hosted instance'),
 });
 
 export type InstanceSetupTokenCheckRequest = z.infer<typeof InstanceSetupTokenCheckRequest>;
-
-export const InstanceAccountIdentityResponse = z.object({
-	mode: AccountIdentityModeSchema.describe('Sign-in method now in effect'),
-	tag_style: TagStyleSchema.describe('How usernames are tagged'),
-});
-
-export type InstanceAccountIdentityResponse = z.infer<typeof InstanceAccountIdentityResponse>;

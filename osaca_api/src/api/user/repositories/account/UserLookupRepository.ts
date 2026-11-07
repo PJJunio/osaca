@@ -10,7 +10,6 @@ import type {
 } from '@app/api/database/types/UserTypes';
 import type {User} from '@app/api/models/User';
 import {UserByAcl, UserByLastActiveIp, UserByLastActiveIpTrustKey, UserByUsername} from '@app/api/Tables';
-import type {UserEmailOwnershipRepository} from '@app/api/user/repositories/account/crud/UserEmailOwnershipRepository';
 import {getSameIpDecisionKey, normalizeIpString} from '@osaca/ip_utils/src/IpAddress';
 
 const FETCH_USER_IDS_BY_ACL_QUERY = UserByAcl.select({
@@ -36,16 +35,7 @@ const FETCH_USER_IDS_BY_LAST_ACTIVE_IP_TRUST_KEY_QUERY = UserByLastActiveIpTrust
 });
 
 export class UserLookupRepository {
-	constructor(
-		private findUniqueUser: (userId: UserID) => Promise<User | null>,
-		private readonly emailOwnershipRepo: UserEmailOwnershipRepository,
-	) {}
-
-	async findByEmail(email: string): Promise<User | null> {
-		const ownerId = await this.emailOwnershipRepo.findOwnerId(email);
-		if (!ownerId) return null;
-		return await this.findUniqueUser(ownerId);
-	}
+	constructor(private findUniqueUser: (userId: UserID) => Promise<User | null>) {}
 
 	async findByUsernameDiscriminator(username: string, discriminator: number): Promise<User | null> {
 		const usernameLower = username.toLowerCase();

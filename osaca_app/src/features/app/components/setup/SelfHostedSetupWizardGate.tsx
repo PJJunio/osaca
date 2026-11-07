@@ -16,23 +16,6 @@ import {
 } from '@app/features/app/components/setup/SetupAttachmentsStep';
 import {SetupBrandingDraftProvider, useSetupBrandingDraft} from '@app/features/app/components/setup/SetupBrandingDraft';
 import {BrandingStep} from '@app/features/app/components/setup/SetupBrandingStep';
-import {
-	EmailSenderStep,
-	EmailServiceStep,
-	parseSmtpPort,
-	SetupEmailDraftProvider,
-	useSetupEmailDraft,
-} from '@app/features/app/components/setup/SetupEmailSteps';
-import {
-	isEmailAnswer,
-	SetupIdentityDraft,
-	type SetupIdentityValues,
-} from '@app/features/app/components/setup/SetupIdentityDraft';
-import {
-	EmailDeliveryStep,
-	SharedUsernamesStep,
-	SignInMethodStep,
-} from '@app/features/app/components/setup/SetupIdentitySteps';
 import {NameStep} from '@app/features/app/components/setup/SetupNameStep';
 import {
 	CommunitiesStep,
@@ -58,7 +41,6 @@ import {
 } from '@app/features/app/components/setup/SetupWizardClient';
 import {
 	countedStepsBeforeAccount,
-	type EmailDeliveryAnswer,
 	firstStepAfterAccount,
 	isBeforeAccountStep,
 	isWizardStep,
@@ -72,7 +54,6 @@ import {
 } from '@app/features/app/components/setup/SetupWizardStateMachine';
 import {
 	DoneStep,
-	SignInLockedStep,
 	SignInToFinishStep,
 	TextButton,
 	WelcomeStep,
@@ -110,11 +91,6 @@ import type {MessageDescriptor} from '@lingui/core';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
 import {RegistrationModes} from '@osaca/constants/src/AccountConfigConstants';
-import {
-	AccountIdentityLockReasons,
-	type AccountIdentityMode,
-	AccountIdentityModes,
-} from '@osaca/constants/src/AccountIdentityConstants';
 import {ThemeTypes} from '@osaca/constants/src/UserConstants';
 import {isRecord} from '@osaca/record_utils/src/RecordGuards';
 import type {InstanceConfigResponse} from '@osaca/schema/src/domains/admin/AdminSchemas';
@@ -176,14 +152,13 @@ const ORIGIN_MISMATCH_DESCRIPTOR = msg({
 	comment: 'Error shown when the setup wizard cannot load because the API origin differs from the page origin.',
 });
 
-interface PreAccountDraft extends SetupIdentityValues, SetupAccountValues {
+interface PreAccountDraft extends SetupAccountValues {
 	stepId: WizardStep;
 }
 
 interface PostAccountDraft {
 	stepId: WizardStep;
 	finishDraft: FinishDraft;
-	emailAnswer: EmailDeliveryAnswer;
 	stepsBeforeAccount: number;
 }
 
@@ -276,10 +251,6 @@ const SetupWizardController = observer(() => {
 	const {value: setupToken, setValue: setSetupToken, setError: setSetupTokenError} = useSetupTokenDraft();
 	const setupTokenFormRef = useRef<HTMLFormElement | null>(null);
 	const [setupTokenRejected, setSetupTokenRejected] = useState(false);
-	const [identityDraft] = useState(() => new SetupIdentityDraft(restoredDraft));
-	const {signInMethod, tagStyle, emailAnswer, setEmailAnswer} = identityDraft;
-	const signInMethodFormRef = useRef<HTMLFormElement | null>(null);
-	const sharedUsernamesFormRef = useRef<HTMLFormElement | null>(null);
 	const [accountDraft] = useState(() => new SetupAccountDraft(restoredDraft));
 	const {values: accountValues} = accountDraft;
 	const [stepsBeforeAccount, setStepsBeforeAccount] = useState<number | null>(null);
@@ -288,9 +259,6 @@ const SetupWizardController = observer(() => {
 	const communitiesFormRef = useRef<HTMLFormElement | null>(null);
 
 	const [recoveryKitDraft] = useState(() => new SetupRecoveryKitDraft());
-	const {draft: smtpDraft, hydrate: hydrateEmailDraft, setFailure: setSmtpFailure} = useSetupEmailDraft();
-	const emailServiceFormRef = useRef<HTMLFormElement | null>(null);
-	const emailSenderFormRef = useRef<HTMLFormElement | null>(null);
 	const {productName, themeColor, assets, hydrate: hydrateBrandingDraft} = useSetupBrandingDraft();
 	const nameFormRef = useRef<HTMLFormElement | null>(null);
 	const brandingFormRef = useRef<HTMLFormElement | null>(null);
@@ -300,20 +268,11 @@ const SetupWizardController = observer(() => {
 	const {enabled: attachmentsEnabled, setEnabled: setAttachmentsEnabled} = useSetupAttachmentsDraft();
 	const attachmentsFormRef = useRef<HTMLFormElement | null>(null);
 
-	const identityLocked = RuntimeConfig.appPublic.setup.account_identity_locked === true;
-	const accountIdentity: AccountIdentityMode =
-		config?.account_identity.mode ?? (identityLocked ? RuntimeConfig.accountIdentity : signInMethod);
 	const conditions: WizardConditions = {
 		isAuthenticated,
-		accountIdentity,
-		identityLocked,
-		adminExists:
-			identityLocked &&
-			RuntimeConfig.appPublic.setup.account_identity_lock_reason === AccountIdentityLockReasons.ADMIN_EXISTS,
+		adminExists: RuntimeConfig.appPublic.setup.admin_exists === true,
 		setupTokenRequired: RuntimeConfig.appPublic.setup.setup_token_required === true,
 		setupTokenRejected,
-		emailsEnabled: RuntimeConfig.emailsEnabled,
-		emailAnswer,
 		finished,
 	};
 	const awaitingConfig = isAuthenticated && config === null && !finished;
@@ -331,11 +290,7 @@ const SetupWizardController = observer(() => {
 		if (!isAuthenticated) {
 			const draft: PreAccountDraft = {
 				stepId: step,
-				signInMethod,
-				tagStyle,
-				emailAnswer,
 				username: accountValues.username,
-				email: accountValues.email,
 			};
 			writeStored(DRAFT_STORAGE_KEY, draft);
 			return;
@@ -344,24 +299,11 @@ const SetupWizardController = observer(() => {
 		const draft: PostAccountDraft = {
 			stepId: step,
 			finishDraft,
-			emailAnswer,
 			stepsBeforeAccount: stepsBeforeAccount ?? 0,
 		};
 		writeStored(userStorageKey(currentUserId), draft);
 		removeStored(DRAFT_STORAGE_KEY);
-	}, [
-		finished,
-		isAuthenticated,
-		config,
-		currentUserId,
-		step,
-		signInMethod,
-		tagStyle,
-		emailAnswer,
-		accountValues,
-		finishDraft,
-		stepsBeforeAccount,
-	]);
+	}, [finished, isAuthenticated, config, currentUserId, step, accountValues, finishDraft, stepsBeforeAccount]);
 
 	useEffect(() => {
 		if (authStoreAuthenticated || !forceUnauthenticatedSetup) return;
@@ -398,20 +340,14 @@ const SetupWizardController = observer(() => {
 	const hydrateFromConfig = useCallback(
 		(next: InstanceConfigResponse, userId: string | null) => {
 			const stored = userId ? readStored(userStorageKey(userId)) : null;
-			const storedAnswer = isEmailAnswer(stored?.emailAnswer) ? stored.emailAnswer : null;
-			const answer = storedAnswer ?? emailAnswer;
 			setConfig(next);
 			hydrateBrandingDraft(next);
-			hydrateEmailDraft(next);
 			setAttachmentsEnabled(next.media.attachment_decay.enabled ?? next.media.attachment_decay.effective.enabled);
 			setFinishDraft(finishDraftFromConfig(next, stored?.finishDraft));
-			setEmailAnswer(answer);
 			const after: WizardConditions = {
 				...conditionsRef.current,
 				isAuthenticated: true,
 				finished: false,
-				accountIdentity: next.account_identity.mode,
-				emailAnswer: answer,
 			};
 			setStepsBeforeAccount((current) => {
 				if (typeof stored?.stepsBeforeAccount === 'number' && stored.stepsBeforeAccount > 0) {
@@ -422,8 +358,6 @@ const SetupWizardController = observer(() => {
 					countedStepsBeforeAccount({
 						...after,
 						setupTokenRequired: true,
-						identityLocked: false,
-						emailsEnabled: false,
 					})
 				);
 			});
@@ -431,13 +365,11 @@ const SetupWizardController = observer(() => {
 				isWizardStep(stored?.stepId) && visibleSteps(after).includes(stored.stepId)
 					? stored.stepId
 					: firstStepAfterAccount(after);
-			const resumeStep =
-				storedStep === 'email_sender' && !next.integrations.email.smtp.host?.trim() ? 'email_service' : storedStep;
-			setStep(resumeStep);
+			setStep(storedStep);
 			setDirection(1);
 			setBusy(false);
 		},
-		[emailAnswer, hydrateBrandingDraft, hydrateEmailDraft, setAttachmentsEnabled, setEmailAnswer, setFinishDraft],
+		[hydrateBrandingDraft, setAttachmentsEnabled, setFinishDraft],
 	);
 
 	useEffect(() => {
@@ -489,7 +421,7 @@ const SetupWizardController = observer(() => {
 	}, []);
 
 	const advance = useCallback(() => {
-		if (returnToReview && step !== 'email_service') {
+		if (returnToReview) {
 			setReturnToReview(false);
 			goTo('review', 1);
 			return;
@@ -525,8 +457,6 @@ const SetupWizardController = observer(() => {
 			return false;
 		}
 	};
-
-	const smtpPort = parseSmtpPort(smtpDraft.port);
 
 	const finish = async () => {
 		if (!config) return;
@@ -565,10 +495,6 @@ const SetupWizardController = observer(() => {
 		case 'recovery_kit':
 			primaryDisabled = !recoveryKitDraft.stored;
 			break;
-		case 'email_service':
-		case 'email_sender':
-			primaryDisabled = !smtpDraft.host.trim() || smtpPort === null;
-			break;
 		default:
 			primaryDisabled = false;
 			break;
@@ -587,14 +513,6 @@ const SetupWizardController = observer(() => {
 	};
 
 	const runPrimary = async () => {
-		if (step === 'sign_in_method') {
-			signInMethodFormRef.current?.requestSubmit();
-			return;
-		}
-		if (step === 'shared_usernames') {
-			sharedUsernamesFormRef.current?.requestSubmit();
-			return;
-		}
 		if (step === 'setup_token') {
 			setupTokenFormRef.current?.requestSubmit();
 			return;
@@ -609,14 +527,6 @@ const SetupWizardController = observer(() => {
 		}
 		if (step === 'attachments') {
 			attachmentsFormRef.current?.requestSubmit();
-			return;
-		}
-		if (step === 'email_service') {
-			emailServiceFormRef.current?.requestSubmit();
-			return;
-		}
-		if (step === 'email_sender') {
-			emailSenderFormRef.current?.requestSubmit();
 			return;
 		}
 		if (step === 'communities') {
@@ -639,13 +549,6 @@ const SetupWizardController = observer(() => {
 					return;
 			}
 		});
-	};
-
-	const switchEmailToLater = () => {
-		setEmailAnswer('later');
-		setSmtpFailure(null);
-		setReturnToReview(false);
-		goTo(returnToReview ? 'review' : 'name', 1);
 	};
 
 	const reviewChange = (target: WizardStep) => {
@@ -716,7 +619,7 @@ const SetupWizardController = observer(() => {
 		primaryLabel = i18n._(FINISH_DESCRIPTOR);
 	} else if (step === 'sign_in_to_finish') {
 		primaryLabel = i18n._(SIGN_IN_DESCRIPTOR);
-	} else if (returnToReview && step !== 'email_service') {
+	} else if (returnToReview) {
 		primaryLabel = i18n._(BACK_TO_REVIEW_DESCRIPTOR);
 	} else {
 		primaryLabel = i18n._(CONTINUE_DESCRIPTOR);
@@ -753,63 +656,13 @@ const SetupWizardController = observer(() => {
 						data-flx="app.setup.self-hosted-setup-wizard-gate.render-step.setup-token-step.set-setup-token"
 					/>
 				);
-			case 'sign_in_method':
-				return (
-					<SignInMethodStep
-						draft={identityDraft}
-						formRef={signInMethodFormRef}
-						setupToken={setupToken}
-						onSubmit={runStep}
-						onAdvance={advance}
-						onError={setStepError}
-						onSetupTokenRejected={handleSetupTokenRejected}
-						disabled={busy}
-						error={stepError}
-						onClearError={() => setStepError(null)}
-						data-flx="app.setup.self-hosted-setup-wizard-gate.render-step.sign-in-method-step.set-sign-in-method"
-					/>
-				);
-			case 'sign_in_locked':
-				return (
-					<SignInLockedStep
-						mode={RuntimeConfig.accountIdentity}
-						reason={RuntimeConfig.appPublic.setup.account_identity_lock_reason}
-						data-flx="app.setup.self-hosted-setup-wizard-gate.render-step.sign-in-locked-step"
-					/>
-				);
 			case 'sign_in_to_finish':
 				return (
 					<SignInToFinishStep data-flx="app.setup.self-hosted-setup-wizard-gate.render-step.sign-in-to-finish-step" />
 				);
-			case 'shared_usernames':
-				return (
-					<SharedUsernamesStep
-						draft={identityDraft}
-						formRef={sharedUsernamesFormRef}
-						setupToken={setupToken}
-						onSubmit={runStep}
-						onAdvance={advance}
-						onError={setStepError}
-						onSetupTokenRejected={handleSetupTokenRejected}
-						disabled={busy}
-						error={stepError}
-						data-flx="app.setup.self-hosted-setup-wizard-gate.render-step.shared-usernames-step.set-tag-style"
-					/>
-				);
-			case 'email_delivery':
-				return (
-					<EmailDeliveryStep
-						draft={identityDraft}
-						data-flx="app.setup.self-hosted-setup-wizard-gate.render-step.email-delivery-step.set-email-answer"
-					/>
-				);
 			case 'account':
 				return (
 					<AccountStep
-						usernameSignIn={accountIdentity === AccountIdentityModes.USERNAME}
-						emailLater={
-							accountIdentity === AccountIdentityModes.EMAIL && !RuntimeConfig.emailsEnabled && emailAnswer === 'later'
-						}
 						theme={ThemeTypes.DARK}
 						setupToken={setupToken.trim() || undefined}
 						formId={accountFormId}
@@ -830,33 +683,6 @@ const SetupWizardController = observer(() => {
 						hasRecoveryKit={hasRecoveryKit}
 						adminPasswordRef={accountDraft.passwordRef}
 						data-flx="app.setup.self-hosted-setup-wizard-gate.render-step.recovery-kit-step"
-					/>
-				);
-			case 'email_service':
-				return (
-					<EmailServiceStep
-						formRef={emailServiceFormRef}
-						error={stepError}
-						disabled={busy}
-						onSubmit={runStep}
-						onAdvance={advance}
-						onError={setStepError}
-						onLater={switchEmailToLater}
-						data-flx="app.setup.self-hosted-setup-wizard-gate.render-step.email-service-step.set-smtp-draft"
-					/>
-				);
-			case 'email_sender':
-				return (
-					<EmailSenderStep
-						formRef={emailSenderFormRef}
-						showErrors={showErrors}
-						disabled={busy}
-						error={stepError}
-						onSubmit={runStep}
-						onSave={saveConfig}
-						onAdvance={advance}
-						onShowErrors={setShowErrors}
-						data-flx="app.setup.self-hosted-setup-wizard-gate.render-step.email-sender-step.set-smtp-draft"
 					/>
 				);
 			case 'name':
@@ -948,10 +774,6 @@ const SetupWizardController = observer(() => {
 						attachmentsEnabled={attachmentsEnabled}
 						accountUsername={accountValues.username}
 						onChange={reviewChange}
-						onEmailChange={() => {
-							setEmailAnswer('now');
-							reviewChange('email_service');
-						}}
 						error={stepError}
 						data-flx="app.setup.self-hosted-setup-wizard-gate.render-step.review-step"
 					/>
@@ -1155,13 +977,11 @@ const SetupWizardController = observer(() => {
 export const SelfHostedSetupWizardGate = () => (
 	<SetupBrandingDraftProvider data-flx="app.setup.self-hosted-setup-wizard-gate.setup-branding-draft-provider">
 		<SetupPolicyDraftProvider data-flx="app.setup.self-hosted-setup-wizard-gate.setup-policy-draft-provider">
-			<SetupEmailDraftProvider data-flx="app.setup.self-hosted-setup-wizard-gate.setup-email-draft-provider">
-				<SetupAttachmentsDraftProvider data-flx="app.setup.self-hosted-setup-wizard-gate.setup-attachments-draft-provider">
-					<SetupTokenDraftProvider data-flx="app.setup.self-hosted-setup-wizard-gate.setup-token-draft-provider">
-						<SetupWizardController data-flx="app.setup.self-hosted-setup-wizard-gate.setup-wizard-controller" />
-					</SetupTokenDraftProvider>
-				</SetupAttachmentsDraftProvider>
-			</SetupEmailDraftProvider>
+			<SetupAttachmentsDraftProvider data-flx="app.setup.self-hosted-setup-wizard-gate.setup-attachments-draft-provider">
+				<SetupTokenDraftProvider data-flx="app.setup.self-hosted-setup-wizard-gate.setup-token-draft-provider">
+					<SetupWizardController data-flx="app.setup.self-hosted-setup-wizard-gate.setup-wizard-controller" />
+				</SetupTokenDraftProvider>
+			</SetupAttachmentsDraftProvider>
 		</SetupPolicyDraftProvider>
 	</SetupBrandingDraftProvider>
 );

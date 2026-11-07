@@ -1,15 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import * as AuthEmailRevert from '@app/api/auth/AuthEmailRevert';
 import {requireSudoMode, type SudoVerificationResult} from '@app/api/auth/services/SudoVerificationService';
 import {createChannelID, createGuildID, type UserID} from '@app/api/BrandedTypes';
 import type {UserConnectionRow} from '@app/api/database/types/ConnectionTypes';
 import type {ThreadViewer} from '@app/api/experiment/ChannelThreadsGate';
 import {emitActivity} from '@app/api/infrastructure/activity/ActivityEvents';
-import {isBlockedEmailDomain} from '@app/api/infrastructure/activity/SharedLists';
 import type {UserCacheService} from '@app/api/infrastructure/UserCacheService';
-import {usesUsernameSignIn} from '@app/api/instance/AccountIdentityModeCache';
-import {Logger} from '@app/api/Logger';
 import type {RequestCache} from '@app/api/middleware/RequestCacheMiddleware';
 import type {AuthSession} from '@app/api/models/AuthSession';
 import type {User} from '@app/api/models/User';
@@ -26,7 +22,6 @@ import {isProfileHidden} from '@app/api/user/ProfileVisibility';
 import {resolveHiddenProfileBadges} from '@app/api/user/profile_badges/HiddenProfileBadges';
 import {buildOwnProfileBadges, buildProfileBadges} from '@app/api/user/profile_badges/ProfileBadgeBuilder';
 import {loadProfileBadgeEnvironment} from '@app/api/user/profile_badges/ProfileBadgeEnvironment';
-import type {EmailChangeService} from '@app/api/user/services/EmailChangeService';
 import type {UserAccountService} from '@app/api/user/services/UserAccountService';
 import type {UserChannelService} from '@app/api/user/services/UserChannelService';
 
@@ -35,11 +30,9 @@ import {
 	mapUserToPrivateResponse,
 	mapUserToProfileResponse,
 } from '@app/api/user/UserMappers';
-import {extractEmailDomain} from '@app/api/utils/EmailDomainUtils';
 import {AccountTiers, TierGatedActions} from '@osaca/constants/src/AccountTierConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {getCurrentTimeZoneOffsetMinutes} from '@osaca/date_utils/src/TimeZoneUtils';
-import {UseClaimRouteError} from '@osaca/errors/src/domains/auth/UseClaimRouteError';
 import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
 import {UnauthorizedError} from '@osaca/errors/src/domains/core/UnauthorizedError';
 import type {ConnectionResponse} from '@osaca/schema/src/domains/connection/ConnectionSchemas';
@@ -47,10 +40,7 @@ import type {
 	ProfileBadgePreviewRequest,
 	ProfileBadgePreviewResponse,
 } from '@osaca/schema/src/domains/user/ProfileBadgeSchemas';
-import type {
-	EmailChangeApplyRequest,
-	UserUpdateWithVerificationRequest,
-} from '@osaca/schema/src/domains/user/UserRequestSchemas';
+import type {UserUpdateWithVerificationRequest} from '@osaca/schema/src/domains/user/UserRequestSchemas';
 import type {
 	UserPrivateResponse,
 	UserProfileFullResponse,
@@ -60,7 +50,7 @@ import type {Context} from 'hono';
 
 type UserUpdatePayload = Omit<
 	UserUpdateWithVerificationRequest,
-	'mfa_method' | 'mfa_code' | 'webauthn_response' | 'webauthn_challenge' | 'email_token'
+	'mfa_method' | 'mfa_code' | 'webauthn_response' | 'webauthn_challenge'
 >;
 
 const PROFILE_CUSTOMIZATION_FIELDS: ReadonlyArray<keyof UserUpdatePayload> = [
@@ -107,7 +97,6 @@ interface UserProfileParams {
 
 export class UserAccountRequestService {
 	constructor(
-		private readonly emailChangeService: EmailChangeService,
 		private readonly userAccountService: UserAccountService,
 		private readonly userChannelService: UserChannelService,
 		private readonly userCacheService: UserCacheService,
@@ -124,12 +113,7 @@ export class UserAccountRequestService {
 			if (!bearerUser) {
 				throw new UnauthorizedError();
 			}
-			const includeEmail = params.oauthBearerScopes?.has('email') ?? false;
 			const response = mapUserToPrivateResponse(bearerUser);
-			if (!includeEmail) {
-				response.email = null;
-				response.verified = false;
-			}
 			this.stripBearerSensitiveFields(response);
 			return response;
 		}
@@ -148,25 +132,18 @@ export class UserAccountRequestService {
 	}): Promise<UserUpdateResponse> {
 		const {ctx, body, authSession} = params;
 		const {user} = params;
-		const oldEmail = user.email;
 		const {
 			mfa_method: _mfaMethod,
 			mfa_code: _mfaCode,
 			webauthn_response: _webauthnResponse,
 			webauthn_challenge: _webauthnChallenge,
-			email_token: emailToken,
 			...userUpdateDataRest
 		} = body;
-		let userUpdateData: UserUpdatePayload = userUpdateDataRest;
-		const emailTokenProvided = emailToken !== undefined;
-		if (!emailTokenProvided && !hasDefinedUserUpdatePayload(userUpdateData)) {
+		const userUpdateData: UserUpdatePayload = userUpdateDataRest;
+		if (!hasDefinedUserUpdatePayload(userUpdateData)) {
 			return mapUserToPrivateResponse(user);
 		}
-		if (userUpdateData.email !== undefined) {
-			throw InputValidationError.fromCode('email', ValidationErrorCodes.EMAIL_MUST_BE_CHANGED_VIA_TOKEN);
-		}
 		const isUnclaimed = getAccountTier(user) === AccountTiers.UNCLAIMED;
-		const usernameSignIn = usesUsernameSignIn();
 		if (
 			!isUnclaimed &&
 			userUpdateData.new_password !== undefined &&
@@ -179,7 +156,7 @@ export class UserAccountRequestService {
 		const profileGate = evaluateTierGateFor(user, TierGatedActions.PROFILE_CUSTOMIZE, NO_TIER_CONTEXT);
 		if (isUnclaimed && !profileGate.allowed) {
 			const allowed = new Set(['new_password']);
-			if (userUpdateData.new_password !== undefined && usernameSignIn) {
+			if (userUpdateData.new_password !== undefined) {
 				allowed.add('username');
 			}
 			const disallowedField = Object.keys(userUpdateData).find((key) => !allowed.has(key));
@@ -190,27 +167,14 @@ export class UserAccountRequestService {
 					{need: profileGate.need},
 				);
 			}
-		} else {
-			if (isUnclaimed && userUpdateData.new_password !== undefined && !usernameSignIn && !emailTokenProvided) {
-				throw new UseClaimRouteError();
-			}
-			if (profileCustomization && !profileGate.allowed) throw tierDenialError(profileGate);
+		} else if (profileCustomization && !profileGate.allowed) {
+			throw tierDenialError(profileGate);
 		}
 		if (profileCustomization) assertAccountNotLimited(user);
-		let emailFromToken: string | null = null;
-		let emailVerifiedViaToken = false;
-		const needsVerification = this.requiresSensitiveUserVerification(user, userUpdateData, emailTokenProvided);
+		const needsVerification = this.requiresSensitiveUserVerification(user, userUpdateData);
 		let sudoResult: SudoVerificationResult | null = null;
 		if (needsVerification) {
 			sudoResult = await requireSudoMode(ctx, user, body);
-		}
-		if (emailTokenProvided && emailToken) {
-			emailFromToken = await this.emailChangeService.getTokenEmail(user.id, emailToken);
-			userUpdateData = {...userUpdateData, email: emailFromToken};
-			emailVerifiedViaToken = true;
-			if (isBlockedEmailDomain(extractEmailDomain(emailFromToken))) {
-				throw InputValidationError.fromCode('email', ValidationErrorCodes.INVALID_EMAIL_ADDRESS);
-			}
 		}
 		const {user: updatedUser, authSessionReplacement} = await this.userAccountService.update({
 			user,
@@ -218,23 +182,7 @@ export class UserAccountRequestService {
 			data: userUpdateData,
 			request: ctx.req.raw,
 			sudoContext: sudoResult ?? undefined,
-			emailVerifiedViaToken,
 		});
-		if (emailTokenProvided && emailToken) {
-			await this.emailChangeService.deleteToken(emailToken);
-		}
-		const emailActuallyChanged =
-			!!emailFromToken &&
-			!!updatedUser.email &&
-			(oldEmail == null || oldEmail.toLowerCase() !== updatedUser.email.toLowerCase());
-		if (emailActuallyChanged && updatedUser.email) {
-			await emitActivity('email_changed', updatedUser.id.toString(), {
-				user_id: updatedUser.id.toString(),
-				new_email: updatedUser.email,
-				was_unclaimed: isUnclaimed,
-				origin: 'user',
-			});
-		}
 		if (profileFieldsChanged(user, updatedUser)) {
 			await emitActivity('profile_updated', updatedUser.id.toString(), {
 				user_id: updatedUser.id.toString(),
@@ -245,17 +193,6 @@ export class UserAccountRequestService {
 				pronouns: updatedUser.pronouns,
 			});
 		}
-		if (emailActuallyChanged && oldEmail) {
-			try {
-				await AuthEmailRevert.issueEmailRevertToken(ctx.get('apiContext'), {
-					user: updatedUser,
-					previousEmail: oldEmail,
-					newEmail: updatedUser.email,
-				});
-			} catch (error) {
-				Logger.warn({error, userId: updatedUser.id}, 'Failed to issue email revert token');
-			}
-		}
 		const response = mapUserToPrivateResponse(updatedUser);
 		if (!authSessionReplacement) {
 			return response;
@@ -265,20 +202,6 @@ export class UserAccountRequestService {
 			token: authSessionReplacement.token,
 			auth_session_id_hash: authSessionReplacement.authSessionIdHash,
 		};
-	}
-
-	async applyEmailChange(params: {
-		ctx: Context<HonoEnv>;
-		user: User;
-		body: EmailChangeApplyRequest;
-		authSession: AuthSession;
-	}): Promise<UserPrivateResponse> {
-		return this.updateCurrentUser({
-			ctx: params.ctx,
-			user: params.user,
-			body: params.body,
-			authSession: params.authSession,
-		});
 	}
 
 	async preloadMessages(params: {
@@ -395,7 +318,6 @@ export class UserAccountRequestService {
 		response.is_staff = false;
 		response.acls = [];
 		response.traits = [];
-		response.email_bounced = undefined;
 		response.timezone = undefined;
 		response.timezone_privacy_flags = undefined;
 		response.account_limited = undefined;
@@ -416,16 +338,15 @@ export class UserAccountRequestService {
 		response.pending_bulk_message_deletion = null;
 	}
 
-	private requiresSensitiveUserVerification(user: User, data: UserUpdatePayload, emailTokenProvided: boolean): boolean {
+	private requiresSensitiveUserVerification(user: User, data: UserUpdatePayload): boolean {
 		const isUnclaimed = getAccountTier(user) === AccountTiers.UNCLAIMED;
 		const usernameChanged = data.username !== undefined && data.username !== user.username;
 		const discriminatorChanged = data.discriminator !== undefined && data.discriminator !== user.discriminator;
-		const emailChanged = data.email !== undefined && data.email !== user.email;
 		const newPasswordProvided = data.new_password !== undefined;
 		if (isUnclaimed) {
 			return !isInteractionTierEnforced() && (usernameChanged || discriminatorChanged);
 		}
-		return usernameChanged || discriminatorChanged || emailTokenProvided || emailChanged || newPasswordProvided;
+		return usernameChanged || discriminatorChanged || newPasswordProvided;
 	}
 
 	private mapConnectionsToResponse(connections: Array<UserConnectionRow>): Array<ConnectionResponse> {

@@ -2,10 +2,7 @@
 
 import {ThemeTypes} from '@osaca/constants/src/UserConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
-import {
-	CaptchaProviderSchema,
-	InstantAccountAvailabilitySchema,
-} from '@osaca/schema/src/domains/account/AccountTierSchemas';
+import {CaptchaProviderSchema} from '@osaca/schema/src/domains/account/AccountTierSchemas';
 import {
 	WebAuthnAuthenticationOptions,
 	WebAuthnAuthenticationResponse,
@@ -18,7 +15,7 @@ import {
 	createStringType,
 	SnowflakeStringType,
 } from '@osaca/schema/src/primitives/SchemaPrimitives';
-import {EmailType, GlobalNameType, PasswordType, UsernameType} from '@osaca/schema/src/primitives/UserValidators';
+import {GlobalNameType, PasswordType, UsernameType} from '@osaca/schema/src/primitives/UserValidators';
 import {z} from 'zod';
 
 const RegisterThemeType = createNamedStringLiteralUnion(
@@ -32,10 +29,7 @@ const RegisterThemeType = createNamedStringLiteralUnion(
 	'UI theme preference',
 );
 
-const SixDigitCodeType = createStringType(6, 6).refine((value) => /^\d{6}$/.test(value), 'Invalid code');
-
 export const RegisterRequest = z.object({
-	email: EmailType.optional().describe('Email address for the new account'),
 	username: UsernameType.optional().describe('Username for the new account (1-32 characters)'),
 	global_name: GlobalNameType.optional().describe('Display name shown to other users'),
 	password: PasswordType.optional().describe('Password for the new account'),
@@ -57,12 +51,6 @@ export const RegisterRequest = z.object({
 
 export type RegisterRequest = z.infer<typeof RegisterRequest>;
 
-export const UsernameInstanceRegisterRequest = RegisterRequest.extend({
-	email: createStringType(1, 320)
-		.optional()
-		.describe('Email address sent by older apps. Accepted and discarded on username instances'),
-});
-
 export const UsernameSuggestionsRequest = z.object({
 	global_name: GlobalNameType.describe('Display name to generate username suggestions from'),
 });
@@ -77,33 +65,11 @@ export type UsernameAvailabilityQuery = z.infer<typeof UsernameAvailabilityQuery
 
 const LoginIdentifierType = createStringType(1, 320);
 
-const LoginRequestObject = z.object({
-	email: EmailType.optional().describe('Email address for authentication. Send this or login, not both'),
-	login: LoginIdentifierType.optional().describe(
-		'Sign-in identifier. An email address on email instances, a username on username instances',
-	),
+export const LoginRequest = z.object({
+	login: LoginIdentifierType.describe('Username of the account, optionally followed by @ and the instance host'),
 	password: PasswordType.describe('Account password'),
 	invite_code: createStringType(0, 256).nullish().describe('Guild invite code to join after login'),
 });
-
-function requireLoginIdentifier(value: unknown): unknown {
-	if (typeof value !== 'object' || value === null || Array.isArray(value)) return value;
-	const {login, ...rest} = value as Record<string, unknown>;
-	if (rest.email !== undefined) return rest;
-	if (login !== undefined && login !== null && login !== '') return value;
-	return {...rest, email: null};
-}
-
-export const LoginRequest = z.preprocess(requireLoginIdentifier, LoginRequestObject);
-
-export const UsernameInstanceLoginRequest = z.preprocess(
-	requireLoginIdentifier,
-	LoginRequestObject.extend({
-		email: LoginIdentifierType.optional().describe(
-			'Sign-in identifier sent by older apps. A username or username@instance host on username instances',
-		),
-	}),
-);
 
 export type LoginRequest = z.infer<typeof LoginRequest>;
 
@@ -114,21 +80,15 @@ export const LogoutAuthSessionsRequest = z.object({
 
 export type LogoutAuthSessionsRequest = z.infer<typeof LogoutAuthSessionsRequest>;
 
-export const ForgotPasswordRequest = z.object({
-	email: EmailType.describe('Email address to send password reset link'),
-});
-
-export type ForgotPasswordRequest = z.infer<typeof ForgotPasswordRequest>;
-
 export const ResetPasswordRequest = z.object({
-	token: createStringType(64, 64).describe('Password reset token from email'),
+	token: createStringType(64, 64).describe('Password reset token from the reset link'),
 	password: PasswordType.describe('New password to set'),
 });
 
 export type ResetPasswordRequest = z.infer<typeof ResetPasswordRequest>;
 
 export const ResetPasswordTokenParam = z.object({
-	token: createStringType(64, 64).describe('Password reset token from email'),
+	token: createStringType(64, 64).describe('Password reset token from the reset link'),
 });
 
 export type ResetPasswordTokenParam = z.infer<typeof ResetPasswordTokenParam>;
@@ -139,34 +99,16 @@ export const ValidateResetPasswordTokenResponse = z.object({
 
 export type ValidateResetPasswordTokenResponse = z.infer<typeof ValidateResetPasswordTokenResponse>;
 
-export const EmailRevertRequest = z.object({
-	token: createStringType(64, 64).describe('Email revert token from email'),
-	password: PasswordType.describe('Account password for verification'),
-});
-
-export type EmailRevertRequest = z.infer<typeof EmailRevertRequest>;
-
-export const VerifyEmailRequest = z.object({
-	token: createStringType(64, 64).describe('Email verification token from email'),
-});
-
-export type VerifyEmailRequest = z.infer<typeof VerifyEmailRequest>;
-
 export const SudoVerificationSchema = z.object({
 	password: PasswordType.optional().describe('Account password for sudo verification'),
 	mfa_method: createNamedStringLiteralUnion(
 		[
 			['totp', 'TOTP', 'Time-based one-time password authentication via authenticator app'],
 			['webauthn', 'WebAuthn', 'Security key or biometric authentication'],
-			['email_code', 'Email code', 'A 6-digit code sent to the account email address'],
 		],
 		'MFA method to use for verification',
 	).optional(),
 	mfa_code: createStringType(1, 32).optional().describe('MFA verification code from an authenticator app'),
-	email_code_ticket: createStringType(1, 128)
-		.optional()
-		.describe('Ticket from POST /users/@me/sudo/email-code, sent with mfa_method email_code'),
-	email_code: SixDigitCodeType.optional().describe('The 6-digit code from the email, sent with mfa_method email_code'),
 	webauthn_response: WebAuthnAuthenticationResponse.optional().describe('WebAuthn authentication response'),
 	webauthn_challenge: createStringType().optional().describe('WebAuthn challenge string'),
 });
@@ -174,12 +116,6 @@ export const AuthTokenWithUserIdResponse = z.object({
 	token: z.string().describe('Authentication token for API requests'),
 	user_id: SnowflakeStringType.describe('ID of the authenticated user'),
 	user: UserPartialResponse.describe('Partial user data for the authenticated account'),
-	device_proof: z
-		.string()
-		.optional()
-		.describe(
-			'Opaque value to keep beside this account and send on later sign-ins from this device. It is not a credential',
-		),
 });
 
 export type AuthTokenWithUserIdResponse = z.infer<typeof AuthTokenWithUserIdResponse>;
@@ -354,32 +290,11 @@ export const MfaTicketRequest = z.object({
 
 export type MfaTicketRequest = z.infer<typeof MfaTicketRequest>;
 
-export const AuthorizeIpRequest = z.object({
-	token: createStringType().describe('The IP authorization token from email'),
-});
-
-export type AuthorizeIpRequest = z.infer<typeof AuthorizeIpRequest>;
-
 export const SignInLinkRequest = z.object({
 	token: createStringType().describe('The token from the sign-in link'),
 });
 
 export type SignInLinkRequest = z.infer<typeof SignInLinkRequest>;
-
-export const IpAuthorizationPollQuery = z.object({
-	ticket: createStringType().describe('The IP authorization ticket'),
-});
-
-export type IpAuthorizationPollQuery = z.infer<typeof IpAuthorizationPollQuery>;
-
-export const IpAuthorizationPollResponse = z.object({
-	completed: z.boolean().describe('Whether the IP authorization has been completed'),
-	token: z.string().nullish().describe('Authentication token if authorization is complete'),
-	user_id: SnowflakeStringType.nullish().describe('User ID if authorization is complete'),
-	user: UserPartialResponse.nullish().describe('Partial user data if authorization is complete'),
-});
-
-export type IpAuthorizationPollResponse = z.infer<typeof IpAuthorizationPollResponse>;
 
 export const WebAuthnAuthenticateRequest = z.object({
 	response: WebAuthnAuthenticationResponse.describe('WebAuthn authentication response'),
@@ -470,38 +385,6 @@ export const MfaBackupCodesResponse = z.object({
 
 export type MfaBackupCodesResponse = z.infer<typeof MfaBackupCodesResponse>;
 
-export const MfaBackupCodesChallengeStartResponse = z.object({
-	ticket: z.string().describe('Ticket for backup codes challenge actions'),
-	code_expires_at: z.string().describe('ISO8601 timestamp when the verification code expires'),
-	resend_available_at: z.string().describe('ISO8601 timestamp when the code can be resent'),
-});
-
-export type MfaBackupCodesChallengeStartResponse = z.infer<typeof MfaBackupCodesChallengeStartResponse>;
-
-export const MfaBackupCodesChallengeResendRequest = z.object({
-	ticket: createStringType().describe('Backup codes challenge ticket identifier'),
-});
-
-export type MfaBackupCodesChallengeResendRequest = z.infer<typeof MfaBackupCodesChallengeResendRequest>;
-
-export const MfaBackupCodesChallengeVerifyRequest = MfaBackupCodesChallengeResendRequest.extend({
-	code: createStringType().describe('Verification code sent to the email address'),
-});
-
-export type MfaBackupCodesChallengeVerifyRequest = z.infer<typeof MfaBackupCodesChallengeVerifyRequest>;
-
-export const MfaBackupCodesChallengeVerifyResponse = MfaBackupCodesResponse.extend({
-	verification_proof: z.string().describe('Proof token authorizing backup code regeneration on this ticket'),
-});
-
-export type MfaBackupCodesChallengeVerifyResponse = z.infer<typeof MfaBackupCodesChallengeVerifyResponse>;
-
-export const MfaBackupCodesChallengeRegenerateRequest = MfaBackupCodesChallengeResendRequest.extend({
-	verification_proof: createStringType().describe('Proof token obtained from verifying the email code'),
-});
-
-export type MfaBackupCodesChallengeRegenerateRequest = z.infer<typeof MfaBackupCodesChallengeRegenerateRequest>;
-
 export const WebAuthnCredentialResponse = z.object({
 	id: z.string().describe('The credential ID'),
 	name: z.string().describe('User-assigned name for the credential'),
@@ -561,101 +444,12 @@ export const SudoMfaMethodsResponse = z.object({
 	webauthn: z.boolean().describe('Whether the account has at least one registered WebAuthn credential'),
 	backup_codes: z.boolean().describe('Whether the account has at least one unconsumed backup code'),
 	has_mfa: z.boolean().describe('Whether the account can satisfy a sudo mode challenge'),
-	email_code: z
-		.boolean()
-		.optional()
-		.describe('Whether a code sent to the confirmed email address can verify the account, for accounts without MFA'),
 	password: z.boolean().optional().describe('Whether the account password can verify the account'),
 });
 
 export type SudoMfaMethodsResponse = z.infer<typeof SudoMfaMethodsResponse>;
 
 export const LogoutAuthSessionsWithVerificationRequest = LogoutAuthSessionsRequest.extend(SudoVerificationSchema.shape);
-
-const DeviceProofType = createStringType(1, 128).describe('device_proof from an earlier sign-in on this device');
-
-export const IdentifyRequest = z.object({
-	email: EmailType.optional().describe(
-		'Email address to sign in or sign up with, on instances that sign in with an email',
-	),
-	login: UsernameType.optional().describe('Username to sign in or sign up with, on username instances'),
-	device_proof: DeviceProofType.optional(),
-	registration_url_code: createStringType(1, 128)
-		.nullish()
-		.describe('Admin-issued registration URL code, for sign-ups'),
-});
-
-export type IdentifyRequest = z.infer<typeof IdentifyRequest>;
-
-export const IdentifyResponse = z.object({
-	ticket: z.string().describe('Opaque ticket for the next step, valid for 15 minutes'),
-	account: z.enum(['existing', 'new']).describe('Whether an account already uses this address'),
-	sign_in_method: z
-		.enum(['password', 'code'])
-		.nullable()
-		.describe(
-			'How the existing account signs in: password for an account that has a password, code for one without. Null when account is new',
-		),
-	registration: z
-		.object({
-			mode: z.enum(['open', 'approval', 'closed']).describe('How new accounts are admitted'),
-			consent_required: z.boolean().describe('Whether sign-up needs agreement to the terms and privacy policy'),
-			requires_password: z.boolean().describe('Whether sign-up needs a password because email codes are off'),
-			instant_account_availability: InstantAccountAvailabilitySchema.optional().describe(
-				'Whether an account can be created from just a display name, taking the registration URL code into account',
-			),
-		})
-		.nullable()
-		.describe('Sign-up details, present when account is new'),
-});
-
-export type IdentifyResponse = z.infer<typeof IdentifyResponse>;
-
-export const EmailCodeSendRequest = z.object({
-	ticket: createStringType(1, 128).describe('Ticket from POST /auth/identify'),
-	registration_url_code: createStringType(1, 128)
-		.nullish()
-		.describe('Admin-issued registration URL code, for sign-ups'),
-});
-
-export type EmailCodeSendRequest = z.infer<typeof EmailCodeSendRequest>;
-
-export const EmailCodeSendResponse = z.object({
-	purpose: z.enum(['sign_in', 'sign_up']).describe('Whether the code signs in or creates an account'),
-	code_expires_at: z.iso.datetime().describe('When the emailed code stops working'),
-	resend_available_at: z.iso.datetime().describe('When another code can be requested'),
-});
-
-export type EmailCodeSendResponse = z.infer<typeof EmailCodeSendResponse>;
-
-export const EmailCodeVerifyRequest = z.object({
-	ticket: createStringType(1, 128).describe('Ticket from POST /auth/identify'),
-	code: SixDigitCodeType.describe('The 6-digit code from the email'),
-	consent: z
-		.boolean()
-		.optional()
-		.describe(
-			'For sign-ups, whether the person submitted the step that says creating the account accepts the terms of service. Must be true when the instance publishes terms or a privacy policy',
-		),
-	registration_url_code: createStringType(1, 128)
-		.nullish()
-		.describe('Admin-issued registration URL code, for sign-ups'),
-	invite_code: createStringType(0, 256).nullish().describe('Invite to open after the date of birth step, for sign-ups'),
-	username: UsernameType.optional().describe('For sign-ups, the username for the new account. Ignored when signing in'),
-	global_name: GlobalNameType.optional().describe(
-		'For sign-ups, the display name shown to other people. Ignored when signing in',
-	),
-});
-
-export type EmailCodeVerifyRequest = z.infer<typeof EmailCodeVerifyRequest>;
-
-export const EmailCodeVerifyResponse = z.union([
-	AuthRegisterSuccessResponse,
-	AuthMfaRequiredResponse,
-	AuthRegistrationPendingApprovalResponse,
-]);
-
-export type EmailCodeVerifyResponse = z.infer<typeof EmailCodeVerifyResponse>;
 
 export const AccountHandoffRequest = z.object({
 	global_name: GlobalNameType.describe(

@@ -190,12 +190,10 @@ The sudo fields are the [sudo verification object](/http-api/users/mfa/#sudo-ver
 | start_date? | ?ISO8601 timestamp | Only messages at or after this time |
 | end_date? | ?ISO8601 timestamp | Only messages before this time, and it must be later than `start_date` |
 | password? | string | The account password (8-256 characters) |
-| mfa_method? | string | The sudo MFA method, one of `totp`, `webauthn` or `email_code` |
+| mfa_method? | string | The sudo MFA method, `totp` or `webauthn` |
 | mfa_code? | string | The sudo authenticator code or an unused backup code (1-32 characters) |
 | webauthn_response? | [WebAuthn assertion](/http-api/users/mfa/#webauthn-assertion-object) object | The sudo WebAuthn assertion |
 | webauthn_challenge? | string | The sudo WebAuthn challenge (1-256 characters) |
-| email_code_ticket? | string | The ticket from [send a sudo email code](/http-api/users/mfa/#send-a-sudo-email-code) (1-128 characters) |
-| email_code? | string | The 6-digit code from that email |
 
 ### Response
 

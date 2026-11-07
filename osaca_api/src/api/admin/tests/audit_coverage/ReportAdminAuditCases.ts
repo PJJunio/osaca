@@ -196,8 +196,6 @@ export const ReportAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase> = [
 						report_type: '1',
 						notify_reporter: 'true',
 						reporter_dm_sent: 'true',
-						reporter_email_sent: 'true',
-						reporter_dsa_email_sent: 'false',
 						resolution: 'actioned',
 						outcome: 'restricted',
 					},
@@ -231,8 +229,6 @@ export const ReportAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase> = [
 						notify_reporter: 'false',
 						internal_comment: 'Internal wording',
 						reporter_dm_sent: 'true',
-						reporter_email_sent: 'true',
-						reporter_dsa_email_sent: 'false',
 						resolution: 'no_violation',
 						outcome: 'no_violation',
 					},
@@ -266,8 +262,6 @@ export const ReportAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase> = [
 							report_type: '1',
 							notify_reporter: 'false',
 							reporter_dm_sent: 'true',
-							reporter_email_sent: 'true',
-							reporter_dsa_email_sent: 'false',
 							resolution,
 							outcome: resolution === 'no_violation' ? 'no_violation' : 'removed',
 						},
@@ -311,8 +305,6 @@ export const ReportAdminAuditCases: ReadonlyArray<AdminAuditCoverageCase> = [
 							...(originalResolved
 								? {
 										reporter_dm_sent: 'true',
-										reporter_email_sent: 'true',
-										reporter_dsa_email_sent: 'false',
 										outcome: 'restricted',
 									}
 								: {reporter_notice_skipped: 'duplicate_outcome_unknown'}),

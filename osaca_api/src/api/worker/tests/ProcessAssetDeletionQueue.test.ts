@@ -21,7 +21,7 @@ function createHarness(storageService: MockStorageService) {
 		assetDeletionQueue,
 		purgeQueue: new NoopPurgeQueue(),
 		storageService,
-		userRepository: new UserRepository(kvClient),
+		userRepository: new UserRepository(),
 		guildRepository,
 	});
 	return {assetDeletionQueue, guildRepository};

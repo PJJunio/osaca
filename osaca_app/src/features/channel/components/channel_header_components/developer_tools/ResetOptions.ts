@@ -18,7 +18,6 @@ const DEFAULT_DEVELOPER_OPTIONS = {
 	forceUnknownMessageType: false,
 	selfHostedModeOverride: false,
 	forceShowVanityURLDisclaimer: false,
-	emailVerifiedOverride: null,
 	unclaimedAccountOverride: null,
 	mockVerificationBarrier: 'none',
 	mockBarrierTimeRemaining: null,

@@ -46,29 +46,9 @@ describe('Admin user directory', () => {
 		});
 	});
 	describe('GET /admin/users', () => {
-		test('rejects the email selector without USER_VIEW_EMAIL ACL', async () => {
-			const admin = await createTestAccount(harness);
-			await setUserACLs(harness, admin, [AdminACLs.AUTHENTICATE, AdminACLs.USER_LOOKUP, AdminACLs.USER_VIEW_IP]);
-			const target = await createTestAccount(harness);
-			await createBuilder(harness, `${admin.token}`)
-				.get(`/admin/users?email=${encodeURIComponent(target.email)}`)
-				.expect(HTTP_STATUS.FORBIDDEN, 'MISSING_ACL')
-				.execute();
-		});
-		test('returns the account for the email selector with USER_VIEW_EMAIL ACL', async () => {
-			const admin = await createTestAccount(harness);
-			await setUserACLs(harness, admin, [AdminACLs.AUTHENTICATE, AdminACLs.USER_LOOKUP, AdminACLs.USER_VIEW_EMAIL]);
-			const target = await createTestAccount(harness);
-			const result = await createBuilder<UserListResponse>(harness, `${admin.token}`)
-				.get(`/admin/users?email=${encodeURIComponent(target.email)}`)
-				.expect(HTTP_STATUS.OK)
-				.execute();
-			expect(result.users.map((user) => user.id)).toEqual([target.userId]);
-			expect(result.users[0]?.email).toBe(target.email);
-		});
 		test('rejects the last_active_ip selector without USER_VIEW_IP ACL', async () => {
 			const admin = await createTestAccount(harness);
-			await setUserACLs(harness, admin, [AdminACLs.AUTHENTICATE, AdminACLs.USER_LOOKUP, AdminACLs.USER_VIEW_EMAIL]);
+			await setUserACLs(harness, admin, [AdminACLs.AUTHENTICATE, AdminACLs.USER_LOOKUP]);
 			await createBuilder(harness, `${admin.token}`)
 				.get(`/admin/users?last_active_ip=${encodeURIComponent('203.0.113.9')}`)
 				.expect(HTTP_STATUS.FORBIDDEN, 'MISSING_ACL')
@@ -87,26 +67,6 @@ describe('Admin user directory', () => {
 			expect(found).toBeDefined();
 			expect(found?.last_active_ip).toBe('203.0.113.9');
 		});
-		test('rejects a resolve value containing an at sign without USER_VIEW_EMAIL ACL', async () => {
-			const admin = await createTestAccount(harness);
-			await setUserACLs(harness, admin, [AdminACLs.AUTHENTICATE, AdminACLs.USER_LOOKUP, AdminACLs.USER_VIEW_IP]);
-			const target = await createTestAccount(harness);
-			await createBuilder(harness, `${admin.token}`)
-				.get(`/admin/users?resolve=${encodeURIComponent(target.email)}`)
-				.expect(HTTP_STATUS.FORBIDDEN, 'MISSING_ACL')
-				.execute();
-		});
-		test('resolves an email address with USER_VIEW_EMAIL ACL', async () => {
-			const admin = await createTestAccount(harness);
-			await setUserACLs(harness, admin, [AdminACLs.AUTHENTICATE, AdminACLs.USER_LOOKUP, AdminACLs.USER_VIEW_EMAIL]);
-			const target = await createTestAccount(harness);
-			const result = await createBuilder<UserListResponse>(harness, `${admin.token}`)
-				.get(`/admin/users?resolve=${encodeURIComponent(target.email)}`)
-				.expect(HTTP_STATUS.OK)
-				.execute();
-			expect(result.users.map((user) => user.id)).toEqual([target.userId]);
-			expect(result.users[0]?.email).toBe(target.email);
-		});
 		test('resolves a user ID without a PII ACL', async () => {
 			const admin = await createTestAccount(harness);
 			await setUserACLs(harness, admin, [AdminACLs.AUTHENTICATE, AdminACLs.USER_LOOKUP]);
@@ -116,7 +76,6 @@ describe('Admin user directory', () => {
 				.expect(HTTP_STATUS.OK)
 				.execute();
 			expect(result.users.map((user) => user.id)).toEqual([target.userId]);
-			expect(result.users[0]?.email).toBeNull();
 		});
 		test.each(SYNTHETIC_USER_IDS)('omits the synthetic account %s from the resolve selector', async (userId) => {
 			const admin = await createTestAccount(harness);

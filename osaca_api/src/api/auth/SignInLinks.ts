@@ -60,7 +60,7 @@ export async function createSignInLink(
 		metadata: new Map(),
 	});
 	return {
-		url: `${Config.email.appBaseUrl}/login#sign_in_link=${token}`,
+		url: `${Config.endpoints.webApp}/login#sign_in_link=${token}`,
 		expires_at: new Date(createdAt + SIGN_IN_LINK_TTL_SECONDS * 1000).toISOString(),
 	};
 }

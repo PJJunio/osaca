@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {AttachmentDecayRepository} from '@app/api/attachment/AttachmentDecayRepository';
-import type {IpAuthorizationTicketCache} from '@app/api/auth/AuthLogin';
-import {getTicketCacheKey} from '@app/api/auth/AuthLogin';
 import {
 	createApplicationID,
 	createAttachmentID,
@@ -30,28 +28,24 @@ import {
 	type MessageRow,
 } from '@app/api/database/types/MessageTypes';
 import {GuildRepository} from '@app/api/guild/repositories/GuildRepository';
-import type {ISnowflakeService} from '@app/api/infrastructure/ISnowflakeService';
 import {KVAccountDeletionQueueService} from '@app/api/infrastructure/KVAccountDeletionQueueService';
 import {KVActivityTracker} from '@app/api/infrastructure/KVActivityTracker';
 import {Logger} from '@app/api/Logger';
 import {getKVClient, getSnowflakeService} from '@app/api/middleware/ServiceRegistry';
 import {OAuth2TokenRepository} from '@app/api/oauth/repositories/OAuth2TokenRepository';
-import {IpAuthorizationTokens, OAuth2AccessTokensByUser} from '@app/api/Tables';
+import {OAuth2AccessTokensByUser} from '@app/api/Tables';
 import type {HonoApp, HonoEnv} from '@app/api/types/HonoEnv';
-import {UserSearchRepository} from '@app/api/user/repositories/account/crud/UserSearchRepository';
 import type {UserDeletionScheduleUpdate} from '@app/api/user/repositories/account/UserAccountRepository';
 import {AuthSessionRepository} from '@app/api/user/repositories/auth/AuthSessionRepository';
 import {UserChannelRepository} from '@app/api/user/repositories/UserChannelRepository';
 import {UserRepository} from '@app/api/user/repositories/UserRepository';
 import {processUserDeletion} from '@app/api/user/services/UserDeletionService';
-import {parseReportedClientOs} from '@app/api/utils/SessionClientIdentity';
 import {processInactivityDeletionsCore} from '@app/api/worker/tasks/ProcessInactivityDeletions';
 import {setWorkerDependencies} from '@app/api/worker/WorkerContext';
 import {initializeWorkerDependencies} from '@app/api/worker/WorkerDependencies';
 import {MAX_GUILD_MEMBERS_VERY_LARGE_GUILD} from '@osaca/constants/src/LimitConstants';
 import {UserFlags} from '@osaca/constants/src/UserConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
-import {EmailServiceNotTestableError} from '@osaca/errors/src/domains/auth/EmailServiceNotTestableError';
 import {AclsMustBeNonEmptyError} from '@osaca/errors/src/domains/core/AclsMustBeNonEmptyError';
 import {DeletionFailedError} from '@osaca/errors/src/domains/core/DeletionFailedError';
 import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
@@ -71,12 +65,9 @@ import {UnknownUserFlagError} from '@osaca/errors/src/domains/user/UnknownUserFl
 import {RpcRequest} from '@osaca/schema/src/domains/rpc/RpcSchemas';
 import {createSnowflakeFromTimestamp, snowflakeToDate} from '@osaca/snowflake/src/Snowflake';
 import * as BucketUtils from '@osaca/snowflake/src/SnowflakeBuckets';
-import type {IEmailService} from '@pkgs/email/src/IEmailService';
-import type {SentEmailRecord, TestEmailService} from '@pkgs/email/src/TestEmailService';
 import type {Context} from 'hono';
 import {seconds} from 'itty-time';
 
-const TEST_EMAIL_ENDPOINT = '/test/emails';
 const TEST_AUTH_HEADER = 'x-test-token';
 
 const Messages = defineTable<MessageRow, 'channel_id' | 'bucket' | 'message_id'>({
@@ -126,25 +117,6 @@ function ensureHarnessAccess(ctx: Context<HonoEnv>) {
 	}
 }
 
-function isTestEmailService(service: IEmailService): service is TestEmailService {
-	return typeof (service as TestEmailService).listSentEmails === 'function';
-}
-
-const serializeEmails = (emails: Array<SentEmailRecord>) =>
-	emails.map((email) => ({
-		...email,
-		timestamp: email.timestamp.toISOString(),
-	}));
-
-async function initializeWorkerDepsWithHarnessEmail(ctx: Context<HonoEnv>, snowflakeService: ISnowflakeService) {
-	const workerDeps = await initializeWorkerDependencies(snowflakeService);
-	const harnessEmailService = ctx.get('emailService');
-	if (isTestEmailService(harnessEmailService) && harnessEmailService !== workerDeps.emailService) {
-		workerDeps.emailService = harnessEmailService;
-	}
-	return workerDeps;
-}
-
 const userFlagEntries = Object.entries(UserFlags);
 
 function parseUserFlagNames(names: Array<string>): bigint | null {
@@ -160,29 +132,6 @@ function parseUserFlagNames(names: Array<string>): bigint | null {
 }
 
 export function TestHarnessController(app: HonoApp) {
-	app.get(TEST_EMAIL_ENDPOINT, (ctx) => {
-		ensureHarnessAccess(ctx);
-		const emailService = ctx.get('emailService');
-		if (!isTestEmailService(emailService)) {
-			throw new EmailServiceNotTestableError();
-		}
-		const emails = emailService.listSentEmails();
-		const filter = ctx.req.query('recipient');
-		let filtered = emails;
-		if (filter) {
-			filtered = emails.filter((email) => email.to === filter);
-		}
-		return ctx.json({emails: serializeEmails(filtered), count: filtered.length});
-	});
-	app.delete(TEST_EMAIL_ENDPOINT, (ctx) => {
-		ensureHarnessAccess(ctx);
-		const emailService = ctx.get('emailService');
-		if (!isTestEmailService(emailService)) {
-			throw new EmailServiceNotTestableError();
-		}
-		emailService.clearSentEmails();
-		return ctx.body(null, 204);
-	});
 	app.patch('/test/users/:userId/flags', async (ctx) => {
 		ensureHarnessAccess(ctx);
 		const params = ctx.req.param() as {
@@ -297,16 +246,9 @@ export function TestHarnessController(app: HonoApp) {
 		}
 		const userId = createUserID(BigInt(userIdParam));
 		const body = await ctx.req.json();
-		const {
-			set_flags: setFlags,
-			clear_flags: clearFlags,
-			email_bounced: emailBounced,
-			email_verified: emailVerified,
-		} = body as {
+		const {set_flags: setFlags, clear_flags: clearFlags} = body as {
 			set_flags?: Array<string>;
 			clear_flags?: Array<string>;
-			email_bounced?: boolean;
-			email_verified?: boolean;
 		};
 		const userRepository = ctx.get('userRepository');
 		const user = await userRepository.findUnique(userId);
@@ -330,18 +272,6 @@ export function TestHarnessController(app: HonoApp) {
 		if (setFlags || clearFlags) {
 			pendingUpdates['flags'] = nextFlags;
 		}
-		if (emailBounced !== undefined) {
-			if (typeof emailBounced !== 'boolean') {
-				throw new InvalidFlagsFormatError();
-			}
-			pendingUpdates['email_bounced'] = emailBounced;
-		}
-		if (emailVerified !== undefined) {
-			if (typeof emailVerified !== 'boolean') {
-				throw new InvalidFlagsFormatError();
-			}
-			pendingUpdates['email_verified'] = emailVerified;
-		}
 		if (Object.keys(pendingUpdates).length === 0) {
 			return ctx.json({success: true, updated: false});
 		}
@@ -350,8 +280,6 @@ export function TestHarnessController(app: HonoApp) {
 			success: true,
 			updated: true,
 			flags: (pendingUpdates['flags'] as bigint | undefined)?.toString() ?? user.flags?.toString(),
-			email_bounced: pendingUpdates['email_bounced'] ?? user.emailBounced,
-			email_verified: pendingUpdates['email_verified'] ?? user.emailVerified,
 		});
 	});
 	app.post('/test/users/:userId/unclaim', async (ctx) => {
@@ -372,9 +300,6 @@ export function TestHarnessController(app: HonoApp) {
 		await userRepository.patchUpsert(
 			userId,
 			{
-				email: null,
-				email_verified: false,
-				email_bounced: false,
 				password_hash: null,
 				password_last_changed_at: null,
 				authenticator_types: null,
@@ -435,110 +360,6 @@ export function TestHarnessController(app: HonoApp) {
 			},
 			200,
 		);
-	});
-	app.post('/test/auth/ip-authorization', async (ctx) => {
-		ensureHarnessAccess(ctx);
-		const cacheService = ctx.get('cacheService');
-		const body = await ctx.req.json();
-		const {
-			ticket,
-			token,
-			user_id: userId,
-			email,
-			client_ip: clientIp,
-			user_agent: userAgent,
-			client_location: clientLocation,
-			client_properties: clientProperties,
-			resend_used: resendUsed,
-			invite_code: inviteCode,
-			created_at: createdAtInput,
-			ttl_seconds: ttlSeconds,
-		} = body as Record<string, unknown>;
-		if (!ticket || !token || !userId || !email || !clientIp || !userAgent || !clientLocation) {
-			return ctx.json({error: 'missing required fields'}, 400);
-		}
-		let createdAt = Date.now();
-		if (typeof createdAtInput === 'number') {
-			createdAt = createdAtInput;
-		} else if (typeof createdAtInput === 'string') {
-			const parsed = new Date(createdAtInput);
-			if (!Number.isNaN(parsed.getTime())) {
-				createdAt = parsed.getTime();
-			}
-		}
-		const payload: IpAuthorizationTicketCache = {
-			userId: String(userId),
-			email: String(email),
-			origin: {
-				ip: String(clientIp),
-				userAgent: userAgent ? String(userAgent) : null,
-				clientOs: parseReportedClientOs(clientProperties ? String(clientProperties) : null),
-			},
-			authToken: String(token),
-			clientLocation: String(clientLocation),
-			inviteCode: inviteCode ? String(inviteCode) : null,
-			resendUsed: Boolean(resendUsed),
-			createdAt,
-		};
-		const ttl = typeof ttlSeconds === 'number' && ttlSeconds > 0 ? ttlSeconds : seconds('15 minutes');
-		await cacheService.set(getTicketCacheKey(String(ticket)), payload, ttl);
-		await cacheService.set(`ip-auth-token:${token}`, {ticket: String(ticket)}, ttl);
-		return ctx.json(
-			{
-				success: true,
-				ticket: String(ticket),
-				token: String(token),
-				ttl_seconds: ttl,
-			},
-			200,
-		);
-	});
-	app.post('/test/auth/ip-authorization/publish', async (ctx) => {
-		ensureHarnessAccess(ctx);
-		const cacheService = ctx.get('cacheService');
-		const body = await ctx.req.json();
-		const {
-			ticket,
-			token,
-			user_id: userId,
-		} = body as {
-			ticket?: string;
-			token?: string;
-			user_id?: string;
-		};
-		if (!ticket || !token || !userId) {
-			return ctx.json({error: 'ticket, token, and user_id are required'}, 400);
-		}
-		const payload = JSON.stringify({token, user_id: userId});
-		await cacheService.publish(`ip-auth:${ticket}`, payload);
-		await cacheService.set(`ip-auth-result:${ticket}`, payload, 60);
-		return ctx.json({success: true});
-	});
-	app.post('/test/auth/ip-authorization/expire', async (ctx) => {
-		ensureHarnessAccess(ctx);
-		const cacheService = ctx.get('cacheService');
-		const body = await ctx.req.json();
-		const {ticket, token} = body as {
-			ticket?: string;
-			token?: string;
-		};
-		if (!ticket && !token) {
-			return ctx.json({error: 'ticket or token is required'}, 400);
-		}
-		if (ticket) {
-			await cacheService.delete(getTicketCacheKey(String(ticket)));
-			await cacheService.delete(`ip-auth:${ticket}`);
-		}
-		if (token) {
-			await cacheService.delete(`ip-auth-token:${token}`);
-			await deleteOneOrMany(
-				IpAuthorizationTokens.deleteCql({
-					where: IpAuthorizationTokens.where.eq('token_'),
-				}),
-				{token_: token},
-			);
-		}
-		return ctx.json({success: true}, 200);
 	});
 	app.post('/test/auth/mfa-ticket', async (ctx) => {
 		ensureHarnessAccess(ctx);
@@ -711,7 +532,6 @@ export function TestHarnessController(app: HonoApp) {
 		);
 		const response = {
 			user_exists: true,
-			email_cleared: user.email === null,
 			password_cleared: user.passwordHash === null,
 			flags: user.flags?.toString(),
 			has_deleted_flag: hasDeletedFlag,
@@ -748,7 +568,7 @@ export function TestHarnessController(app: HonoApp) {
 		const kvClient = getKVClient();
 		const kvDeletionQueue = new KVAccountDeletionQueueService(kvClient, userRepository);
 		const snowflakeService = getSnowflakeService();
-		const workerDeps = await initializeWorkerDepsWithHarnessEmail(ctx, snowflakeService);
+		const workerDeps = await initializeWorkerDependencies(snowflakeService);
 		const now = Date.now();
 		Logger.info(
 			{now: new Date(now).toISOString()},
@@ -846,7 +666,7 @@ export function TestHarnessController(app: HonoApp) {
 		);
 		try {
 			const snowflakeService = getSnowflakeService();
-			const workerDeps = await initializeWorkerDepsWithHarnessEmail(ctx, snowflakeService);
+			const workerDeps = await initializeWorkerDependencies(snowflakeService);
 			await processUserDeletion(userId, user.pendingDeletionAt, deletionReasonCode, workerDeps);
 			Logger.info(
 				{userId: userId.toString()},
@@ -873,7 +693,7 @@ export function TestHarnessController(app: HonoApp) {
 		Logger.info({}, '[test/worker/process-inactivity-deletions] Request received');
 		const snowflakeService = getSnowflakeService();
 		try {
-			const workerDeps = await initializeWorkerDepsWithHarnessEmail(ctx, snowflakeService);
+			const workerDeps = await initializeWorkerDependencies(snowflakeService);
 			setWorkerDependencies(workerDeps);
 			const result = await processInactivityDeletionsCore({
 				cleanup: await workerDeps.instanceConfigRepository.getAccountsConfig(),
@@ -881,8 +701,6 @@ export function TestHarnessController(app: HonoApp) {
 				userRepository: workerDeps.userRepository,
 				deletionQueueService: workerDeps.deletionQueueService,
 				gatewayService: workerDeps.gatewayService,
-				emailService: workerDeps.emailService,
-				isEmailEnabled: () => workerDeps.instanceConfigRepository.isEmailEnabled(),
 				activityTracker: workerDeps.activityTracker,
 				deletionEligibilityService: workerDeps.deletionEligibilityService,
 				userUpdateDeps: {
@@ -896,8 +714,7 @@ export function TestHarnessController(app: HonoApp) {
 			return ctx.json(
 				{
 					success: true,
-					processed: result.warningsSent + result.deletionsScheduled,
-					warnings_sent: result.warningsSent,
+					processed: result.deletionsScheduled,
 					deletions_scheduled: result.deletionsScheduled,
 					suspensions_cleared: result.suspensionsCleared,
 					errors: result.errors,
@@ -1400,7 +1217,7 @@ export function TestHarnessController(app: HonoApp) {
 		if (!user) {
 			throw new UnknownUserError();
 		}
-		const scopeSet = new Set(scopesInput ?? ['identify', 'email']);
+		const scopeSet = new Set(scopesInput ?? ['identify']);
 		const applicationId = applicationIdInput
 			? createApplicationID(BigInt(applicationIdInput))
 			: createApplicationID(BigInt(1));
@@ -1424,44 +1241,6 @@ export function TestHarnessController(app: HonoApp) {
 			},
 			200,
 		);
-	});
-	app.post('/test/users/:userId/set-contact-info', async (ctx) => {
-		ensureHarnessAccess(ctx);
-		const params = ctx.req.param() as {
-			userId?: string;
-		};
-		const userIdParam = params.userId;
-		if (!userIdParam) {
-			throw new Error('Missing userId parameter');
-		}
-		const userId = createUserID(BigInt(userIdParam));
-		const body = await ctx.req.json();
-		const {email} = body as {
-			email?: string | null;
-		};
-		const userRepository = new UserRepository();
-		const user = await userRepository.findUnique(userId);
-		if (!user) {
-			throw new UnknownUserError();
-		}
-		const updates: Record<string, unknown> = {};
-		if (email !== undefined) {
-			updates['email'] = email;
-		}
-		if (Object.keys(updates).length === 0) {
-			return ctx.json({success: true, updated: false});
-		}
-		await userRepository.patchUpsert(userId, updates, user.toRow());
-		const updatedUser = await userRepository.findUnique(userId);
-		if (updatedUser) {
-			const searchRepo = new UserSearchRepository();
-			await searchRepo.indexUser(updatedUser);
-		}
-		return ctx.json({
-			success: true,
-			updated: true,
-			email: updates['email'] ?? user.email,
-		});
 	});
 	app.post('/test/cache-clear', async (ctx) => {
 		ensureHarnessAccess(ctx);

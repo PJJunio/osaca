@@ -3,7 +3,7 @@
 import type {UserID} from '@app/api/BrandedTypes';
 import {BatchBuilder} from '@app/api/database/CassandraQueryExecution';
 import type {UserRow} from '@app/api/database/types/UserTypes';
-import {UserByAcl, UserByEmail, UserByLastActiveIp, UserByLastActiveIpTrustKey, UserByUsername} from '@app/api/Tables';
+import {UserByAcl, UserByLastActiveIp, UserByLastActiveIpTrustKey, UserByUsername} from '@app/api/Tables';
 import {getSameIpDecisionKey} from '@osaca/ip_utils/src/IpAddress';
 
 export class UserIndexRepository {
@@ -40,17 +40,6 @@ export class UserIndexRepository {
 					}),
 				);
 			}
-		}
-		if (data.email) {
-			batch.addPrepared(UserByEmail.upsertAll({email_lower: data.email.toLowerCase(), user_id: data.user_id}));
-		}
-		if (oldData?.email && oldData.email.toLowerCase() !== data.email?.toLowerCase()) {
-			batch.addPrepared(
-				UserByEmail.deleteByPk({
-					email_lower: oldData.email.toLowerCase(),
-					user_id: oldData.user_id,
-				}),
-			);
 		}
 		if (data.last_active_ip) {
 			batch.addPrepared(
@@ -148,7 +137,6 @@ export class UserIndexRepository {
 		userId: UserID,
 		username: string,
 		discriminator: number,
-		email?: string | null,
 		lastActiveIp?: string | null,
 		acls?: ReadonlySet<string> | null,
 	): Promise<void> {
@@ -163,14 +151,6 @@ export class UserIndexRepository {
 				user_id: userId,
 			}),
 		);
-		if (email) {
-			batch.addPrepared(
-				UserByEmail.deleteByPk({
-					email_lower: email.toLowerCase(),
-					user_id: userId,
-				}),
-			);
-		}
 		if (lastActiveIp) {
 			batch.addPrepared(
 				UserByLastActiveIp.deleteByPk({

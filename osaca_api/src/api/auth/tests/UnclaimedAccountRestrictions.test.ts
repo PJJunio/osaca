@@ -42,7 +42,7 @@ describe('Unclaimed Account Restrictions', () => {
 			.put(`/channels/${channelId}/messages/${message.id}/reactions/%F0%9F%91%8D/@me`)
 			.expect(HTTP_STATUS.FORBIDDEN)
 			.executeWithResponse();
-		expect(error.code).toBe('UNCLAIMED_ACCOUNT_CANNOT_ADD_REACTIONS');
+		expect(error.code).toBe('ACCOUNT_VERIFICATION_REQUIRED');
 	});
 	test('unclaimed account cannot create group DM', async () => {
 		const unclaimed = await createTestAccount(harness);
@@ -81,7 +81,7 @@ describe('Unclaimed Account Restrictions', () => {
 			.body({})
 			.expect(HTTP_STATUS.FORBIDDEN)
 			.executeWithResponse();
-		expect(error.code).toBe('UNCLAIMED_ACCOUNT_CANNOT_JOIN_GROUP_DMS');
+		expect(error.code).toBe('ACCOUNT_VERIFICATION_REQUIRED');
 	});
 	test('unclaimed account cannot send DM', async () => {
 		const sender = await createTestAccount(harness);
@@ -110,7 +110,7 @@ describe('Unclaimed Account Restrictions', () => {
 			.body({content: 'Hello world'})
 			.expect(HTTP_STATUS.FORBIDDEN)
 			.executeWithResponse();
-		expect(error.code).toBe('UNCLAIMED_ACCOUNT_CANNOT_SEND_MESSAGES');
+		expect(error.code).toBe('ACCOUNT_VERIFICATION_REQUIRED');
 	});
 	test('unclaimed account can delete without password', async () => {
 		const unclaimed = await createTestAccount(harness);
@@ -127,7 +127,7 @@ describe('Unclaimed Account Restrictions', () => {
 		await createBuilder(harness, unclaimed.token)
 			.post('/guilds')
 			.body({name: 'Guild'})
-			.expect(HTTP_STATUS.FORBIDDEN, APIErrorCodes.UNCLAIMED_ACCOUNT_CANNOT_CREATE_GUILDS)
+			.expect(HTTP_STATUS.FORBIDDEN, APIErrorCodes.ACCOUNT_VERIFICATION_REQUIRED)
 			.execute();
 	});
 	test('bot account cannot create guild', async () => {

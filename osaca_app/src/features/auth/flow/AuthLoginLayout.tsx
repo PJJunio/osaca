@@ -42,8 +42,6 @@ import {AuthClientWelcomeStep} from '@app/features/auth/flow/client_intro/AuthCl
 import {useDesktopClientIntroFlow} from '@app/features/auth/flow/client_intro/useDesktopClientIntroFlow';
 import DesktopHandoffAccountSelector from '@app/features/auth/flow/DesktopHandoffAccountSelector';
 import {HandoffApprovalFlow} from '@app/features/auth/flow/HandoffApprovalFlow';
-import IpAuthorizationScreen from '@app/features/auth/flow/IpAuthorizationScreen';
-import {AuthIdentifierFirstStep} from '@app/features/auth/flow/identifier_first/AuthIdentifierFirstStep';
 import {useAuthPresentation} from '@app/features/auth/flow/useAuthPresentation';
 import {type StepTitleChangeHandler, useReportStepTitle} from '@app/features/auth/flow/useReportStepTitle';
 import {
@@ -58,10 +56,10 @@ import {isPasskeyAvailableForCurrentClient} from '@app/features/auth/PasskeyAvai
 import {usePasskeyBridgeReturn} from '@app/features/auth/passkey_migration/usePasskeyBridgeReturn';
 import {switcherAccounts} from '@app/features/auth/state/AccountSwitcherAccounts';
 import Accounts from '@app/features/auth/state/Accounts';
-import type {IpAuthorizationChallenge, LoginSuccessPayload} from '@app/features/auth/state/AuthFlow';
+import type {LoginSuccessPayload} from '@app/features/auth/state/AuthFlow';
 import {AuthCardVariant, AuthLayoutContentMode, useAuthLayoutContext} from '@app/features/auth/state/AuthLayoutContext';
 import type {AuthRuntimeTarget} from '@app/features/auth/state/AuthRuntimeTarget';
-import {accountLoginIdentifierField, accountSignInIdentifier} from '@app/features/auth/utils/AccountSignInIdentifier';
+import {accountSignInIdentifier} from '@app/features/auth/utils/AccountSignInIdentifier';
 import {logoutStoredAccountFromSwitcher} from '@app/features/auth/utils/AccountSwitcherModalUtils';
 import {shouldOfferOldAppSignIn} from '@app/features/auth/utils/OldAppSignIn';
 import {describePasskeyPromptEnded} from '@app/features/auth/utils/PasskeyErrorMessages';
@@ -79,7 +77,6 @@ import {isDesktop} from '@app/features/ui/utils/NativeUtils';
 import type {MessageDescriptor} from '@lingui/core';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
-import type {GuildEntryResult} from '@osaca/schema/src/domains/user/AccountSchemas';
 import {observer} from 'mobx-react-lite';
 import {type ReactElement, type ReactNode, useCallback, useEffect, useMemo, useState} from 'react';
 
@@ -145,7 +142,6 @@ interface AuthBackActionRequest {
 	readonly forceCredentials: boolean;
 	readonly handleBackFromBrowser: () => void;
 	readonly handleBackFromCredentials: () => void;
-	readonly handleBackFromIpAuthorization: () => void;
 	readonly handleChangeInstance: () => void;
 	readonly instanceBackAction: (() => void) | null;
 	readonly shouldShowInstanceSelector: boolean;
@@ -156,14 +152,6 @@ function getInitialInstanceUrl(snapshot: RuntimeConfigSnapshot | null): string |
 		return null;
 	}
 	return describeAPIEndpoint(snapshot.apiEndpoint);
-}
-
-function usesIdentifierFirst(snapshot: RuntimeConfigSnapshot | null): boolean {
-	return snapshot?.features.identifier_first === true;
-}
-
-function resolveEmailsEnabled(snapshot: RuntimeConfigSnapshot | null): boolean {
-	return snapshot?.features.emails_enabled ?? false;
 }
 
 function requireAuthInstanceSnapshot(snapshot: RuntimeConfigSnapshot | null): RuntimeConfigSnapshot {
@@ -245,9 +233,6 @@ function resolveAuthCardVariant(step: AuthLoginStep): AuthCardVariant {
 	if (step === AuthLoginStep.DESKTOP_HANDOFF_APPROVAL) {
 		return AuthCardVariant.COMPACT;
 	}
-	if (step === AuthLoginStep.IP_AUTHORIZATION) {
-		return AuthCardVariant.COMPACT;
-	}
 	return AuthCardVariant.STANDARD;
 }
 
@@ -287,28 +272,14 @@ function resolveReloginTitle(account: Account | null, format: (accountLabel: str
 	return format(labels.displayLabel);
 }
 
-function resolveBrowserPrefillIdentifier(prefillIdentifier: string | null, formEmail: string): string | null {
+function resolveBrowserPrefillIdentifier(prefillIdentifier: string | null, formLogin: string): string | null {
 	if (prefillIdentifier != null) {
 		return prefillIdentifier;
 	}
-	if (formEmail === '') {
+	if (formLogin === '') {
 		return null;
 	}
-	return formEmail;
-}
-
-function resolveForgotPasswordLink(
-	emailsEnabled: boolean,
-	forgotPasswordAction: ReactNode,
-	defaultAction: ReactNode,
-): ReactNode {
-	if (!emailsEnabled) {
-		return null;
-	}
-	if (forgotPasswordAction == null) {
-		return defaultAction;
-	}
-	return forgotPasswordAction;
+	return formLogin;
 }
 
 function resolveAuthBackAction({
@@ -318,7 +289,6 @@ function resolveAuthBackAction({
 	forceCredentials,
 	handleBackFromBrowser,
 	handleBackFromCredentials,
-	handleBackFromIpAuthorization,
 	handleChangeInstance,
 	instanceBackAction,
 	shouldShowInstanceSelector,
@@ -331,8 +301,6 @@ function resolveAuthBackAction({
 			return handleBackFromBrowser;
 		case AuthLoginStep.CREDENTIALS:
 			return forceCredentials ? null : handleBackFromCredentials;
-		case AuthLoginStep.IP_AUTHORIZATION:
-			return handleBackFromIpAuthorization;
 		case AuthLoginStep.METHOD:
 			if (shouldShowInstanceSelector) {
 				return handleChangeInstance;
@@ -376,7 +344,6 @@ export const AuthLoginLayout = observer(function AuthLoginLayout({
 	const shouldShowInstanceSelector = shouldRenderInstanceStep() && runtimeTarget.canChangeInstance;
 	const resolvedAuthRuntimeSnapshot = runtimeTarget.snapshot;
 	const initialInstanceSelected = runtimeTarget.initialSnapshot != null;
-	const emailsEnabled = resolveEmailsEnabled(resolvedAuthRuntimeSnapshot);
 	const handoffAccounts = resolveHandoffAccounts({
 		accounts,
 		currentAccountKey,
@@ -389,7 +356,6 @@ export const AuthLoginLayout = observer(function AuthLoginLayout({
 		hasStoredAccounts: hasHandoffAccounts,
 		initialMode: resolveHandoffInitialMode(desktopHandoff, hasHandoffAccounts),
 	});
-	const [ipAuthChallenge, setIpAuthChallenge] = useState<IpAuthorizationChallenge | null>(null);
 	const flow = useAuthLoginFlow({
 		startWithAddAccount,
 		forceCredentials,
@@ -413,7 +379,7 @@ export const AuthLoginLayout = observer(function AuthLoginLayout({
 		backToAccountList,
 		changeInstance,
 		continueFromInstance,
-		selectEmailMethod,
+		selectPasswordMethod,
 		enterBrowserStep,
 		backFromCredentials,
 		backFromBrowser,
@@ -421,7 +387,6 @@ export const AuthLoginLayout = observer(function AuthLoginLayout({
 	} = flow;
 	const [instanceBackAction, setInstanceBackAction] = useState<(() => void) | null>(null);
 	const [browserBackAction, setBrowserBackAction] = useState<(() => void) | null>(null);
-	const [childStepTitle, setChildStepTitle] = useState<string | null>(null);
 	const shouldUseDesktopClientSetup = resolveShouldUseDesktopClientSetup({
 		desktopHandoff,
 		forceCredentials,
@@ -471,7 +436,7 @@ export const AuthLoginLayout = observer(function AuthLoginLayout({
 	const handleShowBrowserStep = useCallback(() => {
 		enterBrowserStep();
 	}, [enterBrowserStep]);
-	const {form, identifierField, isLoading, fieldErrors, handlePasskeyLogin, isPasskeyLoading, connectingMessage} =
+	const {form, isLoading, fieldErrors, handlePasskeyLogin, isPasskeyLoading, connectingMessage} =
 		useLoginFormController({
 			redirectPath: redirectPath ?? undefined,
 			inviteCode: inviteCode ?? undefined,
@@ -483,9 +448,6 @@ export const AuthLoginLayout = observer(function AuthLoginLayout({
 					...challenge,
 					runtimeSnapshot: requireAuthInstanceSnapshot(resolvedAuthRuntimeSnapshot),
 				});
-			},
-			onRequireIpAuthorization: (challenge) => {
-				setIpAuthChallenge(challenge);
 			},
 		});
 	const isPasskeyBridgeRedeeming = usePasskeyBridgeReturn({
@@ -505,7 +467,6 @@ export const AuthLoginLayout = observer(function AuthLoginLayout({
 		},
 	});
 	const clearCredentials = useCallback(() => {
-		form.setValue('email', '');
 		form.setValue('login', '');
 		form.setValue('password', '');
 	}, [form.setValue]);
@@ -515,7 +476,7 @@ export const AuthLoginLayout = observer(function AuthLoginLayout({
 			const identifier = accountSignInIdentifier(account);
 			const runtimeSnapshot = resolveAccountInstance(account);
 			clearCredentials();
-			form.setValue(accountLoginIdentifierField(account), identifier ?? '');
+			form.setValue('login', identifier ?? '');
 			if (runtimeSnapshot == null) {
 				runtimeTarget.reset();
 			} else {
@@ -636,24 +597,11 @@ export const AuthLoginLayout = observer(function AuthLoginLayout({
 	const handleInstanceBackActionChange = useCallback((action: (() => void) | null) => {
 		setInstanceBackAction(() => action);
 	}, []);
-	const handleBackFromIpAuthorization = useCallback(() => {
-		setIpAuthChallenge(null);
-	}, []);
 	const handleChangeInstance = useCallback(() => {
 		clearCredentials();
 		runtimeTarget.reset();
 		changeInstance();
 	}, [changeInstance, clearCredentials, runtimeTarget]);
-	const handleIpAuthorizationComplete = useCallback(
-		async (payload: LoginSuccessPayload) => {
-			await handleLoginSuccess(payload);
-			if (redirectPath != null && redirectPath !== '') {
-				RouterUtils.replaceWith(redirectPath);
-			}
-			setIpAuthChallenge(null);
-		},
-		[handleLoginSuccess, redirectPath],
-	);
 	useEffect(() => {
 		syncFromProps({
 			startWithAddAccount,
@@ -672,9 +620,9 @@ export const AuthLoginLayout = observer(function AuthLoginLayout({
 	]);
 	useEffect(() => {
 		if (prefillIdentifier != null) {
-			form.setValue(identifierField, prefillIdentifier);
+			form.setValue('login', prefillIdentifier);
 		}
-	}, [form.setValue, identifierField, prefillIdentifier]);
+	}, [form.setValue, prefillIdentifier]);
 	const handleAddAnotherAccount = useCallback(() => {
 		clearCredentials();
 		setReloginAccount(null);
@@ -699,7 +647,6 @@ export const AuthLoginLayout = observer(function AuthLoginLayout({
 		return selectAuthLoginStep({
 			desktopHandoff,
 			handoffMode: resolveEffectiveHandoffMode(handoff.mode, hasHandoffAccounts),
-			hasIpAuthorizationChallenge: ipAuthChallenge != null,
 			hasStoredAccounts,
 			shouldShowBrowserStep: showBrowserStep && resolveShouldOfferBrowserStep(),
 			clientPermission,
@@ -714,7 +661,6 @@ export const AuthLoginLayout = observer(function AuthLoginLayout({
 		hasHandoffAccounts,
 		hasSelectedLoginMethod,
 		hasStoredAccounts,
-		ipAuthChallenge,
 		clientPermission,
 		shouldShowClientPreferencesStep,
 		shouldShowInstanceStep,
@@ -747,7 +693,6 @@ export const AuthLoginLayout = observer(function AuthLoginLayout({
 				forceCredentials,
 				handleBackFromBrowser,
 				handleBackFromCredentials,
-				handleBackFromIpAuthorization,
 				handleChangeInstance,
 				instanceBackAction,
 				shouldShowInstanceSelector,
@@ -759,7 +704,6 @@ export const AuthLoginLayout = observer(function AuthLoginLayout({
 			forceCredentials,
 			handleBackFromBrowser,
 			handleBackFromCredentials,
-			handleBackFromIpAuthorization,
 			handleChangeInstance,
 			instanceBackAction,
 			shouldShowInstanceSelector,
@@ -773,12 +717,8 @@ export const AuthLoginLayout = observer(function AuthLoginLayout({
 		notifyBackActionChange(backAction);
 		return () => notifyBackActionChange(null);
 	}, [backAction, onBackActionChange]);
-	const childStepTitleChange = onStepTitleChange == null ? null : setChildStepTitle;
 	const stepTitleDescriptor = resolveStepTitleDescriptor(authLoginStep);
-	let stepTitle: string | null = stepTitleDescriptor == null ? null : i18n._(stepTitleDescriptor);
-	if (authLoginStep === AuthLoginStep.IP_AUTHORIZATION) {
-		stepTitle = childStepTitle;
-	}
+	const stepTitle: string | null = stepTitleDescriptor == null ? null : i18n._(stepTitleDescriptor);
 	useReportStepTitle(onStepTitleChange, stepTitle);
 	useAuthPresentation(
 		showClientWelcome
@@ -815,7 +755,6 @@ export const AuthLoginLayout = observer(function AuthLoginLayout({
 		return (
 			<AuthLoginMethodStep
 				extraTopContent={extraTopContent}
-				identifierField={identifierField}
 				showTitle={showTitle}
 				title={resolveAuthStepTitle(formTitle, i18n._(WELCOME_BACK_DESCRIPTOR))}
 				switchError={resolveStepError(showAccountSelector, switchError)}
@@ -826,72 +765,13 @@ export const AuthLoginLayout = observer(function AuthLoginLayout({
 				showBrowserOption={resolveShouldOfferBrowserStep() && resolvedAuthRuntimeSnapshot != null}
 				showPasskeyOption={showPasskeyOption}
 				onBrowserLogin={handleShowBrowserStep}
-				onEmailLogin={selectEmailMethod}
+				onPasswordLogin={selectPasswordMethod}
 				onPasskeyLogin={handlePasskeyLogin}
 				onBackToInstance={inlineInstanceBackAction}
 				data-flx="auth.flow.auth-login-layout.auth-login-method-step"
 			/>
 		);
 	};
-	const handleIdentifierFirstSignedIn = async (payload: LoginSuccessPayload, entry: GuildEntryResult | null) => {
-		await handleLoginSuccess(payload);
-		if (desktopHandoff) {
-			return;
-		}
-		if (entry !== null) {
-			RouterUtils.replaceWith(Routes.guildChannel(entry.guild_id));
-			return;
-		}
-		if (redirectPath != null && redirectPath !== '') {
-			RouterUtils.replaceWith(redirectPath);
-		}
-	};
-	const renderIdentifierFirstAlternatives = (): ReactNode => {
-		const actions: Array<ReactNode> = [];
-		const oldAppSignIn = renderOldAppSignIn();
-		if (oldAppSignIn !== null) {
-			actions.push(oldAppSignIn);
-		}
-		if (resolveShouldOfferBrowserStep() && resolvedAuthRuntimeSnapshot != null) {
-			actions.push(
-				<Button
-					key="browser"
-					fitContainer
-					variant={ButtonVariant.SECONDARY}
-					disabled={passkeyControlsDisabled}
-					onClick={handleShowBrowserStep}
-					data-flx="auth.flow.auth-login-layout.identifier-first.button.browser"
-				>
-					{i18n._(SIGN_IN_WITH_BROWSER_DESCRIPTOR)}
-				</Button>,
-			);
-		}
-		return actions.length === 0 ? null : actions;
-	};
-	const renderIdentifierFirstStep = (): ReactNode => (
-		<AuthIdentifierFirstStep
-			runtimeSnapshot={requireAuthInstanceSnapshot(resolvedAuthRuntimeSnapshot)}
-			title={formTitle}
-			showTitle={showTitle}
-			extraTopContent={extraTopContent}
-			notice={resolveStepError(showAccountSelector, switchError)}
-			initialEmail={prefillIdentifier ?? initialIdentifier}
-			inviteCode={inviteCode}
-			passkeyAvailable={showPasskeyOption && isPasskeyAvailableForCurrentClient(resolvedAuthRuntimeSnapshot)}
-			passkeyDisabled={passkeyControlsDisabled}
-			onPasskeyLogin={handlePasskeyLogin}
-			alternativeActions={renderIdentifierFirstAlternatives()}
-			onSignedIn={handleIdentifierFirstSignedIn}
-			onRequireMfa={(challenge) => {
-				AuthenticationCommands.setMfaTicket({
-					...challenge,
-					runtimeSnapshot: requireAuthInstanceSnapshot(resolvedAuthRuntimeSnapshot),
-				});
-			}}
-			onRequireIpAuthorization={setIpAuthChallenge}
-			data-flx="auth.flow.auth-login-layout.identifier-first-step"
-		/>
-	);
 	const renderCredentialFooterStart = (): ReactNode => {
 		if (suppressInlineBackButtons) {
 			return null;
@@ -909,24 +789,15 @@ export const AuthLoginLayout = observer(function AuthLoginLayout({
 		);
 	};
 	const renderCredentialStep = (): ReactNode => {
-		const forgotPasswordLink =
-			identifierField === 'login'
-				? (forgotPasswordAction ?? (
-						<AuthRouterLink
-							to={Routes.RECOVER_ACCOUNT}
-							className={styles.link}
-							data-flx="auth.flow.auth-login-layout.link.recover"
-						>
-							{i18n._(FORGOT_YOUR_PASSWORD_DESCRIPTOR)}
-						</AuthRouterLink>
-					))
-				: resolveForgotPasswordLink(
-						emailsEnabled,
-						forgotPasswordAction,
-						<AuthRouterLink to="/forgot" className={styles.link} data-flx="auth.flow.auth-login-layout.link">
-							{i18n._(FORGOT_YOUR_PASSWORD_DESCRIPTOR)}
-						</AuthRouterLink>,
-					);
+		const forgotPasswordLink = forgotPasswordAction ?? (
+			<AuthRouterLink
+				to={Routes.RECOVER_ACCOUNT}
+				className={styles.link}
+				data-flx="auth.flow.auth-login-layout.link.recover"
+			>
+				{i18n._(FORGOT_YOUR_PASSWORD_DESCRIPTOR)}
+			</AuthRouterLink>
+		);
 		return (
 			<AuthLoginCredentialStepPanel
 				extraTopContent={extraTopContent}
@@ -938,7 +809,6 @@ export const AuthLoginLayout = observer(function AuthLoginLayout({
 				fieldErrors={fieldErrors}
 				submitLabel={i18n._(SIGN_IN_DESCRIPTOR)}
 				forgotPasswordLink={forgotPasswordLink}
-				identifierField={identifierField}
 				disableSubmit={isPasskeyLoading || isPasskeyBridgeRedeeming}
 				footerStart={renderCredentialFooterStart()}
 				statusMessage={connectingMessage}
@@ -975,19 +845,6 @@ export const AuthLoginLayout = observer(function AuthLoginLayout({
 		if (authLoginStep === AuthLoginStep.DESKTOP_HANDOFF_APPROVAL) {
 			return <HandoffApprovalFlow handoff={handoff} data-flx="auth.flow.auth-login-layout.handoff-approval-flow" />;
 		}
-		if (authLoginStep === AuthLoginStep.IP_AUTHORIZATION && ipAuthChallenge != null) {
-			const runtimeSnapshot = requireAuthInstanceSnapshot(resolvedAuthRuntimeSnapshot);
-			return (
-				<IpAuthorizationScreen
-					challenge={ipAuthChallenge}
-					runtimeSnapshot={runtimeSnapshot}
-					onAuthorized={handleIpAuthorizationComplete}
-					onBack={suppressInlineBackButtons ? undefined : handleBackFromIpAuthorization}
-					onStepTitleChange={childStepTitleChange}
-					data-flx="auth.flow.auth-login-layout.ip-authorization-screen"
-				/>
-			);
-		}
 		if (authLoginStep === AuthLoginStep.INSTANCE) {
 			return (
 				<AuthLoginInstanceStep
@@ -1022,12 +879,6 @@ export const AuthLoginLayout = observer(function AuthLoginLayout({
 				/>
 			);
 		}
-		if (
-			usesIdentifierFirst(resolvedAuthRuntimeSnapshot) &&
-			(authLoginStep === AuthLoginStep.METHOD || authLoginStep === AuthLoginStep.CREDENTIALS)
-		) {
-			return renderIdentifierFirstStep();
-		}
 		if (authLoginStep === AuthLoginStep.METHOD) {
 			return renderMethodStep();
 		}
@@ -1040,7 +891,7 @@ export const AuthLoginLayout = observer(function AuthLoginLayout({
 			return (
 				<AuthLoginBrowserStep
 					extraTopContent={extraTopContent}
-					prefillIdentifier={resolveBrowserPrefillIdentifier(prefillIdentifier, form.getValue(identifierField))}
+					prefillIdentifier={resolveBrowserPrefillIdentifier(prefillIdentifier, form.getValue('login'))}
 					showTitle={showTitle}
 					title={i18n._(SIGN_IN_WITH_BROWSER_DESCRIPTOR)}
 					runtimeSnapshot={runtimeSnapshot}

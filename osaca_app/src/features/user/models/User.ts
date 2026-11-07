@@ -144,8 +144,6 @@ export class User {
 	readonly mentionFlags: MentionReplyPreference;
 	readonly avatarColor: number | null | undefined;
 	private readonly _isStaff: boolean | undefined;
-	private readonly _email: string | null | undefined;
-	private readonly _emailBounced: boolean | undefined;
 	private readonly _accountLimited: boolean | undefined;
 	readonly bio: string | null | undefined;
 	readonly banner: string | null | undefined;
@@ -156,7 +154,6 @@ export class User {
 	readonly timezonePrivacyFlags: number | undefined;
 	readonly mfaEnabled: boolean | undefined;
 	readonly authenticatorTypes: ReadonlyArray<number> | undefined;
-	private readonly _verified: boolean | undefined;
 	readonly hiddenProfileBadges: ReadonlyArray<string> | undefined;
 	readonly passwordLastChangedAt: Date | null | undefined;
 	readonly lastVoiceActivitySharingChangeAt: Date | null | undefined;
@@ -183,8 +180,6 @@ export class User {
 		this.mentionFlags = user.mention_flags ?? 0;
 		this.avatarColor = hasKey(user, 'avatar_color') ? user.avatar_color : undefined;
 		this._isStaff = hasKey(user, 'is_staff') ? user.is_staff : undefined;
-		this._email = hasKey(user, 'email') ? (user.email ?? null) : undefined;
-		this._emailBounced = hasKey(user, 'email_bounced') ? user.email_bounced : undefined;
 		this._accountLimited = hasKey(user, 'account_limited') ? user.account_limited : undefined;
 		this.bio = hasKey(user, 'bio') ? (user.bio ?? null) : undefined;
 		this.banner = hasKey(user, 'banner') ? (user.banner ?? null) : undefined;
@@ -199,7 +194,6 @@ export class User {
 		this.authenticatorTypes = hasKey(user, 'authenticator_types')
 			? Object.freeze(((user.authenticator_types ?? []) as ReadonlyArray<number>).slice())
 			: undefined;
-		this._verified = hasKey(user, 'verified') ? user.verified : undefined;
 		this.hiddenProfileBadges = hasKey(user, 'hidden_profile_badges')
 			? Object.freeze([...(user.hidden_profile_badges ?? [])])
 			: undefined;
@@ -220,27 +214,8 @@ export class User {
 		this._hasPassword = hasKey(user, 'has_password') ? user.has_password : undefined;
 	}
 
-	get email(): string | null | undefined {
-		if (DeveloperOptions.unclaimedAccountOverride === true) {
-			return null;
-		}
-		return this._email;
-	}
-
-	get emailBounced(): boolean | undefined {
-		return this._emailBounced;
-	}
-
 	get accountLimited(): boolean {
 		return this._accountLimited === true;
-	}
-
-	get verified(): boolean | undefined {
-		const verifiedOverride = DeveloperOptions.emailVerifiedOverride;
-		if (verifiedOverride != null) {
-			return verifiedOverride;
-		}
-		return this._verified;
 	}
 
 	get matureContentAllowed(): boolean | undefined {
@@ -293,10 +268,6 @@ export class User {
 		if (isStaff !== undefined) result.is_staff = isStaff;
 		const avatarColor = pickField(this.avatarColor, u, 'avatar_color', opts);
 		if (avatarColor !== undefined) result.avatar_color = avatarColor ?? null;
-		const email = pickField(this._email, u, 'email', opts);
-		if (email !== undefined) result.email = email;
-		const emailBounced = pickField(this._emailBounced, u, 'email_bounced', opts);
-		if (emailBounced !== undefined) result.email_bounced = emailBounced;
 		const accountLimited = pickField(this._accountLimited, u, 'account_limited', opts);
 		if (accountLimited !== undefined) result.account_limited = accountLimited;
 		const bio = pickField(this.bio, u, 'bio', opts);
@@ -325,8 +296,6 @@ export class User {
 				EMPTY_AUTH_TYPES,
 			);
 		}
-		const verified = pickField(this._verified, u, 'verified', opts);
-		if (verified !== undefined) result.verified = verified;
 		const hiddenProfileBadges = pickField(this.hiddenProfileBadges, u, 'hidden_profile_badges', opts);
 		if (hiddenProfileBadges !== undefined) result.hidden_profile_badges = hiddenProfileBadges;
 		const passwordLastChangedAt = pickDateField(this.passwordLastChangedAt, u, 'password_last_changed_at', opts);
@@ -445,16 +414,11 @@ export class User {
 
 	get accountTier(): AccountTier {
 		if (DeveloperOptions.unclaimedAccountOverride === true) return AccountTiers.UNCLAIMED;
-		const usesServerTier = DeveloperOptions.emailVerifiedOverride == null;
-		if (usesServerTier && this._accountTier !== undefined) return this._accountTier;
+		if (this._accountTier !== undefined) return this._accountTier;
 		const derived = resolveAccountTier({
 			isBot: this.bot,
 			isSystem: this.system,
 			traits: this._traits,
-			identityMode: RuntimeConfig.accountIdentity,
-			effectiveBasis: RuntimeConfig.verificationBasis,
-			hasEmail: this.email != null,
-			emailVerified: this.verified === true,
 			localCredential: this.localCredential,
 		});
 		if (this._claimed === undefined) return derived;
@@ -467,12 +431,11 @@ export class User {
 		if (
 			this._verificationNeed !== undefined &&
 			this._accountTier === tier &&
-			DeveloperOptions.unclaimedAccountOverride !== true &&
-			DeveloperOptions.emailVerifiedOverride == null
+			DeveloperOptions.unclaimedAccountOverride !== true
 		) {
 			return this._verificationNeed;
 		}
-		return resolveVerificationNeed({tier, identityMode: RuntimeConfig.accountIdentity, hasEmail: this.email != null});
+		return resolveVerificationNeed(tier);
 	}
 
 	get hasPassword(): boolean {
@@ -494,8 +457,6 @@ export class User {
 			this.flags === other.flags &&
 			this.mentionFlags === other.mentionFlags &&
 			this._isStaff === other._isStaff &&
-			this._email === other._email &&
-			this._emailBounced === other._emailBounced &&
 			this._accountLimited === other._accountLimited &&
 			this.bio === other.bio &&
 			this.banner === other.banner &&
@@ -506,7 +467,6 @@ export class User {
 			this.timezonePrivacyFlags === other.timezonePrivacyFlags &&
 			this.mfaEnabled === other.mfaEnabled &&
 			arraysShallowEqual(this.authenticatorTypes, other.authenticatorTypes) &&
-			this._verified === other._verified &&
 			arraysShallowEqual(this.hiddenProfileBadges, other.hiddenProfileBadges) &&
 			datesEqual(this.passwordLastChangedAt, other.passwordLastChangedAt) &&
 			datesEqual(this.lastVoiceActivitySharingChangeAt, other.lastVoiceActivitySharingChangeAt) &&
@@ -540,8 +500,6 @@ export class User {
 			if (value !== undefined) privateFields[key as string] = value;
 		};
 		setOptional('is_staff', this._isStaff);
-		setOptional('email', this._email);
-		setOptional('email_bounced', this._emailBounced);
 		setOptional('account_limited', this._accountLimited);
 		setOptional('bio', this.bio);
 		setOptional('banner', this.banner);
@@ -554,7 +512,6 @@ export class User {
 		}
 		setOptional('mfa_enabled', this.mfaEnabled);
 		setOptional('authenticator_types', this.authenticatorTypes);
-		setOptional('verified', this._verified);
 		setOptional('hidden_profile_badges', this.hiddenProfileBadges);
 		setOptional(
 			'password_last_changed_at',

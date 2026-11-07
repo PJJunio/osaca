@@ -26,7 +26,6 @@ import {
 	authenticateWithWebAuthn,
 	getWebAuthnAuthenticationOptions,
 	getWebAuthnMfaOptions,
-	type IpAuthorizationChallenge,
 	type LoginResult,
 	type LoginSuccessPayload,
 	loginWithMfaCode,
@@ -34,7 +33,6 @@ import {
 	type MfaChallenge,
 	toLoginSuccessPayload,
 } from '@app/features/auth/state/AuthFlow';
-import {loginIdentifierField} from '@app/features/auth/utils/AccountSignInIdentifier';
 import {describePasskeyError, describePasskeyPromptEnded} from '@app/features/auth/utils/PasskeyErrorMessages';
 import {classifyPasskeyFailure} from '@app/features/auth/utils/PasskeyFailure';
 import * as WebAuthnUtils from '@app/features/auth/utils/WebAuthnUtils';
@@ -114,13 +112,8 @@ const handleLoginOutcome = async (
 	result: LoginResult,
 	onLoginSuccess?: (payload: LoginSuccessPayload) => Promise<void> | void,
 	onRequireMfa?: (challenge: MfaChallenge) => void,
-	onRequireIpAuthorization?: (challenge: IpAuthorizationChallenge) => void,
 	redirectPath?: string,
 ) => {
-	if (result.type === 'ip_authorization') {
-		onRequireIpAuthorization?.(result.challenge);
-		return;
-	}
 	if (result.type === 'mfa') {
 		onRequireMfa?.(result.challenge);
 		return;
@@ -150,7 +143,6 @@ interface LoginFormControllerOptions {
 	runtimeSnapshot: RuntimeConfigSnapshot | null;
 	onLoginSuccess?: (payload: LoginSuccessPayload) => Promise<void> | void;
 	onRequireMfa?: (challenge: MfaChallenge) => void;
-	onRequireIpAuthorization?: (challenge: IpAuthorizationChallenge) => void;
 	onDesktopPasskeyHandoff: () => void;
 }
 
@@ -160,7 +152,6 @@ export function useLoginFormController({
 	runtimeSnapshot,
 	onLoginSuccess,
 	onRequireMfa,
-	onRequireIpAuthorization,
 	onDesktopPasskeyHandoff,
 }: LoginFormControllerOptions) {
 	const {i18n} = useLingui();
@@ -175,20 +166,18 @@ export function useLoginFormController({
 		setConnectingDomain(null);
 	}, []);
 	useEffect(() => clearConnectingStatus, [clearConnectingStatus]);
-	const identifierField = loginIdentifierField(runtimeSnapshot);
 	const {form, isLoading, fieldErrors, error} = useAuthForm({
-		initialValues: {[identifierField]: '', password: ''},
+		initialValues: {login: '', password: ''},
 		onSubmit: async (values) => {
 			const requestRuntimeSnapshot = requireLoginRuntimeSnapshot(runtimeSnapshot);
-			const identifier = values[identifierField] ?? '';
 			const result = await loginWithPassword({
-				...(identifierField === 'login' ? {login: identifier.trim()} : {email: identifier}),
+				login: (values.login ?? '').trim(),
 				password: values.password,
 				inviteCode,
 				runtimeSnapshot: requestRuntimeSnapshot,
 			});
 			if (result.type !== 'success') {
-				await handleLoginOutcome(result, onLoginSuccess, onRequireMfa, onRequireIpAuthorization, redirectPath);
+				await handleLoginOutcome(result, onLoginSuccess, onRequireMfa, redirectPath);
 				return;
 			}
 			const domain = resolveSnapshotInstanceDomain(requestRuntimeSnapshot);
@@ -197,7 +186,7 @@ export function useLoginFormController({
 				setConnectingDomain(domain);
 			}, LOGIN_CONNECTING_STATUS_DELAY_MS);
 			try {
-				await handleLoginOutcome(result, onLoginSuccess, onRequireMfa, onRequireIpAuthorization, redirectPath);
+				await handleLoginOutcome(result, onLoginSuccess, onRequireMfa, redirectPath);
 			} catch (loginError) {
 				if (domain !== null && isLoginConnectionFailure(loginError)) {
 					logger.error('Signed in but the live connection never became ready', loginError);
@@ -208,7 +197,7 @@ export function useLoginFormController({
 				clearConnectingStatus();
 			}
 		},
-		firstFieldName: identifierField,
+		firstFieldName: 'login',
 		redirectPath: undefined,
 	});
 	const handlePasskeyLogin = useCallback(async () => {
@@ -290,7 +279,6 @@ export function useLoginFormController({
 		connectingDomain === null ? null : i18n._(CONNECTING_TO_INSTANCE_DESCRIPTOR, {domain: connectingDomain});
 	return {
 		form,
-		identifierField,
 		isLoading,
 		fieldErrors,
 		error,

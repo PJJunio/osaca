@@ -20,16 +20,7 @@ export interface MfaChallenge {
 	backupCodes: boolean;
 }
 
-export interface IpAuthorizationChallenge {
-	ticket: string;
-	email: string;
-	resendAvailableIn: number;
-}
-
-export type LoginResult =
-	| {type: 'success'; payload: LoginSuccessPayload}
-	| {type: 'mfa'; challenge: MfaChallenge}
-	| {type: 'ip_authorization'; challenge: IpAuthorizationChallenge};
+export type LoginResult = {type: 'success'; payload: LoginSuccessPayload} | {type: 'mfa'; challenge: MfaChallenge};
 
 function mfaChallengeFromResponse(response: AuthenticationCommands.MfaLoginResponse): MfaChallenge {
 	return {
@@ -52,7 +43,8 @@ export function toLoginSuccessPayload(response: AuthenticationCommands.AuthToken
 export async function loginWithPassword({
 	runtimeSnapshot,
 	...params
-}: AuthenticationCommands.LoginIdentifier & {
+}: {
+	login: string;
 	password: string;
 	inviteCode?: string;
 	runtimeSnapshot: RuntimeConfigSnapshot;
@@ -61,16 +53,6 @@ export async function loginWithPassword({
 		...params,
 		target: instanceTargetFromSnapshot(runtimeSnapshot),
 	});
-	if (AuthenticationCommands.isIpAuthorizationRequiredResponse(response)) {
-		return {
-			type: 'ip_authorization',
-			challenge: {
-				ticket: response.ticket,
-				email: response.email,
-				resendAvailableIn: response.resend_available_in ?? 30,
-			},
-		};
-	}
 	if (response.mfa) {
 		return {
 			type: 'mfa',

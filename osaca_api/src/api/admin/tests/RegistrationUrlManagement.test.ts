@@ -2,7 +2,6 @@
 
 import {
 	createTestAccount,
-	createUniqueEmail,
 	createUniqueUsername,
 	setUserACLs,
 	type TestAccount,
@@ -64,7 +63,6 @@ describe('admin registration links', () => {
 		const registered = await createBuilderWithoutAuth<{user_id: string}>(harness)
 			.post('/auth/register')
 			.body({
-				email: createUniqueEmail('linkinvite'),
 				username: createUniqueUsername('linkinvite'),
 				global_name: 'Invited by link',
 				password: 'joined-through-a-link',

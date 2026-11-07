@@ -235,13 +235,13 @@ The verification level decides who can send messages in the guild. The owner, bo
 | Value | Name | Description |
 | --- | --- | --- |
 | 0 | NONE | No verification requirement |
-| 1 | LOW<sup>1</sup> | The account is claimed and its email address verified |
+| 1 | LOW<sup>1</sup> | The account is claimed |
 | 2 | MEDIUM | The LOW requirement, and the account is at least 5 minutes old |
 | 3 | HIGH | The MEDIUM requirement, and the membership is at least 10 minutes old |
 
 <sup>1</sup> A guild with `DISCOVERABLE` is always at least LOW, and [Modify guild](#modify-guild) rejects a lower value with the field code `DISCOVERABLE_GUILD_VERIFICATION_LEVEL_TOO_LOW`
 
-A member who fails the check gets 403 `GUILD_VERIFICATION_REQUIRED`, `GUILD_EMAIL_VERIFICATION_REQUIRED` or `ACCOUNT_TOO_NEW_FOR_GUILD`.
+A member who fails the check gets 403 `ACCOUNT_VERIFICATION_REQUIRED`, `GUILD_VERIFICATION_REQUIRED` or `ACCOUNT_TOO_NEW_FOR_GUILD`.
 
 ## MFA levels
 
@@ -368,9 +368,9 @@ Only the [Admin API](/admin-api/guilds/) sets these bits.
 
 A visit lets someone read a guild before joining. A visitor sees the channels the @everyone role can read, with only the @everyone overwrite applied, and can't post, react, type, join voice or see the member list. Visits need the `guild_visits` [experiment assignment](/http-api/experiments/#guild-visits-assignment-object), and a session gets its visited guilds only when it identifies with the `GUILD_VISITS` [session flag](/gateway/commands/#session-flags).
 
-A guild takes visitors while it has `VISITS_ENABLED`. A visit starts from [Visit invite guild](/http-api/invites/#visit-invite-guild), [Visit discovery guild](/http-api/discovery/#visit-discovery-guild) or the instance's single community after sign up. Visitors can't see private threads, and adult channels stay hidden from people who may not see adult content. Without a verified email, a visitor sees only the last `guild_visit_history_days_unverified` days of messages (30 by default). Search by author or mention returns 400 `SEARCH_FILTER_NEEDS_MEMBERSHIP`.
+A guild takes visitors while it has `VISITS_ENABLED`. A visit starts from [Visit invite guild](/http-api/invites/#visit-invite-guild), [Visit discovery guild](/http-api/discovery/#visit-discovery-guild) or the instance's single community after sign up. Visitors can't see private threads, and adult channels stay hidden from people who may not see adult content. An unclaimed visitor sees only the last `guild_visit_history_days_unverified` days of messages (30 by default). Search by author or mention returns 400 `SEARCH_FILTER_NEEDS_MEMBERSHIP`.
 
-You can visit `max_guild_visits` guilds at once (10 by default, half without a verified email), and starting another ends the oldest. A visit ends in these cases, and each one sends [Guild Delete](/gateway/events/#guild-delete).
+You can visit `max_guild_visits` guilds at once (10 by default, half for an unclaimed account), and starting another ends the oldest. A visit ends in these cases, and each one sends [Guild Delete](/gateway/events/#guild-delete).
 
 - 14 days pass without you opening it
 - Its invite is deleted or expires
@@ -437,22 +437,20 @@ Routes that need [sudo mode](/http-api/users/mfa/#sudo-mode) take these fields i
 | Field | Type | Description |
 | --- | --- | --- |
 | password?<sup>1</sup> | string | Current account password |
-| mfa_method? | string | MFA method, one of `totp`, `webauthn` or `email_code` |
+| mfa_method? | string | MFA method, `totp` or `webauthn` |
 | mfa_code? | string | Authenticator or backup code when the method is `totp` (1-32 characters) |
 | webauthn_response? | [WebAuthn assertion](/http-api/authentication/#webauthn-assertion) object | Assertion when the method is `webauthn` |
 | webauthn_challenge? | string | Challenge bound to the WebAuthn assertion |
-| email_code_ticket? | string | The ticket from [send a sudo email code](/http-api/users/mfa/#send-a-sudo-email-code) (1-128 characters) |
-| email_code? | string | The 6-digit code from that email |
 
 <sup>1</sup> Accepted only when the account has no authenticator app or passkey
 
-A request without a proof gets 403 `SUDO_MODE_REQUIRED`, except from a bot or an account with no password, email address, authenticator or passkey.
+A request without a proof gets 403 `SUDO_MODE_REQUIRED`, except from a bot or an account with no password, authenticator or passkey.
 
 ## Create guild
 
 <RouteHeader method="POST" path="/v1/guilds" />
 
-Creates a guild that you own and returns the [guild object](#guild-object) without roles, channels or counts. You need a user account with a verified email address.
+Creates a guild that you own and returns the [guild object](#guild-object) without roles, channels or counts. You need a claimed user account.
 
 ### JSON body
 
@@ -474,9 +472,9 @@ Without a template, the guild gets a `general` text channel, a `General` voice c
 | Status | Body | Condition |
 | --- | --- | --- |
 | 200 | [guild object](#guild-object) | The guild was created |
-| 400 | [error response](/http-api/#error-response) | `MAX_GUILDS`, `GUILD_TEMPLATE_INVALID`, `BOTS_CANNOT_CREATE_GUILDS` or `UNCLAIMED_ACCOUNT_CANNOT_CREATE_GUILDS` |
+| 400 | [error response](/http-api/#error-response) | `MAX_GUILDS`, `GUILD_TEMPLATE_INVALID` or `BOTS_CANNOT_CREATE_GUILDS` |
 | 400 | [error response](/http-api/#error-response) | `SINGLE_COMMUNITY_CANNOT_CREATE_GUILDS` while the instance runs a single community |
-| 403 | [error response](/http-api/#error-response) | `GUILD_CREATION_EMAIL_VERIFICATION_REQUIRED`, `CONTENT_BLOCKED` or `ACCOUNT_LIMITED` |
+| 403 | [error response](/http-api/#error-response) | `ACCOUNT_VERIFICATION_REQUIRED`, `CONTENT_BLOCKED` or `ACCOUNT_LIMITED` |
 
 You get [Guild Create](/gateway/events/#guild-create) and [User Settings Update](/gateway/events/#user-settings-update) with the new guild in your folders.
 
@@ -554,12 +552,10 @@ Changes guild settings and returns the updated [guild object](#guild-object). Yo
 | features?<sup>5</sup> | array[string] | The full [guild feature](#guild-features) set you want (max 100 entries) |
 | message_history_cutoff? | ?ISO8601 timestamp | Earliest history visible without `READ_MESSAGE_HISTORY`, or null to hide all of it |
 | password? | string | [Sudo verification](#sudo-verification-fields) password |
-| mfa_method? | string | [Sudo verification](#sudo-verification-fields) method, one of `totp`, `webauthn` or `email_code` |
+| mfa_method? | string | [Sudo verification](#sudo-verification-fields) method, `totp` or `webauthn` |
 | mfa_code? | string | [Sudo verification](#sudo-verification-fields) authenticator code |
 | webauthn_response? | [WebAuthn assertion](/http-api/authentication/#webauthn-assertion) object | [Sudo verification](#sudo-verification-fields) assertion |
 | webauthn_challenge? | string | Challenge bound to the WebAuthn assertion |
-| email_code_ticket? | string | The ticket from [send a sudo email code](/http-api/users/mfa/#send-a-sudo-email-code) (1-128 characters) |
-| email_code? | string | The 6-digit code from that email |
 
 <sup>1</sup> Fails with the field code `MUST_ENABLE_2FA_BEFORE_REQUIRING_FOR_MODS` when the owner has no authenticator
 

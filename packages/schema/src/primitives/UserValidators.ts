@@ -13,7 +13,6 @@ import {
 } from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
-const EMAIL_LOCAL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+$/;
 const DISCRIMINATOR_REGEX = /^\d{1,4}$/;
 const OSACA_TAG_REGEX = /^[a-zA-Z0-9_]+$/;
 
@@ -29,41 +28,6 @@ function sanitizeUsername(value: string): string {
 	return s;
 }
 
-export const EmailType = withOpenApiType(
-	z
-		.string()
-		.overwrite(normalizeString)
-		.pipe(
-			withStringLengthRangeValidation(
-				z.email(ValidationErrorCodes.INVALID_EMAIL_FORMAT),
-				1,
-				254,
-				ValidationErrorCodes.EMAIL_LENGTH_INVALID,
-			),
-		)
-		.refine((value: string) => {
-			const atIndex = value.indexOf('@');
-			if (atIndex === -1) return false;
-			const local = value.slice(0, atIndex);
-			return EMAIL_LOCAL_REGEX.test(local);
-		}, ValidationErrorCodes.INVALID_EMAIL_LOCAL_PART),
-	'EmailType',
-);
-
-const EMAIL_BLOCKLIST_DOMAIN_REGEX =
-	/^@[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)+$/;
-
-export const EmailBlocklistEntryType = withOpenApiType(
-	z
-		.string()
-		.overwrite(normalizeString)
-		.refine(
-			(value: string) =>
-				EMAIL_BLOCKLIST_DOMAIN_REGEX.test(value) ? value.length <= 254 : EmailType.safeParse(value).success,
-			ValidationErrorCodes.INVALID_EMAIL_FORMAT,
-		),
-	'EmailBlocklistEntryType',
-);
 export const DiscriminatorType = withOpenApiType(
 	z
 		.union([z.string(), z.number()])

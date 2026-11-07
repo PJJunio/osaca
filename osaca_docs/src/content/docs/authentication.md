@@ -71,9 +71,9 @@ A [limited account](/http-api/users/#account-limitation) gets 403 `ACCOUNT_LIMIT
 
 Sudo mode is a recent proof that the account holder re-verified a credential. An operation that needs it says so, and without a valid proof it returns 403 `SUDO_MODE_REQUIRED`. Send the proof as [sudo verification object](/http-api/users/mfa/#sudo-verification-object) fields in the body.
 
-After a TOTP, passkey or emailed-code proof, the response returns a token in the `X-OSACA-Sudo-Mode-JWT` header. Send it in that request header for five minutes to skip the proof. An account that proves sudo mode with its password gets no token and sends the password each time.
+After a TOTP or passkey proof, the response returns a token in the `X-OSACA-Sudo-Mode-JWT` header. Send it in that request header for five minutes to skip the proof. An account that proves sudo mode with its password gets no token and sends the password each time.
 
-A bot account, or an account with no password, TOTP secret, WebAuthn credential or confirmed email, passes sudo mode without a proof. An account with only a confirmed email proves it with an [emailed code](/http-api/users/mfa/#send-a-sudo-email-code). [Multi-factor authentication](/http-api/users/mfa/#sudo-mode) covers the accepted proofs and the [sudo mode methods object](/http-api/users/mfa/#sudo-mode-methods-object).
+A bot account, or an account with no password, TOTP secret or WebAuthn credential, passes sudo mode without a proof. [Multi-factor authentication](/http-api/users/mfa/#sudo-mode) covers the accepted proofs and the [sudo mode methods object](/http-api/users/mfa/#sudo-mode-methods-object).
 
 ## Gateway authentication
 

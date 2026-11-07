@@ -73,7 +73,7 @@ export async function bumpGuildBanGeneration(guildId: GuildID): Promise<void> {
 
 export async function assertNotBannedFromGuildVisit(params: {
 	guildId: GuildID;
-	user: Pick<User, 'id' | 'email' | 'lastActiveIp'>;
+	user: Pick<User, 'id' | 'lastActiveIp'>;
 	ip: string | null;
 }): Promise<void> {
 	const {guildId, user, ip} = params;
@@ -93,8 +93,6 @@ export async function assertNotBannedFromGuildVisit(params: {
 			}
 		}
 	}
-	const email = user.email?.toLowerCase();
-	if (email && (await guildRepository.getBanByEmail(guildId, email))) throw new BannedFromGuildError();
 	await kv.setex(memoKey, BAN_MEMO_TTL_SECONDS, '1');
 }
 

@@ -14,7 +14,6 @@ const SYNTHETIC_USER_IDS = ['0', String(DELETED_USER_ID)];
 
 const MUTATIONS: Array<{verb: 'put' | 'patch' | 'delete'; path: string; acl: string; body?: unknown}> = [
 	{verb: 'patch', path: 'username', acl: AdminACLs.USER_UPDATE_USERNAME, body: {username: 'takenover'}},
-	{verb: 'patch', path: 'email', acl: AdminACLs.USER_UPDATE_EMAIL, body: {email: 'takenover@example.com'}},
 	{verb: 'patch', path: 'flags', acl: AdminACLs.USER_UPDATE_FLAGS, body: {add_flags: ['STAFF'], remove_flags: []}},
 	{verb: 'put', path: 'acls', acl: AdminACLs.ACL_SET_USER, body: {acls: [AdminACLs.AUTHENTICATE]}},
 	{verb: 'put', path: 'ban', acl: AdminACLs.USER_TEMP_BAN, body: {duration_hours: 1, reason: 'test'}},

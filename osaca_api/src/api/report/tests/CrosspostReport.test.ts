@@ -1,12 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {
-	clearTestEmails,
-	createUniqueEmail,
-	findLastTestEmail,
-	listTestEmails,
-	type TestAccount,
-} from '@app/api/auth/tests/AuthTestUtils';
+import type {TestAccount} from '@app/api/auth/tests/AuthTestUtils';
 import {createChannelID, createGuildID, createMessageID, createReportID} from '@app/api/BrandedTypes';
 import {type AnnouncementWorld, announcementWorld} from '@app/api/channel/tests/AnnouncementTestUtils';
 import {sendChannelMessage} from '@app/api/channel/tests/ChannelTestUtils';
@@ -14,7 +8,7 @@ import {readMessageRow, writeMessageRow} from '@app/api/channel/tests/CrosspostT
 import {ReportRepository} from '@app/api/report/ReportRepository';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {HTTP_STATUS} from '@app/api/test/TestConstants';
-import {createBuilder, createBuilderWithoutAuth} from '@app/api/test/TestRequestBuilder';
+import {createBuilder} from '@app/api/test/TestRequestBuilder';
 import {createWebhook, executeWebhook} from '@app/api/webhook/tests/WebhookTestUtils';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {MessageFlags, MessageReferenceTypes} from '@osaca/constants/src/ChannelConstants';
@@ -91,38 +85,6 @@ async function readReport(reportId: string) {
 	return report!;
 }
 
-async function createDsaTicket(harness: ApiTestHarness): Promise<string> {
-	await clearTestEmails(harness);
-	const email = createUniqueEmail('dsa-crosspost');
-	await createBuilderWithoutAuth(harness).post('/reports/dsa/email/send').body({email}).execute();
-	const dsaEmail = findLastTestEmail(await listTestEmails(harness), 'dsa_report_verification');
-	const {ticket} = await createBuilder<{ticket: string}>(harness, '')
-		.post('/reports/dsa/email/verify')
-		.body({email, code: dsaEmail!.metadata.code})
-		.expect(HTTP_STATUS.OK)
-		.execute();
-	return ticket;
-}
-
-function dsaMessageReport(
-	harness: ApiTestHarness,
-	ticket: string,
-	guildId: string,
-	channelId: string,
-	messageId: string,
-) {
-	return createBuilderWithoutAuth<ReportResponse>(harness)
-		.post('/reports/dsa')
-		.body({
-			ticket,
-			report_type: 'message',
-			category: 'harassment',
-			message_link: `https://osaca.test/channels/${guildId}/${channelId}/${messageId}`,
-			reporter_full_legal_name: 'Jane Doe',
-			reporter_country_of_residence: 'DE',
-		});
-}
-
 describe('Reporting published copies', () => {
 	let harness: ApiTestHarness;
 
@@ -166,18 +128,6 @@ describe('Reporting published copies', () => {
 			.execute();
 	});
 
-	test('the message-link report on a copy reports the source author', async () => {
-		const {world, copyId} = await createCopyOfMemberMessage(harness);
-		const ticket = await createDsaTicket(harness);
-		const result = await dsaMessageReport(harness, ticket, world.b.guild.id, world.b.t1.id, copyId)
-			.expect(HTTP_STATUS.OK)
-			.execute();
-		const report = await readReport(result.report_id);
-		expect(report.reportedUserId?.toString()).toBe(world.a.member.userId);
-		expect(report.reportedMessageId?.toString()).toBe(copyId);
-		expect(report.reportedChannelId?.toString()).toBe(world.b.t1.id);
-	});
-
 	test('a copy of a webhook-authored source reports the source webhook', async () => {
 		const world = await announcementWorld(harness);
 		const sourceWebhook = await createWebhook(harness, world.a.ann.id, world.a.owner.token, 'Source hook');
@@ -200,11 +150,7 @@ describe('Reporting published copies', () => {
 		const inApp = await reportMessage(harness, world.b.webhookManager.token, world.b.t1.id, copyId)
 			.expect(HTTP_STATUS.OK)
 			.execute();
-		const ticket = await createDsaTicket(harness);
-		const dsa = await dsaMessageReport(harness, ticket, world.b.guild.id, world.b.t1.id, copyId)
-			.expect(HTTP_STATUS.OK)
-			.execute();
-		for (const result of [inApp, dsa]) {
+		for (const result of [inApp]) {
 			const report = await readReport(result.report_id);
 			expect(report.reportedUserId).toBeNull();
 			expect(report.reportedWebhookId?.toString()).toBe(sourceWebhook.id);
@@ -214,17 +160,6 @@ describe('Reporting published copies', () => {
 			expect(reportedContext?.webhookId?.toString()).toBe(sourceWebhook.id);
 			expect(reportedContext?.authorId).toBeNull();
 		}
-	});
-
-	test('a source-deleted copy is reported as an unknown message', async () => {
-		const {world, copyId} = await createCopyOfMemberMessage(harness, MessageFlags.SOURCE_MESSAGE_DELETED);
-		await reportMessage(harness, world.b.webhookManager.token, world.b.t1.id, copyId)
-			.expect(HTTP_STATUS.NOT_FOUND, APIErrorCodes.UNKNOWN_MESSAGE)
-			.execute();
-		const ticket = await createDsaTicket(harness);
-		await dsaMessageReport(harness, ticket, world.b.guild.id, world.b.t1.id, copyId)
-			.expect(HTTP_STATUS.NOT_FOUND, APIErrorCodes.UNKNOWN_MESSAGE)
-			.execute();
 	});
 
 	test('a copy whose source is gone keeps the existing error', async () => {

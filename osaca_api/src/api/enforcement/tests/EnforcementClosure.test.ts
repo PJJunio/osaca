@@ -1,17 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {AdminRepository} from '@app/api/admin/AdminRepository';
 import {resolveDeletionDays} from '@app/api/admin/services/AdminUserDeletionService';
-import {clearTestEmails, createTestAccount, loginAccount, type TestAccount} from '@app/api/auth/tests/AuthTestUtils';
+import {createTestAccount, loginAccount, type TestAccount} from '@app/api/auth/tests/AuthTestUtils';
 import {getConfig} from '@app/api/Config';
 import {createNoticeLookupDeps, loadAccountNotice} from '@app/api/enforcement/EnforcementAccountNotice';
-import {formatNoticeDate} from '@app/api/enforcement/NoticeDates';
 import {
 	close,
 	closeRequest,
 	createStaff,
 	decisionBody,
-	emailsTo,
 	endDecision,
 	getDecision,
 	listDecisions,
@@ -76,36 +73,7 @@ describe('Enforcement closures', () => {
 		await harness?.shutdown();
 	});
 
-	async function isEmailBanned(account: TestAccount): Promise<boolean> {
-		return new AdminRepository().isEmailBanned(account.email);
-	}
-
 	describe('holder request', () => {
-		test('writes the self-deletion state with code 1 and at least 14 days, with no decision', async () => {
-			const target = await createTestAccount(harness);
-			await clearTestEmails(harness);
-			const {user} = await closeRequest(harness, staff, target.userId, {
-				days_until_deletion: 1,
-				basis: {type: 'holder_request'},
-			})
-				.expect(HTTP_STATUS.OK)
-				.execute();
-			expect(daysFromNow(user.pending_deletion_at)).toBe(14);
-			expect(user.enforcement_decision_id).toBeNull();
-			const stored = await loadUser(target);
-			expect(stored.flags & UserFlags.SELF_DELETED).toBe(UserFlags.SELF_DELETED);
-			expect(stored.flags & UserFlags.DELETED).toBe(0n);
-			expect(stored.deletionReasonCode).toBe(DeletionReasons.USER_REQUESTED);
-			expect(await listDecisions(harness, staff, target.userId)).toEqual([]);
-			const [email] = await emailsTo(harness, target, 'account_deletion_scheduled_requested');
-			expect(email?.metadata.deletion_date).toBe(formatNoticeDate(stored.pendingDeletionAt!, stored.locale));
-			expect(await emailsTo(harness, target, 'enforcement_notice')).toEqual([]);
-			expect(await isEmailBanned(target)).toBe(false);
-			expect(publisher.adminActions(target.userId)).toEqual([
-				expect.objectContaining({action: 'schedule_deletion', reason_code: DeletionReasons.USER_REQUESTED, ips: []}),
-			]);
-		});
-
 		test('signing in cancels it', async () => {
 			const target = await createTestAccount(harness);
 			await closeRequest(harness, staff, target.userId, {days_until_deletion: 14, basis: {type: 'holder_request'}})
@@ -131,17 +99,14 @@ describe('Enforcement closures', () => {
 		});
 	});
 
-	test('housekeeping writes code 19, sends the inactivity email and never bans the email', async () => {
+	test('housekeeping writes code 19', async () => {
 		const target = await createTestAccount(harness);
-		await clearTestEmails(harness);
 		await closeRequest(harness, staff, target.userId, {days_until_deletion: 30, basis: {type: 'housekeeping'}})
 			.expect(HTTP_STATUS.OK)
 			.execute();
 		const stored = await loadUser(target);
 		expect(stored.deletionReasonCode).toBe(DeletionReasons.INACTIVITY);
 		expect(stored.flags & UserFlags.SELF_DELETED).toBe(UserFlags.SELF_DELETED);
-		expect(await emailsTo(harness, target, 'account_deletion_scheduled_inactivity')).toHaveLength(1);
-		expect(await isEmailBanned(target)).toBe(false);
 		expect(publisher.adminActions(target.userId)[0]?.ips).toEqual([]);
 	});
 
@@ -159,9 +124,8 @@ describe('Enforcement closures', () => {
 	});
 
 	describe('enforcement basis', () => {
-		test('records a closure decision that lasts at least 74 days and bans the email', async () => {
+		test('records a closure decision that lasts at least 74 days', async () => {
 			const target = await createTestAccount(harness);
-			await clearTestEmails(harness);
 			const {user} = await closeRequest(harness, staff, target.userId, {
 				days_until_deletion: 14,
 				basis: {type: 'enforcement', decision: decisionBody()},
@@ -177,14 +141,12 @@ describe('Enforcement closures', () => {
 			expect(stored.deletionAuditLogReason).toBeNull();
 			expect(stored.enforcementDecisionId?.toString()).toBe(user.enforcement_decision_id);
 			const decision = await getDecision(harness, staff, user.enforcement_decision_id!);
-			expect(decision).toMatchObject({kind: 'closure', status: 'active', notice_status: 'sent'});
+			expect(decision).toMatchObject({kind: 'closure', status: 'active', notice_status: 'undelivered'});
 			expect(decision.deletion_at).toBe(user.pending_deletion_at);
 			expect(decision.notice_text).toContain(
 				"We closed your account.\n\nYou can't sign in or use OSACA anywhere. We'll delete the account and its data on ",
 			);
 			expect(decision.notice_text).toContain('You may not create or use other accounts.');
-			expect(await emailsTo(harness, target, 'enforcement_notice')).toHaveLength(1);
-			expect(await isEmailBanned(target)).toBe(true);
 			const [action] = publisher.adminActions(target.userId);
 			expect(action).toMatchObject({action: 'schedule_deletion', reason_code: DeletionReasons.SPAM});
 			expect(action?.ips.length).toBeGreaterThan(0);
@@ -231,7 +193,7 @@ describe('Enforcement closures', () => {
 			}
 		});
 
-		test('a rule that does not bar new accounts neither bans the email nor sends IPs', async () => {
+		test('a rule that does not bar new accounts sends no IPs', async () => {
 			const target = await createTestAccount(harness);
 			const decisionId = await close(
 				harness,
@@ -239,7 +201,6 @@ describe('Enforcement closures', () => {
 				target.userId,
 				decisionBody({reason_code: DeletionReasons.UNDERAGE_ACCOUNT}),
 			);
-			expect(await isEmailBanned(target)).toBe(false);
 			expect(publisher.adminActions(target.userId)[0]?.ips).toEqual([]);
 			const decision = await getDecision(harness, staff, decisionId);
 			expect(decision.notice_text).toContain("you're welcome back once you're old enough");
@@ -249,7 +210,6 @@ describe('Enforcement closures', () => {
 		test('replaces a suspension and the suspension reads as replaced', async () => {
 			const target = await createTestAccount(harness);
 			const suspensionId = await suspend(harness, staff, target.userId);
-			await clearTestEmails(harness);
 			const closureId = await close(harness, staff, target.userId);
 			const stored = await loadUser(target);
 			expect(stored.enforcementDecisionId?.toString()).toBe(closureId);
@@ -257,7 +217,6 @@ describe('Enforcement closures', () => {
 			expect(stored.flags & UserFlags.DISABLED).toBe(0n);
 			const decisions = await listDecisions(harness, staff, target.userId);
 			expect(decisions.find((decision) => decision.decision_id === suspensionId)?.replaced).toBe(true);
-			expect(await emailsTo(harness, target, 'enforcement_ended')).toEqual([]);
 		});
 
 		test('restricted reasons cannot close an account', async () => {
@@ -269,26 +228,6 @@ describe('Enforcement closures', () => {
 				.expect(HTTP_STATUS.BAD_REQUEST)
 				.execute();
 			expect((await loadUser(target)).pendingDeletionAt).toBeNull();
-		});
-
-		test('ending it cancels the deletion, lifts the email ban and tells the holder', async () => {
-			const target = await createTestAccount(harness);
-			const decisionId = await close(harness, staff, target.userId);
-			await clearTestEmails(harness);
-			await endDecision(harness, staff, decisionId, 'lifted').expect(HTTP_STATUS.OK).execute();
-			const stored = await loadUser(target);
-			expect(stored.pendingDeletionAt).toBeNull();
-			expect(stored.flags & UserFlags.DELETED).toBe(0n);
-			expect(stored.enforcementDecisionId).toBeNull();
-			expect(stored.deletionReasonCode).toBeNull();
-			expect(await isEmailBanned(target)).toBe(false);
-			expect(await harness.kvProvider.zcard('deletion_queue')).toBe(0);
-			const [email] = await emailsTo(harness, target, 'enforcement_ended');
-			expect(email?.metadata).toMatchObject({outcome: 'lifted', decision_id: decisionId, restores_access: 'yes'});
-			expect(publisher.adminActions(target.userId).map((action) => action.action)).toEqual([
-				'schedule_deletion',
-				'cancel_deletion',
-			]);
 		});
 
 		test('ending it is refused once the deletion has started', async () => {
@@ -365,20 +304,5 @@ describe('Enforcement closures', () => {
 				expect(notice.facts).toEqual(["We don't have more detail on record for this decision."]);
 			},
 		);
-
-		test('the legacy cancel route cancels it and sends the ended email', async () => {
-			const target = await createTestAccount(harness);
-			const closed = await legacyClose(target, null);
-			await clearTestEmails(harness);
-			await createBuilder(harness, staff.token)
-				.delete(`/admin/users/${target.userId}/deletion`)
-				.body({expected_pending_deletion_at: closed.pendingDeletionAt!.toISOString()})
-				.expect(HTTP_STATUS.OK)
-				.execute();
-			expect((await loadUser(target)).pendingDeletionAt).toBeNull();
-			const [email] = await emailsTo(harness, target, 'enforcement_ended');
-			expect(email?.metadata).toMatchObject({outcome: 'lifted', decision_id: '', restores_access: 'yes'});
-			expect(await emailsTo(harness, target, 'account_deletion_cancelled')).toEqual([]);
-		});
 	});
 });

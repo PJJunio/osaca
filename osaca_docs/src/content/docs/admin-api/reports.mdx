@@ -10,7 +10,7 @@ A report is one complaint against a message, an account or a guild, with the evi
 
 ## Admin report object
 
-[List reports](#list-reports) returns this object. [Get report](#get-report) returns the [Admin report detail object](#admin-report-detail-object), which extends it with message context. The guild, channel, webhook and message fields are copied when the report is filed. The account names are looked up when OSACA builds the response. `reporter_email`, `reporter_full_legal_name` and `reporter_country_of_residence` are null unless you have `report:view:reporter_pii` as well as `report:view`.
+[List reports](#list-reports) returns this object. [Get report](#get-report) returns the [Admin report detail object](#admin-report-detail-object), which extends it with message context. The guild, channel, webhook and message fields are copied when the report is filed. The account names are looked up when OSACA builds the response. `reporter_full_legal_name` and `reporter_country_of_residence` are null unless you have `report:view:reporter_pii` as well as `report:view`.
 
 ### Structure
 
@@ -22,7 +22,6 @@ A report is one complaint against a message, an account or a guild, with the evi
 | reporter_username<sup>1</sup> | ?string | The username of the reporter |
 | reporter_global_name<sup>1</sup> | ?string | The display name of the reporter |
 | reporter_discriminator<sup>1</sup> | ?string | The four-digit discriminator of the reporter |
-| reporter_email | ?string | The email address of the reporter |
 | reporter_full_legal_name | ?string | The legal name supplied with a Digital Services Act notice |
 | reporter_country_of_residence | ?string | The country of residence supplied with a Digital Services Act notice |
 | reported_at | ISO8601 timestamp | When the report was filed |
@@ -91,7 +90,6 @@ A report is one complaint against a message, an account or a guild, with the evi
   "report_id": "1502771904419102720",
   "reporter_id": "1483920011884392448",
   "reporter_tag": "wren#0042",
-  "reporter_email": null,
   "reported_at": "2026-03-04T18:22:10.441Z",
   "status": 0,
   "report_type": 0,
@@ -518,7 +516,7 @@ The `outcome` is one of these values.
 
 ### Side effects
 
-The reporter gets a system DM with the outcome, which sends [Channel Create](/gateway/events/#channel-create) and [Message Create](/gateway/events/#message-create), and an email when the account has an email address. A Digital Services Act notice and an instance with direct messages turned off get the email only. OSACA sends nothing when the reporter's account is deleted, when it was barred from reporting at the time of the report, or when the report is a duplicate of one with no outcome yet.
+The reporter gets a system DM with the outcome, which sends [Channel Create](/gateway/events/#channel-create) and [Message Create](/gateway/events/#message-create). An instance with direct messages turned off sends nothing. OSACA also sends nothing when the reporter's account is deleted, when it was barred from reporting at the time of the report, or when the report is a duplicate of one with no outcome yet.
 
 The rate limit is 200 requests per minute, on the `admin:lookup` bucket.
 

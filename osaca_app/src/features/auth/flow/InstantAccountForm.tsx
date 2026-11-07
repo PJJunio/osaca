@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import FormField from '@app/features/auth/flow/AuthFormField';
-import styles from '@app/features/auth/flow/identifier_first/AuthIdentifierFirstStep.module.css';
+import styles from '@app/features/auth/flow/AuthStartStep.module.css';
 import {
 	type RegistrationLegalConsentConfig,
 	RegistrationLegalNotice,
@@ -14,11 +14,11 @@ import {
 } from '@app/features/i18n/utils/CommonMessageDescriptors';
 import {failureCode, failureValidationErrors} from '@app/features/platform/utils/ResponseInspection';
 import {Button} from '@app/features/ui/button/Button';
-import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
-import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import type {I18n} from '@lingui/core';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
+import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
+import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {clsx} from 'clsx';
 import {type FormEvent, useId, useState} from 'react';
 

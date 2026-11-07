@@ -12,15 +12,6 @@ These routes create accounts, sign people in and manage their sessions. Every ro
 
 Most routes here need no `Authorization` header, because the request has its own ticket, code or credential. The routes that need a user session token, except [log out](#log-out), reject a bot token and an OAuth2 bearer token with 403 `ACCESS_DENIED`.
 
-An instance reports how people sign in as `account_identity` in its [instance features](/http-api/instance/#instance-features-object). On a `username` instance, these routes return 400 `EMAIL_UNAVAILABLE_ON_INSTANCE` and send no email.
-
-- [Verify an email address](#verify-an-email-address)
-- [Resend email verification](#resend-email-verification)
-- [Request password recovery](#request-password-recovery)
-- [Revert an email change](#revert-an-email-change)
-- [Authorize an IP address](#authorize-an-ip-address)
-- [Resend IP authorization](#resend-ip-authorization)
-
 Each sign-in creates one session, and a session lasts until it is revoked. When a session is revoked, its Gateway connection gets [Invalid Session](/gateway/overview/#invalid-session) with `d: false`.
 
 <a id="authentication-token-response"></a>
@@ -36,7 +27,6 @@ A new session token and the account it belongs to. Every route that signs someon
 | token | string | The new user session token, returned only here |
 | user_id | snowflake | The authenticated user ID |
 | user | [partial user](/http-api/users/#partial-user-object) object | The authenticated account |
-| device_proof? | string | A value to send to [identify an account](#identify-an-account) from this device later |
 | entry?<sup>1</sup> | ?[guild entry](/http-api/users/current-user/#guild-entry-object) object | The community to open next, from the invite used at sign-up |
 
 <sup>1</sup> Returned only by registration, and null when no invite applied
@@ -88,7 +78,7 @@ A blocked network can still load `GET /.well-known/osaca`, which the app uses to
 | `facts` | The finding, then where and when it happened |
 | `statement` | A note from the team, or `null` |
 | `how_we_decided` | How the case came to the team and who decided |
-| `appeal` | `email`, `deadline` and `account_has_email`, or `null` |
+| `appeal` | `email` and `deadline`, or `null` |
 | `redress` | Other ways to challenge the decision |
 
 Lines in `effects`, `facts` and `redress` can have Markdown links, `[text](url)`, which the app shows as links.
@@ -183,19 +173,6 @@ The result of [recover an account](#recover-an-account), which extends an [authe
 | recovery_key | string | The new recovery key, 8 groups of 4 characters joined by `-`. Show it to the person, because it is returned only here |
 | recovery_kit_created_at | ISO8601 timestamp | When the new recovery kit was created |
 
-## IP authorization poll object
-
-The state of a sign-in that waits for IP authorization.
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| completed | boolean | Whether the link in the email was used and a session was created |
-| token? | ?string | The new user session token, when `completed` is true |
-| user_id? | ?snowflake | The authenticated user ID, when `completed` is true |
-| user? | ?[partial user](/http-api/users/#partial-user-object) object | The authenticated account, when `completed` is true |
-
 ## Username suggestions object
 
 ### Structure
@@ -211,38 +188,6 @@ The state of a sign-in that waits for IP authorization.
 | Field | Type | Description |
 | --- | --- | --- |
 | available | boolean | Whether the username is free |
-
-## Identify response object
-
-The next step after [identify an account](#identify-an-account).
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| ticket | string | The ticket for the next step, valid for 15 minutes |
-| account | string | `existing` when an account uses the identifier, `new` otherwise |
-| sign_in_method | ?string | `password` or `code` for an existing account, null for a new one |
-| registration | ?[identify registration](#identify-registration-object) object | What signing up needs, or null for an existing account |
-
-### Identify registration object
-
-| Field | Type | Description |
-| --- | --- | --- |
-| mode | string | How new accounts are let in, one of `open`, `approval` or `closed` |
-| consent_required | boolean | Whether signing up needs `consent` set to true |
-| requires_password | boolean | Whether signing up needs a password, because the instance can't send email codes |
-| instant_account_availability? | string | One of the [instant account availability](/http-api/instance/#instant-account-availability) values |
-
-## Email code send response object
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| purpose | string | `sign_in` for an existing account, `sign_up` for a new one |
-| code_expires_at | ISO8601 timestamp | When the code stops working, 10 minutes after sending |
-| resend_available_at | ISO8601 timestamp | When you can ask for another code, 30 seconds after sending |
 
 ## Account handoff object
 
@@ -338,33 +283,30 @@ If you lose the response, try to sign in before you retry, because registration 
 | Field | Type | Description |
 | --- | --- | --- |
 | X-Captcha-Token? | string | The solved ALTCHA challenge, see [CAPTCHA handling](/topics/captcha/) |
-| Accept-Language? | string | The language for the account and the verification email |
+| Accept-Language? | string | The language for the account |
 
 ### JSON body
 
 | Field | Type | Description |
 | --- | --- | --- |
-| email?<sup>1</sup> | string | The account email address |
-| username?<sup>2</sup> | string | The username (1-32 characters, letters, digits and underscores) |
+| username?<sup>1</sup> | string | The username (1-32 characters, letters, digits and underscores) |
 | global_name? | string | The display name (1-32 characters) |
-| password?<sup>3</sup> | string | The password (8-256 characters) |
-| consent?<sup>4</sup> | boolean | Whether the person accepted the terms of service (default false) |
+| password?<sup>2</sup> | string | The password (8-256 characters) |
+| consent?<sup>3</sup> | boolean | Whether the person accepted the terms of service (default false) |
 | invite_code? | ?string | An invite to accept after registration (0-256 characters) |
-| registration_url_code?<sup>5</sup> | ?string | A registration URL code from an admin (1-128 characters) |
+| registration_url_code?<sup>4</sup> | ?string | A registration URL code from an admin (1-128 characters) |
 | theme? | string | The starting theme, one of `dark`, `dark_legacy`, `coal`, `light` or `system` |
-| setup_token?<sup>6</sup> | ?string | The setup token of a new self-hosted instance (1-256 characters) |
+| setup_token?<sup>5</sup> | ?string | The setup token of a new self-hosted instance (1-256 characters) |
 
-<sup>1</sup> An address already used by any account returns the field code `EMAIL_ALREADY_IN_USE`. On a `username` instance, older apps send the username here as `name@` followed by the instance host. Any other address returns the field code `INSTANCE_ADDRESS_REQUIRED`, and the address is never stored
+<sup>1</sup> Without it, OSACA makes one from `global_name`. A taken name returns the field code `USERNAME_ALREADY_TAKEN`
 
-<sup>2</sup> Without it, OSACA makes one from `global_name`. On a `none` [tag style](/http-api/instance/#tag-styles) instance a taken name returns the field code `USERNAME_ALREADY_TAKEN`
+<sup>2</sup> A known breached password returns the field code `PASSWORD_IS_TOO_COMMON`
 
-<sup>3</sup> A known breached password returns the field code `PASSWORD_IS_TOO_COMMON`
+<sup>3</sup> Must be true on an instance with terms or a privacy policy, or you get the field code `MUST_AGREE_TO_TOS_AND_PRIVACY_POLICY`
 
-<sup>4</sup> Must be true on an instance with terms or a privacy policy, or you get the field code `MUST_AGREE_TO_TOS_AND_PRIVACY_POLICY`
+<sup>4</sup> Lets the person sign up while registration is closed. An unknown code returns 400 `REGISTRATION_URL_INVALID`
 
-<sup>5</sup> Lets the person sign up while registration is closed. An unknown code returns 400 `REGISTRATION_URL_INVALID`
-
-<sup>6</sup> Needed until the first admin account exists. A missing value returns the field code `SETUP_TOKEN_REQUIRED`, and the account that uses it gets the full [Admin ACL](/admin-api/#acl-registry)
+<sup>5</sup> Needed until the first admin account exists. A missing value returns the field code `SETUP_TOKEN_REQUIRED`, and the account that uses it gets the full [Admin ACL](/admin-api/#acl-registry)
 
 ### Response
 
@@ -372,99 +314,11 @@ If you lose the response, try to sign in before you retry, because registration 
 | --- | --- | --- |
 | 200 | [authentication token response](#authentication-token-response) \| [registration pending approval response](#registration-pending-approval-response-object) | The account was created or is waiting for approval |
 | 400 | [error response](/http-api/#error-response) | `CAPTCHA_REQUIRED` or `INVALID_CAPTCHA` |
-| 400 | [error response](/http-api/#error-response) | `REGISTRATION_CREDENTIALS_REQUIRED` when an account waiting for approval has no password or email |
+| 400 | [error response](/http-api/#error-response) | `REGISTRATION_CREDENTIALS_REQUIRED` when an account waiting for approval has no password |
 | 403 | [error response](/http-api/#error-response) | `REGISTRATION_CLOSED`, `INSTANT_ACCOUNTS_DISABLED` or `CONTENT_BLOCKED` |
-| 423 | [error response](/http-api/#error-response) | `GENERAL_ERROR` when a new instance is still setting its [sign-in method](/http-api/instance/#set-the-setup-sign-in-method) |
+| 423 | [error response](/http-api/#error-response) | `GENERAL_ERROR` when another request is creating the first admin account of a new instance |
 
 The rate limit is 10 requests per 10 seconds, on the `auth:register` bucket.
-
-## Identify an account
-
-<RouteHeader method="POST" path="/v1/auth/identify" unauthenticated />
-
-Starts identifier-first sign-in for an existing or new account and returns an [identify response](#identify-response-object) object. It works only when `identifier_first` is on in the [instance features](/http-api/instance/#instance-features-object), and otherwise returns 403 `FEATURE_TEMPORARILY_DISABLED`.
-
-### Request headers
-
-| Field | Type | Description |
-| --- | --- | --- |
-| X-Captcha-Token? | string | The solved ALTCHA challenge, asked for only after many lookups |
-
-### JSON body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| email? | string | The email address, on an `email` instance |
-| login? | string | The username, on a `username` instance |
-| device_proof? | string | The `device_proof` from an earlier sign-in on this device (1-128 characters) |
-| registration_url_code? | ?string | A registration URL code from an admin, for a sign-up (1-128 characters) |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | [identify response](#identify-response-object) object | The identifier was looked up |
-
-The rate limit is 10 requests per 10 seconds, on the `auth:identify` bucket.
-
-## Send an email code
-
-<RouteHeader method="POST" path="/v1/auth/email-code/send" unauthenticated />
-
-Emails a 6-digit code for an identify ticket and returns an [email code send response](#email-code-send-response-object) object. A sign-up needs a [CAPTCHA](/topics/captcha/) and goes through the same checks as [register an account](#register-an-account).
-
-### Request headers
-
-| Field | Type | Description |
-| --- | --- | --- |
-| X-Captcha-Token? | string | The solved ALTCHA challenge, see [CAPTCHA handling](/topics/captcha/) |
-
-### JSON body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| ticket | string | The ticket from [identify an account](#identify-an-account) (1-128 characters) |
-| registration_url_code? | ?string | A registration URL code from an admin, for a sign-up (1-128 characters) |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | [email code send response](#email-code-send-response-object) object | The code was sent |
-| 400 | [error response](/http-api/#error-response) | `EMAIL_CODES_UNAVAILABLE` when the instance can't send codes |
-| 400 | [error response](/http-api/#error-response) | `UNKNOWN_SIGN_IN_TICKET`, or `PASSWORD_SIGN_IN_REQUIRED` when the account has a password |
-| 429 | [error response](/http-api/#error-response) | `EMAIL_CODE_RESEND_COOLDOWN` before `retry_after` seconds have passed |
-
-The rate limit is 5 requests per minute, on the `auth:email_code:send` bucket.
-
-## Verify an email code
-
-<RouteHeader method="POST" path="/v1/auth/email-code/verify" unauthenticated />
-
-Checks the emailed code and signs in to the existing account, or creates the account for a new address the way [register an account](#register-an-account) does, with the email already verified. A code allows 5 tries. When the code confirms an address that was never confirmed, it also ends every other session of the account, forgets its authorized IP addresses and revokes its OAuth2 grants.
-
-### JSON body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| ticket | string | The ticket from [identify an account](#identify-an-account) (1-128 characters) |
-| code | string | The 6-digit code from the email |
-| consent?<sup>1</sup> | boolean | Whether the person accepted the terms of service, for a sign-up |
-| registration_url_code? | ?string | A registration URL code from an admin, for a sign-up (1-128 characters) |
-| invite_code? | ?string | An invite to open after sign-up (0-256 characters) |
-| username? | string | The username for a new account (1-32 characters, letters, digits and underscores). Ignored when signing in |
-| global_name? | string | The display name for a new account (1-32 characters). Ignored when signing in |
-
-<sup>1</sup> Needed when `consent_required` is true in the [identify registration](#identify-registration-object) object
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | [authentication token response](#authentication-token-response) \| [MFA challenge response](#mfa-challenge-response) \| [registration pending approval response](#registration-pending-approval-response-object) | The code was accepted |
-| 400 | [error response](/http-api/#error-response) | `INVALID_SIGN_IN_CODE` or `SIGN_IN_CODE_EXPIRED` |
-
-The rate limit is 10 requests per minute, on the `auth:email_code:verify` bucket.
 
 ## Get the website sign-up challenge
 
@@ -539,11 +393,9 @@ The rate limit is 10 requests per minute, on the `auth:register:handoff:redeem` 
 
 <RouteHeader method="POST" path="/v1/auth/login" unauthenticated />
 
-Signs in with an email address or username and a password. Returns an [authentication token response](#authentication-token-response), or an [MFA challenge response](#mfa-challenge-response) when the account has a second factor. The request needs a [CAPTCHA](/topics/captcha/).
+Signs in with a username and a password. Returns an [authentication token response](#authentication-token-response), or an [MFA challenge response](#mfa-challenge-response) when the account has a second factor. The request needs a [CAPTCHA](/topics/captcha/).
 
-An unknown account and a wrong password both return the field code `INVALID_EMAIL_OR_PASSWORD`, or `INVALID_LOGIN_OR_PASSWORD` on a `username` instance.
-
-A sign-in from a new IP address on an account without a second factor returns 403 `IP_AUTHORIZATION_REQUIRED` with a `ticket` and sends an email. Poll with [poll IP authorization](#poll-ip-authorization) until the person uses the link. Instances that send no email or turn off new-IP authorization skip this step.
+An unknown account and a wrong password both return the field code `INVALID_LOGIN_OR_PASSWORD`.
 
 Signing in turns a disabled account back on and cancels a deletion the person scheduled.
 
@@ -559,19 +411,17 @@ Signing in turns a disabled account back on and cancels a deletion the person sc
 
 | Field | Type | Description |
 | --- | --- | --- |
-| email?<sup>1</sup> | string | The email address, or the username from older apps on a `username` instance |
-| login?<sup>1</sup> | string | The email address or username (1-320 characters) |
+| login<sup>1</sup> | string | The username (1-320 characters) |
 | password | string | The password (8-256 characters) |
 | invite_code? | ?string | An invite to accept after a sign-in with no second factor (0-256 characters) |
 
-<sup>1</sup> Send one of the two. On a `username` instance, `alex`, `alex#0` and `alex@` followed by the instance host all mean the same account
+<sup>1</sup> `alex`, `alex#0` and `alex@` followed by the instance host all mean the same account
 
 ### Response
 
 | Status | Body | Condition |
 | --- | --- | --- |
 | 200 | [authentication token response](#authentication-token-response) \| [MFA challenge response](#mfa-challenge-response) | The credentials were accepted |
-| 403 | [error response](/http-api/#error-response) | `IP_AUTHORIZATION_REQUIRED` when the IP address is new |
 | 403 | [error response](/http-api/#error-response) | A suspension code with an [enforcement notice](#enforcement-notice-object), after the last factor |
 
 The rate limit is 10 requests per 10 seconds, on the `auth:login` bucket.
@@ -693,67 +543,6 @@ Revokes the session whose token is in the `Authorization` header and returns 204
 
 The rate limit is 20 requests per 10 seconds, on the `auth:logout` bucket.
 
-## Verify an email address
-
-<RouteHeader method="POST" path="/v1/auth/verify" unauthenticated />
-
-Uses the token from a verification email to mark the account's email verified, and returns 204. OSACA sends [User Update](/gateway/events/#user-update).
-
-### JSON body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| token | string | The token from the email, 64 characters |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 204 | empty | The email was verified |
-| 400 | [error response](/http-api/#error-response) | The field code `INVALID_OR_EXPIRED_VERIFICATION_TOKEN` |
-
-The rate limit is 10 requests per minute, on the `auth:verify` bucket.
-
-## Resend email verification
-
-<RouteHeader method="POST" path="/v1/auth/verify/resend" />
-
-Sends a new verification email, valid for 24 hours, and returns 204. It sends nothing when the email is already verified.
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 204 | empty | The email was sent or was already verified |
-
-The rate limit is 10 requests per minute, on the `auth:verify:resend` bucket.
-
-## Request password recovery
-
-<RouteHeader method="POST" path="/v1/auth/forgot" unauthenticated />
-
-Emails a password reset link, valid for 1 hour, and returns 204. The request needs a [CAPTCHA](/topics/captcha/), and the response is the same whether or not an account has the address.
-
-### Request headers
-
-| Field | Type | Description |
-| --- | --- | --- |
-| X-Captcha-Token? | string | The solved ALTCHA challenge, see [CAPTCHA handling](/topics/captcha/) |
-
-### JSON body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| email | string | The address to send the reset link to |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 204 | empty | The request was accepted |
-
-The rate limit is 5 requests per minute, on the `auth:forgot` bucket.
-
 ## Validate a password reset token
 
 <RouteHeader method="GET" path="/v1/auth/reset/{token}" unauthenticated />
@@ -772,7 +561,7 @@ The rate limit is 20 requests per minute, on the `auth:reset:validate` bucket.
 
 <RouteHeader method="POST" path="/v1/auth/reset" unauthenticated />
 
-Sets a new password with a reset token. Returns an [authentication token response](#authentication-token-response), or an [MFA challenge response](#mfa-challenge-response) when the account has a second factor. On a `username` instance, reset tokens come from an admin's [password reset link](/admin-api/users/#create-password-reset-link).
+Sets a new password with a reset token. Returns an [authentication token response](#authentication-token-response), or an [MFA challenge response](#mfa-challenge-response) when the account has a second factor. Reset tokens come from an admin's [password reset link](/admin-api/users/#create-password-reset-link).
 
 :::caution[Resetting a password signs out every session]
 A reset ends every session on the account and then creates one new session.
@@ -798,7 +587,7 @@ The rate limit is 10 requests per minute, on the `auth:reset` bucket.
 
 <RouteHeader method="POST" path="/v1/auth/recover" unauthenticated />
 
-Sets a new password with the recovery key from a recovery kit and returns an [account recovery response](#account-recovery-response-object) with a new key. Only a `username` instance has this route, and an `email` instance returns 400 `USERNAME_SIGN_IN_ONLY`. The request needs a [CAPTCHA](/topics/captcha/).
+Sets a new password with the recovery key from a recovery kit and returns an [account recovery response](#account-recovery-response-object) with a new key. The request needs a [CAPTCHA](/topics/captcha/).
 
 :::caution[Recovery signs out every session and replaces the key]
 The old key stops working and every session is signed out. For an account with a second factor, nothing changes until the MFA route accepts the ticket.
@@ -829,32 +618,6 @@ The old key stops working and every session is signed out. For an account with a
 
 The rate limit is 10 requests per minute, on the `auth:recover` bucket.
 
-## Revert an email change
-
-<RouteHeader method="POST" path="/v1/auth/email-revert" unauthenticated />
-
-Uses the token sent to the old address after an email change to put that address back and set a new password. Returns an [authentication token response](#authentication-token-response) and sends [User Update](/gateway/events/#user-update). The token is valid for 24 hours.
-
-:::danger[Reverting removes every other way in]
-It ends every session, removes every second factor and leaves only the current IP address authorized.
-:::
-
-### JSON body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| token | string | The token from the email, 64 characters |
-| password | string | The new password (8-256 characters) |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | [authentication token response](#authentication-token-response) | The email was put back |
-| 400 | [error response](/http-api/#error-response) | The field code `INVALID_OR_EXPIRED_REVERT_TOKEN` or `PASSWORD_IS_TOO_COMMON` |
-
-The rate limit is 10 requests per minute, on the `auth:email_revert` bucket.
-
 ## List authentication sessions
 
 <RouteHeader method="GET" path="/v1/auth/sessions" />
@@ -881,12 +644,10 @@ Signs out the sessions you name and returns 204. It needs [sudo mode](/http-api/
 | --- | --- | --- |
 | session_id_hashes | array[string] | The `id_hash` values of the sessions to sign out (max 100 entries) |
 | password? | string | The password, for an account with no authenticator app and no passkey (8-256 characters) |
-| mfa_method? | string | The proof method, one of `totp`, `webauthn` or `email_code` |
+| mfa_method? | string | The proof method, `totp` or `webauthn` |
 | mfa_code? | string | The authenticator code or a backup code, for `totp` (1-32 characters) |
 | webauthn_response? | [WebAuthn assertion](#webauthn-assertion) object | The passkey result, for `webauthn` |
 | webauthn_challenge? | string | The sudo mode challenge, for `webauthn` |
-| email_code_ticket? | string | The ticket from [send a sudo email code](/http-api/users/mfa/#send-a-sudo-email-code) (1-128 characters) |
-| email_code? | string | The 6-digit code from that email |
 
 ### Response
 
@@ -896,27 +657,6 @@ Signs out the sessions you name and returns 204. It needs [sudo mode](/http-api/
 | 403 | [error response](/http-api/#error-response) | `SUDO_MODE_REQUIRED` when proof is missing |
 
 The rate limit is 20 requests per 10 seconds, on the `auth:sessions:logout` bucket.
-
-## Authorize an IP address
-
-<RouteHeader method="POST" path="/v1/auth/authorize-ip" unauthenticated />
-
-Uses the token from the IP authorization email to approve the new IP address and returns 204. The waiting device gets its session from [poll IP authorization](#poll-ip-authorization).
-
-### JSON body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| token | string | The token from the email |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 204 | empty | The IP address was approved |
-| 400 | [error response](/http-api/#error-response) | The field code `INVALID_OR_EXPIRED_AUTHORIZATION_TOKEN` |
-
-The rate limit is 5 requests per minute, on the `auth:authorize_ip` bucket.
 
 ## Redeem a sign-in link
 
@@ -938,49 +678,6 @@ Signs in with the token from a sign-in link made by [create admin sign-in link](
 | 400 | [error response](/http-api/#error-response) | The field code `INVALID_OR_EXPIRED_AUTHORIZATION_TOKEN` |
 
 The rate limit is 5 requests per minute, on the shared `auth:authorize_ip` bucket.
-
-## Resend IP authorization
-
-<RouteHeader method="POST" path="/v1/auth/ip-authorization/resend" unauthenticated />
-
-Sends the IP authorization email again and returns 204. Each ticket allows one resend, 30 seconds or more after the sign-in.
-
-### JSON body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| ticket | string | The ticket from the `IP_AUTHORIZATION_REQUIRED` error |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 204 | empty | The email was sent again |
-| 400 | [error response](/http-api/#error-response) | `IP_AUTHORIZATION_RESEND_LIMIT_EXCEEDED` when the ticket was already resent |
-| 429 | [error response](/http-api/#error-response) | `IP_AUTHORIZATION_RESEND_COOLDOWN` with `resend_available_in` |
-
-The rate limit is 5 requests per minute, on the `auth:ip_authorization_resend` bucket.
-
-## Poll IP authorization
-
-<RouteHeader method="GET" path="/v1/auth/ip-authorization/poll" unauthenticated />
-
-Returns the [IP authorization poll](#ip-authorization-poll-object) state of a waiting sign-in. After the link is used, the token is returned for 60 seconds.
-
-### Query parameters
-
-| Field | Type | Description |
-| --- | --- | --- |
-| ticket | string | The ticket from the `IP_AUTHORIZATION_REQUIRED` error |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | [IP authorization poll](#ip-authorization-poll-object) object | The state was returned |
-| 400 | [error response](/http-api/#error-response) | The field code `INVALID_OR_EXPIRED_AUTHORIZATION_TICKET` |
-
-The rate limit is 60 requests per minute, on the `auth:ip_authorization_poll` bucket.
 
 ## Get username suggestions
 
@@ -1006,7 +703,7 @@ The rate limit is 10 requests per 10 seconds, on the shared `auth:register` buck
 
 <RouteHeader method="GET" path="/v1/auth/username-availability" unauthenticated />
 
-Returns whether a username is free, as a [username availability](#username-availability-object) object. Only an instance with the `none` tag style has this route, and others return 400 `USERNAME_SIGN_IN_ONLY`. It doesn't reserve the name.
+Returns whether a username is free, as a [username availability](#username-availability-object) object. It doesn't reserve the name.
 
 ### Query parameters
 

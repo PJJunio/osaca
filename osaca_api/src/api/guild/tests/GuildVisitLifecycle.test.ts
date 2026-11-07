@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {createTestAccount, setUserACLs, type TestAccount} from '@app/api/auth/tests/AuthTestUtils';
+import {
+	createTestAccount,
+	createUniqueUsername,
+	setUserACLs,
+	type TestAccount,
+} from '@app/api/auth/tests/AuthTestUtils';
 import {createGuildID, createUserID} from '@app/api/BrandedTypes';
 import {sendChannelMessage} from '@app/api/channel/tests/ChannelTestUtils';
 import {threadsRequest} from '@app/api/channel/tests/ThreadTestUtils';
@@ -92,7 +97,7 @@ describe('Guild visit lifecycle', () => {
 	async function createUnclaimed(ip?: string): Promise<Registered> {
 		const builder = createBuilderWithoutAuth<Registered>(harness)
 			.post('/auth/register')
-			.body({username: 'wanderer', consent: true});
+			.body({username: createUniqueUsername('wanderer'), consent: true});
 		if (ip) builder.header('x-forwarded-for', ip);
 		return await builder.execute();
 	}

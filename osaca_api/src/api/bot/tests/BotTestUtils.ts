@@ -11,7 +11,6 @@ interface TestBotAccount {
 	botUserId: string;
 	botToken: string;
 	clientSecret: string;
-	ownerEmail: string;
 	ownerPassword: string;
 	ownerUserId: string;
 	ownerToken: string;
@@ -59,7 +58,6 @@ export async function createTestBotAccount(
 		botUserId: botApp.botUserId,
 		botToken: botApp.botToken,
 		clientSecret: botApp.clientSecret,
-		ownerEmail: owner.email,
 		ownerPassword: owner.password,
 		ownerUserId: owner.userId,
 		ownerToken: owner.token,

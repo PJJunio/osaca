@@ -21,10 +21,10 @@ import * as RouterUtils from '@app/features/navigation/utils/RouterUtils';
 import {useLocation} from '@app/features/platform/components/router/RouterReact';
 import {Button} from '@app/features/ui/button/Button';
 import {isMobileExperienceEnabled} from '@app/features/ui/utils/MobileExperience';
-import {getDateFormatter} from '@osaca/date_utils/src/DateFormatterCache';
-import type {EnforcementNotice, NetworkBlock} from '@osaca/schema/src/domains/auth/EnforcementNoticeSchemas';
 import {msg} from '@lingui/core/macro';
 import {Trans, useLingui} from '@lingui/react/macro';
+import {getDateFormatter} from '@osaca/date_utils/src/DateFormatterCache';
+import type {EnforcementNotice, NetworkBlock} from '@osaca/schema/src/domains/auth/EnforcementNoticeSchemas';
 import {clsx} from 'clsx';
 import {observer} from 'mobx-react-lite';
 import {type ReactNode, useEffect} from 'react';
@@ -121,25 +121,13 @@ function AppealSentence({appeal}: {appeal: NonNullable<EnforcementNotice['appeal
 			</Trans>
 		);
 	}
-	if (!appeal.account_has_email) {
-		return (
-			<Trans comment="Appeal line for an account with no email address. The link is the appeals email address and deadline is a date.">
-				If you think we got this wrong, email{' '}
-				<ExternalLink href={href} data-flx="auth.flow.account-restriction-screen.appeal-sentence.external-link--2">
-					{email}
-				</ExternalLink>{' '}
-				by {deadline}. Include the decision ID and your username. Appeals are free, and a person reviews each one.
-			</Trans>
-		);
-	}
 	return (
 		<Trans comment="Appeal line on the account restriction screen. The link is the appeals email address and deadline is a date.">
 			If you think we got this wrong, email{' '}
-			<ExternalLink href={href} data-flx="auth.flow.account-restriction-screen.appeal-sentence.external-link--3">
+			<ExternalLink href={href} data-flx="auth.flow.account-restriction-screen.appeal-sentence.external-link--2">
 				{email}
 			</ExternalLink>{' '}
-			by {deadline}. Write from the email address on your account if you can, and include the decision ID. Appeals are
-			free, and a person reviews each one.
+			by {deadline}. Include the decision ID and your username. Appeals are free, and a person reviews each one.
 		</Trans>
 	);
 }

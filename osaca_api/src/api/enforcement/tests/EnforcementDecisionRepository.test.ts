@@ -126,7 +126,7 @@ function describeRepository(backend: string, setup: () => Promise<void>, teardow
 			const sentAt = new Date('2026-10-14T10:01:00.000Z');
 			await repository.setNotice(300n, {
 				status: 'sent',
-				channels: new Set(['email']),
+				channels: new Set(['system_dm']),
 				locale: 'sv-SE',
 				text: 'Hello',
 				sentAt,
@@ -136,7 +136,7 @@ function describeRepository(backend: string, setup: () => Promise<void>, teardow
 			expect(await repository.get(300n)).toEqual(
 				decisionRow(300n, {
 					notice_status: 'sent',
-					notice_channels: new Set(['email']),
+					notice_channels: new Set(['system_dm']),
 					notice_locale: 'sv-SE',
 					notice_text: 'Hello',
 					notice_sent_at: sentAt,

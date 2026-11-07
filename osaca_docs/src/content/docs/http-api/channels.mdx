@@ -348,12 +348,10 @@ The body is optional. With `delete_messages` set, a user session needs [sudo mod
 | Field | Type | Description |
 | --- | --- | --- |
 | password? | string | The account password, for an account with no TOTP or WebAuthn |
-| mfa_method? | string | The verification method, one of `totp`, `webauthn` or `email_code` |
+| mfa_method? | string | The verification method, `totp` or `webauthn` |
 | mfa_code? | string | The authenticator code or a backup code (1-32 characters) |
 | webauthn_response? | [WebAuthn assertion](/http-api/authentication/#webauthn-assertion) object | The WebAuthn assertion |
 | webauthn_challenge? | string | The challenge the assertion signed (1-256 characters) |
-| email_code_ticket? | string | The ticket from [send a sudo email code](/http-api/users/mfa/#send-a-sudo-email-code) (1-128 characters) |
-| email_code? | string | The 6-digit code from that email |
 
 ### Response
 

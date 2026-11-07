@@ -24,7 +24,7 @@ describe('OAuth2 Token Introspection', () => {
 		const authCodeResponse = await authorizeOAuth2(harness, endUser.token, {
 			client_id: application.id,
 			redirect_uri: redirectURI,
-			scope: 'identify email',
+			scope: 'identify',
 		});
 		const tokens = await exchangeOAuth2AuthorizationCode(harness, {
 			client_id: application.id,
@@ -41,7 +41,7 @@ describe('OAuth2 Token Introspection', () => {
 		expect(introspection.client_id).toBe(application.id);
 		expect(introspection.sub).toBe(endUser.userId);
 		expect(introspection.scope).toContain('identify');
-		expect(introspection.scope).toContain('email');
+		expect(introspection.scope).toContain('identify');
 		expect(introspection.token_type).toBe('Bearer');
 		expect(introspection.exp).toBeGreaterThan(0);
 		expect(introspection.iat).toBeGreaterThan(0);

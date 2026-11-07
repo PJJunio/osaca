@@ -292,7 +292,7 @@ export function UserContentController(app: HonoApp) {
 			security: [],
 			tags: ['Users'],
 			description:
-				'Streams a completed data harvest archive. Authorised by a signed, expiring token rather than a session, so the link works from the harvest completion email. Only active when presigned harvest downloads are disabled.',
+				'Streams a completed data harvest archive. Authorised by a signed, expiring token rather than a session, so the link works outside the app. Only active when presigned harvest downloads are disabled.',
 		}),
 		async (ctx) => {
 			const {harvestId} = ctx.req.valid('param');

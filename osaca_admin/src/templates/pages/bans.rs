@@ -5,7 +5,7 @@ use crate::{
     config::AdminConfig,
     middleware::auth::AuthContext,
     templates::{
-        components::{alert::alert_info, form::csrf_input, page_container::page_header},
+        components::{form::csrf_input, page_container::page_header},
         layout::admin_layout,
         pages::blocklist_helpers::blocklist_text_field,
     },
@@ -58,19 +58,6 @@ pub const BAN_CONFIGS: &[BanConfig] = &[
         add_help: Some(
             "For accounts, block networks from the account's suspension or closure instead.",
         ),
-    },
-    BanConfig {
-        title: "Email Bans",
-        route: "/email-bans",
-        input_label: "Email Address or Domain",
-        input_name: "email",
-        placeholder: "user@example.com or @example.com",
-        entity_name: "Email",
-        active_page: "email-bans",
-        show_bulk_tools: false,
-        show_duration: false,
-        add_title: None,
-        add_help: None,
     },
     BanConfig {
         title: "Phrase Bans",
@@ -136,16 +123,10 @@ pub fn bans_page(
     ban_cfg: &BanConfig,
     flash: Option<&crate::api::types::FlashMessage>,
     csrf_token: &str,
-    username_sign_in: bool,
 ) -> Markup {
     let base = &config.base_path;
     let content = html! {
         (page_header(ban_cfg.title, None))
-        @if username_sign_in && ban_cfg.active_page == "email-bans" {
-            div class="mb-6" {
-                (alert_info(html! { "People sign in with a username on this instance. Accounts have no email address, so email bans have no effect." }))
-            }
-        }
         div class="grid gap-6 lg:grid-cols-2" {
             (ban_card(base, ban_cfg, csrf_token))
             (check_ban_card(base, ban_cfg, csrf_token))

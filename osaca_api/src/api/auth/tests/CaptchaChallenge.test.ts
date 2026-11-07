@@ -21,11 +21,11 @@ async function rejectWith(builder: TestRequestBuilder<CaptchaErrorBody>, code: s
 	return json;
 }
 
-function forgot(harness: ApiTestHarness): TestRequestBuilder<CaptchaErrorBody> {
+function login(harness: ApiTestHarness): TestRequestBuilder<CaptchaErrorBody> {
 	return createBuilderWithoutAuth<CaptchaErrorBody>(harness)
-		.post('/auth/forgot')
+		.post('/auth/login')
 		.header(CAPTCHA_TEST_HEADER, 'true')
-		.body({email: 'captcha-nobody@example.com'});
+		.body({login: 'captcha-nobody', password: 'not-a-real-password'});
 }
 
 describe('Captcha challenge', () => {
@@ -45,7 +45,7 @@ describe('Captcha challenge', () => {
 	});
 
 	it('issues an ALTCHA challenge to a request without a token', async () => {
-		const required = await rejectWith(forgot(harness), APIErrorCodes.CAPTCHA_REQUIRED);
+		const required = await rejectWith(login(harness), APIErrorCodes.CAPTCHA_REQUIRED);
 		expect(required.captcha_provider).toBe('altcha');
 		expect(required.altcha_challenge?.parameters).toMatchObject({
 			algorithm: 'PBKDF2/SHA-256',
@@ -56,19 +56,22 @@ describe('Captcha challenge', () => {
 	});
 
 	it('accepts a solved challenge once and answers a replay with a fresh challenge', async () => {
-		const required = await rejectWith(forgot(harness), APIErrorCodes.CAPTCHA_REQUIRED);
+		const required = await rejectWith(login(harness), APIErrorCodes.CAPTCHA_REQUIRED);
 		const token = await solveCaptchaChallenge(required);
 
-		await forgot(harness).header('X-Captcha-Token', token).expect(HTTP_STATUS.NO_CONTENT).execute();
+		await login(harness)
+			.header('X-Captcha-Token', token)
+			.expect(HTTP_STATUS.BAD_REQUEST, 'INVALID_FORM_BODY')
+			.execute();
 
-		const replayed = await rejectWith(forgot(harness).header('X-Captcha-Token', token), APIErrorCodes.INVALID_CAPTCHA);
+		const replayed = await rejectWith(login(harness).header('X-Captcha-Token', token), APIErrorCodes.INVALID_CAPTCHA);
 		expect(replayed.captcha_provider).toBe('altcha');
 		expect(replayed.altcha_challenge?.signature).toBeTruthy();
 		expect(replayed.altcha_challenge?.signature).not.toBe(required.altcha_challenge?.signature);
 	});
 
 	it('rejects a payload whose derived key does not match the challenge', async () => {
-		const required = await rejectWith(forgot(harness), APIErrorCodes.CAPTCHA_REQUIRED);
+		const required = await rejectWith(login(harness), APIErrorCodes.CAPTCHA_REQUIRED);
 		const challenge = required.altcha_challenge;
 		const forged = Buffer.from(
 			JSON.stringify({
@@ -78,7 +81,7 @@ describe('Captcha challenge', () => {
 			'utf8',
 		).toString('base64');
 
-		const rejected = await rejectWith(forgot(harness).header('X-Captcha-Token', forged), APIErrorCodes.INVALID_CAPTCHA);
+		const rejected = await rejectWith(login(harness).header('X-Captcha-Token', forged), APIErrorCodes.INVALID_CAPTCHA);
 		expect(rejected.altcha_challenge?.signature).toBeTruthy();
 	});
 
@@ -95,6 +98,6 @@ describe('Captcha challenge', () => {
 			.execute();
 		expect(updated.captcha).toEqual({provider: 'none', enabled: false, cost: 1000, max_counter: 100});
 
-		await forgot(harness).expect(HTTP_STATUS.NO_CONTENT).execute();
+		await login(harness).expect(HTTP_STATUS.BAD_REQUEST, 'INVALID_FORM_BODY').execute();
 	});
 });

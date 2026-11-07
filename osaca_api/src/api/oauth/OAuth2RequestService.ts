@@ -373,7 +373,7 @@ export class OAuth2RequestService {
 				throw new InvalidTokenError();
 			}
 			if (user && tokenData.scope.has('identify')) {
-				response.user = mapUserToOAuthResponse(user, {includeEmail: tokenData.scope.has('email')});
+				response.user = mapUserToOAuthResponse(user);
 			}
 			return response;
 		} catch (err) {

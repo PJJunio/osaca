@@ -36,26 +36,4 @@ describe('User OsacaTag rate limit', () => {
 		expect(response.status).toBe(HTTP_STATUS.BAD_REQUEST);
 		expect(text).toContain(ValidationErrorCodes.USERNAME_CHANGED_TOO_MANY_TIMES);
 	});
-	test('blocks the sixth discriminator-only change within the cooldown window', async () => {
-		const account = await createTestAccount(harness);
-		const {json: me} = await fetchUserMe(harness, account.token);
-		const targets = Array.from({length: 20}, (_, i) => String(67 + i).padStart(4, '0'))
-			.filter((value) => value !== me.discriminator)
-			.slice(0, 6);
-		for (const discriminator of targets.slice(0, 5)) {
-			await updateUserProfile(harness, account.token, {
-				discriminator,
-				password: account.password,
-			});
-		}
-		const {response, text} = await createBuilder(harness, account.token)
-			.patch('/users/@me')
-			.body({
-				discriminator: targets[5],
-				password: account.password,
-			})
-			.executeRaw();
-		expect(response.status).toBe(HTTP_STATUS.BAD_REQUEST);
-		expect(text).toContain(ValidationErrorCodes.USERNAME_CHANGED_TOO_MANY_TIMES);
-	});
 });

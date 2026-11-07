@@ -1,17 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {
-	EmailDeliveryStates,
 	GuildJoinGates,
 	InstantAccountAvailability,
 	InteractionTierModes,
-	VerificationBases,
 } from '@osaca/constants/src/AccountConfigConstants';
-import {
-	AccountIdentityLockReasons,
-	AccountIdentityModes,
-	TagStyles,
-} from '@osaca/constants/src/AccountIdentityConstants';
 import {BUILT_IN_GUILD_BADGE_KINDS} from '@osaca/constants/src/BadgeConstants';
 import {Headers as HttpHeader} from '@osaca/constants/src/Headers';
 import {HttpStatus, MimeType} from '@osaca/constants/src/HttpConstants';
@@ -63,13 +56,10 @@ const FEATURE_FLAG_KEYS = Object.freeze([
 	'voice_enabled',
 	'self_hosted',
 	'presigned_attachment_uploads',
-	'emails_enabled',
 	'phone_verification_enabled',
 	'discovery_enabled',
 	'desktop_modules_enabled',
-	'identifier_first',
 	'instant_accounts',
-	'email_codes',
 ] as const) satisfies ReadonlyArray<keyof InstanceFeatures>;
 
 const BRANDING_URL_KEYS = Object.freeze([
@@ -86,11 +76,9 @@ const BRANDING_URL_KEYS = Object.freeze([
 
 const SETUP_FLAG_KEYS = Object.freeze([
 	'configured',
-	'account_identity_locked',
 	'setup_token_required',
+	'admin_exists',
 ] as const) satisfies ReadonlyArray<keyof InstanceSetup>;
-
-const ACCOUNT_IDENTITY_LOCK_REASONS = Object.freeze(Object.values(AccountIdentityLockReasons));
 
 const LEGAL_URL_KEYS = Object.freeze(['terms_url', 'privacy_url', 'guidelines_url'] as const) satisfies ReadonlyArray<
 	keyof InstanceLegal
@@ -550,14 +538,6 @@ function parseFeatures(value: unknown): Readonly<Partial<InstanceFeatures>> {
 			features[key] = flag;
 		}
 	}
-	const accountIdentity = Object.values(AccountIdentityModes).find((mode) => mode === source.account_identity);
-	if (accountIdentity !== undefined) {
-		features.account_identity = accountIdentity;
-	}
-	const tagStyle = Object.values(TagStyles).find((style) => style === source.tag_style);
-	if (tagStyle !== undefined) {
-		features.tag_style = tagStyle;
-	}
 	const instantAccountAvailability = Object.values(InstantAccountAvailability).find(
 		(value) => value === source.instant_account_availability,
 	);
@@ -571,16 +551,6 @@ function parseFeatures(value: unknown): Readonly<Partial<InstanceFeatures>> {
 	const guildJoinGate = Object.values(GuildJoinGates).find((value) => value === source.guild_join_gate);
 	if (guildJoinGate !== undefined) {
 		features.guild_join_gate = guildJoinGate;
-	}
-	const emailDeliveryState = Object.values(EmailDeliveryStates).find((value) => value === source.email_delivery_state);
-	if (emailDeliveryState !== undefined) {
-		features.email_delivery_state = emailDeliveryState;
-	}
-	const verificationBasis = [VerificationBases.CONFIRMED_EMAIL, VerificationBases.LOCAL_CREDENTIAL].find(
-		(value) => value === source.verification_basis,
-	);
-	if (verificationBasis !== undefined) {
-		features.verification_basis = verificationBasis;
 	}
 	const gracePeriodHours = readInteger(
 		source,
@@ -878,13 +848,6 @@ function parseSetup(value: unknown): Readonly<Partial<InstanceSetup>> {
 	}
 	if (Object.hasOwn(source, 'admin_url')) {
 		setup.admin_url = readAbsoluteHTTPURL(source, 'admin_url');
-	}
-	if (Object.hasOwn(source, 'account_identity_lock_reason')) {
-		setup.account_identity_lock_reason = readLiteral(
-			source,
-			'account_identity_lock_reason',
-			ACCOUNT_IDENTITY_LOCK_REASONS,
-		);
 	}
 	return setup;
 }

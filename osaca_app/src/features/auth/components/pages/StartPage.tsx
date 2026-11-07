@@ -14,13 +14,12 @@ import {AuthCardContainer} from '@app/features/auth/flow/AuthCardContainer';
 import {AuthErrorState} from '@app/features/auth/flow/AuthErrorState';
 import {AuthRouterLink} from '@app/features/auth/flow/AuthRouterLink';
 import {AuthRuntimeTargetGate} from '@app/features/auth/flow/AuthRuntimeTargetGate';
+import styles from '@app/features/auth/flow/AuthStartStep.module.css';
 import {
 	InstantAccountForm,
 	instantAccountErrors,
 	NO_INSTANT_ACCOUNT_ERRORS,
 } from '@app/features/auth/flow/InstantAccountForm';
-import {CREATE_YOUR_ACCOUNT_DESCRIPTOR} from '@app/features/auth/flow/identifier_first/AuthIdentifierFirstStep';
-import styles from '@app/features/auth/flow/identifier_first/AuthIdentifierFirstStep.module.css';
 import {getRegistrationLegalConsentConfig} from '@app/features/auth/flow/RegistrationLegalNotice';
 import {useAuthPresentation} from '@app/features/auth/flow/useAuthPresentation';
 import {getAuthErrorMessage} from '@app/features/auth/hooks/useAuthForm';
@@ -40,6 +39,11 @@ import {useLingui} from '@lingui/react/macro';
 import {LinkBreakIcon} from '@phosphor-icons/react';
 import {observer} from 'mobx-react-lite';
 import {useMemo, useState} from 'react';
+
+const CREATE_YOUR_ACCOUNT_DESCRIPTOR = msg({
+	message: 'Create your account',
+	comment: 'Heading of the start page where a new person creates an account.',
+});
 
 const logger = new Logger('StartPage');
 

@@ -158,7 +158,7 @@ export class UserActivityBuffer {
 	constructor(
 		kv: IKVProvider,
 		writer: ActivityWriter = upsertOne,
-		accounts: UserActivityAccountWriter = new UserAccountRepository(kv),
+		accounts: UserActivityAccountWriter = new UserAccountRepository(),
 	) {
 		this.kv = kv;
 		this.writer = writer;

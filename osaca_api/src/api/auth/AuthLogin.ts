@@ -5,16 +5,8 @@ import * as AuthMfa from '@app/api/auth/AuthMfa';
 import {applyPendingRecovery} from '@app/api/auth/AuthRecoveryKit';
 import * as AuthSession from '@app/api/auth/AuthSession';
 import * as AuthUtility from '@app/api/auth/AuthUtility';
-import {getLocalPartAtInstance, usernameFromInstanceLocalPart} from '@app/api/auth/InstanceAddress';
 import {resolveWebAuthnSecondFactor} from '@app/api/auth/services/WebAuthnSecondFactor';
-import {
-	createInviteCode,
-	createIpAuthorizationTicket,
-	createIpAuthorizationToken,
-	createMfaTicket,
-	createUserID,
-} from '@app/api/BrandedTypes';
-import {getContentMessage} from '@app/api/content_i18n/ContentI18n';
+import {createInviteCode, createMfaTicket, createUserID} from '@app/api/BrandedTypes';
 import {emitActivity} from '@app/api/infrastructure/activity/ActivityEvents';
 import type {LoginMethod} from '@app/api/infrastructure/activity/Contract.generated';
 import {
@@ -24,28 +16,22 @@ import {
 import type {InviteService} from '@app/api/invite/InviteService';
 import {Logger} from '@app/api/Logger';
 import {createRequestCache} from '@app/api/middleware/RequestCacheMiddleware';
-import {getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
 import type {AuthSession as AuthSessionModel} from '@app/api/models/AuthSession';
 import type {User} from '@app/api/models/User';
 import {tierContextFromRequest} from '@app/api/user/AccountTier';
-import {findPersonByLoginHandle, type ParsedLoginHandle, parseLoginHandle} from '@app/api/user/UniqueUsernames';
+import {findPersonByLoginHandle, parseLoginHandle} from '@app/api/user/UniqueUsernames';
 import {verifyPassword} from '@app/api/utils/PasswordUtils';
 import * as RandomUtils from '@app/api/utils/RandomUtils';
 import {createRateLimitError} from '@app/api/utils/RateLimitUtils';
 import {requireConfiguredClientIp} from '@app/api/utils/RequestClientIp';
-import {AccountIdentityModes} from '@osaca/constants/src/AccountIdentityConstants';
 import {UserAuthenticatorTypes, UserFlags} from '@osaca/constants/src/UserConstants';
-import {type ValidationErrorCode, ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
-import {IpAuthorizationRequiredError} from '@osaca/errors/src/domains/auth/IpAuthorizationRequiredError';
-import {IpAuthorizationResendCooldownError} from '@osaca/errors/src/domains/auth/IpAuthorizationResendCooldownError';
-import {IpAuthorizationResendLimitExceededError} from '@osaca/errors/src/domains/auth/IpAuthorizationResendLimitExceededError';
+import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {MfaNotEnabledError} from '@osaca/errors/src/domains/auth/MfaNotEnabledError';
 import {RegistrationPendingApprovalError} from '@osaca/errors/src/domains/auth/RegistrationPendingApprovalError';
 import {RegistrationRejectedError} from '@osaca/errors/src/domains/auth/RegistrationRejectedError';
 import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
 import {getSameIpDecisionKey} from '@osaca/ip_utils/src/IpAddress';
 import type {LoginRequest} from '@osaca/schema/src/domains/auth/AuthSchemas';
-import {EmailType} from '@osaca/schema/src/primitives/UserValidators';
 import type {AuthenticationResponseJSON} from '@simplewebauthn/server';
 import {ms, seconds} from 'itty-time';
 
@@ -98,32 +84,9 @@ interface LoginIdentifierRateLimit {
 }
 
 interface LoginIdentifier {
-	field: 'email' | 'login';
-	rateLimits: Array<LoginIdentifierRateLimit>;
 	sourceRateLimits: (sourceKey: string) => Array<LoginIdentifierRateLimit>;
 	failureRateLimit: LoginIdentifierRateLimit | null;
-	invalidCode: ValidationErrorCode;
 	lookup: () => Promise<User | null>;
-}
-
-export interface IpAuthorizationTicketCache {
-	userId: string;
-	email: string;
-	origin: AuthSession.SessionOrigin;
-	authToken: string;
-	clientLocation: string;
-	locale?: string | null;
-	inviteCode?: string | null;
-	resendUsed?: boolean;
-	createdAt: number;
-}
-
-export function getTicketCacheKey(ticket: string): string {
-	return `ip-auth-ticket-v2:${ticket}`;
-}
-
-function getTokenCacheKey(token: string): string {
-	return `ip-auth-token:${token}`;
 }
 
 export function emitLogin(
@@ -141,97 +104,19 @@ export function emitLogin(
 	});
 }
 
-export async function resendIpAuthorization(
-	ctx: ApiContext,
-	ticket: string,
-): Promise<{
-	retryAfter?: number;
-}> {
-	const {cache, email} = ctx.services;
-	const cacheKey = getTicketCacheKey(ticket);
-	const payload = await cache.get<IpAuthorizationTicketCache>(cacheKey);
-	if (!payload) {
-		throw InputValidationError.fromCode('ticket', ValidationErrorCodes.INVALID_OR_EXPIRED_AUTHORIZATION_TICKET);
-	}
-	const now = Date.now();
-	const secondsSinceCreation = Math.floor((now - payload.createdAt) / 1000);
-	if (payload.resendUsed) {
-		throw new IpAuthorizationResendLimitExceededError();
-	}
-	const minDelay = 30;
-	if (secondsSinceCreation < minDelay) {
-		throw new IpAuthorizationResendCooldownError(minDelay - secondsSinceCreation);
-	}
-	await email.send(
-		'ip_authorization',
-		payload.email,
-		{authorizationToken: payload.authToken, ipAddress: payload.origin.ip, location: payload.clientLocation},
-		payload.locale ?? null,
-	);
-	const ttl = await cache.ttl(cacheKey);
-	await cache.set(
-		cacheKey,
-		{
-			...payload,
-			resendUsed: true,
-		},
-		ttl > 0 ? ttl : undefined,
-	);
-	return {};
-}
-
-export async function completeIpAuthorization(
-	ctx: ApiContext,
-	token: string,
-): Promise<{
-	token: string;
-	user_id: string;
-	ticket: string;
-}> {
-	const {users, cache} = ctx.services;
-	const tokenMapping = await cache.get<{
-		ticket: string;
-	}>(getTokenCacheKey(token));
-	if (!tokenMapping?.ticket) {
-		throw InputValidationError.fromCode('token', ValidationErrorCodes.INVALID_OR_EXPIRED_AUTHORIZATION_TOKEN);
-	}
-	const cacheKey = getTicketCacheKey(tokenMapping.ticket);
-	const payload = await cache.get<IpAuthorizationTicketCache>(cacheKey);
-	if (!payload) {
-		throw InputValidationError.fromCode('token', ValidationErrorCodes.INVALID_OR_EXPIRED_AUTHORIZATION_TOKEN);
-	}
-	const user = await users.findUniqueAssert(createUserID(BigInt(payload.userId)));
-	if (user.passwordLastChangedAt !== null && payload.createdAt < user.passwordLastChangedAt.getTime()) {
-		await cache.delete(cacheKey);
-		await cache.delete(getTokenCacheKey(token));
-		throw InputValidationError.fromCode('token', ValidationErrorCodes.INVALID_OR_EXPIRED_AUTHORIZATION_TOKEN);
-	}
-	const repoResult = await ctx.services.users.authorizeIpByToken(token);
-	if (!repoResult || repoResult.userId.toString() !== payload.userId) {
-		throw InputValidationError.fromCode('token', ValidationErrorCodes.INVALID_OR_EXPIRED_AUTHORIZATION_TOKEN);
-	}
-	AuthUtility.assertNonBotUser(ctx, user);
-	await users.createAuthorizedIp(user.id, payload.origin.ip);
-	const [sessionToken] = await AuthSession.createAuthSession(ctx, {user, origin: payload.origin});
-	emitLogin(user, true, {newIp: true});
-	await cache.delete(cacheKey);
-	await cache.delete(getTokenCacheKey(token));
-	return {token: sessionToken, user_id: user.id.toString(), ticket: tokenMapping.ticket};
-}
-
 export async function login(
 	ctx: ApiContext,
 	deps: LoginDependencies,
 	{data, request, captchaVerified = false}: LoginParams,
 ): Promise<LoginResult> {
-	const {users, cache, rateLimit, email, config} = ctx.services;
+	const {users, rateLimit, config} = ctx.services;
 	const {inviteService} = deps;
 	const skipRateLimits = config.dev.testModeEnabled || config.dev.disableRateLimits;
-	const identifier = await resolveLoginIdentifier(ctx, data);
+	const identifier = resolveLoginIdentifier(ctx, data);
 	const invalidCredentials = () =>
 		InputValidationError.fromCodes([
-			{path: identifier.field, code: identifier.invalidCode},
-			{path: 'password', code: identifier.invalidCode},
+			{path: 'login', code: ValidationErrorCodes.INVALID_LOGIN_OR_PASSWORD},
+			{path: 'password', code: ValidationErrorCodes.INVALID_LOGIN_OR_PASSWORD},
 		]);
 	const enforceRateLimits = async (limits: Array<LoginIdentifierRateLimit>) => {
 		for (const limit of limits) {
@@ -241,7 +126,6 @@ export async function login(
 			}
 		}
 	};
-	await enforceRateLimits(identifier.rateLimits);
 	const clientIp = requireConfiguredClientIp(request, config.proxy);
 	const sourceKey = getSameIpDecisionKey(clientIp) ?? clientIp;
 	await enforceRateLimits(identifier.sourceRateLimits(sourceKey));
@@ -276,9 +160,7 @@ export async function login(
 	};
 	const user = await identifier.lookup();
 	if (!user) {
-		if (identifier.invalidCode === ValidationErrorCodes.INVALID_LOGIN_OR_PASSWORD) {
-			await verifyPassword({password: data.password, passwordHash: DUMMY_ARGON2_HASH});
-		}
+		await verifyPassword({password: data.password, passwordHash: DUMMY_ARGON2_HASH});
 		return await rejectCredentials();
 	}
 	AuthUtility.assertNonBotUser(ctx, user);
@@ -317,47 +199,7 @@ export async function login(
 		const isIpAuthorized = await users.checkIpAuthorized(currentUser.id, clientIp);
 		newIp = !isIpAuthorized;
 		if (!isIpAuthorized) {
-			const instanceConfigRepository = getInstanceConfigRepository();
-			const [integrationsConfig, effectiveEmailConfig] = await Promise.all([
-				instanceConfigRepository.getInstanceIntegrationsConfig(),
-				instanceConfigRepository.getEffectiveEmailConfig(),
-			]);
-			if (integrationsConfig.email.disable_new_ip_authorization || !effectiveEmailConfig.enabled) {
-				await users.createAuthorizedIp(currentUser.id, clientIp);
-			} else {
-				const ticket = createIpAuthorizationTicket(await RandomUtils.randomString(64));
-				const authToken = createIpAuthorizationToken(await RandomUtils.randomString(64));
-				const clientLocation = getContentMessage('auth.unknown_location', currentUser.locale);
-				const cachePayload: IpAuthorizationTicketCache = {
-					userId: currentUser.id.toString(),
-					email: currentUser.email!,
-					origin: AuthSession.resolveSessionOrigin(ctx, request),
-					authToken,
-					clientLocation,
-					locale: currentUser.locale,
-					inviteCode: data.invite_code ?? null,
-					resendUsed: false,
-					createdAt: Date.now(),
-				};
-				const ttlSeconds = seconds('15 minutes');
-				await cache.set<IpAuthorizationTicketCache>(getTicketCacheKey(ticket), cachePayload, ttlSeconds);
-				await cache.set<{
-					ticket: string;
-				}>(`ip-auth-token:${authToken}`, {ticket}, ttlSeconds);
-				await users.createIpAuthorizationToken(currentUser.id, authToken, currentUser.email!);
-				await email.send(
-					'ip_authorization',
-					currentUser.email!,
-					{authorizationToken: authToken, ipAddress: clientIp, location: clientLocation},
-					currentUser.locale,
-				);
-				emitLogin(currentUser, false, {failure: 'ip_authorization_required', newIp: true});
-				throw new IpAuthorizationRequiredError({
-					ticket,
-					email: currentUser.email!,
-					resendAvailableIn: 30,
-				});
-			}
+			await users.createAuthorizedIp(currentUser.id, clientIp);
 		}
 	}
 	if (hasMfa) {
@@ -387,65 +229,22 @@ export async function login(
 	};
 }
 
-function emailLoginRateLimits(emailAddress: string): Array<LoginIdentifierRateLimit> {
-	return [{identifier: `login:email:${emailAddress.toLowerCase()}`, maxAttempts: 5, windowMs: ms('15 minutes')}];
-}
-
-async function resolveLoginIdentifier(ctx: ApiContext, data: LoginRequest): Promise<LoginIdentifier> {
+function resolveLoginIdentifier(ctx: ApiContext, data: LoginRequest): LoginIdentifier {
 	const {users} = ctx.services;
-	const mode = await getInstanceConfigRepository().getAccountIdentityMode();
-	if (mode === AccountIdentityModes.USERNAME) {
-		const field = data.email !== undefined ? 'email' : 'login';
-		const input = (field === 'email' ? data.email : data.login) ?? '';
-		const handle = field === 'email' ? parseOlderAppLoginHandle(ctx, input) : parseLoginHandle(input);
-		return {
-			field,
-			rateLimits: [],
-			sourceRateLimits: (sourceKey) => {
-				if (!handle) {
-					return [{identifier: `login:id-unparsed:${sourceKey}`, maxAttempts: 5, windowMs: ms('15 minutes')}];
-				}
-				const lowered = handle.username.toLowerCase();
-				return [{identifier: `login:id:${lowered}:${sourceKey}`, maxAttempts: 5, windowMs: ms('15 minutes')}];
-			},
-			failureRateLimit: handle
-				? {identifier: `login:id:${handle.username.toLowerCase()}`, maxAttempts: 100, windowMs: ms('1 hour')}
-				: null,
-			invalidCode: ValidationErrorCodes.INVALID_LOGIN_OR_PASSWORD,
-			lookup: async () => (handle ? await findPersonByLoginHandle(users, handle) : null),
-		};
-	}
-	if (data.email !== undefined) {
-		const emailAddress = data.email;
-		return {
-			field: 'email',
-			rateLimits: emailLoginRateLimits(emailAddress),
-			sourceRateLimits: () => [],
-			failureRateLimit: null,
-			invalidCode: ValidationErrorCodes.INVALID_EMAIL_OR_PASSWORD,
-			lookup: () => users.findByEmail(emailAddress),
-		};
-	}
-	const parsedEmail = EmailType.safeParse(data.login);
-	if (!parsedEmail.success) {
-		throw InputValidationError.fromCode('login', ValidationErrorCodes.INVALID_EMAIL_FORMAT);
-	}
-	const emailAddress = parsedEmail.data;
+	const handle = parseLoginHandle(data.login);
 	return {
-		field: 'login',
-		rateLimits: emailLoginRateLimits(emailAddress),
-		sourceRateLimits: () => [],
-		failureRateLimit: null,
-		invalidCode: ValidationErrorCodes.INVALID_EMAIL_OR_PASSWORD,
-		lookup: () => users.findByEmail(emailAddress),
+		sourceRateLimits: (sourceKey) => {
+			if (!handle) {
+				return [{identifier: `login:id-unparsed:${sourceKey}`, maxAttempts: 5, windowMs: ms('15 minutes')}];
+			}
+			const lowered = handle.username.toLowerCase();
+			return [{identifier: `login:id:${lowered}:${sourceKey}`, maxAttempts: 5, windowMs: ms('15 minutes')}];
+		},
+		failureRateLimit: handle
+			? {identifier: `login:id:${handle.username.toLowerCase()}`, maxAttempts: 100, windowMs: ms('1 hour')}
+			: null,
+		lookup: async () => (handle ? await findPersonByLoginHandle(users, handle) : null),
 	};
-}
-
-function parseOlderAppLoginHandle(ctx: ApiContext, input: string): ParsedLoginHandle | null {
-	if (!input.includes('@')) return parseLoginHandle(input);
-	const localPart = getLocalPartAtInstance(ctx.services.config, input.trim());
-	const username = localPart === null ? null : usernameFromInstanceLocalPart(localPart);
-	return username === null ? null : parseLoginHandle(username);
 }
 
 const MFA_TICKET_MAX_ATTEMPTS = 5;

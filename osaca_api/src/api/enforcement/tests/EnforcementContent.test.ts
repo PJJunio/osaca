@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {clearTestEmails, createTestAccount, type TestAccount} from '@app/api/auth/tests/AuthTestUtils';
+import {createTestAccount, type TestAccount} from '@app/api/auth/tests/AuthTestUtils';
 import {createGuildID} from '@app/api/BrandedTypes';
 import {resetApiServicesForTesting} from '@app/api/CreateApiContext';
 import {
@@ -14,13 +14,10 @@ import {
 	createStaff,
 	type DecisionBody,
 	decisionBody,
-	emailsTo,
 	getDecision,
 	INTERNAL_NOTE,
 	listDecisions,
 	loadUser,
-	suspend,
-	warn,
 } from '@app/api/enforcement/tests/EnforcementTestUtils';
 import {setInjectedWorkerService} from '@app/api/middleware/ServiceRegistry';
 import {getGuildRepository} from '@app/api/middleware/ServiceSingletons';
@@ -133,7 +130,6 @@ describe('Enforcement content, profile and community decisions', () => {
 
 		test('an enforcement shred snapshots the entries, records the removal and tells the user', async () => {
 			const {target, entries} = await guildMessages(2);
-			await clearTestEmails(harness);
 			const response = await shredRequest(target.userId, {entries, basis: enforcement()})
 				.expect(HTTP_STATUS.OK)
 				.execute();
@@ -146,11 +142,10 @@ describe('Enforcement content, profile and community decisions', () => {
 				removed_all_messages: false,
 				notice_status: 'sent',
 			});
-			expect(decision.notice_channels.sort()).toEqual(['email', 'system_dm']);
+			expect(decision.notice_channels).toEqual(['system_dm']);
 			expect(decision.evidence.map((message) => message.content)).toEqual(['spam link 0', 'spam link 1']);
 			expect(decision.notice_text).toContain('We removed 2 messages you sent.');
 			expect(decision.notice_text).toContain('Your account is not otherwise restricted.');
-			expect(await emailsTo(harness, target, 'enforcement_notice')).toHaveLength(1);
 		});
 
 		test('evidence messages are refused because the entries are the evidence', async () => {
@@ -287,7 +282,6 @@ describe('Enforcement content, profile and community decisions', () => {
 	describe('community removal', () => {
 		test('records the community as the subject and notifies the owner', async () => {
 			const {owner, guildId, entries} = await guildMessages(1);
-			await clearTestEmails(harness);
 			await removeCommunityRequest(guildId, {basis: enforcement(decisionBody({evidence: entries}))})
 				.expect(HTTP_STATUS.OK)
 				.execute();
@@ -308,7 +302,6 @@ describe('Enforcement content, profile and community decisions', () => {
 			expect(decision.notice_text).toContain('We removed your community Test Guild.');
 			expect(decision.notice_text).toContain('We found content in this community that breaks this rule.');
 			expect(decision.notice_text).toMatch(/1 message posted in #\S+, on /);
-			expect(await emailsTo(harness, owner, 'enforcement_notice')).toHaveLength(1);
 			expect(worker.byTask('guildProcessDeletion')).toHaveLength(1);
 		});
 
@@ -377,69 +370,6 @@ describe('Enforcement content, profile and community decisions', () => {
 	});
 
 	describe('reporter outcomes', () => {
-		test('linked reports are resolved and reporters are told what happened to the item', async () => {
-			const {target, reporter, entries} = await guildMessages(2);
-			const removedReport = await reportMessage(reporter, entries[0]!);
-			const restrictedReport = await reportMessage(reporter, entries[1]!);
-			await clearTestEmails(harness);
-			await shredRequest(target.userId, {
-				entries: [entries[0]],
-				basis: enforcement(decisionBody({source: 'report', report_ids: [removedReport]})),
-			})
-				.expect(HTTP_STATUS.OK)
-				.execute();
-			await suspend(harness, staff, target.userId, decisionBody({source: 'report', report_ids: [restrictedReport]}));
-			const sent = await emailsTo(harness, reporter, 'report_resolved');
-			expect(sent.map((email) => [email.metadata.report_id, email.metadata.outcome])).toEqual([
-				[removedReport, 'removed'],
-				[restrictedReport, 'restricted'],
-			]);
-		});
-
-		test('a warning resolves linked reports and tells the reporter only that action was taken', async () => {
-			const {target, reporter, entries} = await guildMessages(1);
-			const reportId = await reportMessage(reporter, entries[0]!);
-			await clearTestEmails(harness);
-			await warn(harness, staff, target.userId, decisionBody({source: 'report', report_ids: [reportId]}));
-			const sent = await emailsTo(harness, reporter, 'report_resolved');
-			expect(sent.map((email) => [email.metadata.report_id, email.metadata.outcome])).toEqual([
-				[reportId, 'action_taken'],
-			]);
-			const report = await createBuilder<{status: number}>(harness, staff.token)
-				.get(`/admin/reports/${reportId}`)
-				.expect(HTTP_STATUS.OK)
-				.execute();
-			expect(report.status).toBe(1);
-		});
-
-		test('a content removal that left the reported message alone leaves the report open', async () => {
-			const {target, reporter, entries} = await guildMessages(2);
-			const reportId = await reportMessage(reporter, entries[1]!);
-			await clearTestEmails(harness);
-			await shredRequest(target.userId, {
-				entries: [entries[0]],
-				basis: enforcement(decisionBody({source: 'report', report_ids: [reportId]})),
-			})
-				.expect(HTTP_STATUS.OK)
-				.execute();
-			expect(await emailsTo(harness, reporter, 'report_resolved')).toEqual([]);
-		});
-
-		test('a suspension that removes the reported message as evidence tells the reporter it was removed', async () => {
-			const {target, reporter, entries} = await guildMessages(1);
-			const reportId = await reportMessage(reporter, entries[0]!);
-			await clearTestEmails(harness);
-			await suspend(
-				harness,
-				staff,
-				target.userId,
-				decisionBody({source: 'report', report_ids: [reportId], evidence: [entries[0]!]}),
-				{remove_evidence: true},
-			);
-			const [sent] = await emailsTo(harness, reporter, 'report_resolved');
-			expect(sent?.metadata.outcome).toBe('removed');
-		});
-
 		test('manual resolutions take only the outcome their resolution allows', async () => {
 			const {reporter, entries} = await guildMessages(1);
 			const reportId = await reportMessage(reporter, entries[0]!);
@@ -460,47 +390,15 @@ describe('Enforcement content, profile and community decisions', () => {
 			}
 		});
 
-		test('a duplicate tells the reporter the outcome of the report it repeats', async () => {
-			const {owner: second, reporter, entries} = await guildMessages(1);
-			const originalId = await reportMessage(reporter, entries[0]!);
-			const duplicateId = await reportMessage(second, entries[0]!);
-			const resolve = (reportId: string, body: Record<string, unknown>) =>
-				createBuilder(harness, staff.token)
-					.patch(`/admin/reports/${reportId}`)
-					.body({status: 'resolved', ...body})
-					.expect(HTTP_STATUS.OK)
-					.execute();
-			await resolve(originalId, {resolution: 'actioned', outcome: 'restricted'});
-			await clearTestEmails(harness);
-			await resolve(duplicateId, {resolution: 'duplicate', duplicate_of: originalId});
-			const [email] = await emailsTo(harness, second, 'report_resolved');
-			expect(email?.metadata.outcome).toBe('restricted');
-		});
-
 		test('a duplicate of a report with no outcome yet tells the reporter nothing', async () => {
 			const {owner: second, reporter, entries} = await guildMessages(1);
 			const originalId = await reportMessage(reporter, entries[0]!);
 			const duplicateId = await reportMessage(second, entries[0]!);
-			await clearTestEmails(harness);
 			await createBuilder(harness, staff.token)
 				.patch(`/admin/reports/${duplicateId}`)
 				.body({status: 'resolved', resolution: 'duplicate', duplicate_of: originalId})
 				.expect(HTTP_STATUS.OK)
 				.execute();
-			expect(await emailsTo(harness, second, 'report_resolved')).toEqual([]);
-		});
-
-		test('a no violation resolution tells the reporter the item was left up', async () => {
-			const {reporter, entries} = await guildMessages(1);
-			const reportId = await reportMessage(reporter, entries[0]!);
-			await clearTestEmails(harness);
-			await createBuilder(harness, staff.token)
-				.patch(`/admin/reports/${reportId}`)
-				.body({status: 'resolved', resolution: 'no_violation'})
-				.expect(HTTP_STATUS.OK)
-				.execute();
-			const [email] = await emailsTo(harness, reporter, 'report_resolved');
-			expect(email?.metadata.outcome).toBe('no_violation');
 		});
 	});
 });

@@ -10,7 +10,6 @@ import {
 	type AdminArchiveRow,
 	type AdminAuditLogRow,
 	BANNED_AVATAR_HASH_COLUMNS,
-	BANNED_EMAIL_COLUMNS,
 	BANNED_FILE_SHA_COLUMNS,
 	BANNED_IP_COLUMNS,
 	BANNED_PHRASE_COLUMNS,
@@ -18,7 +17,6 @@ import {
 	BANNED_URL_COLUMNS,
 	BANNED_URL_DOMAIN_COLUMNS,
 	type BannedAvatarHashRow,
-	type BannedEmailRow,
 	type BannedFileShaRow,
 	type BannedIpRow,
 	type BannedPhraseRow,
@@ -49,21 +47,9 @@ import {
 	type AuthSessionByAppChannelRow,
 	type AuthSessionRow,
 	type AuthSessionTombstoneRow,
-	EMAIL_CHANGE_TICKET_COLUMNS,
-	EMAIL_CHANGE_TOKEN_COLUMNS,
-	EMAIL_REVERT_TOKEN_COLUMNS,
-	EMAIL_VERIFICATION_TOKEN_COLUMNS,
-	type EmailChangeTicketRow,
-	type EmailChangeTokenRow,
-	type EmailRevertTokenRow,
-	type EmailVerificationTokenRow,
-	IP_AUTHORIZATION_TOKEN_COLUMNS,
-	type IpAuthorizationTokenRow,
 	MFA_BACKUP_CODE_COLUMNS,
 	type MfaBackupCodeRow,
-	PASSWORD_CHANGE_TICKET_COLUMNS,
 	PASSWORD_RESET_TOKEN_COLUMNS,
-	type PasswordChangeTicketRow,
 	type PasswordResetTokenRow,
 	USER_RECOVERY_KIT_COLUMNS,
 	type UserRecoveryKitRow,
@@ -114,7 +100,6 @@ import {
 } from '@app/api/database/types/GuildDiscoveryTypes';
 import {
 	GUILD_AUDIT_LOG_COLUMNS,
-	GUILD_BAN_BY_EMAIL_COLUMNS,
 	GUILD_BAN_BY_USER_ID_COLUMNS,
 	GUILD_BAN_COLUMNS,
 	GUILD_COLUMNS,
@@ -127,7 +112,6 @@ import {
 	GUILD_STICKER_BY_STICKER_ID_COLUMNS,
 	GUILD_STICKER_COLUMNS,
 	type GuildAuditLogRow,
-	type GuildBanByEmailRow,
 	type GuildBanByUserIdRow,
 	type GuildBanRow,
 	type GuildEmojiRow,
@@ -183,10 +167,6 @@ import {
 	type OAuth2RefreshTokenRow,
 } from '@app/api/database/types/OAuth2Types';
 import {
-	DSA_REPORT_EMAIL_VERIFICATION_COLUMNS,
-	DSA_REPORT_TICKET_COLUMNS,
-	type DSAReportEmailVerificationRow,
-	type DSAReportTicketRow,
 	GUILD_REPORT_SUBMISSION_BY_REPORTER_COLUMNS,
 	type GuildReportSubmissionByReporterRow,
 	IAR_REPORT_NOTE_COLUMNS,
@@ -236,27 +216,23 @@ import {
 	SAVED_MESSAGE_COLUMNS,
 	type SavedMessageRow,
 	USER_BY_ACL_COLUMNS,
-	USER_BY_EMAIL_COLUMNS,
 	USER_BY_LAST_ACTIVE_IP_COLUMNS,
 	USER_BY_LAST_ACTIVE_IP_TRUST_KEY_COLUMNS,
 	USER_BY_USERNAME_COLUMNS,
 	USER_COLUMNS,
 	USER_CONTACT_CHANGE_LOG_COLUMNS,
 	USER_DM_HISTORY_COLUMNS,
-	USER_EMAIL_OWNER_COLUMNS,
 	USER_ENTRANCE_SOUND_COLUMNS,
 	USER_ENTRANCE_SOUND_SELECTION_COLUMNS,
 	USER_GUILD_SETTINGS_COLUMNS,
 	USER_HARVEST_COLUMNS,
 	USER_SETTINGS_COLUMNS,
 	type UserByAclRow,
-	type UserByEmailRow,
 	type UserByLastActiveIpRow,
 	type UserByLastActiveIpTrustKeyRow,
 	type UserByUsernameRow,
 	type UserContactChangeLogRow,
 	type UserDmHistoryRow,
-	type UserEmailOwnerRow,
 	type UserEntranceSoundRow,
 	type UserEntranceSoundSelectionRow,
 	type UserGuildSettingsRow,
@@ -287,16 +263,6 @@ export const UserByUsername = defineTable<UserByUsernameRow, 'username' | 'discr
 	name: 'users_by_username',
 	columns: USER_BY_USERNAME_COLUMNS,
 	primaryKey: ['username', 'discriminator', 'user_id'],
-});
-export const UserByEmail = defineTable<UserByEmailRow, 'email_lower' | 'user_id'>({
-	name: 'users_by_email',
-	columns: USER_BY_EMAIL_COLUMNS,
-	primaryKey: ['email_lower', 'user_id'],
-});
-export const UserEmailOwners = defineTable<UserEmailOwnerRow, 'email_lower'>({
-	name: 'user_email_owners',
-	columns: USER_EMAIL_OWNER_COLUMNS,
-	primaryKey: ['email_lower'],
 });
 export const UserByAcl = defineTable<UserByAclRow, 'acl' | 'user_id', 'acl'>({
 	name: 'users_by_acl',
@@ -392,12 +358,6 @@ export const GuildBans = defineTable<GuildBanRow, 'guild_id' | 'user_id'>({
 	name: 'guild_bans',
 	columns: GUILD_BAN_COLUMNS,
 	primaryKey: ['guild_id', 'user_id'],
-});
-export const GuildBansByEmail = defineTable<GuildBanByEmailRow, 'guild_id' | 'email'>({
-	name: 'guild_bans_by_email',
-	columns: GUILD_BAN_BY_EMAIL_COLUMNS,
-	primaryKey: ['guild_id', 'email'],
-	partitionKey: ['guild_id', 'email'],
 });
 export const GuildBansByUserId = defineTable<GuildBanByUserIdRow, 'user_id' | 'guild_id'>({
 	name: 'guild_bans_by_user_id',
@@ -766,11 +726,6 @@ export const BannedIps = defineTable<BannedIpRow, 'ip'>({
 	columns: BANNED_IP_COLUMNS,
 	primaryKey: ['ip'],
 });
-export const BannedEmails = defineTable<BannedEmailRow, 'email_lower'>({
-	name: 'banned_emails',
-	columns: BANNED_EMAIL_COLUMNS,
-	primaryKey: ['email_lower'],
-});
 export const BannedPhrases = defineTable<BannedPhraseRow, 'phrase'>({
 	name: 'banned_phrases',
 	columns: BANNED_PHRASE_COLUMNS,
@@ -845,24 +800,6 @@ export const GuildReportSubmissionsByReporter = defineTable<
 	partitionKey: ['reporter_id'],
 	defaultTtlSeconds: seconds('24 hours'),
 });
-export const DSAReportEmailVerifications = defineTable<DSAReportEmailVerificationRow, 'email_lower'>({
-	name: 'dsa_report_email_verifications',
-	columns: DSA_REPORT_EMAIL_VERIFICATION_COLUMNS,
-	primaryKey: ['email_lower'],
-	defaultTtlSeconds: seconds('10 minutes'),
-});
-export const DSAReportTickets = defineTable<DSAReportTicketRow, 'ticket'>({
-	name: 'dsa_report_tickets',
-	columns: DSA_REPORT_TICKET_COLUMNS,
-	primaryKey: ['ticket'],
-	defaultTtlSeconds: seconds('1 hour'),
-});
-export const EmailVerificationTokens = defineTable<EmailVerificationTokenRow, 'token_' | 'user_id'>({
-	name: 'email_verification_tokens',
-	columns: EMAIL_VERIFICATION_TOKEN_COLUMNS,
-	primaryKey: ['token_', 'user_id'],
-	defaultTtlSeconds: seconds('24 hours'),
-});
 export const PasswordResetTokens = defineTable<PasswordResetTokenRow, 'token_' | 'user_id'>({
 	name: 'password_reset_tokens',
 	columns: PASSWORD_RESET_TOKEN_COLUMNS,
@@ -880,12 +817,6 @@ export const PasswordResetTokensByUserId = defineTable<
 	columns: ['user_id', 'token_'],
 	primaryKey: ['user_id', 'token_'],
 	defaultTtlSeconds: seconds('24 hours'),
-});
-export const EmailRevertTokens = defineTable<EmailRevertTokenRow, 'token_' | 'user_id'>({
-	name: 'email_revert_tokens',
-	columns: EMAIL_REVERT_TOKEN_COLUMNS,
-	primaryKey: ['token_', 'user_id'],
-	defaultTtlSeconds: seconds('48 hours'),
 });
 export const AuthSessions = defineTable<AuthSessionRow, 'session_id_hash'>({
 	name: 'auth_sessions',
@@ -945,12 +876,6 @@ export const WebAuthnCredentialLookup = defineTable<
 	columns: ['credential_id', 'user_id'],
 	primaryKey: ['credential_id'],
 });
-export const IpAuthorizationTokens = defineTable<IpAuthorizationTokenRow, 'token_' | 'user_id'>({
-	name: 'ip_authorization_tokens',
-	columns: IP_AUTHORIZATION_TOKEN_COLUMNS,
-	primaryKey: ['token_', 'user_id'],
-	defaultTtlSeconds: seconds('30 minutes'),
-});
 export const AuthorizedIps = defineTable<AuthorizedIpRow, 'user_id' | 'ip'>({
 	name: 'authorized_ips_v2',
 	columns: AUTHORIZED_IP_COLUMNS,
@@ -960,21 +885,6 @@ export const AuthorizedIpTrustKeys = defineTable<AuthorizedIpTrustKeyRow, 'user_
 	name: 'authorized_ip_trust_keys_v1',
 	columns: AUTHORIZED_IP_TRUST_KEY_COLUMNS,
 	primaryKey: ['user_id', 'trust_key'],
-});
-export const PasswordChangeTickets = defineTable<PasswordChangeTicketRow, 'ticket'>({
-	name: 'password_change_tickets',
-	columns: PASSWORD_CHANGE_TICKET_COLUMNS,
-	primaryKey: ['ticket'],
-});
-export const EmailChangeTickets = defineTable<EmailChangeTicketRow, 'ticket'>({
-	name: 'email_change_tickets',
-	columns: EMAIL_CHANGE_TICKET_COLUMNS,
-	primaryKey: ['ticket'],
-});
-export const EmailChangeTokens = defineTable<EmailChangeTokenRow, 'token_'>({
-	name: 'email_change_tokens',
-	columns: EMAIL_CHANGE_TOKEN_COLUMNS,
-	primaryKey: ['token_'],
 });
 
 interface AttachmentDecayByExpiryRow {

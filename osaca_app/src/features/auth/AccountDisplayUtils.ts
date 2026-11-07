@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {type RuntimeConfigSnapshot, runtimeInstanceKey} from '@app/features/app/state/InstanceSnapshotStore';
-import {usesUniqueUsernames} from '@app/features/app/utils/AccountIdentityFeatures';
 import {
 	instanceDomainHost,
 	normalizeInstanceDomain,
@@ -43,15 +42,14 @@ export function getAccountDisplayLabels(account: Account): AccountDisplayLabels 
 	const discriminator = userData.discriminator;
 	const usernameLabel = formatNameForStreamerMode(userData.username);
 	noteText(usernameLabel);
-	const uniqueUsernames = account.instance != null && usesUniqueUsernames(account.instance.features);
-	if (!shouldShowDiscriminator(userData, uniqueUsernames)) {
+	if (!shouldShowDiscriminator(userData)) {
 		return {available: true, displayLabel, usernameLabel, tagLabel: displayLabel, discriminatorLabel: null};
 	}
 	return {
 		available: true,
 		displayLabel,
 		usernameLabel,
-		tagLabel: formatTagForStreamerMode(formatUserTag(userData, uniqueUsernames)),
+		tagLabel: formatTagForStreamerMode(formatUserTag(userData)),
 		discriminatorLabel: formatTagForStreamerMode(`#${discriminator}`),
 	};
 }

@@ -2,7 +2,6 @@
 
 import {
 	BanAvatarHashRequest,
-	BanEmailRequest,
 	BanFileShaRequest,
 	BanIpRequest,
 	BanPhraseRequest,
@@ -16,7 +15,7 @@ import {createStringType, Int32Type, SnowflakeStringType} from '@osaca/schema/sr
 import {z} from 'zod';
 
 export const AdminBlocklistListType = z
-	.enum(['ip', 'email', 'phrase', 'url', 'url-domain', 'file-sha', 'avatar-hash', 'profile-substring'])
+	.enum(['ip', 'phrase', 'url', 'url-domain', 'file-sha', 'avatar-hash', 'profile-substring'])
 	.describe('The blocklist an entry belongs to');
 
 export type AdminBlocklistListType = z.infer<typeof AdminBlocklistListType>;
@@ -107,7 +106,6 @@ export const AdminBlocklistEntryListResponse = z.object({
 export const AdminBlocklistEntryCreateRequest = z
 	.union([
 		BanIpRequest,
-		BanEmailRequest,
 		BanPhraseRequest,
 		BanUrlRequest,
 		BanUrlDomainRequest,

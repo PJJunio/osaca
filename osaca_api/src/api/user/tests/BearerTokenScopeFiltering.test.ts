@@ -40,27 +40,12 @@ describe('Bearer token scope filtering on /users/@me', () => {
 			.execute();
 		expect(json.id).toBe(account.userId);
 		expect(json.username).toBe(account.username);
-		expect(json.email).toBeNull();
 		expect(json.acls).toEqual([]);
 		expect(json.traits).toEqual([]);
 		expect(json.mfa_enabled).toBe(false);
 		expect(json.authenticator_types).toBeUndefined();
 		expect(json.password_last_changed_at).toBeNull();
-		expect(json.email_bounced).toBeUndefined();
 		expect(json.nsfw_allowed).toBe(false);
 		expect(json.pending_bulk_message_deletion).toBeNull();
-	});
-	test('bearer token with identify and email scope returns email but strips other sensitive fields', async () => {
-		const oauth2Token = await createOAuth2Token(harness, account.userId, ['identify', 'email']);
-		const json = await createBuilder<UserPrivateResponse>(harness, `Bearer ${oauth2Token.token}`)
-			.get('/users/@me')
-			.expect(HTTP_STATUS.OK)
-			.execute();
-		expect(json.id).toBe(account.userId);
-		expect(json.email).toBe(account.email);
-		expect(json.acls).toEqual([]);
-		expect(json.traits).toEqual([]);
-		expect(json.mfa_enabled).toBe(false);
-		expect(json.password_last_changed_at).toBeNull();
 	});
 });

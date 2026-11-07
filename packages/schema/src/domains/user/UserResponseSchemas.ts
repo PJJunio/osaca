@@ -26,7 +26,6 @@ import {LocaleSchema} from '@osaca/schema/src/primitives/LocaleSchema';
 import {
 	createBitflagInt32Type,
 	createNamedStringLiteralUnion,
-	createStringType,
 	HexString32Type,
 	Int32Type,
 	SignedInt32Type,
@@ -77,11 +76,6 @@ export const UserPrivateResponse = UserPartialResponse.extend({
 	is_staff: z.boolean().describe('Whether the user has staff permissions'),
 	acls: z.array(z.string()).describe('Access control list entries for the user'),
 	traits: z.array(z.string()).describe('Special traits assigned to the user account'),
-	email: z.string().nullable().describe('The email address associated with the account'),
-	email_bounced: z
-		.boolean()
-		.optional()
-		.describe('Whether the current email address is marked as bounced by the mail provider'),
 	has_verified_phone: z.boolean().describe('Deprecated. Always false.'),
 	bio: z.string().nullable().describe('The user biography text'),
 	pronouns: z.string().nullable().describe('The preferred pronouns of the user'),
@@ -102,7 +96,6 @@ export const UserPrivateResponse = UserPartialResponse.extend({
 		.array(UserAuthenticatorTypesSchema)
 		.optional()
 		.describe('The types of authenticators configured for MFA'),
-	verified: z.boolean().describe('Whether the email address has been verified'),
 	account_limited: z.boolean().optional().describe('Whether the account is limited'),
 	hidden_profile_badges: z
 		.array(z.string())
@@ -141,10 +134,10 @@ export const UserPrivateResponse = UserPartialResponse.extend({
 		.boolean()
 		.optional()
 		.describe(
-			'Whether the account can be signed in to again from another device: an email on instances that sign in with an email, a password otherwise',
+			'Whether the account can be signed in to again from another device, because it has a password or passkey',
 		),
 	account_tier: AccountTierSchema.optional().describe(
-		'How far the account has got with setting up a way to sign in. Clients that do not get it derive it from claimed and verified',
+		'How far the account has got with setting up a way to sign in. Clients that do not get it derive it from claimed',
 	),
 	verification_need: AccountVerificationNeedSchema.nullable()
 		.optional()
@@ -153,9 +146,7 @@ export const UserPrivateResponse = UserPartialResponse.extend({
 	profile_restricted: z
 		.boolean()
 		.optional()
-		.describe(
-			'Whether other people see only the username and tag of this account until it has a confirmed email address',
-		),
+		.describe('Whether other people see only the username of this account until it has a password or passkey'),
 });
 
 export type UserPrivateResponse = z.infer<typeof UserPrivateResponse>;
@@ -174,62 +165,6 @@ export const UserUpdateResponse = UserPrivateResponse.extend({
 });
 
 export type UserUpdateResponse = z.infer<typeof UserUpdateResponse>;
-
-export const EmailChangeStartResponse = z.object({
-	ticket: z.string().describe('Ticket returned for email change actions'),
-	require_original: z.boolean().describe('Whether verification of the original email is required'),
-	original_email: z.string().nullable().describe('The original email address on record'),
-	original_proof: z
-		.string()
-		.nullable()
-		.describe('Proof token generated when original email verification is not required'),
-	original_code_expires_at: z
-		.string()
-		.nullable()
-		.describe('ISO8601 timestamp when the original verification code expires'),
-	resend_available_at: z
-		.string()
-		.nullable()
-		.describe('ISO8601 timestamp when the original verification code can be resent'),
-});
-
-export type EmailChangeStartResponse = z.infer<typeof EmailChangeStartResponse>;
-
-export const EmailChangeVerifyOriginalResponse = z.object({
-	original_proof: z.string().describe('Proof token issued after verifying the original email'),
-});
-
-export type EmailChangeVerifyOriginalResponse = z.infer<typeof EmailChangeVerifyOriginalResponse>;
-
-export const EmailChangeRequestNewResponse = z.object({
-	ticket: z.string().describe('Ticket associated with the email change attempt'),
-	new_email: z.string().describe('The new email address the user wants to verify'),
-	new_code_expires_at: z.string().describe('ISO8601 timestamp when the new email code expires'),
-	resend_available_at: z.string().nullable().describe('ISO8601 timestamp when the new email code can be resent'),
-});
-
-export type EmailChangeRequestNewResponse = z.infer<typeof EmailChangeRequestNewResponse>;
-
-export const PasswordChangeStartResponse = z.object({
-	ticket: z.string().describe('Ticket for password change actions'),
-	code_expires_at: z.string().describe('ISO8601 timestamp when the verification code expires'),
-	resend_available_at: z.string().nullable().describe('ISO8601 timestamp when the code can be resent'),
-});
-
-export type PasswordChangeStartResponse = z.infer<typeof PasswordChangeStartResponse>;
-
-export const PasswordChangeVerifyResponse = z.object({
-	verification_proof: z.string().describe('Proof token issued after verifying the email code'),
-});
-
-export type PasswordChangeVerifyResponse = z.infer<typeof PasswordChangeVerifyResponse>;
-
-export const PasswordChangeCompleteResponse = z.object({
-	token: z.string().describe('Authentication token for the newly created session'),
-	auth_session_id_hash: z.string().describe('Base64url-encoded hash of the newly created authentication session'),
-});
-
-export type PasswordChangeCompleteResponse = z.infer<typeof PasswordChangeCompleteResponse>;
 
 export const UserPasswordUpdateResponse = z.object({
 	token: z.string().describe('Authentication token for the newly created session'),
@@ -471,12 +406,9 @@ export interface UserPartial {
 
 export interface UserPrivate extends UserPartial, UserProfile {
 	readonly is_staff: boolean;
-	readonly email: string | null;
-	readonly email_bounced?: boolean;
 	readonly mfa_enabled: boolean;
 	readonly has_verified_phone: boolean;
 	readonly authenticator_types: ReadonlyArray<number>;
-	readonly verified: boolean;
 	readonly account_limited?: boolean;
 	readonly hidden_profile_badges?: ReadonlyArray<string>;
 	readonly timezone?: string | null;
@@ -528,12 +460,6 @@ export type SavedMessageEntryResponse = z.infer<typeof SavedMessageEntryResponse
 export const SavedMessageEntryListResponse = z.array(SavedMessageEntryResponse);
 
 export type SavedMessageEntryListResponse = z.infer<typeof SavedMessageEntryListResponse>;
-
-export const EmailTokenResponse = z.object({
-	email_token: createStringType(1, 256).describe('The email change token to use for updating email'),
-});
-
-export type EmailTokenResponse = z.infer<typeof EmailTokenResponse>;
 
 export const UserTagCheckResponse = z.object({
 	taken: z.boolean().describe('Whether the username/discriminator combination is already taken'),

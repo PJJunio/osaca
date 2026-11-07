@@ -81,11 +81,6 @@ pub struct AdminUser {
     pub discriminator: String,
     pub avatar: Option<String>,
     pub banner: Option<String>,
-    pub email: Option<String>,
-    #[serde(default)]
-    pub email_verified: bool,
-    #[serde(default)]
-    pub email_bounced: bool,
     pub global_name: Option<String>,
     pub bio: Option<String>,
     pub pronouns: Option<String>,
@@ -137,7 +132,6 @@ pub struct AdminUser {
 pub fn account_tier_label(tier: AccountTierSchema) -> &'static str {
     match tier {
         AccountTierSchema::Unclaimed => "Unclaimed",
-        AccountTierSchema::Unverified => "Unverified",
         AccountTierSchema::Verified => "Verified",
     }
 }

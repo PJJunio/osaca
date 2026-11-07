@@ -24,29 +24,15 @@ The full runtime configuration. A setting that was never saved uses the default 
 | experiment_delivery | [experiment delivery configuration](#experiment-delivery-configuration-object) object | How often clients poll for experiments |
 | registration | [registration configuration](#registration-configuration-object) object | Registration policy and issued URLs |
 | self_hosted | boolean | Whether the instance runs in self-hosted mode |
-| account_identity | [account identity configuration](#account-identity-configuration-object) object | How people sign in |
 | app_public | [public application configuration](#public-application-configuration-object) object | Branding, legal links, setup and registration fields |
 | policy | [instance policy](#instance-policy-object) object | Community, direct message and gating policy |
 | integrations | [instance integrations](#instance-integrations-object) object | Third-party provider settings |
 | media | [instance media](#instance-media-object) object | Attachment retention settings |
-| auth | [auth configuration](#auth-configuration-object) object | Email-first sign-in and instant accounts |
-| accounts | [accounts configuration](#accounts-configuration-object) object | Date of birth step, account tiers and cleanup |
+| auth | [auth configuration](#auth-configuration-object) object | Instant accounts |
+| accounts | [accounts configuration](#accounts-configuration-object) object | Account tiers and cleanup |
 | guild_visits | [guild visits configuration](#guild-visits-configuration-object) object | Rollout of visiting communities before joining |
 | notice | ?[instance notice](/http-api/instance/#instance-notice-object) object | Notice shown to everyone, or null |
 | warnings | array[string] | Problems that didn't stop the last save. Empty except in the response to [update instance configuration](#update-instance-configuration) |
-
-## Account identity configuration object
-
-How people sign in. It is read-only here, and the setup wizard sets it through [set the setup sign-in method](/http-api/instance/#set-the-setup-sign-in-method). [Sign-in methods](/operator/sign-in/) explains the rules.
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| mode | string | The [account identity mode](/http-api/instance/#account-identity-modes), `email` or `username` |
-| locked | boolean | Whether the mode is fixed, with the reason in `lock_reason` |
-| tag_style | string | One of the [tag styles](/http-api/instance/#tag-styles) |
-| lock_reason | ?string | One of the [account identity lock reasons](/http-api/instance/#account-identity-lock-reasons), or null |
 
 ## Gateway rollout configuration object
 
@@ -103,23 +89,20 @@ Setting `provider` to `none` turns the check off for the whole instance. Solve t
 
 ## Auth configuration object
 
-How people start signing in and whether they can join with only a display name.
+Whether people can join with only a display name.
 
 ### Structure
 
 | Field | Type | Description |
 | --- | --- | --- |
-| identifier_first<sup>1</sup> | string | Whether sign-in starts with the email address and offers emailed codes, `auto`, `on` or `off` |
 | instant_accounts | [instant accounts](#instant-accounts-object) object | Accounts created with only a display name |
 | instant_account_availability | string | Read-only [instant account availability](/http-api/instance/#instant-account-availability) |
-
-<sup>1</sup> `auto` (the default) turns it on when the account identity mode is `email` and the instance sends email. `on` turns it on in the `email` mode even when the instance doesn't send email, and sign-in then offers only a password or a passkey
 
 #### Instant accounts object
 
 | Field | Type | Description |
 | --- | --- | --- |
-| enabled | boolean | Whether [register an account](/http-api/authentication/#register-an-account) accepts a body with no email and no password (default false) |
+| enabled | boolean | Whether [register an account](/http-api/authentication/#register-an-account) accepts a body with no password (default false) |
 | pow_escalation_per_hour | integer | Accounts per hour that double the CAPTCHA cost for the next one (10-1000000, default 2000) |
 
 ## Accounts configuration object
@@ -131,20 +114,14 @@ What accounts have to do before they can interact with other people, and which a
 | Field | Type | Description |
 | --- | --- | --- |
 | interaction_tier<sup>1</sup> | string | `legacy` or `enforced` |
-| verification_basis<sup>2</sup> | string | `auto`, `confirmed_email` or `local_credential` (default `auto`) |
-| guild_join_gate<sup>3</sup> | string | `off`, `visits_capable` or `always` (default `always`) |
-| unclaimed_account_cleanup<sup>4</sup> | [unclaimed account cleanup](#unclaimed-account-cleanup-object) object | Deleting accounts nobody can sign in to again |
-| inactivity_deletion<sup>5</sup> | [inactivity deletion](#inactivity-deletion-object) object | Deleting accounts nobody has used for a long time |
+| guild_join_gate<sup>2</sup> | string | `off`, `visits_capable` or `always` (default `always`) |
+| unclaimed_account_cleanup<sup>3</sup> | [unclaimed account cleanup](#unclaimed-account-cleanup-object) object | Deleting accounts nobody can sign in to again |
 
 <sup>1</sup> How the [account tiers](/http-api/users/#account-tiers) apply. `enforced` lets an account that hasn't finished setting up do only things that don't involve other people
 
-<sup>2</sup> `confirmed_email` needs a confirmed email and `local_credential` needs a password or a passkey. `auto` uses `confirmed_email` while the instance sends email, and a `username` instance always uses `local_credential`
+<sup>2</sup> Whether joining a community needs a verified account. It applies to people assigned [guild visits](#guild-visits-configuration-object) while `interaction_tier` is `enforced`, and `visits_capable` checks only clients that send `X-OSACA-Capabilities: guild_visits`
 
-<sup>3</sup> Whether joining a community needs a verified account. It applies to people assigned [guild visits](#guild-visits-configuration-object) while `interaction_tier` is `enforced`, and `visits_capable` checks only clients that send `X-OSACA-Capabilities: guild_visits`
-
-<sup>4</sup> Bot and system accounts are never deleted this way. `on_last_session_end` set to `after_grace` also schedules the deletion when the account signs out of its last session. Each deletion is scheduled 24 hours ahead, and signing in cancels it
-
-<sup>5</sup> OSACA emails a warning first and deletes the account `warning_lead_days` later unless it is used. An account that never got the warning, such as one with no email, is never deleted this way
+<sup>3</sup> Bot and system accounts are never deleted this way. `on_last_session_end` set to `after_grace` also schedules the deletion when the account signs out of its last session. Each deletion is scheduled 24 hours ahead, and signing in cancels it
 
 #### Unclaimed account cleanup object
 
@@ -154,15 +131,7 @@ What accounts have to do before they can interact with other people, and which a
 | inactive_days | integer | Days without use before the account is deleted (1-3650) |
 | on_last_session_end | string | `off` or `after_grace` |
 
-#### Inactivity deletion object
-
-| Field | Type | Description |
-| --- | --- | --- |
-| mode | string | `off` or `after_inactivity` (default `after_inactivity`) |
-| inactive_days | integer | Days without use before the warning email is sent (1-3650, default 730) |
-| warning_lead_days | integer | Days between the warning email and the deletion (1-365, default 30) |
-
-A new self-hosted instance starts with `interaction_tier` set to `enforced` and deletes unclaimed accounts after 90 days with `after_grace`. An upgraded instance starts in `legacy` with unclaimed account cleanup off. Every instance starts with inactivity deletion on.
+A new self-hosted instance starts with `interaction_tier` set to `enforced` and deletes unclaimed accounts after 90 days with `after_grace`. An upgraded instance starts in `legacy` with unclaimed account cleanup off.
 
 ## Guild visits configuration object
 
@@ -199,7 +168,6 @@ The registration policy and every issued registration URL. [List pending registr
 | --- | --- | --- |
 | mode | string | [Registration mode](#registration-modes) |
 | admin_registration_urls_enabled | boolean | Whether issued registration URLs work |
-| allowed_email_domains | array[string] | Email domains that new accounts and email changes must use, or empty for any. Registration URLs aren't checked |
 | urls | array[[registration URL](#registration-url-object) object] | Every issued registration URL, newest first, including revoked and used-up ones |
 
 ## Registration modes
@@ -247,7 +215,6 @@ An account waiting for an admin decision.
 | username | string | Username chosen at registration |
 | discriminator | integer | Discriminator (0-9999) |
 | global_name | ?string | Display name, or null |
-| email | ?string | Email address, or null |
 | requested_at | ISO8601 timestamp | When the account registered |
 | registration_url_id | ?string | [Registration URL](#registration-url-object) used (1-128 characters), or null |
 | client_ip | ?string | IP address at registration, or null |
@@ -307,33 +274,7 @@ Each provider's saved settings, a `_set` boolean for each secret and whether it 
 | Field | Type | Description |
 | --- | --- | --- |
 | youtube | object | `api_key_set` and `effective_available` |
-| email | [email integration](#email-integration-object) object | Outgoing email settings |
 | bluesky | [Bluesky integration](#bluesky-integration-object) object | Bluesky client settings |
-
-## Email integration object
-
-Outgoing email settings, where each `effective_` field gives the value in use after environment variables apply.
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| delivery | ?string | Saved delivery mode, `smtp` or `off`, or null to use the environment |
-| effective_delivery | string | Delivery mode in use, `smtp` or `off` |
-| delivery_state | string | One of the [email delivery states](/http-api/instance/#email-delivery-states) |
-| enabled | ?boolean | Deprecated, use `delivery` |
-| effective_enabled | boolean | Whether the instance sends email, the same as `delivery_state` being `on` |
-| provider | ?string | Deprecated, use `delivery` |
-| effective_provider | string | Deprecated. `smtp` or `none` |
-| from_email | ?string | Sender address |
-| from_name | ?string | Sender name, or null to use the product name |
-| smtp<sup>1</sup> | object | The SMTP server settings |
-| disable_new_ip_authorization | boolean | Saved switch that turns off new-IP authorization email |
-| effective_disable_new_ip_authorization | boolean | Whether new-IP authorization email is off, true when the instance doesn't send email |
-
-<sup>1</sup> Has nullable `host`, `port` (1-65535), `username`, `tls_mode` (the saved [SMTP TLS mode](#smtp-tls-mode)) and `effective_tls_mode`, plus the boolean `password_set`
-
-On a `username` instance, `delivery_state` is always `off_username_mode`.
 
 ## Bluesky integration object
 
@@ -377,29 +318,6 @@ OSACA drops an override that would make a maximum smaller than its minimum.
 | favicon | Writes `branding.favicon_url` |
 | favicon_dark | Writes `branding.favicon_dark_url` |
 | sign_in_backdrop | Writes `branding.sign_in_backdrop_url` |
-
-## SMTP TLS mode
-
-| Value | Description |
-| --- | --- |
-| implicit | TLS from the start, usually on port 465 |
-| starttls | A plain connection that must upgrade with STARTTLS, usually on port 587 |
-| opportunistic | A plain connection that upgrades with STARTTLS when the server offers it |
-| none | No TLS |
-
-With no saved mode, OSACA uses `OSACA_EMAIL_SMTP_TLS_MODE`, or `implicit` on port 465 and `starttls` on other ports.
-
-## SMTP test result object
-
-The result of one [Create SMTP test](#create-smtp-test).
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| ok | boolean | Whether the server accepted the connection, the credentials and any test message |
-| error | ?string | Error message, or null when the test passed |
-| server_response? | ?string | The server's reply to the test message, when `send_to` was set and it was accepted |
 
 ## Registration URL creation object
 
@@ -500,19 +418,19 @@ Merges the body into the saved configuration and returns the [instance configura
 | voice_p2p? | object | Any [peer-to-peer voice](#peer-to-peer-voice-configuration-object) fields |
 | captcha? | object | Any [captcha configuration](#captcha-configuration-object) fields |
 | experiment_delivery? | object | Any [experiment delivery](#experiment-delivery-configuration-object) fields |
-| registration? | object | `mode`, `admin_registration_urls_enabled` and `allowed_email_domains` |
+| registration? | object | `mode` and `admin_registration_urls_enabled` |
 | app_public?<sup>1</sup> | object | `branding`, `setup` and `legal` objects, each merged field by field |
-| integrations?<sup>2</sup> | object | `gif`, `youtube`, `email` and `bluesky` objects, and `bluesky.keys` |
+| integrations?<sup>2</sup> | object | `gif`, `youtube` and `bluesky` objects, and `bluesky.keys` |
 | media? | object | `attachment_decay` overrides, null to restore a default |
 | policy? | [instance policy update](#instance-policy-update-structure) object | Community, direct message and gating policy |
-| auth? | object | `identifier_first` and any `instant_accounts` fields from the [auth configuration](#auth-configuration-object) |
+| auth? | object | Any `instant_accounts` fields from the [auth configuration](#auth-configuration-object) |
 | accounts? | object | Any [accounts configuration](#accounts-configuration-object) fields |
 | guild_visits? | object | Any [guild visits configuration](#guild-visits-configuration-object) fields |
 | notice?<sup>3</sup> | object | `message`, `url`, `starts_at` and `ends_at` of the [instance notice](/http-api/instance/#instance-notice-object) |
 
 <sup>1</sup> `branding.product_name` is 1-80 characters, `branding.custom_css` up to 32,768 and `branding.upload_limit_message` up to 500. `branding.trusted_domains` holds up to 50 hostnames, each optionally starting with `*.`, and null clears it. URLs are up to 2048 characters and `branding.theme_color` is a hex color. Setting `setup.configured` to true finishes setup, and accounts that register after that don't get the wildcard Admin ACL
 
-<sup>2</sup> A secret such as `api_key` or the SMTP `password` is saved when sent and kept when left out. `email.smtp` takes `host`, `port`, `username`, `password` and `tls_mode`. `bluesky.keys` replaces the signing keys with up to 8 entries of `kid` and `private_key`
+<sup>2</sup> A secret such as `api_key` is saved when sent and kept when left out. `bluesky.keys` replaces the signing keys with up to 8 entries of `kid` and `private_key`
 
 <sup>3</sup> `message` is up to 1000 characters, and null or an empty string removes the notice. A request replaces the whole notice
 
@@ -520,10 +438,6 @@ OSACA checks the merged settings before it writes anything, and refuses these co
 
 - `INSTANT_ACCOUNTS_REQUIRE_CAPTCHA` when instant accounts are turned on while the captcha provider is `none`
 - `CAPTCHA_REQUIRED_BY_INSTANT_ACCOUNTS` when the captcha provider is set to `none` while instant accounts are on
-- `IDENTIFIER_FIRST_REQUIRES_EMAIL_IDENTITY` when `identifier_first` is set to `on` on a `username` instance
-- `EMAIL_DELIVERY_REQUIRES_EMAIL_IDENTITY` when email delivery is set to `smtp` on a `username` instance
-- `SMTP_HOST_REQUIRED` when email delivery is set to `smtp` with no SMTP host saved or in the environment
-- `VERIFICATION_BASIS_REQUIRES_EMAIL_DELIVERY` when `verification_basis` is `confirmed_email` while the instance doesn't send email
 
 #### Instance policy update structure
 
@@ -580,35 +494,6 @@ Uploads an image to a branding slot and returns the [instance configuration](#in
 | --- | --- | --- |
 | 200 | [instance configuration](#instance-configuration-object) object | The slot was written or cleared |
 | 400 | [error response](/admin-api/#error-response) | `IMAGE_SIZE_EXCEEDS_LIMIT`, `INVALID_IMAGE_FORMAT` or `FAILED_TO_UPLOAD_IMAGE` for a bad image |
-
-The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
-
-## Create SMTP test
-
-<RouteHeader method="POST" path="/v1/admin/instance/config/smtp-tests" auditReason />
-
-Connects and signs in to an SMTP server, sends a test message when `send_to` is set and returns an [SMTP test result](#smtp-test-result-object) without saving anything. You need `instance:config:update`.
-
-### JSON body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| host? | ?string | SMTP host (1-255 characters) |
-| port? | ?integer | SMTP port (1-65535) |
-| username? | ?string | SMTP username (1-320 characters) |
-| password? | ?string | SMTP password (1-4096 characters) |
-| tls_mode? | ?string | [SMTP TLS mode](#smtp-tls-mode) |
-| from_email? | ?string | Sender address for the test message |
-| from_name? | ?string | Sender name for the test message (1-120 characters) |
-| send_to? | ?string | Address to send a test message to |
-
-OSACA fills each missing field from the saved settings, and an empty body tests what outgoing email uses. It reuses the saved password only for the saved host and username.
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | [SMTP test result](#smtp-test-result-object) object | The test ran, and `ok` says whether it passed |
 
 The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
 
@@ -704,7 +589,7 @@ Approves or rejects a pending registration and returns the [pending registration
 | 200 | [pending registration list](#pending-registration-list-object) object | The decision was applied |
 | 404 | [error response](/admin-api/#error-response) | `UNKNOWN_USER` when the account isn't pending or rejected |
 
-Approval adds the account to its invite's community and the single community, and emails the person when the account has an email address. Rejection adds the `registration_rejected` trait, which blocks new sign-ins but leaves existing sessions signed in. A later approval removes it.
+Approval adds the account to its invite's community and the single community. Rejection adds the `registration_rejected` trait, which blocks new sign-ins but leaves existing sessions signed in. A later approval removes it.
 
 The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
 

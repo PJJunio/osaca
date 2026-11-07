@@ -258,7 +258,7 @@ export function MessageInteractionController(app: HonoApp) {
 			operationId: 'add_reaction',
 			summary: 'Add reaction to message',
 			description:
-				'Adds an emoji reaction to a message. Each user can react once with each emoji. Outside personal notes, needs an account with a confirmed email address. Returns 204 No Content on success.',
+				'Adds an emoji reaction to a message. Each user can react once with each emoji. Outside personal notes, needs a claimed account. Returns 204 No Content on success.',
 			responseSchema: null,
 			statusCode: 204,
 			security: ['botToken', 'bearerToken', 'sessionToken'],

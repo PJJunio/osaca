@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {ConfirmModal} from '@app/features/app/components/dialogs/ConfirmModal';
-import {VerifyEmailButton} from '@app/features/app/components/dialogs/components/EmailVerificationAlert';
 import {SettingsTabSection} from '@app/features/app/components/dialogs/shared/SettingsTabLayout';
 import {BackupCodesModal} from '@app/features/auth/components/modals/BackupCodesModal';
 import {BackupCodesViewModal} from '@app/features/auth/components/modals/BackupCodesViewModal';
@@ -33,10 +32,10 @@ import {getAccountGatePresentation} from '@app/features/user/utils/AccountGatePr
 import {canPerform} from '@app/features/user/utils/AccountGates';
 import * as DateUtils from '@app/features/user/utils/DateFormatting';
 import {pushApiErrorModal} from '@app/lib/forms';
-import {AccountVerificationNeeds, TierGatedActions} from '@osaca/constants/src/AccountTierConstants';
-import {UserAuthenticatorTypes} from '@osaca/constants/src/UserConstants';
 import {msg} from '@lingui/core/macro';
 import {Trans, useLingui} from '@lingui/react/macro';
+import {TierGatedActions} from '@osaca/constants/src/AccountTierConstants';
+import {UserAuthenticatorTypes} from '@osaca/constants/src/UserConstants';
 import {observer} from 'mobx-react-lite';
 import type React from 'react';
 
@@ -150,10 +149,8 @@ export const SecurityTabContent: React.FC<SecurityTabProps> = observer(
 		const hasPasskeyMfa = user.authenticatorTypes?.includes(UserAuthenticatorTypes.WEBAUTHN) ?? false;
 		const hasAnyMfa = hasTotpMfa || hasPasskeyMfa;
 		const mfaGate = canPerform(user, TierGatedActions.MFA);
-		const needsEmailVerification = !mfaGate.allowed && mfaGate.need === AccountVerificationNeeds.CONFIRM_EMAIL;
 		const hasReachedPasskeyLimit = passkeys.length >= 10;
-		const canAddSecurityCredential = !needsEmailVerification;
-		const canAddPasskey = canAddSecurityCredential && !hasReachedPasskeyLimit;
+		const canAddPasskey = !hasReachedPasskeyLimit;
 		const handleAddPasskey = () => {
 			if (!canAddPasskey) {
 				return;
@@ -281,7 +278,7 @@ export const SecurityTabContent: React.FC<SecurityTabProps> = observer(
 				)),
 			);
 		};
-		if (!mfaGate.allowed && !needsEmailVerification) {
+		if (!mfaGate.allowed) {
 			const presentation = getAccountGatePresentation(i18n, mfaGate);
 			return (
 				<SettingsTabSection
@@ -312,20 +309,6 @@ export const SecurityTabContent: React.FC<SecurityTabProps> = observer(
 					description={i18n._(TWO_FACTOR_CARD_DESCRIPTION_DESCRIPTOR)}
 					data-flx="user.account-security-tab.security-tab.two-factor-card"
 				>
-					{needsEmailVerification && (
-						<AccountSecurityRow
-							label={
-								<Trans comment="Row in the two-factor authentication card shown when the account email is not confirmed yet. Two-factor authentication and passkeys stay locked until it is.">
-									Confirm your email to turn on two-factor authentication or add a passkey.
-								</Trans>
-							}
-							data-flx="user.account-security-tab.security-tab.verify-email-row"
-						>
-							<VerifyEmailButton data-flx="user.account-security-tab.security-tab.security-tab-content.verify-email-button">
-								<Trans>Confirm email</Trans>
-							</VerifyEmailButton>
-						</AccountSecurityRow>
-					)}
 					<AccountSecurityRow
 						label={<Trans>Authenticator app</Trans>}
 						description={totpDescription}
@@ -350,7 +333,6 @@ export const SecurityTabContent: React.FC<SecurityTabProps> = observer(
 						) : (
 							<Button
 								small={true}
-								disabled={!canAddSecurityCredential}
 								aria-label={i18n._(SET_UP_AUTHENTICATOR_APP_DESCRIPTOR)}
 								onClick={() =>
 									ModalCommands.push(
@@ -410,7 +392,7 @@ export const SecurityTabContent: React.FC<SecurityTabProps> = observer(
 					}
 					data-flx="user.account-security-tab.security-tab.passkeys-card"
 				>
-					{passkeys.length === 0 && !needsEmailVerification && (
+					{passkeys.length === 0 && (
 						<AccountSecurityEmptyRow data-flx="user.account-security-tab.security-tab.passkeys-empty">
 							<Trans>No passkeys yet. Add one to sign in with your fingerprint, face or a security key.</Trans>
 						</AccountSecurityEmptyRow>
@@ -463,7 +445,6 @@ export const SecurityTabContent: React.FC<SecurityTabProps> = observer(
 								label={<Trans>Require a passkey as your second factor</Trans>}
 								description={<Trans>Ask for a passkey after your password when you sign in</Trans>}
 								value={hasPasskeyMfa}
-								disabled={needsEmailVerification && !hasPasskeyMfa}
 								onChange={handleTogglePasskeyTwoFactor}
 								data-flx="user.account-security-tab.security-tab.security-tab-content.switch.passkey-two-factor"
 							/>

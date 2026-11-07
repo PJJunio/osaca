@@ -23,7 +23,6 @@ import {SteppedCarousel} from '@app/features/ui/stepped_carousel/SteppedCarousel
 import type {BulkDeleteMyMessagesFilter} from '@app/features/user/commands/UserCommands';
 import * as UserCommands from '@app/features/user/commands/UserCommands';
 import styles from '@app/features/user/components/modals/tabs/privacy_safety_tab/data_request_modal/DataRequestModal.module.css';
-import Users from '@app/features/user/state/Users';
 import {
 	SUMMARY_ALL_TIME_DESCRIPTOR as DATE_MODE_ALL_TIME_DESCRIPTOR,
 	DATE_MODE_LABEL_DESCRIPTOR,
@@ -36,17 +35,16 @@ import {
 	DATE_MODE_LABEL_DESCRIPTOR as WHEN_STEP_TITLE_DESCRIPTOR,
 } from '@app/features/user/utils/UserMessageDescriptors';
 import * as FormUtils from '@app/lib/forms';
-import {EmailDeliveryStates} from '@osaca/constants/src/AccountConfigConstants';
-import {getDateFormatter} from '@osaca/date_utils/src/DateFormatterCache';
 import type {MessageDescriptor} from '@lingui/core';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
+import {getDateFormatter} from '@osaca/date_utils/src/DateFormatterCache';
 import {observer} from 'mobx-react-lite';
 import type React from 'react';
 import {useCallback, useMemo, useState} from 'react';
 
 type DataRequestVariant = 'export' | 'delete';
-type DeletionNotice = 'dm' | 'email' | 'none';
+type DeletionNotice = 'dm' | 'none';
 type ScopeValue = 'everything' | 'custom' | 'selected' | 'inaccessible_only';
 type DateMode = 'all_time' | 'custom';
 type GuildFilterMode = 'exclude' | 'include_only';
@@ -62,28 +60,19 @@ const DELETE_TITLE_DESCRIPTOR = msg({
 	comment:
 		'Privacy > Data deletion: modal title for the redesigned message-deletion dialog with scope and date filters.',
 });
-const EXPORT_SUCCESS_DESCRIPTOR = msg({
-	message: "We'll process this as soon as possible. You'll get an email when your archive is ready.",
-	comment: 'Success toast shown after a filtered data export job is queued.',
-});
 const EXPORT_SUCCESS_IN_APP_DESCRIPTOR = msg({
 	message: "We'll process this as soon as possible. Check back here to download your archive when it's ready.",
-	comment: 'Success toast shown after a data export job is queued when no email can reach the account.',
+	comment: 'Success toast shown after a data export job is queued.',
 });
 const DELETE_SUCCESS_DESCRIPTORS: Record<DeletionNotice, MessageDescriptor> = {
 	dm: msg({
 		message: "We'll process this as soon as possible. You'll get a DM from us when it's done.",
 		comment: 'Success toast shown after a bulk message deletion job is queued.',
 	}),
-	email: msg({
-		message: "We'll process this as soon as possible. You'll get an email from us when it's done.",
-		comment:
-			'Success toast shown after a bulk message deletion job is queued, on an instance with direct messages turned off that sends email.',
-	}),
 	none: msg({
 		message: "We'll process this as soon as possible. Your messages will disappear as the work goes on.",
 		comment:
-			'Success toast shown after a bulk message deletion job is queued, on an instance with direct messages turned off, when no email can reach the account.',
+			'Success toast shown after a bulk message deletion job is queued, on an instance with direct messages turned off.',
 	}),
 };
 const EXPORT_SCOPE_EVERYTHING_LABEL_DESCRIPTOR = msg({
@@ -140,25 +129,15 @@ const CONFIRM_STEP_TITLE_DESCRIPTOR = msg({
 	message: 'Review and confirm',
 	comment: 'Heading of the final confirm step in the data-request carousel modal showing a summary.',
 });
-const EXPORT_CONFIRM_EVERYTHING_DESCRIPTOR = msg({
-	message:
-		"We'll build a downloadable archive of every message you have ever sent and email you when it's ready. The download link in that email expires after 7 days.",
-	comment: 'Confirm-step copy in the data-export modal when scope is everything.',
-});
-const EXPORT_CONFIRM_CUSTOM_DESCRIPTOR = msg({
-	message:
-		"We'll build a downloadable archive that matches the filters below and email you when it's ready. The download link in that email expires after 7 days.",
-	comment: 'Confirm-step copy in the data-export modal when scope is custom.',
-});
 const EXPORT_CONFIRM_EVERYTHING_IN_APP_DESCRIPTOR = msg({
 	message:
 		"We'll build a downloadable archive of every message you have ever sent. You can download it from this page when it's ready. The download expires after 7 days.",
-	comment: 'Confirm-step copy in the data-export modal when scope is everything, when no email can reach the account.',
+	comment: 'Confirm-step copy in the data-export modal when scope is everything.',
 });
 const EXPORT_CONFIRM_CUSTOM_IN_APP_DESCRIPTOR = msg({
 	message:
 		"We'll build a downloadable archive that matches the filters below. You can download it from this page when it's ready. The download expires after 7 days.",
-	comment: 'Confirm-step copy in the data-export modal when scope is custom, when no email can reach the account.',
+	comment: 'Confirm-step copy in the data-export modal when scope is custom.',
 });
 const DELETE_CONFIRM_DESCRIPTOR = msg({
 	message: 'Permanently delete the messages that match the filters below. This cannot be undone.',
@@ -169,15 +148,10 @@ const DELETE_DANGER_NOTICE_DESCRIPTORS: Record<DeletionNotice, MessageDescriptor
 		message: 'There is no recovery once this starts. We will DM you when it finishes.',
 		comment: 'Destructive notice on the confirm step of the data-deletion carousel modal.',
 	}),
-	email: msg({
-		message: 'There is no recovery once this starts. We will email you when it finishes.',
-		comment:
-			'Destructive notice on the confirm step of the data-deletion carousel modal, on an instance with direct messages turned off that sends email.',
-	}),
 	none: msg({
 		message: 'There is no recovery once this starts.',
 		comment:
-			'Destructive notice on the confirm step of the data-deletion carousel modal, on an instance with direct messages turned off, when no email can reach the account.',
+			'Destructive notice on the confirm step of the data-deletion carousel modal, on an instance with direct messages turned off.',
 	}),
 };
 const KIND_DMS_LABEL_DESCRIPTOR = msg({
@@ -290,17 +264,11 @@ const DELETE_TAB_DESCRIPTION_DESCRIPTORS: Record<DeletionNotice, MessageDescript
 			'Permanently remove messages you have sent across DMs, group DMs, and communities. The work runs in the background, and you will get a DM when it finishes.',
 		comment: 'Description shown on the settings page above the Delete my messages button.',
 	}),
-	email: msg({
-		message:
-			'Permanently remove messages you have sent across DMs, group DMs, and communities. The work runs in the background, and you will get an email when it finishes.',
-		comment:
-			'Description shown on the settings page above the Delete my messages button, on an instance with direct messages turned off that sends email.',
-	}),
 	none: msg({
 		message:
 			'Permanently remove messages you have sent across DMs, group DMs, and communities. The work runs in the background, so your messages may take a while to disappear.',
 		comment:
-			'Description shown on the settings page above the Delete my messages button, on an instance with direct messages turned off, when no email can reach the account.',
+			'Description shown on the settings page above the Delete my messages button, on an instance with direct messages turned off.',
 	}),
 };
 
@@ -324,13 +292,8 @@ interface VariantConfig {
 	isDelete: boolean;
 }
 
-export function accountGetsEmail(): boolean {
-	return RuntimeConfig.emailDeliveryState === EmailDeliveryStates.ON && Boolean(Users.currentUser?.email);
-}
-
 function deletionNotice(): DeletionNotice {
-	if (!RuntimeConfig.directMessagesDisabled) return 'dm';
-	return accountGetsEmail() ? 'email' : 'none';
+	return RuntimeConfig.directMessagesDisabled ? 'none' : 'dm';
 }
 
 export function deleteTabDescription(): MessageDescriptor {
@@ -339,7 +302,6 @@ export function deleteTabDescription(): MessageDescriptor {
 
 function getVariantConfig(variant: DataRequestVariant): VariantConfig {
 	if (variant === 'export') {
-		const byEmail = accountGetsEmail();
 		return {
 			titleDescriptor: EXPORT_TITLE_DESCRIPTOR,
 			defaultScope: 'everything',
@@ -358,11 +320,9 @@ function getVariantConfig(variant: DataRequestVariant): VariantConfig {
 			],
 			submitLabelDescriptor: EXPORT_SUBMIT_DESCRIPTOR,
 			submitVariant: 'primary',
-			successToastDescriptor: byEmail ? EXPORT_SUCCESS_DESCRIPTOR : EXPORT_SUCCESS_IN_APP_DESCRIPTOR,
-			confirmSimpleDescriptor: byEmail
-				? EXPORT_CONFIRM_EVERYTHING_DESCRIPTOR
-				: EXPORT_CONFIRM_EVERYTHING_IN_APP_DESCRIPTOR,
-			confirmCustomDescriptor: byEmail ? EXPORT_CONFIRM_CUSTOM_DESCRIPTOR : EXPORT_CONFIRM_CUSTOM_IN_APP_DESCRIPTOR,
+			successToastDescriptor: EXPORT_SUCCESS_IN_APP_DESCRIPTOR,
+			confirmSimpleDescriptor: EXPORT_CONFIRM_EVERYTHING_IN_APP_DESCRIPTOR,
+			confirmCustomDescriptor: EXPORT_CONFIRM_CUSTOM_IN_APP_DESCRIPTOR,
 			dangerNoticeDescriptor: null,
 			isDelete: false,
 		};

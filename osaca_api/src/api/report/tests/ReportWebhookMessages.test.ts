@@ -1,14 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {
-	clearTestEmails,
-	createTestAccount,
-	createUniqueEmail,
-	findLastTestEmail,
-	listTestEmails,
-	setUserACLs,
-	type TestAccount,
-} from '@app/api/auth/tests/AuthTestUtils';
+import {createTestAccount, setUserACLs, type TestAccount} from '@app/api/auth/tests/AuthTestUtils';
 import {createGuildID, createReportID, createUserID} from '@app/api/BrandedTypes';
 import {authorizeBot, createTestBotAccount} from '@app/api/bot/tests/BotTestUtils';
 import {Config} from '@app/api/Config';
@@ -31,7 +23,7 @@ import {getReportFlowResponse} from '@app/api/report/flows/ReportFlowRegistry';
 import {ReportRepository} from '@app/api/report/ReportRepository';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {HTTP_STATUS} from '@app/api/test/TestConstants';
-import {createBuilder, createBuilderWithoutAuth} from '@app/api/test/TestRequestBuilder';
+import {createBuilder} from '@app/api/test/TestRequestBuilder';
 import {
 	deleteAccount,
 	setPendingDeletionAt,
@@ -101,12 +93,6 @@ const CSAM_WALK: ReadonlyArray<ReportFlowStep> = [
 	{screen_id: 'sexual', option_id: 'minor_sexual'},
 	{screen_id: 'minor_sexual', option_id: 'csam'},
 ];
-const HARASSMENT_WALK: ReadonlyArray<ReportFlowStep> = [
-	{screen_id: 'root_message', option_id: 'abuse'},
-	{screen_id: 'abuse', option_id: 'harassment'},
-	{screen_id: 'harassment', option_id: 'harassment_direct'},
-];
-
 class CapturingPublisher implements ActivityPublisher {
 	readonly payloads: Array<string> = [];
 
@@ -218,40 +204,6 @@ function submitLegacy(harness: ApiTestHarness, token: string, channelId: string,
 	return createBuilder<ReportResponse>(harness, token)
 		.post('/reports/message')
 		.body({channel_id: channelId, message_id: messageId, category: 'spam'});
-}
-
-async function issueTicket(harness: ApiTestHarness): Promise<string> {
-	await clearTestEmails(harness);
-	const email = createUniqueEmail('dsa-webhook');
-	await createBuilderWithoutAuth(harness)
-		.post('/reports/dsa/email/send')
-		.body({email})
-		.expect(HTTP_STATUS.OK)
-		.execute();
-	const code = findLastTestEmail(await listTestEmails(harness), 'dsa_report_verification')?.metadata.code;
-	const {ticket} = await createBuilderWithoutAuth<{ticket: string}>(harness)
-		.post('/reports/dsa/email/verify')
-		.body({email, code})
-		.expect(HTTP_STATUS.OK)
-		.execute();
-	return ticket;
-}
-
-function submitDsa(harness: ApiTestHarness, ticket: string, world: World, messageId: string, extra = {}) {
-	return createBuilderWithoutAuth<ReportResponse>(harness)
-		.post('/reports/dsa')
-		.body({
-			ticket,
-			report_type: 'message',
-			message_link: `https://web.osaca.example/channels/${world.guildId}/${world.channelId}/${messageId}`,
-			revision_hash: currentHash('message', 'dsa'),
-			steps: HARASSMENT_WALK,
-			good_faith_confirmed: true,
-			additional_info: 'This message targets a member of the community.',
-			reporter_full_legal_name: 'Jane Doe',
-			reporter_country_of_residence: 'DE',
-			...extra,
-		});
 }
 
 const NO_WEBHOOK = {
@@ -375,34 +327,6 @@ describe('Reports of webhook and bot messages', () => {
 		}
 	});
 
-	test('the DSA form files user, bot and webhook messages from a message link', async () => {
-		const world = await setupWorld(harness);
-		for (const kind of KINDS) {
-			const result = await submitDsa(harness, await issueTicket(harness), world, world.messages[kind])
-				.expect(HTTP_STATUS.OK)
-				.execute();
-			const report = await expectStoredAuthor(result.report_id, world, kind);
-			expect(report.reporterId).toBeNull();
-			expect(report.category).toBe('harassment');
-			expect(report.flowSurface).toBe('dsa');
-		}
-	});
-
-	test('a DSA report naming a user tag for a webhook message is not found', async () => {
-		const world = await setupWorld(harness);
-		const ticket = await issueTicket(harness);
-		const {json} = await createBuilder<{username: string; discriminator: string}>(harness, world.author.token)
-			.get('/users/@me')
-			.executeWithResponse();
-		await submitDsa(harness, ticket, world, world.messages.webhook, {
-			reported_user_tag: `${json.username}#${json.discriminator}`,
-		})
-			.expect(HTTP_STATUS.NOT_FOUND, APIErrorCodes.UNKNOWN_MESSAGE)
-			.execute();
-		expect(await countReports()).toBe(0);
-		await submitDsa(harness, ticket, world, world.messages.webhook).expect(HTTP_STATUS.OK).execute();
-	});
-
 	test('the snapshot keeps the webhook message and its neighbors', async () => {
 		const world = await setupWorld(harness);
 		const result = await submitFlow(harness, world.reporter.token, world.channelId, world.messages.webhook)
@@ -518,9 +442,6 @@ describe('Reports of webhook and bot messages', () => {
 		const flow = await submitFlow(harness, world.reporter.token, world.channelId, messageId)
 			.expect(HTTP_STATUS.OK)
 			.execute();
-		const dsa = await submitDsa(harness, await issueTicket(harness), world, messageId)
-			.expect(HTTP_STATUS.OK)
-			.execute();
 		const expected = {
 			...NO_WEBHOOK,
 			reportedUserId: null,
@@ -533,7 +454,7 @@ describe('Reports of webhook and bot messages', () => {
 			reportedWebhookCreatedAt: webhookCreatedAt(orphan.id),
 			reportedWebhookCreatorId: world.author.userId,
 		};
-		for (const reportId of [flow.report_id, dsa.report_id]) {
+		for (const reportId of [flow.report_id]) {
 			expect(storedAuthor(await readReport(reportId))).toEqual(expected);
 		}
 		const admin = await createAdmin(harness);

@@ -18,12 +18,10 @@ export type DeveloperOptionsState = Readonly<{
 	forceUnknownMessageType: boolean;
 	selfHostedModeOverride: boolean;
 	forceShowVanityURLDisclaimer: boolean;
-	emailVerifiedOverride: boolean | null;
 	unclaimedAccountOverride: boolean | null;
 	mockVerificationBarrier:
 		| 'none'
 		| 'unclaimed_account'
-		| 'unverified_email'
 		| 'account_too_new'
 		| 'not_member_long'
 		| 'account_limited'
@@ -66,12 +64,10 @@ class DeveloperOptions implements DeveloperOptionsState {
 	forceUnknownMessageType = false;
 	selfHostedModeOverride = false;
 	forceShowVanityURLDisclaimer = false;
-	emailVerifiedOverride: boolean | null = null;
 	unclaimedAccountOverride: boolean | null = null;
 	mockVerificationBarrier:
 		| 'none'
 		| 'unclaimed_account'
-		| 'unverified_email'
 		| 'account_too_new'
 		| 'not_member_long'
 		| 'account_limited'
@@ -117,7 +113,6 @@ class DeveloperOptions implements DeveloperOptionsState {
 			'forceUnknownMessageType',
 			'selfHostedModeOverride',
 			'forceShowVanityURLDisclaimer',
-			'emailVerifiedOverride',
 			'unclaimedAccountOverride',
 			'mockVerificationBarrier',
 			'mockBarrierTimeRemaining',

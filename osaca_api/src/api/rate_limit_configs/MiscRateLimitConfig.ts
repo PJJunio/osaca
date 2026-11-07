@@ -24,10 +24,6 @@ export const MiscRateLimitConfigs = {
 		bucket: 'activity_pub:document',
 		config: {limit: 60, windowMs: ms('1 minute')},
 	} as RouteRateLimitConfig,
-	INSTANCE_SETUP_ACCOUNT_IDENTITY: {
-		bucket: 'instance:setup:account_identity',
-		config: {limit: 10, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
 	INSTANCE_SETUP_TOKEN_CHECK: {
 		bucket: 'instance:setup:token_check',
 		config: {limit: 10, windowMs: ms('1 minute')},
@@ -39,18 +35,6 @@ export const MiscRateLimitConfigs = {
 	REPORT_CREATE: {
 		bucket: 'report:create',
 		config: {limit: 10, windowMs: ms('1 hour')},
-	} as RouteRateLimitConfig,
-	DSA_REPORT_EMAIL_SEND: {
-		bucket: 'dsa:report:email:send',
-		config: {limit: 5, windowMs: ms('1 hour')},
-	} as RouteRateLimitConfig,
-	DSA_REPORT_EMAIL_VERIFY: {
-		bucket: 'dsa:report:email:verify',
-		config: {limit: 10, windowMs: ms('1 hour')},
-	} as RouteRateLimitConfig,
-	DSA_REPORT_CREATE: {
-		bucket: 'dsa:report:create',
-		config: {limit: 5, windowMs: ms('1 hour')},
 	} as RouteRateLimitConfig,
 	REPORT_LIST: {
 		bucket: 'report:list',

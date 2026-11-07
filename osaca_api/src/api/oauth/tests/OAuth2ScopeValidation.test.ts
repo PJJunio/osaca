@@ -64,7 +64,7 @@ describe('OAuth2 Scope Validation', () => {
 				response_type: 'code',
 				client_id: ADMIN_OAUTH2_APPLICATION_ID.toString(),
 				redirect_uri: adminRedirectUri,
-				scope: 'identify email admin',
+				scope: 'identify admin',
 				state: 'test-state',
 			})
 			.expect(HTTP_STATUS.BAD_REQUEST)
@@ -82,7 +82,7 @@ describe('OAuth2 Scope Validation', () => {
 				response_type: 'code',
 				client_id: ADMIN_OAUTH2_APPLICATION_ID.toString(),
 				redirect_uri: adminRedirectUri,
-				scope: 'identify email',
+				scope: 'identify',
 				state: 'test-state',
 			})
 			.expect(HTTP_STATUS.OK)

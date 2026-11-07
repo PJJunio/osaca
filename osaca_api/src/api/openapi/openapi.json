@@ -164,240 +164,6 @@
 				}
 			}
 		},
-		"/auth/authorize-ip": {
-			"post": {
-				"operationId": "authorize_ip_address",
-				"summary": "Authorize IP address",
-				"tags": ["Auth"],
-				"responses": {
-					"204": {"description": "No Content"},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Verify and authorize a new IP address using the confirmation code sent via email. Completes IP authorization flow.",
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/AuthorizeIpRequest"}}}
-				}
-			}
-		},
-		"/auth/email-code/send": {
-			"post": {
-				"operationId": "send_email_code",
-				"summary": "Send a sign-in or sign-up code",
-				"tags": ["Auth"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/EmailCodeSendResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Emails a 6-digit code for the address behind an identify ticket. The code signs in to an existing account without a password or creates a new one. An account with a password answers PASSWORD_SIGN_IN_REQUIRED and gets no email. Sign-ups always need a solved captcha challenge (X-Captcha-Token), and sign-ins need one after several codes for the same address. A bounced address answers the same and gets no email. On a new self-hosted instance it fails with SETUP_TOKEN_REQUIRED until the first admin account exists.",
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/EmailCodeSendRequest"}}}
-				}
-			}
-		},
-		"/auth/email-code/verify": {
-			"post": {
-				"operationId": "verify_email_code",
-				"summary": "Finish signing in or signing up with a code",
-				"tags": ["Auth"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/EmailCodeVerifyResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Checks the emailed code. For an existing account without a password this signs in, or returns an MFA ticket when the account has two-factor authentication. An account with a password answers PASSWORD_SIGN_IN_REQUIRED. When the code confirms an address that was not confirmed yet, it also ends every other session of the account, forgets its authorized IPs and revokes its OAuth2 grants. For a new address this creates the account with a confirmed email and signs in. Each code allows 5 tries. After many wrong codes for one address, or across the instance, it needs a solved captcha challenge (X-Captcha-Token).",
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/EmailCodeVerifyRequest"}}}
-				}
-			}
-		},
-		"/auth/email-revert": {
-			"post": {
-				"operationId": "revert_email_change",
-				"summary": "Revert email change",
-				"tags": ["Auth"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/AuthTokenWithUserIdResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Revert a pending email change using the verification token sent to the old email. Returns authentication token after successful revert.",
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/EmailRevertRequest"}}}
-				}
-			}
-		},
-		"/auth/forgot": {
-			"post": {
-				"operationId": "forgot_password",
-				"summary": "Forgot password",
-				"tags": ["Auth"],
-				"responses": {
-					"204": {"description": "No Content"},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Initiate password reset process by email. A password reset link will be sent to the user's email address. Requires a solved captcha challenge (X-Captcha-Token).",
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ForgotPasswordRequest"}}}
-				}
-			}
-		},
 		"/auth/handoff/complete": {
 			"post": {
 				"operationId": "complete_handoff",
@@ -764,152 +530,6 @@
 				}
 			}
 		},
-		"/auth/identify": {
-			"post": {
-				"operationId": "identify_account",
-				"summary": "Start signing in or signing up",
-				"tags": ["Auth"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/IdentifyResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Looks up whether an account uses this email address (or username on username instances) and returns a ticket for the next step. It says whether the account exists and whether it signs in with its password or with an email code. Answers take at least 300 ms. Heavy use from one network or for one address asks for a solved captcha challenge (X-Captcha-Token) whose cost grows with use.",
-				"requestBody": {
-					"required": false,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/IdentifyRequest"}}}
-				}
-			}
-		},
-		"/auth/ip-authorization/poll": {
-			"get": {
-				"operationId": "poll_ip_authorization",
-				"summary": "Poll IP authorization",
-				"tags": ["Auth"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/IpAuthorizationPollResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Poll the status of an IP authorization request. Use the ticket parameter to check if verification has been completed.",
-				"parameters": [
-					{
-						"name": "ticket",
-						"in": "query",
-						"required": true,
-						"schema": {"description": "The IP authorization ticket", "type": "string"},
-						"description": "The IP authorization ticket"
-					}
-				]
-			}
-		},
-		"/auth/ip-authorization/resend": {
-			"post": {
-				"operationId": "resend_ip_authorization",
-				"summary": "Resend IP authorization",
-				"tags": ["Auth"],
-				"responses": {
-					"204": {"description": "No Content"},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Request a new IP authorization verification code to be sent via email. Use if the original code was lost or expired.",
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/MfaTicketRequest"}}}
-				}
-			}
-		},
 		"/auth/login": {
 			"post": {
 				"operationId": "login_user",
@@ -951,7 +571,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Authenticate with a password and either email (or login on email instances) or login (a username on username instances). Returns authentication token if credentials are valid and MFA is not required. If MFA is enabled, returns a ticket for MFA verification. Requires a solved captcha challenge (X-Captcha-Token).",
+				"description": "Authenticate with a username (login) and password. Returns authentication token if credentials are valid and MFA is not required. If MFA is enabled, returns a ticket for MFA verification. Requires a solved captcha challenge (X-Captcha-Token).",
 				"requestBody": {
 					"required": true,
 					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/LoginRequest"}}}
@@ -1150,7 +770,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Invalidate the current authentication token and end the session. The auth token in the Authorization header will no longer be valid. A bot token has no session to end, so the call answers 204 and the token stays valid. Ending the last session of an account that cannot sign in again, because it has no email, password or passkey, schedules that account for deletion after 24 hours.",
+				"description": "Invalidate the current authentication token and end the session. The auth token in the Authorization header will no longer be valid. A bot token has no session to end, so the call answers 204 and the token stays valid. Ending the last session of an account that cannot sign in again, because it has no password, passkey or recovery kit, schedules that account for deletion after 24 hours.",
 				"security": [{"botToken": []}, {"sessionToken": []}]
 			}
 		},
@@ -1586,7 +1206,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Set a new password using the recovery key from a recovery kit. Only available on instances where people sign in with a username. Ends every session, replaces the recovery kit and returns the new recovery key. Returns an MFA ticket instead of a token when the account has two-factor authentication. Requires a solved captcha challenge (X-Captcha-Token).",
+				"description": "Set a new password using the recovery key from a recovery kit. Ends every session, replaces the recovery kit and returns the new recovery key. Returns an MFA ticket instead of a token when the account has two-factor authentication. Requires a solved captcha challenge (X-Captcha-Token).",
 				"requestBody": {
 					"required": true,
 					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/RecoverAccountRequest"}}}
@@ -1634,7 +1254,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Create a new user account. A body without an email and a password creates an account without an email from global_name: the username is derived from the display name and given a tag, and the account signs in on this device only until it is claimed (an email on email instances, a password on username instances). On email instances an email sent here is stored on the account and waits for confirmation. An address stored on another account, confirmed or not, answers EMAIL_ALREADY_IN_USE. Username instances take a username and password, and an email sent by an older client is discarded. The date of birth can be left out where the instance collects it, and the app then asks for it before anything else. Requires a solved captcha challenge (X-Captcha-Token), which costs more after recent sign-ups without an email from the same network.",
+				"description": "Create a new user account from a username and password. A body without a password creates an instant account from global_name: the username is derived from the display name, and the account signs in on this device only until it is claimed with a password. Requires a solved captcha challenge (X-Captcha-Token), which costs more after recent instant accounts from the same network.",
 				"requestBody": {
 					"required": false,
 					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/RegisterRequest"}}}
@@ -1730,7 +1350,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Returns the captcha challenge that creating an account without an email from the website needs right now for this visitor. Only the website server may call it."
+				"description": "Returns the captcha challenge that creating an instant account from the website needs right now for this visitor. Only the website server may call it."
 			}
 		},
 		"/auth/register/handoff/redeem": {
@@ -1822,7 +1442,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Complete the password reset flow using the token from the reset email. Returns authentication token after successful password reset.",
+				"description": "Complete the password reset flow using the token from a reset link issued by an administrator. Returns authentication token after successful password reset.",
 				"requestBody": {
 					"required": true,
 					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ResetPasswordRequest"}}}
@@ -1878,8 +1498,8 @@
 						"name": "token",
 						"in": "path",
 						"required": true,
-						"schema": {"description": "Password reset token from email", "type": "string"},
-						"description": "Password reset token from email"
+						"schema": {"description": "Password reset token from the reset link", "type": "string"},
+						"description": "Password reset token from the reset link"
 					}
 				]
 			}
@@ -2143,101 +1763,6 @@
 					"required": true,
 					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/UsernameSuggestionsRequest"}}}
 				}
-			}
-		},
-		"/auth/verify": {
-			"post": {
-				"operationId": "verify_email",
-				"summary": "Verify email",
-				"tags": ["Auth"],
-				"responses": {
-					"204": {"description": "No Content"},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Verify user email address using the code sent during registration. Email verification is required before the account becomes fully usable.",
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/VerifyEmailRequest"}}}
-				}
-			}
-		},
-		"/auth/verify/resend": {
-			"post": {
-				"operationId": "resend_verification_email",
-				"summary": "Resend verification email",
-				"tags": ["Auth"],
-				"responses": {
-					"204": {"description": "No Content"},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Request a new email verification code to be sent. Requires authentication. Use this if the original verification email was lost or expired.",
-				"security": [{"sessionToken": []}]
 			}
 		},
 		"/auth/webauthn/authenticate": {
@@ -4638,7 +4163,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Adds an emoji reaction to a message. Each user can react once with each emoji. Outside personal notes, needs an account with a confirmed email address. Returns 204 No Content on success.",
+				"description": "Adds an emoji reaction to a message. Each user can react once with each emoji. Outside personal notes, needs a claimed account. Returns 204 No Content on success.",
 				"security": [{"botToken": []}, {"sessionToken": []}],
 				"parameters": [
 					{
@@ -10953,7 +10478,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Streams a completed data harvest archive. Authorised by a signed, expiring token rather than a session, so the link works from the harvest completion email. Only active when presigned harvest downloads are disabled.",
+				"description": "Streams a completed data harvest archive. Authorised by a signed, expiring token rather than a session, so the link works outside the app. Only active when presigned harvest downloads are disabled.",
 				"parameters": [
 					{
 						"name": "harvestId",
@@ -11056,58 +10581,6 @@
 						"description": "The catalog version the client already holds. When it is the current version the response can be cached for a day"
 					}
 				]
-			}
-		},
-		"/instance/setup/account-identity": {
-			"put": {
-				"operationId": "set_instance_account_identity",
-				"summary": "Choose the sign-in method for a new instance",
-				"tags": ["Instance"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {
-							"application/json": {"schema": {"$ref": "#/components/schemas/InstanceAccountIdentityResponse"}}
-						}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Sets how people sign in on a new self-hosted instance, and for email sign-in whether usernames are unique with no tag. Username sign-in always uses unique usernames. It works only before setup is finished and before the first account exists. After that it fails with ACCOUNT_IDENTITY_LOCKED. While the instance requires a setup token, the request must send it as setup_token.",
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {"schema": {"$ref": "#/components/schemas/InstanceAccountIdentityUpdateRequest"}}
-					}
-				}
 			}
 		},
 		"/instance/setup/token-checks": {
@@ -12405,7 +11878,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Retrieves authenticated user information using a valid access token. Requires identify scope and supports email scope for email fields.",
+				"description": "Retrieves authenticated user information using a valid access token. Requires identify scope.",
 				"security": [{"oauth2Token": ["identify"]}]
 			}
 		},
@@ -12517,154 +11990,6 @@
 				"requestBody": {
 					"required": true,
 					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ReadStateAckBulkRequest"}}}
-				}
-			}
-		},
-		"/reports/dsa": {
-			"post": {
-				"operationId": "create_dsa_report",
-				"summary": "Create DSA report",
-				"tags": ["Reports"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ReportResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Creates a DSA complaint report with verified email for Digital Services Act compliance. The reason comes from the answers given in the DSA report flow.",
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/DsaReportFlowRequest"}}}
-				}
-			}
-		},
-		"/reports/dsa/email/send": {
-			"post": {
-				"operationId": "send_dsa_report_email",
-				"summary": "Send DSA report email",
-				"tags": ["Reports"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/OkResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"503": {
-						"description": "Service Unavailable - The request could not be completed right now",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Initiates DSA (Digital Services Act) report submission by sending verification email to reporter. Responds with 503 when the email could not be sent.",
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/DsaReportEmailSendRequest"}}}
-				}
-			}
-		},
-		"/reports/dsa/email/verify": {
-			"post": {
-				"operationId": "verify_dsa_report_email",
-				"summary": "Verify DSA report email",
-				"tags": ["Reports"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/TicketResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Verifies the DSA report email and creates a report ticket for legal compliance.",
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/DsaReportEmailVerifyRequest"}}}
 				}
 			}
 		},
@@ -13522,7 +12847,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Retrieves the current authenticated user's profile information, including account details and settings. OAuth2 bearer tokens require identify scope, and email is returned only when the email scope is also present. Bearer tokens receive a reduced response with only identity and profile fields. Session and bot tokens return the full user object with all private fields.",
+				"description": "Retrieves the current authenticated user's profile information, including account details and settings. OAuth2 bearer tokens require identify scope. Bearer tokens receive a reduced response with only identity and profile fields. Session and bot tokens return the full user object with all private fields.",
 				"security": [{"botToken": []}, {"oauth2Token": ["identify"]}, {"sessionToken": []}]
 			},
 			"patch": {
@@ -14020,10 +13345,10 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Claims an account created without credentials. On email instances it adds an email address, and optionally a password. When the instance sends email, the address is stored at once and waits for confirmation with the emailed code, and next_step is confirm_email. When it does not, the account needs a password or an existing passkey, and next_step is none. An address stored on another account, confirmed or not, answers EMAIL_ALREADY_IN_USE. On username instances it sets a password, and next_step is none.",
+				"description": "Claims an account created without credentials by setting a password, so it can sign in from other devices.",
 				"security": [{"sessionToken": []}],
 				"requestBody": {
-					"required": false,
+					"required": true,
 					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ClaimAccountRequest"}}}
 				}
 			}
@@ -14544,683 +13869,6 @@
 					"required": false,
 					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/SudoVerificationSchema"}}}
 				}
-			}
-		},
-		"/users/@me/email-change/apply": {
-			"post": {
-				"operationId": "apply_email_change",
-				"summary": "Apply a verified email change",
-				"tags": ["Users"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/UserPrivateResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Applies a previously verified email_token to the current user's account. Requires sudo mode verification (password for users without MFA, MFA proof for users with MFA). Returns the updated private user object. This is a dedicated alternative to PATCH /users/@me that cannot accidentally drag in unrelated profile edits.",
-				"security": [{"sessionToken": []}],
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/EmailChangeApplyRequest"}}}
-				}
-			}
-		},
-		"/users/@me/email-change/bounced/request-new": {
-			"post": {
-				"operationId": "request_bounced_email_replacement",
-				"summary": "Request replacement email for bounced address",
-				"tags": ["Users"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/EmailChangeRequestNewResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Starts a dedicated bounced-email recovery flow. Sends a verification code to the replacement email without requiring verification of the old bounced email address.",
-				"security": [{"sessionToken": []}],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {"schema": {"$ref": "#/components/schemas/EmailChangeBouncedRequestNewRequest"}}
-					}
-				}
-			}
-		},
-		"/users/@me/email-change/bounced/resend-new": {
-			"post": {
-				"operationId": "resend_bounced_email_replacement_code",
-				"summary": "Resend replacement email code",
-				"tags": ["Users"],
-				"responses": {
-					"204": {"description": "No Content"},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Resends the verification code for the bounced-email recovery flow to the replacement email address.",
-				"security": [{"sessionToken": []}],
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/EmailChangeTicketRequest"}}}
-				}
-			}
-		},
-		"/users/@me/email-change/bounced/verify-new": {
-			"post": {
-				"operationId": "verify_bounced_email_replacement",
-				"summary": "Verify replacement email for bounced address",
-				"tags": ["Users"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/UserPrivateResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Completes bounced-email recovery by verifying the replacement email code, and updating the account email.",
-				"security": [{"sessionToken": []}],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {"schema": {"$ref": "#/components/schemas/EmailChangeBouncedVerifyNewRequest"}}
-					}
-				}
-			}
-		},
-		"/users/@me/email-change/request-new": {
-			"post": {
-				"operationId": "request_new_email_address",
-				"summary": "Request new email address",
-				"tags": ["Users"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/EmailChangeRequestNewResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Requests to change email to a new address. Requires proof of original email verification. Sends confirmation code to new email address for verification.",
-				"security": [{"sessionToken": []}],
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/EmailChangeRequestNewRequest"}}}
-				}
-			}
-		},
-		"/users/@me/email-change/resend-new": {
-			"post": {
-				"operationId": "resend_new_email_confirmation",
-				"summary": "Resend new email confirmation",
-				"tags": ["Users"],
-				"responses": {
-					"204": {"description": "No Content"},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Resends a confirmation code to the new email address during the email change process. Use this if the new email confirmation was not received. Requires valid email change ticket.",
-				"security": [{"sessionToken": []}],
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/EmailChangeTicketRequest"}}}
-				}
-			}
-		},
-		"/users/@me/email-change/resend-original": {
-			"post": {
-				"operationId": "resend_original_email_confirmation",
-				"summary": "Resend original email confirmation",
-				"tags": ["Users"],
-				"responses": {
-					"204": {"description": "No Content"},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Resends a confirmation code to the user's original email address during the email change process. Use this if the original confirmation email was not received. Requires valid email change ticket.",
-				"security": [{"sessionToken": []}],
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/EmailChangeTicketRequest"}}}
-				}
-			}
-		},
-		"/users/@me/email-change/start": {
-			"post": {
-				"operationId": "start_email_change",
-				"summary": "Start email change",
-				"tags": ["Users"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/EmailChangeStartResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Initiates an email change process. Generates a ticket for verifying the original email address before requesting a new email. Returns ticket for use in subsequent email change steps.",
-				"security": [{"sessionToken": []}],
-				"requestBody": {
-					"required": false,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/EmptyBodyRequest"}}}
-				}
-			}
-		},
-		"/users/@me/email-change/verify-new": {
-			"post": {
-				"operationId": "verify_new_email_address",
-				"summary": "Verify new email address",
-				"tags": ["Users"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/EmailTokenResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Completes the email change process by verifying the new email address with a confirmation code. Returns an email token that confirms the email change. After this step, the user may need to re-authenticate.",
-				"security": [{"sessionToken": []}],
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/EmailChangeVerifyNewRequest"}}}
-				}
-			}
-		},
-		"/users/@me/email-change/verify-original": {
-			"post": {
-				"operationId": "verify_original_email_address",
-				"summary": "Verify original email address",
-				"tags": ["Users"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {
-							"application/json": {"schema": {"$ref": "#/components/schemas/EmailChangeVerifyOriginalResponse"}}
-						}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Verifies ownership of the original email address by validating a confirmation code sent to that address. Must be completed before requesting a new email address. Returns proof token for use in new email request.",
-				"security": [{"sessionToken": []}],
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/EmailChangeVerifyOriginalRequest"}}}
-				}
-			}
-		},
-		"/users/@me/email-verification/confirm": {
-			"post": {
-				"operationId": "confirm_email_verification",
-				"summary": "Confirm the email address with a code",
-				"tags": ["Users"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/UserPrivateResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Confirms the email address with the emailed code.",
-				"security": [{"sessionToken": []}],
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/EmailVerificationConfirmRequest"}}}
-				}
-			}
-		},
-		"/users/@me/email-verification/send": {
-			"post": {
-				"operationId": "send_email_verification_code",
-				"summary": "Send an email confirmation code",
-				"tags": ["Users"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/EmailVerificationCodeResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Emails a 6-digit code to confirm the email address on the account.",
-				"security": [{"sessionToken": []}]
 			}
 		},
 		"/users/@me/entrance-sound-selections": {
@@ -16861,7 +15509,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Immediately deletes messages the caller has authored, subject to optional date-range and per-context filters (DMs, group DMs, guilds, with optional guild exclusions; or an inaccessible-only mode for contexts the caller is no longer a member of). Requires sudo mode verification. The deletion runs asynchronously. When it completes, the caller gets the totals in a system DM, or by email when the instance has direct messages turned off and sends email.",
+				"description": "Immediately deletes messages the caller has authored, subject to optional date-range and per-context filters (DMs, group DMs, guilds, with optional guild exclusions; or an inaccessible-only mode for contexts the caller is no longer a member of). Requires sudo mode verification. The deletion runs asynchronously. When it completes, the caller gets the totals in a system DM unless the instance has direct messages turned off.",
 				"security": [{"sessionToken": []}],
 				"requestBody": {
 					"required": false,
@@ -17028,241 +15676,6 @@
 				"requestBody": {
 					"required": true,
 					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/MfaBackupCodesRequest"}}}
-				}
-			}
-		},
-		"/users/@me/mfa/backup-codes/challenge": {
-			"post": {
-				"operationId": "start_backup_codes_challenge",
-				"summary": "Start backup codes challenge",
-				"tags": ["Users"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {
-							"application/json": {"schema": {"$ref": "#/components/schemas/MfaBackupCodesChallengeStartResponse"}}
-						}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Initiates the challenge required to view existing backup codes. Sends a verification code to the user's email address. Returns a ticket for use in the remaining challenge steps.",
-				"security": [{"sessionToken": []}],
-				"requestBody": {
-					"required": false,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/EmptyBodyRequest"}}}
-				}
-			}
-		},
-		"/users/@me/mfa/backup-codes/challenge/regenerate": {
-			"post": {
-				"operationId": "regenerate_backup_codes_challenge",
-				"summary": "Regenerate backup codes with a verified challenge",
-				"tags": ["Users"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/MfaBackupCodesResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Replaces the account backup codes using the proof token from a verified backup codes challenge. Old codes are invalidated.",
-				"security": [{"sessionToken": []}],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {"schema": {"$ref": "#/components/schemas/MfaBackupCodesChallengeRegenerateRequest"}}
-					}
-				}
-			}
-		},
-		"/users/@me/mfa/backup-codes/challenge/resend": {
-			"post": {
-				"operationId": "resend_backup_codes_challenge",
-				"summary": "Resend backup codes challenge code",
-				"tags": ["Users"],
-				"responses": {
-					"204": {"description": "No Content"},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Resends the verification code for a backup codes challenge. Use if the original code was not received. Requires a valid backup codes challenge ticket.",
-				"security": [{"sessionToken": []}],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {"schema": {"$ref": "#/components/schemas/MfaBackupCodesChallengeResendRequest"}}
-					}
-				}
-			}
-		},
-		"/users/@me/mfa/backup-codes/challenge/verify": {
-			"post": {
-				"operationId": "verify_backup_codes_challenge",
-				"summary": "Verify backup codes challenge code",
-				"tags": ["Users"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {
-							"application/json": {"schema": {"$ref": "#/components/schemas/MfaBackupCodesChallengeVerifyResponse"}}
-						}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Verifies the email code sent during a backup codes challenge and returns the existing backup codes along with a proof token. The code is consumed on success and the proof token authorizes regeneration on the same ticket.",
-				"security": [{"sessionToken": []}],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {"schema": {"$ref": "#/components/schemas/MfaBackupCodesChallengeVerifyRequest"}}
-					}
 				}
 			}
 		},
@@ -17870,7 +16283,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Choose whether registered passkeys are required as a second factor when signing in with email and password. Enabling requires at least one registered credential and mints backup codes when the account has none. Requires sudo mode verification.",
+				"description": "Choose whether registered passkeys are required as a second factor when signing in with a password. Enabling requires at least one registered credential and mints backup codes when the account has none. Requires sudo mode verification.",
 				"security": [{"sessionToken": []}],
 				"requestBody": {
 					"required": true,
@@ -18459,236 +16872,11 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Changes the password on instances where people sign in with a username. Requires sudo mode verification. Ends every other session, deletes the recovery kit and returns a token for a new session that replaces the current one. Fails with USERNAME_SIGN_IN_ONLY on email instances.",
+				"description": "Changes the password. Requires sudo mode verification. Ends every other session, deletes the recovery kit and returns a token for a new session that replaces the current one.",
 				"security": [{"sessionToken": []}],
 				"requestBody": {
 					"required": true,
 					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/UserPasswordUpdateRequest"}}}
-				}
-			}
-		},
-		"/users/@me/password-change/complete": {
-			"post": {
-				"operationId": "complete_password_change",
-				"summary": "Complete password change",
-				"tags": ["Users"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/PasswordChangeCompleteResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Completes the password change after email verification. Requires the verification proof and new password, and sudo mode verification with the second factor when the account has two-factor authentication. Invalidates all existing sessions and returns the replacement session token.",
-				"security": [{"sessionToken": []}],
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/PasswordChangeCompleteRequest"}}}
-				}
-			}
-		},
-		"/users/@me/password-change/resend": {
-			"post": {
-				"operationId": "resend_password_change_code",
-				"summary": "Resend password change verification code",
-				"tags": ["Users"],
-				"responses": {
-					"204": {"description": "No Content"},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Resends the verification code for a password change. Use if the original code was not received. Requires a valid password change ticket.",
-				"security": [{"sessionToken": []}],
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/PasswordChangeTicketRequest"}}}
-				}
-			}
-		},
-		"/users/@me/password-change/start": {
-			"post": {
-				"operationId": "start_password_change",
-				"summary": "Start password change",
-				"tags": ["Users"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/PasswordChangeStartResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Initiates a password change process. Sends a verification code to the user's email address. Returns a ticket for use in subsequent password change steps.",
-				"security": [{"sessionToken": []}],
-				"requestBody": {
-					"required": false,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/EmptyBodyRequest"}}}
-				}
-			}
-		},
-		"/users/@me/password-change/verify": {
-			"post": {
-				"operationId": "verify_password_change_code",
-				"summary": "Verify password change code",
-				"tags": ["Users"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/PasswordChangeVerifyResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Verifies the email code sent during password change. Returns a proof token needed to complete the password change.",
-				"security": [{"sessionToken": []}],
-				"requestBody": {
-					"required": true,
-					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/PasswordChangeVerifyRequest"}}}
 				}
 			}
 		},
@@ -19084,7 +17272,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Check whether the current account has a recovery kit and when it was created. Only available on instances where people sign in with a username. The recovery key itself is never returned here.",
+				"description": "Check whether the current account has a recovery kit and when it was created.. The recovery key itself is never returned here.",
 				"security": [{"sessionToken": []}]
 			},
 			"post": {
@@ -19135,7 +17323,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Create a recovery kit for the current account and return its recovery key. The key is shown only once and any previous kit stops working. Only available on instances where people sign in with a username. Requires sudo mode verification.",
+				"description": "Create a recovery kit for the current account and return its recovery key. The key is shown only once and any previous kit stops working.. Requires sudo mode verification.",
 				"security": [{"sessionToken": []}],
 				"requestBody": {
 					"required": false,
@@ -19915,59 +18103,6 @@
 						"application/json": {"schema": {"$ref": "#/components/schemas/VoiceActivitySharingUpdateRequest"}}
 					}
 				}
-			}
-		},
-		"/users/@me/sudo/email-code": {
-			"post": {
-				"operationId": "send_sudo_email_code",
-				"summary": "Send a code to confirm it is you",
-				"tags": ["Users"],
-				"responses": {
-					"200": {
-						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/SudoEmailCodeResponse"}}}
-					},
-					"400": {
-						"description": "Bad Request - The request was malformed or contained invalid data",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"401": {
-						"description": "Unauthorized - Authentication is required or the token is invalid",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"403": {
-						"description": "Forbidden - You do not have permission to perform this action",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					},
-					"429": {
-						"description": "Too Many Requests - You are being rate limited",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/ThrottledError"}}},
-						"headers": {
-							"Retry-After": {
-								"description": "Number of seconds to wait before retrying (only on 429)",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Limit": {
-								"description": "The number of requests that can be made in the current window",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Remaining": {
-								"description": "The number of remaining requests that can be made",
-								"schema": {"type": "integer"}
-							},
-							"X-RateLimit-Reset": {
-								"description": "Unix timestamp when the rate limit resets",
-								"schema": {"type": "integer"}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error - An unexpected error occurred",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
-					}
-				},
-				"description": "Emails a 6-digit code to the confirmed address, for accounts without two-factor authentication. Accounts with two-factor authentication get 400 SUDO_SECOND_FACTOR_REQUIRED and confirm with that factor instead. Send it back with mfa_method email_code, email_code_ticket and email_code to enter sudo mode.",
-				"security": [{"sessionToken": []}]
 			}
 		},
 		"/users/@me/sudo/mfa-methods": {
@@ -23685,11 +21820,6 @@
 						"items": {"type": "string"},
 						"description": "Special traits assigned to the user account"
 					},
-					"email": {"description": "The email address associated with the account", "type": ["string", "null"]},
-					"email_bounced": {
-						"description": "Whether the current email address is marked as bounced by the mail provider",
-						"type": "boolean"
-					},
 					"has_verified_phone": {"type": "boolean", "description": "Deprecated. Always false."},
 					"bio": {"description": "The user biography text", "type": ["string", "null"]},
 					"pronouns": {"description": "The preferred pronouns of the user", "type": ["string", "null"]},
@@ -23710,7 +21840,6 @@
 						"type": "array",
 						"items": {"$ref": "#/components/schemas/UserAuthenticatorTypes"}
 					},
-					"verified": {"type": "boolean", "description": "Whether the email address has been verified"},
 					"account_limited": {"description": "Whether the account is limited", "type": "boolean"},
 					"hidden_profile_badges": {
 						"type": "array",
@@ -23769,11 +21898,11 @@
 						"type": ["string", "null"]
 					},
 					"claimed": {
-						"description": "Whether the account can be signed in to again from another device: an email on instances that sign in with an email, a password otherwise",
+						"description": "Whether the account can be signed in to again from another device, because it has a password or passkey",
 						"type": "boolean"
 					},
 					"account_tier": {
-						"description": "How far the account has got with setting up a way to sign in. Clients that do not get it derive it from claimed and verified",
+						"description": "How far the account has got with setting up a way to sign in. Clients that do not get it derive it from claimed",
 						"$ref": "#/components/schemas/AccountTierSchema"
 					},
 					"verification_need": {
@@ -23782,7 +21911,7 @@
 					},
 					"has_password": {"description": "Whether the account has a password", "type": "boolean"},
 					"profile_restricted": {
-						"description": "Whether other people see only the username and tag of this account until it has a confirmed email address",
+						"description": "Whether other people see only the username of this account until it has a password or passkey",
 						"type": "boolean"
 					}
 				},
@@ -23797,7 +21926,6 @@
 					"is_staff",
 					"acls",
 					"traits",
-					"email",
 					"has_verified_phone",
 					"bio",
 					"pronouns",
@@ -23805,7 +21933,6 @@
 					"banner",
 					"banner_color",
 					"mfa_enabled",
-					"verified",
 					"hidden_profile_badges",
 					"password_last_changed_at",
 					"last_voice_activity_sharing_change_at",
@@ -23836,33 +21963,9 @@
 						"description": "Whether the account has at least one unconsumed backup code"
 					},
 					"has_mfa": {"type": "boolean", "description": "Whether the account can satisfy a sudo mode challenge"},
-					"email_code": {
-						"description": "Whether a code sent to the confirmed email address can verify the account, for accounts without MFA",
-						"type": "boolean"
-					},
 					"password": {"description": "Whether the account password can verify the account", "type": "boolean"}
 				},
 				"required": ["totp", "webauthn", "backup_codes", "has_mfa"],
-				"additionalProperties": false
-			},
-			"SudoEmailCodeResponse": {
-				"type": "object",
-				"properties": {
-					"ticket": {"type": "string", "description": "Ticket to send back with the code in mfa_method email_code"},
-					"code_expires_at": {
-						"type": "string",
-						"format": "date-time",
-						"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
-						"description": "When the emailed code stops working"
-					},
-					"resend_available_at": {
-						"type": "string",
-						"format": "date-time",
-						"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
-						"description": "When another code can be requested"
-					}
-				},
-				"required": ["ticket", "code_expires_at", "resend_available_at"],
 				"additionalProperties": false
 			},
 			"VoiceActivitySharingUpdateRequest": {
@@ -24375,24 +22478,15 @@
 					},
 					"mfa_method": {
 						"description": "MFA method to use for verification",
-						"x-enumNames": ["TOTP", "WebAuthn", "Email code"],
+						"x-enumNames": ["TOTP", "WebAuthn"],
 						"x-enumDescriptions": [
 							"Time-based one-time password authentication via authenticator app",
-							"Security key or biometric authentication",
-							"A 6-digit code sent to the account email address"
+							"Security key or biometric authentication"
 						],
-						"enum": ["totp", "webauthn", "email_code"],
+						"enum": ["totp", "webauthn"],
 						"type": "string"
 					},
 					"mfa_code": {"description": "MFA verification code from an authenticator app", "type": "string"},
-					"email_code_ticket": {
-						"description": "Ticket from POST /users/@me/sudo/email-code, sent with mfa_method email_code",
-						"type": "string"
-					},
-					"email_code": {
-						"description": "The 6-digit code from the email, sent with mfa_method email_code",
-						"type": "string"
-					},
 					"webauthn_response": {
 						"description": "WebAuthn authentication response",
 						"$ref": "#/components/schemas/WebAuthnAuthenticationResponse"
@@ -24551,90 +22645,6 @@
 				"additionalProperties": {"anyOf": [{"$ref": "#/components/schemas/MessageResponseSchema"}, {"type": "null"}]},
 				"description": "A map of channel IDs to the latest message in each channel"
 			},
-			"PasswordChangeVerifyRequest": {
-				"type": "object",
-				"properties": {
-					"ticket": {"description": "Password change ticket identifier", "type": "string"},
-					"code": {"description": "Verification code sent to the email address", "type": "string"}
-				},
-				"required": ["ticket", "code"]
-			},
-			"PasswordChangeVerifyResponse": {
-				"type": "object",
-				"properties": {
-					"verification_proof": {"type": "string", "description": "Proof token issued after verifying the email code"}
-				},
-				"required": ["verification_proof"],
-				"additionalProperties": false
-			},
-			"PasswordChangeStartResponse": {
-				"type": "object",
-				"properties": {
-					"ticket": {"type": "string", "description": "Ticket for password change actions"},
-					"code_expires_at": {"type": "string", "description": "ISO8601 timestamp when the verification code expires"},
-					"resend_available_at": {
-						"description": "ISO8601 timestamp when the code can be resent",
-						"type": ["string", "null"]
-					}
-				},
-				"required": ["ticket", "code_expires_at", "resend_available_at"],
-				"additionalProperties": false
-			},
-			"PasswordChangeTicketRequest": {
-				"type": "object",
-				"properties": {"ticket": {"description": "Password change ticket identifier", "type": "string"}},
-				"required": ["ticket"]
-			},
-			"PasswordChangeCompleteRequest": {
-				"type": "object",
-				"properties": {
-					"ticket": {"description": "Password change ticket identifier", "type": "string"},
-					"verification_proof": {"description": "Proof token obtained from verifying the email code", "type": "string"},
-					"new_password": {"description": "The new password to set", "$ref": "#/components/schemas/PasswordType"},
-					"password": {
-						"description": "Account password for sudo verification",
-						"$ref": "#/components/schemas/PasswordType"
-					},
-					"mfa_method": {
-						"description": "MFA method to use for verification",
-						"x-enumNames": ["TOTP", "WebAuthn", "Email code"],
-						"x-enumDescriptions": [
-							"Time-based one-time password authentication via authenticator app",
-							"Security key or biometric authentication",
-							"A 6-digit code sent to the account email address"
-						],
-						"enum": ["totp", "webauthn", "email_code"],
-						"type": "string"
-					},
-					"mfa_code": {"description": "MFA verification code from an authenticator app", "type": "string"},
-					"email_code_ticket": {
-						"description": "Ticket from POST /users/@me/sudo/email-code, sent with mfa_method email_code",
-						"type": "string"
-					},
-					"email_code": {
-						"description": "The 6-digit code from the email, sent with mfa_method email_code",
-						"type": "string"
-					},
-					"webauthn_response": {
-						"description": "WebAuthn authentication response",
-						"$ref": "#/components/schemas/WebAuthnAuthenticationResponse"
-					},
-					"webauthn_challenge": {"description": "WebAuthn challenge string", "type": "string"}
-				},
-				"required": ["ticket", "verification_proof", "new_password"]
-			},
-			"PasswordChangeCompleteResponse": {
-				"type": "object",
-				"properties": {
-					"token": {"type": "string", "description": "Authentication token for the newly created session"},
-					"auth_session_id_hash": {
-						"type": "string",
-						"description": "Base64url-encoded hash of the newly created authentication session"
-					}
-				},
-				"required": ["token", "auth_session_id_hash"],
-				"additionalProperties": false
-			},
 			"UserPasswordUpdateRequest": {
 				"type": "object",
 				"properties": {
@@ -24645,24 +22655,15 @@
 					},
 					"mfa_method": {
 						"description": "MFA method to use for verification",
-						"x-enumNames": ["TOTP", "WebAuthn", "Email code"],
+						"x-enumNames": ["TOTP", "WebAuthn"],
 						"x-enumDescriptions": [
 							"Time-based one-time password authentication via authenticator app",
-							"Security key or biometric authentication",
-							"A 6-digit code sent to the account email address"
+							"Security key or biometric authentication"
 						],
-						"enum": ["totp", "webauthn", "email_code"],
+						"enum": ["totp", "webauthn"],
 						"type": "string"
 					},
 					"mfa_code": {"description": "MFA verification code from an authenticator app", "type": "string"},
-					"email_code_ticket": {
-						"description": "Ticket from POST /users/@me/sudo/email-code, sent with mfa_method email_code",
-						"type": "string"
-					},
-					"email_code": {
-						"description": "The 6-digit code from the email, sent with mfa_method email_code",
-						"type": "string"
-					},
 					"webauthn_response": {
 						"description": "WebAuthn authentication response",
 						"$ref": "#/components/schemas/WebAuthnAuthenticationResponse"
@@ -24884,24 +22885,15 @@
 					},
 					"mfa_method": {
 						"description": "MFA method to use for verification",
-						"x-enumNames": ["TOTP", "WebAuthn", "Email code"],
+						"x-enumNames": ["TOTP", "WebAuthn"],
 						"x-enumDescriptions": [
 							"Time-based one-time password authentication via authenticator app",
-							"Security key or biometric authentication",
-							"A 6-digit code sent to the account email address"
+							"Security key or biometric authentication"
 						],
-						"enum": ["totp", "webauthn", "email_code"],
+						"enum": ["totp", "webauthn"],
 						"type": "string"
 					},
 					"mfa_code": {"description": "MFA verification code from an authenticator app", "type": "string"},
-					"email_code_ticket": {
-						"description": "Ticket from POST /users/@me/sudo/email-code, sent with mfa_method email_code",
-						"type": "string"
-					},
-					"email_code": {
-						"description": "The 6-digit code from the email, sent with mfa_method email_code",
-						"type": "string"
-					},
 					"webauthn_response": {
 						"description": "WebAuthn authentication response",
 						"$ref": "#/components/schemas/WebAuthnAuthenticationResponse"
@@ -24980,24 +22972,15 @@
 					},
 					"mfa_method": {
 						"description": "MFA method to use for verification",
-						"x-enumNames": ["TOTP", "WebAuthn", "Email code"],
+						"x-enumNames": ["TOTP", "WebAuthn"],
 						"x-enumDescriptions": [
 							"Time-based one-time password authentication via authenticator app",
-							"Security key or biometric authentication",
-							"A 6-digit code sent to the account email address"
+							"Security key or biometric authentication"
 						],
-						"enum": ["totp", "webauthn", "email_code"],
+						"enum": ["totp", "webauthn"],
 						"type": "string"
 					},
 					"mfa_code": {"description": "MFA verification code from an authenticator app", "type": "string"},
-					"email_code_ticket": {
-						"description": "Ticket from POST /users/@me/sudo/email-code, sent with mfa_method email_code",
-						"type": "string"
-					},
-					"email_code": {
-						"description": "The 6-digit code from the email, sent with mfa_method email_code",
-						"type": "string"
-					},
 					"webauthn_response": {
 						"description": "WebAuthn authentication response",
 						"$ref": "#/components/schemas/WebAuthnAuthenticationResponse"
@@ -25033,24 +23016,15 @@
 					},
 					"mfa_method": {
 						"description": "MFA method to use for verification",
-						"x-enumNames": ["TOTP", "WebAuthn", "Email code"],
+						"x-enumNames": ["TOTP", "WebAuthn"],
 						"x-enumDescriptions": [
 							"Time-based one-time password authentication via authenticator app",
-							"Security key or biometric authentication",
-							"A 6-digit code sent to the account email address"
+							"Security key or biometric authentication"
 						],
-						"enum": ["totp", "webauthn", "email_code"],
+						"enum": ["totp", "webauthn"],
 						"type": "string"
 					},
 					"mfa_code": {"description": "MFA verification code from an authenticator app", "type": "string"},
-					"email_code_ticket": {
-						"description": "Ticket from POST /users/@me/sudo/email-code, sent with mfa_method email_code",
-						"type": "string"
-					},
-					"email_code": {
-						"description": "The 6-digit code from the email, sent with mfa_method email_code",
-						"type": "string"
-					},
 					"webauthn_response": {
 						"description": "WebAuthn authentication response",
 						"$ref": "#/components/schemas/WebAuthnAuthenticationResponse"
@@ -25089,24 +23063,15 @@
 					},
 					"mfa_method": {
 						"description": "MFA method to use for verification",
-						"x-enumNames": ["TOTP", "WebAuthn", "Email code"],
+						"x-enumNames": ["TOTP", "WebAuthn"],
 						"x-enumDescriptions": [
 							"Time-based one-time password authentication via authenticator app",
-							"Security key or biometric authentication",
-							"A 6-digit code sent to the account email address"
+							"Security key or biometric authentication"
 						],
-						"enum": ["totp", "webauthn", "email_code"],
+						"enum": ["totp", "webauthn"],
 						"type": "string"
 					},
 					"mfa_code": {"description": "MFA verification code from an authenticator app", "type": "string"},
-					"email_code_ticket": {
-						"description": "Ticket from POST /users/@me/sudo/email-code, sent with mfa_method email_code",
-						"type": "string"
-					},
-					"email_code": {
-						"description": "The 6-digit code from the email, sent with mfa_method email_code",
-						"type": "string"
-					},
 					"webauthn_response": {
 						"description": "WebAuthn authentication response",
 						"$ref": "#/components/schemas/WebAuthnAuthenticationResponse"
@@ -25114,61 +23079,6 @@
 					"webauthn_challenge": {"description": "WebAuthn challenge string", "type": "string"}
 				},
 				"required": ["code"]
-			},
-			"MfaBackupCodesChallengeVerifyRequest": {
-				"type": "object",
-				"properties": {
-					"ticket": {"description": "Backup codes challenge ticket identifier", "type": "string"},
-					"code": {"description": "Verification code sent to the email address", "type": "string"}
-				},
-				"required": ["ticket", "code"]
-			},
-			"MfaBackupCodesChallengeVerifyResponse": {
-				"type": "object",
-				"properties": {
-					"backup_codes": {
-						"type": "array",
-						"items": {
-							"type": "object",
-							"properties": {
-								"code": {"type": "string", "description": "The backup code"},
-								"consumed": {"type": "boolean", "description": "Whether the code has been used"}
-							},
-							"required": ["code", "consumed"],
-							"additionalProperties": false
-						},
-						"description": "List of backup codes"
-					},
-					"verification_proof": {
-						"type": "string",
-						"description": "Proof token authorizing backup code regeneration on this ticket"
-					}
-				},
-				"required": ["backup_codes", "verification_proof"],
-				"additionalProperties": false
-			},
-			"MfaBackupCodesChallengeResendRequest": {
-				"type": "object",
-				"properties": {"ticket": {"description": "Backup codes challenge ticket identifier", "type": "string"}},
-				"required": ["ticket"]
-			},
-			"MfaBackupCodesChallengeRegenerateRequest": {
-				"type": "object",
-				"properties": {
-					"ticket": {"description": "Backup codes challenge ticket identifier", "type": "string"},
-					"verification_proof": {"description": "Proof token obtained from verifying the email code", "type": "string"}
-				},
-				"required": ["ticket", "verification_proof"]
-			},
-			"MfaBackupCodesChallengeStartResponse": {
-				"type": "object",
-				"properties": {
-					"ticket": {"type": "string", "description": "Ticket for backup codes challenge actions"},
-					"code_expires_at": {"type": "string", "description": "ISO8601 timestamp when the verification code expires"},
-					"resend_available_at": {"type": "string", "description": "ISO8601 timestamp when the code can be resent"}
-				},
-				"required": ["ticket", "code_expires_at", "resend_available_at"],
-				"additionalProperties": false
 			},
 			"MfaBackupCodesRequest": {
 				"type": "object",
@@ -25180,24 +23090,15 @@
 					},
 					"mfa_method": {
 						"description": "MFA method to use for verification",
-						"x-enumNames": ["TOTP", "WebAuthn", "Email code"],
+						"x-enumNames": ["TOTP", "WebAuthn"],
 						"x-enumDescriptions": [
 							"Time-based one-time password authentication via authenticator app",
-							"Security key or biometric authentication",
-							"A 6-digit code sent to the account email address"
+							"Security key or biometric authentication"
 						],
-						"enum": ["totp", "webauthn", "email_code"],
+						"enum": ["totp", "webauthn"],
 						"type": "string"
 					},
 					"mfa_code": {"description": "MFA verification code from an authenticator app", "type": "string"},
-					"email_code_ticket": {
-						"description": "Ticket from POST /users/@me/sudo/email-code, sent with mfa_method email_code",
-						"type": "string"
-					},
-					"email_code": {
-						"description": "The 6-digit code from the email, sent with mfa_method email_code",
-						"type": "string"
-					},
 					"webauthn_response": {
 						"description": "WebAuthn authentication response",
 						"$ref": "#/components/schemas/WebAuthnAuthenticationResponse"
@@ -25274,24 +23175,15 @@
 					},
 					"mfa_method": {
 						"description": "MFA method to use for verification",
-						"x-enumNames": ["TOTP", "WebAuthn", "Email code"],
+						"x-enumNames": ["TOTP", "WebAuthn"],
 						"x-enumDescriptions": [
 							"Time-based one-time password authentication via authenticator app",
-							"Security key or biometric authentication",
-							"A 6-digit code sent to the account email address"
+							"Security key or biometric authentication"
 						],
-						"enum": ["totp", "webauthn", "email_code"],
+						"enum": ["totp", "webauthn"],
 						"type": "string"
 					},
 					"mfa_code": {"description": "MFA verification code from an authenticator app", "type": "string"},
-					"email_code_ticket": {
-						"description": "Ticket from POST /users/@me/sudo/email-code, sent with mfa_method email_code",
-						"type": "string"
-					},
-					"email_code": {
-						"description": "The 6-digit code from the email, sent with mfa_method email_code",
-						"type": "string"
-					},
 					"webauthn_response": {
 						"description": "WebAuthn authentication response",
 						"$ref": "#/components/schemas/WebAuthnAuthenticationResponse"
@@ -26167,186 +24059,6 @@
 				},
 				"required": ["scope_id", "sound_id"]
 			},
-			"EmailVerificationCodeResponse": {
-				"type": "object",
-				"properties": {
-					"code_expires_at": {
-						"type": "string",
-						"format": "date-time",
-						"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
-						"description": "When the emailed code stops working"
-					},
-					"resend_available_at": {
-						"type": "string",
-						"format": "date-time",
-						"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
-						"description": "When another code can be requested"
-					}
-				},
-				"required": ["code_expires_at", "resend_available_at"],
-				"additionalProperties": false
-			},
-			"EmailVerificationConfirmRequest": {
-				"type": "object",
-				"properties": {"code": {"description": "The 6-digit code from the email", "type": "string"}},
-				"required": ["code"]
-			},
-			"EmailChangeVerifyOriginalRequest": {
-				"type": "object",
-				"properties": {
-					"ticket": {"description": "Email change ticket identifier", "type": "string"},
-					"code": {"description": "Verification code sent to the original email address", "type": "string"}
-				},
-				"required": ["ticket", "code"]
-			},
-			"EmailChangeVerifyOriginalResponse": {
-				"type": "object",
-				"properties": {
-					"original_proof": {"type": "string", "description": "Proof token issued after verifying the original email"}
-				},
-				"required": ["original_proof"],
-				"additionalProperties": false
-			},
-			"EmailChangeVerifyNewRequest": {
-				"type": "object",
-				"properties": {
-					"ticket": {"description": "Email change ticket identifier", "type": "string"},
-					"code": {"description": "Verification code sent to the original email address", "type": "string"},
-					"original_proof": {"description": "Proof token obtained from verifying the original email", "type": "string"}
-				},
-				"required": ["ticket", "code", "original_proof"]
-			},
-			"EmailTokenResponse": {
-				"type": "object",
-				"properties": {
-					"email_token": {
-						"description": "The email change token to use for updating email",
-						"type": "string",
-						"minLength": 1,
-						"maxLength": 256
-					}
-				},
-				"required": ["email_token"],
-				"additionalProperties": false
-			},
-			"EmailChangeStartResponse": {
-				"type": "object",
-				"properties": {
-					"ticket": {"type": "string", "description": "Ticket returned for email change actions"},
-					"require_original": {
-						"type": "boolean",
-						"description": "Whether verification of the original email is required"
-					},
-					"original_email": {"description": "The original email address on record", "type": ["string", "null"]},
-					"original_proof": {
-						"description": "Proof token generated when original email verification is not required",
-						"type": ["string", "null"]
-					},
-					"original_code_expires_at": {
-						"description": "ISO8601 timestamp when the original verification code expires",
-						"type": ["string", "null"]
-					},
-					"resend_available_at": {
-						"description": "ISO8601 timestamp when the original verification code can be resent",
-						"type": ["string", "null"]
-					}
-				},
-				"required": [
-					"ticket",
-					"require_original",
-					"original_email",
-					"original_proof",
-					"original_code_expires_at",
-					"resend_available_at"
-				],
-				"additionalProperties": false
-			},
-			"EmailChangeTicketRequest": {
-				"type": "object",
-				"properties": {"ticket": {"description": "Email change ticket identifier", "type": "string"}},
-				"required": ["ticket"]
-			},
-			"EmailChangeRequestNewRequest": {
-				"type": "object",
-				"properties": {
-					"ticket": {"description": "Email change ticket identifier", "type": "string"},
-					"new_email": {"description": "New email address to switch to", "$ref": "#/components/schemas/EmailType"},
-					"original_proof": {"description": "Proof token obtained from verifying the original email", "type": "string"},
-					"new_password": {
-						"description": "Password the caller intends to set, rejected here instead of after the code is sent",
-						"$ref": "#/components/schemas/PasswordType"
-					}
-				},
-				"required": ["ticket", "new_email", "original_proof"]
-			},
-			"EmailChangeRequestNewResponse": {
-				"type": "object",
-				"properties": {
-					"ticket": {"type": "string", "description": "Ticket associated with the email change attempt"},
-					"new_email": {"type": "string", "description": "The new email address the user wants to verify"},
-					"new_code_expires_at": {"type": "string", "description": "ISO8601 timestamp when the new email code expires"},
-					"resend_available_at": {
-						"description": "ISO8601 timestamp when the new email code can be resent",
-						"type": ["string", "null"]
-					}
-				},
-				"required": ["ticket", "new_email", "new_code_expires_at", "resend_available_at"],
-				"additionalProperties": false
-			},
-			"EmailChangeBouncedVerifyNewRequest": {
-				"type": "object",
-				"properties": {
-					"ticket": {"description": "Email change ticket identifier", "type": "string"},
-					"code": {"description": "Verification code sent to the replacement email address", "type": "string"}
-				},
-				"required": ["ticket", "code"]
-			},
-			"EmailChangeBouncedRequestNewRequest": {
-				"type": "object",
-				"properties": {
-					"new_email": {
-						"description": "Replacement email address used when the current email has bounced",
-						"$ref": "#/components/schemas/EmailType"
-					}
-				},
-				"required": ["new_email"]
-			},
-			"EmailChangeApplyRequest": {
-				"type": "object",
-				"properties": {
-					"email_token": {"description": "Email change token returned from verify-new", "type": "string"},
-					"password": {
-						"description": "Account password for sudo verification",
-						"$ref": "#/components/schemas/PasswordType"
-					},
-					"mfa_method": {
-						"description": "MFA method to use for verification",
-						"x-enumNames": ["TOTP", "WebAuthn", "Email code"],
-						"x-enumDescriptions": [
-							"Time-based one-time password authentication via authenticator app",
-							"Security key or biometric authentication",
-							"A 6-digit code sent to the account email address"
-						],
-						"enum": ["totp", "webauthn", "email_code"],
-						"type": "string"
-					},
-					"mfa_code": {"description": "MFA verification code from an authenticator app", "type": "string"},
-					"email_code_ticket": {
-						"description": "Ticket from POST /users/@me/sudo/email-code, sent with mfa_method email_code",
-						"type": "string"
-					},
-					"email_code": {
-						"description": "The 6-digit code from the email, sent with mfa_method email_code",
-						"type": "string"
-					},
-					"webauthn_response": {
-						"description": "WebAuthn authentication response",
-						"$ref": "#/components/schemas/WebAuthnAuthenticationResponse"
-					},
-					"webauthn_challenge": {"description": "WebAuthn challenge string", "type": "string"}
-				},
-				"required": ["email_token"]
-			},
 			"ConnectionType": {
 				"description": "The type of external connection",
 				"x-enumNames": ["BLUESKY", "DOMAIN"],
@@ -26467,21 +24179,18 @@
 			"ClaimAccountRequest": {
 				"type": "object",
 				"properties": {
-					"email": {
-						"description": "Email address to add to the account. Required except on username instances",
-						"$ref": "#/components/schemas/EmailType"
-					},
 					"password": {
-						"description": "Password to set at the same time. Required on username instances and instances that cannot send email",
+						"description": "Password that lets the account sign in from other devices",
 						"$ref": "#/components/schemas/PasswordType"
 					}
-				}
+				},
+				"required": ["password"]
 			},
 			"ClaimAccountResponse": {
-				"oneOf": [
-					{"$ref": "#/components/schemas/NoneClaimAccountResponse"},
-					{"$ref": "#/components/schemas/ConfirmEmailClaimAccountResponse"}
-				]
+				"type": "object",
+				"properties": {"user": {"$ref": "#/components/schemas/UserPrivateResponse"}},
+				"required": ["user"],
+				"additionalProperties": false
 			},
 			"CreatePrivateChannelRequest": {
 				"type": "object",
@@ -26677,7 +24386,6 @@
 						"$ref": "#/components/schemas/DiscriminatorType"
 					},
 					"global_name": {"description": "The display name shown to other users", "type": ["string", "null"]},
-					"email": {"description": "The email address for the account", "$ref": "#/components/schemas/EmailType"},
 					"new_password": {"description": "The new password to set", "$ref": "#/components/schemas/PasswordType"},
 					"password": {
 						"description": "Account password for sudo verification",
@@ -26707,27 +24415,17 @@
 						"$ref": "#/components/schemas/MentionReplyPreferencesInput",
 						"description": "Account-wide reply mention preference (NO_PREFERENCE, PREFER_MENTION, PREFER_NO_MENTION)"
 					},
-					"email_token": {"description": "Email change token for updating email", "type": "string"},
 					"mfa_method": {
 						"description": "MFA method to use for verification",
-						"x-enumNames": ["TOTP", "WebAuthn", "Email code"],
+						"x-enumNames": ["TOTP", "WebAuthn"],
 						"x-enumDescriptions": [
 							"Time-based one-time password authentication via authenticator app",
-							"Security key or biometric authentication",
-							"A 6-digit code sent to the account email address"
+							"Security key or biometric authentication"
 						],
-						"enum": ["totp", "webauthn", "email_code"],
+						"enum": ["totp", "webauthn"],
 						"type": "string"
 					},
 					"mfa_code": {"description": "MFA verification code from an authenticator app", "type": "string"},
-					"email_code_ticket": {
-						"description": "Ticket from POST /users/@me/sudo/email-code, sent with mfa_method email_code",
-						"type": "string"
-					},
-					"email_code": {
-						"description": "The 6-digit code from the email, sent with mfa_method email_code",
-						"type": "string"
-					},
 					"webauthn_response": {
 						"description": "WebAuthn authentication response",
 						"$ref": "#/components/schemas/WebAuthnAuthenticationResponse"
@@ -26768,11 +24466,6 @@
 						"items": {"type": "string"},
 						"description": "Special traits assigned to the user account"
 					},
-					"email": {"description": "The email address associated with the account", "type": ["string", "null"]},
-					"email_bounced": {
-						"description": "Whether the current email address is marked as bounced by the mail provider",
-						"type": "boolean"
-					},
 					"has_verified_phone": {"type": "boolean", "description": "Deprecated. Always false."},
 					"bio": {"description": "The user biography text", "type": ["string", "null"]},
 					"pronouns": {"description": "The preferred pronouns of the user", "type": ["string", "null"]},
@@ -26793,7 +24486,6 @@
 						"type": "array",
 						"items": {"$ref": "#/components/schemas/UserAuthenticatorTypes"}
 					},
-					"verified": {"type": "boolean", "description": "Whether the email address has been verified"},
 					"account_limited": {"description": "Whether the account is limited", "type": "boolean"},
 					"hidden_profile_badges": {
 						"type": "array",
@@ -26852,11 +24544,11 @@
 						"type": ["string", "null"]
 					},
 					"claimed": {
-						"description": "Whether the account can be signed in to again from another device: an email on instances that sign in with an email, a password otherwise",
+						"description": "Whether the account can be signed in to again from another device, because it has a password or passkey",
 						"type": "boolean"
 					},
 					"account_tier": {
-						"description": "How far the account has got with setting up a way to sign in. Clients that do not get it derive it from claimed and verified",
+						"description": "How far the account has got with setting up a way to sign in. Clients that do not get it derive it from claimed",
 						"$ref": "#/components/schemas/AccountTierSchema"
 					},
 					"verification_need": {
@@ -26865,7 +24557,7 @@
 					},
 					"has_password": {"description": "Whether the account has a password", "type": "boolean"},
 					"profile_restricted": {
-						"description": "Whether other people see only the username and tag of this account until it has a confirmed email address",
+						"description": "Whether other people see only the username of this account until it has a password or passkey",
 						"type": "boolean"
 					},
 					"token": {
@@ -26888,7 +24580,6 @@
 					"is_staff",
 					"acls",
 					"traits",
-					"email",
 					"has_verified_phone",
 					"bio",
 					"pronouns",
@@ -26896,7 +24587,6 @@
 					"banner",
 					"banner_color",
 					"mfa_enabled",
-					"verified",
 					"hidden_profile_badges",
 					"password_last_changed_at",
 					"last_voice_activity_sharing_change_at",
@@ -27334,48 +25024,6 @@
 				},
 				"required": ["revision_hash", "steps", "channel_id", "message_id"]
 			},
-			"DsaReportEmailVerifyRequest": {
-				"type": "object",
-				"properties": {
-					"email": {
-						"description": "Email address that received the verification code",
-						"$ref": "#/components/schemas/EmailType"
-					},
-					"code": {"description": "Verification code received via email", "type": "string"}
-				},
-				"required": ["email", "code"]
-			},
-			"TicketResponse": {
-				"type": "object",
-				"properties": {
-					"ticket": {"type": "string", "description": "A temporary ticket token for subsequent operations"}
-				},
-				"required": ["ticket"],
-				"additionalProperties": false
-			},
-			"DsaReportEmailSendRequest": {
-				"type": "object",
-				"properties": {
-					"email": {
-						"description": "Email address to send the DSA verification code to",
-						"$ref": "#/components/schemas/EmailType"
-					}
-				},
-				"required": ["email"]
-			},
-			"OkResponse": {
-				"type": "object",
-				"properties": {"ok": {"type": "boolean", "description": "Whether the operation was successful"}},
-				"required": ["ok"],
-				"additionalProperties": false
-			},
-			"DsaReportFlowRequest": {
-				"oneOf": [
-					{"$ref": "#/components/schemas/MessageDsaReportFlowRequest"},
-					{"$ref": "#/components/schemas/UserDsaReportFlowRequest"},
-					{"$ref": "#/components/schemas/GuildDsaReportFlowRequest"}
-				]
-			},
 			"ReadStateAckBulkRequest": {
 				"type": "object",
 				"properties": {
@@ -27457,8 +25105,6 @@
 					"discriminator": {"type": "string", "description": "The discriminator of the user"},
 					"global_name": {"description": "The global display name of the user", "type": ["string", "null"]},
 					"avatar": {"description": "The avatar hash of the user", "type": ["string", "null"]},
-					"email": {"description": "The email address of the user", "type": ["string", "null"]},
-					"verified": {"description": "Whether the user has verified their email", "type": ["boolean", "null"]},
 					"flags": {"$ref": "#/components/schemas/PublicUserFlags", "description": "The user flags"}
 				},
 				"required": ["sub", "id", "username", "discriminator", "global_name", "avatar"],
@@ -27826,9 +25472,7 @@
 							},
 							"bot": {"description": "Whether the user is a bot", "type": "boolean"},
 							"system": {"description": "Whether the user is a system user", "type": "boolean"},
-							"flags": {"$ref": "#/components/schemas/PublicUserFlags", "description": "The user flags"},
-							"email": {"description": "The email address of the user", "type": ["string", "null"]},
-							"verified": {"description": "Whether the user has verified their email", "type": ["boolean", "null"]}
+							"flags": {"$ref": "#/components/schemas/PublicUserFlags", "description": "The user flags"}
 						},
 						"required": ["id", "username", "discriminator", "global_name", "avatar", "avatar_color", "flags"],
 						"additionalProperties": false
@@ -27863,36 +25507,6 @@
 				"type": "object",
 				"properties": {"setup_token": {"description": "Setup token of a new self-hosted instance", "type": "string"}},
 				"required": ["setup_token"]
-			},
-			"InstanceAccountIdentityUpdateRequest": {
-				"type": "object",
-				"properties": {
-					"mode": {
-						"description": "Sign-in method for the new instance",
-						"$ref": "#/components/schemas/AccountIdentityModeSchema"
-					},
-					"tag_style": {
-						"description": "How usernames are tagged. Defaults to none. Username sign-in accepts only none",
-						"$ref": "#/components/schemas/TagStyleSchema"
-					},
-					"setup_token": {
-						"description": "Setup token of a new self-hosted instance. Required until the first admin account exists",
-						"type": ["string", "null"]
-					}
-				},
-				"required": ["mode"]
-			},
-			"InstanceAccountIdentityResponse": {
-				"type": "object",
-				"properties": {
-					"mode": {
-						"description": "Sign-in method now in effect",
-						"$ref": "#/components/schemas/AccountIdentityModeSchema"
-					},
-					"tag_style": {"$ref": "#/components/schemas/TagStyleSchema"}
-				},
-				"required": ["mode", "tag_style"],
-				"additionalProperties": false
 			},
 			"CustomBadgeCursorType": {
 				"type": "string",
@@ -27994,24 +25608,15 @@
 					},
 					"mfa_method": {
 						"description": "MFA method to use for verification",
-						"x-enumNames": ["TOTP", "WebAuthn", "Email code"],
+						"x-enumNames": ["TOTP", "WebAuthn"],
 						"x-enumDescriptions": [
 							"Time-based one-time password authentication via authenticator app",
-							"Security key or biometric authentication",
-							"A 6-digit code sent to the account email address"
+							"Security key or biometric authentication"
 						],
-						"enum": ["totp", "webauthn", "email_code"],
+						"enum": ["totp", "webauthn"],
 						"type": "string"
 					},
 					"mfa_code": {"description": "MFA verification code from an authenticator app", "type": "string"},
-					"email_code_ticket": {
-						"description": "Ticket from POST /users/@me/sudo/email-code, sent with mfa_method email_code",
-						"type": "string"
-					},
-					"email_code": {
-						"description": "The 6-digit code from the email, sent with mfa_method email_code",
-						"type": "string"
-					},
 					"webauthn_response": {
 						"description": "WebAuthn authentication response",
 						"$ref": "#/components/schemas/WebAuthnAuthenticationResponse"
@@ -28750,24 +26355,15 @@
 					},
 					"mfa_method": {
 						"description": "MFA method to use for verification",
-						"x-enumNames": ["TOTP", "WebAuthn", "Email code"],
+						"x-enumNames": ["TOTP", "WebAuthn"],
 						"x-enumDescriptions": [
 							"Time-based one-time password authentication via authenticator app",
-							"Security key or biometric authentication",
-							"A 6-digit code sent to the account email address"
+							"Security key or biometric authentication"
 						],
-						"enum": ["totp", "webauthn", "email_code"],
+						"enum": ["totp", "webauthn"],
 						"type": "string"
 					},
 					"mfa_code": {"description": "MFA verification code from an authenticator app", "type": "string"},
-					"email_code_ticket": {
-						"description": "Ticket from POST /users/@me/sudo/email-code, sent with mfa_method email_code",
-						"type": "string"
-					},
-					"email_code": {
-						"description": "The 6-digit code from the email, sent with mfa_method email_code",
-						"type": "string"
-					},
 					"webauthn_response": {
 						"description": "WebAuthn authentication response",
 						"$ref": "#/components/schemas/WebAuthnAuthenticationResponse"
@@ -29049,24 +26645,15 @@
 					},
 					"mfa_method": {
 						"description": "MFA method to use for verification",
-						"x-enumNames": ["TOTP", "WebAuthn", "Email code"],
+						"x-enumNames": ["TOTP", "WebAuthn"],
 						"x-enumDescriptions": [
 							"Time-based one-time password authentication via authenticator app",
-							"Security key or biometric authentication",
-							"A 6-digit code sent to the account email address"
+							"Security key or biometric authentication"
 						],
-						"enum": ["totp", "webauthn", "email_code"],
+						"enum": ["totp", "webauthn"],
 						"type": "string"
 					},
 					"mfa_code": {"description": "MFA verification code from an authenticator app", "type": "string"},
-					"email_code_ticket": {
-						"description": "Ticket from POST /users/@me/sudo/email-code, sent with mfa_method email_code",
-						"type": "string"
-					},
-					"email_code": {
-						"description": "The 6-digit code from the email, sent with mfa_method email_code",
-						"type": "string"
-					},
 					"webauthn_response": {
 						"description": "WebAuthn authentication response",
 						"$ref": "#/components/schemas/WebAuthnAuthenticationResponse"
@@ -30922,19 +28509,10 @@
 					"user": {
 						"description": "Partial user data for the authenticated account",
 						"$ref": "#/components/schemas/UserPartialResponse"
-					},
-					"device_proof": {
-						"description": "Opaque value to keep beside this account and send on later sign-ins from this device. It is not a credential",
-						"type": "string"
 					}
 				},
 				"required": ["token", "user_id", "user"],
 				"additionalProperties": false
-			},
-			"VerifyEmailRequest": {
-				"type": "object",
-				"properties": {"token": {"description": "Email verification token from email", "type": "string"}},
-				"required": ["token"]
 			},
 			"UsernameSuggestionsRequest": {
 				"type": "object",
@@ -30982,24 +28560,15 @@
 					},
 					"mfa_method": {
 						"description": "MFA method to use for verification",
-						"x-enumNames": ["TOTP", "WebAuthn", "Email code"],
+						"x-enumNames": ["TOTP", "WebAuthn"],
 						"x-enumDescriptions": [
 							"Time-based one-time password authentication via authenticator app",
-							"Security key or biometric authentication",
-							"A 6-digit code sent to the account email address"
+							"Security key or biometric authentication"
 						],
-						"enum": ["totp", "webauthn", "email_code"],
+						"enum": ["totp", "webauthn"],
 						"type": "string"
 					},
 					"mfa_code": {"description": "MFA verification code from an authenticator app", "type": "string"},
-					"email_code_ticket": {
-						"description": "Ticket from POST /users/@me/sudo/email-code, sent with mfa_method email_code",
-						"type": "string"
-					},
-					"email_code": {
-						"description": "The 6-digit code from the email, sent with mfa_method email_code",
-						"type": "string"
-					},
 					"webauthn_response": {
 						"description": "WebAuthn authentication response",
 						"$ref": "#/components/schemas/WebAuthnAuthenticationResponse"
@@ -31020,7 +28589,7 @@
 			"ResetPasswordRequest": {
 				"type": "object",
 				"properties": {
-					"token": {"description": "Password reset token from email", "type": "string"},
+					"token": {"description": "Password reset token from the reset link", "type": "string"},
 					"password": {"description": "New password to set", "$ref": "#/components/schemas/PasswordType"}
 				},
 				"required": ["token", "password"]
@@ -31091,10 +28660,6 @@
 						"description": "Partial user data for the authenticated account",
 						"$ref": "#/components/schemas/UserPartialResponse"
 					},
-					"device_proof": {
-						"description": "Opaque value to keep beside this account and send on later sign-ins from this device. It is not a credential",
-						"type": "string"
-					},
 					"entry": {
 						"description": "Community to open next, from an invite used during sign-up",
 						"anyOf": [{"$ref": "#/components/schemas/GuildEntryResult"}, {"type": "null"}]
@@ -31156,7 +28721,6 @@
 			"RegisterRequest": {
 				"type": "object",
 				"properties": {
-					"email": {"description": "Email address for the new account", "$ref": "#/components/schemas/EmailType"},
 					"username": {
 						"description": "Username for the new account (1-32 characters)",
 						"$ref": "#/components/schemas/UsernameType"
@@ -31223,10 +28787,6 @@
 							"user": {
 								"description": "Partial user data for the authenticated account",
 								"$ref": "#/components/schemas/UserPartialResponse"
-							},
-							"device_proof": {
-								"description": "Opaque value to keep beside this account and send on later sign-ins from this device. It is not a credential",
-								"type": "string"
 							},
 							"recovery_key": {
 								"type": "string",
@@ -31431,100 +28991,14 @@
 			"LoginRequest": {
 				"type": "object",
 				"properties": {
-					"email": {
-						"description": "Email address for authentication. Send this or login, not both",
-						"$ref": "#/components/schemas/EmailType"
-					},
 					"login": {
-						"description": "Sign-in identifier. An email address on email instances, a username on username instances",
+						"description": "Username of the account, optionally followed by @ and the instance host",
 						"type": "string"
 					},
 					"password": {"description": "Account password", "$ref": "#/components/schemas/PasswordType"},
 					"invite_code": {"description": "Guild invite code to join after login", "type": ["string", "null"]}
 				},
-				"required": ["password"]
-			},
-			"IpAuthorizationPollResponse": {
-				"type": "object",
-				"properties": {
-					"completed": {"type": "boolean", "description": "Whether the IP authorization has been completed"},
-					"token": {"description": "Authentication token if authorization is complete", "type": ["string", "null"]},
-					"user_id": {
-						"description": "User ID if authorization is complete",
-						"anyOf": [{"$ref": "#/components/schemas/SnowflakeStringType"}, {"type": "null"}]
-					},
-					"user": {
-						"description": "Partial user data if authorization is complete",
-						"anyOf": [{"$ref": "#/components/schemas/UserPartialResponse"}, {"type": "null"}]
-					}
-				},
-				"required": ["completed"],
-				"additionalProperties": false
-			},
-			"IdentifyRequest": {
-				"type": "object",
-				"properties": {
-					"email": {
-						"description": "Email address to sign in or sign up with, on instances that sign in with an email",
-						"$ref": "#/components/schemas/EmailType"
-					},
-					"login": {
-						"description": "Username to sign in or sign up with, on username instances",
-						"$ref": "#/components/schemas/UsernameType"
-					},
-					"device_proof": {"description": "device_proof from an earlier sign-in on this device", "type": "string"},
-					"registration_url_code": {
-						"description": "Admin-issued registration URL code, for sign-ups",
-						"type": ["string", "null"]
-					}
-				}
-			},
-			"IdentifyResponse": {
-				"type": "object",
-				"properties": {
-					"ticket": {"type": "string", "description": "Opaque ticket for the next step, valid for 15 minutes"},
-					"account": {
-						"type": "string",
-						"enum": ["existing", "new"],
-						"description": "Whether an account already uses this address"
-					},
-					"sign_in_method": {
-						"anyOf": [{"type": "string", "enum": ["password", "code"]}, {"type": "null"}],
-						"description": "How the existing account signs in: password for an account that has a password, code for one without. Null when account is new"
-					},
-					"registration": {
-						"anyOf": [
-							{
-								"type": "object",
-								"properties": {
-									"mode": {
-										"type": "string",
-										"enum": ["open", "approval", "closed"],
-										"description": "How new accounts are admitted"
-									},
-									"consent_required": {
-										"type": "boolean",
-										"description": "Whether sign-up needs agreement to the terms and privacy policy"
-									},
-									"requires_password": {
-										"type": "boolean",
-										"description": "Whether sign-up needs a password because email codes are off"
-									},
-									"instant_account_availability": {
-										"description": "Whether an account can be created from just a display name, taking the registration URL code into account",
-										"$ref": "#/components/schemas/InstantAccountAvailabilitySchema"
-									}
-								},
-								"required": ["mode", "consent_required", "requires_password"],
-								"additionalProperties": false
-							},
-							{"type": "null"}
-						],
-						"description": "Sign-up details, present when account is new"
-					}
-				},
-				"required": ["ticket", "account", "sign_in_method", "registration"],
-				"additionalProperties": false
+				"required": ["login", "password"]
 			},
 			"HandoffStatusRequest": {
 				"type": "object",
@@ -31656,123 +29130,6 @@
 				},
 				"required": ["return_url"],
 				"additionalProperties": false
-			},
-			"ForgotPasswordRequest": {
-				"type": "object",
-				"properties": {
-					"email": {
-						"description": "Email address to send password reset link",
-						"$ref": "#/components/schemas/EmailType"
-					}
-				},
-				"required": ["email"]
-			},
-			"EmailRevertRequest": {
-				"type": "object",
-				"properties": {
-					"token": {"description": "Email revert token from email", "type": "string"},
-					"password": {"description": "Account password for verification", "$ref": "#/components/schemas/PasswordType"}
-				},
-				"required": ["token", "password"]
-			},
-			"EmailCodeVerifyRequest": {
-				"type": "object",
-				"properties": {
-					"ticket": {"description": "Ticket from POST /auth/identify", "type": "string"},
-					"code": {"description": "The 6-digit code from the email", "type": "string"},
-					"consent": {
-						"description": "For sign-ups, whether the person submitted the step that says creating the account accepts the terms of service. Must be true when the instance publishes terms or a privacy policy",
-						"type": "boolean"
-					},
-					"registration_url_code": {
-						"description": "Admin-issued registration URL code, for sign-ups",
-						"type": ["string", "null"]
-					},
-					"invite_code": {
-						"description": "Invite to open after the date of birth step, for sign-ups",
-						"type": ["string", "null"]
-					},
-					"username": {
-						"description": "For sign-ups, the username for the new account. Ignored when signing in",
-						"$ref": "#/components/schemas/UsernameType"
-					},
-					"global_name": {
-						"description": "For sign-ups, the display name shown to other people. Ignored when signing in",
-						"type": "string"
-					}
-				},
-				"required": ["ticket", "code"]
-			},
-			"EmailCodeVerifyResponse": {
-				"anyOf": [
-					{"$ref": "#/components/schemas/AuthRegisterSuccessResponse"},
-					{
-						"type": "object",
-						"properties": {
-							"mfa": {
-								"type": "boolean",
-								"const": true,
-								"description": "Indicates MFA is required to complete authentication"
-							},
-							"ticket": {"type": "string", "description": "MFA ticket to use when completing MFA verification"},
-							"allowed_methods": {
-								"maxItems": 10,
-								"type": "array",
-								"items": {"type": "string"},
-								"description": "List of allowed MFA methods"
-							},
-							"totp": {"type": "boolean", "description": "Whether TOTP authenticator MFA is available"},
-							"webauthn": {"type": "boolean", "description": "Whether WebAuthn security key MFA is available"},
-							"backup_codes": {
-								"type": "boolean",
-								"description": "Whether the account has at least one unconsumed backup code"
-							}
-						},
-						"required": ["mfa", "ticket", "allowed_methods", "totp", "webauthn", "backup_codes"],
-						"additionalProperties": false
-					},
-					{"$ref": "#/components/schemas/AuthRegistrationPendingApprovalResponse"}
-				]
-			},
-			"EmailCodeSendRequest": {
-				"type": "object",
-				"properties": {
-					"ticket": {"description": "Ticket from POST /auth/identify", "type": "string"},
-					"registration_url_code": {
-						"description": "Admin-issued registration URL code, for sign-ups",
-						"type": ["string", "null"]
-					}
-				},
-				"required": ["ticket"]
-			},
-			"EmailCodeSendResponse": {
-				"type": "object",
-				"properties": {
-					"purpose": {
-						"type": "string",
-						"enum": ["sign_in", "sign_up"],
-						"description": "Whether the code signs in or creates an account"
-					},
-					"code_expires_at": {
-						"type": "string",
-						"format": "date-time",
-						"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
-						"description": "When the emailed code stops working"
-					},
-					"resend_available_at": {
-						"type": "string",
-						"format": "date-time",
-						"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
-						"description": "When another code can be requested"
-					}
-				},
-				"required": ["purpose", "code_expires_at", "resend_available_at"],
-				"additionalProperties": false
-			},
-			"AuthorizeIpRequest": {
-				"type": "object",
-				"properties": {"token": {"description": "The IP authorization token from email", "type": "string"}},
-				"required": ["token"]
 			},
 			"RefreshAttachmentUrlsRequest": {
 				"type": "object",
@@ -32156,16 +29513,12 @@
 						"description": "Whether the instance administrator has completed initial setup"
 					},
 					"admin_url": {"description": "Admin panel URL to continue instance setup", "type": ["string", "null"]},
-					"account_identity_locked": {
-						"description": "Present only while a self-hosted instance is unconfigured. True when the sign-in method can no longer change",
-						"type": "boolean"
-					},
-					"account_identity_lock_reason": {
-						"description": "Present only while a self-hosted instance is unconfigured. Why the sign-in method can no longer change, or null while it still can",
-						"anyOf": [{"$ref": "#/components/schemas/AccountIdentityLockReasonSchema"}, {"type": "null"}]
-					},
 					"setup_token_required": {
 						"description": "Present only while a self-hosted instance is unconfigured. True when registration needs the setup token",
+						"type": "boolean"
+					},
+					"admin_exists": {
+						"description": "Present only while a self-hosted instance is unconfigured. True once the first administrator account exists",
 						"type": "boolean"
 					}
 				},
@@ -32338,10 +29691,6 @@
 						"type": "boolean",
 						"description": "Whether clients can request presigned attachment upload URLs"
 					},
-					"emails_enabled": {
-						"type": "boolean",
-						"description": "Whether the instance sends emails (verification, password reset, etc.)"
-					},
 					"phone_verification_enabled": {"type": "boolean", "description": "Deprecated. Always false."},
 					"discovery_enabled": {
 						"description": "Whether the Explore community directory is available. Missing means true",
@@ -32357,24 +29706,8 @@
 						"minimum": 1,
 						"maximum": 8760
 					},
-					"account_identity": {
-						"description": "How people sign in on this instance. Clients treat a missing value as email",
-						"$ref": "#/components/schemas/AccountIdentityModeSchema"
-					},
-					"tag_style": {
-						"description": "How usernames are tagged. Clients treat a missing value as random",
-						"$ref": "#/components/schemas/TagStyleSchema"
-					},
-					"identifier_first": {
-						"description": "Whether clients show the single sign-in entry that starts with an email. Missing means false",
-						"type": "boolean"
-					},
 					"instant_accounts": {
-						"description": "Whether accounts can be created without an email, from a display name. Missing means false",
-						"type": "boolean"
-					},
-					"email_codes": {
-						"description": "Whether the instance can send sign-in and verification codes by email. Missing means false",
+						"description": "Whether accounts can be created from just a display name. Missing means false",
 						"type": "boolean"
 					},
 					"instant_account_availability": {
@@ -32388,23 +29721,9 @@
 					"guild_join_gate": {
 						"description": "When joining a community needs a finished account while interaction_tier is enforced. Missing means always",
 						"$ref": "#/components/schemas/GuildJoinGateSchema"
-					},
-					"email_delivery_state": {
-						"description": "Whether the instance sends email, and why not. Missing means emails_enabled decides",
-						"$ref": "#/components/schemas/EmailDeliveryStateSchema"
-					},
-					"verification_basis": {
-						"description": "What an account needs to finish setting up right now. Missing means confirmed_email while emails_enabled, otherwise local_credential",
-						"$ref": "#/components/schemas/EffectiveVerificationBasisSchema"
 					}
 				},
-				"required": [
-					"voice_enabled",
-					"self_hosted",
-					"presigned_attachment_uploads",
-					"emails_enabled",
-					"phone_verification_enabled"
-				],
+				"required": ["voice_enabled", "self_hosted", "presigned_attachment_uploads", "phone_verification_enabled"],
 				"additionalProperties": false,
 				"description": "Feature flags for this instance"
 			},
@@ -32464,28 +29783,6 @@
 				"enum": ["none", "altcha"],
 				"type": "string"
 			},
-			"EffectiveVerificationBasisSchema": {
-				"description": "What an account needs to finish setting up on this instance right now",
-				"x-enumNames": ["CONFIRMED_EMAIL", "LOCAL_CREDENTIAL"],
-				"x-enumDescriptions": [
-					"Accounts finish setting up by confirming an email",
-					"Accounts finish setting up by adding a password or passkey"
-				],
-				"enum": ["confirmed_email", "local_credential"],
-				"type": "string"
-			},
-			"EmailDeliveryStateSchema": {
-				"description": "Whether the instance sends email, and why not",
-				"x-enumNames": ["ON", "OFF_USERNAME_MODE", "OFF_DISABLED", "OFF_INCOMPLETE"],
-				"x-enumDescriptions": [
-					"The instance sends email",
-					"People sign in with a username, so no email is sent",
-					"Email delivery is turned off",
-					"Email delivery is on but its settings are incomplete"
-				],
-				"enum": ["on", "off_username_mode", "off_disabled", "off_incomplete"],
-				"type": "string"
-			},
 			"GuildJoinGateSchema": {
 				"description": "When joining a community needs a finished account. Applies only while the interaction tier is enforced and the person can preview communities",
 				"x-enumNames": ["OFF", "VISITS_CAPABLE", "ALWAYS"],
@@ -32520,23 +29817,6 @@
 				"enum": ["available", "disabled", "captcha_off", "registration_closed", "approval_required"],
 				"type": "string"
 			},
-			"TagStyleSchema": {
-				"description": "How usernames are tagged",
-				"x-enumNames": ["NONE", "RANDOM"],
-				"x-enumDescriptions": ["Usernames are unique and shown without a tag", "Every account gets a random tag"],
-				"enum": ["none", "random"],
-				"type": "string"
-			},
-			"AccountIdentityModeSchema": {
-				"description": "How people identify themselves when they sign in",
-				"x-enumNames": ["EMAIL", "USERNAME"],
-				"x-enumDescriptions": [
-					"People sign in with an email address",
-					"People sign in with a username and no email is collected"
-				],
-				"enum": ["email", "username"],
-				"type": "string"
-			},
 			"InstanceRegistrationModeSchema": {
 				"description": "Registration mode",
 				"x-enumNames": ["open", "approval", "closed"],
@@ -32549,18 +29829,6 @@
 				"type": "string"
 			},
 			"InstancePushDeliveryModeSchema": {"type": "string", "enum": ["direct"]},
-			"AccountIdentityLockReasonSchema": {
-				"description": "Why the sign-in method can no longer change",
-				"x-enumNames": ["SETUP_CONFIGURED", "EXISTING_INSTANCE", "ADMIN_EXISTS", "ACCOUNTS_EXIST"],
-				"x-enumDescriptions": [
-					"The instance configuration marks setup as finished",
-					"The instance was in use before username sign-in existed, so it stays on email",
-					"The instance already has an administrator",
-					"The instance already has accounts"
-				],
-				"enum": ["setup_configured", "existing_instance", "admin_exists", "accounts_exist"],
-				"type": "string"
-			},
 			"CustomBadgePositionType": {
 				"type": "string",
 				"pattern": "^-?[0-9]{1,19}$",
@@ -32633,24 +29901,6 @@
 				"required": ["original", "refreshed"],
 				"additionalProperties": false
 			},
-			"AuthRegistrationPendingApprovalResponse": {
-				"type": "object",
-				"properties": {
-					"registration_pending_approval": {
-						"type": "boolean",
-						"const": true,
-						"description": "Registration succeeded and is waiting for admin approval"
-					},
-					"user_id": {
-						"description": "ID of the registered account waiting for approval",
-						"$ref": "#/components/schemas/SnowflakeStringType"
-					}
-				},
-				"required": ["registration_pending_approval", "user_id"],
-				"additionalProperties": false
-			},
-			"PasswordType": {"type": "string"},
-			"EmailType": {"type": "string"},
 			"DesktopHandoffReturnMethod": {"type": "string", "enum": ["deep_link", "code"]},
 			"AuthSessionLocation": {
 				"type": "object",
@@ -32661,6 +29911,7 @@
 				},
 				"additionalProperties": false
 			},
+			"PasswordType": {"type": "string"},
 			"WebAuthnAuthenticationResponse": {
 				"type": "object",
 				"properties": {
@@ -32718,6 +29969,22 @@
 				"type": "object",
 				"properties": {"status": {"type": "string", "const": "cancelled", "description": "The ceremony was cancelled"}},
 				"required": ["status"],
+				"additionalProperties": false
+			},
+			"AuthRegistrationPendingApprovalResponse": {
+				"type": "object",
+				"properties": {
+					"registration_pending_approval": {
+						"type": "boolean",
+						"const": true,
+						"description": "Registration succeeded and is waiting for admin approval"
+					},
+					"user_id": {
+						"description": "ID of the registered account waiting for approval",
+						"$ref": "#/components/schemas/SnowflakeStringType"
+					}
+				},
+				"required": ["registration_pending_approval", "user_id"],
 				"additionalProperties": false
 			},
 			"GuildEntryResult": {
@@ -35366,7 +32633,7 @@
 				"x-enumNames": ["NONE", "LOW", "MEDIUM", "HIGH"],
 				"x-enumDescriptions": [
 					"Unrestricted",
-					"Must have verified email",
+					"Must have a password or passkey on the account",
 					"Registered for more than 5 minutes",
 					"Member of the server for more than 10 minutes"
 				],
@@ -36614,159 +33881,6 @@
 				"additionalProperties": false
 			},
 			"UnsignedInt64StringType": {"type": "string", "pattern": "^\\d+$", "format": "int64"},
-			"GuildDsaReportFlowRequest": {
-				"type": "object",
-				"properties": {
-					"ticket": {"description": "Verification ticket obtained from email verification", "type": "string"},
-					"reporter_country_of_residence": {
-						"$ref": "#/components/schemas/EuCountryCode",
-						"description": "EU country code of the reporter residence"
-					},
-					"revision_hash": {
-						"description": "revision_hash of the DSA report flow the reporter answered",
-						"type": "string"
-					},
-					"steps": {
-						"minItems": 1,
-						"maxItems": 16,
-						"type": "array",
-						"items": {"$ref": "#/components/schemas/ReportFlowStep"},
-						"description": "Screens of the DSA report flow and the answers chosen on each, in order"
-					},
-					"good_faith_confirmed": {
-						"type": "boolean",
-						"const": true,
-						"description": "Confirms in good faith that the information and allegations in the notice are accurate and complete"
-					},
-					"locale": {"description": "Language tag the reporter saw the flow in", "type": "string"},
-					"additional_info": {
-						"description": "Explanation of the problem. If the reporter believes the content is illegal, which law it breaks and why",
-						"type": "string"
-					},
-					"reporter_full_legal_name": {
-						"description": "Full legal name of the person filing the report, required unless the report is about child sexual abuse",
-						"type": "string"
-					},
-					"report_type": {"type": "string", "const": "guild", "description": "Type of report"},
-					"guild_id": {"description": "ID of the guild being reported", "$ref": "#/components/schemas/SnowflakeType"},
-					"invite_code": {"description": "Invite code used to access the guild", "type": "string"}
-				},
-				"required": [
-					"ticket",
-					"reporter_country_of_residence",
-					"revision_hash",
-					"steps",
-					"good_faith_confirmed",
-					"additional_info",
-					"report_type",
-					"guild_id"
-				]
-			},
-			"UserDsaReportFlowRequest": {
-				"type": "object",
-				"properties": {
-					"ticket": {"description": "Verification ticket obtained from email verification", "type": "string"},
-					"reporter_country_of_residence": {
-						"$ref": "#/components/schemas/EuCountryCode",
-						"description": "EU country code of the reporter residence"
-					},
-					"revision_hash": {
-						"description": "revision_hash of the DSA report flow the reporter answered",
-						"type": "string"
-					},
-					"steps": {
-						"minItems": 1,
-						"maxItems": 16,
-						"type": "array",
-						"items": {"$ref": "#/components/schemas/ReportFlowStep"},
-						"description": "Screens of the DSA report flow and the answers chosen on each, in order"
-					},
-					"good_faith_confirmed": {
-						"type": "boolean",
-						"const": true,
-						"description": "Confirms in good faith that the information and allegations in the notice are accurate and complete"
-					},
-					"locale": {"description": "Language tag the reporter saw the flow in", "type": "string"},
-					"additional_info": {
-						"description": "Explanation of the problem. If the reporter believes the content is illegal, which law it breaks and why",
-						"type": "string"
-					},
-					"reporter_full_legal_name": {
-						"description": "Full legal name of the person filing the report, required unless the report is about child sexual abuse",
-						"type": "string"
-					},
-					"report_type": {"type": "string", "const": "user", "description": "Type of report"},
-					"user_id": {"description": "ID of the user being reported", "$ref": "#/components/schemas/SnowflakeType"},
-					"user_tag": {
-						"description": "OSACA tag of the user being reported",
-						"type": "string",
-						"minLength": 1,
-						"maxLength": 37
-					}
-				},
-				"required": [
-					"ticket",
-					"reporter_country_of_residence",
-					"revision_hash",
-					"steps",
-					"good_faith_confirmed",
-					"additional_info",
-					"report_type"
-				]
-			},
-			"MessageDsaReportFlowRequest": {
-				"type": "object",
-				"properties": {
-					"ticket": {"description": "Verification ticket obtained from email verification", "type": "string"},
-					"reporter_country_of_residence": {
-						"$ref": "#/components/schemas/EuCountryCode",
-						"description": "EU country code of the reporter residence"
-					},
-					"revision_hash": {
-						"description": "revision_hash of the DSA report flow the reporter answered",
-						"type": "string"
-					},
-					"steps": {
-						"minItems": 1,
-						"maxItems": 16,
-						"type": "array",
-						"items": {"$ref": "#/components/schemas/ReportFlowStep"},
-						"description": "Screens of the DSA report flow and the answers chosen on each, in order"
-					},
-					"good_faith_confirmed": {
-						"type": "boolean",
-						"const": true,
-						"description": "Confirms in good faith that the information and allegations in the notice are accurate and complete"
-					},
-					"locale": {"description": "Language tag the reporter saw the flow in", "type": "string"},
-					"additional_info": {
-						"description": "Explanation of the problem. If the reporter believes the content is illegal, which law it breaks and why",
-						"type": "string"
-					},
-					"reporter_full_legal_name": {
-						"description": "Full legal name of the person filing the report, required unless the report is about child sexual abuse",
-						"type": "string"
-					},
-					"report_type": {"type": "string", "const": "message", "description": "Type of report"},
-					"message_link": {"description": "Link to the message being reported", "type": "string"},
-					"reported_user_tag": {
-						"description": "OSACA tag of the user who sent the message",
-						"type": "string",
-						"minLength": 1,
-						"maxLength": 37
-					}
-				},
-				"required": [
-					"ticket",
-					"reporter_country_of_residence",
-					"revision_hash",
-					"steps",
-					"good_faith_confirmed",
-					"additional_info",
-					"report_type",
-					"message_link"
-				]
-			},
 			"ReportFlowStep": {
 				"type": "object",
 				"properties": {
@@ -36775,97 +33889,6 @@
 					"item_ids": {"minItems": 1, "maxItems": 32, "type": "array", "items": {"type": "string"}}
 				},
 				"required": ["screen_id"]
-			},
-			"EuCountryCode": {
-				"description": "EU country code of residence",
-				"x-enumNames": [
-					"AT",
-					"BE",
-					"BG",
-					"HR",
-					"CY",
-					"CZ",
-					"DK",
-					"EE",
-					"FI",
-					"FR",
-					"DE",
-					"GR",
-					"HU",
-					"IE",
-					"IT",
-					"LV",
-					"LT",
-					"LU",
-					"MT",
-					"NL",
-					"PL",
-					"PT",
-					"RO",
-					"SK",
-					"SI",
-					"ES",
-					"SE"
-				],
-				"x-enumDescriptions": [
-					"Austria",
-					"Belgium",
-					"Bulgaria",
-					"Croatia",
-					"Cyprus",
-					"Czechia",
-					"Denmark",
-					"Estonia",
-					"Finland",
-					"France",
-					"Germany",
-					"Greece",
-					"Hungary",
-					"Ireland",
-					"Italy",
-					"Latvia",
-					"Lithuania",
-					"Luxembourg",
-					"Malta",
-					"Netherlands",
-					"Poland",
-					"Portugal",
-					"Romania",
-					"Slovakia",
-					"Slovenia",
-					"Spain",
-					"Sweden"
-				],
-				"enum": [
-					"AT",
-					"BE",
-					"BG",
-					"HR",
-					"CY",
-					"CZ",
-					"DK",
-					"EE",
-					"FI",
-					"FR",
-					"DE",
-					"GR",
-					"HU",
-					"IE",
-					"IT",
-					"LV",
-					"LT",
-					"LU",
-					"MT",
-					"NL",
-					"PL",
-					"PT",
-					"RO",
-					"SK",
-					"SI",
-					"ES",
-					"SE"
-				],
-				"type": "string"
 			},
 			"ReportFlowNotice": {
 				"type": "object",
@@ -37269,25 +34292,19 @@
 				"type": "string"
 			},
 			"AccountVerificationNeedSchema": {
-				"description": "What the account still has to do before it can use everything",
-				"x-enumNames": ["ADD_EMAIL", "CONFIRM_EMAIL", "SET_PASSWORD"],
-				"x-enumDescriptions": [
-					"Add an email address to the account",
-					"Confirm the email address on the account",
-					"Set a password, or add a passkey, on the account"
-				],
-				"enum": ["add_email", "confirm_email", "password"],
-				"type": "string"
+				"type": "string",
+				"x-enumNames": ["SET_PASSWORD"],
+				"x-enumDescriptions": ["Set a password, or add a passkey, on the account"],
+				"enum": ["password"]
 			},
 			"AccountTierSchema": {
 				"description": "How far the account has got with setting up a way to sign in",
-				"x-enumNames": ["UNCLAIMED", "UNVERIFIED", "VERIFIED"],
+				"x-enumNames": ["UNCLAIMED", "VERIFIED"],
 				"x-enumDescriptions": [
 					"The account has no way to sign in from another device yet",
-					"The account has an email address that is not confirmed yet",
 					"The account has finished setting up and can use everything"
 				],
-				"enum": ["unclaimed", "unverified", "verified"],
+				"enum": ["unclaimed", "verified"],
 				"type": "string"
 			},
 			"UserAuthenticatorTypes": {
@@ -37326,44 +34343,6 @@
 					"description": "A badge key: a built-in badge kind, or custom:{id} for a custom badge"
 				},
 				"description": "The full list of badge keys to hide from other people. It replaces the stored list, takes precedence over the deprecated hide fields, and keys of custom badges that no longer exist are dropped"
-			},
-			"ConfirmEmailClaimAccountResponse": {
-				"type": "object",
-				"properties": {
-					"next_step": {
-						"type": "string",
-						"const": "confirm_email",
-						"description": "Enter the code sent to the new email address to finish"
-					},
-					"user": {"$ref": "#/components/schemas/UserPrivateResponse"},
-					"code_expires_at": {
-						"type": "string",
-						"format": "date-time",
-						"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
-						"description": "When the emailed code stops working"
-					},
-					"resend_available_at": {
-						"type": "string",
-						"format": "date-time",
-						"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
-						"description": "When another code can be requested"
-					}
-				},
-				"required": ["next_step", "user", "code_expires_at", "resend_available_at"],
-				"additionalProperties": false
-			},
-			"NoneClaimAccountResponse": {
-				"type": "object",
-				"properties": {
-					"next_step": {
-						"type": "string",
-						"const": "none",
-						"description": "The account is set up, nothing else is needed"
-					},
-					"user": {"$ref": "#/components/schemas/UserPrivateResponse"}
-				},
-				"required": ["next_step", "user"],
-				"additionalProperties": false
 			},
 			"ConnectionVisibilityFlags": {
 				"type": "integer",
@@ -37433,7 +34412,7 @@
 				"x-enumNames": ["NONE", "LOW", "MEDIUM", "HIGH"],
 				"x-enumDescriptions": [
 					"Unrestricted",
-					"Must have verified email",
+					"Must have a password or passkey on the account",
 					"Registered for more than 5 minutes",
 					"Member of the server for more than 10 minutes"
 				]
@@ -38292,7 +35271,6 @@
 					"BLUESKY_OAUTH_AUTHORIZATION_FAILED",
 					"BLUESKY_OAUTH_NOT_ENABLED",
 					"ACCOUNT_LIMITED",
-					"ACCOUNT_IDENTITY_LOCKED",
 					"ACCOUNT_SUSPENDED_PERMANENTLY",
 					"ACCOUNT_SUSPENDED_TEMPORARILY",
 					"ACCOUNT_TOO_NEW_FOR_GUILD",
@@ -38344,11 +35322,6 @@
 					"DISCOVERY_INSUFFICIENT_MEMBERS",
 					"DISCOVERY_NOT_DISCOVERABLE",
 					"DISCRIMINATOR_REQUIRED",
-					"EMAIL_DELIVERY_OFF",
-					"EMAIL_SERVICE_NOT_TESTABLE",
-					"EMAIL_UNAVAILABLE_ON_INSTANCE",
-					"EMAIL_VERIFICATION_REQUIRED",
-					"DIRECT_MESSAGE_EMAIL_VERIFICATION_REQUIRED",
 					"ENFORCEMENT_ACCOUNT_CLOSED",
 					"ENFORCEMENT_DECISION_ENDED",
 					"ENFORCEMENT_DECISION_OWNS_STATE",
@@ -38356,22 +35329,13 @@
 					"ENFORCEMENT_DELETION_STARTED",
 					"FOLLOW_TARGET_CONTENT_WARNING_REQUIRED",
 					"FOLLOW_TARGET_NOT_AGE_RESTRICTED",
-					"FRIEND_REQUEST_EMAIL_VERIFICATION_REQUIRED",
-					"GUILD_CREATION_EMAIL_VERIFICATION_REQUIRED",
 					"GUILD_CREATION_PERMISSION_REQUIRED",
-					"GUILD_EMAIL_VERIFICATION_REQUIRED",
 					"INVALID_FOLLOW_TARGET_CHANNEL",
 					"MESSAGE_ALREADY_CROSSPOSTED",
 					"MESSAGE_CROSSPOST_RATE_LIMITED",
 					"MESSAGE_NOT_CROSSPOSTABLE",
-					"MFA_EMAIL_VERIFICATION_REQUIRED",
-					"PROFILE_EMAIL_VERIFICATION_REQUIRED",
 					"PUBLISHED_MESSAGE_EDIT_RATE_LIMITED",
-					"PURCHASE_EMAIL_VERIFICATION_REQUIRED",
-					"REACTION_EMAIL_VERIFICATION_REQUIRED",
-					"REPORT_EMAIL_VERIFICATION_REQUIRED",
 					"REGISTRATION_CLOSED",
-					"REGISTRATION_CREDENTIAL_REQUIRED",
 					"REGISTRATION_CREDENTIALS_REQUIRED",
 					"REGISTRATION_PENDING_APPROVAL",
 					"REGISTRATION_REJECTED",
@@ -38404,9 +35368,6 @@
 					"INVALID_CAPTCHA",
 					"INVALID_CHANNEL_TYPE_FOR_CALL",
 					"INVALID_CHANNEL_TYPE",
-					"INVALID_DSA_REPORT_TARGET",
-					"INVALID_DSA_TICKET",
-					"INVALID_DSA_VERIFICATION_CODE",
 					"INVALID_FLAGS_FORMAT",
 					"INVALID_FORM_BODY",
 					"INVALID_HANDOFF_CODE",
@@ -38427,9 +35388,6 @@
 					"INVALID_WEBAUTHN_CREDENTIAL",
 					"INVALID_WEBAUTHN_PUBLIC_KEY_FORMAT",
 					"INVITES_DISABLED",
-					"IP_AUTHORIZATION_REQUIRED",
-					"IP_AUTHORIZATION_RESEND_COOLDOWN",
-					"IP_AUTHORIZATION_RESEND_LIMIT_EXCEEDED",
 					"GLOBAL_IP_BANNED",
 					"GLOBAL_IP_TEMPORARILY_BANNED",
 					"IP_BAN_DECLINED",
@@ -38511,18 +35469,9 @@
 					"TWO_FA_ALREADY_ENABLED",
 					"TWO_FACTOR_REQUIRED",
 					"UNAUTHORIZED",
-					"UNCLAIMED_ACCOUNT_CANNOT_ACCEPT_FRIEND_REQUESTS",
-					"UNCLAIMED_ACCOUNT_CANNOT_ADD_REACTIONS",
-					"UNCLAIMED_ACCOUNT_CANNOT_CREATE_APPLICATIONS",
-					"UNCLAIMED_ACCOUNT_CANNOT_CREATE_GUILDS",
-					"UNCLAIMED_ACCOUNT_CANNOT_JOIN_GROUP_DMS",
 					"UNCLAIMED_ACCOUNT_CANNOT_JOIN_ONE_ON_ONE_VOICE_CALLS",
 					"UNCLAIMED_ACCOUNT_CANNOT_JOIN_VOICE_CHANNELS",
 					"UNCLAIMED_ACCOUNT_CANNOT_MAKE_PURCHASES",
-					"UNCLAIMED_ACCOUNT_CANNOT_SEND_DIRECT_MESSAGES",
-					"UNCLAIMED_ACCOUNT_CANNOT_SEND_FRIEND_REQUESTS",
-					"UNCLAIMED_ACCOUNT_CANNOT_SEND_MESSAGES",
-					"UNCLAIMED_ACCOUNT_CANNOT_SUBMIT_REPORTS",
 					"UNKNOWN_BADGE",
 					"UNKNOWN_CHANNEL",
 					"UNKNOWN_EMOJI",
@@ -38553,7 +35502,6 @@
 					"WEBHOOK_SERVICE_FORUM_UNSUPPORTED",
 					"WEBHOOK_THREAD_NAME_REQUIRES_FORUM",
 					"USERNAME_NOT_AVAILABLE",
-					"USERNAME_SIGN_IN_ONLY",
 					"UPDATE_FAILED",
 					"USER_BANNED_FROM_GUILD",
 					"USER_IP_BANNED_FROM_GUILD",
@@ -38573,19 +35521,10 @@
 					"VOICE_SERVER_ID_IN_USE",
 					"WEBAUTHN_CREDENTIAL_LIMIT_REACHED",
 					"ACCOUNT_VERIFICATION_REQUIRED",
-					"UNKNOWN_SIGN_IN_TICKET",
-					"INVALID_SIGN_IN_CODE",
-					"SIGN_IN_CODE_EXPIRED",
-					"EMAIL_CODE_RESEND_COOLDOWN",
-					"EMAIL_CODES_UNAVAILABLE",
-					"PASSWORD_SIGN_IN_REQUIRED",
-					"SUDO_SECOND_FACTOR_REQUIRED",
 					"INSTANT_ACCOUNTS_DISABLED",
 					"UNKNOWN_ACCOUNT_HANDOFF",
 					"INVALID_ACCOUNT_HANDOFF_NONCE",
 					"ACCOUNT_ALREADY_CLAIMED",
-					"USE_CLAIM_ROUTE",
-					"PASSWORD_REQUIRED_TO_CLAIM",
 					"GUILD_VISITS_DISABLED",
 					"GUILD_VISIT_NOT_FOUND"
 				],
@@ -38597,8 +35536,7 @@
 					"Bad request.",
 					"We couldn't resolve that Bluesky handle. Please check it and try again.",
 					"Bluesky connections are not enabled on this instance.",
-					"Messaging is paused on your account. Check your email for a quick step to continue.",
-					"The sign-in method is already set and can't be changed.",
+					"Messaging is paused on your account.",
 					"This account has been permanently suspended.",
 					"This account has been temporarily suspended.",
 					"Your account is too new to send messages in this community.",
@@ -38650,11 +35588,6 @@
 					"This community doesn't have enough members to be listed in Explore.",
 					"This community isn't listed in Explore.",
 					"Discriminator is required.",
-					"This instance doesn't send email. Create a password reset link instead.",
-					"Email service is temporarily unavailable. Please try again later.",
-					"This instance doesn't use email.",
-					"Email verification is required for this action.",
-					"Email verification is required for this action.",
 					"This account is closed, so it can't be suspended.",
 					"This decision has already ended.",
 					"An enforcement decision owns this restriction. End the decision instead.",
@@ -38662,22 +35595,13 @@
 					"The deletion of this account has already started, so the decision can no longer be ended.",
 					"Updates from a channel with a content warning can only go to a channel with a content warning or an age restriction.",
 					"Updates from an age-restricted channel can only go to an age-restricted channel.",
-					"Email verification is required for this action.",
-					"Email verification is required for this action.",
 					"You don't have permission to create communities on this instance. Contact your instance administrator to request access.",
-					"Email verification is required for this action.",
 					"Followed channels can only post into text channels.",
 					"This message has already been published.",
 					"This channel is at its publishing limit. It can publish 10 messages in a row, then one more every 6 minutes.",
 					"This message cannot be published.",
-					"Confirm your email address to use two-factor authentication or passkeys.",
-					"Email verification is required for this action.",
 					"This published message is at its editing limit. It allows 3 quick edits, then 1 every 20 minutes.",
-					"Email verification is required for this action.",
-					"Email verification is required for this action.",
-					"Email verification is required for this action.",
 					"Registration is closed on this instance.",
-					"Choose a password to sign up. This instance can't send email codes to confirm your address.",
 					"This instance reviews new accounts. Sign up from the sign-up page with a password so you can sign in once approved.",
 					"This registration is waiting for admin approval.",
 					"This registration request was rejected.",
@@ -38710,9 +35634,6 @@
 					"Verification failed. Try again.",
 					"Calls can only be made in direct messages or group DMs.",
 					"Invalid channel type.",
-					"Invalid DSA report target.",
-					"Invalid DSA ticket.",
-					"Invalid DSA verification code.",
 					"Invalid flags format.",
 					"Invalid form body.",
 					"Invalid handoff code.",
@@ -38733,9 +35654,6 @@
 					"Failed to verify WebAuthn credential.",
 					"Invalid WebAuthn public key format.",
 					"Invites are disabled.",
-					"IP authorization is required.",
-					"IP authorization resend is on cooldown.",
-					"IP authorization resend limit exceeded.",
 					"{reason, select, shown {{product_name} blocked access from this network because of activity that broke its rules.} other {{product_name} blocked access from this network.}} If you share this network, for example at school, at work, on public Wi-Fi, through your mobile carrier or a VPN, this block may have nothing to do with you. The quickest fix is to switch networks, for example to mobile data instead of Wi-Fi, or to turn your VPN on or off.{appealEmail, select, null {} other { If you think this block is a mistake, email {appealEmail} and include your IP address, {ipAddress}.}}",
 					"{reason, select, shown {{product_name} blocked access from this network because of activity that broke its rules.} other {{product_name} blocked access from this network.}} The block ends on {expiresAt}. If you share this network, for example at school, at work, on public Wi-Fi, through your mobile carrier or a VPN, this block may have nothing to do with you. The quickest fix is to switch networks, for example to mobile data instead of Wi-Fi, or to turn your VPN on or off.{appealEmail, select, null {} other { If you think this block is a mistake, email {appealEmail} and include your IP address, {ipAddress}.}}",
 					"This IP address cannot be added to the blocklist.",
@@ -38817,18 +35735,9 @@
 					"Two-factor authentication is already enabled.",
 					"Two-factor authentication is required.",
 					"Unauthorized.",
-					"Claim your account to accept friend requests.",
-					"Claim your account to add reactions.",
-					"Claim your account to create applications.",
-					"Claim your account to create communities.",
-					"Claim your account to join group chats.",
 					"Claim your account to start or join calls.",
 					"Claim your account to join voice channels.",
 					"Claim your account to make purchases.",
-					"Claim your account to send direct messages.",
-					"Claim your account to send friend requests.",
-					"Claim your account to send messages.",
-					"Claim your account to submit reports.",
 					"Badge wasn't found.",
 					"Channel wasn't found.",
 					"Unknown emoji.",
@@ -38859,7 +35768,6 @@
 					"This webhook service can't post to a forum or media channel without a `thread_id`.",
 					"`thread_name` and `applied_tags` only work in forum and media channels.",
 					"This username is not available.",
-					"This is only available on instances where people sign in with a username.",
 					"We couldn't update the resource. Please try again.",
 					"This user is banned from this community.",
 					"This user's IP is banned from this community.",
@@ -38878,20 +35786,11 @@
 					"Another voice server already uses this API key.",
 					"Another voice server already uses this ID.",
 					"You can't have more than {count, plural, one {# WebAuthn credential} other {# WebAuthn credentials}}.",
-					"{need, select, add_email {{action, select, message {Add an email to your account to send messages.} typing {Add an email to your account to send messages.} reaction {Add an email to your account to add reactions.} direct_message {Add an email to your account to send direct messages.} direct_message_open {Add an email to your account to start direct messages.} group_dm {Add an email to your account to join group chats.} friend_request {Add an email to your account to send friend requests.} friend_accept {Add an email to your account to accept friend requests.} invite_create {Add an email to your account to create invites.} guild_join {Add an email to your account to join this community.} guild_create {Add an email to your account to create a community.} voice {Add an email to your account to join voice channels.} call {Add an email to your account to start calls.} group_call {Add an email to your account to join group calls.} thread_join {Add an email to your account to join threads.} channel_follow {Add an email to your account to follow channels.} ownership_transfer {This person needs to add an email to their account before they can own a community.} application_create {Add an email to your account to create applications.} gift_redeem {Add an email to your account to redeem gifts.} profile_customize {Add an email to your account to change your profile.} report {Add an email to your account to submit reports.} mfa {Add an email to your account to turn on two-factor authentication.} guild_verification {Add an email to your account to talk in this community.} other {Add an email to your account to do this.}}} confirm_email {{action, select, message {Confirm your email to send messages.} typing {Confirm your email to send messages.} reaction {Confirm your email to add reactions.} direct_message {Confirm your email to send direct messages.} direct_message_open {Confirm your email to start direct messages.} group_dm {Confirm your email to join group chats.} friend_request {Confirm your email to send friend requests.} friend_accept {Confirm your email to accept friend requests.} invite_create {Confirm your email to create invites.} guild_join {Confirm your email to join this community.} guild_create {Confirm your email to create a community.} voice {Confirm your email to join voice channels.} call {Confirm your email to start calls.} group_call {Confirm your email to join group calls.} thread_join {Confirm your email to join threads.} channel_follow {Confirm your email to follow channels.} ownership_transfer {This person needs to confirm their email before they can own a community.} application_create {Confirm your email to create applications.} gift_redeem {Confirm your email to redeem gifts.} profile_customize {Confirm your email to change your profile.} report {Confirm your email to submit reports.} mfa {Confirm your email to turn on two-factor authentication.} guild_verification {Confirm your email to talk in this community.} other {Confirm your email to do this.}}} password {{action, select, message {Set a password to send messages.} typing {Set a password to send messages.} reaction {Set a password to add reactions.} direct_message {Set a password to send direct messages.} direct_message_open {Set a password to start direct messages.} group_dm {Set a password to join group chats.} friend_request {Set a password to send friend requests.} friend_accept {Set a password to accept friend requests.} invite_create {Set a password to create invites.} guild_join {Set a password to join this community.} guild_create {Set a password to create a community.} voice {Set a password to join voice channels.} call {Set a password to start calls.} group_call {Set a password to join group calls.} thread_join {Set a password to join threads.} channel_follow {Set a password to follow channels.} ownership_transfer {This person needs to set a password before they can own a community.} application_create {Set a password to create applications.} gift_redeem {Set a password to redeem gifts.} profile_customize {Set a password to change your profile.} report {Set a password to submit reports.} mfa {Set a password to turn on two-factor authentication.} guild_verification {Set a password to talk in this community.} other {Set a password to do this.}}} other {{action, select, message {Claim your account to send messages.} typing {Claim your account to send messages.} reaction {Claim your account to add reactions.} direct_message {Claim your account to send direct messages.} direct_message_open {Claim your account to start direct messages.} group_dm {Claim your account to join group chats.} friend_request {Claim your account to send friend requests.} friend_accept {Claim your account to accept friend requests.} invite_create {Claim your account to create invites.} guild_join {Claim your account to join this community.} guild_create {Claim your account to create a community.} voice {Claim your account to join voice channels.} call {Claim your account to start calls.} group_call {Claim your account to join group calls.} thread_join {Claim your account to join threads.} channel_follow {Claim your account to follow channels.} ownership_transfer {This person needs to claim their account before they can own a community.} application_create {Claim your account to create applications.} gift_redeem {Claim your account to redeem gifts.} profile_customize {Claim your account to change your profile.} report {Claim your account to submit reports.} mfa {Claim your account to turn on two-factor authentication.} guild_verification {Claim your account to talk in this community.} other {Claim your account to do this.}}}}",
-					"This sign-in attempt has expired. Start again.",
-					"That code isn't right. Check it and try again.",
-					"This code has expired. Ask for a new one.",
-					"Wait a moment before asking for another code.",
-					"This instance can't send email codes. Use your password instead.",
-					"Sign in to this account with its password.",
-					"Confirm it's you with your authenticator app, passkey or a backup code.",
+					"{need, select, password {{action, select, message {Set a password to send messages.} typing {Set a password to send messages.} reaction {Set a password to add reactions.} direct_message {Set a password to send direct messages.} direct_message_open {Set a password to start direct messages.} group_dm {Set a password to join group chats.} friend_request {Set a password to send friend requests.} friend_accept {Set a password to accept friend requests.} invite_create {Set a password to create invites.} guild_join {Set a password to join this community.} guild_create {Set a password to create a community.} voice {Set a password to join voice channels.} call {Set a password to start calls.} group_call {Set a password to join group calls.} thread_join {Set a password to join threads.} channel_follow {Set a password to follow channels.} ownership_transfer {This person needs to set a password before they can own a community.} application_create {Set a password to create applications.} gift_redeem {Set a password to redeem gifts.} profile_customize {Set a password to change your profile.} report {Set a password to submit reports.} mfa {Set a password to turn on two-factor authentication.} guild_verification {Set a password to talk in this community.} other {Set a password to do this.}}} other {{action, select, message {Claim your account to send messages.} typing {Claim your account to send messages.} reaction {Claim your account to add reactions.} direct_message {Claim your account to send direct messages.} direct_message_open {Claim your account to start direct messages.} group_dm {Claim your account to join group chats.} friend_request {Claim your account to send friend requests.} friend_accept {Claim your account to accept friend requests.} invite_create {Claim your account to create invites.} guild_join {Claim your account to join this community.} guild_create {Claim your account to create a community.} voice {Claim your account to join voice channels.} call {Claim your account to start calls.} group_call {Claim your account to join group calls.} thread_join {Claim your account to join threads.} channel_follow {Claim your account to follow channels.} ownership_transfer {This person needs to claim their account before they can own a community.} application_create {Claim your account to create applications.} gift_redeem {Claim your account to redeem gifts.} profile_customize {Claim your account to change your profile.} report {Claim your account to submit reports.} mfa {Claim your account to turn on two-factor authentication.} guild_verification {Claim your account to talk in this community.} other {Claim your account to do this.}}}}",
 					"Creating an account from just a display name isn't available right now.",
 					"This sign-up link has expired or was already used.",
 					"This sign-up link isn't valid.",
 					"This account is already set up to sign in from other devices.",
-					"Add an email address to your account first.",
-					"{reason, select, email_delivery_off {Set a password to keep this account. This instance can't send email codes.} local_credential_basis {Set a password to keep this account. This instance asks every account for a password or passkey.} other {Set a password to keep this account.}}",
 					"This community asks people to join before previewing it.",
 					"You're not previewing this community anymore."
 				]
@@ -38913,7 +35812,6 @@
 						"tokenUrl": "/oauth2/token",
 						"scopes": {
 							"identify": "Read basic user identity information.",
-							"email": "Read the user email address.",
 							"guilds": "Read guild membership information for the current user.",
 							"connections": "Read linked third-party account connections for the current user.",
 							"bot": "Add a bot user to a guild."

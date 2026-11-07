@@ -1,17 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {randomUUID} from 'node:crypto';
-import {
-	confirmTestEmail,
-	createAuthHarness,
-	createUniqueEmail,
-	createUniqueUsername,
-	fetchMe,
-	type LoginSuccessResponse,
-	registerUser,
-	titleCaseEmail,
-	type UserMeResponse,
-} from '@app/api/auth/tests/AuthTestUtils';
+import {createAuthHarness, createUniqueUsername, registerUser} from '@app/api/auth/tests/AuthTestUtils';
 import {createUserID} from '@app/api/BrandedTypes';
 import {getConfig} from '@app/api/Config';
 import {applySharedListUpdate, resetSharedListsForTests} from '@app/api/infrastructure/activity/SharedLists';
@@ -33,17 +22,10 @@ import {afterAll, beforeAll, beforeEach, describe, expect, it} from 'vitest';
 
 function bootstrapRegistrationBody(prefix: string): Record<string, unknown> {
 	return {
-		email: createUniqueEmail(prefix),
 		username: createUniqueUsername(prefix),
 		global_name: 'Bootstrap Admin',
+		password: 'bootstrap-admin-password',
 		consent: true,
-	};
-}
-
-function bootstrapRegistrationBodyWithDnsEmail(prefix: string): Record<string, unknown> {
-	return {
-		...bootstrapRegistrationBody(prefix),
-		email: `${prefix}-${randomUUID()}@gmail.com`,
 	};
 }
 
@@ -117,7 +99,6 @@ describe('Auth registration', () => {
 	it('does not flag accounts registered on a development instance as staff', async () => {
 		expect(getConfig().nodeEnv).toBe('development');
 		const reg = await registerUser(harness, {
-			email: createUniqueEmail('devnotstaff'),
 			username: createUniqueUsername('devnotstaff'),
 			global_name: 'Dev User',
 			password: 'a-strong-password',
@@ -129,8 +110,8 @@ describe('Auth registration', () => {
 	it('grants wildcard admin ACL to first accepted local dev registration', async () => {
 		await getInstanceConfigRepository().updateCaptchaConfig({enabled: false});
 		await withBootstrapAdminConfig({selfHosted: false, testModeEnabled: false}, async () => {
-			const first = await registerUser(harness, bootstrapRegistrationBodyWithDnsEmail('localdevadminone'));
-			const second = await registerUser(harness, bootstrapRegistrationBodyWithDnsEmail('localdevadmintwo'));
+			const first = await registerUser(harness, bootstrapRegistrationBody('localdevadminone'));
+			const second = await registerUser(harness, bootstrapRegistrationBody('localdevadmintwo'));
 			await expectUserACLs(first.user_id, [AdminACLs.WILDCARD]);
 			await expectUserACLs(second.user_id, []);
 			await expect(getInstanceConfigRepository().isAdminBootstrapped()).resolves.toBe(true);
@@ -210,7 +191,6 @@ describe('Auth registration', () => {
 			await createBuilderWithoutAuth(harness)
 				.post('/auth/register')
 				.body({
-					email: createUniqueEmail('blocked-register'),
 					username: createUniqueUsername('blockedregister'),
 					global_name: 'Blocked Register',
 					password: 'a-strong-password',
@@ -221,60 +201,6 @@ describe('Auth registration', () => {
 		} finally {
 			resetSharedListsForTests();
 		}
-	});
-	it('treats email as case-insensitive across auth flows', async () => {
-		const baseEmail = 'Integration-Test-Case-Email@Example.COM';
-		const password = 'a-strong-password';
-		const registered = await registerUser(harness, {
-			email: baseEmail,
-			username: createUniqueUsername('caseuser'),
-			global_name: 'Test User',
-			password,
-			consent: true,
-		});
-		await confirmTestEmail(harness, registered.user_id);
-		const loginEmails = [baseEmail.toLowerCase(), baseEmail.toUpperCase(), titleCaseEmail(baseEmail)];
-		for (const email of loginEmails) {
-			const login = await createBuilderWithoutAuth<LoginSuccessResponse>(harness)
-				.post('/auth/login')
-				.body({email, password})
-				.execute();
-			expect(login.token.length).toBeGreaterThan(0);
-		}
-		const duplicateJson = await createBuilderWithoutAuth<{
-			code: string;
-			errors: Array<{
-				path: string;
-				message: string;
-			}>;
-		}>(harness)
-			.post('/auth/register')
-			.body({
-				email: baseEmail.toUpperCase(),
-				username: createUniqueUsername('caseuser2'),
-				global_name: 'Test User',
-				password: 'another-strong-password',
-				consent: true,
-			})
-			.expect(400)
-			.execute();
-		expect(duplicateJson.code).toBe('INVALID_FORM_BODY');
-		const emailError = duplicateJson.errors.find((e) => e.path === 'email');
-		expect(emailError?.message).toBe('Email is already in use.');
-		await createBuilderWithoutAuth(harness)
-			.post('/auth/forgot')
-			.body({email: baseEmail.toUpperCase()})
-			.expect(204)
-			.execute();
-		const caseEmailUser = await registerUser(harness, {
-			email: 'integration-case-store-email@example.com',
-			username: createUniqueUsername('caseemailstored'),
-			global_name: 'Stored Email',
-			password: 'a-strong-password',
-			consent: true,
-		});
-		const me = (await fetchMe(harness, caseEmailUser.token)).json as UserMeResponse;
-		expect(me.email).toBe('integration-case-store-email@example.com');
 	});
 });
 
@@ -316,7 +242,7 @@ describe('Setup token registration', () => {
 			const {status, json} = await register(body);
 			expect(status).toBe(HTTP_STATUS.BAD_REQUEST);
 			expect(setupTokenErrors(json)).toEqual([{path: 'setup_token', code: ValidationErrorCodes.SETUP_TOKEN_REQUIRED}]);
-			expect(await getUserRepository().findByEmail(body.email as string)).toBeNull();
+			expect(await getUserRepository().findUsersByUsername(body.username as string)).toEqual([]);
 			await expect(getInstanceConfigRepository().isAdminBootstrapped()).resolves.toBe(false);
 		});
 	});
@@ -327,7 +253,7 @@ describe('Setup token registration', () => {
 			const {status, json} = await register({...body, setup_token: WRONG_SETUP_TOKEN});
 			expect(status).toBe(HTTP_STATUS.BAD_REQUEST);
 			expect(setupTokenErrors(json)).toEqual([{path: 'setup_token', code: ValidationErrorCodes.SETUP_TOKEN_INVALID}]);
-			expect(await getUserRepository().findByEmail(body.email as string)).toBeNull();
+			expect(await getUserRepository().findUsersByUsername(body.username as string)).toEqual([]);
 			await expect(getInstanceConfigRepository().isAdminBootstrapped()).resolves.toBe(false);
 		});
 	});

@@ -2,24 +2,23 @@
 
 import {
 	CleanupModes,
-	EmailDeliveryModes,
-	EmailDeliveryStates,
 	GuildJoinGates,
-	IdentifierFirstModes,
 	InstantAccountAvailability,
 	InteractionTierModes,
 	LastSessionCleanupModes,
-	VerificationBases,
 } from '@osaca/constants/src/AccountConfigConstants';
 import {AccountTiers, AccountVerificationNeeds} from '@osaca/constants/src/AccountTierConstants';
 import {CaptchaProviders} from '@osaca/constants/src/CaptchaConstants';
-import {createNamedStringLiteralUnion, withOpenApiType} from '@osaca/schema/src/primitives/SchemaPrimitives';
+import {
+	createNamedLiteral,
+	createNamedStringLiteralUnion,
+	withOpenApiType,
+} from '@osaca/schema/src/primitives/SchemaPrimitives';
 
 export const AccountTierSchema = withOpenApiType(
 	createNamedStringLiteralUnion(
 		[
 			[AccountTiers.UNCLAIMED, 'UNCLAIMED', 'The account has no way to sign in from another device yet'],
-			[AccountTiers.UNVERIFIED, 'UNVERIFIED', 'The account has an email address that is not confirmed yet'],
 			[AccountTiers.VERIFIED, 'VERIFIED', 'The account has finished setting up and can use everything'],
 		],
 		'How far the account has got with setting up a way to sign in',
@@ -28,13 +27,10 @@ export const AccountTierSchema = withOpenApiType(
 );
 
 export const AccountVerificationNeedSchema = withOpenApiType(
-	createNamedStringLiteralUnion(
-		[
-			[AccountVerificationNeeds.ADD_EMAIL, 'ADD_EMAIL', 'Add an email address to the account'],
-			[AccountVerificationNeeds.CONFIRM_EMAIL, 'CONFIRM_EMAIL', 'Confirm the email address on the account'],
-			[AccountVerificationNeeds.SET_PASSWORD, 'SET_PASSWORD', 'Set a password, or add a passkey, on the account'],
-		],
-		'What the account still has to do before it can use everything',
+	createNamedLiteral(
+		AccountVerificationNeeds.SET_PASSWORD,
+		'SET_PASSWORD',
+		'Set a password, or add a passkey, on the account',
 	),
 	'AccountVerificationNeed',
 );
@@ -68,23 +64,6 @@ export const InstantAccountAvailabilitySchema = withOpenApiType(
 	'InstantAccountAvailability',
 );
 
-export const EmailDeliveryStateSchema = withOpenApiType(
-	createNamedStringLiteralUnion(
-		[
-			[EmailDeliveryStates.ON, 'ON', 'The instance sends email'],
-			[
-				EmailDeliveryStates.OFF_USERNAME_MODE,
-				'OFF_USERNAME_MODE',
-				'People sign in with a username, so no email is sent',
-			],
-			[EmailDeliveryStates.OFF_DISABLED, 'OFF_DISABLED', 'Email delivery is turned off'],
-			[EmailDeliveryStates.OFF_INCOMPLETE, 'OFF_INCOMPLETE', 'Email delivery is on but its settings are incomplete'],
-		],
-		'Whether the instance sends email, and why not',
-	),
-	'EmailDeliveryState',
-);
-
 export const InteractionTierModeSchema = withOpenApiType(
 	createNamedStringLiteralUnion(
 		[
@@ -114,64 +93,6 @@ export const GuildJoinGateSchema = withOpenApiType(
 		'When joining a community needs a finished account. Applies only while the interaction tier is enforced and the person can preview communities',
 	),
 	'GuildJoinGate',
-);
-
-export const IdentifierFirstModeSchema = withOpenApiType(
-	createNamedStringLiteralUnion(
-		[
-			[IdentifierFirstModes.AUTO, 'AUTO', 'On while people sign in with an email and the instance sends email'],
-			[IdentifierFirstModes.ON, 'ON', 'On while people sign in with an email'],
-			[IdentifierFirstModes.OFF, 'OFF', 'Off'],
-		],
-		'Whether clients show the single sign-in entry that starts with an email',
-	),
-	'IdentifierFirstMode',
-);
-
-export const VerificationBasisSchema = withOpenApiType(
-	createNamedStringLiteralUnion(
-		[
-			[
-				VerificationBases.AUTO,
-				'AUTO',
-				'A confirmed email while the instance sends email, otherwise a password or passkey',
-			],
-			[VerificationBases.CONFIRMED_EMAIL, 'CONFIRMED_EMAIL', 'Accounts finish setting up by confirming an email'],
-			[
-				VerificationBases.LOCAL_CREDENTIAL,
-				'LOCAL_CREDENTIAL',
-				'Accounts finish setting up by adding a password or passkey',
-			],
-		],
-		'What an account needs to finish setting up',
-	),
-	'VerificationBasis',
-);
-
-export const EffectiveVerificationBasisSchema = withOpenApiType(
-	createNamedStringLiteralUnion(
-		[
-			[VerificationBases.CONFIRMED_EMAIL, 'CONFIRMED_EMAIL', 'Accounts finish setting up by confirming an email'],
-			[
-				VerificationBases.LOCAL_CREDENTIAL,
-				'LOCAL_CREDENTIAL',
-				'Accounts finish setting up by adding a password or passkey',
-			],
-		],
-		'What an account needs to finish setting up on this instance right now',
-	),
-	'EffectiveVerificationBasis',
-);
-
-export const EmailDeliveryModeSchema = withOpenApiType(
-	createNamedStringLiteralUnion(
-		[
-			[EmailDeliveryModes.OFF, 'OFF', 'The instance does not send email'],
-			[EmailDeliveryModes.SMTP, 'SMTP', 'The instance sends email through SMTP'],
-		],
-		'How the instance sends email',
-	),
-	'EmailDeliveryMode',
 );
 
 export const CleanupModeSchema = withOpenApiType(

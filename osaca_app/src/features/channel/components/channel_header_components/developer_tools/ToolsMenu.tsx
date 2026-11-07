@@ -25,17 +25,17 @@ import * as ModalCommands from '@app/features/ui/commands/ModalCommands';
 import * as ToastCommands from '@app/features/ui/commands/ToastCommands';
 import * as UserCommands from '@app/features/user/commands/UserCommands';
 import MediaEngine from '@app/features/voice/engine/MediaEngineFacade';
-import {OSACABOT_ID} from '@osaca/constants/src/AppConstants';
 import {msg} from '@lingui/core/macro';
 import {Trans, useLingui} from '@lingui/react/macro';
+import {OSACABOT_ID} from '@osaca/constants/src/AppConstants';
 import {BugIcon, KeyboardIcon, PhoneIcon, PlugIcon, RobotIcon} from '@phosphor-icons/react';
 import {observer} from 'mobx-react-lite';
 import type React from 'react';
 import {useCallback, useState} from 'react';
 
 const logger = new Logger('DeveloperToolsContextMenu/ToolsMenu');
-const AUTHORIZED_IPS_CLEARED_NEW_LOGINS_WILL_REQUIRE_EMAIL_DESCRIPTOR = msg({
-	message: 'Authorized IPs cleared. New logins will require email verification.',
+const AUTHORIZED_IPS_CLEARED_DESCRIPTOR = msg({
+	message: 'Authorized IPs cleared.',
 	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
 });
 const FAILED_TO_FORGET_AUTHORIZED_IPS_PLEASE_TRY_AGAIN_DESCRIPTOR = msg({
@@ -47,8 +47,7 @@ const FORGET_AUTHORIZED_IPS_DESCRIPTOR = msg({
 	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
 });
 const THIS_REMOVES_ALL_PREVIOUSLY_AUTHORIZED_IP_ADDRESSES_ON_DESCRIPTOR = msg({
-	message:
-		'This removes all previously authorized IP addresses on your account. The next login from any IP will require email verification.',
+	message: 'This removes all previously authorized IP addresses on your account.',
 	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
 });
 const TRUSTED_DOMAINS_CLEARED_DESCRIPTOR = msg({
@@ -103,7 +102,7 @@ export const ToolsMenu: React.FC<{onClose: () => void}> = observer(({onClose}) =
 			await UserCommands.forgetAuthorizedIps();
 			ToastCommands.createToast({
 				type: 'success',
-				children: i18n._(AUTHORIZED_IPS_CLEARED_NEW_LOGINS_WILL_REQUIRE_EMAIL_DESCRIPTOR),
+				children: i18n._(AUTHORIZED_IPS_CLEARED_DESCRIPTOR),
 			});
 		} catch (error) {
 			logger.error('Failed to forget authorized IPs', error);

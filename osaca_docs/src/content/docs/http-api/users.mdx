@@ -47,7 +47,7 @@ The public account object inside messages, relationships, guild members and appl
 
 While an account's `profile_restricted` is true, other accounts get null `global_name` and `avatar` for it. A deleted account has the username `DeletedUser`, the discriminator `0000`, the global name `Deleted User`, `flags` of `0` and a null `avatar` and `avatar_color`.
 
-On an instance whose `tag_style` [feature](/http-api/instance/#instance-features-object) is `none`, usernames are unique on their own and every account that isn't a bot has the discriminator `0000`.
+Usernames are unique on their own, and every account that isn't a bot has the discriminator `0000`.
 
 ## Public user flags
 
@@ -84,8 +84,6 @@ The current account as its owner sees it, returned by [Get current user](/http-a
 | is_staff<sup>1</sup> | boolean | Whether the account has the staff flag, even when it is hidden from `flags` |
 | acls<sup>1</sup> | array[string] | The [Admin API](/admin-api/users/#set-user-acls) access entries, empty for most accounts |
 | traits<sup>1</sup> | array[string] | The account traits, sorted |
-| email<sup>2</sup> | ?string | The email address, or null |
-| email_bounced?<sup>1</sup> | boolean | Whether mail to the email address bounced |
 | has_verified_phone | boolean | Deprecated. Always false |
 | bio | ?string | The profile biography, or null |
 | pronouns | ?string | The profile pronouns, or null |
@@ -96,7 +94,6 @@ The current account as its owner sees it, returned by [Get current user](/http-a
 | banner_color | ?integer | The 24-bit RGB color taken from the banner, or null |
 | mfa_enabled<sup>1</sup> | boolean | Whether any authenticator is set up |
 | authenticator_types?<sup>1</sup> | array[integer] | [Authenticator types](#authenticator-types) set up for the account |
-| verified<sup>2</sup> | boolean | Whether the email address is confirmed |
 | account_limited?<sup>1</sup> | boolean | Whether the account is [limited](#account-limitation) |
 | hidden_profile_badges<sup>1</sup> | array[string] | The [badge keys](#hiding-badges) hidden from other people, sorted |
 | password_last_changed_at<sup>1</sup> | ?ISO8601 timestamp | When the password last changed, or null |
@@ -107,15 +104,13 @@ The current account as its owner sees it, returned by [Get current user](/http-a
 | age_verified_adult?<sup>1</sup> | boolean | Whether adult age verification is done, omitted when false |
 | terms_agreed_at<sup>1</sup> | ?ISO8601 timestamp | When the account last accepted the terms, or null |
 | privacy_agreed_at<sup>1</sup> | ?ISO8601 timestamp | When the account was last shown the current privacy policy, or null |
-| claimed?<sup>1</sup> | boolean | Whether the account can sign in on another device with an email, a password or a passkey |
-| account_tier?<sup>1</sup> | string | The [account tier](#account-tiers), `unclaimed`, `unverified` or `verified` |
-| verification_need?<sup>1</sup> | ?string | `add_email`, `confirm_email` or `password` until the account is verified, then null |
+| claimed?<sup>1</sup> | boolean | Whether the account can sign in on another device with a password or a passkey |
+| account_tier?<sup>1</sup> | string | The [account tier](#account-tiers), `unclaimed` or `verified` |
+| verification_need?<sup>1</sup> | ?string | `password` until the account is verified, then null |
 | has_password?<sup>1</sup> | boolean | Whether the account has a password |
 | profile_restricted?<sup>1</sup> | boolean | Whether other accounts see only the username and discriminator |
 
 <sup>1</sup> With an OAuth2 bearer token on [Get current user](/http-api/users/current-user/#get-current-user), arrays are empty, optional fields are left out, booleans are false, and nullable fields are null
-
-<sup>2</sup> With an OAuth2 bearer token that lacks the `email` [scope](/http-api/oauth2/#oauth2-scopes), `email` is null and `verified` is false
 
 
 ## Pending bulk message deletion object
@@ -158,11 +153,11 @@ An account is limited while `account_limited` is true. It can still read, join v
 
 ## Account tiers
 
-An account is unclaimed while it has no email address, unverified while its email address isn't confirmed and verified otherwise. When the `account_identity` [feature](/http-api/instance/#instance-features-object) is `username`, an account with a password or a passkey is verified and one without is unclaimed. On an instance that sends no email, or whose `verification_basis` is `local_credential`, an account with an email address follows the same rule. Bots and system accounts are always verified.
+An account with a password or a passkey is verified and one without is unclaimed. Bots and system accounts are always verified.
 
 `interaction_tier` in the [accounts configuration](/admin-api/instance/#accounts-configuration-object) sets how strict the tiers are. When it is `enforced`, an account that isn't verified can read, edit its own profile and settings, write personal notes and join communities, but can't do most things that involve other people.
 
-A denial that has its own code returns it, such as `UNCLAIMED_ACCOUNT_CANNOT_SEND_MESSAGES` or `EMAIL_VERIFICATION_REQUIRED`. Every other denial returns 403 `ACCOUNT_VERIFICATION_REQUIRED`, and so does every denial for an account whose `verification_need` is `password`. That [error response](/http-api/#error-response) has `action`, `tier` and `need`, and `action` is one of the values below.
+Every denial returns 403 `ACCOUNT_VERIFICATION_REQUIRED`. That [error response](/http-api/#error-response) has `action`, `tier` and `need`, and `action` is one of the values below.
 
 | Action | Operations |
 | --- | --- |
@@ -188,7 +183,7 @@ A denial that has its own code returns it, such as `UNCLAIMED_ACCOUNT_CANNOT_SEN
 | `profile_customize` | Change a profile field |
 | `report` | Submit a report |
 | `mfa` | Turn on two-factor authentication or regenerate backup codes |
-| `guild_verification` | Talk in a guild that requires a verified email |
+| `guild_verification` | Talk in a guild that has a verification level |
 
 `guild_join` applies only to accounts assigned [guild visits](/admin-api/instance/#guild-visits-configuration-object), and never while the instance sets `guild_join_gate` to `off`. With `visits_capable`, it applies only to clients that send the `X-OSACA-Capabilities: guild_visits` header.
 
@@ -577,7 +572,7 @@ The rate limit is 100 requests per 10 seconds, on the `user:profile::target_id` 
 
 <RouteHeader method="GET" path="/v1/users/check-tag" bot />
 
-Returns whether another account already uses a username and discriminator. Usernames compare without case and discriminators compare as numbers, with `7` matching `0007`, and your own tag returns `false`. When the `tag_style` [feature](/http-api/instance/#instance-features-object) is `none`, the discriminator is ignored unless you are a bot.
+Returns whether another account already uses a username and discriminator. Usernames compare without case and discriminators compare as numbers, with `7` matching `0007`, and your own tag returns `false`. The discriminator is ignored unless you are a bot.
 
 ### Query parameters
 

@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
 import SudoVerificationModal from '@app/features/auth/components/modals/SudoVerificationModal';
 import Sudo from '@app/features/auth/state/AuthSudo';
 import type {SudoVerificationPayload} from '@app/features/auth/types/AuthSudoTypes';
@@ -24,7 +23,6 @@ interface SudoErrorPayload {
 		totp?: boolean;
 		webauthn?: boolean;
 		backup_codes?: boolean;
-		email_code?: boolean;
 		password?: boolean;
 	};
 }
@@ -44,14 +42,12 @@ interface SudoRequestContext {
 export enum SudoVerificationMethod {
 	TOTP = 'totp',
 	WEBAUTHN = 'webauthn',
-	EMAIL_CODE = 'email_code',
 }
 
 export const SUDO_MODAL_KEY = 'sudo-verification-modal';
 
 interface AvailableMethods {
 	password: boolean;
-	emailCode: boolean;
 	totp: boolean;
 	webauthn: boolean;
 	backupCodes: boolean;
@@ -71,7 +67,6 @@ const MFA_TO_PROTO: Record<StoredMfaMethod, MfaMethod> = {
 };
 const EMPTY_METHODS: AvailableMethods = {
 	password: false,
-	emailCode: false,
 	totp: false,
 	webauthn: false,
 	backupCodes: false,
@@ -90,8 +85,6 @@ function deriveMethodsFromCurrentUser(): AvailableMethods {
 	const tierAware = user.reportsAccountTier;
 	return {
 		password: !secondFactor && (!tierAware || user.hasPassword),
-		emailCode:
-			tierAware && !secondFactor && RuntimeConfig.emailsEnabled && user.email != null && user.verified === true,
 		totp,
 		webauthn,
 		backupCodes: false,
@@ -191,7 +184,6 @@ class SudoPrompt {
 		const backupCodes = methods.backup_codes === true || (methods.backup_codes === undefined && baseline.backupCodes);
 		this.availableMethods = {
 			password: methods.password ?? baseline.password,
-			emailCode: methods.email_code ?? baseline.emailCode,
 			totp,
 			webauthn,
 			backupCodes,

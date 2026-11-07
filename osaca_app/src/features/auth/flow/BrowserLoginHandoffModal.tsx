@@ -41,7 +41,6 @@ interface BrowserLoginHandoffModalProps {
 const POLL_INTERVAL_MS = 2000;
 
 const BrowserLoginHandoffModal = observer(({onSuccess, prefillLogin, variant}: BrowserLoginHandoffModalProps) => {
-	const prefillEmail = prefillLogin;
 	const {i18n} = useLingui();
 	const isOldAppVariant = variant === 'old_app';
 	const currentWebAppUrl = RuntimeConfig.webAppBaseUrl;
@@ -108,7 +107,7 @@ const BrowserLoginHandoffModal = observer(({onSuccess, prefillLogin, variant}: B
 		const loginUrl = new URL('/login', currentWebAppUrl);
 		loginUrl.searchParams.set('handoff', '1');
 		if (prefillLogin) {
-			loginUrl.searchParams.set(RuntimeConfig.usesUsernameSignIn ? 'login' : 'email', prefillLogin);
+			loginUrl.searchParams.set('login', prefillLogin);
 		}
 		await openExternalUrl(loginUrl.toString());
 	}, [currentWebAppUrl, prefillLogin]);
@@ -159,7 +158,7 @@ const BrowserLoginHandoffModal = observer(({onSuccess, prefillLogin, variant}: B
 							className={styles.prefillHint}
 							data-flx="auth.flow.browser-login-handoff-modal.prefill-hint"
 						>
-							<Trans>We will prefill {prefillEmail} once browser sign-in opens.</Trans>
+							<Trans>We will prefill {prefillLogin} once browser sign-in opens.</Trans>
 						</Modal.Description>
 					) : null}
 				</Modal.ContentLayout>

@@ -10,18 +10,6 @@ import {type AuthRoutePage, createAuthRoutePage} from '@app/features/auth/flow/A
 import {createRoute, type RouteBuilder} from '@app/features/platform/components/router/RouterBuilder';
 import {type NotFound, Redirect, type RouteContext} from '@app/features/platform/components/router/RouterTypes';
 
-const AuthorizeIPPage = createAuthRoutePage(
-	'AuthorizeIPPage',
-	() => import('@app/features/auth/components/pages/AuthorizeIPPage'),
-);
-const EmailRevertPage = createAuthRoutePage(
-	'EmailRevertPage',
-	() => import('@app/features/auth/components/pages/EmailRevertPage'),
-);
-const ForgotPasswordPage = createAuthRoutePage(
-	'ForgotPasswordPage',
-	() => import('@app/features/auth/components/pages/ForgotPasswordPage'),
-);
 const LoginPage = createAuthRoutePage('LoginPage', () => import('@app/features/auth/components/pages/LoginPage'));
 const OAuthAuthorizePage = createAuthRoutePage(
 	'OAuthAuthorizePage',
@@ -39,10 +27,6 @@ const ResetPasswordPage = createAuthRoutePage(
 	'ResetPasswordPage',
 	() => import('@app/features/auth/components/pages/ResetPasswordPage'),
 );
-const VerifyEmailPage = createAuthRoutePage(
-	'VerifyEmailPage',
-	() => import('@app/features/auth/components/pages/VerifyEmailPage'),
-);
 const InviteLoginPage = createAuthRoutePage(
 	'InviteLoginPage',
 	() => import('@app/features/invite/components/pages/InviteLoginPage'),
@@ -51,9 +35,6 @@ const InviteRegisterPage = createAuthRoutePage(
 	'InviteRegisterPage',
 	() => import('@app/features/invite/components/pages/InviteRegisterPage'),
 );
-const ReportPage = createAuthRoutePage('ReportPage', async () => ({
-	default: (await import('@app/features/moderation/components/pages/ReportPage')).ReportPage,
-}));
 const ThemeLoginPage = createAuthRoutePage(
 	'ThemeLoginPage',
 	() => import('@app/features/theme/components/pages/ThemeLoginPage'),
@@ -139,22 +120,12 @@ function createShortLinkAuthRoutes({
 	];
 }
 
-function shortLinkSignInPath(paramName: string, toSignIn: (value: string) => string) {
-	return (context: RouteContext): string | null => {
-		const value = context.params[paramName];
-		return value == null || value === '' ? null : toSignIn(value);
-	};
-}
-
 const inviteShortLinkHandlers = ShortLinkRouteEnterPolicy.createHandlers({
 	paramName: 'code',
 	openAcceptModal: ShortLinkAcceptModalOpener.openInvite,
 });
 const inviteRouteEnterHandlers = {
-	onRegisterEnter: AuthRouteRedirectPolicy.redirectRegisterToSignIn(
-		shortLinkSignInPath('code', Routes.inviteLogin),
-		inviteShortLinkHandlers.onRegisterEnter,
-	),
+	onRegisterEnter: inviteShortLinkHandlers.onRegisterEnter,
 	onLoginEnter: inviteShortLinkHandlers.onLoginEnter,
 };
 const themeRouteEnterHandlers = ShortLinkRouteEnterPolicy.createHandlers({
@@ -176,7 +147,6 @@ const registerRoute = createAuthPageRoute({
 	path: '/register',
 	page: RegisterPage,
 	dataFlx: 'app.router.auth-routes.register-page',
-	onEnter: AuthRouteRedirectPolicy.redirectRegisterToSignIn(() => Routes.LOGIN),
 });
 const oauthAuthorizeRoute = createAuthPageRoute({
 	id: 'oauthAuthorize',
@@ -193,12 +163,11 @@ const inviteRoutes = createShortLinkAuthRoutes({
 	loginPage: InviteLoginPage,
 	handlers: inviteRouteEnterHandlers,
 });
-const forgotPasswordRoute = createAuthPageRoute({
+const forgotPasswordRoute = createRoute({
+	getParentRoute: () => authLayoutRoute,
 	id: 'forgotPassword',
 	path: Routes.FORGOT_PASSWORD,
-	page: ForgotPasswordPage,
-	dataFlx: 'app.router.auth-routes.forgot-password-page',
-	onEnter: AuthRouteRedirectPolicy.resolveForgotPasswordEntry,
+	onEnter: () => new Redirect(Routes.RECOVER_ACCOUNT),
 });
 const recoverAccountRoute = createAuthPageRoute({
 	id: 'recoverAccount',
@@ -212,44 +181,14 @@ const resetPasswordRoute = createAuthPageRoute({
 	path: Routes.RESET_PASSWORD,
 	page: ResetPasswordPage,
 	dataFlx: 'app.router.auth-routes.reset-password-page',
-	onEnter: AuthRouteRedirectPolicy.resolvePasswordResetEntry,
-});
-const emailRevertRoute = createAuthPageRoute({
-	id: 'emailRevert',
-	path: Routes.EMAIL_REVERT,
-	page: EmailRevertPage,
-	dataFlx: 'app.router.auth-routes.email-revert-page',
-	onEnter: AuthRouteRedirectPolicy.resolveEmailFeatureEntry,
-});
-const verifyEmailRoute = createAuthPageRoute({
-	id: 'verifyEmail',
-	path: Routes.VERIFY_EMAIL,
-	page: VerifyEmailPage,
-	dataFlx: 'app.router.auth-routes.verify-email-page',
-	onEnter: AuthRouteRedirectPolicy.resolveEmailFeatureEntry,
-});
-const authorizeIPRoute = createAuthPageRoute({
-	id: 'authorizeIP',
-	path: Routes.AUTHORIZE_IP,
-	page: AuthorizeIPPage,
-	dataFlx: 'app.router.auth-routes.authorize-ip-page',
 });
 const pendingRoute = createAuthRedirectRoute('pending', Routes.PENDING);
-const reportRoute = createAuthPageRoute({
-	id: 'report',
-	path: Routes.REPORT,
-	page: ReportPage,
-	dataFlx: 'app.router.auth-routes.report-page',
-});
 const themeRegisterRoute = createAuthPageRoute({
 	id: 'themeRegister',
 	path: Routes.THEME_REGISTER,
 	page: ThemeRegisterPage,
 	dataFlx: 'app.router.auth-routes.theme-register-page',
-	onEnter: AuthRouteRedirectPolicy.redirectRegisterToSignIn(
-		shortLinkSignInPath('themeId', Routes.themeLogin),
-		themeRouteEnterHandlers.onRegisterEnter,
-	),
+	onEnter: themeRouteEnterHandlers.onRegisterEnter,
 });
 const themeLoginRoute = createAuthPageRoute({
 	id: 'themeLogin',
@@ -271,9 +210,5 @@ export const authRouteTree = authLayoutRoute.addChildren([
 	forgotPasswordRoute,
 	recoverAccountRoute,
 	resetPasswordRoute,
-	emailRevertRoute,
-	verifyEmailRoute,
-	authorizeIPRoute,
 	pendingRoute,
-	reportRoute,
 ]);

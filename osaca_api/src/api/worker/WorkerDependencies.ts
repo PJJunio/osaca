@@ -50,7 +50,6 @@ import {
 	getChannelRepository,
 	getConnectionRepository,
 	getDiscriminatorService,
-	getEmailService,
 	getEmbedService,
 	getEntityAssetService,
 	getFavoriteMemeRepository,
@@ -83,7 +82,6 @@ import type {UserPermissionUtils} from '@app/api/utils/UserPermissionUtils';
 import type {WebhookRepository} from '@app/api/webhook/WebhookRepository';
 import type {WorkerTaskName} from '@app/api/worker/WorkerLaneConfig';
 import type {ICacheService} from '@pkgs/cache/src/ICacheService';
-import type {IEmailService} from '@pkgs/email/src/IEmailService';
 import type {IKVProvider} from '@pkgs/kv_client/src/IKVProvider';
 import type {IVirusScanService} from '@pkgs/virus_scan/src/IVirusScanService';
 import type {IWorkerService} from '@pkgs/worker/src/contracts/IWorkerService';
@@ -112,7 +110,6 @@ export interface WorkerDependencies {
 	discriminatorService: DiscriminatorService;
 	avatarService: AvatarService;
 	virusScanService: IVirusScanService;
-	emailService: IEmailService;
 	instanceConfigRepository: InstanceConfigRepository;
 	webhookRepository: WebhookRepository;
 	workerService: IWorkerService<WorkerTaskName>;
@@ -148,7 +145,6 @@ export async function initializeWorkerDependencies(snowflakeService: ISnowflakeS
 	const instanceConfigRepository = getInstanceConfigRepository();
 	const limitConfigService = getLimitConfigService();
 	await instanceConfigRepository.initialize();
-	await instanceConfigRepository.ensureAccountIdentityMode();
 	await instanceConfigRepository.ensureAccountsDefaults();
 	await limitConfigService.initialize();
 	limitConfigService.setAsGlobalInstance();
@@ -161,7 +157,6 @@ export async function initializeWorkerDependencies(snowflakeService: ISnowflakeS
 	const avatarService = getAvatarService();
 	const entityAssetService = getEntityAssetService();
 	const virusScanService = getVirusScanServiceInstance();
-	const emailService = getEmailService();
 	const workerService = getWorkerService();
 	const guildAuditLogService = getGuildAuditLogService();
 	const embedService = getEmbedService();
@@ -170,7 +165,7 @@ export async function initializeWorkerDependencies(snowflakeService: ISnowflakeS
 	const activityTracker = getKVActivityTracker();
 	const deletionQueueService = getKVAccountDeletionQueue();
 	const bulkMessageDeletionQueueService = getKVBulkMessageDeletionQueue();
-	const deletionEligibilityService = new UserDeletionEligibilityService(kvClient);
+	const deletionEligibilityService = new UserDeletionEligibilityService();
 	await ensureVoiceResourcesInitialized();
 	const voiceRoomStore = getVoiceRoomStoreInstance();
 	const liveKitService = getLiveKitServiceInstance();
@@ -230,7 +225,6 @@ export async function initializeWorkerDependencies(snowflakeService: ISnowflakeS
 		discriminatorService,
 		avatarService,
 		virusScanService,
-		emailService,
 		instanceConfigRepository,
 		webhookRepository,
 		workerService,

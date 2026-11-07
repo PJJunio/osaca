@@ -96,29 +96,29 @@ Joined servers work next to the chart's LiveKit and next to a LiveKit of your ow
 
 ## Trust your own CA
 
-When your email server or another service the api calls has a certificate from your own CA, mount that CA's PEM file into the api and worker and set `NODE_EXTRA_CA_CERTS` to its path. This example reads `ca.pem` from a ConfigMap called `smtp-ca`.
+When a service the api calls has a certificate from your own CA, mount that CA's PEM file into the api and worker and set `NODE_EXTRA_CA_CERTS` to its path. This example reads `ca.pem` from a ConfigMap called `internal-ca`.
 
 ```yaml
 api:
   env:
     NODE_EXTRA_CA_CERTS: /etc/osaca/ca/ca.pem
   extraVolumes:
-    - name: smtp-ca
+    - name: internal-ca
       configMap:
-        name: smtp-ca
+        name: internal-ca
   extraVolumeMounts:
-    - name: smtp-ca
+    - name: internal-ca
       mountPath: /etc/osaca/ca
       readOnly: true
 worker:
   env:
     NODE_EXTRA_CA_CERTS: /etc/osaca/ca/ca.pem
   extraVolumes:
-    - name: smtp-ca
+    - name: internal-ca
       configMap:
-        name: smtp-ca
+        name: internal-ca
   extraVolumeMounts:
-    - name: smtp-ca
+    - name: internal-ca
       mountPath: /etc/osaca/ca
       readOnly: true
 ```

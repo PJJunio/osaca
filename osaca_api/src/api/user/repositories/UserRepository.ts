@@ -1,12 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type {ChannelID, GuildID, MessageID, UserID} from '@app/api/BrandedTypes';
-import type {
-	AuthSessionRow,
-	EmailRevertTokenRow,
-	EmailVerificationTokenRow,
-	PasswordResetTokenRow,
-} from '@app/api/database/types/AuthTypes';
+import type {AuthSessionRow, PasswordResetTokenRow} from '@app/api/database/types/AuthTypes';
 import type {
 	PushSubscriptionRow,
 	RecentMentionRow,
@@ -15,11 +10,8 @@ import type {
 	UserRow,
 	UserSettingsRow,
 } from '@app/api/database/types/UserTypes';
-import {getKVClient} from '@app/api/middleware/ServiceRegistry';
 import type {AuthSession, AuthSessionTombstone} from '@app/api/models/AuthSession';
 import type {Channel} from '@app/api/models/Channel';
-import type {EmailRevertToken} from '@app/api/models/EmailRevertToken';
-import type {EmailVerificationToken} from '@app/api/models/EmailVerificationToken';
 import type {MfaBackupCode} from '@app/api/models/MfaBackupCode';
 import type {PasswordResetToken} from '@app/api/models/PasswordResetToken';
 import type {PushSubscription} from '@app/api/models/PushSubscription';
@@ -31,7 +23,6 @@ import type {UserGuildSettings} from '@app/api/models/UserGuildSettings';
 import type {UserNote} from '@app/api/models/UserNote';
 import type {UserSettings} from '@app/api/models/UserSettings';
 import type {WebAuthnCredential} from '@app/api/models/WebAuthnCredential';
-import {UserEmailOwnershipRepository} from '@app/api/user/repositories/account/crud/UserEmailOwnershipRepository';
 import {
 	UserAccountRepository,
 	type UserDeletionScheduleUpdate,
@@ -55,7 +46,6 @@ import {
 } from '@app/api/user/repositories/UserChannelRepository';
 import {UserRelationshipRepository} from '@app/api/user/repositories/UserRelationshipRepository';
 import {UserSettingsRepository} from '@app/api/user/repositories/UserSettingsRepository';
-import type {IKVProvider} from '@pkgs/kv_client/src/IKVProvider';
 
 export class UserRepository {
 	private accountRepo: UserAccountRepository;
@@ -74,11 +64,11 @@ export class UserRepository {
 	private recentMentionRepository = new RecentMentionRepository();
 	private savedMessageRepository = new SavedMessageRepository();
 
-	constructor(kv: IKVProvider = getKVClient()) {
-		this.accountRepo = new UserAccountRepository(kv);
+	constructor() {
+		this.accountRepo = new UserAccountRepository();
 		const findUnique = this.accountRepo.findUnique.bind(this.accountRepo);
-		this.lookupRepo = new UserLookupRepository(findUnique, new UserEmailOwnershipRepository(findUnique, kv));
-		this.ipAuthorizationRepository = new IpAuthorizationRepository(this.accountRepo);
+		this.lookupRepo = new UserLookupRepository(findUnique);
+		this.ipAuthorizationRepository = new IpAuthorizationRepository();
 	}
 
 	async create(data: UserRow): Promise<User> {
@@ -139,10 +129,6 @@ export class UserRepository {
 
 	async findUsersByUsername(username: string): Promise<Array<User>> {
 		return this.lookupRepo.findUsersByUsername(username);
-	}
-
-	async findByEmail(email: string): Promise<User | null> {
-		return this.lookupRepo.findByEmail(email);
 	}
 
 	async listUserIdsWithAcl(acl: string): Promise<Array<UserID>> {
@@ -282,18 +268,6 @@ export class UserRepository {
 		return this.mfaBackupCodeRepository.deleteAllMfaBackupCodes(userId);
 	}
 
-	async getEmailVerificationToken(token: string): Promise<EmailVerificationToken | null> {
-		return this.tokenRepo.getEmailVerificationToken(token);
-	}
-
-	async createEmailVerificationToken(tokenData: EmailVerificationTokenRow): Promise<EmailVerificationToken> {
-		return this.tokenRepo.createEmailVerificationToken(tokenData);
-	}
-
-	async deleteEmailVerificationToken(token: string): Promise<void> {
-		return this.tokenRepo.deleteEmailVerificationToken(token);
-	}
-
 	async getPasswordResetToken(token: string): Promise<PasswordResetToken | null> {
 		return this.tokenRepo.getPasswordResetToken(token);
 	}
@@ -306,35 +280,12 @@ export class UserRepository {
 		return this.tokenRepo.deleteAllPasswordResetTokens(userId);
 	}
 
-	async getEmailRevertToken(token: string): Promise<EmailRevertToken | null> {
-		return this.tokenRepo.getEmailRevertToken(token);
-	}
-
-	async createEmailRevertToken(tokenData: EmailRevertTokenRow): Promise<EmailRevertToken> {
-		return this.tokenRepo.createEmailRevertToken(tokenData);
-	}
-
-	async deleteEmailRevertToken(token: string): Promise<void> {
-		return this.tokenRepo.deleteEmailRevertToken(token);
-	}
-
 	async checkIpAuthorized(userId: UserID, ip: string): Promise<boolean> {
 		return this.ipAuthorizationRepository.checkIpAuthorized(userId, ip);
 	}
 
 	async createAuthorizedIp(userId: UserID, ip: string): Promise<void> {
 		return this.ipAuthorizationRepository.createAuthorizedIp(userId, ip);
-	}
-
-	async createIpAuthorizationToken(userId: UserID, token: string, email: string): Promise<void> {
-		return this.ipAuthorizationRepository.createIpAuthorizationToken(userId, token, email);
-	}
-
-	async authorizeIpByToken(token: string): Promise<{
-		userId: UserID;
-		email: string;
-	} | null> {
-		return this.ipAuthorizationRepository.authorizeIpByToken(token);
 	}
 
 	async getAuthorizedIps(userId: UserID): Promise<

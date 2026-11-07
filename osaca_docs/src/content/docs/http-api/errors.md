@@ -69,7 +69,6 @@ This table has the most common extra fields. Any other extra fields are listed o
 | `has_mfa`, `methods` | On `SUDO_MODE_REQUIRED`, the proofs the account can give for [sudo mode](/http-api/users/mfa/#sudo-mode) |
 | `captcha_provider`, `altcha_challenge` | On `CAPTCHA_REQUIRED` and `INVALID_CAPTCHA`, the challenge to solve, as described in [CAPTCHA handling](/topics/captcha/) |
 | `step_index` | On `INVALID_REPORT_FLOW_ANSWERS`, the index of the first [report flow step](/http-api/reports/#report-flow-step-object) whose answer isn't valid |
-| `ticket`, `email`, `resend_available_in` | On `IP_AUTHORIZATION_REQUIRED`, the ticket for [authorizing a new IP address](/http-api/authentication/#log-in-with-a-password), and `ip_authorization_required` is `true` |
 | `action`, `tier`, `need` | On `ACCOUNT_VERIFICATION_REQUIRED`, what was refused and which step is missing, as described in [account tiers](/http-api/users/#account-tiers) |
 | `ban_kind`, `expires_at`, `reason` | On `GLOBAL_IP_BANNED` and `GLOBAL_IP_TEMPORARILY_BANNED`, details of the block, listed in full under [network block response](/http-api/authentication/#network-block-response) |
 | `notice` | On `ACCOUNT_SUSPENDED_TEMPORARILY` and `ACCOUNT_SUSPENDED_PERMANENTLY`, the [enforcement notice](/http-api/authentication/#enforcement-notice-object) for the account |
@@ -82,7 +81,6 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | --- | --- |
 | `ACCESS_DENIED` | You don't have access to this resource or feature |
 | `ACCOUNT_ALREADY_CLAIMED` | This account is already set up to sign in from other devices |
-| `ACCOUNT_IDENTITY_LOCKED` | The sign-in method is already set and can't be changed |
 | `ACCOUNT_LIMITED` | Messaging is paused on your account |
 | `ACCOUNT_SUSPENDED_PERMANENTLY` | This account has been permanently suspended |
 | `ACCOUNT_SUSPENDED_TEMPORARILY` | This account has been temporarily suspended |
@@ -135,7 +133,6 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `CONTENT_BLOCKED` | This content was blocked by safety systems |
 | `DELETION_FAILED` | We couldn't delete the resource |
 | `DIRECT_MESSAGES_DISABLED` | Direct messages are disabled on this instance |
-| `DIRECT_MESSAGE_EMAIL_VERIFICATION_REQUIRED` | Email verification is required for this action |
 | `DISCOVERY_ALREADY_APPLIED` | This community has already applied to be listed in Explore |
 | `DISCOVERY_APPLICATION_ALREADY_REVIEWED` | This application to Explore has already been reviewed |
 | `DISCOVERY_APPLICATION_NOT_FOUND` | The application to Explore wasn't found |
@@ -143,12 +140,6 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `DISCOVERY_INSUFFICIENT_MEMBERS` | This community doesn't have enough members to be listed in Explore |
 | `DISCOVERY_NOT_DISCOVERABLE` | This community isn't listed in Explore |
 | `DISCRIMINATOR_REQUIRED` | Discriminator is required |
-| `EMAIL_CODES_UNAVAILABLE` | This instance can't send email codes |
-| `EMAIL_CODE_RESEND_COOLDOWN` | Wait a moment before asking for another code |
-| `EMAIL_DELIVERY_OFF` | This instance doesn't send email |
-| `EMAIL_SERVICE_NOT_TESTABLE` | Email service is temporarily unavailable |
-| `EMAIL_UNAVAILABLE_ON_INSTANCE` | This instance doesn't use email |
-| `EMAIL_VERIFICATION_REQUIRED` | Email verification is required for this action |
 | `ENFORCEMENT_ACCOUNT_CLOSED` | This account is closed, so it can't be suspended |
 | `ENFORCEMENT_DECISION_ENDED` | This decision has already ended |
 | `ENFORCEMENT_DECISION_OWNS_STATE` | An enforcement decision owns this restriction |
@@ -165,7 +156,6 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `FORUM_TAG_REQUIRED` | A tag is required to create a post in this channel |
 | `FRIENDS_DISABLED` | Friend requests are disabled on this instance |
 | `FRIEND_REQUEST_BLOCKED` | User does not accept friend requests at this time |
-| `FRIEND_REQUEST_EMAIL_VERIFICATION_REQUIRED` | Email verification is required for this action |
 | `GATEWAY_TIMEOUT` | Gateway timeout |
 | `GENERAL_ERROR` | Something went wrong |
 | `GLOBAL_IP_BANNED` | {product_name} blocked access from this network |
@@ -173,9 +163,7 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `GONE` | Gone |
 | `GROUP_DM_MATURE_CONTENT_INELIGIBLE` | Not everyone in this group is eligible for mature content |
 | `GROUP_DM_RECIPIENTS_NOT_ADDABLE` | One or more selected users can't be added to this group DM |
-| `GUILD_CREATION_EMAIL_VERIFICATION_REQUIRED` | Email verification is required for this action |
 | `GUILD_CREATION_PERMISSION_REQUIRED` | You don't have permission to create communities on this instance |
-| `GUILD_EMAIL_VERIFICATION_REQUIRED` | Email verification is required for this action |
 | `GUILD_TEMPLATE_INVALID` | The community template data is invalid or malformed |
 | `GUILD_VERIFICATION_REQUIRED` | Claim your account to talk in this community |
 | `GUILD_VISITS_DISABLED` | This community asks people to join before previewing it |
@@ -198,9 +186,6 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `INVALID_CAPTCHA` | Verification failed |
 | `INVALID_CHANNEL_TYPE` | Invalid channel type |
 | `INVALID_CHANNEL_TYPE_FOR_CALL` | Calls can only be made in direct messages or group DMs |
-| `INVALID_DSA_REPORT_TARGET` | Invalid DSA report target |
-| `INVALID_DSA_TICKET` | Invalid DSA ticket |
-| `INVALID_DSA_VERIFICATION_CODE` | Invalid DSA verification code |
 | `INVALID_FLAGS_FORMAT` | Invalid flags format |
 | `INVALID_FOLLOW_TARGET_CHANNEL` | Followed channels can only post into text channels |
 | `INVALID_FORM_BODY` | Invalid form body |
@@ -210,7 +195,6 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `INVALID_PERMISSIONS_NEGATIVE` | Permissions must be non-negative |
 | `INVALID_REPORT_FLOW_ANSWERS` | These answers don't match the report form |
 | `INVALID_REQUEST` | Invalid request |
-| `INVALID_SIGN_IN_CODE` | That code isn't right |
 | `INVALID_STREAM_KEY_FORMAT` | Invalid stream key format |
 | `INVALID_STREAM_THUMBNAIL_PAYLOAD` | Invalid stream thumbnail payload |
 | `INVALID_SYSTEM_FLAG` | Invalid system flag |
@@ -222,9 +206,6 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `INVALID_WEBAUTHN_CREDENTIAL_COUNTER` | Invalid WebAuthn credential counter |
 | `INVALID_WEBAUTHN_PUBLIC_KEY_FORMAT` | Invalid WebAuthn public key format |
 | `INVITES_DISABLED` | Invites are disabled |
-| `IP_AUTHORIZATION_REQUIRED` | IP authorization is required |
-| `IP_AUTHORIZATION_RESEND_COOLDOWN` | IP authorization resend is on cooldown |
-| `IP_AUTHORIZATION_RESEND_LIMIT_EXCEEDED` | IP authorization resend limit exceeded |
 | `IP_BAN_DECLINED` | This IP address cannot be added to the blocklist |
 | `IP_BAN_LINKED_TO_DECISION` | This network block belongs to an enforcement decision |
 | `MAX_ACTIVE_THREADS` | This community is at its active thread limit of {count} |
@@ -254,7 +235,6 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `MESSAGE_CROSSPOST_RATE_LIMITED` | This channel is at its publishing limit |
 | `MESSAGE_NOT_CROSSPOSTABLE` | This message cannot be published |
 | `METHOD_NOT_ALLOWED` | Method not allowed |
-| `MFA_EMAIL_VERIFICATION_REQUIRED` | Confirm your email address to use two-factor authentication or passkeys |
 | `MISSING_ACCESS` | You don't have access to this resource or feature |
 | `MISSING_ACL` | Missing ACL |
 | `MISSING_AUTHORIZATION` | Missing or invalid authorization header |
@@ -272,25 +252,18 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `NO_USERS_WITH_OSACATAG_EXIST` | There are too many users with this username |
 | `NSFW_CONTENT_AGE_RESTRICTED` | NSFW content is age restricted |
 | `PASSKEY_AUTHENTICATION_FAILED` | Passkey authentication failed |
-| `PASSWORD_REQUIRED_TO_CLAIM` | Set a password to keep this account |
-| `PASSWORD_SIGN_IN_REQUIRED` | Sign in to this account with its password |
 | `PERSONAL_NOTES_DISABLED` | Personal notes are turned off on this instance |
 | `PREVIEW_MUST_BE_JPEG` | Preview must be JPEG |
 | `PROCESSING_FAILED` | We couldn't process the request |
-| `PROFILE_EMAIL_VERIFICATION_REQUIRED` | Email verification is required for this action |
 | `PUBLISHED_MESSAGE_EDIT_RATE_LIMITED` | This published message is at its editing limit |
-| `PURCHASE_EMAIL_VERIFICATION_REQUIRED` | Email verification is required for this action |
 | `RATE_LIMITED` | You're being rate limited |
-| `REACTION_EMAIL_VERIFICATION_REQUIRED` | Email verification is required for this action |
 | `REGISTRATION_CLOSED` | Registration is closed on this instance |
 | `REGISTRATION_CREDENTIALS_REQUIRED` | This instance reviews new accounts |
-| `REGISTRATION_CREDENTIAL_REQUIRED` | Choose a password to sign up |
 | `REGISTRATION_PENDING_APPROVAL` | This registration is waiting for admin approval |
 | `REGISTRATION_REJECTED` | This registration request was rejected |
 | `REGISTRATION_URL_INVALID` | This registration link is invalid or has expired |
 | `REPORT_ALREADY_RESOLVED` | Report already resolved |
 | `REPORT_BANNED` | You've been banned from submitting reports |
-| `REPORT_EMAIL_VERIFICATION_REQUIRED` | Email verification is required for this action |
 | `REPORT_FLOW_OUTDATED` | The report form changed while you were filling it in |
 | `REPORT_UNDER_LEGAL_HOLD` | This report is under a legal hold and can't be deleted |
 | `RESOURCE_LOCKED` | This resource is being modified |
@@ -298,7 +271,6 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `SEARCH_INDEX_NOT_READY` | The search index isn't ready yet |
 | `SERVICE_UNAVAILABLE` | Service unavailable |
 | `SESSION_TOKEN_MISMATCH` | Session token mismatch |
-| `SIGN_IN_CODE_EXPIRED` | This code has expired |
 | `SINGLE_COMMUNITY_CANNOT_CREATE_GUILDS` | This instance is a single community, so additional communities cannot be created |
 | `SINGLE_COMMUNITY_CANNOT_DELETE` | The community for this instance cannot be deleted |
 | `SINGLE_COMMUNITY_CANNOT_LEAVE` | You cannot leave the community for this instance |
@@ -306,7 +278,6 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `STREAM_KEY_CHANNEL_MISMATCH` | Stream key channel mismatch |
 | `STREAM_KEY_SCOPE_MISMATCH` | Stream key scope mismatch |
 | `SUDO_MODE_REQUIRED` | Sudo mode is required |
-| `SUDO_SECOND_FACTOR_REQUIRED` | Confirm it's you with your authenticator app, passkey or a backup code |
 | `SYNCED_PREFERENCES_CONFLICT` | Your preferences changed on another device |
 | `TAG_ALREADY_TAKEN` | This tag is already taken |
 | `TEMPORARY_INVITE_REQUIRES_PRESENCE` | Temporary invite requires presence |
@@ -318,18 +289,9 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `TWO_FACTOR_REQUIRED` | Two-factor authentication is required |
 | `TWO_FA_ALREADY_ENABLED` | Two-factor authentication is already enabled |
 | `UNAUTHORIZED` | Unauthorized |
-| `UNCLAIMED_ACCOUNT_CANNOT_ACCEPT_FRIEND_REQUESTS` | Claim your account to accept friend requests |
-| `UNCLAIMED_ACCOUNT_CANNOT_ADD_REACTIONS` | Claim your account to add reactions |
-| `UNCLAIMED_ACCOUNT_CANNOT_CREATE_APPLICATIONS` | Claim your account to create applications |
-| `UNCLAIMED_ACCOUNT_CANNOT_CREATE_GUILDS` | Claim your account to create communities |
-| `UNCLAIMED_ACCOUNT_CANNOT_JOIN_GROUP_DMS` | Claim your account to join group chats |
 | `UNCLAIMED_ACCOUNT_CANNOT_JOIN_ONE_ON_ONE_VOICE_CALLS` | Claim your account to start or join calls |
 | `UNCLAIMED_ACCOUNT_CANNOT_JOIN_VOICE_CHANNELS` | Claim your account to join voice channels |
 | `UNCLAIMED_ACCOUNT_CANNOT_MAKE_PURCHASES` | Claim your account to make purchases |
-| `UNCLAIMED_ACCOUNT_CANNOT_SEND_DIRECT_MESSAGES` | Claim your account to send direct messages |
-| `UNCLAIMED_ACCOUNT_CANNOT_SEND_FRIEND_REQUESTS` | Claim your account to send friend requests |
-| `UNCLAIMED_ACCOUNT_CANNOT_SEND_MESSAGES` | Claim your account to send messages |
-| `UNCLAIMED_ACCOUNT_CANNOT_SUBMIT_REPORTS` | Claim your account to submit reports |
 | `UNKNOWN_ACCOUNT_HANDOFF` | This sign-up link has expired or was already used |
 | `UNKNOWN_APPLICATION` | Unknown application |
 | `UNKNOWN_BADGE` | Badge wasn't found |
@@ -346,7 +308,6 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `UNKNOWN_ORIGIN_HANDOFF` | This sign-in transfer has expired or was already used |
 | `UNKNOWN_REPORT` | Unknown report |
 | `UNKNOWN_ROLE` | Role wasn't found |
-| `UNKNOWN_SIGN_IN_TICKET` | This sign-in attempt has expired |
 | `UNKNOWN_STICKER` | Unknown sticker |
 | `UNKNOWN_THREAD_MEMBER` | Thread member wasn't found |
 | `UNKNOWN_USER` | User wasn't found |
@@ -357,12 +318,10 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `UNKNOWN_WEBHOOK` | Unknown webhook |
 | `UPDATE_FAILED` | We couldn't update the resource |
 | `USERNAME_NOT_AVAILABLE` | This username is not available |
-| `USERNAME_SIGN_IN_ONLY` | This is only available on instances where people sign in with a username |
 | `USER_BANNED_FROM_GUILD` | This user is banned from this community |
 | `USER_IP_BANNED_FROM_GUILD` | This user's IP is banned from this community |
 | `USER_NOT_IN_VOICE` | This user isn't in voice |
 | `USER_OWNS_GUILDS` | This user owns communities |
-| `USE_CLAIM_ROUTE` | Add an email address to your account first |
 | `VALIDATION_ERROR` | Validation failed |
 | `VOICE_CHANNEL_FULL` | Voice channel is full |
 | `VOICE_JOIN_ENDPOINT_INVALID` | The voice server endpoint isn't allowed |
@@ -442,13 +401,6 @@ These are the values of `code` inside `errors`.
 | `DUPLICATE_ATTACHMENT_IDS_NOT_ALLOWED` | Duplicate attachment IDs aren't allowed |
 | `DUPLICATE_FILE_INDEX` | Duplicate file index: {index} |
 | `DUPLICATE_RECIPIENTS_NOT_ALLOWED` | Duplicate recipients aren't allowed |
-| `EMAIL_ALREADY_IN_USE` | Email is already in use |
-| `EMAIL_DELIVERY_REQUIRES_EMAIL_IDENTITY` | Email delivery only works when people sign in with an email |
-| `EMAIL_DOMAIN_NOT_ALLOWED` | This instance only accepts email addresses from certain domains |
-| `EMAIL_IS_REQUIRED` | Email is required |
-| `EMAIL_LENGTH_INVALID` | Email address must be between {min} and {max} characters |
-| `EMAIL_MUST_BE_CHANGED_VIA_TOKEN` | Email must be changed via token |
-| `EMAIL_TOKEN_EXPIRED` | Email token expired |
 | `EMBEDS_EXCEED_MAX_CHARACTERS` | Embeds must not exceed {maxCharacters} characters in total |
 | `EMBED_INDEX_OUT_OF_BOUNDS` | Embed index {embedIndex} is out of bounds (message has {embedCount} embeds) |
 | `EMBED_SPLASH_REQUIRES_FEATURE` | Embed splash requires INVITE_SPLASH feature |
@@ -497,10 +449,8 @@ These are the values of `code` inside `errors`.
 | `GUILD_FEATURE_NOT_TOGGLEABLE` | This feature cannot be toggled |
 | `GUILD_ID_MUST_MATCH_REFERENCED_MESSAGE` | Community ID must match the community containing the channel the referenced message was fetched from |
 | `GUILD_ID_REQUIRED_FOR_SEARCH_INDEX` | Community ID is required for channel message and member search indexes |
-| `IDENTIFIER_FIRST_REQUIRES_EMAIL_IDENTITY` | Email-first sign-in only works when people sign in with an email |
 | `IMAGE_DIMENSIONS_OUT_OF_RANGE` | Image width and height must each be between {min} and {max} pixels |
 | `IMAGE_SIZE_EXCEEDS_LIMIT` | Image size exceeds {maxSize} bytes |
-| `INSTANCE_ADDRESS_REQUIRED` | This instance uses usernames |
 | `INSTANT_ACCOUNTS_REQUIRE_CAPTCHA` | Turn on the captcha before allowing instant accounts |
 | `INTEGER_OUT_OF_INT64_RANGE` | Integer value is out of the valid int64 range |
 | `INVALID_ALLOWED_DOMAIN` | "{domain}" isn't a valid domain |
@@ -508,11 +458,6 @@ These are the values of `code` inside `errors`.
 | `INVALID_BASE64_FORMAT` | The provided value is in an invalid format |
 | `INVALID_CHANNEL_ID` | Invalid channel ID: {channelId} |
 | `INVALID_CODE` | Invalid code |
-| `INVALID_EMAIL_ADDRESS` | Invalid email address format |
-| `INVALID_EMAIL_FORMAT` | Invalid email address format |
-| `INVALID_EMAIL_LOCAL_PART` | Invalid email address format |
-| `INVALID_EMAIL_OR_PASSWORD` | Check your email and password |
-| `INVALID_EMAIL_TOKEN` | Invalid email token |
 | `INVALID_FILE_FIELD_NAME` | Invalid file field name: {key} |
 | `INVALID_FORMAT` | The provided value is in an invalid format |
 | `INVALID_IMAGE_FORMAT` | Invalid image format |
@@ -522,16 +467,11 @@ These are the values of `code` inside `errors`.
 | `INVALID_LOGIN_OR_PASSWORD` | Invalid username or password |
 | `INVALID_MESSAGE_DATA` | Invalid message data |
 | `INVALID_MFA_CODE` | Invalid MFA code |
-| `INVALID_OR_EXPIRED_AUTHORIZATION_TICKET` | Invalid or expired authorization ticket |
 | `INVALID_OR_EXPIRED_AUTHORIZATION_TOKEN` | Invalid or expired authorization token |
 | `INVALID_OR_EXPIRED_RESET_TOKEN` | Invalid or expired password reset token |
-| `INVALID_OR_EXPIRED_REVERT_TOKEN` | Invalid or expired revert token |
-| `INVALID_OR_EXPIRED_TICKET` | Invalid or expired ticket |
-| `INVALID_OR_EXPIRED_VERIFICATION_TOKEN` | Invalid or expired verification token |
 | `INVALID_OR_RESTRICTED_RTC_REGION` | Invalid or restricted RTC region: {region} |
 | `INVALID_PARENT_CHANNEL` | Invalid parent channel |
-| `INVALID_PASSWORD` | Check your email and password |
-| `INVALID_PROOF_TOKEN` | Invalid proof token |
+| `INVALID_PASSWORD` | Check your username and password |
 | `INVALID_RECOVERY_KEY` | Invalid username or recovery key |
 | `INVALID_ROLE_ID` | Invalid role ID: {roleId} |
 | `INVALID_RTC_REGION` | Invalid RTC region: {region} |
@@ -542,7 +482,6 @@ These are the values of `code` inside `errors`.
 | `INVALID_TRUSTED_DOMAINS` | The wildcard (*) can't be combined with specific domains |
 | `INVALID_URL_FORMAT` | Invalid URL format |
 | `INVALID_URL_OR_ATTACHMENT_FORMAT` | Invalid URL format or attachment reference |
-| `INVALID_VERIFICATION_CODE` | Invalid verification code |
 | `INVITE_SPLASH_REQUIRES_FEATURE` | Invite splash requires INVITE_SPLASH feature |
 | `MAX_FAVORITE_MEME_TAGS_EXCEEDED` | You can only add up to {limit} tags per saved media item |
 | `MEDIA_ALREADY_IN_FAVORITE_MEMES` | This media is already in your saved media |
@@ -556,20 +495,13 @@ These are the values of `code` inside `errors`.
 | `MULTIPLE_FILES_FOR_INDEX_NOT_ALLOWED` | Multiple files for index {index} aren't allowed |
 | `MUST_AGREE_TO_TOS_AND_PRIVACY_POLICY` | You need to accept the terms of service to create an account |
 | `MUST_ENABLE_2FA_BEFORE_REQUIRING_FOR_MODS` | You must enable 2FA on your account before requiring it for moderators |
-| `MUST_HAVE_EMAIL_TO_CHANGE_IT` | You must have an email address to change it |
 | `MUST_START_SESSION_BEFORE_SENDING` | You must start a session before sending messages |
 | `NAME_EMPTY_AFTER_NORMALIZATION` | Name can't be empty after normalization |
-| `NEW_EMAIL_MUST_BE_DIFFERENT` | New email must be different from your current email |
 | `NOT_A_VALID_UNICODE_EMOJI` | Not a valid Unicode emoji |
 | `NO_FILE_FOR_ATTACHMENT` | No file was uploaded for attachment with ID {attachmentId} |
 | `NO_FILE_FOR_ATTACHMENT_METADATA` | No file was uploaded for attachment metadata with ID {attachmentId} |
-| `NO_NEW_EMAIL_REQUESTED` | No new email was requested |
-| `NO_ORIGINAL_EMAIL_ON_RECORD` | No original email is on record |
 | `NO_UPLOADED_PARTS_TO_FINALIZE` | No uploaded parts are available to finalize |
 | `NO_VALID_MEDIA_IN_MESSAGE` | No valid media was found in the message |
-| `ORIGINAL_EMAIL_ALREADY_VERIFIED` | Original email is already verified |
-| `ORIGINAL_EMAIL_MUST_BE_VERIFIED_FIRST` | Original email must be verified first |
-| `ORIGINAL_VERIFICATION_NOT_REQUIRED` | Original verification isn't required for this flow |
 | `PARENT_CHANNEL_NOT_IN_GUILD` | Parent channel isn't present in the community |
 | `PARENT_MUST_BE_CATEGORY` | Parent must be a category |
 | `PARSE_AND_USERS_OR_ROLES_CANNOT_BE_USED_TOGETHER` | You can't use `parse` together with `allowed_mentions.users` or `allowed_mentions.roles` |
@@ -588,16 +520,13 @@ These are the values of `code` inside `errors`.
 | `SESSION_TIMEOUT` | Session timed out |
 | `SETUP_TOKEN_INVALID` | That setup token is not correct |
 | `SETUP_TOKEN_REQUIRED` | This instance is not set up yet |
-| `SMTP_HOST_REQUIRED` | Enter an SMTP server before turning on email delivery |
 | `SNOWFLAKE_OUT_OF_RANGE` | Invalid snowflake |
 | `STRING_LENGTH_EXACT` | String must be exactly {length} characters |
 | `STRING_LENGTH_INVALID` | String length must be between {min} and {max} characters |
 | `SYSTEM_CHANNEL_MUST_BE_IN_GUILD` | System channel must be in this community |
 | `SYSTEM_CHANNEL_MUST_BE_TEXT` | System channel must be a text channel |
 | `TAG_ALREADY_TAKEN` | This tag is already taken |
-| `TAG_STYLE_REQUIRES_EMAIL_SIGN_IN` | Tags are only available when people sign in with email |
 | `THIS_VANITY_URL_IS_ALREADY_TAKEN` | This vanity URL is already taken |
-| `TICKET_ALREADY_COMPLETED` | This ticket has already been completed |
 | `TIMEOUT_CANNOT_EXCEED_365_DAYS` | Timeout can't be longer than {maxDays} days from now |
 | `TOO_LARGE` | Synced preferences exceed {max_bytes} bytes |
 | `TOO_MANY_EMBEDS` | Too many embeds |
@@ -618,7 +547,6 @@ These are the values of `code` inside `errors`.
 | `USERNAME_INVALID_CHARACTERS` | Username can only contain Latin letters (a-z, A-Z), numbers (0-9), and underscores (_) |
 | `USERNAME_LENGTH_INVALID` | Username must be between {min} and {max} characters |
 | `USERNAME_RESERVED_VALUE` | Username can't be "everyone" or "here" |
-| `USER_DOES_NOT_HAVE_AN_EMAIL_ADDRESS` | This user doesn't have an email address |
 | `USER_IS_NOT_BANNED` | This user isn't banned |
 | `USER_MUST_BE_A_BOT_TO_BE_MARKED_AS_A_SYSTEM_USER` | User must be a bot to be marked as a system user |
 | `USER_NOT_IN_CHANNEL` | This user isn't in the channel |
@@ -628,9 +556,6 @@ These are the values of `code` inside `errors`.
 | `VANITY_URL_CODE_LENGTH_INVALID` | Vanity URL code must be between {min} and {max} characters |
 | `VANITY_URL_INVALID_CHARACTERS` | Vanity URL can only contain lowercase letters (a-z), digits (0-9), and hyphens (-) |
 | `VANITY_URL_REQUIRES_FEATURE` | Vanity URL requires VANITY_URL feature |
-| `VERIFICATION_BASIS_REQUIRES_EMAIL_DELIVERY` | Accounts can only be verified by a confirmed email while email delivery is on |
-| `VERIFICATION_CODE_EXPIRED` | Verification code has expired |
-| `VERIFICATION_CODE_NOT_ISSUED` | No verification code has been issued |
 | `VOICE_ACTIVITY_SHARING_ON_COOLDOWN` | You can only update your voice activity sharing default once every 24 hours |
 | `VOICE_CHANNELS_CANNOT_BE_ABOVE_TEXT_CHANNELS` | Voice channels can't be positioned above text channels within the same category |
 | `VOICE_MESSAGES_ATTACHMENT_DURATION_REQUIRED` | Voice message attachments must specify a duration |

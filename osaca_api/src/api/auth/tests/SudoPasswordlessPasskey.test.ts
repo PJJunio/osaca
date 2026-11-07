@@ -16,7 +16,6 @@ interface SudoMfaMethodsResponse {
 	webauthn: boolean;
 	backup_codes: boolean;
 	has_mfa: boolean;
-	email_code?: boolean;
 	password?: boolean;
 }
 
@@ -53,7 +52,6 @@ describe('Sudo mode for passwordless accounts holding a passkey', () => {
 			webauthn: true,
 			backup_codes: false,
 			has_mfa: true,
-			email_code: false,
 			password: false,
 		});
 		const errorResp = await createBuilder<{

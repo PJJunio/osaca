@@ -48,8 +48,6 @@ export const KeyboardModeListener = observer(() => {
 			path.startsWith(Routes.FORGOT_PASSWORD) ||
 			path.startsWith(Routes.RESET_PASSWORD) ||
 			path.startsWith(Routes.RECOVER_ACCOUNT) ||
-			path.startsWith(Routes.VERIFY_EMAIL) ||
-			path.startsWith(Routes.AUTHORIZE_IP) ||
 			path.startsWith(Routes.OAUTH_AUTHORIZE) ||
 			path.startsWith('/invite/') ||
 			path.startsWith('/gift/')

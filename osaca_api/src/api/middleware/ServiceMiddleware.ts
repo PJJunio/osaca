@@ -64,9 +64,6 @@ import {
 	getConnectionRepository,
 	getContactChangeLogService,
 	getDiscriminatorService,
-	getEmailChangeRepository,
-	getEmailDnsValidationService,
-	getEmailService,
 	getEmbedService,
 	getEntityAssetService,
 	getEntranceSoundPlayService,
@@ -86,7 +83,6 @@ import {
 	getKVThreadAutoArchiveQueue,
 	getLimitConfigService,
 	getOAuth2TokenRepository,
-	getPasswordChangeRepository,
 	getPurgeQueue,
 	getRateLimitService,
 	getReadStateRequestService,
@@ -94,7 +90,6 @@ import {
 	getReportRepository,
 	getStorageService,
 	getStreamPreviewService,
-	getSweegoWebhookService,
 	getThemeService,
 	getUnfurlerService,
 	getUserActivityBuffer,
@@ -115,8 +110,6 @@ import {RpcService} from '@app/api/rpc/RpcService';
 import {getReportSearchService} from '@app/api/SearchFactory';
 import {SearchService} from '@app/api/search/SearchService';
 import type {HonoEnv} from '@app/api/types/HonoEnv';
-import {EmailChangeService} from '@app/api/user/services/EmailChangeService';
-import {MfaBackupCodesChallengeService} from '@app/api/user/services/MfaBackupCodesChallengeService';
 import {PasswordChangeService} from '@app/api/user/services/PasswordChangeService';
 import {UserAccountRequestService} from '@app/api/user/services/UserAccountRequestService';
 import {UserAuthRequestService} from '@app/api/user/services/UserAuthRequestService';
@@ -144,8 +137,6 @@ export function getReportServiceInstance(): ReportService {
 			getGuildRepository(),
 			getUserRepository(),
 			getInviteRepository(),
-			getEmailService(),
-			getEmailDnsValidationService(),
 			getSnowflakeService(),
 			getStorageService(),
 			getGatewayService(),
@@ -212,8 +203,6 @@ class RequestServices implements RequestScopedServices {
 	private cachedFavoriteMemeService: FavoriteMemeService | undefined;
 	private cachedFavoriteMemeRequestService: FavoriteMemeRequestService | undefined;
 	private cachedSingleCommunityService: SingleCommunityService | undefined;
-	private cachedEmailChangeService: EmailChangeService | undefined;
-	private cachedMfaBackupCodesChallengeService: MfaBackupCodesChallengeService | undefined;
 	private cachedPasswordChangeService: PasswordChangeService | undefined;
 	private cachedInviteRequestService: InviteRequestService | undefined;
 	private cachedOAuth2Service: OAuth2Service | undefined;
@@ -370,10 +359,6 @@ class RequestServices implements RequestScopedServices {
 
 	get contactChangeLogService() {
 		return getContactChangeLogService();
-	}
-
-	get emailService() {
-		return getEmailService();
 	}
 
 	get entityAssetService() {
@@ -633,18 +618,8 @@ class RequestServices implements RequestScopedServices {
 		return this.cachedFavoriteMemeRequestService;
 	}
 
-	get emailChangeService(): EmailChangeService {
-		this.cachedEmailChangeService ??= new EmailChangeService(this.context, getEmailChangeRepository());
-		return this.cachedEmailChangeService;
-	}
-
-	get mfaBackupCodesChallengeService(): MfaBackupCodesChallengeService {
-		this.cachedMfaBackupCodesChallengeService ??= new MfaBackupCodesChallengeService(this.context);
-		return this.cachedMfaBackupCodesChallengeService;
-	}
-
 	get passwordChangeService(): PasswordChangeService {
-		this.cachedPasswordChangeService ??= new PasswordChangeService(this.context, getPasswordChangeRepository());
+		this.cachedPasswordChangeService ??= new PasswordChangeService(this.context);
 		return this.cachedPasswordChangeService;
 	}
 
@@ -758,7 +733,6 @@ class RequestServices implements RequestScopedServices {
 	get userAccountRequestService(): UserAccountRequestService {
 		if (!this.cachedUserAccountRequestService) {
 			this.cachedUserAccountRequestService = new UserAccountRequestService(
-				this.emailChangeService,
 				this.userService.accountService,
 				this.userService.channelService,
 				getUserCacheService(),
@@ -833,7 +807,6 @@ class RequestServices implements RequestScopedServices {
 			getChannelRepository(),
 			getUserCacheService(),
 			this.liveKitWebhookService ?? null,
-			getSweegoWebhookService(),
 			this.gatewayService,
 		);
 		return this.cachedWebhookRequestService;

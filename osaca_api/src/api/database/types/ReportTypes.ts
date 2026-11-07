@@ -30,7 +30,6 @@ export interface IARMessageContextRow {
 export interface IARSubmissionRow {
 	report_id: bigint;
 	reporter_id: bigint | null;
-	reporter_email: string | null;
 	reporter_full_legal_name: string | null;
 	reporter_country_of_residence: string | null;
 	reported_at: Date;
@@ -97,20 +96,6 @@ export interface IARReportNoteRow {
 	created_at: Date;
 }
 
-export interface DSAReportEmailVerificationRow {
-	email_lower: string;
-	code_hash: string;
-	expires_at: Date;
-	last_sent_at: Date;
-}
-
-export interface DSAReportTicketRow {
-	ticket: string;
-	email_lower: string;
-	expires_at: Date;
-	created_at: Date;
-}
-
 export interface MessageReportSubmissionByReporterRow {
 	reporter_id: bigint;
 	channel_id: bigint;
@@ -136,7 +121,6 @@ export interface GuildReportSubmissionByReporterRow {
 export const IAR_SUBMISSION_COLUMNS = [
 	'report_id',
 	'reporter_id',
-	'reporter_email',
 	'reporter_full_legal_name',
 	'reporter_country_of_residence',
 	'reported_at',
@@ -201,18 +185,6 @@ export const IAR_REPORT_NOTE_COLUMNS = [
 	'body',
 	'created_at',
 ] as const satisfies ReadonlyArray<keyof IARReportNoteRow>;
-export const DSA_REPORT_EMAIL_VERIFICATION_COLUMNS = [
-	'email_lower',
-	'code_hash',
-	'expires_at',
-	'last_sent_at',
-] as const satisfies ReadonlyArray<keyof DSAReportEmailVerificationRow>;
-export const DSA_REPORT_TICKET_COLUMNS = [
-	'ticket',
-	'email_lower',
-	'expires_at',
-	'created_at',
-] as const satisfies ReadonlyArray<keyof DSAReportTicketRow>;
 export const MESSAGE_REPORT_SUBMISSION_BY_REPORTER_COLUMNS = [
 	'reporter_id',
 	'channel_id',

@@ -10,7 +10,6 @@ import {loadSigningKey} from '@app/api/bluesky/BlueskyOAuthService';
 import {Config} from '@app/api/Config';
 import {enqueueEndUnassignedGuildVisits} from '@app/api/guild/visits/GuildVisitLifecycle';
 import {normalizeTrustedDomains} from '@app/api/instance/DomainListValidation';
-import {resolveEffectiveSmtpConfig, type StoredEmailSmtpConfig} from '@app/api/instance/EmailDelivery';
 import {assetStorageKey, resolveBrandingAsset} from '@app/api/instance/InstanceAssetReferences';
 import {
 	type InstanceAttachmentDecayEffectiveConfig,
@@ -35,21 +34,12 @@ import type {User} from '@app/api/models/User';
 import {RateLimitConfigs} from '@app/api/RateLimitConfig';
 import type {HonoApp, HonoEnv} from '@app/api/types/HonoEnv';
 import {scheduleSystemDeletion} from '@app/api/user/AccountCleanup';
-import {noticeEmailAddress} from '@app/api/user/services/SystemDmMessage';
 import {Validator} from '@app/api/Validator';
 import {startSingleCommunityJoin} from '@app/api/worker/tasks/JoinSingleCommunityMembers';
-import {
-	EmailDeliveryModes,
-	EmailDeliveryStates,
-	IdentifierFirstModes,
-	VerificationBases,
-} from '@osaca/constants/src/AccountConfigConstants';
-import {AccountIdentityModes} from '@osaca/constants/src/AccountIdentityConstants';
 import {AdminACLs} from '@osaca/constants/src/AdminACLs';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {CaptchaProviders} from '@osaca/constants/src/CaptchaConstants';
 import {DeletionReasons} from '@osaca/constants/src/Core';
-import {resolveSmtpTlsMode, type SmtpTlsMode, smtpTlsModeFromSecure} from '@osaca/constants/src/SmtpConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
 import {InstancePolicyTransitionNotAllowedError} from '@osaca/errors/src/domains/core/InstancePolicyTransitionNotAllowedError';
@@ -61,8 +51,6 @@ import {
 	CreateRegistrationUrlResponse,
 	InstanceConfigResponse,
 	InstanceConfigUpdateRequest,
-	InstanceEmailSmtpTestRequest,
-	InstanceEmailSmtpTestResponse,
 	PendingRegistrationActionRequest,
 	PendingRegistrationListResponse,
 	RegistrationUrlIdParam,
@@ -79,7 +67,6 @@ import {VoiceP2pConfigSchema} from '@osaca/schema/src/domains/admin/VoiceP2pSche
 import {UserIdParam} from '@osaca/schema/src/domains/common/CommonParamSchemas';
 import {ExperimentDeliveryConfigSchema} from '@osaca/schema/src/domains/experiment/ExperimentSchemas';
 import type {InstanceBranding, InstanceNotice} from '@osaca/schema/src/domains/instance/InstanceSchemas';
-import {SmtpEmailProvider} from '@pkgs/email/src/SmtpEmailProvider';
 import type {Context} from 'hono';
 
 const INSTANCE_BRANDING_ENTITY_ID = 0n;
@@ -122,27 +109,6 @@ function readTrustedDomains(branding: {trusted_domains?: Array<string> | null}):
 		: normalizeTrustedDomains(domains ?? [], 'app_public.branding.trusted_domains');
 }
 
-function readSmtpTlsModeUpdate(
-	smtp: {
-		tls_mode?: SmtpTlsMode | null;
-		secure?: boolean | null;
-		port?: number | null;
-	},
-	savedSmtp: StoredEmailSmtpConfig,
-): SmtpTlsMode | null | undefined {
-	const tlsMode = readOptionalField(smtp, 'tls_mode');
-	if (tlsMode !== undefined) return tlsMode;
-	const secure = readOptionalField(smtp, 'secure');
-	if (secure === undefined) return undefined;
-	const port = readOptionalField(smtp, 'port');
-	const nextSmtp = {...savedSmtp, port: port === undefined ? savedSmtp.port : port};
-	return smtpTlsModeFromSecure(secure, resolveEffectiveSmtpConfig(nextSmtp).port);
-}
-
-async function readSavedSmtpConfig(): Promise<StoredEmailSmtpConfig> {
-	return (await getInstanceConfigRepository().getInstanceIntegrationsConfig()).email.smtp;
-}
-
 function omitUndefinedFields<T extends object>(value: T): Partial<T> {
 	return Object.fromEntries(Object.entries(value).filter(([, entry]) => entry !== undefined)) as Partial<T>;
 }
@@ -178,27 +144,16 @@ async function buildInstanceConfigResponse(warnings: Array<string> = []): Promis
 		instanceConfigRepository.getAccountsConfig(),
 		instanceConfigRepository.getGuildVisitsConfig(),
 	]);
-	const [
-		appPublic,
-		policy,
-		resolvedServices,
-		integrations,
-		media,
-		accountIdentity,
-		accountIdentityLockReason,
-		instantAccountAvailability,
-		notice,
-	] = await Promise.all([
-		instanceConfigRepository.getAppPublicConfig(),
-		instanceConfigRepository.getInstancePolicyConfig(),
-		instanceConfigRepository.getResolvedServicesConfig(),
-		instanceConfigRepository.getInstanceIntegrationsAdminConfig(),
-		instanceConfigRepository.getInstanceMediaAdminConfig(),
-		instanceConfigRepository.getAccountIdentity(),
-		instanceConfigRepository.getAccountIdentityLockReason(),
-		instanceConfigRepository.getInstantAccountAvailability(),
-		instanceConfigRepository.getInstanceNotice(),
-	]);
+	const [appPublic, policy, resolvedServices, integrations, media, instantAccountAvailability, notice] =
+		await Promise.all([
+			instanceConfigRepository.getAppPublicConfig(),
+			instanceConfigRepository.getInstancePolicyConfig(),
+			instanceConfigRepository.getResolvedServicesConfig(),
+			instanceConfigRepository.getInstanceIntegrationsAdminConfig(),
+			instanceConfigRepository.getInstanceMediaAdminConfig(),
+			instanceConfigRepository.getInstantAccountAvailability(),
+			instanceConfigRepository.getInstanceNotice(),
+		]);
 	return {
 		gateway_rollout: gatewayRollout,
 		domain_migration: domainMigration,
@@ -213,12 +168,6 @@ async function buildInstanceConfigResponse(warnings: Array<string> = []): Promis
 			urls: registrationUrls,
 		},
 		self_hosted: Config.instance.selfHosted,
-		account_identity: {
-			mode: accountIdentity.mode,
-			locked: accountIdentityLockReason !== null,
-			tag_style: accountIdentity.tagStyle,
-			lock_reason: accountIdentityLockReason,
-		},
 		app_public: appPublic,
 		policy: {
 			single_community_enabled: policy.single_community_enabled,
@@ -284,12 +233,6 @@ function nextCaptchaProvider(
 	return null;
 }
 
-function emailDeliveryPatchField(patch: InstanceIntegrationsConfigPatch['email']): string | null {
-	if (patch?.delivery === EmailDeliveryModes.SMTP) return 'integrations.email.delivery';
-	if (patch?.delivery === undefined && patch?.enabled === true) return 'integrations.email.enabled';
-	return null;
-}
-
 async function assertValidBlueskyKeys(patch: InstanceIntegrationsConfigPatch | null): Promise<void> {
 	for (const [index, key] of (patch?.bluesky?.keys ?? []).entries()) {
 		if (!key.kid || !key.private_key) continue;
@@ -304,17 +247,9 @@ async function assertValidBlueskyKeys(patch: InstanceIntegrationsConfigPatch | n
 	}
 }
 
-async function assertConsistentInstanceConfig(
-	data: InstanceConfigUpdateRequest,
-	integrationsPatch: InstanceIntegrationsConfigPatch | null,
-): Promise<void> {
+async function assertConsistentInstanceConfig(data: InstanceConfigUpdateRequest): Promise<void> {
 	const repository = getInstanceConfigRepository();
-	const [auth, captcha, accounts, identityMode] = await Promise.all([
-		repository.getAuthConfig(),
-		repository.getCaptchaConfig(),
-		repository.getAccountsConfig(),
-		repository.getAccountIdentityMode(),
-	]);
+	const [auth, captcha] = await Promise.all([repository.getAuthConfig(), repository.getCaptchaConfig()]);
 	const instantPatch = data.auth?.instant_accounts?.enabled;
 	const captchaPatch = nextCaptchaProvider(data.captcha);
 	const instantOn = instantPatch ?? auth.instant_accounts.enabled;
@@ -332,38 +267,10 @@ async function assertConsistentInstanceConfig(
 			);
 		}
 	}
-	const usernameMode = identityMode === AccountIdentityModes.USERNAME;
-	const identifierFirst = data.auth?.identifier_first;
-	if (usernameMode && (identifierFirst === IdentifierFirstModes.ON || identifierFirst === true)) {
-		throw InputValidationError.fromCode(
-			'auth.identifier_first',
-			ValidationErrorCodes.IDENTIFIER_FIRST_REQUIRES_EMAIL_IDENTITY,
-		);
-	}
-	const deliveryField = emailDeliveryPatchField(integrationsPatch?.email);
-	if (usernameMode && deliveryField !== null) {
-		throw InputValidationError.fromCode(deliveryField, ValidationErrorCodes.EMAIL_DELIVERY_REQUIRES_EMAIL_IDENTITY);
-	}
-	if (deliveryField !== null && !(await repository.previewEffectiveSmtpConfig(integrationsPatch ?? {})).host.trim()) {
-		throw InputValidationError.fromCode('integrations.email.smtp.host', ValidationErrorCodes.SMTP_HOST_REQUIRED);
-	}
-	const basisPatch = data.accounts?.verification_basis;
-	const emailPatched = integrationsPatch?.email !== undefined;
-	if ((basisPatch ?? accounts.verification_basis) !== VerificationBases.CONFIRMED_EMAIL) return;
-	if (basisPatch === undefined && !emailPatched) return;
-	const deliveryState = emailPatched
-		? await repository.previewEmailDeliveryState(integrationsPatch ?? {})
-		: await repository.getEmailDeliveryState();
-	if (deliveryState === EmailDeliveryStates.ON) return;
-	throw InputValidationError.fromCode(
-		basisPatch !== undefined ? 'accounts.verification_basis' : 'integrations.email.delivery',
-		ValidationErrorCodes.VERIFICATION_BASIS_REQUIRES_EMAIL_DELIVERY,
-	);
 }
 
 function toIntegrationsPatch(
 	integrations: InstanceConfigUpdateRequest['integrations'],
-	savedSmtp: StoredEmailSmtpConfig,
 ): InstanceIntegrationsConfigPatch | null {
 	if (!integrations) return null;
 	const patch: InstanceIntegrationsConfigPatch = {
@@ -372,29 +279,7 @@ function toIntegrationsPatch(
 					api_key: readOptionalField(integrations.youtube, 'api_key'),
 				})
 			: undefined,
-		email: undefined,
 	};
-	if (integrations.email) {
-		patch.email = {
-			...omitUndefinedFields({
-				delivery: readOptionalField(integrations.email, 'delivery'),
-				enabled: readOptionalField(integrations.email, 'enabled'),
-				provider: readOptionalField(integrations.email, 'provider'),
-				from_email: readOptionalField(integrations.email, 'from_email'),
-				from_name: readOptionalField(integrations.email, 'from_name'),
-				disable_new_ip_authorization: readOptionalField(integrations.email, 'disable_new_ip_authorization'),
-			}),
-			smtp: integrations.email.smtp
-				? omitUndefinedFields({
-						host: readOptionalField(integrations.email.smtp, 'host'),
-						port: readOptionalField(integrations.email.smtp, 'port'),
-						username: readOptionalField(integrations.email.smtp, 'username'),
-						password: readOptionalField(integrations.email.smtp, 'password'),
-						tls_mode: readSmtpTlsModeUpdate(integrations.email.smtp, savedSmtp),
-					})
-				: undefined,
-		};
-	}
 	patch.bluesky = integrations.bluesky
 		? {
 				...omitUndefinedFields({
@@ -508,7 +393,6 @@ const INSTANCE_CONFIG_SECTION_APPLIERS = {
 			await instanceConfigRepository.setRegistrationConfig({
 				mode: registration.mode,
 				admin_registration_urls_enabled: registration.admin_registration_urls_enabled,
-				allowed_email_domains: registration.allowed_email_domains,
 			});
 		},
 	),
@@ -661,8 +545,8 @@ export function InstanceConfigAdminController(app: HonoApp) {
 		async (ctx) => {
 			const data = ctx.req.valid('json');
 			assertSelfHostedBrandingSections(data);
-			const integrationsPatch = toIntegrationsPatch(data.integrations, await readSavedSmtpConfig());
-			await assertConsistentInstanceConfig(data, integrationsPatch);
+			const integrationsPatch = toIntegrationsPatch(data.integrations);
+			await assertConsistentInstanceConfig(data);
 			await assertValidBlueskyKeys(integrationsPatch);
 			const warnings: Array<string> = [];
 			const updateContext = {ctx, data, instanceConfigRepository, integrationsPatch, warnings};
@@ -720,62 +604,6 @@ export function InstanceConfigAdminController(app: HonoApp) {
 				metadata: {kind, cleared: prepared.newCdnUrl === null},
 			});
 			return ctx.json(await buildInstanceConfigResponse());
-		},
-	);
-	app.post(
-		'/admin/instance/config/smtp-tests',
-		RateLimitMiddleware(RateLimitConfigs.ADMIN_USER_MODIFY),
-		requireAdminACL(AdminACLs.INSTANCE_CONFIG_UPDATE),
-		Validator('json', InstanceEmailSmtpTestRequest),
-		OpenAPI({
-			operationId: 'create_admin_instance_smtp_test',
-			summary: 'Run an SMTP configuration test',
-			description:
-				'Validates that an SMTP configuration can authenticate and accept a connection. Fields left out of the body come from the saved configuration, and the saved password is reused only for the saved host and username. An empty body tests what outgoing email uses and fails when email is off or incomplete. With send_to, it also sends a short test message from the configured from address and returns what the server answered, or the error it gave. Requires INSTANCE_CONFIG_UPDATE permission.',
-			responseSchema: InstanceEmailSmtpTestResponse,
-			statusCode: 200,
-			security: 'adminApiKey',
-			tags: 'Admin',
-		}),
-		async (ctx) => {
-			const {send_to: sendTo, ...draft} = ctx.req.valid('json');
-			const {smtp, from, problem} = await instanceConfigRepository.getSmtpTestConfig(draft);
-			let result: InstanceEmailSmtpTestResponse;
-			try {
-				if (problem) throw new Error(problem);
-				const provider = new SmtpEmailProvider({
-					...smtp,
-					connectionTimeoutMs: 10000,
-					greetingTimeoutMs: 10000,
-					socketTimeoutMs: 10000,
-				});
-				await provider.verify();
-				result = {ok: true, error: null};
-				if (sendTo) {
-					if (!from.email.trim()) throw new Error('No from address is set');
-					const productName = (await instanceConfigRepository.getAppPublicConfig()).branding.product_name;
-					result.server_response = await provider.sendTestEmail({
-						to: sendTo,
-						from: {email: from.email, name: from.name || productName},
-						subject: `${productName} email test`,
-						text: `This message was sent from the ${productName} admin panel to check the outgoing email settings. You can ignore it.`,
-					});
-				}
-			} catch (error) {
-				result = {ok: false, error: error instanceof Error ? error.message : String(error)};
-			}
-			await recordAdminWrite(ctx, {
-				targetType: 'instance_config',
-				targetId: 0n,
-				action: 'test_smtp_connection',
-				metadata: {
-					port: smtp.port,
-					tls_mode: resolveSmtpTlsMode(smtp.tlsMode, smtp.port),
-					ok: result.ok,
-					sent_message: Boolean(sendTo),
-				},
-			});
-			return ctx.json(result);
 		},
 	);
 	app.post(
@@ -918,7 +746,7 @@ export function InstanceConfigAdminController(app: HonoApp) {
 			operationId: 'update_admin_pending_registration',
 			summary: 'Approve or reject a pending registration',
 			description:
-				'Decides a registration waiting for manual review and returns the registrations still waiting. Approving removes its pending registration trait and joins the account to the community it was invited to and the single community. Rejecting stops the account from signing in and queues it for deletion right away without sending a notice, unless a deletion is already scheduled. Once the account is deleted, its email address can register again. Requires REGISTRATION_REVIEW permission.',
+				'Decides a registration waiting for manual review and returns the registrations still waiting. Approving removes its pending registration trait and joins the account to the community it was invited to and the single community. Rejecting stops the account from signing in and queues it for deletion right away without sending a notice, unless a deletion is already scheduled. Once the account is deleted, its username can be registered again. Requires REGISTRATION_REVIEW permission.',
 			responseSchema: PendingRegistrationListResponse,
 			statusCode: 200,
 			security: 'adminApiKey',
@@ -1095,10 +923,6 @@ async function updatePendingRegistrationUser(
 			requestCache: ctx.get('requestCache'),
 		});
 		await ctx.get('singleCommunityService').joinStockCommunity(user.id, ctx.get('requestCache'));
-		const email = await noticeEmailAddress(user);
-		if (email) {
-			await ctx.get('emailService').send('registration_approved', email, {}, user.locale);
-		}
 	}
 	await recordAdminWrite(ctx, {
 		targetType: 'user',

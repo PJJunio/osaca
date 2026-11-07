@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import * as AuthMfa from '@app/api/auth/AuthMfa';
-import {verifySudoEmailCode} from '@app/api/auth/services/SudoEmailCode';
 import {
 	createSudoModeRequiredError,
-	emailCodeSudoAvailable,
 	hasNoVerifiableCredential,
 	userHasMfa,
 	userHasSudoCapability,
@@ -21,15 +19,13 @@ import type {Context} from 'hono';
 
 export interface SudoVerificationBody {
 	password?: string;
-	mfa_method?: 'totp' | 'webauthn' | 'email_code';
+	mfa_method?: 'totp' | 'webauthn';
 	mfa_code?: string;
-	email_code_ticket?: string;
-	email_code?: string;
 	webauthn_response?: AuthenticationResponseJSON;
 	webauthn_challenge?: string;
 }
 
-type SudoVerificationMethod = 'password' | 'mfa' | 'sudo_token' | 'email_code';
+type SudoVerificationMethod = 'password' | 'mfa' | 'sudo_token';
 
 export interface SudoVerificationResult {
 	verified: boolean;
@@ -55,8 +51,7 @@ async function verifySudoMode(
 	const hasPasskeyCredentials = credentials.length > 0;
 	const hasSudoCapability = userHasSudoCapability(user, hasPasskeyCredentials);
 	const hasUsableMfa = userHasMfa(user) && hasSudoCapability;
-	const emailCodeAvailable = emailCodeSudoAvailable(user, hasPasskeyCredentials);
-	const issueSudoToken = options.issueSudoToken ?? (hasSudoCapability || emailCodeAvailable);
+	const issueSudoToken = options.issueSudoToken ?? hasSudoCapability;
 	if (hasSudoCapability && ctx.get('sudoModeValid')) {
 		const sudoToken = ctx.get('sudoModeToken') ?? ctx.req.header(SUDO_MODE_HEADER) ?? undefined;
 		return {verified: true, method: 'sudo_token', sudoToken: issueSudoToken ? sudoToken : undefined};
@@ -64,16 +59,6 @@ async function verifySudoMode(
 	const incomingToken = ctx.req.header(SUDO_MODE_HEADER);
 	if (!hasSudoCapability && incomingToken && ctx.get('sudoModeValid')) {
 		return {verified: true, method: 'sudo_token', sudoToken: issueSudoToken ? incomingToken : undefined};
-	}
-	if (body.mfa_method === 'email_code' && emailCodeAvailable) {
-		await verifySudoEmailCode(apiContext, {
-			user,
-			ticket: body.email_code_ticket,
-			code: body.email_code,
-			request: ctx.req.raw,
-		});
-		const sudoToken = issueSudoToken ? await getSudoModeService().generateSudoToken(user.id) : undefined;
-		return {verified: true, sudoToken, method: 'email_code'};
 	}
 	if (hasSudoCapability && (body.mfa_method === 'totp' || body.mfa_method === 'webauthn')) {
 		const result = await AuthMfa.verifySudoMfa(apiContext, {

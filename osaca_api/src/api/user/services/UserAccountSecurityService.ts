@@ -3,7 +3,6 @@
 import type {ApiContext} from '@app/api/ApiContext';
 import * as AuthPassword from '@app/api/auth/AuthPassword';
 import * as AuthSession from '@app/api/auth/AuthSession';
-import {assertEmailNotBlocklisted} from '@app/api/auth/EmailBlocklist';
 import {createSudoModeRequiredError} from '@app/api/auth/services/SudoMethods';
 import type {SudoVerificationResult} from '@app/api/auth/services/SudoVerificationService';
 import type {UserRow} from '@app/api/database/types/UserTypes';
@@ -12,7 +11,6 @@ import type {LimitConfigService} from '@app/api/limits/LimitConfigService';
 import {resolveLimitSafe} from '@app/api/limits/LimitConfigUtils';
 import {createLimitMatchContext} from '@app/api/limits/LimitMatchContextBuilder';
 import {profileSubstringBlocklistCache} from '@app/api/middleware/ProfileSubstringBlocklistCache';
-import {getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
 import type {AuthSession as AuthSessionModel} from '@app/api/models/AuthSession';
 import type {User} from '@app/api/models/User';
 import {getAccountTier} from '@app/api/user/AccountTier';
@@ -22,7 +20,6 @@ import {assertNoDiscriminatorChange, reserveUsername, type UsernameReservation} 
 import {isProfileSubstringExempt} from '@app/api/user/UserHelpers';
 import {USERNAME_MODE_DISCRIMINATOR} from '@app/api/user/UserTag';
 import {hashPassword} from '@app/api/utils/PasswordUtils';
-import {TagStyles} from '@osaca/constants/src/AccountIdentityConstants';
 import {AccountTiers} from '@osaca/constants/src/AccountTierConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {ContentBlockedError} from '@osaca/errors/src/domains/content/ContentBlockedError';
@@ -67,27 +64,20 @@ export class UserAccountSecurityService {
 			username: user.username,
 			discriminator: user.discriminator,
 			global_name: user.isBot ? null : user.globalName,
-			email: user.email,
 		};
 		const metadata: UserUpdateMetadata = {
 			invalidateAuthSessions: false,
 		};
 		const isUnclaimedAccount = getAccountTier(user) === AccountTiers.UNCLAIMED;
-		const identityVerifiedViaSudo =
-			sudoContext?.method === 'mfa' || sudoContext?.method === 'sudo_token' || sudoContext?.method === 'email_code';
+		const identityVerifiedViaSudo = sudoContext?.method === 'mfa' || sudoContext?.method === 'sudo_token';
 		const identityVerifiedViaPassword = sudoContext?.method === 'password';
-		const rawEmail = data.email?.trim();
-		const normalizedEmail = rawEmail?.toLowerCase();
-		const tagChangeRequested = data.username !== undefined || data.discriminator !== undefined;
-		const accountIdentity = tagChangeRequested ? await getInstanceConfigRepository().getAccountIdentity() : null;
-		const uniqueUsernames = !user.isBot && accountIdentity?.tagStyle === TagStyles.NONE;
+		const uniqueUsernames = !user.isBot;
 		if (uniqueUsernames) {
 			assertNoDiscriminatorChange(data.discriminator, user.discriminator);
 		}
 		const hasPasswordRequiredChanges =
 			(data.username !== undefined && data.username !== user.username) ||
 			(data.discriminator !== undefined && data.discriminator !== user.discriminator) ||
-			(data.email !== undefined && normalizedEmail !== user.email?.toLowerCase()) ||
 			data.new_password !== undefined;
 		const requiresVerification = hasPasswordRequiredChanges && !isUnclaimedAccount;
 		if (requiresVerification && !identityVerifiedViaSudo && !identityVerifiedViaPassword) {
@@ -149,16 +139,6 @@ export class UserAccountSecurityService {
 				throw new ContentBlockedError();
 			}
 			updates.global_name = data.global_name;
-		}
-		if (rawEmail) {
-			if (normalizedEmail && normalizedEmail !== user.email?.toLowerCase()) {
-				await assertEmailNotBlocklisted(normalizedEmail, 'email');
-				const existing = await this.deps.userAccountRepository.findByEmail(normalizedEmail);
-				if (existing && existing.id !== user.id) {
-					throw InputValidationError.fromCode('email', ValidationErrorCodes.EMAIL_ALREADY_IN_USE);
-				}
-			}
-			updates.email = rawEmail;
 		}
 		if (uniqueUsernames && (usernameRealChange || discriminatorChanged)) {
 			metadata.usernameReservation = await reserveUsername(

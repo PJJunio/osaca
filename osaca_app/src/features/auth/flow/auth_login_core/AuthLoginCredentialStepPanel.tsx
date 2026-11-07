@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import loginStyles from '@app/features/auth/components/pages/LoginPage.module.css';
-import AuthLoginEmailPasswordForm, {
+import AuthLoginPasswordForm, {
 	type AuthFormControllerLike,
-} from '@app/features/auth/flow/auth_login_core/AuthLoginEmailPasswordForm';
+} from '@app/features/auth/flow/auth_login_core/AuthLoginPasswordForm';
 import type {ReactNode} from 'react';
 
 interface AuthLoginCredentialStepPanelProps {
@@ -12,7 +12,6 @@ interface AuthLoginCredentialStepPanelProps {
 	readonly fieldErrors: ReadonlyMap<string, string> | null;
 	readonly footerStart?: ReactNode;
 	readonly forgotPasswordLink?: ReactNode;
-	readonly identifierField?: 'email' | 'login';
 	readonly form: AuthFormControllerLike;
 	readonly isLoading: boolean;
 	readonly showTitle: boolean;
@@ -28,7 +27,6 @@ export function AuthLoginCredentialStepPanel({
 	fieldErrors,
 	footerStart,
 	forgotPasswordLink,
-	identifierField,
 	form,
 	isLoading,
 	showTitle,
@@ -63,7 +61,7 @@ export function AuthLoginCredentialStepPanel({
 				</h1>
 			) : null}
 			{renderSwitchError()}
-			<AuthLoginEmailPasswordForm
+			<AuthLoginPasswordForm
 				form={form}
 				isLoading={isLoading}
 				fieldErrors={fieldErrors}
@@ -71,11 +69,10 @@ export function AuthLoginCredentialStepPanel({
 				classes={{form: loginStyles.form}}
 				linksWrapperClassName={loginStyles.formLinks}
 				links={forgotPasswordLink}
-				identifierField={identifierField}
 				disableSubmit={disableSubmit}
 				footerStart={footerStart}
 				statusMessage={statusMessage}
-				data-flx="auth.flow.auth-login-core.auth-login-credential-step-panel.auth-login-email-password-form"
+				data-flx="auth.flow.auth-login-core.auth-login-credential-step-panel.auth-login-password-form"
 			/>
 		</flx-auth-login-credential-step-panel>
 	);

@@ -118,16 +118,6 @@ pub const NAV_SECTIONS: &[NavSection] = &[
                 [acl::BAN_IP_CHECK, acl::BAN_IP_ADD, acl::BAN_IP_REMOVE]
             ),
             item!(
-                "Email Bans",
-                "/email-bans",
-                "email-bans",
-                [
-                    acl::BAN_EMAIL_CHECK,
-                    acl::BAN_EMAIL_ADD,
-                    acl::BAN_EMAIL_REMOVE
-                ]
-            ),
-            item!(
                 "Phrase Bans",
                 "/phrase-bans",
                 "phrase-bans",

@@ -5,7 +5,7 @@ import {User} from '@app/api/models/User';
 import {checkGuildVerificationWithResponse} from '@app/api/utils/GuildVerificationUtils';
 import {GuildFeatures, GuildVerificationLevel} from '@osaca/constants/src/GuildConstants';
 import {ProfileFieldPrivacyFlags} from '@osaca/constants/src/UserConstants';
-import {GuildEmailVerificationRequiredError} from '@osaca/errors/src/domains/auth/EmailVerificationRequiredError';
+import {AccountVerificationRequiredError} from '@osaca/errors/src/domains/auth/AccountVerificationRequiredError';
 import {GuildVerificationRequiredError} from '@osaca/errors/src/domains/guild/GuildVerificationRequiredError';
 import type {GuildMemberResponse} from '@osaca/schema/src/domains/guild/GuildMemberSchemas';
 import type {GuildResponse} from '@osaca/schema/src/domains/guild/GuildResponseSchemas';
@@ -15,7 +15,7 @@ const TEST_USER_ID = createUserID(175928847299117063n);
 const TEST_OWNER_ID = createUserID(275928847299117063n);
 const TEST_JOINED_AT = new Date('2025-01-01T00:00:00.000Z').toISOString();
 
-function createUser(params?: {emailVerified?: boolean}): User {
+function createUser(params?: {claimed?: boolean}): User {
 	return new User({
 		user_id: TEST_USER_ID,
 		username: 'member',
@@ -23,10 +23,7 @@ function createUser(params?: {emailVerified?: boolean}): User {
 		global_name: null,
 		bot: false,
 		system: false,
-		email: 'member@example.com',
-		email_verified: params?.emailVerified ?? false,
-		email_bounced: false,
-		password_hash: 'hashed',
+		password_hash: params?.claimed ? 'hashed' : null,
 		password_last_changed_at: null,
 		totp_secret: null,
 		authenticator_types: null,
@@ -120,14 +117,14 @@ function createMemberResponse(joinedAt = TEST_JOINED_AT): GuildMemberResponse {
 const member = createMemberResponse();
 
 describe('GuildVerificationUtils', () => {
-	it('treats discoverable guilds as requiring at least verified email', () => {
+	it('treats discoverable guilds as requiring at least a claimed account', () => {
 		expect(() =>
 			checkGuildVerificationWithResponse({
 				user: createUser(),
 				guild: createGuildResponse([GuildFeatures.DISCOVERABLE]),
 				member,
 			}),
-		).toThrow(GuildEmailVerificationRequiredError);
+		).toThrow(AccountVerificationRequiredError);
 	});
 	it('keeps NONE unrestricted for non-discoverable guilds', () => {
 		expect(() =>
@@ -143,14 +140,14 @@ describe('GuildVerificationUtils', () => {
 		Object.assign(guild, {verification_level: 4});
 		expect(() =>
 			checkGuildVerificationWithResponse({
-				user: createUser({emailVerified: true}),
+				user: createUser({claimed: true}),
 				guild,
 				member,
 			}),
 		).not.toThrow();
 		expect(() =>
 			checkGuildVerificationWithResponse({
-				user: createUser({emailVerified: true}),
+				user: createUser({claimed: true}),
 				guild,
 				member: createMemberResponse(new Date().toISOString()),
 			}),

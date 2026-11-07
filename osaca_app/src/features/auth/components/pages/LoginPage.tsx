@@ -82,7 +82,7 @@ const LoginPage = observer(function LoginPage({onBackActionChange}: LoginPagePro
 			startWithAddAccount={false}
 			runtimeTarget={runtimeTarget}
 			suppressInlineBackButtons={true}
-			initialIdentifier={params.get('login') ?? params.get('email')}
+			initialIdentifier={params.get('login')}
 			registerLink={
 				<AuthRouterLink
 					to="/register"

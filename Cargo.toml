@@ -12,6 +12,7 @@ members = [
 	"tools/dev",
 	"osaca_users",
 	"packages/markdown_parser/rust",
+	"packages/osaca_crypto/rust",
 ]
 exclude = [
 	"packages/markdown_parser/rust/fuzz",

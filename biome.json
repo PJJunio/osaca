@@ -200,6 +200,7 @@
 			"!**/*_pb.*",
 			"!**/node_modules",
 			"!packages/schema/src/gen",
+			"!packages/osaca_crypto/wasm",
 			"!**/tailwind.css",
 			"!**/*.html",
 			"!**/*.md",

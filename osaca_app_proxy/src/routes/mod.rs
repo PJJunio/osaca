@@ -33,10 +33,13 @@ const PERMISSIONS_POLICY_VALUE: &str = "accelerometer=(), camera=(self), ch-dpr=
 const X_ROBOTS_TAG_VALUE: &str = "noindex, nofollow";
 
 pub fn build_router(state: AppState) -> Router {
-    Router::new()
+    let base = Router::new()
         .route("/_health", get(health::health))
-        .route("/_ready", get(health::ready))
-        .route(
+        .route("/_ready", get(health::ready));
+    let router = if state.config.self_hosted {
+        base.fallback(|| async { axum::http::StatusCode::NOT_FOUND })
+    } else {
+        base.route(
             "/.well-known/apple-app-site-association",
             get(apple_association::apple_app_site_association),
         )
@@ -56,6 +59,8 @@ pub fn build_router(state: AppState) -> Router {
         .route("/sw.js", get(spa_static::service_worker))
         .route("/sw.js.map", get(spa_static::service_worker_map))
         .fallback(get(spa_index::spa_catch_all))
+    };
+    router
         .layer(from_fn(request_id_middleware))
         .layer(from_fn(cache_headers_middleware))
         .layer(from_fn(security_headers_middleware))

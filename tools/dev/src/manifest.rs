@@ -159,12 +159,6 @@ pub fn rust_services() -> Vec<RustServiceSpec> {
             port_base: 8120,
         },
         RustServiceSpec {
-            name: "unfurl",
-            package: "osaca-unfurl",
-            path: ROOT.join("osaca_unfurl"),
-            port_base: 8122,
-        },
-        RustServiceSpec {
             name: "users",
             package: "osaca-users",
             path: ROOT.join("osaca_users"),

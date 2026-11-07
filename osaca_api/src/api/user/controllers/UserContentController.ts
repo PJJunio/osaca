@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {Readable} from 'node:stream';
-import {createChannelID, createMessageID} from '@app/api/BrandedTypes';
-import {viewerFromCtx} from '@app/api/experiment/ChannelThreadsGate';
 import {StorageObjectRangeNotSatisfiableError} from '@app/api/infrastructure/IStorageService';
 import {DefaultUserOnly, LoginRequired} from '@app/api/middleware/AuthMiddleware';
 import {RateLimitMiddleware} from '@app/api/middleware/RateLimitMiddleware';
@@ -10,8 +8,7 @@ import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
 import {RateLimitConfigs} from '@app/api/RateLimitConfig';
 import type {HonoApp} from '@app/api/types/HonoEnv';
 import {Validator} from '@app/api/Validator';
-import {HarvestIdParam, MessageIdParam} from '@osaca/schema/src/domains/common/CommonParamSchemas';
-import {MessageListResponse} from '@osaca/schema/src/domains/message/MessageResponseSchemas';
+import {HarvestIdParam} from '@osaca/schema/src/domains/common/CommonParamSchemas';
 import {
 	HarvestArchiveResponse,
 	HarvestCreationResponseSchema,
@@ -20,173 +17,9 @@ import {
 	HarvestStatusResponseSchema,
 	HarvestStatusResponseSchemaNullable,
 } from '@osaca/schema/src/domains/user/UserHarvestSchemas';
-import {
-	HarvestSelfDataRequest,
-	MarkMentionsReadRequest,
-	SaveMessageRequest,
-	UserMentionsQueryRequest,
-	UserSavedMessagesQueryRequest,
-} from '@osaca/schema/src/domains/user/UserRequestSchemas';
-import {SavedMessageEntryListResponse} from '@osaca/schema/src/domains/user/UserResponseSchemas';
+import {HarvestSelfDataRequest} from '@osaca/schema/src/domains/user/UserRequestSchemas';
 
 export function UserContentController(app: HonoApp) {
-	app.get(
-		'/users/@me/mentions',
-		RateLimitMiddleware(RateLimitConfigs.USER_MENTIONS_READ),
-		LoginRequired,
-		DefaultUserOnly,
-		Validator('query', UserMentionsQueryRequest),
-		OpenAPI({
-			operationId: 'list_mentions_for_current_user',
-			summary: 'List mentions for current user',
-			responseSchema: MessageListResponse,
-			statusCode: 200,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				'Retrieves messages where the current user was mentioned. Supports filtering by role mentions, everyone mentions, and specific guilds. Returns paginated list of messages.',
-		}),
-		async (ctx) => {
-			const {limit, roles, everyone, guilds, before} = ctx.req.valid('query');
-			const response = await ctx.get('userContentRequestService').listMentions({
-				viewer: viewerFromCtx(ctx),
-				userId: ctx.get('user').id,
-				limit,
-				everyone,
-				roles,
-				guilds,
-				before: before ? createMessageID(before) : undefined,
-			});
-			return ctx.json(response);
-		},
-	);
-	app.post(
-		'/users/@me/mentions/read',
-		RateLimitMiddleware(RateLimitConfigs.USER_MENTIONS_DELETE),
-		LoginRequired,
-		DefaultUserOnly,
-		Validator('json', MarkMentionsReadRequest),
-		OpenAPI({
-			operationId: 'mark_mentions_read',
-			summary: 'Mark mentions read',
-			requestSchema: MarkMentionsReadRequest,
-			responseSchema: null,
-			statusCode: 204,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				"Removes multiple messages from the current user's recent mention history. Does not delete the original messages.",
-		}),
-		async (ctx) => {
-			await ctx.get('userContentRequestService').markMentionsRead({
-				userId: ctx.get('user').id,
-				messageIds: ctx.req.valid('json').message_ids.map((messageId) => createMessageID(messageId)),
-			});
-			return ctx.body(null, 204);
-		},
-	);
-	app.delete(
-		'/users/@me/mentions/:message_id',
-		RateLimitMiddleware(RateLimitConfigs.USER_MENTIONS_DELETE),
-		LoginRequired,
-		DefaultUserOnly,
-		Validator('param', MessageIdParam),
-		OpenAPI({
-			operationId: 'delete_mention',
-			summary: 'Delete mention',
-			responseSchema: null,
-			statusCode: 204,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				"Removes a mention from the current user's mention history. Does not delete the original message, only removes it from the user's personal mention list.",
-		}),
-		async (ctx) => {
-			await ctx.get('userContentRequestService').deleteMention({
-				userId: ctx.get('user').id,
-				messageId: createMessageID(ctx.req.valid('param').message_id),
-			});
-			return ctx.body(null, 204);
-		},
-	);
-	app.get(
-		'/users/@me/saved-messages',
-		RateLimitMiddleware(RateLimitConfigs.USER_SAVED_MESSAGES_READ),
-		LoginRequired,
-		DefaultUserOnly,
-		Validator('query', UserSavedMessagesQueryRequest),
-		OpenAPI({
-			operationId: 'list_saved_messages',
-			summary: 'List saved messages',
-			responseSchema: SavedMessageEntryListResponse,
-			statusCode: 200,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				'Retrieves all messages saved by the current user. Messages are saved privately for easy reference. Returns paginated list of saved messages with metadata.',
-		}),
-		async (ctx) => {
-			const {limit, before} = ctx.req.valid('query');
-			const response = await ctx.get('userContentRequestService').listSavedMessages({
-				viewer: viewerFromCtx(ctx),
-				userId: ctx.get('user').id,
-				limit,
-				before: before ? createMessageID(before) : undefined,
-			});
-			return ctx.json(response, 200);
-		},
-	);
-	app.post(
-		'/users/@me/saved-messages',
-		RateLimitMiddleware(RateLimitConfigs.USER_SAVED_MESSAGES_WRITE),
-		LoginRequired,
-		DefaultUserOnly,
-		Validator('json', SaveMessageRequest),
-		OpenAPI({
-			operationId: 'save_message',
-			summary: 'Save message',
-			responseSchema: null,
-			statusCode: 204,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				'Saves a message for the current user. Saved messages can be accessed later from the saved messages list. Messages are saved privately.',
-		}),
-		async (ctx) => {
-			const {channel_id, message_id} = ctx.req.valid('json');
-			await ctx.get('userContentRequestService').saveMessage({
-				viewer: viewerFromCtx(ctx),
-				userId: ctx.get('user').id,
-				channelId: createChannelID(channel_id),
-				messageId: createMessageID(message_id),
-			});
-			return ctx.body(null, 204);
-		},
-	);
-	app.delete(
-		'/users/@me/saved-messages/:message_id',
-		RateLimitMiddleware(RateLimitConfigs.USER_SAVED_MESSAGES_WRITE),
-		LoginRequired,
-		DefaultUserOnly,
-		Validator('param', MessageIdParam),
-		OpenAPI({
-			operationId: 'unsave_message',
-			summary: 'Unsave message',
-			responseSchema: null,
-			statusCode: 204,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				"Removes a message from the current user's saved messages. Does not delete the original message, only removes it from the user's saved collection.",
-		}),
-		async (ctx) => {
-			await ctx.get('userContentRequestService').unsaveMessage({
-				userId: ctx.get('user').id,
-				messageId: createMessageID(ctx.req.valid('param').message_id),
-			});
-			return ctx.body(null, 204);
-		},
-	);
 	app.post(
 		'/users/@me/harvest',
 		RateLimitMiddleware(RateLimitConfigs.USER_DATA_HARVEST),

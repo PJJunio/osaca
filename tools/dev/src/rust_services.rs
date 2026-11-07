@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use crate::manifest::{DEV_PROXY_PORT, MEDIA_PROXY_PORT, RustServiceSpec, rust_services};
+use crate::manifest::{RustServiceSpec, rust_services};
 use crate::paths::{ROOT, TARGET_DIR};
 use crate::proc::{
     AwaitOutcome, RESTART_LIMIT, RESTART_WINDOW, RunOptions, ShutdownSignal, await_or_shutdown,
@@ -289,33 +289,6 @@ pub fn service_env(spec: &RustServiceSpec, mode: &str, port: u16) -> Vec<(String
     ];
     if mode == "shard" {
         envs.push(("OSACA_SVC_SHARD_ID".to_owned(), Some("0".to_owned())));
-    }
-    if spec.name == "unfurl" {
-        envs.extend([
-            (
-                "OSACA_MEDIA_PROXY_ENDPOINT".to_owned(),
-                Some(
-                    env::var("OSACA_MEDIA_PROXY_ENDPOINT")
-                        .unwrap_or_else(|_| format!("http://127.0.0.1:{MEDIA_PROXY_PORT}")),
-                ),
-            ),
-            (
-                "OSACA_MEDIA_PROXY_PUBLIC_ENDPOINT".to_owned(),
-                Some(
-                    env::var("OSACA_MEDIA_PROXY_PUBLIC_ENDPOINT")
-                        .or_else(|_| env::var("OSACA_MEDIA_ENDPOINT"))
-                        .unwrap_or_else(|_| format!("http://localhost:{DEV_PROXY_PORT}/media")),
-                ),
-            ),
-            (
-                "OSACA_STATIC_CDN_ENDPOINT".to_owned(),
-                Some(
-                    env::var("OSACA_STATIC_CDN_ENDPOINT")
-                        .or_else(|_| env::var("OSACA_PUBLIC_URL"))
-                        .unwrap_or_else(|_| format!("http://localhost:{DEV_PROXY_PORT}")),
-                ),
-            ),
-        ]);
     }
     envs
 }

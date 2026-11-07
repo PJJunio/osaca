@@ -17,11 +17,8 @@ import {EmbedAuthor} from '@app/api/models/EmbedAuthor';
 import {EmbedField} from '@app/api/models/EmbedField';
 import {EmbedFooter} from '@app/api/models/EmbedFooter';
 import {EmbedMedia} from '@app/api/models/EmbedMedia';
-import * as UnfurlerUtils from '@app/api/utils/UnfurlerUtils';
 import type {WorkerTaskName} from '@app/api/worker/WorkerLaneConfig';
-import {WorkerQueueOverflowError} from '@app/api/worker/WorkerQueueOverflowError';
 import {EmbedMediaFlags} from '@osaca/constants/src/ChannelConstants';
-import {MAX_EMBEDS_PER_MESSAGE} from '@osaca/constants/src/LimitConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
 import type {MessageEmbedChildResponse, MessageEmbedResponse} from '@osaca/schema/src/domains/message/EmbedSchemas';
@@ -35,11 +32,6 @@ import type {IWorkerService} from '@pkgs/worker/src/contracts/IWorkerService';
 
 interface ProcessedUrlEmbeds {
 	embeds: Array<Embed>;
-}
-
-interface InitialUrlEmbedResult {
-	embeds: Array<MessageEmbed>;
-	hasUncachedUrls: boolean;
 }
 
 type RichEmbedRequestWithMedia = RichEmbedRequest & {
@@ -58,7 +50,7 @@ export class EmbedService {
 	constructor(
 		private unfurlerService: IUnfurlerService,
 		private mediaService: IMediaService,
-		private workerService: IWorkerService<WorkerTaskName>,
+		_workerService: IWorkerService<WorkerTaskName>,
 	) {}
 
 	async getInitialEmbeds(params: {
@@ -75,25 +67,16 @@ export class EmbedService {
 			const embeds = await Promise.all(params.customEmbeds.map((embed) => this.createEmbed(embed, params.nsfwMode)));
 			return {embeds: embeds.map((embed) => embed.toMessageEmbed()), hasUncachedUrls: false};
 		}
-		if (!params.content) {
-			return {embeds: null, hasUncachedUrls: false};
-		}
-		const urls = UnfurlerUtils.extractURLs(params.content);
-		if (!urls.length) {
-			return {embeds: null, hasUncachedUrls: false};
-		}
-		return this.getInitialUrlEmbeds(urls, params.nsfwMode);
+		return {embeds: null, hasUncachedUrls: false};
 	}
 
 	async enqueueUrlEmbedExtraction(
-		channelId: ChannelID,
-		messageId: MessageID,
-		guildId: bigint | null,
-		nsfwMode: MediaProxyNsfwMode,
-		options: {content?: string | null} = {},
-	): Promise<void> {
-		await this.enqueue(channelId, messageId, guildId, nsfwMode, options);
-	}
+		_channelId: ChannelID,
+		_messageId: MessageID,
+		_guildId: bigint | null,
+		_nsfwMode: MediaProxyNsfwMode,
+		_options: {content?: string | null} = {},
+	): Promise<void> {}
 
 	async processUrlWithCachePolicy(
 		url: string,
@@ -104,58 +87,6 @@ export class EmbedService {
 		return {
 			embeds: result.embeds.map((embedData) => new Embed(this.mapResponseEmbed(embedData))),
 		};
-	}
-
-	private async getInitialUrlEmbeds(
-		urls: Array<string>,
-		nsfwMode: MediaProxyNsfwMode,
-	): Promise<{
-		embeds: Array<MessageEmbed> | null;
-		hasUncachedUrls: boolean;
-	}> {
-		const resolved = await Promise.all(urls.map((url) => this.getCachedUrlEmbeds(url, nsfwMode)));
-		const orderedEmbeds: Array<MessageEmbed> = [];
-		let hasUncachedUrls = false;
-		for (const result of resolved) {
-			if (result.hasUncachedUrls) {
-				hasUncachedUrls = true;
-			}
-			orderedEmbeds.push(...result.embeds);
-			if (orderedEmbeds.length >= MAX_EMBEDS_PER_MESSAGE) {
-				return {
-					embeds: orderedEmbeds.slice(0, MAX_EMBEDS_PER_MESSAGE),
-					hasUncachedUrls,
-				};
-			}
-		}
-		return {
-			embeds: orderedEmbeds.length > 0 ? orderedEmbeds : null,
-			hasUncachedUrls,
-		};
-	}
-
-	private async getCachedUrlEmbeds(url: string, nsfwMode: MediaProxyNsfwMode): Promise<InitialUrlEmbedResult> {
-		try {
-			const {embeds} = await this.processUrlWithCachePolicy(url, nsfwMode, {cacheOnly: true});
-			if (embeds.length === 0) {
-				return {embeds: [], hasUncachedUrls: true};
-			}
-			const messageEmbeds = embeds.map((embed) => embed.toMessageEmbed());
-			const safeEmbeds =
-				nsfwMode === 'allow' ? messageEmbeds : messageEmbeds.filter((embed) => !this.isEmbedNsfw(embed));
-			return {embeds: safeEmbeds, hasUncachedUrls: false};
-		} catch (error) {
-			Logger.warn({error, url}, 'Failed to read cached URL embeds during message creation');
-			return {embeds: [], hasUncachedUrls: true};
-		}
-	}
-
-	private isEmbedNsfw(embed: MessageEmbed): boolean {
-		if (embed.nsfw) return true;
-		for (const child of embed.children ?? []) {
-			if (child.nsfw) return true;
-		}
-		return false;
 	}
 
 	private mapResponseEmbed(embed: MessageEmbedResponse): MessageEmbed {
@@ -431,40 +362,5 @@ export class EmbedService {
 			text: footer.text,
 			icon_url: iconUrl,
 		});
-	}
-
-	private async enqueue(
-		channelId: ChannelID,
-		messageId: MessageID,
-		guildId: bigint | null,
-		nsfwMode: MediaProxyNsfwMode,
-		options: {content?: string | null} = {},
-	): Promise<void> {
-		const expectedContentHash =
-			options.content !== undefined ? UnfurlerUtils.hashUnfurlContent(options.content) : undefined;
-		try {
-			await this.workerService.addJob(
-				'extractEmbeds',
-				{
-					guildId: guildId ? guildId.toString() : null,
-					channelId: channelId.toString(),
-					messageId: messageId.toString(),
-					nsfwMode,
-					...(expectedContentHash ? {expectedContentHash} : {}),
-				},
-				{
-					jobKey: expectedContentHash ? `${messageId.toString()}:${expectedContentHash}` : messageId.toString(),
-					skipLedger: true,
-				},
-			);
-		} catch (error) {
-			if (!(error instanceof WorkerQueueOverflowError)) {
-				throw error;
-			}
-			Logger.warn(
-				{channelId: channelId.toString(), messageId: messageId.toString()},
-				'Dropped url embed extraction, jobs stream is at its limit',
-			);
-		}
 	}
 }

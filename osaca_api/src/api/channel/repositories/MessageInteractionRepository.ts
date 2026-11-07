@@ -4,11 +4,10 @@ import type {ChannelID, EmojiID, MessageID, UserID} from '@app/api/BrandedTypes'
 import {createEmojiID} from '@app/api/BrandedTypes';
 import type {MessageRepository} from '@app/api/channel/repositories/MessageRepository';
 import {deleteOneOrMany, fetchMany, fetchOne, upsertOne} from '@app/api/database/CassandraQueryExecution';
-import {Db} from '@app/api/database/CassandraTypes';
 import type {ChannelPinRow, MessageReactionRow} from '@app/api/database/types/MessageTypes';
 import type {Message} from '@app/api/models/Message';
 import {MessageReaction} from '@app/api/models/MessageReaction';
-import {ChannelPins, MessageReactions, Messages} from '@app/api/Tables';
+import {ChannelPins, MessageReactions} from '@app/api/Tables';
 import * as BucketUtils from '@osaca/snowflake/src/SnowflakeBuckets';
 
 const createFetchChannelPinsQuery = (limit: number) =>
@@ -22,15 +21,6 @@ const FETCH_MESSAGE_REACTIONS_BY_CHANNEL_AND_MESSAGE_QUERY = MessageReactions.se
 		MessageReactions.where.eq('bucket'),
 		MessageReactions.where.eq('message_id'),
 	],
-});
-const CHECK_MESSAGE_HAS_REACTIONS_QUERY = MessageReactions.selectCql({
-	columns: ['channel_id'],
-	where: [
-		MessageReactions.where.eq('channel_id'),
-		MessageReactions.where.eq('bucket'),
-		MessageReactions.where.eq('message_id'),
-	],
-	limit: 1,
 });
 const createFetchReactionUsersByEmojiQuery = (limit: number, hasAfter: boolean = false) =>
 	MessageReactions.select({
@@ -182,7 +172,6 @@ export class MessageInteractionRepository {
 			created_at: new Date(),
 		};
 		await upsertOne(MessageReactions.upsertAll(reactionData));
-		await this.setHasReaction(channelId, messageId, true);
 		return new MessageReaction(reactionData);
 	}
 
@@ -205,8 +194,6 @@ export class MessageInteractionRepository {
 				emoji_name: emojiName,
 			}),
 		);
-		const hasReactions = await this.messageHasAnyReactions(channelId, messageId);
-		await this.setHasReaction(channelId, messageId, hasReactions);
 	}
 
 	async removeAllReactions(channelId: ChannelID, messageId: MessageID): Promise<void> {
@@ -223,8 +210,6 @@ export class MessageInteractionRepository {
 			bucket,
 			message_id: messageId,
 		});
-		const hasReactions = await this.messageHasAnyReactions(channelId, messageId);
-		await this.setHasReaction(channelId, messageId, hasReactions);
 	}
 
 	async removeAllReactionsForEmoji(
@@ -251,8 +236,6 @@ export class MessageInteractionRepository {
 			emoji_id: normalizedEmojiId,
 			emoji_name: emojiName,
 		});
-		const hasReactions = await this.messageHasAnyReactions(channelId, messageId);
-		await this.setHasReaction(channelId, messageId, hasReactions);
 	}
 
 	async countReactionUsers(
@@ -295,29 +278,5 @@ export class MessageInteractionRepository {
 		return !!reaction;
 	}
 
-	async setHasReaction(channelId: ChannelID, messageId: MessageID, hasReaction: boolean): Promise<void> {
-		const bucket = BucketUtils.makeBucket(messageId);
-		await upsertOne(
-			Messages.patchByPk(
-				{
-					channel_id: channelId,
-					bucket,
-					message_id: messageId,
-				},
-				{
-					has_reaction: Db.set(hasReaction),
-				},
-			),
-		);
-	}
-
-	private async messageHasAnyReactions(channelId: ChannelID, messageId: MessageID): Promise<boolean> {
-		const bucket = BucketUtils.makeBucket(messageId);
-		const row = await fetchOne<Pick<MessageReactionRow, 'channel_id'>>(CHECK_MESSAGE_HAS_REACTIONS_QUERY, {
-			channel_id: channelId,
-			bucket,
-			message_id: messageId,
-		});
-		return Boolean(row);
-	}
+	async setHasReaction(_channelId: ChannelID, _messageId: MessageID, _hasReaction: boolean): Promise<void> {}
 }

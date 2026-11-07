@@ -21,10 +21,10 @@ x-osaca-env: &osaca-env
   RUST_LOG: ${RUST_LOG:-}
   HTTP_PROXY: ${HTTP_PROXY:-}
   HTTPS_PROXY: ${HTTPS_PROXY:-}
-  NO_PROXY: localhost,127.0.0.1,::1,edge,postgres,valkey,nats,seaweedfs,livekit,api,worker,gateway,media-proxy,push,static-proxy,app-proxy,snowflakes,users,messages,unfurl,admin${NO_PROXY:+,${NO_PROXY:-}}
+  NO_PROXY: localhost,127.0.0.1,::1,edge,postgres,valkey,nats,seaweedfs,livekit,api,worker,gateway,media-proxy,push,static-proxy,app-proxy,snowflakes,users,messages,admin${NO_PROXY:+,${NO_PROXY:-}}
   http_proxy: ${HTTP_PROXY:-}
   https_proxy: ${HTTPS_PROXY:-}
-  no_proxy: localhost,127.0.0.1,::1,edge,postgres,valkey,nats,seaweedfs,livekit,api,worker,gateway,media-proxy,push,static-proxy,app-proxy,snowflakes,users,messages,unfurl,admin${NO_PROXY:+,${NO_PROXY:-}}
+  no_proxy: localhost,127.0.0.1,::1,edge,postgres,valkey,nats,seaweedfs,livekit,api,worker,gateway,media-proxy,push,static-proxy,app-proxy,snowflakes,users,messages,admin${NO_PROXY:+,${NO_PROXY:-}}
   OSACA_SELF_HOSTED: "true"
   OSACA_BASE_DOMAIN: ${OSACA_DOMAIN:-}
   OSACA_PUBLIC_SCHEME: ${OSACA_PUBLIC_SCHEME:-https}
@@ -762,24 +762,6 @@ services:
     depends_on:
       nats: {condition: service_healthy}
       postgres: {condition: service_healthy}
-
-  unfurl:
-    <<: *osaca-service
-    stop_grace_period: 30s
-    image: ${OSACA_REGISTRY:-ghcr.io/${OSACA_REGISTRY_OWNER:-pjjunio}}/osaca-unfurl:${OSACA_IMAGE_TAG:-v1}
-    deploy:
-      resources:
-        limits:
-          memory: ${OSACA_UNFURL_MEMORY_LIMIT:-256mb}
-    environment:
-      <<: *osaca-rust-env
-      OSACA_SVC_NAME: unfurl
-      OSACA_SVC_MODE: combined
-      OSACA_MEDIA_PROXY_ENDPOINT: http://media-proxy:8080
-      OSACA_ACTIVITYPUB_SIGNING_KEY_BASE64: ${OSACA_ACTIVITYPUB_SIGNING_KEY_BASE64:-}
-    healthcheck: *osaca-svc-healthcheck
-    depends_on:
-      nats: {condition: service_healthy}
 
   admin:
     <<: *osaca-service

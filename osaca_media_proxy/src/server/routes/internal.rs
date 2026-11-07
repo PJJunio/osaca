@@ -164,11 +164,10 @@ pub(in crate::server) async fn metadata_handler(
         Ok(req) if req.version == Some(2) => req,
         _ => return text(StatusCode::BAD_REQUEST, "Bad Request"),
     };
-    let scan_nsfw = match req.nsfw.as_str() {
-        "block" | "flag" => true,
-        "allow" => false,
-        _ => return text(StatusCode::BAD_REQUEST, "Bad Request"),
-    };
+    if !matches!(req.nsfw.as_str(), "block" | "flag" | "allow") {
+        return text(StatusCode::BAD_REQUEST, "Bad Request");
+    }
+    let scan_nsfw = false;
     let include_data = req.with_base64.unwrap_or(false);
     let input = match req.into_media_input() {
         Ok(input) => input,

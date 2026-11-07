@@ -77,10 +77,6 @@ const COMPONENTS: &[Component] = &[
         services: &["static-proxy"],
     },
     Component {
-        image: "osaca-unfurl",
-        services: &["unfurl"],
-    },
-    Component {
         image: "osaca-users",
         services: &["users"],
     },
@@ -977,7 +973,7 @@ mod tests {
                 .lines()
                 .filter(|line| line.starts_with("    image: "))
                 .count(),
-            13
+            12
         );
 
         let api = manifest

@@ -10,7 +10,7 @@ import (
 var Services = []string{
 	"edge", "postgres", "valkey", "nats", "seaweedfs", "seaweedfs-init", "livekit",
 	"api", "worker", "gateway", "media-proxy", "push", "static-proxy", "app-proxy", "admin",
-	"snowflakes", "users", "messages", "unfurl",
+	"snowflakes", "users", "messages",
 }
 
 var OneShot = map[string]bool{"seaweedfs-init": true}

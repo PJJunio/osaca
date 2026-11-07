@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {activityPubKeyId} from '@app/api/activity_pub/ActivityPub';
 import {AdminRepository} from '@app/api/admin/AdminRepository';
 import {AdminApiKeyRepository} from '@app/api/admin/repositories/AdminApiKeyRepository';
 import {AdminArchiveRepository} from '@app/api/admin/repositories/AdminArchiveRepository';
@@ -33,11 +32,10 @@ import {KVAccountDeletionQueueService} from '@app/api/infrastructure/KVAccountDe
 import {KVActivityTracker} from '@app/api/infrastructure/KVActivityTracker';
 import {KVBulkMessageDeletionQueueService} from '@app/api/infrastructure/KVBulkMessageDeletionQueueService';
 import {KVThreadAutoArchiveQueueService} from '@app/api/infrastructure/KVThreadAutoArchiveQueueService';
-import {NatsUnfurlerService} from '@app/api/infrastructure/NatsUnfurlerService';
 import {createStorageService} from '@app/api/infrastructure/StorageServiceFactory';
 import {UserCacheService} from '@app/api/infrastructure/UserCacheService';
 import {createUsersServiceClient} from '@app/api/infrastructure/UsersServiceClient';
-import {VirusScanService} from '@app/api/infrastructure/VirusScanService';
+import {NoopUnfurlerService} from '@app/api/test/mocks/NoopUnfurlerService';
 import {CustomBadgeCatalog} from '@app/api/instance/custom_badges/CustomBadgeCatalog';
 import {InstanceConfigRepository} from '@app/api/instance/InstanceConfigRepository';
 import {NatsConfigPublisher} from '@app/api/instance/NatsConfigPublisher';
@@ -198,9 +196,7 @@ export const getThemeService = singleton(() => new ThemeService(getStorageServic
 export const getAttachmentUploadTraceRepository = singleton(() => new AttachmentUploadTraceRepository());
 
 export const getVirusScanServiceInstance: () => IVirusScanService = singleton(() => {
-	const VirusScanServiceClass = Config.clamav.enabled ? VirusScanService : DisabledVirusScanService;
-	const service = new VirusScanServiceClass(getCacheService());
-	return service;
+	return new DisabledVirusScanService();
 });
 
 let _injectedUnfurlerService: IUnfurlerService | undefined;
@@ -209,22 +205,7 @@ export function setInjectedUnfurlerService(service: IUnfurlerService | undefined
 	_injectedUnfurlerService = service;
 }
 
-const getDefaultUnfurlerService = singleton(() => {
-	const instanceConfigRepository = getInstanceConfigRepository();
-	const manager = new NatsConnectionManager({
-		url: Config.nats.coreUrl,
-		token: Config.nats.authToken || undefined,
-		name: 'osaca-api-unfurl',
-	});
-	void manager.connect().catch((error) => {
-		Logger.error({error}, '[nats-unfurl] Failed to establish NATS connection');
-	});
-	return new NatsUnfurlerService(
-		manager,
-		async () => instanceConfigRepository.getEffectiveYoutubeApiKey(),
-		activityPubKeyId(Config.endpoints.apiPublicDiscovery),
-	);
-});
+const getDefaultUnfurlerService = singleton(() => new NoopUnfurlerService());
 
 export function getUnfurlerService(): IUnfurlerService {
 	return _injectedUnfurlerService ?? getDefaultUnfurlerService();

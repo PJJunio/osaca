@@ -12,7 +12,6 @@ use crate::{
         },
         attachment_signature,
         cors::{self, OriginCheck},
-        external::serve_external,
         response::error::{text, text_with_source},
         state::AppState,
         stored,
@@ -117,8 +116,8 @@ async fn serve_public_read(app: &Arc<AppState>, read: PublicRead<'_>) -> Respons
         headers,
         request_id,
     } = read;
-    if let Some(rest) = path.strip_prefix("/external/") {
-        return serve_external(app, method, rest, params, headers).await;
+    if path.starts_with("/external/") {
+        return text(StatusCode::NOT_FOUND, "Not Found");
     }
     if path.starts_with("/attachments/") {
         let key = match decode_storage_key(path) {

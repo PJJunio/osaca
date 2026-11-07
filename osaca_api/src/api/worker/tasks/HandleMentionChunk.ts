@@ -136,21 +136,6 @@ const handleMentionChunk: WorkerTaskHandler = async (payload, helpers) => {
 	await readStateService.bulkIncrementMentionCounts(
 		countedMentions.map((mention) => ({userId: mention.userId, channelId, messageId, marker})),
 	);
-	if (guildId != null) {
-		await userRepository.createRecentMentions(
-			countedMentions.map((mention) => {
-				const settings = settingsByUserId.get(mention.userId.toString());
-				return {
-					user_id: mention.userId,
-					channel_id: channelId,
-					message_id: messageId,
-					guild_id: guildId,
-					is_everyone: mention.everyone && !settings?.suppressEveryone,
-					is_role: mention.role && !settings?.suppressRoles,
-				};
-			}),
-		);
-	}
 	Logger.debug(
 		{
 			channelId,

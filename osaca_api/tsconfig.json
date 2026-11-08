@@ -4,6 +4,7 @@
 		"allowImportingTsExtensions": true,
 		"paths": {
 			"@app/*": ["./src/*"],
+			"@osaca/crypto": ["./../packages/osaca_crypto/src/index.ts"],
 			"@osaca/*": ["./../packages/*", "./../packages/*/src/index.ts"],
 			"@pkgs/*": ["./pkgs/*"]
 		}

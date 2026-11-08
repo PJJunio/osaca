@@ -208,4 +208,12 @@ export const Endpoints = {
 	BLUESKY_AUTHORIZE: '/users/@me/connections/bluesky/authorize',
 	CONNECTION: (type: string, connectionId: string) => `/users/@me/connections/${type}/${connectionId}`,
 	CONNECTIONS_REORDER: '/users/@me/connections/reorder',
+	MLS_KEY_PACKAGES: '/mls/key-packages',
+	MLS_CLAIM_KEY_PACKAGE: (deviceId: string) => `/mls/devices/${deviceId}/claim-key-package`,
+	MLS_GROUPS: '/mls/groups',
+	MLS_GROUP: (groupId: string) => `/mls/groups/${groupId}`,
+	MLS_COMMITS: (groupId: string) => `/mls/groups/${groupId}/commits`,
+	MLS_COMMIT: (groupId: string, epoch: number | string) => `/mls/groups/${groupId}/commits/${epoch}`,
+	MLS_WELCOME: (groupId: string, epoch: number | string) => `/mls/groups/${groupId}/welcomes/${epoch}`,
+	MLS_MESSAGES: (groupId: string) => `/mls/groups/${groupId}/messages`,
 } as const;

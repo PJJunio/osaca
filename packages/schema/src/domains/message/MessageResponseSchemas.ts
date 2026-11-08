@@ -132,6 +132,8 @@ const MessageBaseResponseSchema = z.object({
 		'MessageFlags',
 	),
 	content: z.string().describe('The text content of the message'),
+	ciphertext: z.string().nullish().describe('MLS ciphertext for end-to-end encrypted message'),
+	epoch: z.number().nullish().describe('MLS epoch for end-to-end encrypted message'),
 	timestamp: z.iso.datetime().describe('The ISO 8601 timestamp of when the message was created'),
 	edited_timestamp: z.iso.datetime().nullish().describe('The ISO 8601 timestamp of when the message was last edited'),
 	pinned: z.boolean().describe('Whether the message is pinned'),

@@ -12,6 +12,7 @@ import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
 import Authentication from '@app/features/auth/state/Authentication';
 import {canReportMessage} from '@app/features/channel/components/MessageActionUtils';
 import Channels from '@app/features/channel/state/Channels';
+import {mlsClientManager} from '@app/features/crypto/MlsClientManager';
 import DeveloperOptions from '@app/features/devtools/state/DeveloperOptions';
 import GatewaySessions from '@app/features/gateway/transport/GatewaySessionPool';
 import GuildMatureContentAgree from '@app/features/guild/state/GuildMatureContentAgree';
@@ -68,6 +69,9 @@ import {modal} from '@app/features/ui/commands/ModalCommands';
 import * as ToastCommands from '@app/features/ui/commands/ToastCommands';
 import {Switch} from '@app/features/ui/components/form/FormSwitch';
 import {blockIfAccountLimited, handleAccountLimitedError} from '@app/features/user/utils/AccountLimitUtils';
+import type {I18n} from '@lingui/core';
+import {msg} from '@lingui/core/macro';
+import {useLingui} from '@lingui/react/macro';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {MessageFlags, Permissions} from '@osaca/constants/src/ChannelConstants';
 import type {JumpType} from '@osaca/constants/src/JumpConstants';
@@ -80,9 +84,6 @@ import type {
 	Message as WireMessage,
 } from '@osaca/schema/src/domains/message/MessageResponseSchemas';
 import * as SnowflakeUtils from '@osaca/snowflake/src/SnowflakeUtils';
-import type {I18n} from '@lingui/core';
-import {msg} from '@lingui/core/macro';
-import {useLingui} from '@lingui/react/macro';
 import {observer} from 'mobx-react-lite';
 
 const MessageEditFailedModal_YOUR_MESSAGE_DIDN_T_UPDATE_DESCRIPTOR = msg({
@@ -278,7 +279,21 @@ async function requestChannelMessages(
 		query: {before, after, limit, around: around ?? null},
 		retries: 2,
 	});
-	return response.body ?? [];
+	const messages = response.body ?? [];
+	for (const msg of messages) {
+		const rawCiphertext = (msg as {ciphertext?: string}).ciphertext;
+		if (rawCiphertext) {
+			try {
+				const decrypted = await mlsClientManager.decryptMessage(channelId, rawCiphertext);
+				if (decrypted) {
+					(msg as {content: string}).content = decrypted;
+				}
+			} catch (e) {
+				logger.warn('Failed to decrypt scrollback message', e);
+			}
+		}
+	}
+	return messages;
 }
 
 function calculateMessagePageState(
@@ -658,6 +673,9 @@ export async function send(channelId: string, params: SendMessageParams): Promis
 			: await MessageQueue.sendImmediately(payload);
 		if (result?.body) {
 			logger.debug(`Attachment message sent successfully in channel ${channelId}`);
+			if (!result.body.content && payload.content) {
+				(result.body as {content: string}).content = payload.content;
+			}
 			Messages.handleIncomingMessage({channelId, message: result.body});
 			return result.body;
 		}
@@ -668,6 +686,9 @@ export async function send(channelId: string, params: SendMessageParams): Promis
 		MessageQueue.enqueue(payload, (result, error) => {
 			if (result?.body) {
 				logger.debug(`Message sent successfully in channel ${channelId}`);
+				if (!result.body.content && payload.content) {
+					(result.body as {content: string}).content = payload.content;
+				}
 				Messages.handleIncomingMessage({channelId, message: result.body});
 				resolve(result.body);
 			} else {

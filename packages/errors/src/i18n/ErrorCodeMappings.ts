@@ -303,6 +303,7 @@ export const ErrorCodeToI18nKey = {
 	[APIErrorCodes.MLS_EPOCH_CONFLICT]: 'mls.epoch_conflict',
 	[APIErrorCodes.MLS_KEY_PACKAGE_EXHAUSTED]: 'mls.key_package_exhausted',
 	[APIErrorCodes.MLS_GROUP_NOT_FOUND]: 'mls.group_not_found',
+	[APIErrorCodes.PLAINTEXT_PRIVATE_MESSAGING_DISABLED]: 'channel.plaintext_private_messaging_disabled',
 
 	[ValidationErrorCodes.MESSAGE_IDS_CANNOT_BE_EMPTY]: 'messages.message_ids_cannot_be_empty',
 	[ValidationErrorCodes.MESSAGES_ARRAY_REQUIRED_AND_NOT_EMPTY]: 'messages.messages_array_required',

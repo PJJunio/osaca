@@ -169,6 +169,7 @@
 		"@floating-ui/react": "catalog:",
 		"@floating-ui/react-dom": "catalog:",
 		"@osaca/constants": "workspace:*",
+		"@osaca/crypto": "workspace:*",
 		"@osaca/date_utils": "workspace:*",
 		"@osaca/desktop_ipc": "workspace:*",
 		"@osaca/geo_utils": "workspace:*",

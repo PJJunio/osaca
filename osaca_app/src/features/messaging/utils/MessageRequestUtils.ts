@@ -49,6 +49,8 @@ export interface MessageCreateRequest {
 	favorite_meme_id?: string;
 	sticker_ids?: Array<string>;
 	tts?: true;
+	ciphertext?: string;
+	epoch?: number;
 }
 
 export interface MessageEditRequest {
@@ -75,6 +77,8 @@ export interface MessageCreatePayload {
 	favoriteMemeId?: string;
 	stickers?: Array<MessageStickerItem>;
 	tts?: boolean;
+	ciphertext?: string;
+	epoch?: number;
 }
 
 export interface NormalizedMessageContent {
@@ -128,11 +132,28 @@ function normalizeMessageEditContent(content: string): string {
 }
 
 export function buildMessageCreateRequest(payload: MessageCreatePayload): MessageCreateRequest {
-	const {content, nonce, attachments, allowedMentions, messageReference, flags, favoriteMemeId, stickers, tts} =
-		payload;
+	const {
+		content,
+		nonce,
+		attachments,
+		allowedMentions,
+		messageReference,
+		flags,
+		favoriteMemeId,
+		stickers,
+		tts,
+		ciphertext,
+		epoch,
+	} = payload;
 	const requestBody: MessageCreateRequest = {};
 	if (content != null && hasVisibleMessageContent(content)) {
 		requestBody.content = content;
+	}
+	if (ciphertext != null) {
+		requestBody.ciphertext = ciphertext;
+	}
+	if (epoch != null) {
+		requestBody.epoch = epoch;
 	}
 	if (nonce != null) {
 		requestBody.nonce = nonce;

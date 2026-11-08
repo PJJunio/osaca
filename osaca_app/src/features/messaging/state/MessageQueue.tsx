@@ -6,6 +6,8 @@ import {FeatureTemporarilyDisabledModal} from '@app/features/app/components/aler
 import {Endpoints} from '@app/features/app/constants/Endpoints';
 import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
 import {describeAccountTierBlock, promptForAccountTier} from '@app/features/auth/utils/AccountTierPrompt';
+import Channels from '@app/features/channel/state/Channels';
+import {mlsClientManager} from '@app/features/crypto/MlsClientManager';
 import DeveloperOptions from '@app/features/devtools/state/DeveloperOptions';
 import {createSystemMessage} from '@app/features/devtools/utils/CommandUtils';
 import * as DraftCommands from '@app/features/messaging/commands/DraftCommands';
@@ -61,6 +63,7 @@ import {Queue} from '@app/lib/list/ListQueue';
 import type {I18n} from '@lingui/core';
 import {msg} from '@lingui/core/macro';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
+import {ChannelTypes} from '@osaca/constants/src/ChannelConstants';
 import type {
 	AllowedMentions,
 	Message,
@@ -853,8 +856,31 @@ class MessageQueue extends Queue<MessageQueuePayload, RestResponse<Message> | un
 			case 'requestNetwork':
 				break;
 		}
+		const channel = Channels.getChannel(channelId);
+		const isPrivateE2EE = channel?.type === ChannelTypes.DM || channel?.type === ChannelTypes.GROUP_DM;
+		let contentToSend = payload.content;
+		let ciphertext: string | undefined;
+		let epoch: number | undefined;
+
+		if (isPrivateE2EE) {
+			try {
+				const recipientIds = channel ? Array.from(channel.recipientIds) : [];
+				const encrypted = await mlsClientManager.encryptOnly(channelId, payload.content ?? '', recipientIds);
+				ciphertext = encrypted.ciphertext;
+				epoch = encrypted.epoch;
+				contentToSend = '';
+			} catch (cryptoErr) {
+				logger.error(`Failed to encrypt MLS message for channel ${channelId}:`, cryptoErr);
+				this.handleSendError(channelId, nonce, cryptoErr as HttpError, i18n, payload.hasAttachments);
+				completed(null, undefined, cryptoErr);
+				return;
+			}
+		}
+
 		const requestBody = buildMessageCreateRequest({
-			content: payload.content,
+			content: contentToSend,
+			ciphertext,
+			epoch,
 			nonce,
 			attachments: payload.preparedAttachments,
 			allowedMentions: payload.allowedMentions,

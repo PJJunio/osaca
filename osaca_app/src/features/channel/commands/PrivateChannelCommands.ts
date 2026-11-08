@@ -2,6 +2,7 @@
 
 import {Endpoints} from '@app/features/app/constants/Endpoints';
 import Channels from '@app/features/channel/state/Channels';
+import {mlsClientManager} from '@app/features/crypto/MlsClientManager';
 import * as NavigationCommands from '@app/features/navigation/commands/NavigationCommands';
 import {http} from '@app/features/platform/transport/RestTransport';
 import {Logger} from '@app/features/platform/utils/AppLogger';
@@ -50,7 +51,11 @@ async function requestChannelPin(action: 'pin' | 'unpin', channelId: string): Pr
 
 export async function create(userId: string): Promise<Channel> {
 	try {
-		return await requestUserChannel({recipient_id: userId});
+		const channel = await requestUserChannel({recipient_id: userId});
+		void mlsClientManager
+			.getOrCreateGroupSession(channel.id, [userId])
+			.catch((err) => logger.warn('Failed to initialize MLS group for DM', err));
+		return channel;
 	} catch (error) {
 		logger.error('Failed to create private channel:', error);
 		throw error;
@@ -59,7 +64,11 @@ export async function create(userId: string): Promise<Channel> {
 
 export async function createGroupDM(recipientIds: Array<string>): Promise<Channel> {
 	try {
-		return await requestUserChannel({recipients: recipientIds});
+		const channel = await requestUserChannel({recipients: recipientIds});
+		void mlsClientManager
+			.getOrCreateGroupSession(channel.id, recipientIds)
+			.catch((err) => logger.warn('Failed to initialize MLS group for group DM', err));
+		return channel;
 	} catch (error) {
 		logger.error('Failed to create group DM:', error);
 		throw error;
@@ -69,6 +78,9 @@ export async function createGroupDM(recipientIds: Array<string>): Promise<Channe
 export async function removeRecipient(channelId: string, userId: string): Promise<void> {
 	try {
 		await requestRecipientMutation('remove', channelId, userId);
+		void mlsClientManager
+			.removeMember(channelId, 1)
+			.catch((err) => logger.warn('Failed to issue MLS remove commit for recipient', err));
 	} catch (error) {
 		logger.error('Failed to remove recipient:', error);
 		throw error;
@@ -128,6 +140,9 @@ export async function unpinDmChannel(channelId: string): Promise<void> {
 export async function addRecipient(channelId: string, userId: string): Promise<void> {
 	try {
 		await requestRecipientMutation('add', channelId, userId);
+		void mlsClientManager
+			.addMember(channelId, userId)
+			.catch((err) => logger.warn('Failed to issue MLS add member commit', err));
 	} catch (error) {
 		logger.error('Failed to add recipient:', error);
 		throw error;

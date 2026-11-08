@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import {createChannelID, createMessageID} from '@app/api/BrandedTypes';
 import {LoginRequired} from '@app/api/middleware/AuthMiddleware';
 import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
 import {getGatewayService, getMlsDeliveryService} from '@app/api/middleware/ServiceRegistry';
+import {getChannelRepository} from '@app/api/middleware/ServiceSingletons';
 import type {HonoApp} from '@app/api/types/HonoEnv';
 import {Validator} from '@app/api/Validator';
 import {MlsGroupNotFoundError} from '@osaca/errors/src/domains/mls/MlsGroupNotFoundError';
@@ -216,18 +218,60 @@ export function MlsDeliveryController(app: HonoApp): void {
 			const service = getMlsDeliveryService();
 			const result = await service.postCiphertext(group_id, epoch, message_id, ciphertext);
 			const gateway = getGatewayService();
-			await gateway.dispatchPresence({
-				userId: user.id,
-				event: 'MESSAGE_CREATE',
-				data: {
-					id: message_id,
-					channel_id: group_id,
-					epoch,
-					ciphertext,
-					created_at: result.created_at,
-					expires_at: result.expires_at,
-				},
-			});
+			const channelRepo = getChannelRepository();
+			let channel = null;
+			try {
+				channel = await channelRepo.channelData.findUnique(createChannelID(BigInt(group_id)));
+			} catch {}
+
+			if (channel) {
+				try {
+					await channelRepo.channelData.updateLastMessageId(channel.id, createMessageID(BigInt(message_id)), {
+						isInsert: true,
+					});
+				} catch {}
+			}
+
+			const authorData = {
+				id: user.id.toString(),
+				username: user.username,
+				discriminator: user.discriminator,
+				avatar: user.avatarHash,
+			};
+
+			if (channel?.recipientIds && channel.recipientIds.size > 0) {
+				await Promise.all(
+					Array.from(channel.recipientIds).map((recipientId) =>
+						gateway.dispatchPresence({
+							userId: recipientId,
+							event: 'MESSAGE_CREATE',
+							data: {
+								id: message_id,
+								channel_id: group_id,
+								epoch,
+								ciphertext,
+								created_at: result.created_at,
+								expires_at: result.expires_at,
+								author: authorData,
+							},
+						}),
+					),
+				);
+			} else {
+				await gateway.dispatchPresence({
+					userId: user.id,
+					event: 'MESSAGE_CREATE',
+					data: {
+						id: message_id,
+						channel_id: group_id,
+						epoch,
+						ciphertext,
+						created_at: result.created_at,
+						expires_at: result.expires_at,
+						author: authorData,
+					},
+				});
+			}
 			return ctx.json(result, 201);
 		},
 	);

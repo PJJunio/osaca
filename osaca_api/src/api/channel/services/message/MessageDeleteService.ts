@@ -24,6 +24,7 @@ import type {IPurgeQueue} from '@app/api/infrastructure/CachePurgeQueue';
 import type {IGatewayService} from '@app/api/infrastructure/IGatewayService';
 import type {IStorageService} from '@app/api/infrastructure/IStorageService';
 import type {RequestCache} from '@app/api/middleware/RequestCacheMiddleware';
+import {getMlsDeliveryService} from '@app/api/middleware/ServiceRegistry';
 import type {Channel} from '@app/api/models/Channel';
 import type {Message} from '@app/api/models/Message';
 import type {Webhook} from '@app/api/models/Webhook';
@@ -68,6 +69,12 @@ export class MessageDeleteService {
 			message.pinnedTimestamp || undefined,
 		);
 		await this.decrementThreadMessageCount(channel, [messageId]);
+		if (channel.type === ChannelTypes.DM || channel.type === ChannelTypes.GROUP_DM) {
+			try {
+				const mlsDelivery = getMlsDeliveryService();
+				await mlsDelivery.deleteCiphertext(channelId.toString(), messageId.toString());
+			} catch {}
+		}
 		await dispatchMessageDelete({gatewayService: this.deps.gatewayService, channel, messageId, message});
 		await this.deps.crosspostPropagation.enqueueCrosspostSourceRemoval({
 			messages: [message],

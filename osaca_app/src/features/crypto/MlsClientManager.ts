@@ -7,6 +7,7 @@ import {http} from '@app/features/platform/transport/RestTransport';
 import {HttpError} from '@app/features/platform/types/EndpointError';
 import {Logger} from '@app/features/platform/utils/AppLogger';
 import {DeviceSession, ensureCryptoWasmReady, IdentityKey, MlsGroupSession, RecoveryKit} from '@osaca/crypto';
+import {formatMlsApplicationPayload, type MlsApplicationPayload} from '@osaca/schema/src/domains/mls/MlsPayloadSchemas';
 import type {
 	MlsCiphertextMessageResponse,
 	MlsClaimKeyPackageResponse,
@@ -334,6 +335,23 @@ export class MlsClientManager {
 			ciphertext,
 			epoch,
 		};
+	}
+
+	async sendApplicationMessage(
+		channelId: string,
+		payload: MlsApplicationPayload,
+		recipientUserIds: Array<string> = [],
+	): Promise<{message_id: string; ciphertext: string; epoch: number}> {
+		const plaintext = formatMlsApplicationPayload(payload);
+		return this.encryptMessage(channelId, plaintext, recipientUserIds);
+	}
+
+	async deleteCiphertext(channelId: string, messageId: string): Promise<void> {
+		try {
+			await http.delete(Endpoints.MLS_MESSAGE(channelId, messageId));
+		} catch (error) {
+			logger.warn(`Failed to delete ciphertext for message ${messageId} in channel ${channelId}`, error);
+		}
 	}
 
 	async decryptMessage(

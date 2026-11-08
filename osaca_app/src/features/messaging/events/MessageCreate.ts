@@ -4,8 +4,13 @@ import {mlsClientManager} from '@app/features/crypto/MlsClientManager';
 import type {GatewayHandlerContext} from '@app/features/gateway/events/EventRouter';
 import GuildReadState from '@app/features/guild/state/GuildReadState';
 import GuildMembers from '@app/features/member/state/GuildMembers';
+import {handleMessageDelete} from '@app/features/messaging/events/MessageDelete';
+import {handleMessageReactionAdd} from '@app/features/messaging/events/MessageReactionAdd';
+import {handleMessageReactionRemove} from '@app/features/messaging/events/MessageReactionRemove';
+import {handleMessageUpdate} from '@app/features/messaging/events/MessageUpdate';
 import MessageReferences from '@app/features/messaging/state/MessageReferences';
 import Messages from '@app/features/messaging/state/MessagingMessages';
+import {extractClientMentions} from '@app/features/messaging/utils/ClientMentionUtils';
 import MentionFeed from '@app/features/notification/state/MentionFeed';
 import ReadStates from '@app/features/read_state/state/ReadStates';
 import ChannelThreads from '@app/features/threads/state/ChannelThreads';
@@ -15,6 +20,7 @@ import CallState from '@app/features/voice/state/CallState';
 import TtsUtils from '@app/features/voice/utils/VoiceTtsUtils';
 import type {GuildMemberData} from '@osaca/schema/src/domains/guild/GuildMemberSchemas';
 import type {Message} from '@osaca/schema/src/domains/message/MessageResponseSchemas';
+import {parseMlsApplicationPayload} from '@osaca/schema/src/domains/mls/MlsPayloadSchemas';
 
 function dispatchIncomingMessage(data: Message): void {
 	if (data.guild_id && data.member) {
@@ -56,7 +62,65 @@ export function handleMessageCreate(data: Message, _context: GatewayHandlerConte
 			try {
 				const decrypted = await mlsClientManager.decryptMessage(data.channel_id, rawCiphertext);
 				if (decrypted) {
-					(data as {content: string}).content = decrypted;
+					const appPayload = parseMlsApplicationPayload(decrypted);
+					switch (appPayload.type) {
+						case 'chat_message': {
+							(data as {content: string}).content = appPayload.content;
+							const extracted = extractClientMentions(appPayload.content);
+							(data as unknown as {mentions: typeof extracted.mentions}).mentions = extracted.mentions;
+							(data as unknown as {mention_roles: typeof extracted.mention_roles}).mention_roles =
+								extracted.mention_roles;
+							(data as unknown as {mention_everyone: boolean}).mention_everyone = extracted.mention_everyone;
+							dispatchIncomingMessage(data);
+							return;
+						}
+						case 'message_edit': {
+							handleMessageUpdate(
+								{
+									id: appPayload.target_message_id,
+									channel_id: data.channel_id,
+									content: appPayload.content,
+									edited_timestamp: data.timestamp ?? new Date().toISOString(),
+								} as unknown as Message,
+								_context,
+							);
+							return;
+						}
+						case 'message_delete': {
+							handleMessageDelete(
+								{
+									id: appPayload.target_message_id,
+									channel_id: data.channel_id,
+								},
+								_context,
+							);
+							return;
+						}
+						case 'reaction_add': {
+							handleMessageReactionAdd(
+								{
+									user_id: appPayload.user_id,
+									channel_id: data.channel_id,
+									message_id: appPayload.target_message_id,
+									emoji: appPayload.emoji,
+								},
+								_context,
+							);
+							return;
+						}
+						case 'reaction_remove': {
+							handleMessageReactionRemove(
+								{
+									user_id: appPayload.user_id,
+									channel_id: data.channel_id,
+									message_id: appPayload.target_message_id,
+									emoji: appPayload.emoji,
+								},
+								_context,
+							);
+							return;
+						}
+					}
 				}
 			} catch {
 				// Decryption failed or out-of-order epoch

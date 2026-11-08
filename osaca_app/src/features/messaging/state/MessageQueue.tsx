@@ -70,6 +70,7 @@ import type {
 	MessageReference,
 	MessageStickerItem,
 } from '@osaca/schema/src/domains/message/MessageResponseSchemas';
+import {formatMlsApplicationPayload, type MlsChatMessagePayload} from '@osaca/schema/src/domains/mls/MlsPayloadSchemas';
 import {reaction} from 'mobx';
 
 const YOUR_MESSAGE_COULD_NOT_BE_DELIVERED_THIS_IS_DESCRIPTOR = msg({
@@ -865,7 +866,17 @@ class MessageQueue extends Queue<MessageQueuePayload, RestResponse<Message> | un
 		if (isPrivateE2EE) {
 			try {
 				const recipientIds = channel ? Array.from(channel.recipientIds) : [];
-				const encrypted = await mlsClientManager.encryptOnly(channelId, payload.content ?? '', recipientIds);
+				const chatPayload: MlsChatMessagePayload = {
+					version: 1,
+					type: 'chat_message',
+					content: payload.content ?? '',
+					nonce,
+				};
+				const encrypted = await mlsClientManager.encryptOnly(
+					channelId,
+					formatMlsApplicationPayload(chatPayload),
+					recipientIds,
+				);
 				ciphertext = encrypted.ciphertext;
 				epoch = encrypted.epoch;
 				contentToSend = '';

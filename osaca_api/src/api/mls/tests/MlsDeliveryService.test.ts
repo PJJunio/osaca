@@ -325,5 +325,22 @@ describe('MLS Delivery Service API', () => {
 			.execute();
 		expect(paged2.messages).toHaveLength(1);
 		expect(paged2.messages[0].message_id).toBe('msg_epoch_1');
+
+		// Delete ciphertext message
+		const delRes = await createBuilder<{success: boolean}>(harness, account.token)
+			.delete(`/mls/groups/${groupId}/messages/msg_epoch_1`)
+			.expect(HTTP_STATUS.OK)
+			.execute();
+		expect(delRes.success).toBe(true);
+
+		// Verify purged from history
+		const afterDelete = await createBuilder<MlsCiphertextHistoryResponse>(harness, account.token)
+			.get(`/mls/groups/${groupId}/messages?member_join_epoch=0`)
+			.expect(HTTP_STATUS.OK)
+			.execute();
+		const afterDeleteIds = afterDelete.messages.map((m) => m.message_id);
+		expect(afterDeleteIds).not.toContain('msg_epoch_1');
+		expect(afterDeleteIds).toContain('msg_epoch_0');
+		expect(afterDeleteIds).toContain('msg_epoch_2');
 	});
 });

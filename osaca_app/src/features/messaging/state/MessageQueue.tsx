@@ -35,6 +35,8 @@ import {
 } from '@app/features/messaging/upload/AttachmentUploadPlan';
 import {type CloudAttachment, CloudUpload} from '@app/features/messaging/upload/CloudUpload';
 import {exceedsMultipartFallbackRequestSize} from '@app/features/messaging/utils/AttachmentUploadFallbackUtils';
+import {encryptClientAttachment} from '@app/features/messaging/utils/ClientEncryptedAttachmentUtils';
+import {generateSenderLinkPreviews} from '@app/features/messaging/utils/ClientLinkPreviewUtils';
 import {prepareAttachmentsForNonce} from '@app/features/messaging/utils/MessageAttachmentUtils';
 import {
 	type ApiAttachmentMetadata,
@@ -70,7 +72,11 @@ import type {
 	MessageReference,
 	MessageStickerItem,
 } from '@osaca/schema/src/domains/message/MessageResponseSchemas';
-import {formatMlsApplicationPayload, type MlsChatMessagePayload} from '@osaca/schema/src/domains/mls/MlsPayloadSchemas';
+import {
+	formatMlsApplicationPayload,
+	type MlsChatMessagePayload,
+	type MlsEncryptedAttachment,
+} from '@osaca/schema/src/domains/mls/MlsPayloadSchemas';
 import {reaction} from 'mobx';
 
 const YOUR_MESSAGE_COULD_NOT_BE_DELIVERED_THIS_IS_DESCRIPTOR = msg({
@@ -245,6 +251,7 @@ class MessageQueue extends Queue<MessageQueuePayload, RestResponse<Message> | un
 	private readonly textareaAttachmentUploadDisposers = new Map<string, () => void>();
 	private readonly localSendLimiters = new Map<string, MessageLocalSendRateLimitState>();
 	private readonly localSendReservations = new Map<string, number>();
+	private readonly privateEncryptedAttachmentsByNonce = new Map<string, Array<MlsEncryptedAttachment>>();
 
 	constructor(maxSize = DEFAULT_MAX_SIZE) {
 		super({logger, defaultRetryAfter: 100});
@@ -268,6 +275,7 @@ class MessageQueue extends Queue<MessageQueuePayload, RestResponse<Message> | un
 		this.cancelAllTextareaAttachmentUploads();
 		this.localSendLimiters.clear();
 		this.localSendReservations.clear();
+		this.privateEncryptedAttachmentsByNonce.clear();
 		CloudUpload.clearAll();
 	}
 
@@ -655,7 +663,9 @@ class MessageQueue extends Queue<MessageQueuePayload, RestResponse<Message> | un
 			return undefined;
 		}
 		const attachmentIds = messageUpload.attachments.map((attachment) => attachment.id);
-		if (!PrivacyPreferences.getPreuploadMessageAttachments()) {
+		const channel = Channels.getChannel(channelId);
+		const isPrivateE2EE = channel?.type === ChannelTypes.DM || channel?.type === ChannelTypes.GROUP_DM;
+		if (isPrivateE2EE || !PrivacyPreferences.getPreuploadMessageAttachments()) {
 			this.cancelTextareaAttachmentUploads(attachmentIds);
 			return undefined;
 		}
@@ -708,36 +718,62 @@ class MessageQueue extends Queue<MessageQueuePayload, RestResponse<Message> | un
 		const abortController = new AbortController();
 		this.abortControllers.set(nonce, abortController);
 		try {
+			const channel = Channels.getChannel(channelId);
+			const isPrivateE2EE = channel?.type === ChannelTypes.DM || channel?.type === ChannelTypes.GROUP_DM;
 			const {attachments: rawAttachments, files} = await prepareAttachmentsForNonce(nonce, favoriteMemeId);
 			if (!files?.length || !rawAttachments?.length) {
 				return {attachments: rawAttachments, files};
 			}
-			if (!canUsePresignedAttachmentUploads(files)) {
-				return {attachments: rawAttachments, files};
+
+			let filesToUpload = files;
+			let attachmentsToUpload = rawAttachments;
+			if (isPrivateE2EE) {
+				const encryptedResults = await Promise.all(
+					files.map((file, i) => encryptClientAttachment(file, {id: String(rawAttachments[i].id)})),
+				);
+				this.privateEncryptedAttachmentsByNonce.set(
+					nonce,
+					encryptedResults.map((r) => r.metadata),
+				);
+				filesToUpload = encryptedResults.map((r) => r.encryptedFile);
+				attachmentsToUpload = rawAttachments.map((a, i) => ({
+					...a,
+					filename: filesToUpload[i].name,
+					content_type: 'application/octet-stream',
+				}));
 			}
-			if (rawAttachments.length !== files.length) {
+
+			if (!canUsePresignedAttachmentUploads(filesToUpload)) {
+				return {attachments: attachmentsToUpload, files: filesToUpload};
+			}
+			if (attachmentsToUpload.length !== filesToUpload.length) {
 				throw new Error(
-					`Attachment metadata mismatch for presigned uploads: expected ${files.length} entries but got ${rawAttachments.length}`,
+					`Attachment metadata mismatch for presigned uploads: expected ${filesToUpload.length} entries but got ${attachmentsToUpload.length}`,
 				);
 			}
 			const backgroundUploadResult = await this.tryPrepareTextareaAttachmentUploads({
 				channelId,
 				nonce,
-				rawAttachments,
-				files,
+				rawAttachments: attachmentsToUpload,
+				files: filesToUpload,
 			});
 			if (backgroundUploadResult !== undefined) {
 				return backgroundUploadResult;
 			}
 			let plans: Array<PresignedAttachmentUploadResponseAttachment>;
 			try {
-				plans = await requestPresignedAttachmentUploads(channelId, rawAttachments, files, abortController.signal);
+				plans = await requestPresignedAttachmentUploads(
+					channelId,
+					attachmentsToUpload,
+					filesToUpload,
+					abortController.signal,
+				);
 			} catch (error) {
 				if (isAbortError(error)) {
 					return null;
 				}
 				if (isPresignedUploadEndpointUnreachable(error)) {
-					if (exceedsMultipartFallbackRequestSize(files)) {
+					if (exceedsMultipartFallbackRequestSize(filesToUpload)) {
 						logger.warn(
 							'Presigned attachment upload URL request failed because the endpoint was unreachable and multipart fallback cannot be used for oversized requests',
 							error,
@@ -749,14 +785,14 @@ class MessageQueue extends Queue<MessageQueuePayload, RestResponse<Message> | un
 						'Presigned attachment upload URL request failed because the endpoint was unreachable; falling back to multipart message upload',
 						error,
 					);
-					return {attachments: rawAttachments, files};
+					return {attachments: attachmentsToUpload, files: filesToUpload};
 				}
 				logger.warn('Presigned attachment upload URL request failed; falling back to multipart message upload', error);
-				return {attachments: rawAttachments, files};
+				return {attachments: attachmentsToUpload, files: filesToUpload};
 			}
 			const planIndexById = new Map<string, number>();
 			plans.forEach((entry, index) => planIndexById.set(String(entry.id), index));
-			for (const attachment of rawAttachments) {
+			for (const attachment of attachmentsToUpload) {
 				if (!planIndexById.has(String(attachment.id))) {
 					this.handleSendError(
 						channelId,
@@ -773,8 +809,8 @@ class MessageQueue extends Queue<MessageQueuePayload, RestResponse<Message> | un
 			try {
 				finalized = await uploadAttachmentsViaPlans({
 					nonce,
-					attachments: rawAttachments,
-					files,
+					attachments: attachmentsToUpload,
+					files: filesToUpload,
 					plans,
 					planIndexById,
 					multipartUploadsToComplete,
@@ -785,7 +821,7 @@ class MessageQueue extends Queue<MessageQueuePayload, RestResponse<Message> | un
 					this.abortRemainingMultipartUploads(channelId, multipartUploadsToComplete);
 					return null;
 				}
-				if (exceedsMultipartFallbackRequestSize(files)) {
+				if (exceedsMultipartFallbackRequestSize(filesToUpload)) {
 					logger.warn(
 						'Presigned attachment upload failed and multipart fallback cannot be used for oversized requests',
 						error,
@@ -796,7 +832,7 @@ class MessageQueue extends Queue<MessageQueuePayload, RestResponse<Message> | un
 				logger.warn('Presigned attachment upload failed; falling back to multipart message upload', error);
 				CloudUpload.updateSendingProgress(nonce, 0);
 				this.abortRemainingMultipartUploads(channelId, multipartUploadsToComplete);
-				return {attachments: rawAttachments, files};
+				return {attachments: attachmentsToUpload, files: filesToUpload};
 			}
 			if (multipartUploadsToComplete.length > 0) {
 				try {
@@ -866,11 +902,26 @@ class MessageQueue extends Queue<MessageQueuePayload, RestResponse<Message> | un
 		if (isPrivateE2EE) {
 			try {
 				const recipientIds = channel ? Array.from(channel.recipientIds) : [];
+				const encryptedAttachments = this.privateEncryptedAttachmentsByNonce.get(nonce);
+				if (encryptedAttachments && payload.preparedAttachments) {
+					for (let i = 0; i < encryptedAttachments.length; i++) {
+						const prepared = payload.preparedAttachments[i];
+						if (prepared?.upload_filename) {
+							encryptedAttachments[i].upload_filename = prepared.upload_filename;
+						}
+					}
+				}
+				this.privateEncryptedAttachmentsByNonce.delete(nonce);
+
+				const previews = await generateSenderLinkPreviews(payload.content ?? '');
+
 				const chatPayload: MlsChatMessagePayload = {
 					version: 1,
 					type: 'chat_message',
 					content: payload.content ?? '',
 					nonce,
+					attachments: encryptedAttachments && encryptedAttachments.length > 0 ? encryptedAttachments : undefined,
+					previews: previews.length > 0 ? previews : undefined,
 				};
 				const encrypted = await mlsClientManager.encryptOnly(
 					channelId,
@@ -935,6 +986,7 @@ class MessageQueue extends Queue<MessageQueuePayload, RestResponse<Message> | un
 	}
 
 	private discardPurgedThreadSend(nonce: string): void {
+		this.privateEncryptedAttachmentsByNonce.delete(nonce);
 		const messageUpload = CloudUpload.getMessageUpload(nonce);
 		if (!messageUpload) return;
 		this.cancelTextareaAttachmentUploads(messageUpload.attachments.map((attachment) => attachment.id));

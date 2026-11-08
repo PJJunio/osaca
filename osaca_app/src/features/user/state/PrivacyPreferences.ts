@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import {registerSenderLinkPreviewsSettingGetter} from '@app/features/messaging/utils/ClientLinkPreviewUtils';
+import {AppStorageKey} from '@app/features/platform/state/AppStorageKeys';
+import AppStorage from '@app/features/platform/state/PersistentStorage';
 import {initializeStore} from '@app/features/platform/utils/StoreInitialization';
 import {makeSyncedField} from '@app/features/user/state/SyncedField';
 import Users from '@app/features/user/state/Users';
@@ -27,13 +30,20 @@ class PrivacyPreferences {
 	disableStreamPreviews = false;
 	showActiveNow = SHOW_ACTIVE_NOW_DEFAULT;
 	preuploadMessageAttachments: boolean | undefined = undefined;
+	senderLinkPreviews = false;
 
 	constructor() {
 		makeAutoObservable(this, {}, {autoBind: true});
+		registerSenderLinkPreviewsSettingGetter(() => this.getSenderLinkPreviews());
 		initializeStore(this, () => this.initPersistence());
 	}
 
 	private async initPersistence(): Promise<void> {
+		const storedSenderLinkPreviews = AppStorage.getItem(AppStorageKey.SENDER_LINK_PREVIEWS);
+		if (storedSenderLinkPreviews !== null) {
+			this.senderLinkPreviews = storedSenderLinkPreviews === 'true';
+		}
+
 		await makeSyncedField(this, {
 			field: 'privacy',
 			schema: PrivacyPreferencesSchema,
@@ -68,6 +78,10 @@ class PrivacyPreferences {
 		return this.preuploadMessageAttachments ?? getPreuploadMessageAttachmentsDefaultForUserId(currentUserIdSafe());
 	}
 
+	getSenderLinkPreviews(): boolean {
+		return this.senderLinkPreviews;
+	}
+
 	setDisableStreamPreviews(value: boolean): void {
 		this.disableStreamPreviews = value;
 	}
@@ -79,6 +93,11 @@ class PrivacyPreferences {
 	setPreuploadMessageAttachments(value: boolean): void {
 		const defaultValue = getPreuploadMessageAttachmentsDefaultForUserId(currentUserIdSafe());
 		this.preuploadMessageAttachments = value === defaultValue ? undefined : value;
+	}
+
+	setSenderLinkPreviews(value: boolean): void {
+		this.senderLinkPreviews = value;
+		AppStorage.setItem(AppStorageKey.SENDER_LINK_PREVIEWS, value ? 'true' : 'false');
 	}
 }
 

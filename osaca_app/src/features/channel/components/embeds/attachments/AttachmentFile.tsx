@@ -9,6 +9,7 @@ import {DELETE_ATTACHMENT_DESCRIPTOR, DOWNLOAD_DESCRIPTOR} from '@app/features/i
 import {useDeleteAttachment} from '@app/features/messaging/hooks/useDeleteAttachment';
 import type {Message} from '@app/features/messaging/models/MessagingMessage';
 import {shouldPreviewAttachment} from '@app/features/messaging/utils/AttachmentPreviewUtils';
+import {useDecryptedAttachmentUrl} from '@app/features/messaging/utils/ClientEncryptedAttachmentUtils';
 import {downloadFile} from '@app/features/messaging/utils/FileDownloadUtils';
 import {formatFileSize} from '@app/features/messaging/utils/FileUtils';
 import {remFromPx} from '@app/features/theme/layout/RemFromPx';
@@ -18,9 +19,9 @@ import {MediaContextMenu} from '@app/features/ui/action_menu/MediaContextMenu';
 import * as ContextMenuCommands from '@app/features/ui/commands/ContextMenuCommands';
 import MobileLayout from '@app/features/ui/state/MobileLayout';
 import {Tooltip} from '@app/features/ui/tooltip/Tooltip';
-import type {MessageAttachment} from '@osaca/schema/src/domains/message/MessageResponseSchemas';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
+import type {MessageAttachment} from '@osaca/schema/src/domains/message/MessageResponseSchemas';
 import {
 	DownloadSimpleIcon,
 	FileArchiveIcon,
@@ -187,9 +188,12 @@ export const AttachmentFile = observer(({attachment, message, isPreview, spoiler
 			minWidth: `min(${remFromPx(ATTACHMENT_CARD_WIDTH)}, 100%)`,
 		};
 	}
+	const decryptedUrl = useDecryptedAttachmentUrl(attachment);
 	const handleDownload = async (e: React.MouseEvent) => {
 		e.preventDefault();
-		const downloadUrl = attachment.proxy_url ?? attachment.url;
+		const downloadUrl = (attachment as {_mls_encrypted_attachment?: unknown})._mls_encrypted_attachment
+			? decryptedUrl
+			: (attachment.proxy_url ?? attachment.url);
 		if (!downloadUrl || isExpired) return;
 		await downloadFile(downloadUrl, 'file', fileName);
 	};

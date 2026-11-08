@@ -36,7 +36,7 @@ import MessageQueue from '@app/features/messaging/state/MessageQueue';
 import MessageReferences from '@app/features/messaging/state/MessageReferences';
 import MessageReply from '@app/features/messaging/state/MessageReply';
 import Messages from '@app/features/messaging/state/MessagingMessages';
-import {extractClientMentions} from '@app/features/messaging/utils/ClientMentionUtils';
+import {hydrateDecryptedChatMessage} from '@app/features/messaging/utils/HydrateDecryptedMessage';
 import {
 	collectMessageModelGuildMemberUserIds,
 	collectWireMessageGuildMemberUserIds,
@@ -294,11 +294,7 @@ async function requestChannelMessages(
 				if (decrypted) {
 					const appPayload = parseMlsApplicationPayload(decrypted);
 					if (appPayload.type === 'chat_message') {
-						(msg as {content: string}).content = appPayload.content;
-						const extracted = extractClientMentions(appPayload.content);
-						(msg as unknown as {mentions: typeof extracted.mentions}).mentions = extracted.mentions;
-						(msg as unknown as {mention_roles: typeof extracted.mention_roles}).mention_roles = extracted.mention_roles;
-						(msg as unknown as {mention_everyone: boolean}).mention_everyone = extracted.mention_everyone;
+						hydrateDecryptedChatMessage(msg, appPayload);
 					}
 				}
 			} catch (e) {

@@ -10,13 +10,14 @@ import type {RadioOption} from '@app/features/ui/radio_group/RadioGroup';
 import {RadioGroup} from '@app/features/ui/radio_group/RadioGroup';
 import * as UserSettingsCommands from '@app/features/user/commands/UserSettingsCommands';
 import styles from '@app/features/user/components/modals/tabs/chat_settings_tab/DisplayTab.module.css';
+import PrivacyPreferences from '@app/features/user/state/PrivacyPreferences';
 import UserSettings from '@app/features/user/state/UserSettings';
 import {LINK_PREVIEWS_DESCRIPTOR, MEDIA_DISPLAY_DESCRIPTOR} from '@app/features/user/utils/UserMessageDescriptors';
-import {Permissions} from '@osaca/constants/src/ChannelConstants';
-import {RenderSpoilers} from '@osaca/constants/src/UserConstants';
 import type {I18n} from '@lingui/core';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
+import {Permissions} from '@osaca/constants/src/ChannelConstants';
+import {RenderSpoilers} from '@osaca/constants/src/UserConstants';
 import {observer} from 'mobx-react-lite';
 import type React from 'react';
 
@@ -58,6 +59,10 @@ const WHEN_UPLOADED_DIRECTLY_TO_DESCRIPTOR = msg({
 const SHOW_EMBEDS_AND_PREVIEW_WEBSITE_LINKS_DESCRIPTOR = msg({
 	message: 'Show embeds and preview website links',
 	comment: 'Label in the display tab.',
+});
+const GENERATE_ENCRYPTED_LINK_PREVIEWS_DESCRIPTOR = msg({
+	message: 'Generate client-side link previews in private conversations (off by default)',
+	comment: 'Label for sender-side link previews toggle in display settings.',
 });
 const SHOW_EMOJI_REACTIONS_ON_MESSAGES_DESCRIPTOR = msg({
 	message: 'Show emoji reactions on messages',
@@ -129,6 +134,12 @@ export const DisplayTabContent: React.FC = observer(() => {
 						value={userSettings.renderEmbeds}
 						onChange={(value) => UserSettingsCommands.update({renderEmbeds: value})}
 						data-flx="user.chat-settings-tab.display-tab.display-tab-content.switch.update"
+					/>
+					<Switch
+						label={i18n._(GENERATE_ENCRYPTED_LINK_PREVIEWS_DESCRIPTOR)}
+						value={PrivacyPreferences.getSenderLinkPreviews()}
+						onChange={(value) => PrivacyPreferences.setSenderLinkPreviews(value)}
+						data-flx="user.chat-settings-tab.display-tab.display-tab-content.switch.sender-link-previews"
 					/>
 				</div>
 			</SettingsTabSection>

@@ -2,6 +2,7 @@
 
 import {runtimeInstanceKey} from '@app/features/app/state/InstanceSnapshotStore';
 import RuntimeConfig from '@app/features/app/state/RuntimeConfig';
+import {registerDesktopUrlWrapper} from '@app/features/messaging/utils/ClientLinkPreviewUtils';
 import {unwrapDesktopLocalResourceURL} from '@app/features/messaging/utils/DesktopLocalResourceTarget';
 import {isDesktopLocalAppDocument} from '@app/features/platform/DesktopLocalAppRuntime';
 import {
@@ -36,6 +37,7 @@ class DesktopResourceRuntimeKeyError extends Error {
 export function wrapDesktopLocalResourceURL(value: string): string {
 	return wrapResolvedDesktopLocalResourceURL(unwrapDesktopLocalResourceURL(value), false);
 }
+registerDesktopUrlWrapper(wrapDesktopLocalResourceURL);
 
 export function wrapDesktopLocalResourceURLForInstance(value: string, instanceKey: string): string {
 	if (!isDesktopLocalAppDocument()) return value;

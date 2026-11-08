@@ -294,6 +294,26 @@ export class MessagePersistenceService {
 		return hasVisibleContent(sanitizedContent) ? sanitizedContent : null;
 	}
 
+	async computeAttachmentsForMessage(params: {
+		messageId: MessageID;
+		channelId: ChannelID;
+		channel?: Channel;
+		attachments: Array<AttachmentToProcess>;
+		uploadUserId: UserID;
+	}): Promise<Array<MessageAttachment>> {
+		const result = await this.attachmentService.computeAttachments({
+			message: {
+				id: params.messageId,
+				channelId: params.channelId,
+			} as Message,
+			attachments: params.attachments,
+			uploadUserId: params.uploadUserId,
+			channel: params.channel,
+			nsfwMode: 'allow',
+		});
+		return result ? result.attachments : [];
+	}
+
 	private async processAttachments(
 		params: CreateMessageParams,
 		nsfwMode: MediaProxyNsfwMode,

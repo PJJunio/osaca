@@ -1280,6 +1280,18 @@ export class MessageSendService {
 
 		await this.deps.channelRepository.channelData.updateLastMessageId(channel.id, messageId, {isInsert: true});
 
+		let processedAttachments: Array<MessageAttachment> = [];
+		const attachmentsToProcess = this.attachmentsToProcess(data.attachments);
+		if (attachmentsToProcess && attachmentsToProcess.length > 0) {
+			processedAttachments = await this.deps.persistenceService.computeAttachmentsForMessage({
+				messageId,
+				channelId: channel.id,
+				channel,
+				attachments: attachmentsToProcess,
+				uploadUserId: user.id,
+			});
+		}
+
 		const gateway = this.deps.gatewayService;
 		const authorData = {
 			id: user.id.toString(),
@@ -1325,7 +1337,7 @@ export class MessageSendService {
 			mention_users: new Set(),
 			mention_roles: new Set(),
 			mention_channels: new Set(),
-			attachments: [],
+			attachments: processedAttachments,
 			embeds: [],
 			sticker_items: [],
 			message_reference: null,

@@ -18,6 +18,7 @@ import DeveloperOptions from '@app/features/devtools/state/DeveloperOptions';
 import type {Message} from '@app/features/messaging/models/MessagingMessage';
 import {UploadingAttachment} from '@app/features/messaging/models/UploadingAttachment';
 import {getEffectiveAttachmentExpiry} from '@app/features/messaging/utils/AttachmentExpiryUtils';
+import {useDecryptedAttachmentUrl} from '@app/features/messaging/utils/ClientEncryptedAttachmentUtils';
 import {
 	getAttachmentMediaDimensions,
 	isUsefulVisualMediaSize,
@@ -33,10 +34,10 @@ import messageStyles from '@app/features/theme/styles/Message.module.css';
 import FocusRing from '@app/features/ui/focus_ring/FocusRing';
 import {createCalculator} from '@app/features/ui/utils/DimensionUtils';
 import UserSettings from '@app/features/user/state/UserSettings';
-import {MessageAttachmentFlags, MessageFlags} from '@osaca/constants/src/ChannelConstants';
-import type {MessageAttachment} from '@osaca/schema/src/domains/message/MessageResponseSchemas';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
+import {MessageAttachmentFlags, MessageFlags} from '@osaca/constants/src/ChannelConstants';
+import type {MessageAttachment} from '@osaca/schema/src/domains/message/MessageResponseSchemas';
 import {observer} from 'mobx-react-lite';
 import type {FC} from 'react';
 
@@ -270,13 +271,17 @@ const AttachmentMedia: FC<AttachmentMediaProps & {message?: Message; isPreview?:
 			attachment.width!,
 			attachment.height!,
 		);
+		const decryptedSrc = useDecryptedAttachmentUrl(attachment);
+		const isClientEncrypted = Boolean((attachment as {_mls_encrypted_attachment?: unknown})._mls_encrypted_attachment);
 		const proxySrc = attachment.proxy_url ?? attachment.url ?? '';
-		const optimizedSrc = buildMediaProxyURL(proxySrc, {
-			format: resolvePreferredImageFormat(attachment.content_type),
-			width: requestedSize?.width,
-			height: requestedSize?.height,
-			animated: attachmentIsAnimated,
-		});
+		const optimizedSrc = isClientEncrypted
+			? decryptedSrc
+			: buildMediaProxyURL(proxySrc, {
+					format: resolvePreferredImageFormat(attachment.content_type),
+					width: requestedSize?.width,
+					height: requestedSize?.height,
+					animated: attachmentIsAnimated,
+				});
 		return (
 			<FocusRing
 				within
@@ -289,7 +294,7 @@ const AttachmentMedia: FC<AttachmentMediaProps & {message?: Message; isPreview?:
 				>
 					<EmbedImage
 						src={optimizedSrc}
-						originalSrc={attachment.url ?? ''}
+						originalSrc={isClientEncrypted ? decryptedSrc : (attachment.url ?? '')}
 						naturalWidth={attachment.width!}
 						naturalHeight={attachment.height!}
 						width={dimensions.width}

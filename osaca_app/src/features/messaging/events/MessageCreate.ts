@@ -10,7 +10,7 @@ import {handleMessageReactionRemove} from '@app/features/messaging/events/Messag
 import {handleMessageUpdate} from '@app/features/messaging/events/MessageUpdate';
 import MessageReferences from '@app/features/messaging/state/MessageReferences';
 import Messages from '@app/features/messaging/state/MessagingMessages';
-import {extractClientMentions} from '@app/features/messaging/utils/ClientMentionUtils';
+import {hydrateDecryptedChatMessage} from '@app/features/messaging/utils/HydrateDecryptedMessage';
 import MentionFeed from '@app/features/notification/state/MentionFeed';
 import ReadStates from '@app/features/read_state/state/ReadStates';
 import ChannelThreads from '@app/features/threads/state/ChannelThreads';
@@ -65,12 +65,7 @@ export function handleMessageCreate(data: Message, _context: GatewayHandlerConte
 					const appPayload = parseMlsApplicationPayload(decrypted);
 					switch (appPayload.type) {
 						case 'chat_message': {
-							(data as {content: string}).content = appPayload.content;
-							const extracted = extractClientMentions(appPayload.content);
-							(data as unknown as {mentions: typeof extracted.mentions}).mentions = extracted.mentions;
-							(data as unknown as {mention_roles: typeof extracted.mention_roles}).mention_roles =
-								extracted.mention_roles;
-							(data as unknown as {mention_everyone: boolean}).mention_everyone = extracted.mention_everyone;
+							hydrateDecryptedChatMessage(data, appPayload);
 							dispatchIncomingMessage(data);
 							return;
 						}

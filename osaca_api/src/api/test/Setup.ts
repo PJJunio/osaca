@@ -117,6 +117,7 @@ const testApiConfig: APIConfig = {
 testApiConfig.dev.relaxRegistrationRateLimits = true;
 testApiConfig.dev.disableRateLimits = true;
 testApiConfig.dev.testModeEnabled = true;
+testApiConfig.presignedAttachmentUploadsEnabled = true;
 
 initializeConfig(testApiConfig);
 

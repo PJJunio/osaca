@@ -27,4 +27,5 @@ export interface IMlsDeliveryService {
 		before?: string,
 		limit?: number,
 	): Promise<Array<MlsCiphertextMessageResponse>>;
+	deleteCiphertext(groupId: string, messageId: string): Promise<boolean>;
 }

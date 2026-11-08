@@ -38,6 +38,11 @@ const GroupIdEpochParam = z.object({
 	epoch: z.coerce.number().int().nonnegative().describe('MLS epoch number'),
 });
 
+const GroupIdMessageIdParam = z.object({
+	group_id: z.string().min(1).describe('MLS group identifier'),
+	message_id: z.string().min(1).describe('Unique message identifier'),
+});
+
 export function MlsDeliveryController(app: HonoApp): void {
 	app.post(
 		'/mls/key-packages',
@@ -297,6 +302,27 @@ export function MlsDeliveryController(app: HonoApp): void {
 			const service = getMlsDeliveryService();
 			const messages = await service.getCiphertextHistory(group_id, member_join_epoch, before, limit);
 			return ctx.json({messages}, 200);
+		},
+	);
+
+	app.delete(
+		'/mls/groups/:group_id/messages/:message_id',
+		LoginRequired,
+		Validator('param', GroupIdMessageIdParam),
+		OpenAPI({
+			operationId: 'mls_delete_ciphertext',
+			summary: 'Delete ciphertext message',
+			responseSchema: z.object({success: z.boolean()}),
+			statusCode: 200,
+			security: ['bearerToken', 'sessionToken'],
+			tags: ['MLS', 'DeliveryService'],
+			description: 'Purges a ciphertext message blob from the delivery service database.',
+		}),
+		async (ctx) => {
+			const {group_id, message_id} = ctx.req.valid('param');
+			const service = getMlsDeliveryService();
+			const success = await service.deleteCiphertext(group_id, message_id);
+			return ctx.json({success}, 200);
 		},
 	);
 }

@@ -216,4 +216,5 @@ export const Endpoints = {
 	MLS_COMMIT: (groupId: string, epoch: number | string) => `/mls/groups/${groupId}/commits/${epoch}`,
 	MLS_WELCOME: (groupId: string, epoch: number | string) => `/mls/groups/${groupId}/welcomes/${epoch}`,
 	MLS_MESSAGES: (groupId: string) => `/mls/groups/${groupId}/messages`,
+	MLS_MESSAGE: (groupId: string, messageId: string) => `/mls/groups/${groupId}/messages/${messageId}`,
 } as const;

@@ -265,4 +265,12 @@ export class PostgresMlsDeliveryService implements IMlsDeliveryService {
 			expires_at: row.expires_at ? row.expires_at.toISOString() : null,
 		}));
 	}
+
+	async deleteCiphertext(groupId: string, messageId: string): Promise<boolean> {
+		const res = await this.postgres.query(
+			`DELETE FROM mls_ciphertext_messages WHERE group_id = $1 AND message_id = $2;`,
+			[groupId, messageId],
+		);
+		return (res.rowCount ?? 0) > 0;
+	}
 }

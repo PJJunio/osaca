@@ -169,4 +169,13 @@ export class InMemoryMlsDeliveryService implements IMlsDeliveryService {
 
 		return matching.slice(0, clampedLimit);
 	}
+
+	async deleteCiphertext(groupId: string, messageId: string): Promise<boolean> {
+		const index = this.ciphertexts.findIndex((m) => m.group_id === groupId && m.message_id === messageId);
+		if (index >= 0) {
+			this.ciphertexts.splice(index, 1);
+			return true;
+		}
+		return false;
+	}
 }

@@ -36,6 +36,7 @@ import MessageQueue from '@app/features/messaging/state/MessageQueue';
 import MessageReferences from '@app/features/messaging/state/MessageReferences';
 import MessageReply from '@app/features/messaging/state/MessageReply';
 import Messages from '@app/features/messaging/state/MessagingMessages';
+import {extractClientMentions} from '@app/features/messaging/utils/ClientMentionUtils';
 import {
 	collectMessageModelGuildMemberUserIds,
 	collectWireMessageGuildMemberUserIds,
@@ -73,7 +74,7 @@ import type {I18n} from '@lingui/core';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
-import {MessageFlags, Permissions} from '@osaca/constants/src/ChannelConstants';
+import {ChannelTypes, MessageFlags, Permissions} from '@osaca/constants/src/ChannelConstants';
 import type {JumpType} from '@osaca/constants/src/JumpConstants';
 import {MAX_MESSAGES_PER_CHANNEL} from '@osaca/constants/src/LimitConstants';
 import type {MessageId} from '@osaca/schema/src/branded/WireIds';
@@ -83,6 +84,11 @@ import type {
 	MessageStickerItem,
 	Message as WireMessage,
 } from '@osaca/schema/src/domains/message/MessageResponseSchemas';
+import {
+	type MlsMessageDeletePayload,
+	type MlsMessageEditPayload,
+	parseMlsApplicationPayload,
+} from '@osaca/schema/src/domains/mls/MlsPayloadSchemas';
 import * as SnowflakeUtils from '@osaca/snowflake/src/SnowflakeUtils';
 import {observer} from 'mobx-react-lite';
 
@@ -286,7 +292,14 @@ async function requestChannelMessages(
 			try {
 				const decrypted = await mlsClientManager.decryptMessage(channelId, rawCiphertext);
 				if (decrypted) {
-					(msg as {content: string}).content = decrypted;
+					const appPayload = parseMlsApplicationPayload(decrypted);
+					if (appPayload.type === 'chat_message') {
+						(msg as {content: string}).content = appPayload.content;
+						const extracted = extractClientMentions(appPayload.content);
+						(msg as unknown as {mentions: typeof extracted.mentions}).mentions = extracted.mentions;
+						(msg as unknown as {mention_roles: typeof extracted.mention_roles}).mention_roles = extracted.mention_roles;
+						(msg as unknown as {mention_everyone: boolean}).mention_everyone = extracted.mention_everyone;
+					}
 				}
 			} catch (e) {
 				logger.warn('Failed to decrypt scrollback message', e);
@@ -811,6 +824,35 @@ export async function edit(
 	attachments?: Array<ApiMessageEditAttachmentMetadata>,
 ): Promise<WireMessage | null> {
 	logger.debug(`Editing message ${messageId} in channel ${channelId}`);
+	const channel = Channels.getChannel(channelId);
+	const isPrivateE2EE = channel?.type === ChannelTypes.DM || channel?.type === ChannelTypes.GROUP_DM;
+	if (isPrivateE2EE) {
+		logger.debug(`Editing encrypted message ${messageId} in private channel ${channelId}`);
+		try {
+			const recipientIds = channel ? Array.from(channel.recipientIds) : [];
+			const payload: MlsMessageEditPayload = {
+				version: 1,
+				type: 'message_edit',
+				target_message_id: messageId,
+				content: content ?? '',
+			};
+			await mlsClientManager.sendApplicationMessage(channelId, payload, recipientIds);
+			const existing = Messages.getMessage(channelId, messageId);
+			if (existing) {
+				const updated = existing.withUpdates({
+					content: content ?? '',
+					edited_timestamp: new Date().toISOString(),
+				});
+				Messages.handleMessageUpdate({message: updated as unknown as WireMessage});
+				return updated as unknown as WireMessage;
+			}
+			return null;
+		} catch (error) {
+			logger.error(`Message edit failed: ${messageId} in channel ${channelId}`, error);
+			showEditFailureModal(error);
+			return null;
+		}
+	}
 	const isPublished = Messages.getMessage(channelId, messageId)?.isCrossposted === true;
 	try {
 		const response = await http.patch<WireMessage>(Endpoints.CHANNEL_MESSAGE(channelId, messageId), {
@@ -830,6 +872,34 @@ export async function edit(
 }
 
 export async function remove(channelId: string, messageId: string): Promise<void> {
+	const channel = Channels.getChannel(channelId);
+	const isPrivateE2EE = channel?.type === ChannelTypes.DM || channel?.type === ChannelTypes.GROUP_DM;
+	if (isPrivateE2EE) {
+		const pendingPromise = pendingDeletePromises.get(messageId);
+		if (pendingPromise) return pendingPromise;
+		const deletePromise = (async () => {
+			try {
+				logger.debug(`Deleting encrypted message ${messageId} in private channel ${channelId}`);
+				const recipientIds = channel ? Array.from(channel.recipientIds) : [];
+				const payload: MlsMessageDeletePayload = {
+					version: 1,
+					type: 'message_delete',
+					target_message_id: messageId,
+				};
+				await mlsClientManager.sendApplicationMessage(channelId, payload, recipientIds);
+				await mlsClientManager.deleteCiphertext(channelId, messageId);
+				Messages.handleMessageDelete({channelId, id: messageId});
+			} catch (error) {
+				logger.error(`Failed to delete message ${messageId} in channel ${channelId}:`, error);
+				showDeleteFailureModal(error, messageId);
+				throw error;
+			} finally {
+				pendingDeletePromises.delete(messageId);
+			}
+		})();
+		pendingDeletePromises.set(messageId, deletePromise);
+		return deletePromise;
+	}
 	const pendingPromise = pendingDeletePromises.get(messageId);
 	if (pendingPromise) {
 		logger.debug(`Using in-flight delete request for message ${messageId}`);

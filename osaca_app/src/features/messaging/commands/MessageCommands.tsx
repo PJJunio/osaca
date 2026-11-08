@@ -62,6 +62,7 @@ import {ComponentBus} from '@app/features/platform/utils/ComponentBus';
 import {failureCode, failureMessage} from '@app/features/platform/utils/ResponseInspection';
 import * as ReadStateCommands from '@app/features/read_state/commands/ReadStateCommands';
 import ReadStates from '@app/features/read_state/state/ReadStates';
+import {localMessageSearchIndex} from '@app/features/search/state/LocalMessageSearchIndex';
 import * as SlowmodeCommands from '@app/features/slowmode/commands/SlowmodeCommands';
 import ChannelThreads from '@app/features/threads/state/ChannelThreads';
 import ThreadGuilds from '@app/features/threads/state/ThreadGuilds';
@@ -833,6 +834,10 @@ export async function edit(
 				content: content ?? '',
 			};
 			await mlsClientManager.sendApplicationMessage(channelId, payload, recipientIds);
+			localMessageSearchIndex.updateMessage(channelId, messageId, {
+				content: content ?? '',
+				edited_timestamp: new Date().toISOString(),
+			});
 			const existing = Messages.getMessage(channelId, messageId);
 			if (existing) {
 				const updated = existing.withUpdates({
@@ -884,6 +889,7 @@ export async function remove(channelId: string, messageId: string): Promise<void
 				};
 				await mlsClientManager.sendApplicationMessage(channelId, payload, recipientIds);
 				await mlsClientManager.deleteCiphertext(channelId, messageId);
+				localMessageSearchIndex.removeMessage(channelId, messageId);
 				Messages.handleMessageDelete({channelId, id: messageId});
 			} catch (error) {
 				logger.error(`Failed to delete message ${messageId} in channel ${channelId}:`, error);

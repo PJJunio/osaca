@@ -2,17 +2,19 @@
 
 import {EXAMPLE_DOMAIN} from '@app/features/app/config/I18nDisplayConstants';
 import {Channel, type ChannelWire} from '@app/features/channel/models/Channel';
+import Channels from '@app/features/channel/state/Channels';
 import {Message} from '@app/features/messaging/models/MessagingMessage';
 import {http} from '@app/features/platform/transport/RestTransport';
+import {localMessageSearchIndex} from '@app/features/search/state/LocalMessageSearchIndex';
 import SearchHistory from '@app/features/search/state/SearchHistory';
 import {addUniqueSearchParam as addUnique, parseQuery} from '@app/features/search/utils/SearchQueryParser';
 import type {SearchSegment} from '@app/features/search/utils/SearchSegmentManager';
 import {ingestSearchThreads} from '@app/features/threads/commands/ThreadCommands';
+import type {I18n} from '@lingui/core';
+import {msg} from '@lingui/core/macro';
 import type {Channel as WireChannel} from '@osaca/schema/src/domains/channel/ChannelSchemas';
 import type {ThreadMemberResponse} from '@osaca/schema/src/domains/channel/ThreadSchemas';
 import type {Message as WireMessage} from '@osaca/schema/src/domains/message/MessageResponseSchemas';
-import type {I18n} from '@lingui/core';
-import {msg} from '@lingui/core/macro';
 
 const NO_RESPONSE_BODY_RECEIVED_DESCRIPTOR = msg({
 	message: 'No response body received',
@@ -194,11 +196,41 @@ export function isIndexing(result: SearchResult): result is IndexingResponse {
 	return 'indexing' in result && result.indexing === true;
 }
 
+export function isPrivateConversationSearch(context: SearchContext, params: MessageSearchParams): boolean {
+	if (params.scope === 'all_dms' || params.scope === 'open_dms') {
+		return true;
+	}
+	if (context.contextChannelId) {
+		const channel = Channels.getChannel(context.contextChannelId);
+		if (channel?.isPrivate()) {
+			return true;
+		}
+		if (!context.contextGuildId && channel && !channel.guildId) {
+			return true;
+		}
+	}
+	if (!context.contextGuildId && (params.scope === 'current' || !params.scope)) {
+		return true;
+	}
+	return false;
+}
+
 export async function searchMessages(
 	i18n: I18n,
 	context: SearchContext,
 	params: MessageSearchParams,
 ): Promise<SearchResult> {
+	if (isPrivateConversationSearch(context, params)) {
+		const localResult = localMessageSearchIndex.search(context, params);
+		return {
+			messages: localResult.messages.map((msg) => new Message(msg)),
+			channels: localResult.channels.map((chan) => Channels.getChannel(chan.id) ?? new Channel(chan)),
+			total: localResult.total,
+			hitsPerPage: localResult.hitsPerPage,
+			page: localResult.page,
+		};
+	}
+
 	const extraParams: MessageSearchApiParams = {};
 	if (context.contextChannelId) {
 		extraParams.context_channel_id = context.contextChannelId;

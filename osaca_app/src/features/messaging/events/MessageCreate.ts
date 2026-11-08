@@ -13,6 +13,7 @@ import Messages from '@app/features/messaging/state/MessagingMessages';
 import {hydrateDecryptedChatMessage} from '@app/features/messaging/utils/HydrateDecryptedMessage';
 import MentionFeed from '@app/features/notification/state/MentionFeed';
 import ReadStates from '@app/features/read_state/state/ReadStates';
+import {localMessageSearchIndex} from '@app/features/search/state/LocalMessageSearchIndex';
 import ChannelThreads from '@app/features/threads/state/ChannelThreads';
 import RollingTypingStore from '@app/features/typing/rolling/RollingTypingStore';
 import Notification from '@app/features/ui/state/Notification';
@@ -70,6 +71,10 @@ export function handleMessageCreate(data: Message, _context: GatewayHandlerConte
 							return;
 						}
 						case 'message_edit': {
+							localMessageSearchIndex.updateMessage(data.channel_id, appPayload.target_message_id, {
+								content: appPayload.content,
+								edited_timestamp: data.timestamp ?? new Date().toISOString(),
+							});
 							handleMessageUpdate(
 								{
 									id: appPayload.target_message_id,
@@ -82,6 +87,7 @@ export function handleMessageCreate(data: Message, _context: GatewayHandlerConte
 							return;
 						}
 						case 'message_delete': {
+							localMessageSearchIndex.removeMessage(data.channel_id, appPayload.target_message_id);
 							handleMessageDelete(
 								{
 									id: appPayload.target_message_id,

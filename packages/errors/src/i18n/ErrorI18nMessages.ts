@@ -4,6 +4,8 @@ export const ERROR_I18N_MESSAGES = {
 	'mls.epoch_conflict': 'MLS epoch conflict.',
 	'mls.key_package_exhausted': 'No key packages available for device.',
 	'mls.group_not_found': 'MLS group not found.',
+	'channel.plaintext_private_messaging_disabled':
+		'Plaintext messaging is disabled for private conversations; MLS end-to-end encryption is required.',
 	'account.already_claimed': 'This account is already set up to sign in from other devices.',
 	'account.unclaimed_cannot_join_calls': 'Claim your account to start or join calls.',
 	'account.unclaimed_cannot_join_voice': 'Claim your account to join voice channels.',

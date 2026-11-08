@@ -14,6 +14,7 @@ import AccountAccess, {
 } from '@app/features/auth/state/AccountAccess';
 import type {UserData} from '@app/features/auth/state/AccountStorageContract';
 import {getAccountKey, parseAccountStorageKey} from '@app/features/auth/state/AccountStorageKey';
+import {mlsClientManager} from '@app/features/crypto/MlsClientManager';
 import ExperimentAssignments from '@app/features/experiment/state/ExperimentAssignments';
 import {ForegroundGatewayConnectionRecoverableError} from '@app/features/gateway/transport/ForegroundGatewayConnectionFailure';
 import GatewaySessions from '@app/features/gateway/transport/GatewaySessionPool';
@@ -206,6 +207,11 @@ class Accounts {
 
 	async bootstrap(): Promise<void> {
 		await SessionManager.initialize();
+		if (this.currentUserId) {
+			void mlsClientManager
+				.initialize(this.currentUserId)
+				.catch((err) => logger.warn('Failed to initialize MLS on bootstrap', err));
+		}
 	}
 
 	async reorderAccounts(orderedAccountKeys: ReadonlyArray<string>): Promise<void> {
@@ -299,6 +305,9 @@ class Accounts {
 				redirectPath: redirectPath ?? Routes.ME,
 				targetAccountKey,
 			});
+			void mlsClientManager
+				.initialize(userId)
+				.catch((err) => logger.warn('Failed to initialize MLS on account switch', err));
 		});
 	}
 

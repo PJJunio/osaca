@@ -1280,6 +1280,9 @@ importers:
       '@osaca/constants':
         specifier: workspace:*
         version: link:../packages/constants
+      '@osaca/crypto':
+        specifier: workspace:*
+        version: link:../packages/osaca_crypto
       '@osaca/date_utils':
         specifier: workspace:*
         version: link:../packages/date_utils

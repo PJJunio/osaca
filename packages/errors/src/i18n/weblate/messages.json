@@ -475,5 +475,6 @@
 	"webhooks.webhook_name_length_invalid": "Webhook name must be between {min} and {max} characters.",
 	"mls.epoch_conflict": "MLS epoch conflict.",
 	"mls.key_package_exhausted": "No key packages available for device.",
-	"mls.group_not_found": "MLS group not found."
+	"mls.group_not_found": "MLS group not found.",
+	"channel.plaintext_private_messaging_disabled": "Plaintext messaging is disabled for private conversations; MLS end-to-end encryption is required."
 }

@@ -53,8 +53,9 @@ import type {IStorageService} from '@app/api/infrastructure/IStorageService';
 import {Logger} from '@app/api/Logger';
 import type {LimitConfigService} from '@app/api/limits/LimitConfigService';
 import type {RequestCache} from '@app/api/middleware/RequestCacheMiddleware';
+import {getMlsDeliveryService} from '@app/api/middleware/ServiceRegistry';
 import type {Channel} from '@app/api/models/Channel';
-import type {Message} from '@app/api/models/Message';
+import {Message} from '@app/api/models/Message';
 import type {MessageSnapshot} from '@app/api/models/MessageSnapshot';
 import type {User} from '@app/api/models/User';
 import type {Webhook} from '@app/api/models/Webhook';
@@ -78,6 +79,7 @@ import {threadWriteBlock} from '@osaca/constants/src/ThreadPermissionUtils';
 import {DELETED_USER_ID, UserFlags} from '@osaca/constants/src/UserConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {DirectMessagesDisabledError} from '@osaca/errors/src/domains/channel/DirectMessagesDisabledError';
+import {PlaintextPrivateMessagingDisabledError} from '@osaca/errors/src/domains/channel/PlaintextPrivateMessagingDisabledError';
 import {UnknownChannelError} from '@osaca/errors/src/domains/channel/UnknownChannelError';
 import {UnknownMessageError} from '@osaca/errors/src/domains/channel/UnknownMessageError';
 import {CannotExecuteOnDmError} from '@osaca/errors/src/domains/core/CannotExecuteOnDmError';
@@ -634,12 +636,21 @@ export class MessageSendService {
 		}
 		assertAccountNotLimited(user);
 		const {channel, guild, member} = authChannel;
-		if (
-			(channel.type === ChannelTypes.DM || channel.type === ChannelTypes.GROUP_DM) &&
-			user.id !== SYSTEM_USER_ID &&
-			(await systemDmsHidden())
-		) {
-			throw new DirectMessagesDisabledError();
+		if ((channel.type === ChannelTypes.DM || channel.type === ChannelTypes.GROUP_DM) && user.id !== SYSTEM_USER_ID) {
+			if (await systemDmsHidden()) {
+				throw new DirectMessagesDisabledError();
+			}
+			if (data.content !== undefined && data.content !== null && data.content.length > 0) {
+				throw new PlaintextPrivateMessagingDisabledError();
+			}
+			if (!data.ciphertext) {
+				throw new PlaintextPrivateMessagingDisabledError();
+			}
+			return this.sendCiphertextPrivateMessage({
+				authChannel,
+				user,
+				data,
+			});
 		}
 		const {checkPermission, hasPermission} = forumStarter?.parentAuth ?? authChannel;
 		const uploadChannelId = forumStarter?.parentAuth.channel.id ?? channelId;
@@ -1249,6 +1260,82 @@ export class MessageSendService {
 			void this.deps.searchService.updateMessageIndex(updatedMessage);
 		}
 		return updatedMessage;
+	}
+
+	private async sendCiphertextPrivateMessage({
+		authChannel,
+		user,
+		data,
+	}: {
+		authChannel: AuthenticatedChannel;
+		user: User;
+		data: MessageRequest;
+	}): Promise<SendMessageResult> {
+		const {channel} = authChannel;
+		const messageId = await this.generateMessageId(channel);
+		const epoch = data.epoch ?? 1;
+		const ciphertext = data.ciphertext!;
+		const service = getMlsDeliveryService();
+		const result = await service.postCiphertext(channel.id.toString(), epoch, messageId.toString(), ciphertext);
+
+		await this.deps.channelRepository.channelData.updateLastMessageId(channel.id, messageId, {isInsert: true});
+
+		const gateway = this.deps.gatewayService;
+		const authorData = {
+			id: user.id.toString(),
+			username: user.username,
+			discriminator: user.discriminator,
+			avatar: user.avatarHash,
+		};
+
+		await Promise.all(
+			Array.from(channel.recipientIds)
+				.filter((recipientId) => recipientId !== SYSTEM_USER_ID)
+				.map((recipientId) =>
+					gateway.dispatchPresence({
+						userId: recipientId,
+						event: 'MESSAGE_CREATE',
+						data: {
+							id: messageId.toString(),
+							channel_id: channel.id.toString(),
+							epoch,
+							ciphertext,
+							created_at: result.created_at,
+							expires_at: result.expires_at,
+							author: authorData,
+						},
+					}),
+				),
+		);
+
+		const message = new Message({
+			channel_id: channel.id,
+			bucket: 0,
+			message_id: messageId,
+			author_id: user.id,
+			type: MessageTypes.DEFAULT,
+			content: '',
+			webhook_id: null,
+			webhook_name: null,
+			webhook_avatar_hash: null,
+			flags: 0,
+			edited_timestamp: null,
+			pinned_timestamp: null,
+			mention_everyone: false,
+			mention_users: new Set(),
+			mention_roles: new Set(),
+			mention_channels: new Set(),
+			attachments: [],
+			embeds: [],
+			sticker_items: [],
+			message_reference: null,
+			message_snapshots: [],
+			call: null,
+			has_reaction: null,
+			version: 1,
+		});
+
+		return {message, authChannel};
 	}
 
 	private async sendPersonalNoteMessage({

@@ -10,6 +10,7 @@ import {
 	createRecoveryKitQrDataUrl,
 	type RecoveryKitSheet,
 } from '@app/features/auth/utils/RecoveryKitSheet';
+import {bytesToBase64, mlsClientManager} from '@app/features/crypto/MlsClientManager';
 import {USERNAME_DESCRIPTOR} from '@app/features/i18n/utils/CommonMessageDescriptors';
 import {TimestampStyle} from '@app/features/messaging/utils/markdown/parser/Enums';
 import {Logger} from '@app/features/platform/utils/AppLogger';
@@ -26,10 +27,10 @@ import Users from '@app/features/user/state/Users';
 import {shouldUse12HourFormat} from '@app/features/user/utils/DateFormatting';
 import {getCurrentLocale} from '@app/features/user/utils/LocaleUtils';
 import {formatUserTag} from '@app/features/user/utils/UserTagUtils';
-import {RECOVERY_KEY_SEPARATOR} from '@osaca/constants/src/RecoveryKeyUtils';
-import {formatTimestampWithStyle} from '@osaca/date_utils/src/DateTimestampStyle';
 import {msg} from '@lingui/core/macro';
 import {Trans, useLingui} from '@lingui/react/macro';
+import {RECOVERY_KEY_SEPARATOR} from '@osaca/constants/src/RecoveryKeyUtils';
+import {formatTimestampWithStyle} from '@osaca/date_utils/src/DateTimestampStyle';
 import {ClipboardIcon, DownloadIcon, PrinterIcon} from '@phosphor-icons/react';
 import {observer} from 'mobx-react-lite';
 import {useCallback, useEffect, useMemo, useState} from 'react';
@@ -241,15 +242,29 @@ const RecoveryKitModal = observer(
 						locale,
 						shouldUse12HourFormat(locale),
 					);
+			const details: Array<{label: string; value: string}> = [
+				{label: i18n._(RECOVERY_KIT_INSTANCE_DESCRIPTOR), value: RuntimeConfig.webAppBaseUrl},
+				{label: i18n._(USERNAME_DESCRIPTOR), value: accountTag},
+				{label: i18n._(RECOVERY_KIT_CREATED_AT_DESCRIPTOR), value: createdLabel},
+			];
+			try {
+				if (mlsClientManager.getIdentityKey()) {
+					const secret = new TextEncoder().encode(recoveryKey.padEnd(32, '0').slice(0, 32));
+					const backup = mlsClientManager.createRecoveryKeyBackup(secret);
+					details.push({
+						label: 'E2EE Key Backup',
+						value: bytesToBase64(backup),
+					});
+				}
+			} catch (e) {
+				logger.warn('Could not generate MLS key backup for recovery kit', e);
+			}
+
 			return {
 				productName,
 				title: i18n._(RECOVERY_KIT_DOCUMENT_TITLE_DESCRIPTOR, {productName}),
 				intro: i18n._(RECOVERY_KIT_DOCUMENT_INTRO_DESCRIPTOR),
-				details: [
-					{label: i18n._(RECOVERY_KIT_INSTANCE_DESCRIPTOR), value: RuntimeConfig.webAppBaseUrl},
-					{label: i18n._(USERNAME_DESCRIPTOR), value: accountTag},
-					{label: i18n._(RECOVERY_KIT_CREATED_AT_DESCRIPTOR), value: createdLabel},
-				],
+				details,
 				keyLabel: i18n._(RECOVERY_KEY_DESCRIPTOR),
 				recoveryKey,
 				recoverUrl,

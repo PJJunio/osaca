@@ -329,6 +329,10 @@ export type MessageContentRequest = z.infer<typeof MessageContentRequest>;
 export const MessageRequestSchema = z
 	.object({
 		content: MessageContentRequest.nullish(),
+		ciphertext: createUnboundedStringType()
+			.optional()
+			.describe('MLS ciphertext blob for end-to-end encrypted private conversations'),
+		epoch: z.coerce.number().int().nonnegative().optional().describe('MLS epoch number for ciphertext message'),
 		embeds: z.array(RichEmbedRequest).max(100).describe('Array of embed objects to include in the message'),
 		attachments: z
 			.array(z.union([ClientUploadedAttachmentRequest, ClientAttachmentRequest]))

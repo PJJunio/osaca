@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import {mlsClientManager} from '@app/features/crypto/MlsClientManager';
 import type {GatewayHandlerContext} from '@app/features/gateway/events/EventRouter';
 import GuildReadState from '@app/features/guild/state/GuildReadState';
 import GuildMembers from '@app/features/member/state/GuildMembers';
@@ -15,7 +16,7 @@ import TtsUtils from '@app/features/voice/utils/VoiceTtsUtils';
 import type {GuildMemberData} from '@osaca/schema/src/domains/guild/GuildMemberSchemas';
 import type {Message} from '@osaca/schema/src/domains/message/MessageResponseSchemas';
 
-export function handleMessageCreate(data: Message, _context: GatewayHandlerContext): void {
+function dispatchIncomingMessage(data: Message): void {
 	if (data.guild_id && data.member) {
 		GuildMembers.hydrateIfMissing(data.guild_id, {
 			...data.member,
@@ -46,4 +47,23 @@ export function handleMessageCreate(data: Message, _context: GatewayHandlerConte
 	if (data.call && data.channel_id) {
 		CallState.handleCallParticipants(data.channel_id, [...data.call.participants]);
 	}
+}
+
+export function handleMessageCreate(data: Message, _context: GatewayHandlerContext): void {
+	const rawCiphertext = (data as unknown as {ciphertext?: string}).ciphertext;
+	if (rawCiphertext) {
+		void (async () => {
+			try {
+				const decrypted = await mlsClientManager.decryptMessage(data.channel_id, rawCiphertext);
+				if (decrypted) {
+					(data as {content: string}).content = decrypted;
+				}
+			} catch {
+				// Decryption failed or out-of-order epoch
+			}
+			dispatchIncomingMessage(data);
+		})();
+		return;
+	}
+	dispatchIncomingMessage(data);
 }

@@ -10,10 +10,12 @@ import {carriesThreadArtifact, maskThreadArtifactsFor} from '@app/api/channel/se
 import {isPersonalNotesChannelId} from '@app/api/channel/services/PersonalNotesChannelRepair';
 import {isTainted, type ThreadViewer, viewerActive} from '@app/api/experiment/ChannelThreadsGate';
 import type {RequestCache} from '@app/api/middleware/RequestCacheMiddleware';
+import {getMlsDeliveryService} from '@app/api/middleware/ServiceRegistry';
 import type {User} from '@app/api/models/User';
 import {assertTierAllows, NO_TIER_CONTEXT} from '@app/api/user/AccountTier';
 import {mapWithConcurrency} from '@app/api/utils/ConcurrencyUtils';
 import {TierGatedActions} from '@osaca/constants/src/AccountTierConstants';
+import {ChannelTypes, MessageTypes} from '@osaca/constants/src/ChannelConstants';
 import {THREAD_FEATURE_CHANNEL_TYPES} from '@osaca/constants/src/ThreadConstants';
 import {InvalidChannelTypeError} from '@osaca/errors/src/domains/channel/InvalidChannelTypeError';
 import {UnknownMessageError} from '@osaca/errors/src/domains/channel/UnknownMessageError';
@@ -62,6 +64,50 @@ export class MessageRequestService {
 			access: 'visitor_read',
 		});
 		if (authChannel.channel.isThreadOnly()) throw new InvalidChannelTypeError();
+
+		if (authChannel.channel.type === ChannelTypes.DM || authChannel.channel.type === ChannelTypes.GROUP_DM) {
+			const delivery = getMlsDeliveryService();
+			const ciphertextMessages = await delivery.getCiphertextHistory(
+				params.channelId.toString(),
+				0,
+				params.query.before ? params.query.before.toString() : undefined,
+				params.query.limit,
+			);
+			return ciphertextMessages.map(
+				(msg) =>
+					({
+						id: msg.message_id,
+						channel_id: params.channelId.toString(),
+						type: MessageTypes.DEFAULT,
+						content: '',
+						ciphertext: msg.ciphertext,
+						epoch: msg.epoch,
+						timestamp: msg.created_at,
+						edited_timestamp: null,
+						pinned: false,
+						mention_everyone: false,
+						tts: false,
+						author: {
+							id: params.userId.toString(),
+							username: 'User',
+							discriminator: '0000',
+							global_name: null,
+							avatar: null,
+							avatar_color: null,
+							flags: 0,
+						},
+						mentions: [],
+						mention_roles: [],
+						mention_channels: [],
+						attachments: [],
+						embeds: [],
+						stickers: [],
+						reactions: [],
+						flags: 0,
+					}) as unknown as MessageResponse,
+			);
+		}
+
 		const request = {
 			userId: params.userId,
 			channelId: params.channelId,
@@ -216,7 +262,12 @@ export class MessageRequestService {
 			tts: params.data.tts ?? false,
 		});
 		const [shaped] = maskThreadArtifactsFor(params.viewer, authChannel.channel.guildId, [response]);
-		return shaped ?? response;
+		const finalResponse = shaped ?? response;
+		if (params.data.ciphertext) {
+			(finalResponse as unknown as {ciphertext?: string; epoch?: number}).ciphertext = params.data.ciphertext;
+			(finalResponse as unknown as {ciphertext?: string; epoch?: number}).epoch = params.data.epoch;
+		}
+		return finalResponse;
 	}
 
 	async crosspostMessage(params: {

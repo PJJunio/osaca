@@ -24,6 +24,7 @@
 			"@sapphi-red/web-noise-suppressor/rnnoiseWorklet.js": ["./src/types/url-asset.d.ts"],
 			"@sapphi-red/web-noise-suppressor/speex.wasm": ["./src/types/url-asset.d.ts"],
 			"@sapphi-red/web-noise-suppressor/speexWorklet.js": ["./src/types/url-asset.d.ts"],
+			"@osaca/crypto": ["../packages/osaca_crypto/src/index.ts"],
 			"@osaca/*": ["../packages/*", "../packages/*/src/index.ts"],
 			"@app_scripts/*": ["./scripts/*"],
 			"@pkgs/*": ["./pkgs/*"],

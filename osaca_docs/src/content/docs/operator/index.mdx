@@ -77,6 +77,23 @@ To put OSACA on a second drive, set `data-root` in `/etc/docker/daemon.json` to 
 curl -fsSL https://osaca.example/install.sh | sh -s -- install --dir /mnt/data/osaca
 ```
 
+## End-to-end encryption & operator legal exposure
+
+Direct Messages and Group DMs in OSACA are end-to-end encrypted (E2EE) using MLS (Messaging Layer Security, RFC 9420) and client-side cryptography.
+
+### Zero content access
+
+Per **ADR-0008 (No server-side content processing)**:
+- **No plaintext storage**: The server only receives and stores opaque ciphertext blobs for messages, edits, reactions, and attachments.
+- **No plaintext metadata**: Attachment filenames, MIME types, and previews are encrypted inside MLS application payloads. Storage buckets only store opaque random hashes.
+- **Contentless push notifications**: Wake-up Push notifications contain neither message content nor sender names.
+- **Operator legal position**: As an operator, you hold zero cryptographic keys and have no technical capability to decrypt or inspect private conversation content, nor can you comply with decryption orders for past or current messages (consistent with Signal, Matrix, and SimpleX).
+
+### Experimental, unaudited status (ADR-0016)
+
+> [!WARNING] Experimental release indicator
+> OSACA's E2EE implementation is currently **experimental and unaudited**. While built upon standard MLS specifications and tested with automated cryptographic property suites, it has not yet undergone an independent third-party security audit. Operators should inform users not to rely on OSACA for life-or-death or high-risk human rights protection until formal audit completion.
+
 ## After you install
 
 Once your instance is running, these pages help you look after it.

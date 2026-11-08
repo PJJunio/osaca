@@ -276,6 +276,7 @@ export function formatClientBuildInfo(info: ClientInfo, options: {unknownLabel?:
 		info.desktopNodeVersion ? `Node ${info.desktopNodeVersion}` : '',
 		i18n.locale ? `Locale ${i18n.locale}` : '',
 		formatTranslationDomGuardFires(),
+		'E2EE: Experimental (unaudited, ADR-0016)',
 	];
 	return parts.filter(Boolean).join(', ');
 }

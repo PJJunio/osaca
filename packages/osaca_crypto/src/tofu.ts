@@ -121,6 +121,8 @@ export class TofuIdentityStore {
 		// Key mismatch -> Key Change Detected!
 		existing.keyChanged = true;
 		existing.pendingKeyHex = cleanHex;
+		existing.verified = false; // Immediately invalidate prior verification status
+		delete existing.verifiedAt;
 		existing.lastSeenAt = now;
 		this.save();
 		return {status: 'key_changed', record: existing};
@@ -172,7 +174,8 @@ export class TofuIdentityStore {
 	}
 
 	isVerified(contactAccountId: string): boolean {
-		return this.contacts.get(contactAccountId)?.verified === true;
+		const contact = this.contacts.get(contactAccountId);
+		return contact?.verified === true && !contact.keyChanged;
 	}
 
 	hasUnacknowledgedKeyChange(contactAccountIds: ReadonlyArray<string>): boolean {

@@ -20,6 +20,7 @@ export const AppStorageKey = Object.freeze({
 	INSTALLATION_THEME: 'InstallationTheme',
 	MESSAGING_DRAFTS: 'Drafts',
 	MESSAGING_MESSAGE_EDIT: 'MessageEdit',
+	MLS_CONTACT_IDENTITIES: 'osaca:mls:contact-identities',
 	MLS_DEVICE_ID: 'osaca:mls:device-id',
 	MLS_IDENTITY_SEED: 'osaca:mls:identity-seed',
 	NOTIFICATION: 'Notification',

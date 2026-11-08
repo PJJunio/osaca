@@ -16,6 +16,7 @@ import type {
 	MlsKeyPackagesPublishResponse,
 	MlsWelcomeDetailResponse,
 } from '@osaca/schema/src/domains/mls/MlsSchemas';
+import {tofuKeyManager} from './TofuKeyManager';
 
 const logger = new Logger('MlsClientManager');
 
@@ -101,6 +102,8 @@ export class MlsClientManager {
 		this.deviceSession = DeviceSession.create(accountId, deviceId);
 		logger.info('Initialized MLS DeviceSession', {accountId, deviceId});
 
+		tofuKeyManager.initialize(accountId);
+
 		await this.publishInitialKeyPackages();
 	}
 
@@ -170,7 +173,19 @@ export class MlsClientManager {
 		return RecoveryKit.encryptBundle(secret, bundle);
 	}
 
-	async getOrCreateGroupSession(channelId: string, recipientUserIds: Array<string> = []): Promise<MlsGroupSession> {
+	checkTofuForGroup(group: MlsGroupSession): void {
+		try {
+			const members = group.getMembers();
+			tofuKeyManager.checkGroupMembers(members);
+		} catch (error) {
+			logger.warn('Failed to check TOFU keys for MLS group members', error);
+		}
+	}
+
+	async getOrCreateGroupSession(
+		channelId: string,
+		recipientUserIds: ReadonlyArray<string> = [],
+	): Promise<MlsGroupSession> {
 		const cached = this.activeGroups.get(channelId);
 		if (cached) {
 			return cached;
@@ -203,6 +218,7 @@ export class MlsClientManager {
 				await this.addMemberToSession(group, channelId, recipientId);
 			}
 
+			this.checkTofuForGroup(group);
 			this.activeGroups.set(channelId, group);
 			return group;
 		}
@@ -214,11 +230,13 @@ export class MlsClientManager {
 			);
 			const welcomeBytes = base64ToBytes(welcomeRes.body.welcome);
 			const group = MlsGroupSession.joinFromWelcome(device, welcomeBytes);
+			this.checkTofuForGroup(group);
 			this.activeGroups.set(channelId, group);
 			return group;
 		} catch (error) {
 			logger.warn('Could not join from Welcome, falling back to local group create', error);
 			const group = MlsGroupSession.create(device, groupIdBytes);
+			this.checkTofuForGroup(group);
 			this.activeGroups.set(channelId, group);
 			return group;
 		}
@@ -243,6 +261,7 @@ export class MlsClientManager {
 						welcome: bytesToBase64(addResult.welcome),
 					},
 				});
+				this.checkTofuForGroup(group);
 				return;
 			} catch (error) {
 				if (error instanceof HttpError && error.status === 409 && attempt < maxRetries - 1) {
@@ -301,8 +320,14 @@ export class MlsClientManager {
 	async encryptOnly(
 		channelId: string,
 		plaintext: string,
-		recipientUserIds: Array<string> = [],
+		recipientUserIds: ReadonlyArray<string> = [],
 	): Promise<{ciphertext: string; epoch: number}> {
+		if (tofuKeyManager.hasUnacknowledgedKeyChange(recipientUserIds)) {
+			throw new Error(
+				'Cannot send message: A contact identity key has changed. You must verify and acknowledge the new key before sending messages.',
+			);
+		}
+
 		const group = await this.getOrCreateGroupSession(channelId, recipientUserIds);
 		const ptBytes = new TextEncoder().encode(plaintext);
 		const ciphertextBytes = group.encryptMessage(ptBytes);
@@ -317,7 +342,7 @@ export class MlsClientManager {
 	async encryptMessage(
 		channelId: string,
 		plaintext: string,
-		recipientUserIds: Array<string> = [],
+		recipientUserIds: ReadonlyArray<string> = [],
 	): Promise<{message_id: string; ciphertext: string; epoch: number}> {
 		const {ciphertext, epoch} = await this.encryptOnly(channelId, plaintext, recipientUserIds);
 		const messageId = String(Date.now());
@@ -340,7 +365,7 @@ export class MlsClientManager {
 	async sendApplicationMessage(
 		channelId: string,
 		payload: MlsApplicationPayload,
-		recipientUserIds: Array<string> = [],
+		recipientUserIds: ReadonlyArray<string> = [],
 	): Promise<{message_id: string; ciphertext: string; epoch: number}> {
 		const plaintext = formatMlsApplicationPayload(payload);
 		return this.encryptMessage(channelId, plaintext, recipientUserIds);
@@ -357,7 +382,7 @@ export class MlsClientManager {
 	async decryptMessage(
 		channelId: string,
 		ciphertextBase64: string,
-		recipientUserIds: Array<string> = [],
+		recipientUserIds: ReadonlyArray<string> = [],
 	): Promise<string> {
 		const group = await this.getOrCreateGroupSession(channelId, recipientUserIds);
 		const ctBytes = base64ToBytes(ciphertextBase64);
@@ -365,6 +390,9 @@ export class MlsClientManager {
 
 		if (processed.type === 'application') {
 			return new TextDecoder().decode(processed.plaintext);
+		}
+		if (processed.type === 'commit') {
+			this.checkTofuForGroup(group);
 		}
 		return '';
 	}

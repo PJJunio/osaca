@@ -78,4 +78,50 @@ describe('MlsPayloadSchemas', () => {
 		const parsed = parseMlsApplicationPayload(formattedDelete);
 		expect(parsed).toEqual(deletePayload);
 	});
+
+	it('parses and formats chat_message payloads with encrypted attachments and previews', () => {
+		const payload: MlsChatMessagePayload = {
+			version: 1,
+			type: 'chat_message',
+			content: 'Check this confidential document https://example.com',
+			nonce: 'att-nonce-1',
+			attachments: [
+				{
+					id: 'att-1',
+					filename: 'secret_budget.pdf',
+					content_type: 'application/pdf',
+					size: 1024,
+					ciphertext_size: 1052,
+					sha256: 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+					key: 'MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=',
+					nonce: 'MDEyMzQ1Njc4OTAx',
+					upload_filename: 'upload-uuid-1',
+					thumbhash: '3OcRJYB4d3h/iIeHeEh3eIeAiA==',
+					encrypted_thumbnail: {
+						ciphertext: 'dGh1bWJuYWlsY2lwaGVydGV4dA==',
+						nonce: 'MDEyMzQ1Njc4OTAx',
+						width: 128,
+						height: 128,
+						content_type: 'image/jpeg',
+					},
+				},
+			],
+			previews: [
+				{
+					url: 'https://example.com',
+					title: 'Example Domain',
+					description: 'Example domain illustration',
+					site_name: 'Example',
+					image: {
+						url: 'https://example.com/logo.png',
+						width: 200,
+						height: 200,
+					},
+				},
+			],
+		};
+		const formatted = formatMlsApplicationPayload(payload);
+		const parsed = parseMlsApplicationPayload(formatted);
+		expect(parsed).toEqual(payload);
+	});
 });

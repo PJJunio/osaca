@@ -28,6 +28,7 @@ export const AppStorageKey = Object.freeze({
 	QUICK_CSS_EDITOR_PLACEMENT: 'QuickCssEditor:placement',
 	QUICK_CSS_EDITOR_PREFERENCES: 'QuickCssEditor:preferences',
 	SAVED_MESSAGES: 'osaca:messaging:saved-messages',
+	SENDER_LINK_PREVIEWS: 'osaca:messaging:sender-link-previews',
 	THEME: 'Theme',
 	THEME_LIBRARY_ACCOUNT_ENABLED_IDS: 'osaca:theme-library:account-enabled-ids',
 	THEME_LIBRARY_ENABLED_IDS: 'osaca:theme-library:enabled-ids',

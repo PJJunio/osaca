@@ -23,6 +23,7 @@ export const AppStorageKey = Object.freeze({
 	MLS_CONTACT_IDENTITIES: 'osaca:mls:contact-identities',
 	MLS_DEVICE_ID: 'osaca:mls:device-id',
 	MLS_IDENTITY_SEED: 'osaca:mls:identity-seed',
+	MLS_SEARCH_INDEX: 'osaca:mls:search-index',
 	NOTIFICATION: 'Notification',
 	QUICK_CSS_EDITOR_HISTORY: 'QuickCssEditor:history:v1',
 	QUICK_CSS_EDITOR_PANEL_LAYOUT: 'QuickCssEditor:panelLayout',

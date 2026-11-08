@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import {localMessageSearchIndex} from '@app/features/search/state/LocalMessageSearchIndex';
 import type {MessageEmbed} from '@osaca/schema/src/domains/message/EmbedSchemas';
 import type {Message, MessageAttachment} from '@osaca/schema/src/domains/message/MessageResponseSchemas';
 import type {MlsChatMessagePayload} from '@osaca/schema/src/domains/mls/MlsPayloadSchemas';
@@ -55,5 +56,9 @@ export function hydrateDecryptedChatMessage(
 		}));
 		const currentEmbeds = (message.embeds ?? []) as Array<MessageEmbed>;
 		(message as {embeds?: unknown}).embeds = [...currentEmbeds, ...previewEmbeds];
+	}
+
+	if (message.id && message.channel_id) {
+		localMessageSearchIndex.indexMessage(message as Partial<Message> & {id: string; channel_id: string});
 	}
 }

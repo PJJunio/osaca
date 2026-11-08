@@ -13,6 +13,7 @@ import SelectedChannel from '@app/features/navigation/state/SelectedChannel';
 import SelectedGuild from '@app/features/navigation/state/SelectedGuild';
 import {AccountScopedWork} from '@app/features/platform/state/AccountScopedWork';
 import Relationships from '@app/features/relationship/state/Relationships';
+import {localMessageSearchIndex} from '@app/features/search/state/LocalMessageSearchIndex';
 import Dimension from '@app/features/ui/state/Dimension';
 import Users from '@app/features/user/state/Users';
 import {FAVORITES_GUILD_ID, ME} from '@osaca/constants/src/AppConstants';
@@ -549,6 +550,7 @@ class Messages {
 	}
 
 	handleMessageDelete(action: {id: string; channelId: string}): boolean {
+		localMessageSearchIndex.removeMessage(action.channelId, action.id);
 		const existing = ChannelMessages.get(action.channelId);
 		if (!existing?.has(action.id)) {
 			return false;
@@ -565,6 +567,9 @@ class Messages {
 	}
 
 	handleMessageDeleteBulk(action: {ids: Array<string>; channelId: string}): boolean {
+		for (const id of action.ids) {
+			localMessageSearchIndex.removeMessage(action.channelId, id);
+		}
 		const existing = ChannelMessages.get(action.channelId);
 		if (!existing) return false;
 		let messages = existing.removeIds(action.ids);

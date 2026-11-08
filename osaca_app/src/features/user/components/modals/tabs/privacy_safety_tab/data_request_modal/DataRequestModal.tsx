@@ -23,6 +23,7 @@ import {SteppedCarousel} from '@app/features/ui/stepped_carousel/SteppedCarousel
 import type {BulkDeleteMyMessagesFilter} from '@app/features/user/commands/UserCommands';
 import * as UserCommands from '@app/features/user/commands/UserCommands';
 import styles from '@app/features/user/components/modals/tabs/privacy_safety_tab/data_request_modal/DataRequestModal.module.css';
+import {exportClientUserData} from '@app/features/user/utils/ClientDataExport';
 import {
 	SUMMARY_ALL_TIME_DESCRIPTOR as DATE_MODE_ALL_TIME_DESCRIPTOR,
 	DATE_MODE_LABEL_DESCRIPTOR,
@@ -494,11 +495,7 @@ export const DataRequestModal: React.FC<DataRequestModalProps> = observer(({vari
 		setIsSubmitting(true);
 		try {
 			if (variant === 'export') {
-				if (scope === 'everything') {
-					await UserCommands.requestDataHarvest();
-				} else {
-					await UserCommands.requestFilteredDataHarvest(buildFilter('selected'));
-				}
+				await exportClientUserData(i18n);
 				onExportRequested?.();
 			} else {
 				const filterScope: BulkDeleteMyMessagesFilter['scope'] =

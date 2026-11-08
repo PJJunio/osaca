@@ -222,7 +222,7 @@ describe('Client-Encrypted Attachments and Sender-Side Link Previews (F1-07)', (
 			.execute();
 
 		expect(messageRes.attachments).toHaveLength(1);
-		const wireAttachment = messageRes.attachments[0];
+		const wireAttachment = messageRes.attachments![0]!;
 		// Wire attachment exposes only opaque bin name and octet-stream to server
 		expect(wireAttachment.filename).toBe(opaqueFilename);
 		expect(wireAttachment.content_type).toBe('application/octet-stream');

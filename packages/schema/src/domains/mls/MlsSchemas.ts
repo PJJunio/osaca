@@ -112,3 +112,27 @@ export const MlsCiphertextHistoryResponse = z.object({
 	messages: z.array(MlsCiphertextMessageResponse).describe('List of ciphertext messages ordered newest first'),
 });
 export type MlsCiphertextHistoryResponse = z.infer<typeof MlsCiphertextHistoryResponse>;
+
+export const ContactIdentityRecordSchema = z.object({
+	accountId: z.string().describe('Contact Account identifier'),
+	identityKeyHex: z.string().describe('Contact Identity public key hex string (Ed25519)'),
+	firstSeenAt: z.number().int().describe('Timestamp (epoch ms) when the key was first trusted (TOFU)'),
+	lastSeenAt: z.number().int().describe('Timestamp (epoch ms) of the most recent key observation'),
+	verified: z.boolean().describe('Whether the user has manually verified the Safety Number'),
+	verifiedAt: z.number().int().optional().describe('Timestamp (epoch ms) when verified was set to true'),
+	keyChanged: z
+		.boolean()
+		.optional()
+		.describe('Flag indicating that a key change was detected and awaits acknowledgement'),
+	pendingKeyHex: z.string().optional().describe('The new unacknowledged key hex'),
+	previousKeys: z
+		.array(
+			z.object({
+				identityKeyHex: z.string(),
+				retiredAt: z.number().int(),
+			}),
+		)
+		.optional()
+		.describe('History of previously acknowledged keys for this account'),
+});
+export type ContactIdentityRecord = z.infer<typeof ContactIdentityRecordSchema>;

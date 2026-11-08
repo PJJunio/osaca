@@ -59,6 +59,8 @@ import {EditGroupModal} from '@app/features/channel/components/modals/EditGroupM
 import type {Channel} from '@app/features/channel/models/Channel';
 import * as ChannelUtils from '@app/features/channel/utils/ChannelUtils';
 import {isGroupDmFull} from '@app/features/channel/utils/GroupDmUtils';
+import {openVerifySafetyNumberModal} from '@app/features/crypto/components/VerifySafetyNumberModal';
+import {tofuKeyManager} from '@app/features/crypto/TofuKeyManager';
 import Guilds from '@app/features/guild/state/Guilds';
 import {
 	ADD_TO_FAVORITES_DESCRIPTOR,
@@ -108,22 +110,26 @@ import MobileLayout from '@app/features/ui/state/MobileLayout';
 import PopoutState from '@app/features/ui/state/Popout';
 import {Tooltip} from '@app/features/ui/tooltip/Tooltip';
 import * as UserProfileCommands from '@app/features/user/commands/UserProfileCommands';
+import Users from '@app/features/user/state/Users';
+import * as NicknameUtils from '@app/features/user/utils/NicknameUtils';
 import * as CallCommands from '@app/features/voice/commands/CallCommands';
 import MediaEngine from '@app/features/voice/engine/MediaEngineFacade';
 import CallState from '@app/features/voice/state/CallState';
 import {computeChannelE2EEStatus} from '@app/features/voice/state/ChannelE2EEStatus';
 import * as CallUtils from '@app/features/voice/utils/CallUtils';
 import {VOICE_CALL_DESCRIPTOR} from '@app/features/voice/utils/VoiceMessageDescriptors';
+import {useLingui} from '@lingui/react/macro';
 import {ME} from '@osaca/constants/src/AppConstants';
 import {ChannelTypes} from '@osaca/constants/src/ChannelConstants';
 import {RelationshipTypes} from '@osaca/constants/src/UserConstants';
-import {useLingui} from '@lingui/react/macro';
 import {
 	EyeSlashIcon,
 	ListIcon,
 	MagnifyingGlassIcon,
 	PencilIcon,
 	PhoneIcon,
+	ShieldCheckIcon,
+	ShieldWarningIcon,
 	StarIcon,
 	UserPlusIcon,
 	UsersIcon,
@@ -1116,6 +1122,34 @@ export const ChannelHeader = observer(
 										</FocusRing>
 									</Tooltip>
 								)}
+							{channel?.type === ChannelTypes.DM &&
+								channel.recipientIds?.[0] &&
+								!isMobile &&
+								(() => {
+									const recipientId = channel.recipientIds[0];
+									const keyChanged = tofuKeyManager.hasKeyChanged(recipientId);
+									const verified = tofuKeyManager.isVerified(recipientId);
+									let safetyLabel = 'Verify safety number';
+									if (keyChanged) {
+										safetyLabel = 'Identity key changed - verify safety number';
+									} else if (verified) {
+										safetyLabel = 'End-to-end encrypted (verified)';
+									}
+
+									return (
+										<ChannelHeaderIcon
+											icon={keyChanged ? ShieldWarningIcon : ShieldCheckIcon}
+											isSelected={verified}
+											label={safetyLabel}
+											onClick={() => {
+												const user = Users.getUser(recipientId);
+												const username = user ? NicknameUtils.getNickname(user, null) : 'contact';
+												openVerifySafetyNumberModal({contactUserId: recipientId, contactUsername: username});
+											}}
+											data-flx="channel.channel-header.verify-safety-number"
+										/>
+									);
+								})()}
 							{showMembersToggle && !isMobile && (
 								<ChannelHeaderIcon
 									icon={UsersIcon}

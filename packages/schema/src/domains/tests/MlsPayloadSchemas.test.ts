@@ -10,6 +10,7 @@ import {
 	type MlsReactionRemovePayload,
 	parseMlsApplicationPayload,
 } from '../mls/MlsPayloadSchemas';
+import {ContactIdentityRecordSchema} from '../mls/MlsSchemas';
 
 describe('MlsPayloadSchemas', () => {
 	it('parses and formats chat_message payloads', () => {
@@ -123,5 +124,25 @@ describe('MlsPayloadSchemas', () => {
 		const formatted = formatMlsApplicationPayload(payload);
 		const parsed = parseMlsApplicationPayload(formatted);
 		expect(parsed).toEqual(payload);
+	});
+
+	it('validates ContactIdentityRecordSchema', () => {
+		const record = {
+			accountId: 'user-123',
+			identityKeyHex: 'a'.repeat(64),
+			firstSeenAt: 1700000000000,
+			lastSeenAt: 1700000050000,
+			verified: false,
+			keyChanged: true,
+			pendingKeyHex: 'b'.repeat(64),
+			previousKeys: [
+				{
+					identityKeyHex: '9'.repeat(64),
+					retiredAt: 1699999900000,
+				},
+			],
+		};
+		const parsed = ContactIdentityRecordSchema.safeParse(record);
+		expect(parsed.success).toBe(true);
 	});
 });

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import {SafetyNumberWarningBanner} from '@app/features/channel/components/alerts/SafetyNumberWarningBanner';
 import {
 	AccountGateBarrier,
 	AccountLimitedBarrier,
@@ -34,6 +35,7 @@ import dmStyles from '@app/features/channel/components/direct_message/DMChannelV
 import {useChannelPanelVisibility} from '@app/features/channel/hooks/useChannelPanelVisibility';
 import Channels from '@app/features/channel/state/Channels';
 import * as ChannelUtils from '@app/features/channel/utils/ChannelUtils';
+import {mlsClientManager} from '@app/features/crypto/MlsClientManager';
 import {INCOMING_CALL_DESCRIPTOR} from '@app/features/i18n/utils/CommonMessageDescriptors';
 import {useMemberListVisible} from '@app/features/member/hooks/useMemberListVisible';
 import {ComponentBus} from '@app/features/platform/utils/ComponentBus';
@@ -62,9 +64,9 @@ import {
 } from '@app/features/voice/state/CompactVoiceCallHeight';
 import {VOICE_CALL_DESCRIPTOR} from '@app/features/voice/utils/VoiceMessageDescriptors';
 import {useOsacaDocumentTitle} from '@app/features/window/hooks/useOsacaDocumentTitle';
+import {Trans, useLingui} from '@lingui/react/macro';
 import {TierGatedActions} from '@osaca/constants/src/AccountTierConstants';
 import {ChannelTypes} from '@osaca/constants/src/ChannelConstants';
-import {Trans, useLingui} from '@lingui/react/macro';
 import {ChatTeardropIcon, PhoneIcon} from '@phosphor-icons/react';
 import {clsx} from 'clsx';
 import {observer} from 'mobx-react-lite';
@@ -120,6 +122,11 @@ export const DMChannelView = observer(({channelId}: DMChannelViewProps) => {
 		defaultHiddenForChannel: memberListDefaultHiddenForChannel,
 	});
 	useChannelPanelVisibility(channelId, isMemberListVisible);
+	useEffect(() => {
+		if ((isDM || isGroupDM) && channel?.recipientIds?.length) {
+			void mlsClientManager.getOrCreateGroupSession(channelId, channel.recipientIds);
+		}
+	}, [channelId, isDM, isGroupDM, channel?.recipientIds]);
 	const callExistsAndOngoing = callHeaderState.callExistsAndOngoing;
 	const controlsVariant = callHeaderState.controlsVariant;
 	const showCallBackground = callExistsAndOngoing && controlsVariant !== 'hidden';
@@ -469,8 +476,15 @@ export const DMChannelView = observer(({channelId}: DMChannelViewProps) => {
 			{callSurface}
 		</div>
 	);
+	const safetyWarningBanner =
+		(isDM || isGroupDM) && channel ? (
+			<SafetyNumberWarningBanner channelId={channel.id} changedRecipientIds={channel.recipientIds ?? []} />
+		) : null;
 	const channelMessages = (
-		<Messages key={channel.id} channel={channel} data-flx="channel.channel-view.dm-channel-view.messages" />
+		<>
+			{safetyWarningBanner}
+			<Messages key={channel.id} channel={channel} data-flx="channel.channel-view.dm-channel-view.messages" />
+		</>
 	);
 	let channelTextarea: ReactNode;
 	if (isSystemDm) {

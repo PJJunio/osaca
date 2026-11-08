@@ -10,9 +10,9 @@ import * as ToastCommands from '@app/features/ui/commands/ToastCommands';
 import FocusRing from '@app/features/ui/focus_ring/FocusRing';
 import {Tooltip} from '@app/features/ui/tooltip/Tooltip';
 import {isDesktop} from '@app/features/ui/utils/NativeUtils';
-import {formatReleaseChannelLabel} from '@osaca/desktop_ipc/src/DesktopLabels';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
+import {formatReleaseChannelLabel} from '@osaca/desktop_ipc/src/DesktopLabels';
 import {observer} from 'mobx-react-lite';
 import {useEffect, useState} from 'react';
 
@@ -41,6 +41,10 @@ const YOU_ARE_NOW_A_DEVELOPER_DESCRIPTOR = msg({
 const CLICK_TO_COPY_DESCRIPTOR = msg({
 	message: 'Click to copy',
 	comment: 'Short label in the settings dialog client info.',
+});
+const EXPERIMENTAL_E2EE_DESCRIPTOR = msg({
+	message: 'Experimental, unaudited E2EE',
+	comment: 'Badge indicating that E2EE is experimental and unaudited per ADR-0016.',
 });
 export const ClientInfo = observer(() => {
 	const {i18n} = useLingui();
@@ -111,6 +115,9 @@ export const ClientInfo = observer(() => {
 						{browserName} {browserVersion}
 					</span>
 					<span data-flx="app.client-info.span--5">{osDescription}</span>
+					<span className={styles.experimentalBadge} data-flx="app.client-info.experimental-badge">
+						{i18n._(EXPERIMENTAL_E2EE_DESCRIPTOR)}
+					</span>
 				</button>
 			</FocusRing>
 		</Tooltip>

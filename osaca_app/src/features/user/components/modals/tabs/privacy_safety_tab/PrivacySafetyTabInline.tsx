@@ -2,6 +2,7 @@
 
 import {SettingsSection} from '@app/features/app/components/dialogs/shared/SettingsSection';
 import Accounts from '@app/features/auth/state/Accounts';
+import {WarningAlert} from '@app/features/ui/warning_alert/WarningAlert';
 import {ActiveNowTabContent as ActiveNowTab} from '@app/features/user/components/modals/tabs/privacy_safety_tab/ActiveNowTab';
 import {CommunicationTabContent as CommunicationTab} from '@app/features/user/components/modals/tabs/privacy_safety_tab/CommunicationTab';
 import {ConnectionsTabContent as ConnectionsTab} from '@app/features/user/components/modals/tabs/privacy_safety_tab/ConnectionsTab';
@@ -40,6 +41,15 @@ const DATA_DELETION_DESCRIPTOR = msg({
 	message: 'Data deletion',
 	comment: 'Short label in the privacy dashboard. Keep it concise.',
 });
+const EXPERIMENTAL_E2EE_TITLE_DESCRIPTOR = msg({
+	message: 'Experimental, unaudited E2EE',
+	comment: 'Advisory title indicating end-to-end encryption is currently unaudited per ADR-0016.',
+});
+const EXPERIMENTAL_E2EE_BODY_DESCRIPTOR = msg({
+	message:
+		'End-to-end encryption in OSACA is currently experimental and has not yet undergone an independent security audit. Do not rely on it for high-risk privacy or life-or-death situations (ADR-0016).',
+	comment: 'Advisory body text warning users that E2EE is experimental and unaudited.',
+});
 export const PrivacyDashboardContent: React.FC = observer(() => {
 	const {i18n} = useLingui();
 	const accountKey = Accounts.currentAccountKey;
@@ -50,6 +60,12 @@ export const PrivacyDashboardContent: React.FC = observer(() => {
 			className={styles.container}
 			data-flx="user.privacy-safety-tab.privacy-dashboard-content.container"
 		>
+			<WarningAlert
+				title={i18n._(EXPERIMENTAL_E2EE_TITLE_DESCRIPTOR)}
+				data-flx="user.privacy-safety-tab.privacy-dashboard-content.experimental-e2ee-warning"
+			>
+				{i18n._(EXPERIMENTAL_E2EE_BODY_DESCRIPTOR)}
+			</WarningAlert>
 			<SettingsSection
 				id="profile-privacy"
 				tabType="privacy_safety"

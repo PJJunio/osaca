@@ -36,7 +36,7 @@ pub fn build_router(state: AppState) -> Router {
     let base = Router::new()
         .route("/_health", get(health::health))
         .route("/_ready", get(health::ready));
-    let router = if state.config.self_hosted {
+    let router = if state.config.self_hosted && state.config.index_upstream_url.is_none() {
         base.fallback(|| async { axum::http::StatusCode::NOT_FOUND })
     } else {
         base.route(

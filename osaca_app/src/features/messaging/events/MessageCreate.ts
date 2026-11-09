@@ -23,7 +23,32 @@ import type {GuildMemberData} from '@osaca/schema/src/domains/guild/GuildMemberS
 import type {Message} from '@osaca/schema/src/domains/message/MessageResponseSchemas';
 import {parseMlsApplicationPayload} from '@osaca/schema/src/domains/mls/MlsPayloadSchemas';
 
+function normalizeIncomingMessage(data: Message): void {
+	if (!data.timestamp && (data as unknown as {created_at?: string}).created_at) {
+		data.timestamp = (data as unknown as {created_at: string}).created_at;
+	}
+	if (!data.timestamp) {
+		data.timestamp = new Date().toISOString();
+	}
+	if (!data.mentions) data.mentions = [];
+	if (!data.mention_roles) data.mention_roles = [];
+	if (!data.attachments) data.attachments = [];
+	if (!data.embeds) data.embeds = [];
+	if (!data.reactions) data.reactions = [];
+	if (data.type === undefined) (data as unknown as {type: number}).type = 0;
+	if (data.flags === undefined) data.flags = 0;
+	if (data.pinned === undefined) data.pinned = false;
+	if (data.mention_everyone === undefined) data.mention_everyone = false;
+	if (data.tts === undefined) data.tts = false;
+	if (data.content === undefined) data.content = '';
+	if (data.author) {
+		if (data.author.global_name === undefined) data.author.global_name = null;
+		if (data.author.discriminator === undefined) data.author.discriminator = '0000';
+	}
+}
+
 function dispatchIncomingMessage(data: Message): void {
+	normalizeIncomingMessage(data);
 	if (data.guild_id && data.member) {
 		GuildMembers.hydrateIfMissing(data.guild_id, {
 			...data.member,
@@ -125,6 +150,13 @@ export function handleMessageCreate(data: Message, _context: GatewayHandlerConte
 				}
 			} catch {
 				// Decryption failed or out-of-order epoch
+			}
+			// If decryption returned empty (e.g. self-sent MLS message), recover optimistic content
+			const existing =
+				(data.nonce ? Messages.getMessage(data.channel_id, data.nonce) : null) ??
+				Messages.getMessage(data.channel_id, data.id);
+			if (existing && existing.content && (!data.content || data.content.length === 0)) {
+				data.content = existing.content;
 			}
 			dispatchIncomingMessage(data);
 		})();

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import {createHash} from 'node:crypto';
-import {DeviceSession, ensureCryptoWasmReady} from '@osaca/crypto';
+import {DeviceSession, ensureCryptoWasmReady} from '../packages/osaca_crypto/src/index.ts';
 import pg from 'pg';
 
 ensureCryptoWasmReady();

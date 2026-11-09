@@ -1,4 +1,7 @@
 * text=auto
+*.sh text eol=lf
+.devcontainer/** text eol=lf
+Dockerfile* text eol=lf
 osaca_static/** -text -diff
 osaca_static/**/*.md text diff
 osaca_static/*.sh text eol=lf diff

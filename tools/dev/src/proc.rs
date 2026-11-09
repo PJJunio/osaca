@@ -209,6 +209,10 @@ pub fn configure_process_group(command: &mut Command) {
             Ok(())
         });
     }
+    #[cfg(not(unix))]
+    {
+        let _ = command;
+    }
 }
 
 #[cfg(unix)]

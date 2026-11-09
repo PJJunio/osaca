@@ -354,8 +354,14 @@ fn docker_command() -> Vec<PathBuf> {
     vec![PathBuf::from("sudo"), PathBuf::from("docker")]
 }
 
+#[cfg(unix)]
 fn docker_socket_is_writable() -> bool {
     std::os::unix::net::UnixStream::connect("/var/run/docker.sock").is_ok()
+}
+
+#[cfg(not(unix))]
+fn docker_socket_is_writable() -> bool {
+    true
 }
 
 #[cfg(unix)]

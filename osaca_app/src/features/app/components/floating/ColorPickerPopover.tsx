@@ -40,12 +40,12 @@ export const ColorPickerPopover = observer(
 		showAlpha?: boolean;
 		children?: React.ReactNode;
 	}) => {
-		const hasCustomColor = color !== null && color !== '#4641D9';
+		const hasCustomColor = color !== null && color !== '#E84B35';
 		const parsedColor = useMemo(() => {
 			try {
 				return parseColor(color).toFormat('hsb');
 			} catch {
-				return parseColor('#4641D9').toFormat('hsb');
+				return parseColor('#E84B35').toFormat('hsb');
 			}
 		}, [color]);
 		const activeDragRef = useRef<{pointerId: number; target: DragTarget} | null>(null);

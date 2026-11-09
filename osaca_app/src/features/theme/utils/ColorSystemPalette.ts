@@ -49,22 +49,23 @@ interface ThemePalette {
 }
 
 export const COLOR_FAMILIES: Record<string, ColorFamily> = {
-	neutralDark: {hue: 258, saturation: 10, useSaturationFactor: true},
-	neutralLight: {hue: 220, saturation: 10, useSaturationFactor: true},
-	brand: {hue: 242, saturation: 70, useSaturationFactor: true},
-	link: {hue: 198, saturation: 92, useSaturationFactor: true},
-	accentPurple: {hue: 278, saturation: 85, useSaturationFactor: true},
-	statusOnline: {hue: 152, saturation: 72, useSaturationFactor: true},
-	legacyDark: {hue: 220, saturation: 13, useSaturationFactor: true},
-	legacyLink: {hue: 210, saturation: 100, useSaturationFactor: true},
-	legacyAccentPurple: {hue: 270, saturation: 80, useSaturationFactor: true},
-	legacyStatusOnline: {hue: 142, saturation: 76, useSaturationFactor: true},
+	neutralDark: {hue: 208, saturation: 61, useSaturationFactor: true},
+	neutralLight: {hue: 45, saturation: 22, useSaturationFactor: true},
+	brand: {hue: 7, saturation: 80, useSaturationFactor: true},
+	slate: {hue: 207, saturation: 11, useSaturationFactor: true},
+	link: {hue: 208, saturation: 85, useSaturationFactor: true},
+	accentPurple: {hue: 208, saturation: 61, useSaturationFactor: true},
+	statusOnline: {hue: 161, saturation: 84, useSaturationFactor: true},
+	legacyDark: {hue: 208, saturation: 61, useSaturationFactor: true},
+	legacyLink: {hue: 208, saturation: 85, useSaturationFactor: true},
+	legacyAccentPurple: {hue: 208, saturation: 61, useSaturationFactor: true},
+	legacyStatusOnline: {hue: 161, saturation: 84, useSaturationFactor: true},
 	statusIdle: {hue: 45, saturation: 93, useSaturationFactor: true},
-	statusDnd: {hue: 0, saturation: 84, useSaturationFactor: true},
-	statusOffline: {hue: 218, saturation: 11, useSaturationFactor: true},
-	statusDanger: {hue: 1, saturation: 77, useSaturationFactor: true},
-	textCode: {hue: 340, saturation: 50, useSaturationFactor: true},
-	brandIcon: {hue: 38, saturation: 92, useSaturationFactor: true},
+	statusDnd: {hue: 7, saturation: 80, useSaturationFactor: true},
+	statusOffline: {hue: 207, saturation: 11, useSaturationFactor: true},
+	statusDanger: {hue: 7, saturation: 80, useSaturationFactor: true},
+	textCode: {hue: 7, saturation: 70, useSaturationFactor: true},
+	brandIcon: {hue: 7, saturation: 80, useSaturationFactor: true},
 };
 
 export const COLOR_SCALES: Record<string, Scale> = {
@@ -137,7 +138,7 @@ export const COLOR_SCALES: Record<string, Scale> = {
 		],
 	},
 	lightText: {
-		family: 'neutralLight',
+		family: 'slate',
 		range: [15, 54],
 		curve: 'easeOut',
 		stops: [

@@ -30,7 +30,7 @@ OSACA is a free and open-source, self-hosted community chat and voice app in the
 It is a hard fork of [Fluxer](https://github.com/fluxerapp/fluxer). Fluxer is a great self-hosted chat app, but it has no end-to-end encryption, so an instance operator can see every message, attachment, IP address and DM. OSACA keeps the community product and puts user anonymity first.
 
 > [!WARNING]
-> **OSACA is pre-alpha and unaudited.** Today the code is still Fluxer's, plus a written plan. **None of the guarantees below are implemented yet.** Do not use it to protect anyone.
+> **OSACA is pre-alpha and unaudited.** Phase F1 (E2EE private messaging) and the visual identity are implemented, but the cryptographic implementation has not undergone a formal third-party audit yet. Do not use it in life-critical threat models.
 
 ### Goals
 
@@ -48,10 +48,11 @@ It is a hard fork of [Fluxer](https://github.com/fluxerapp/fluxer). Fluxer is a 
 ### Roadmap
 
 | Phase | Scope | Status |
-| --- | --- | --- |
-| **F0** | "Fluxer without surveillance": rename; remove billing, GIFs, GeoIP, email and IP logging; operational-only admin panel; Postgres only | 🟡 Planned |
-| **F1** | E2EE DMs and group DMs, encrypted attachments, local search, safety numbers | ⚪ Planned |
-| **F2** | E2EE communities, signed membership and roles, E2EE voice | ⚪ Planned |
+| :--- | :--- | :--- |
+| **F0** | "Fluxer without surveillance": rename; remove billing, GIFs, GeoIP, email/IP logging; operational admin panel; Postgres only | 🟢 Completed |
+| **VIR** | Visual Identity Revamp: official OSACA palette, local Montserrat & Inter fonts, hybrid layout, anonymous identicons, docs & brand assets | 🟢 Completed |
+| **F1** | E2EE Private Conversations (MLS RFC 9420), encrypted attachments, local search, TOFU safety numbers | 🟢 Completed |
+| **F2** | E2EE communities, signed membership and roles, E2EE voice | 🟡 Next / Planned |
 | **F3** | Multi-device with QR linking, key backup | ⚪ Planned |
 | **F4** | Shared history, encrypted profiles, key transparency, mobile | ⚪ Later |
 
@@ -136,7 +137,7 @@ O OSACA é um app de comunidades com chat e voz, no estilo Discord, **gratuito, 
 O projeto é um fork definitivo do [Fluxer](https://github.com/fluxerapp/fluxer). O Fluxer é um ótimo chat self-hosted, mas não tem criptografia de ponta a ponta: o operador da instância vê todas as mensagens, anexos, IPs e DMs. O OSACA mantém o produto de comunidades e coloca o anonimato do usuário em primeiro lugar.
 
 > [!WARNING]
-> **O OSACA está em pré-alfa e não foi auditado.** Hoje o código ainda é o do Fluxer, junto com um plano escrito. **Nenhuma das garantias abaixo está implementada ainda.** Não use o OSACA para proteger ninguém.
+> **O OSACA está em pré-alfa e não foi auditado.** A Fase F1 (mensagens privadas com E2EE) e a identidade visual estão implementadas, mas a implementação criptográfica ainda não passou por auditoria externa independente. Não use o OSACA para proteger vidas ou em cenários de alto risco.
 
 ### Objetivos
 
@@ -151,11 +152,12 @@ O projeto é um fork definitivo do [Fluxer](https://github.com/fluxerapp/fluxer)
 
 ### Roadmap
 
-- **F0:** "Fluxer sem vigilância". Rebrand; remoção de cobrança, GIFs, GeoIP, e-mail e logs de IP; painel admin só operacional; só Postgres.
-- **F1:** DMs e grupos de DM com E2EE, anexos criptografados, busca local e números de segurança.
-- **F2:** comunidades com E2EE, membros e cargos assinados e voz com E2EE.
-- **F3:** vários dispositivos por conta com QR code e backup de chaves.
-- **F4:** histórico compartilhado, perfis criptografados, Key Transparency e mobile.
+- **F0:** "Fluxer sem vigilância". Rebrand; remoção de cobrança, GIFs, GeoIP, e-mail e logs de IP; painel admin operacional; Postgres. — 🟢 **Concluído**
+- **VIR:** Identidade Visual Oficial. Paleta OSACA, fontes locais Montserrat e Inter, layout híbrido, identicons determinísticos e documentação. — 🟢 **Concluído**
+- **F1:** DMs e grupos de DM com E2EE (MLS RFC 9420), anexos criptografados, busca local cifrada e números de segurança (TOFU). — 🟢 **Concluído**
+- **F2:** Comunidades com E2EE, membros e cargos assinados e voz com E2EE. — 🟡 **Próximo / Planejado**
+- **F3:** Vários dispositivos por conta com QR code e backup de chaves. — ⚪ **Planejado**
+- **F4:** Histórico compartilhado, perfis criptografados, Key Transparency e mobile. — ⚪ **Futuro**
 
 A análise completa está no **[Levantamento Técnico](docs/osaca-technical-survey.md)**, em inglês. A documentação técnica fica em inglês para atrair contribuidores de qualquer lugar.
 

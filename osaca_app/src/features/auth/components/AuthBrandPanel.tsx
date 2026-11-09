@@ -144,6 +144,9 @@ export function AuthBrandPanel({brand, logo, onLogoError, layout}: AuthBrandPane
 					onImageError={handleWordmarkError}
 					data-flx="auth.components.auth-brand-panel.wordmark"
 				/>
+				<span className={styles.tagline} data-flx="auth.components.auth-brand-panel.tagline">
+					Comunidade, sem vigilância.
+				</span>
 			</flx-auth-card-brand-identity>
 			{brand.host == null ? null : (
 				<span className={styles.host} dir="ltr" data-flx="auth.components.auth-brand-panel.host">

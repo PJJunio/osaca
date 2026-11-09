@@ -26,14 +26,14 @@
 	position: fixed;
 	inset: 0;
 	display: flex;
-	background: linear-gradient(145deg, #05040d 0%, #080616 48%, #0d0a1c 100%);
+	background: linear-gradient(145deg, #102b42 0%, #0d1f30 48%, #081420 100%);
 }
 
 .container {
 	position: relative;
 	min-height: 100svh;
 	width: 100%;
-	background-color: #080616;
+	background-color: #102b42;
 }
 
 :global(.auth-page),
@@ -201,10 +201,10 @@
 	width: 100%;
 	max-width: 32rem;
 	overflow: hidden;
-	border: 0.0625rem solid rgb(255 255 255 / 0.08);
-	border-radius: 0.5rem;
+	border: 0.0625rem solid var(--border-color, rgb(255 255 255 / 0.12));
+	border-radius: var(--radius-xl, 0.75rem);
 	background-color: var(--background-secondary);
-	box-shadow: 0 1.25rem 4rem -1.5rem rgb(0 0 0 / 0.7);
+	box-shadow: 0 1.25rem 4rem -1.5rem rgb(0 0 0 / 0.5);
 	transition:
 		max-width 180ms ease,
 		box-shadow 180ms ease;

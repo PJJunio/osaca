@@ -1,8 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {readFileSync} from 'node:fs';
-import {dirname, join} from 'node:path';
-import {fileURLToPath} from 'node:url';
 import type {InitOutput} from '../wasm/osaca_crypto.js';
 import initWasm, {initSync} from '../wasm/osaca_crypto.js';
 
@@ -11,15 +8,37 @@ const RESULT_HEADER_BYTES = 16;
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder('utf-8', {fatal: false});
 
+interface NodeBuiltins {
+	readFileSync(path: URL): Uint8Array;
+}
+
+/**
+ * Resolves `node:fs` synchronously without a static import, so browser bundles
+ * never pull Node built-ins. Returns null outside Node.
+ */
+function getNodeFs(): NodeBuiltins | null {
+	const proc = (globalThis as {process?: {getBuiltinModule?: (id: string) => unknown}}).process;
+	if (typeof proc?.getBuiltinModule !== 'function') {
+		return null;
+	}
+	return (proc.getBuiltinModule('node:fs') as NodeBuiltins | undefined) ?? null;
+}
+
+/**
+ * Synchronously initializes the crypto wasm module. Works in Node (reads the
+ * wasm file from disk). In browsers, `initCryptoWasm()` must be awaited first.
+ */
 export function ensureCryptoWasmReady(): InitOutput {
 	if (wasmInstance) {
 		return wasmInstance;
 	}
 
-	const currentDir = typeof __dirname !== 'undefined' ? __dirname : dirname(fileURLToPath(import.meta.url));
-	const wasmPath = join(currentDir, '../wasm/osaca_crypto_bg.wasm');
-	const wasmBytes = readFileSync(wasmPath);
+	const fs = getNodeFs();
+	if (!fs) {
+		throw new Error('osaca_crypto wasm is not initialized; await initCryptoWasm() before using it in the browser');
+	}
 
+	const wasmBytes = fs.readFileSync(new URL('../wasm/osaca_crypto_bg.wasm', import.meta.url));
 	wasmInstance = initSync({module: wasmBytes});
 	return wasmInstance;
 }
@@ -28,10 +47,14 @@ export async function initCryptoWasm(moduleOrPath?: Parameters<typeof initWasm>[
 	if (wasmInstance) {
 		return wasmInstance;
 	}
-	if (!moduleOrPath) {
+	if (moduleOrPath) {
+		wasmInstance = await initWasm(moduleOrPath);
+		return wasmInstance;
+	}
+	if (getNodeFs()) {
 		return ensureCryptoWasmReady();
 	}
-	wasmInstance = await initWasm(moduleOrPath);
+	wasmInstance = await initWasm({module_or_path: new URL('../wasm/osaca_crypto_bg.wasm', import.meta.url)});
 	return wasmInstance;
 }
 

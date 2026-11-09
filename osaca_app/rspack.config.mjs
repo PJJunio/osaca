@@ -529,6 +529,8 @@ export default () => {
 					'bridge',
 					'index.ts',
 				),
+				'@osaca/crypto$': path.join(MONOREPO_ROOT, 'packages', 'osaca_crypto', 'src', 'index.ts'),
+				'@osaca/crypto': path.join(MONOREPO_ROOT, 'packages', 'osaca_crypto'),
 				'@osaca': path.join(MONOREPO_ROOT, 'packages'),
 				'@pkgs': PKGS_DIR,
 				'assert/strict': BROWSER_ASSERT_STRICT_MODULE,

@@ -6,7 +6,7 @@ import AppStorage from '@app/features/platform/state/PersistentStorage';
 import {http} from '@app/features/platform/transport/RestTransport';
 import {HttpError} from '@app/features/platform/types/EndpointError';
 import {Logger} from '@app/features/platform/utils/AppLogger';
-import {DeviceSession, ensureCryptoWasmReady, IdentityKey, MlsGroupSession, RecoveryKit} from '@osaca/crypto';
+import {DeviceSession, IdentityKey, initCryptoWasm, MlsGroupSession, RecoveryKit} from '@osaca/crypto';
 import {formatMlsApplicationPayload, type MlsApplicationPayload} from '@osaca/schema/src/domains/mls/MlsPayloadSchemas';
 import type {
 	MlsCiphertextMessageResponse,
@@ -74,7 +74,7 @@ export class MlsClientManager {
 	}
 
 	async initialize(accountId: string): Promise<void> {
-		ensureCryptoWasmReady();
+		await initCryptoWasm();
 		this.accountId = accountId;
 
 		const storagePrefix = `${accountId}:`;

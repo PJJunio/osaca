@@ -17,7 +17,8 @@
 	--font-fallback-mono:
 		'Noto Sans Mono', 'OSACA Sans SC', 'OSACA Sans TC', 'OSACA Sans JP', 'OSACA Sans KR', var(--font-fallback-sans);
 
-	--font-sans-primary: 'OSACA Sans';
+	--font-display: 'Montserrat', var(--font-sans);
+	--font-sans-primary: 'Inter', 'OSACA Sans';
 	--font-sans:
 		var(--font-sans-primary), 'OSACA Sans Arabic', 'OSACA Sans Hebrew', 'OSACA Sans Devanagari', 'OSACA Sans Thai Looped',
 		'OSACA Sans SC', 'OSACA Sans TC', 'OSACA Sans JP', 'OSACA Sans KR', system-ui, -apple-system,
@@ -26,7 +27,7 @@
 }
 
 :root.platform-windows:not(.windows-osaca-sans) {
-	--font-sans-primary: 'Segoe UI Variable Text', 'Segoe UI';
+	--font-sans-primary: 'Inter', 'Segoe UI Variable Text', 'Segoe UI';
 }
 
 :root:lang(ja) {

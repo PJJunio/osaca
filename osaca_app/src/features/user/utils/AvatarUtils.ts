@@ -12,18 +12,10 @@ import {
 import {mediaUrl, setPathQueryParams} from '@app/features/messaging/utils/MessagingUrlUtils';
 import {getAppRemScale} from '@app/features/ui/utils/AppZoomUtils';
 import type {User} from '@app/features/user/models/User';
-import avatar0 from '@app/media/images/avatars/0.png';
-import avatar1 from '@app/media/images/avatars/1.png';
-import avatar2 from '@app/media/images/avatars/2.png';
-import avatar3 from '@app/media/images/avatars/3.png';
-import avatar4 from '@app/media/images/avatars/4.png';
-import avatar5 from '@app/media/images/avatars/5.png';
-import neutralAvatar0 from '@app/media/images/avatars/neutral/0.png';
-import neutralAvatar1 from '@app/media/images/avatars/neutral/1.png';
-import neutralAvatar2 from '@app/media/images/avatars/neutral/2.png';
-import neutralAvatar3 from '@app/media/images/avatars/neutral/3.png';
-import neutralAvatar4 from '@app/media/images/avatars/neutral/4.png';
-import neutralAvatar5 from '@app/media/images/avatars/neutral/5.png';
+import {
+	generateDeterministicIdenticon,
+	hashIdentityString,
+} from '@app/features/auth/DeterministicIdenticon';
 import {OSACABOT_ID} from '@osaca/constants/src/AppConstants';
 import {
 	MEDIA_PROXY_AVATAR_SIZE_DEFAULT,
@@ -31,7 +23,14 @@ import {
 } from '@osaca/constants/src/MediaProxyAssetSizes';
 import type {MediaProxyImageSize} from '@osaca/constants/src/MediaProxyImageSizes';
 
-const DEFAULT_AVATAR_PRIMARY_COLORS = [0x4641d9, 0xf0b100, 0x00bba7, 0x2b7fff, 0xad46ff, 0x6a7282];
+const DEFAULT_AVATAR_PRIMARY_COLORS = [
+	0x102b42, // Azul-marinho
+	0xe84b35, // Vermelho-terra
+	0x687783, // Cinza ardósia
+	0x1b3850, // Azul-marinho suave
+	0xd03e2a, // Vermelho acentuado
+	0x2e4960, // Ardósia profundo
+];
 const DEFAULT_AVATAR_COUNT = BigInt(DEFAULT_AVATAR_PRIMARY_COLORS.length);
 const normalizeEndpoint = (endpoint: string): string => endpoint.replace(/\/$/, '');
 export const parseAvatarHash = (value: string) => {
@@ -39,47 +38,22 @@ export const parseAvatarHash = (value: string) => {
 	const hash = animated ? value.slice(2) : value;
 	return {animated, hash};
 };
-const getDefaultAvatarIndex = (id: string): number => Number(BigInt(id) % DEFAULT_AVATAR_COUNT);
+const getDefaultAvatarIndex = (id: string): number => {
+	try {
+		return Number(BigInt(id) % DEFAULT_AVATAR_COUNT);
+	} catch {
+		return hashIdentityString(id) % Number(DEFAULT_AVATAR_COUNT);
+	}
+};
 export const getDefaultAvatarPrimaryColor = (id: string): number =>
 	DEFAULT_AVATAR_PRIMARY_COLORS[getDefaultAvatarIndex(id)];
 
-const DEFAULT_AVATARS: ReadonlyArray<string> = [avatar0, avatar1, avatar2, avatar3, avatar4, avatar5];
-
-const NEUTRAL_DEFAULT_AVATARS: ReadonlyArray<string> = [
-	neutralAvatar0,
-	neutralAvatar1,
-	neutralAvatar2,
-	neutralAvatar3,
-	neutralAvatar4,
-	neutralAvatar5,
-];
-
-const DEFAULT_AVATAR_ASSET_COUNT = DEFAULT_AVATARS.length;
-
-function brandingReplacesDefaultAvatars(snapshot: RuntimeConfigSnapshot): boolean {
-	const {icon_url, symbol_url} = snapshot.appPublic.branding;
-	return icon_url !== null || symbol_url !== null;
-}
-
-function usesNeutralDefaultAvatars(): boolean {
-	const snapshot = RuntimeConfig.getSnapshotOrNull();
-	return snapshot !== null && RuntimeConfig.isSelfHosted() && brandingReplacesDefaultAvatars(snapshot);
-}
-
-function pickDefaultAvatar(index: number, neutral: boolean): string {
-	const avatars = neutral ? NEUTRAL_DEFAULT_AVATARS : DEFAULT_AVATARS;
-	return avatars[((index % DEFAULT_AVATAR_ASSET_COUNT) + DEFAULT_AVATAR_ASSET_COUNT) % DEFAULT_AVATAR_ASSET_COUNT];
-}
-
 export function getDefaultAvatarURLForIndex(index: number): string {
-	return pickDefaultAvatar(index, usesNeutralDefaultAvatars());
+	return generateDeterministicIdenticon(String(index));
 }
 
-export function getDefaultAvatarURLForInstance(id: string, instance: RuntimeConfigSnapshot): string {
-	return pickDefaultAvatar(
-		getDefaultAvatarIndex(id),
-		instance.features.self_hosted && brandingReplacesDefaultAvatars(instance),
-	);
+export function getDefaultAvatarURLForInstance(id: string, _instance?: RuntimeConfigSnapshot): string {
+	return generateDeterministicIdenticon(id);
 }
 
 export {snapMediaProxyImageSize};
@@ -145,7 +119,7 @@ export function getSystemUserBrandingColor(userId: string): string | null {
 }
 
 export function getDefaultAvatarURL(id: string) {
-	return getDefaultAvatarURLForIndex(getDefaultAvatarIndex(id));
+	return generateDeterministicIdenticon(id);
 }
 
 type AvatarOptions = Pick<User, 'id' | 'avatar'>;
@@ -222,7 +196,7 @@ export function getUserAvatarURL(
 	size: MediaProxyImageSize = MEDIA_PROXY_AVATAR_SIZE_DEFAULT,
 ) {
 	if (!avatar) {
-		return getDefaultAvatarURLForIndex(getDefaultAvatarIndex(id));
+		return generateDeterministicIdenticon(id);
 	}
 	const {hash, animated: shouldAnimate} = parseMediaHashForRequest(avatar, animated);
 	return buildWebpMediaUrl({
@@ -239,7 +213,7 @@ export function getUserNotificationAvatarURL(
 	size: MediaProxyImageSize = MEDIA_PROXY_AVATAR_SIZE_DEFAULT,
 ) {
 	if (!avatar) {
-		return getDefaultAvatarURLForIndex(getDefaultAvatarIndex(id));
+		return generateDeterministicIdenticon(id);
 	}
 	const {hash, animated} = parseMediaHashForRequest(avatar, false);
 	return buildPngMediaUrl({
@@ -257,7 +231,7 @@ export function getUserNotificationAvatarURLForEndpoint(
 	size: MediaProxyImageSize = MEDIA_PROXY_AVATAR_SIZE_DEFAULT,
 ) {
 	if (!avatar) {
-		return getDefaultAvatarURLForIndex(getDefaultAvatarIndex(id));
+		return generateDeterministicIdenticon(id);
 	}
 	const {hash, animated} = parseMediaHashForRequest(avatar, false);
 	return buildPngMediaUrl({
@@ -421,7 +395,7 @@ export function getGuildMemberAvatarURL({
 			animated: shouldAnimate,
 		});
 	}
-	return getDefaultAvatarURLForIndex(getDefaultAvatarIndex(userId));
+	return generateDeterministicIdenticon(userId);
 }
 
 export function getGuildMemberDisplayAvatarURL({
@@ -503,7 +477,7 @@ export function getUserAvatarURLForInstance(
 	size: MediaProxyImageSize = MEDIA_PROXY_AVATAR_SIZE_DEFAULT,
 ) {
 	if (!avatar) {
-		return getDefaultAvatarURLForIndex(getDefaultAvatarIndex(id));
+		return generateDeterministicIdenticon(id);
 	}
 	const {hash, animated: shouldAnimate} = parseMediaHashForRequest(avatar, animated);
 	return buildWebpMediaUrl({
@@ -549,7 +523,7 @@ export function getChannelIconURL(
 
 export function getWebhookAvatarURL({id, avatar}: AvatarOptions, animated = false) {
 	if (!avatar) {
-		return getDefaultAvatarURLForIndex(getDefaultAvatarIndex(id));
+		return generateDeterministicIdenticon(id);
 	}
 	const {hash, animated: shouldAnimate} = parseMediaHashForRequest(avatar, animated);
 	return buildWebpMediaUrl({

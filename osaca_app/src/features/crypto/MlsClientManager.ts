@@ -7,6 +7,7 @@ import {http} from '@app/features/platform/transport/RestTransport';
 import {HttpError} from '@app/features/platform/types/EndpointError';
 import {Logger} from '@app/features/platform/utils/AppLogger';
 import {DeviceSession, IdentityKey, initCryptoWasm, MlsGroupSession, RecoveryKit} from '@osaca/crypto';
+import cryptoWasmUrl from '@osaca/crypto/wasm/osaca_crypto_bg.wasm';
 import {formatMlsApplicationPayload, type MlsApplicationPayload} from '@osaca/schema/src/domains/mls/MlsPayloadSchemas';
 import type {
 	MlsCiphertextMessageResponse,
@@ -74,7 +75,7 @@ export class MlsClientManager {
 	}
 
 	async initialize(accountId: string): Promise<void> {
-		await initCryptoWasm();
+		await initCryptoWasm(cryptoWasmUrl);
 		this.accountId = accountId;
 
 		const storagePrefix = `${accountId}:`;
@@ -215,7 +216,11 @@ export class MlsClientManager {
 			// Add each recipient
 			for (const recipientId of recipientUserIds) {
 				if (recipientId === this.accountId) continue;
-				await this.addMemberToSession(group, channelId, recipientId);
+				try {
+					await this.addMemberToSession(group, channelId, recipientId);
+				} catch (err) {
+					logger.warn('Failed to add recipient to new MLS group', {recipientId, error: err});
+				}
 			}
 
 			this.checkTofuForGroup(group);
@@ -223,7 +228,24 @@ export class MlsClientManager {
 			return group;
 		}
 
-		// Group exists on server: fetch latest welcome to join
+		if (existingGroup.current_epoch === 0) {
+			// Group was registered but has no commits or welcomes yet (epoch 0).
+			// Do not query welcome for epoch 0. Create local session and add recipients.
+			const group = MlsGroupSession.create(device, groupIdBytes);
+			for (const recipientId of recipientUserIds) {
+				if (recipientId === this.accountId) continue;
+				try {
+					await this.addMemberToSession(group, channelId, recipientId);
+				} catch (err) {
+					logger.warn('Failed to add member to MLS group at epoch 0', {recipientId, error: err});
+				}
+			}
+			this.checkTofuForGroup(group);
+			this.activeGroups.set(channelId, group);
+			return group;
+		}
+
+		// Group exists on server with epoch > 0: fetch latest welcome to join
 		try {
 			const welcomeRes = await http.get<MlsWelcomeDetailResponse>(
 				Endpoints.MLS_WELCOME(channelId, existingGroup.current_epoch),
@@ -236,6 +258,14 @@ export class MlsClientManager {
 		} catch (error) {
 			logger.warn('Could not join from Welcome, falling back to local group create', error);
 			const group = MlsGroupSession.create(device, groupIdBytes);
+			for (const recipientId of recipientUserIds) {
+				if (recipientId === this.accountId) continue;
+				try {
+					await this.addMemberToSession(group, channelId, recipientId);
+				} catch (err) {
+					logger.warn('Failed to add recipient during local group fallback', {recipientId, error: err});
+				}
+			}
 			this.checkTofuForGroup(group);
 			this.activeGroups.set(channelId, group);
 			return group;

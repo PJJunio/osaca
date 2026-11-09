@@ -16,3 +16,8 @@ declare module '@arborium/arborium/arborium_host_bg.wasm' {
 	const url: string;
 	export default url;
 }
+
+declare module '@osaca/crypto/wasm/osaca_crypto_bg.wasm' {
+	const url: string;
+	export default url;
+}

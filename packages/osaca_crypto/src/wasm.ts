@@ -43,12 +43,15 @@ export function ensureCryptoWasmReady(): InitOutput {
 	return wasmInstance;
 }
 
-export async function initCryptoWasm(moduleOrPath?: Parameters<typeof initWasm>[0]): Promise<InitOutput> {
+export async function initCryptoWasm(
+	moduleOrPath?: Parameters<typeof initWasm>[0] | string,
+): Promise<InitOutput> {
 	if (wasmInstance) {
 		return wasmInstance;
 	}
 	if (moduleOrPath) {
-		wasmInstance = await initWasm(moduleOrPath);
+		const arg = typeof moduleOrPath === 'string' ? {module_or_path: moduleOrPath} : moduleOrPath;
+		wasmInstance = await initWasm(arg);
 		return wasmInstance;
 	}
 	if (getNodeFs()) {

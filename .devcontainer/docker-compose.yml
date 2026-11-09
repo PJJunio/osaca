@@ -2,6 +2,7 @@ name: osaca-dev
 
 services:
   workspace:
+    image: osaca-dev-workspace:latest
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile

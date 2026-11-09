@@ -135,7 +135,8 @@ RUN curl --retry 5 --retry-delay 2 --retry-all-errors -fsSL https://deb.nodesour
 RUN python3 -m pip install --break-system-packages --no-cache-dir awscli
 
 COPY osaca_media_proxy/tools/install-native-deps.sh /tmp/osaca-install-native-deps.sh
-RUN /tmp/osaca-install-native-deps.sh /usr/local \
+RUN chmod +x /tmp/osaca-install-native-deps.sh \
+	&& /tmp/osaca-install-native-deps.sh /usr/local \
 	&& rm /tmp/osaca-install-native-deps.sh
 
 ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/lib64/pkgconfig

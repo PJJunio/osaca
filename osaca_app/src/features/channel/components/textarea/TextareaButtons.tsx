@@ -204,6 +204,7 @@ export const TextareaButtons = React.forwardRef<HTMLDivElement, TextareaButtonsP
 										label={i18n._(SEND_MESSAGE_DESCRIPTOR)}
 										onClick={onSubmit}
 										keybindCombo={{key: 'Enter'}}
+										className={textareaButtonsStyles.sendButton}
 										data-flx="channel.textarea.textarea-buttons.textarea-button.submit"
 									/>
 								</motion.div>
@@ -220,6 +221,7 @@ export const TextareaButtons = React.forwardRef<HTMLDivElement, TextareaButtonsP
 							label={i18n._(SEND_MESSAGE_DESCRIPTOR)}
 							onClick={onSubmit}
 							keybindCombo={{key: 'Enter'}}
+							className={textareaButtonsStyles.sendButton}
 							data-flx="channel.textarea.textarea-buttons.textarea-button.submit--2"
 						/>
 					</>

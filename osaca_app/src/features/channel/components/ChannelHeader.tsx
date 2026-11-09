@@ -118,6 +118,7 @@ import CallState from '@app/features/voice/state/CallState';
 import {computeChannelE2EEStatus} from '@app/features/voice/state/ChannelE2EEStatus';
 import * as CallUtils from '@app/features/voice/utils/CallUtils';
 import {VOICE_CALL_DESCRIPTOR} from '@app/features/voice/utils/VoiceMessageDescriptors';
+import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
 import {ME} from '@osaca/constants/src/AppConstants';
 import {ChannelTypes} from '@osaca/constants/src/ChannelConstants';
@@ -141,6 +142,11 @@ import type React from 'react';
 import {useCallback, useEffect, useRef, useState} from 'react';
 
 const {VoiceCallButton, VideoCallButton} = CallButtons;
+
+const SECURE_CONNECTION_DESCRIPTOR = msg({
+	message: 'Conexão Segura (por padrão)',
+	comment: 'Channel header privacy connection badge',
+});
 
 interface ChannelHeaderProps {
 	channel?: Channel;
@@ -959,6 +965,16 @@ export const ChannelHeader = observer(
 							aria-label={i18n._(CHANNEL_ACTIONS_DESCRIPTOR)}
 							data-flx="channel.channel-header.header-right-section"
 						>
+							<div
+								className={styles.securityBadge}
+								title={i18n._(SECURE_CONNECTION_DESCRIPTOR)}
+								role="status"
+								aria-label={i18n._(SECURE_CONNECTION_DESCRIPTOR)}
+								data-flx="channel.channel-header.security-badge"
+							>
+								<span className={styles.securityDot} aria-hidden="true" />
+								<span className={styles.securityText}>{i18n._(SECURE_CONNECTION_DESCRIPTOR)}</span>
+							</div>
 							{voiceCallHeaderSupplement && (
 								<div
 									className={styles.voiceCallHeaderSupplement}

@@ -22,11 +22,11 @@ import FocusRing from '@app/features/ui/focus_ring/FocusRing';
 import MobileLayout from '@app/features/ui/state/MobileLayout';
 import SidebarPreferences from '@app/features/ui/state/SidebarPreferences';
 import {Tooltip} from '@app/features/ui/tooltip/Tooltip';
+import OsacaLogoAsset from '@app/media/images/osaca-logo-color.svg?react';
 import {ME} from '@osaca/constants/src/AppConstants';
 import {RelationshipTypes} from '@osaca/constants/src/UserConstants';
 import {msg} from '@lingui/core/macro';
 import {useLingui} from '@lingui/react/macro';
-import {ChatCircleIcon} from '@phosphor-icons/react';
 import {clsx} from 'clsx';
 import {AnimatePresence, motion} from 'framer-motion';
 import {observer} from 'mobx-react-lite';
@@ -174,10 +174,10 @@ export const OsacaButton = observer(() => {
 							transition={{duration: 0.07, ease: 'easeOut'}}
 							data-flx="app.sidebar-nav.osaca-button.osaca-button-icon"
 						>
-							<ChatCircleIcon
-								weight="fill"
+							<OsacaLogoAsset
 								className={styles.messageBubbleIcon}
 								data-flx="app.sidebar-nav.osaca-button.message-bubble-icon"
+								aria-hidden="true"
 							/>
 						</motion.div>
 						<div

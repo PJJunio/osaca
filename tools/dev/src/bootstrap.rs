@@ -38,11 +38,21 @@ pub async fn post_start() -> Result<()> {
     Ok(())
 }
 
+async fn wait_service(name: &str, container_host: &str, port: u16, timeout_secs: u64) -> Result<()> {
+    use std::net::ToSocketAddrs;
+    let host = if format!("{container_host}:{port}").to_socket_addrs().is_ok() {
+        container_host
+    } else {
+        "127.0.0.1"
+    };
+    wait_tcp(name, host, port, timeout_secs).await
+}
+
 pub async fn wait_core_infra() -> Result<()> {
-    wait_tcp("Postgres", "postgres", 5432, 120).await?;
-    wait_tcp("Valkey", "valkey", 6379, 120).await?;
-    wait_tcp("NATS", "nats", 4222, 120).await?;
-    wait_tcp("LiveKit", "livekit", 7880, 120).await?;
+    wait_service("Postgres", "postgres", 5432, 120).await?;
+    wait_service("Valkey", "valkey", 6379, 120).await?;
+    wait_service("NATS", "nats", 4222, 120).await?;
+    wait_service("LiveKit", "livekit", 7880, 120).await?;
     crate::media_proxy::ensure_dev_object_store(true, 120).await?;
     Ok(())
 }

@@ -67,13 +67,86 @@ pub fn ensure_writable_dev_paths() -> Result<()> {
 
 pub fn which(name: &str) -> Option<PathBuf> {
     let path = std::env::var_os("PATH")?;
+    #[cfg(windows)]
+    let path_exts: Vec<String> = std::env::var("PATHEXT")
+        .unwrap_or_else(|_| ".COM;.EXE;.BAT;.CMD".to_owned())
+        .split(';')
+        .filter(|ext| !ext.is_empty())
+        .map(|ext| ext.to_lowercase())
+        .collect();
+
+    let name_path = Path::new(name);
+    let has_extension = name_path.extension().is_some();
+
     for dir in std::env::split_paths(&path) {
-        let candidate = dir.join(name);
-        if candidate.is_file() {
-            return Some(candidate);
+        if has_extension || !cfg!(windows) {
+            let candidate = dir.join(name);
+            if candidate.is_file() {
+                return Some(candidate);
+            }
+        }
+        #[cfg(windows)]
+        if !has_extension {
+            for ext in &path_exts {
+                let candidate = dir.join(format!("{name}{ext}"));
+                if candidate.is_file() {
+                    return Some(candidate);
+                }
+            }
         }
     }
+
+    #[cfg(windows)]
+    if name == "sh" || name == "bash" {
+        for candidate_str in [
+            r"C:\Program Files\Git\bin\sh.exe",
+            r"C:\Program Files\Git\usr\bin\sh.exe",
+            r"C:\Program Files (x86)\Git\bin\sh.exe",
+            r"C:\Program Files\Git\bin\bash.exe",
+        ] {
+            let candidate = PathBuf::from(candidate_str);
+            if candidate.is_file() {
+                return Some(candidate);
+            }
+        }
+    }
+
     None
+}
+
+pub fn resolve_executable(name: impl AsRef<Path>) -> PathBuf {
+    let path = name.as_ref();
+    #[cfg(windows)]
+    {
+        if path.components().count() > 1 {
+            if path.is_file() {
+                return path.to_path_buf();
+            }
+            if path.extension().is_none() {
+                for ext in [".exe", ".cmd", ".bat"] {
+                    let mut with_ext = path.as_os_str().to_os_string();
+                    with_ext.push(ext);
+                    let candidate = PathBuf::from(with_ext);
+                    if candidate.is_file() {
+                        return candidate;
+                    }
+                }
+            }
+            return path.to_path_buf();
+        }
+
+        if let Some(str_name) = path.to_str() {
+            if let Some(found) = which(str_name) {
+                return found;
+            }
+        }
+
+        path.to_path_buf()
+    }
+    #[cfg(not(windows))]
+    {
+        path.to_path_buf()
+    }
 }
 
 fn is_writable(path: &Path) -> bool {

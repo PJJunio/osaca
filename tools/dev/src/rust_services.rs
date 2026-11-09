@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use crate::manifest::{RustServiceSpec, rust_services};
-use crate::paths::{ROOT, TARGET_DIR};
+use crate::paths::{ROOT, TARGET_DIR, resolve_executable};
 use crate::proc::{
     AwaitOutcome, RESTART_LIMIT, RESTART_WINDOW, RunOptions, ShutdownSignal, await_or_shutdown,
     can_bind_tcp_port, cleanup_orphaned_process_groups, configure_process_group, format_command,
@@ -210,7 +210,8 @@ fn start_service(spec: &RustServiceSpec, mode: &str, port: u16) -> Result<Child>
     let env = merged_env(Some(&service_env(spec, mode, port)), true)?;
     let label = format!("{}:{mode}", spec.name);
     println!("[{label}] $ {}", format_command(&args));
-    let mut command = Command::new(&args[0]);
+    let program = resolve_executable(&args[0]);
+    let mut command = Command::new(&program);
     command
         .args(&args[1..])
         .current_dir(ROOT.as_path())

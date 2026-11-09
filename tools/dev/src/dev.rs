@@ -6,7 +6,7 @@ use crate::manifest::{
     DEV_PROXY_PORT, GATEWAY_PORT, LOOPBACK_HOST, MEDIA_PROXY_PORT, PUSH_PORT, rust_services,
 };
 use crate::object_store::s3_endpoint;
-use crate::paths::{DESKTOP_DIR, ROOT};
+use crate::paths::{DESKTOP_DIR, ROOT, resolve_executable};
 use crate::proc::{
     AwaitOutcome, PNPM_INSTALL_ENV, RESTART_LIMIT, RESTART_WINDOW, RunOptions, ShutdownSignal,
     await_or_shutdown, configure_process_group, format_command, merged_env, prefix_output,
@@ -385,10 +385,22 @@ pub fn task_table() -> Result<BTreeMap<&'static str, DevTask>> {
     });
     insert(DevTask {
         name: "app",
-        args: vec![
-            app_dev_server.display().to_string(),
-            "app-dev-server".to_owned(),
-        ],
+        args: if cfg!(windows) {
+            vec![
+                "cargo".to_owned(),
+                "run".to_owned(),
+                "--quiet".to_owned(),
+                "--manifest-path".to_owned(),
+                ROOT.join("tools/ci/Cargo.toml").display().to_string(),
+                "--".to_owned(),
+                "app-dev-server".to_owned(),
+            ]
+        } else {
+            vec![
+                app_dev_server.display().to_string(),
+                "app-dev-server".to_owned(),
+            ]
+        },
         cwd: app_dir,
         env: vec![
             ("TOKIO_WORKER_THREADS".to_owned(), Some("4".to_owned())),
@@ -608,7 +620,8 @@ fn object_store_monitor_interval() -> Duration {
 fn start_task(task: &DevTask) -> Result<Child> {
     let env = merged_env(Some(&task.env), true)?;
     println!("[{}] $ {}", task.name, format_command(&task.args));
-    let mut command = Command::new(&task.args[0]);
+    let program = resolve_executable(&task.args[0]);
+    let mut command = Command::new(&program);
     command
         .args(&task.args[1..])
         .current_dir(&task.cwd)

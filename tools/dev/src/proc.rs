@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use crate::env::merge_default_env_with_current;
-use crate::paths::{DEV_ENV_FILE, DEV_LOCAL_ENV_FILE, ROOT, ROOT_LOCAL_ENV_FILE};
+use crate::paths::{
+    DEV_ENV_FILE, DEV_LOCAL_ENV_FILE, ROOT, ROOT_LOCAL_ENV_FILE, resolve_executable,
+};
 use anyhow::{Context, Result, bail};
 #[cfg(target_os = "linux")]
 use std::collections::BTreeSet;
@@ -97,7 +99,8 @@ impl Default for RunOptions<'_> {
 pub fn run_command(args: &[&str], options: RunOptions<'_>) -> Result<Output> {
     println!("$ {}", format_command(args));
     let env = merged_env(Some(&options.env), options.load_default_env)?;
-    let mut command = Command::new(args[0]);
+    let program = resolve_executable(args[0]);
+    let mut command = Command::new(&program);
     command
         .args(&args[1..])
         .current_dir(options.cwd)
@@ -150,7 +153,8 @@ pub async fn run_command_interruptible(
     }
     println!("$ {}", format_command(args));
     let env = merged_env(Some(&options.env), options.load_default_env)?;
-    let mut command = Command::new(args[0]);
+    let program = resolve_executable(args[0]);
+    let mut command = Command::new(&program);
     command
         .args(&args[1..])
         .current_dir(options.cwd)

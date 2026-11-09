@@ -330,7 +330,10 @@ fn run_infra(command: InfraCommand) -> Result<()> {
         compose_file.display().to_string(),
     ];
     match command {
-        InfraCommand::Start => args.push("start".to_owned()),
+        InfraCommand::Start => {
+            args.push("up".to_owned());
+            args.push("-d".to_owned());
+        }
         InfraCommand::Stop => args.push("stop".to_owned()),
         InfraCommand::Status => {
             args.push("ps".to_owned());
@@ -388,8 +391,8 @@ fn compose_project_name() -> Result<String> {
         }
         return Ok(project);
     }
-    std::env::var("COMPOSE_PROJECT_NAME")
+    Ok(std::env::var("COMPOSE_PROJECT_NAME")
         .ok()
         .filter(|project| !project.trim().is_empty())
-        .context("COMPOSE_PROJECT_NAME must be set when managing dev infrastructure from the host")
+        .unwrap_or_else(|| "osaca-dev".to_owned()))
 }

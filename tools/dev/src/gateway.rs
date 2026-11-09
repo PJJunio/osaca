@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use crate::paths::{DEV_GATEWAY_DIR, GATEWAY_CONFIG_DIR, ROOT};
+use crate::paths::{DEV_GATEWAY_DIR, GATEWAY_CONFIG_DIR, ROOT, resolve_executable};
 use crate::proc::{
     AwaitOutcome, RESTART_LIMIT, RESTART_WINDOW, RunOptions, ShutdownSignal, await_or_shutdown,
     can_bind_tcp_port, cleanup_orphaned_process_groups, configure_process_group,
@@ -616,7 +616,8 @@ fn start_node(node: &GatewayNode, static_peers: &str) -> Result<Child> {
     let command = build_gateway_command(&node.config_dir())?;
     let env = merged_env(Some(&gateway_node_env(node, static_peers)), true)?;
     println!("[gateway:{}] $ {}", node.name(), format_command(&command));
-    let mut child_command = Command::new(&command[0]);
+    let program = resolve_executable(&command[0]);
+    let mut child_command = Command::new(&program);
     child_command
         .args(&command[1..])
         .current_dir(gateway_dir())

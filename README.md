@@ -1,12 +1,20 @@
+<p align="center">
+  <img src="./visual-identity/github-banner.jpg" alt="OSACA — Comunidade, sem vigilância." width="100%" />
+</p>
+
 <h1 align="center">OSACA</h1>
 
-<p align="center"><b>Open Source Anonymous Community App</b></p>
+<p align="center">
+  <b>Comunidade, sem vigilância.</b><br />
+  <i>Open Source Anonymous Community App</i>
+</p>
 
 <p align="center">
-  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-AGPLv3-purple" alt="AGPLv3 License" /></a>
-  <img src="https://img.shields.io/badge/Status-pre--alpha-red" alt="Status: pre-alpha" />
-  <img src="https://img.shields.io/badge/Security-unaudited-orange" alt="Security: unaudited" />
-  <img src="https://img.shields.io/badge/Price-free%20forever-brightgreen" alt="Free forever" />
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-AGPLv3-102B42?style=flat-square" alt="AGPLv3 License" /></a>
+  <img src="https://img.shields.io/badge/Status-pre--alpha-E84B35?style=flat-square" alt="Status: pre-alpha" />
+  <img src="https://img.shields.io/badge/Security-unaudited-687783?style=flat-square" alt="Security: unaudited" />
+  <img src="https://img.shields.io/badge/Price-free%20forever-102B42?style=flat-square" alt="Free forever" />
+  <img src="https://img.shields.io/badge/E2EE-MLS%20(RFC%209420)-E84B35?style=flat-square" alt="MLS E2EE" />
 </p>
 
 <p align="center">
@@ -17,7 +25,7 @@
 
 ## English
 
-OSACA is a free and open-source, self-hosted community chat and voice app in the style of Discord, built so that **the person running the server cannot read your messages or find out who you are**.
+OSACA is a free and open-source, self-hosted community chat and voice app in the style of Discord, built so that **the person running the server cannot read your messages or find out who you are**. Tagline: *"Comunidade, sem vigilância."*
 
 It is a hard fork of [Fluxer](https://github.com/fluxerapp/fluxer). Fluxer is a great self-hosted chat app, but it has no end-to-end encryption, so an instance operator can see every message, attachment, IP address and DM. OSACA keeps the community product and puts user anonymity first.
 
@@ -57,6 +65,21 @@ The project docs in [`docs/`](docs/index.md) are written as an [Obsidian](https:
 - [Architecture Decision Records](docs/adr/).
 - [Glossary](GLOSSARY.md).
 - [Docs rewrite plan](docs/fluxer-docs-rewrite-plan.md): how the inherited `osaca_docs/` site becomes OSACA's.
+
+### Visual Identity
+
+OSACA uses a distinct, privacy-preserving visual identity:
+
+| Color | Hex | Role |
+| --- | --- | --- |
+| **Azul-marinho** | `#102B42` | Primary brand identity & navigation sidebar |
+| **Vermelho-terra** | `#E84B35` | Action highlights, CTAs & accent buttons |
+| **Marfim** | `#F3F1EB` | Light channel sidebar & soft canvas background |
+| **Cinza ardósia** | `#687783` | Secondary text, subtle borders & metadata |
+| **Branco** | `#FFFFFF` | Message feed & surface canvas |
+
+- **Typography:** Montserrat (titles, headers and brand wordmark) & Inter (interface, chat messages, menus and components).
+- **Privacy Avatars:** Deterministic geometric SVG identicons derived from account ID hashes with zero tracking, external CDN calls, or PII.
 
 ### Repository layout
 
@@ -135,6 +158,21 @@ O projeto é um fork definitivo do [Fluxer](https://github.com/fluxerapp/fluxer)
 - **F4:** histórico compartilhado, perfis criptografados, Key Transparency e mobile.
 
 A análise completa está no **[Levantamento Técnico](docs/osaca-technical-survey.md)**, em inglês. A documentação técnica fica em inglês para atrair contribuidores de qualquer lugar.
+
+### Identidade Visual
+
+O OSACA possui uma identidade visual focada em discrição, clareza e privacidade:
+
+| Cor | Hex | Aplicação |
+| --- | --- | --- |
+| **Azul-marinho** | `#102B42` | Identidade principal & barra lateral de navegação |
+| **Vermelho-terra** | `#E84B35` | Destaques, ações & botões principais |
+| **Marfim** | `#F3F1EB` | Fundos claros & lista de canais |
+| **Cinza ardósia** | `#687783` | Textos secundários, bordas discretas & metadados |
+| **Branco** | `#FFFFFF` | Superfície de chat & leitura de mensagens |
+
+- **Tipografia:** Montserrat (títulos e logotipo) e Inter (interface, mensagens e menus).
+- **Avatares Anônimos:** Identicons geométricos gerados 100% no cliente a partir do hash do ID da conta, sem dependência de dados pessoais ou serviços externos.
 
 ### Licença
 

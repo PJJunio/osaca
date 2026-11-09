@@ -2,10 +2,17 @@
 
 import {runtimeInstanceKey} from '@app/features/app/state/InstanceSnapshotStore';
 import type {Account} from '@app/features/platform/state/AuthSession';
+import {generateDeterministicIdenticon} from '@app/features/auth/DeterministicIdenticon';
 import * as AvatarUtils from '@app/features/user/utils/AvatarUtils';
-import {getDefaultAvatarURLForIndex} from '@app/features/user/utils/AvatarUtils';
 import type {MediaProxyImageSize} from '@osaca/constants/src/MediaProxyImageSizes';
 import {useMemo} from 'react';
+
+export {
+	generateDeterministicIdenticon,
+	hashIdentityString,
+	OSACA_IDENTICON_PALETTES,
+	type IdenticonPalette,
+} from '@app/features/auth/DeterministicIdenticon';
 
 function defaultAccountAvatarURL(account: Account, size?: MediaProxyImageSize): string {
 	try {
@@ -13,7 +20,7 @@ function defaultAccountAvatarURL(account: Account, size?: MediaProxyImageSize): 
 			? AvatarUtils.getUserAvatarURL({id: account.userId, avatar: null}, false, size)
 			: AvatarUtils.getDefaultAvatarURLForInstance(account.userId, account.instance);
 	} catch {
-		return getDefaultAvatarURLForIndex(0);
+		return generateDeterministicIdenticon(account.userId || 'osaca');
 	}
 }
 

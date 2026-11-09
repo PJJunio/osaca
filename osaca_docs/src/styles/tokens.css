@@ -1,7 +1,8 @@
 /* SPDX-License-Identifier: AGPL-3.0-or-later */
 
 :root {
-	--sl-font: var(--osaca-font-stack);
+	--sl-font: 'Inter', var(--osaca-font-stack), sans-serif;
+	--sl-font-headings: 'Montserrat', var(--osaca-heading-stack), sans-serif;
 	--sl-font-mono: var(--osaca-mono-stack);
 	--saturation-factor: 1;
 
@@ -47,7 +48,7 @@
 	--flx-radius-lg: 0.5rem;
 	--flx-radius-pill: 999px;
 
-	--flx-brand: hsl(242, calc(70% * var(--saturation-factor)), 55%);
+	--flx-brand: hsl(7, 80%, 56%);
 	--flx-on-brand: hsl(0, 0%, 98%);
 
 	--flx-code-block-font-size: 0.875rem;
@@ -55,42 +56,38 @@
 }
 
 :root {
-	--flx-background-primary: hsl(258, calc(10% * var(--saturation-factor)), 5%);
-	--flx-background-secondary: hsl(258, calc(10% * var(--saturation-factor)), 10.59%);
-	--flx-background-secondary-lighter: hsl(258, calc(10% * var(--saturation-factor)), 12.44%);
-	--flx-background-secondary-alt: hsl(258, calc(10% * var(--saturation-factor)), 14.15%);
-	--flx-background-tertiary: hsl(258, calc(10% * var(--saturation-factor)), 17.16%);
+	--flx-background-primary: #102b42;
+	--flx-background-secondary: #0d2336;
+	--flx-background-secondary-lighter: #15344e;
+	--flx-background-secondary-alt: #1a3c5a;
+	--flx-background-tertiary: #1f4566;
 
-	--flx-text-primary: hsl(258, calc(10% * var(--saturation-factor)), 96%);
-	--flx-text-secondary: hsl(258, calc(10% * var(--saturation-factor)), 90.36%);
-	--flx-text-tertiary: hsl(258, calc(10% * var(--saturation-factor)), 70.4%);
-	--flx-border-color: hsla(258, calc(10% * var(--saturation-factor)), 50%, 0.2);
+	--flx-text-primary: #f3f1eb;
+	--flx-text-secondary: #d4d7db;
+	--flx-text-tertiary: #687783;
+	--flx-border-color: rgba(104, 119, 131, 0.25);
 
-	--flx-link: hsl(198, calc(92% * var(--saturation-factor)), 70%);
-	--flx-hover-bg: hsla(258, calc(10% * var(--saturation-factor)), 100%, 0.05);
-	--flx-selected-bg: hsla(258, calc(10% * var(--saturation-factor)), 100%, 0.1);
+	--flx-link: #e84b35;
+	--flx-hover-bg: rgba(243, 241, 235, 0.06);
+	--flx-selected-bg: rgba(232, 75, 53, 0.16);
 
-	--flx-code-bg: hsl(258, calc(10% * var(--saturation-factor)), 14.5%);
-	--flx-code-fg: hsl(258, calc(10% * var(--saturation-factor)), 90.36%);
-	--flx-code-chrome-bg: hsl(258, calc(10% * var(--saturation-factor)), 17.16%);
-	--flx-code-border: hsl(258, calc(10% * var(--saturation-factor)), 24%);
-	--flx-code-dots: hsl(258, calc(10% * var(--saturation-factor)), 34%);
-	--flx-code-selection-bg: hsla(198, calc(92% * var(--saturation-factor)), 70%, 0.22);
-	--flx-code-veil: hsla(258, calc(15% * var(--saturation-factor)), 100%, 0.09);
-	--flx-code-text: hsl(340, calc(28% * var(--saturation-factor)), 86%);
-	--flx-code-link: hsl(198, calc(92% * var(--saturation-factor)), 74%);
+	--flx-code-bg: #091927;
+	--flx-code-fg: #f3f1eb;
+	--flx-code-chrome-bg: #0d2336;
+	--flx-code-border: rgba(104, 119, 131, 0.3);
+	--flx-code-dots: #687783;
+	--flx-code-selection-bg: rgba(232, 75, 53, 0.28);
+	--flx-code-veil: rgba(243, 241, 235, 0.08);
+	--flx-code-text: #f3f1eb;
+	--flx-code-link: #e84b35;
 
-	--flx-scrollbar-thumb: color-mix(
-		in srgb,
-		hsl(258, calc(10% * var(--saturation-factor)), 22.05%) 35%,
-		hsl(258, calc(10% * var(--saturation-factor)), 70.4%) 65%
-	);
-	--flx-scrollbar-track: color-mix(in srgb, var(--flx-background-secondary) 80%, transparent);
+	--flx-scrollbar-thumb: #687783;
+	--flx-scrollbar-track: var(--flx-background-secondary);
 
 	--flx-accent-info: hsl(198, calc(92% * var(--saturation-factor)), 70%);
 	--flx-accent-success: hsl(152, calc(72% * var(--saturation-factor)), 40%);
 	--flx-accent-warning: hsl(45, calc(93% * var(--saturation-factor)), 50%);
-	--flx-accent-danger: hsl(0, calc(84% * var(--saturation-factor)), 60%);
+	--flx-accent-danger: #e84b35;
 	--flx-accent-method-put: hsl(24, calc(90% * var(--saturation-factor)), 58%);
 	--flx-accent-method-head: hsl(281, calc(78% * var(--saturation-factor)), 68%);
 	--flx-tint-strength: 18%;
@@ -98,47 +95,43 @@
 }
 
 :root[data-theme='light'] {
-	--flx-background-primary: hsl(220, calc(10% * var(--saturation-factor)), 98.5%);
-	--flx-background-secondary: hsl(220, calc(10% * var(--saturation-factor)), 92.84%);
-	--flx-background-secondary-lighter: hsl(220, calc(10% * var(--saturation-factor)), 94.61%);
-	--flx-background-secondary-alt: hsl(220, calc(10% * var(--saturation-factor)), 90.96%);
-	--flx-background-tertiary: hsl(220, calc(10% * var(--saturation-factor)), 88.2%);
+	--flx-background-primary: #f3f1eb;
+	--flx-background-secondary: #e7e4dc;
+	--flx-background-secondary-lighter: #eeebe3;
+	--flx-background-secondary-alt: #ded9cd;
+	--flx-background-tertiary: #d6d0c2;
 
-	--flx-text-primary: hsl(220, calc(10% * var(--saturation-factor)), 15%);
-	--flx-text-secondary: hsl(220, calc(10% * var(--saturation-factor)), 33.78%);
-	--flx-text-tertiary: hsl(220, calc(10% * var(--saturation-factor)), 47.76%);
-	--flx-border-color: hsla(220, calc(10% * var(--saturation-factor)), 40%, 0.15);
+	--flx-text-primary: #102b42;
+	--flx-text-secondary: #2b4154;
+	--flx-text-tertiary: #687783;
+	--flx-border-color: rgba(104, 119, 131, 0.2);
 
-	--flx-link: hsl(198, calc(92% * var(--saturation-factor)), 45%);
-	--flx-hover-bg: hsla(220, calc(10% * var(--saturation-factor)), 10%, 0.05);
-	--flx-selected-bg: hsla(220, calc(10% * var(--saturation-factor)), 10%, 0.1);
+	--flx-link: #e84b35;
+	--flx-hover-bg: rgba(16, 43, 66, 0.05);
+	--flx-selected-bg: rgba(232, 75, 53, 0.12);
 
-	--flx-code-bg: hsl(220, calc(12% * var(--saturation-factor)), 97%);
-	--flx-code-fg: hsl(220, calc(12% * var(--saturation-factor)), 22%);
-	--flx-code-chrome-bg: hsl(220, calc(10% * var(--saturation-factor)), 92.84%);
-	--flx-code-border: hsl(220, calc(12% * var(--saturation-factor)), 84%);
-	--flx-code-dots: hsl(220, calc(10% * var(--saturation-factor)), 72%);
-	--flx-code-selection-bg: hsla(198, calc(92% * var(--saturation-factor)), 45%, 0.18);
-	--flx-code-veil: hsla(220, calc(20% * var(--saturation-factor)), 18%, 0.07);
-	--flx-code-text: hsl(340, calc(26% * var(--saturation-factor)), 26%);
-	--flx-code-link: hsl(198, calc(92% * var(--saturation-factor)), 27%);
+	--flx-code-bg: #ffffff;
+	--flx-code-fg: #102b42;
+	--flx-code-chrome-bg: #e7e4dc;
+	--flx-code-border: rgba(104, 119, 131, 0.25);
+	--flx-code-dots: #687783;
+	--flx-code-selection-bg: rgba(232, 75, 53, 0.2);
+	--flx-code-veil: rgba(16, 43, 66, 0.06);
+	--flx-code-text: #102b42;
+	--flx-code-link: #e84b35;
 
-	--flx-scrollbar-thumb: color-mix(
-		in srgb,
-		hsl(220, calc(10% * var(--saturation-factor)), 86.5%) 40%,
-		hsl(220, calc(10% * var(--saturation-factor)), 33.78%) 60%
-	);
-	--flx-scrollbar-track: color-mix(in srgb, var(--flx-background-secondary) 50%, transparent);
+	--flx-scrollbar-thumb: #687783;
+	--flx-scrollbar-track: var(--flx-background-secondary);
 
 	--flx-accent-info: hsl(198, calc(92% * var(--saturation-factor)), 45%);
 	--flx-accent-success: hsl(152, calc(70% * var(--saturation-factor)), 40%);
 	--flx-accent-warning: hsl(45, calc(90% * var(--saturation-factor)), 45%);
-	--flx-accent-danger: hsl(359, calc(70% * var(--saturation-factor)), 50%);
+	--flx-accent-danger: #e84b35;
 
 	--flx-aside-note-text: hsl(198, calc(92% * var(--saturation-factor)), 27%);
 	--flx-aside-tip-text: hsl(152, calc(70% * var(--saturation-factor)), 23%);
 	--flx-aside-caution-text: hsl(45, calc(90% * var(--saturation-factor)), 23%);
-	--flx-aside-danger-text: hsl(359, calc(70% * var(--saturation-factor)), 38%);
+	--flx-aside-danger-text: #e84b35;
 	--flx-aside-note-border: var(--flx-aside-note-text);
 	--flx-aside-tip-border: var(--flx-aside-tip-text);
 	--flx-aside-caution-border: var(--flx-aside-caution-text);

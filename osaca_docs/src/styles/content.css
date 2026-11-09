@@ -6,6 +6,7 @@
 
 .sl-markdown-content :is(h1, h2, h3, h4, h5, h6):not(:where(.not-content *)) {
 	color: var(--flx-content-heading);
+	font-family: var(--sl-font-headings, 'Montserrat', sans-serif);
 }
 
 .sl-markdown-content :is(h1, .sl-heading-wrapper.level-h1):not(:where(.not-content *)) {

@@ -92,9 +92,7 @@ flx-sidebar-brand .site-title img {
 	height: auto;
 }
 
-:root[data-theme='dark'] .site-title img {
-	filter: brightness(0) invert(1);
-}
+
 
 flx-sidebar-actions {
 	display: flex;

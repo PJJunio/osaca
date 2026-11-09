@@ -216,7 +216,7 @@
 .assetRow.assetRowDragging {
 	border-style: dashed;
 	border-color: var(--brand-primary-light, #a5a2ff);
-	background: color-mix(in srgb, var(--brand-primary, #4641d9) 14%, var(--background-tertiary));
+	background: color-mix(in srgb, var(--brand-primary, #E84B35) 14%, var(--background-tertiary));
 }
 
 .thumbnail {

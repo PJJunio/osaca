@@ -42,8 +42,8 @@ const HOST_STYLE = [
 const BOX_STYLE = [
 	'position: absolute',
 	'box-sizing: border-box',
-	'border: 2px solid var(--brand-primary, #4641d9)',
-	'background: color-mix(in srgb, var(--brand-primary, #4641d9) 18%, transparent)',
+	'border: 2px solid var(--brand-primary, #E84B35)',
+	'background: color-mix(in srgb, var(--brand-primary, #E84B35) 18%, transparent)',
 	'border-radius: 2px',
 	'display: none',
 ].join(';');
@@ -51,7 +51,7 @@ const BOX_STYLE = [
 const MATCH_BOX_STYLE = [
 	'position: absolute',
 	'box-sizing: border-box',
-	'border: 1px dashed var(--brand-primary, #4641d9)',
+	'border: 1px dashed var(--brand-primary, #E84B35)',
 	'border-radius: 2px',
 ].join(';');
 
@@ -60,7 +60,7 @@ const LABEL_STYLE = [
 	'max-width: min(560px, calc(100vw - 16px))',
 	'padding: 4px 8px',
 	'border-radius: 4px',
-	'background: var(--brand-primary, #4641d9)',
+	'background: var(--brand-primary, #E84B35)',
 	'color: var(--brand-primary-fill, #ffffff)',
 	'font: 500 12px/1.4 var(--font-sans, system-ui, sans-serif)',
 	'display: none',

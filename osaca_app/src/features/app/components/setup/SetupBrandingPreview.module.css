@@ -353,7 +353,7 @@ span.titlebarWordmark {
 	justify-content: center;
 	height: calc(40 * var(--u));
 	margin-block-start: calc(6 * var(--u));
-	background: var(--brand-primary, #4641d9);
+	background: var(--brand-primary, #E84B35);
 }
 
 .skeletonButtonText {

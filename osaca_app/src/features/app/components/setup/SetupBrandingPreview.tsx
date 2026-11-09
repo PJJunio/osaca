@@ -106,7 +106,7 @@ interface ResolvedPreviewBrand {
 	host: string;
 }
 
-const DEFAULT_ACCENT = '#4641d9';
+const DEFAULT_ACCENT = '#E84B35';
 const TOOLBAR_LIGHT_TEXT = [0xf2, 0xf2, 0xf5] as const;
 const TOOLBAR_DARK_TEXT = [0x18, 0x17, 0x1f] as const;
 

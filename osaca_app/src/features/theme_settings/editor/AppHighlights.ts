@@ -23,8 +23,8 @@ const HOST_STYLE = [
 const BOX_STYLE = [
 	'position: absolute',
 	'box-sizing: border-box',
-	'border: 2px solid var(--brand-primary, #4641d9)',
-	'background: color-mix(in srgb, var(--brand-primary, #4641d9) 14%, transparent)',
+	'border: 2px solid var(--brand-primary, #E84B35)',
+	'background: color-mix(in srgb, var(--brand-primary, #E84B35) 14%, transparent)',
 	'border-radius: 2px',
 ].join(';');
 

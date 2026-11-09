@@ -36,7 +36,7 @@ function createParticles(width: number, colors: ReadonlyArray<string>): Array<Pa
 			angle: Math.random() * Math.PI,
 			width: 5 + Math.random() * 4,
 			height: 8 + Math.random() * 6,
-			color: colors[index % colors.length] ?? '#4641d9',
+			color: colors[index % colors.length] ?? '#E84B35',
 		};
 	});
 }

@@ -5,6 +5,7 @@ import {ensureDeletionQueueState} from '@app/api/app/DeletionQueueStartup';
 import type {APIConfig} from '@app/api/config/APIConfig';
 import {hasDatabaseQueryExecutor, setDatabaseQueryExecutor} from '@app/api/database/CassandraQueryExecution';
 import {ensurePostgresKvSchema, PostgresKvQueryExecutor} from '@app/api/database/PostgresKvQueryExecutor';
+import {ensureMlsSchema} from '@app/api/mls/PostgresMlsDeliveryService';
 import {GuildRepository} from '@app/api/guild/repositories/GuildRepository';
 import {
 	jetStreamActivityPublisher,
@@ -178,6 +179,7 @@ export function createInitializer(config: APIConfig, logger: LoggerInterface): (
 				await initPostgres(config.postgres, (diagnostic) => logger.error(diagnostic, 'Postgres connection error'));
 				const postgres = getDefaultPostgresClient();
 				await ensurePostgresKvSchema(postgres);
+				await ensureMlsSchema(postgres);
 				setDatabaseQueryExecutor(new PostgresKvQueryExecutor(postgres));
 				logger.info('Postgres KV client initialized');
 			} else {

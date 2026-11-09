@@ -13,6 +13,63 @@ import type {
 } from '@osaca/schema/src/domains/mls/MlsSchemas';
 import type {IPostgresClient} from '@pkgs/postgres/src/Client';
 
+export async function ensureMlsSchema(client: IPostgresClient): Promise<void> {
+	await client.query(`
+CREATE TABLE IF NOT EXISTS mls_key_packages (
+    key_package_hash text PRIMARY KEY,
+    device_id text NOT NULL,
+    key_package_bytes bytea NOT NULL,
+    consumed_at timestamptz,
+    created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS mls_key_packages_unconsumed_idx
+ON mls_key_packages (device_id, created_at)
+WHERE consumed_at IS NULL;
+
+CREATE TABLE IF NOT EXISTS mls_groups (
+    group_id text PRIMARY KEY,
+    current_epoch bigint NOT NULL DEFAULT 0,
+    disappearing_ttl_seconds integer,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS mls_commits (
+    group_id text NOT NULL REFERENCES mls_groups(group_id) ON DELETE CASCADE,
+    epoch bigint NOT NULL,
+    commit_bytes bytea NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (group_id, epoch)
+);
+
+CREATE TABLE IF NOT EXISTS mls_welcomes (
+    group_id text NOT NULL REFERENCES mls_groups(group_id) ON DELETE CASCADE,
+    epoch bigint NOT NULL,
+    welcome_bytes bytea NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (group_id, epoch)
+);
+
+CREATE TABLE IF NOT EXISTS mls_ciphertext_messages (
+    group_id text NOT NULL REFERENCES mls_groups(group_id) ON DELETE CASCADE,
+    epoch bigint NOT NULL,
+    message_id text NOT NULL,
+    ciphertext bytea NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    expires_at timestamptz,
+    PRIMARY KEY (group_id, message_id)
+);
+
+CREATE INDEX IF NOT EXISTS mls_ciphertext_messages_history_idx
+ON mls_ciphertext_messages (group_id, epoch, created_at DESC, message_id DESC);
+
+CREATE INDEX IF NOT EXISTS mls_ciphertext_messages_expires_idx
+ON mls_ciphertext_messages (expires_at)
+WHERE expires_at IS NOT NULL;
+`);
+}
+
 export class PostgresMlsDeliveryService implements IMlsDeliveryService {
 	constructor(private readonly postgres: IPostgresClient) {}
 

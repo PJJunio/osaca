@@ -283,11 +283,12 @@ impl AppDevServer {
 
     fn start_css_type_watcher(&self) -> Result<Child> {
         let tcm = self.project_root.join("node_modules/.bin/tcm");
+        let resolved = crate::common::resolve_command_name(&tcm);
         println!(
             "+ {} src --pattern '**/*.module.css' --watch --silent",
-            tcm.display()
+            resolved.display()
         );
-        Command::new(tcm)
+        Command::new(&resolved)
             .args(["src", "--pattern", "**/*.module.css", "--watch", "--silent"])
             .current_dir(&self.project_root)
             .stdin(Stdio::null())
@@ -299,7 +300,8 @@ impl AppDevServer {
 
     async fn run_rspack(&self, shutdown: &mut watch::Receiver<bool>) -> Result<()> {
         let rspack = self.project_root.join("node_modules/.bin/rspack");
-        let rspack_string = rspack.to_string_lossy().to_string();
+        let resolved = crate::common::resolve_command_name(&rspack);
+        let rspack_string = resolved.to_string_lossy().to_string();
         let mut child = spawn_child(
             &rspack_string,
             &["serve", "--mode", "development"],
@@ -470,7 +472,8 @@ fn gather_lingui_inputs(project_root: &Path) -> Result<StepInputs> {
 
 fn spawn_child(command: &str, args: &[&str], cwd: &Path) -> Result<Child> {
     println!("+ {}", display_command(command, args));
-    Command::new(command)
+    let resolved = crate::common::resolve_command_name(command);
+    Command::new(&resolved)
         .args(args)
         .current_dir(cwd)
         .stdin(Stdio::inherit())

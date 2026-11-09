@@ -11,7 +11,7 @@
 	"scripts": {
 		"build": "node scripts/build.mjs",
 		"generate:windows-badges": "electron scripts/generate-windows-badges.mjs",
-		"set-channel": "../tools/ci/run.sh build-desktop --step set_build_channel",
+		"set-channel": "node ../tools/ci/run.mjs build-desktop --step set_build_channel",
 		"typecheck": "pnpm set-channel && tsc --noEmit"
 	},
 	"dependencies": {

@@ -27,12 +27,12 @@
 		"i18n:compile": "pnpm --filter osaca_app i18n:compile && pnpm --filter @osaca/i18n static:sync && pnpm --filter @osaca/i18n generate:types && pnpm --filter @pkgs/email html:compile",
 		"i18n:refresh": "pnpm --filter osaca_app i18n:refresh",
 		"i18n:source-sync": "pnpm i18n:refresh && pnpm i18n:compile",
-		"knip": "tools/ci/run.sh ci --step knip",
+		"knip": "node tools/ci/run.mjs ci --step knip",
 		"lint": "biome ci && eslint . --max-warnings 0 && pnpm --filter osaca_app theming:data-flx:check && pnpm --filter @osaca/config self-host-env:check",
 		"openapi:generate": "pnpm --filter @osaca/openapi generate",
 		"openapi:validate": "pnpm --filter @osaca/openapi validate",
-		"test": "tools/ci/run.sh ci --step test",
-		"typecheck": "tools/ci/run.sh ci --step typecheck"
+		"test": "node tools/ci/run.mjs ci --step test",
+		"typecheck": "node tools/ci/run.mjs ci --step typecheck"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "catalog:",

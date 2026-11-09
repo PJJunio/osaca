@@ -79,7 +79,8 @@ impl CommandSpec {
     }
 
     pub(crate) fn to_command(&self) -> Command {
-        let mut command = Command::new(&self.program);
+        let program = resolve_command_name(&self.program);
+        let mut command = Command::new(&program);
         command.args(&self.args);
         if let Some(cwd) = &self.cwd {
             command.current_dir(cwd);
@@ -91,6 +92,62 @@ impl CommandSpec {
             command.env(key, value);
         }
         command
+    }
+}
+
+pub(crate) fn resolve_command_name(name: impl AsRef<Path>) -> PathBuf {
+    let path = name.as_ref();
+    #[cfg(windows)]
+    {
+        if path.components().count() > 1 {
+            if path.is_file() {
+                return path.to_path_buf();
+            }
+            if path.extension().is_none() {
+                for ext in [".cmd", ".exe", ".bat"] {
+                    let mut with_ext = path.as_os_str().to_os_string();
+                    with_ext.push(ext);
+                    let candidate = PathBuf::from(with_ext);
+                    if candidate.is_file() {
+                        return candidate;
+                    }
+                }
+            }
+            return path.to_path_buf();
+        }
+
+        if let Some(str_name) = path.to_str() {
+            if let Some(path_var) = std::env::var_os("PATH") {
+                let path_exts: Vec<String> = std::env::var("PATHEXT")
+                    .unwrap_or_else(|_| ".COM;.EXE;.BAT;.CMD".to_owned())
+                    .split(';')
+                    .filter(|ext| !ext.is_empty())
+                    .map(|ext| ext.to_lowercase())
+                    .collect();
+
+                let has_extension = path.extension().is_some();
+                for dir in std::env::split_paths(&path_var) {
+                    if has_extension {
+                        let candidate = dir.join(str_name);
+                        if candidate.is_file() {
+                            return candidate;
+                        }
+                    } else {
+                        for ext in &path_exts {
+                            let candidate = dir.join(format!("{str_name}{ext}"));
+                            if candidate.is_file() {
+                                return candidate;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        path.to_path_buf()
+    }
+    #[cfg(not(windows))]
+    {
+        path.to_path_buf()
     }
 }
 

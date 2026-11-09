@@ -19,7 +19,7 @@
 		"build:desktop": "pnpm codegen && pnpm build:renderer",
 		"build:renderer": "OSACA_DESKTOP_RENDERER=true rspack build --mode production",
 		"codegen": "pnpm wasm:codegen && pnpm generate:colors && pnpm generate:message-layout && pnpm generate:theme-variables && pnpm generate:masks && pnpm generate:css-types && pnpm lingui:compile",
-		"dev": "TOKIO_WORKER_THREADS=4 RAYON_NUM_THREADS=4 ../tools/ci/run.sh app-dev-server",
+		"dev": "node ../tools/ci/run.mjs app-dev-server",
 		"typecheck": "pnpm wasm:codegen && pnpm generate:colors && pnpm generate:message-layout && pnpm generate:theme-variables && pnpm generate:masks && pnpm generate:css-types && pnpm lingui:compile && tsc --noEmit",
 		"typecheck:only": "tsc --noEmit",
 		"generate:colors": "pnpm tsx scripts/GenerateColorSystem.ts",
@@ -37,7 +37,7 @@
 		"i18n:refresh": "pnpm i18n:extract && pnpm i18n:compile",
 		"lingui:compile": "lingui compile --strict",
 		"lingui:extract": "lingui extract --clean",
-		"wasm:codegen": "../tools/ci/run.sh build-app-wasm"
+		"wasm:codegen": "node ../tools/ci/run.mjs build-app-wasm"
 	},
 	"browserslist": [
 		"chrome >= 47",

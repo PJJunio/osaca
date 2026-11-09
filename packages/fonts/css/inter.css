@@ -1,0 +1,28 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
+
+@font-face {
+	font-family: 'Inter';
+	src: local('Inter Regular'), local('Inter-Regular'), local('Inter'),
+		url('../files/OsacaSans/OsacaSans-Regular.woff2') format('woff2');
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Inter';
+	src: local('Inter Medium'), local('Inter-Medium'),
+		url('../files/OsacaSans/OsacaSans-Medium.woff2') format('woff2');
+	font-weight: 500;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Inter';
+	src: local('Inter SemiBold'), local('Inter-SemiBold'),
+		url('../files/OsacaSans/OsacaSans-SemiBold.woff2') format('woff2');
+	font-weight: 600;
+	font-style: normal;
+	font-display: swap;
+}

@@ -70,6 +70,7 @@ var {
 	--user-select: auto;
 
 	--font-keybind: -apple-system, BlinkMacSystemFont, var(--font-sans);
+	--font-display: 'Montserrat', var(--font-sans);
 
 	--z-index-base: 0;
 	--z-index-elevated-1: 10;
@@ -373,6 +374,14 @@ html {
 	font-size: calc(var(--custom-zoom, 100) * 0.16px);
 	line-height: 1.5;
 	font-optical-sizing: auto;
+}
+
+h1,
+h2,
+h3,
+h4,
+.font-display {
+	font-family: var(--font-display);
 }
 
 html.allow-transparency,

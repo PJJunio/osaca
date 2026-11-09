@@ -14,8 +14,8 @@
 	height: var(--layout-header-height);
 	min-height: var(--layout-header-height);
 	min-width: 0;
-	border-bottom: 0.0625rem solid var(--user-area-divider-color);
-	background-color: var(--background-secondary);
+	border-bottom: 0.0625rem solid rgba(104, 119, 131, 0.18);
+	background-color: var(--channel-sidebar-bg, #F3F1EB);
 	transition: background-color var(--transition-normal);
 }
 

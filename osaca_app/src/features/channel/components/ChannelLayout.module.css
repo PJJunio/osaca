@@ -8,7 +8,17 @@
 	width: 100%;
 	max-width: 100%;
 	min-width: 0;
-	background-color: var(--background-tertiary);
+	background-color: var(--chat-canvas-bg, #FFFFFF);
+	--background-primary: #FFFFFF;
+	--background-secondary-lighter: #FFFFFF;
+	--background-textarea: #FFFFFF;
+	--text-primary: #102B42;
+	--text-chat: #1A202C;
+	--text-secondary: #2D3748;
+	--text-primary-muted: #687783;
+	--text-chat-muted: #687783;
+	--text-tertiary: #687783;
+	--message-timestamp-color: #687783;
 	overflow: hidden;
 }
 

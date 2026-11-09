@@ -15,7 +15,7 @@
 	width: 100%;
 	min-width: 0;
 	max-width: 100%;
-	background-color: var(--background-secondary);
+	background-color: var(--guild-sidebar-bg, #102B42);
 }
 
 .guildsLayoutReserveSpace {
@@ -33,7 +33,7 @@
 .guildsLayoutContainerMobile {
 	composes: guildsLayoutContainer;
 	grid-template-columns: 1fr;
-	background-color: var(--background-secondary);
+	background-color: var(--guild-sidebar-bg, #102B42);
 }
 
 .guildsLayoutFullscreen {
@@ -60,7 +60,7 @@
 	);
 	width: var(--layout-guild-list-width);
 	min-width: 0;
-	background-color: var(--background-secondary);
+	background-color: var(--guild-sidebar-bg, #102B42);
 	position: relative;
 	z-index: var(--z-index-elevated-1);
 }
@@ -69,7 +69,7 @@
 	height: 100%;
 	width: 100%;
 	min-width: 0;
-	background-color: var(--background-secondary);
+	background-color: var(--guild-sidebar-bg, #102B42);
 	padding-top: var(--spacing-1);
 	padding-bottom: var(--spacing-2);
 	scroll-padding-bottom: calc(
@@ -212,7 +212,8 @@
 	transition-property: background-color, color, border-radius;
 	transition-duration: 70ms;
 	transition-timing-function: ease-out;
-	background-color: var(--guilds-layout-item-bg);
+	background-color: var(--guilds-layout-item-bg, rgba(255, 255, 255, 0.12));
+	color: #FFFFFF;
 	cursor: pointer;
 }
 
@@ -354,8 +355,8 @@
 
 .osacaButtonIcon {
 	composes: guildIcon;
-	background-color: var(--guilds-layout-item-bg);
-	color: var(--text-primary);
+	background-color: var(--guilds-layout-item-bg, rgba(255, 255, 255, 0.12));
+	color: #FFFFFF;
 	transition-property: background-color, color, border-radius;
 	transition-duration: 70ms;
 	transition-timing-function: ease-out;
@@ -391,9 +392,9 @@
 	flex-shrink: 0;
 	cursor: pointer;
 	border-radius: var(--radius-full);
-	border: 0.125rem dashed var(--background-modifier-accent);
+	border: 0.125rem dashed rgba(255, 255, 255, 0.35);
 	background-color: transparent;
-	color: var(--text-primary);
+	color: #FFFFFF;
 	transition-property: border-radius, border-color;
 	transition-duration: 70ms;
 	transition-timing-function: ease-out;
@@ -406,7 +407,8 @@
 	:global(:where(html.window-focused, html.unfocused-fully-interactive):not(.window-focus-activation-guard))
 		.createGuildButtonIcon:hover,
 	.createGuildButton.contextMenuHover .createGuildButtonIcon {
-		border-color: var(--text-primary);
+		border-color: #FFFFFF;
+		color: #FFFFFF;
 	}
 }
 
@@ -433,7 +435,7 @@
 	width: 2rem;
 	flex-shrink: 0;
 	border-radius: 0.0625rem;
-	background-color: var(--background-modifier-hover);
+	background-color: rgba(255, 255, 255, 0.15);
 }
 
 .messageBubbleIcon {

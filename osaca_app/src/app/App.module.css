@@ -4,7 +4,7 @@
 	height: 100svh;
 	min-height: 100svh;
 	box-sizing: border-box;
-	background: var(--background-primary);
+	background: var(--chat-canvas-bg, var(--background-primary));
 	padding-top: 0;
 	padding-right: calc(env(safe-area-inset-right) + var(--quick-css-dock-right, 0px));
 	padding-left: calc(env(safe-area-inset-left) + var(--quick-css-dock-left, 0px));

@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: AGPL-3.0-or-later */
 
 :root {
-	--message-timestamp-color: var(--text-primary-muted);
+	--message-timestamp-color: #687783;
 	--system-message-icon-opacity: 0.6;
 
 	--message-highlight-bar-width: 0.125rem;
@@ -538,7 +538,7 @@
 	display: inline;
 	font-size: var(--message-timestamp-font-size);
 	line-height: var(--message-line-height);
-	color: color-mix(in srgb, var(--message-timestamp-color) 60%, transparent);
+	color: var(--message-timestamp-color, #687783);
 	margin-inline-start: 0.15rem;
 	white-space: nowrap;
 }
@@ -1168,7 +1168,7 @@
 	cursor: default;
 	vertical-align: baseline;
 	font-weight: 600;
-	color: var(--text-chat-muted);
+	color: var(--message-timestamp-color, #687783);
 	font-size: var(--message-edited-font-size);
 	line-height: var(--message-line-height);
 }

@@ -3,8 +3,10 @@
 .textareaContainer {
 	position: relative;
 	margin-top: 0.5rem;
-	background-color: var(--background-textarea);
-	border-radius: var(--radius-xl);
+	background-color: var(--composer-pill-bg, #FFFFFF);
+	border-radius: var(--radius-lg);
+	border: 0.0625rem solid var(--composer-pill-border, rgba(104, 119, 131, 0.22));
+	box-shadow: 0 1px 4px rgba(16, 43, 66, 0.06);
 	font-size: var(--textarea-font-size);
 }
 
@@ -145,24 +147,20 @@
 	margin-block-start: 0;
 	margin-block-end: var(--composer-box-inset);
 	margin-inline: var(--composer-box-inset-inline);
-	background-color: var(--background-textarea);
-	--composer-box-radius: var(--footer-box-radius);
-	--composer-box-ring-color: var(--floating-surface-ring-color);
-	--scrollbar-track-bg: var(--background-textarea);
-}
-
-.textareaOuterRow::after {
-	content: '';
-	position: absolute;
-	inset: 0;
-	border-radius: inherit;
-	box-shadow: inset 0 0 0 0.0625rem var(--composer-box-ring-color);
-	transition: box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-	pointer-events: none;
+	background-color: var(--composer-pill-bg, #FFFFFF);
+	border-radius: var(--radius-lg);
+	border: 0.0625rem solid var(--composer-pill-border, rgba(104, 119, 131, 0.22));
+	--composer-box-radius: var(--radius-lg);
+	--composer-box-ring-color: transparent;
+	--scrollbar-track-bg: var(--composer-pill-bg, #FFFFFF);
+	box-shadow: 0 2px 8px rgba(16, 43, 66, 0.06);
+	transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .textareaOuterRow:focus-within {
-	--composer-box-ring-color: var(--floating-surface-ring-color-strong);
+	border-color: var(--brand-primary, #E84B35);
+	box-shadow: 0 2px 10px rgba(232, 75, 53, 0.15);
+	--composer-box-ring-color: transparent;
 }
 
 .textareaOuterBare {

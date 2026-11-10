@@ -5,7 +5,7 @@ import {readdirSync, readFileSync, statSync} from 'node:fs';
 import {describe, it} from 'vitest';
 
 const appRoot = new URL('../../', import.meta.url);
-const read = (path: string) => readFileSync(new URL(path, appRoot), 'utf8');
+const read = (path: string) => readFileSync(new URL(path, appRoot), 'utf8').replace(/\r\n/g, '\n');
 
 const INHERITED_SPACE_PALETTE = /#05040d|#080616|#0d0a1c|rgb\(5 4 13/i;
 
@@ -83,6 +83,37 @@ describe('OSACA primary app experience', () => {
 
 		assert.match(focusRule, /var\(--osaca-color-focus/);
 		assert.doesNotMatch(focusRule, /--brand-primary|232, 75, 53/);
+	});
+
+	it('dialogs sit on the raised OSACA surface over a navy scrim with a display-font title', () => {
+		const modal = read('src/features/app/components/dialogs/Modal.module.css');
+
+		assert.doesNotMatch(modal, /(:|srgb,)\s*var\(--background-(header-)?secondary\)/);
+		assert.match(modal, /\.root \{[^}]*background-color: var\(--osaca-surface-raised/);
+		assert.match(modal, /\.root \{[^}]*border: 0\.0625rem solid var\(--osaca-border-subtle/);
+		assert.match(modal, /\.modalBackdrop \{[^}]*var\(--osaca-color-black/);
+		assert.match(modal, /\.backdropCentered \{[^}]*var\(--osaca-color-black/);
+		assert.match(modal, /\.headerText h3 \{[^}]*font-family: var\(--font-display\)/);
+	});
+
+	it('Channel and Private Conversation welcome sections lead with the OSACA display font', () => {
+		const welcomes = [
+			'src/features/channel/components/ChannelWelcomeSection.module.css',
+			'src/features/channel/components/direct_message/DMWelcomeSection.module.css',
+			'src/features/channel/components/direct_message/GroupDMWelcomeSection.module.css',
+		].map(read);
+
+		for (const css of welcomes) {
+			assert.match(css, /font-family: var\(--font-display\);\n(?:\t.*\n)*?\tfont-size: 1\.(875|5)rem;/);
+		}
+	});
+
+	it('privacy setup cards use the OSACA subnavigation surface and subtle border', () => {
+		const privacySetup = read('src/features/user/components/modals/PrivacySetupModal.module.css');
+
+		assert.doesNotMatch(privacySetup, /:\s*var\(--background-tertiary\)|solid var\(--background-header-secondary\)/);
+		assert.equal(privacySetup.match(/var\(--osaca-surface-subnavigation/g)?.length, 2);
+		assert.equal(privacySetup.match(/solid var\(--osaca-border-subtle/g)?.length, 2);
 	});
 
 	it('settings use the OSACA navigation, page and danger tokens', () => {

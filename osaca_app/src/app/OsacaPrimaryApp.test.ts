@@ -44,6 +44,36 @@ describe('OSACA primary app experience', () => {
 		assert.match(feed, /var\(--osaca-action-primary/);
 	});
 
+	it('the Channel canvas only pins its light palette in the light theme', () => {
+		const channelLayout = read('src/features/channel/components/ChannelLayout.module.css');
+		const messages = read('src/features/theme/styles/Message.module.css');
+		const baseRule = channelLayout.match(/^\.channelLayoutContainer \{([^}]*)\}/m)?.[1] ?? '';
+		const rootRule = messages.match(/^:root \{([^}]*)\}/m)?.[1] ?? '';
+
+		assert.notEqual(baseRule, '');
+		assert.doesNotMatch(baseRule, /--text-primary:|--background-primary:|--message-timestamp-color:/);
+		assert.match(channelLayout, /:global\(\.theme-light\) \.channelLayoutContainer \{[^}]*--text-primary:/);
+		assert.doesNotMatch(rootRule, /--message-timestamp-color:/);
+	});
+
+	it('the Community Channel sidebar only pins its light palette in the light theme', () => {
+		const navbar = read('src/features/app/components/layout/GuildNavbar.module.css');
+		const baseRule = navbar.match(/^\.guildNavbarContainer \{([^}]*)\}/m)?.[1] ?? '';
+
+		assert.notEqual(baseRule, '');
+		assert.doesNotMatch(baseRule, /--text-primary:|--background-modifier-hover:/);
+		assert.match(baseRule, /var\(--osaca-surface-subnavigation/);
+		assert.match(navbar, /:global\(\.theme-light\) \.guildNavbarContainer \{[^}]*--text-primary:/);
+	});
+
+	it('the message composer shows the shared focus colour, not the brand action red', () => {
+		const composer = read('src/features/channel/components/textarea/TextareaInput.module.css');
+		const focusRule = composer.match(/\.textareaOuterRow:focus-within \{([^}]*)\}/)?.[1] ?? '';
+
+		assert.match(focusRule, /var\(--osaca-color-focus/);
+		assert.doesNotMatch(focusRule, /--brand-primary|232, 75, 53/);
+	});
+
 	it('settings use the OSACA navigation, page and danger tokens', () => {
 		const settings = read('src/features/app/components/dialogs/shared/SettingsModalLayout.module.css');
 

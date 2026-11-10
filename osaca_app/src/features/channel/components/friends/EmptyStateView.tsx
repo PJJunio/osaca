@@ -5,8 +5,13 @@ import {UsersThreeIcon} from '@phosphor-icons/react';
 import {observer} from 'mobx-react-lite';
 
 export const EmptyStateView = observer(({title, subtitle}: {title: string; subtitle: string}) => (
-	<div className={styles.container} data-flx="channel.friends.empty-state-view.container">
-		<UsersThreeIcon weight="fill" className={styles.icon} data-flx="channel.friends.empty-state-view.icon" />
+	<div className={styles.container} role="status" data-flx="channel.friends.empty-state-view.container">
+		<UsersThreeIcon
+			weight="fill"
+			className={styles.icon}
+			aria-hidden="true"
+			data-flx="channel.friends.empty-state-view.icon"
+		/>
 		<h2 className={styles.title} data-flx="channel.friends.empty-state-view.title">
 			{title}
 		</h2>

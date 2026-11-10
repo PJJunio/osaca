@@ -18,17 +18,20 @@
 	user-select: none;
 	-webkit-user-select: none;
 	overflow: hidden;
-	background-color: var(--channel-sidebar-bg, #F3F1EB);
-	--text-primary: #102B42;
-	--text-primary-muted: #4A5568;
-	--text-secondary: #2D3748;
+	background-color: var(--osaca-surface-subnavigation, var(--channel-sidebar-bg, #f3f1eb));
+	position: relative;
+}
+
+:global(.theme-light) .guildNavbarContainer {
+	--text-primary: #102b42;
+	--text-primary-muted: #4a5568;
+	--text-secondary: #2d3748;
 	--text-tertiary: #687783;
 	--text-tertiary-muted: #687783;
 	--background-modifier-hover: rgba(16, 43, 66, 0.06);
 	--background-modifier-selected: rgba(16, 43, 66, 0.12);
 	--background-modifier-accent: rgba(16, 43, 66, 0.15);
-	--surface-interactive-selected-color: #102B42;
-	position: relative;
+	--surface-interactive-selected-color: #102b42;
 }
 
 .guildNavbarContainerMobile {

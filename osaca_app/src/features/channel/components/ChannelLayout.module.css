@@ -8,18 +8,20 @@
 	width: 100%;
 	max-width: 100%;
 	min-width: 0;
-	background-color: var(--chat-canvas-bg, #FFFFFF);
-	--background-primary: #FFFFFF;
-	--background-secondary-lighter: #FFFFFF;
-	--background-textarea: #FFFFFF;
-	--text-primary: #102B42;
-	--text-chat: #1A202C;
-	--text-secondary: #2D3748;
+	background-color: var(--osaca-surface-page, var(--chat-canvas-bg, #ffffff));
+	overflow: hidden;
+}
+
+:global(.theme-light) .channelLayoutContainer {
+	--background-primary: #ffffff;
+	--background-secondary-lighter: #ffffff;
+	--background-textarea: #ffffff;
+	--text-primary: #102b42;
+	--text-chat: #1a202c;
+	--text-secondary: #2d3748;
 	--text-primary-muted: #687783;
 	--text-chat-muted: #687783;
 	--text-tertiary: #687783;
-	--message-timestamp-color: #687783;
-	overflow: hidden;
 }
 
 .channelNotFoundContainer {

@@ -1,0 +1,20 @@
+{
+	"name": "osaca_landing",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "astro build",
+		"dev": "astro dev",
+		"test": "node --test src/styles/OsacaLandingTheme.test.mjs",
+		"test:rendered": "astro build && node --test src/styles/OsacaLandingRendered.test.mjs",
+		"typecheck": "astro check --minimumFailingSeverity warning"
+	},
+	"dependencies": {
+		"astro": "catalog:"
+	},
+	"devDependencies": {
+		"@astrojs/check": "catalog:",
+		"typescript": "catalog:"
+	}
+}

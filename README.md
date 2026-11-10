@@ -98,6 +98,7 @@ Everything was renamed from `fluxer_*` to `osaca_*` in one mechanical commit ([A
 | `osaca_svc`, `osaca_messages`, `osaca_users`, … | Rust | NATS RPC services |
 | `osaca_rexctl` | Go | Self-host installer and CLI |
 | `osaca_docs` | Astro | Inherited docs site (to be rewritten) |
+| `osaca_landing` | Astro | Static institutional landing page |
 | `packages/*` | TS, Rust | Shared libraries |
 | `deploy/`, `config/` | | Helm, Compose and environment |
 

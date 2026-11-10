@@ -1,0 +1,196 @@
+---
+// SPDX-License-Identifier: AGPL-3.0-or-later
+import {Font} from 'astro:assets';
+import wordmark from '../assets/osaca-wordmark.svg?raw';
+import {SECURITY_MODEL_URL, SELF_HOSTING_URL, SOURCE_URL} from '../Links';
+import '../styles/landing.css';
+
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+const wordmarkMarkup = wordmark
+	.replace(/<!--[\s\S]*?-->/g, '')
+	.replace('<svg ', '<svg role="img" aria-label="OSACA" focusable="false" ');
+
+const pillars = [
+	{
+		id: 'anonymous-accounts',
+		title: 'Anonymous Accounts',
+		body: 'Sign up with a username and a password. OSACA never asks for an email address, a phone number or a date of birth, and default avatars are generated on your device instead of coming from personal data.',
+	},
+	{
+		id: 'end-to-end-encryption',
+		title: 'End-to-end encryption',
+		body: 'Messages and attachments in Private Conversations are encrypted on Members’ Devices with MLS (RFC 9420), so the Operator stores ciphertext it cannot read. Channels in a Community are not end-to-end encrypted yet; they are the next phase.',
+	},
+	{
+		id: 'self-hosting',
+		title: 'Self-hosting',
+		body: 'Run your own Instance on infrastructure you control. Instances are independent: there is no federation and no central service your community depends on.',
+	},
+	{
+		id: 'no-tracking',
+		title: 'No tracking',
+		body: 'No ads, no third-party analytics and no profiling. The server does not scan, unfurl or transform encrypted content, and push notifications only wake your device up.',
+	},
+];
+
+const limits = [
+	'Metadata is minimised, not hidden: the Operator can still see who talks to whom, when, and how much.',
+	'There is no protection against a global passive adversary who watches traffic across the network.',
+	'A modified client served by a malicious Operator can defeat the encryption, so get the client from a source you trust.',
+	'A compromised Device, or a Member who shares a conversation, exposes its content.',
+	'Calls are not yet end-to-end encrypted against the Operator.',
+];
+
+const roadmap = [
+	{phase: 'F0', title: 'A chat app without surveillance', state: 'Done: tracking, email, billing and server-side content processing removed.'},
+	{phase: 'F1', title: 'End-to-end encrypted Private Conversations', state: 'Mostly done: messages, attachments and safety numbers ship; client-side search and security property tests remain.'},
+	{phase: 'F2', title: 'End-to-end encrypted Communities and voice', state: 'Next.'},
+	{phase: 'F3', title: 'Multiple Devices per Account', state: 'Planned.'},
+	{phase: 'F4', title: 'Shared history, encrypted profiles and an official .onion', state: 'Later.'},
+];
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>OSACA · Comunidade, sem vigilância.</title>
+		<meta
+			name="description"
+			content="OSACA is an open-source, self-hosted community chat built so the Operator cannot read your Private Conversations. Experimental and unaudited."
+		/>
+		<meta name="color-scheme" content="light dark" />
+		<link rel="icon" type="image/png" sizes="32x32" href={`${base}favicon-32x32.png`} />
+		<link rel="apple-touch-icon" href={`${base}apple-touch-icon.png`} />
+		<Font cssVariable="--font-inter" preload />
+		<Font cssVariable="--font-montserrat" preload />
+		<script is:inline>
+			(function () {
+				try {
+					var stored = localStorage.getItem('osaca-landing-theme');
+					if (stored === 'light' || stored === 'dark') document.documentElement.dataset.theme = stored;
+				} catch (e) {}
+			})();
+		</script>
+	</head>
+	<body>
+		<a class="skip-link" href="#main">Skip to content</a>
+		<header class="site-header">
+			<div class="container site-header__bar">
+				<a class="brand" href={base}>
+					<img src={`${base}osaca-logo-color.svg`} alt="" width="36" height="36" />
+					<span>OSACA</span>
+				</a>
+				<nav aria-label="Primary" class="site-nav">
+					<ul>
+						<li><a href="#principles">Principles</a></li>
+						<li><a href="#limits">Limits</a></li>
+						<li><a href="#roadmap">Roadmap</a></li>
+						<li><a href={SOURCE_URL}>Source</a></li>
+						<li>
+							<button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch between light and dark theme">
+								<span aria-hidden="true">◐</span>
+								<span>Theme</span>
+							</button>
+						</li>
+					</ul>
+				</nav>
+			</div>
+			<div class="container hero">
+				<img class="hero__logo" src={`${base}osaca-logo-color.svg`} alt="OSACA logo" width="256" height="256" />
+				<div>
+					<p class="status">Experimental, unaudited</p>
+					<h1 set:html={wordmarkMarkup} />
+					<p class="hero__tagline" lang="pt-BR">Comunidade, sem vigilância.</p>
+					<p class="hero__lead">
+						An open-source, self-hosted community chat with anonymous Accounts, built so the Operator who runs the server cannot read your Private Conversations.
+					</p>
+					<div class="actions">
+						<a class="button button--primary" href={SECURITY_MODEL_URL}>Read the security model</a>
+						<a class="button button--secondary" href={SELF_HOSTING_URL}>Host an Instance</a>
+						<a class="button button--secondary" href={SOURCE_URL}>View the source</a>
+					</div>
+				</div>
+			</div>
+		</header>
+
+		<main id="main">
+			<section class="section" id="principles" aria-labelledby="principles-title">
+				<div class="container">
+					<h2 id="principles-title">Privacy by design</h2>
+					<p class="section__intro">
+						OSACA keeps the community features people expect from a modern chat app and treats the Operator as untrusted.
+					</p>
+					<div class="pillars">
+						{
+							pillars.map((pillar) => (
+								<article class="card" id={pillar.id}>
+									<h3>{pillar.title}</h3>
+									<p>{pillar.body}</p>
+								</article>
+							))
+						}
+					</div>
+				</div>
+			</section>
+
+			<section class="section" id="limits" aria-labelledby="limits-title">
+				<div class="container">
+					<h2 id="limits-title">What OSACA does not protect against</h2>
+					<p class="section__intro">
+						OSACA is experimental, unaudited software and has not had an external security audit. Don't rely on it where a failure would put someone at risk.
+					</p>
+					<ul class="limits">
+						{limits.map((limit) => <li>{limit}</li>)}
+					</ul>
+					<a href={SECURITY_MODEL_URL}>See the full security model and what is implemented today</a>
+				</div>
+			</section>
+
+			<section class="section" id="roadmap" aria-labelledby="roadmap-title">
+				<div class="container">
+					<h2 id="roadmap-title">Roadmap</h2>
+					<p class="section__intro">OSACA ships in phases. Each phase is usable on its own.</p>
+					<ol class="roadmap">
+						{
+							roadmap.map((step) => (
+								<li>
+									<span class="roadmap__phase">{step.phase}</span>
+									<span>{step.title}</span>
+									<span class="roadmap__state">{step.state}</span>
+								</li>
+							))
+						}
+					</ol>
+				</div>
+			</section>
+		</main>
+
+		<footer class="site-footer">
+			<div class="container">
+				<p>
+					OSACA is free software under the
+					<a href={`${SOURCE_URL}/blob/main/LICENSE`}>GNU AGPL v3</a>. Copyright and attribution notices are in the
+					<a href={`${SOURCE_URL}/blob/main/NOTICE`}>NOTICE</a> file.
+				</p>
+			</div>
+		</footer>
+
+		<script is:inline>
+			(function () {
+				var button = document.querySelector('[data-theme-toggle]');
+				if (!button) return;
+				button.addEventListener('click', function () {
+					var root = document.documentElement;
+					var current = root.dataset.theme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+					var next = current === 'dark' ? 'light' : 'dark';
+					root.dataset.theme = next;
+					try {
+						localStorage.setItem('osaca-landing-theme', next);
+					} catch (e) {}
+				});
+			})();
+		</script>
+	</body>
+</html>

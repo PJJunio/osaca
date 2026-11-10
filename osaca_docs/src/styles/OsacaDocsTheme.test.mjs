@@ -44,8 +44,8 @@ describe('OSACA documentation theme', () => {
 		assert.match(fonts, /name: 'Montserrat'/);
 		assert.match(faces, /<Font cssVariable="--font-inter" preload \/>/);
 		assert.match(faces, /<Font cssVariable="--font-montserrat" preload \/>/);
-		assert.match(stack, /--osaca-font-stack: var\(--font-inter\),/);
-		assert.match(stack, /--osaca-heading-stack: var\(--font-montserrat\),/);
+		assert.match(stack, /--osaca-font-stack:\s*var\(--font-inter\),/);
+		assert.match(stack, /--osaca-heading-stack:\s*var\(--font-montserrat\),/);
 	});
 
 	it('draws a visible focus ring on every focusable element', () => {

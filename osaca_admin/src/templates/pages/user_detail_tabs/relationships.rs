@@ -108,6 +108,7 @@ fn category_section(
                                 (csrf_input(csrf_token))
                                 input type="hidden" name="category" value=(cat.id);
                                 button type="submit"
+                                    data-confirm={"Remove all " (entries.len()) " " (cat.id) " relationships?"}
                                     class="inline-flex items-center rounded-md bg-red-600 px-3 \
                                            py-1.5 text-sm font-medium text-white hover:bg-red-700" {
                                     "Remove all " (entries.len())

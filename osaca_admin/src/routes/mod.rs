@@ -49,6 +49,7 @@ use tower_http::{
 
 const APP_CSS: &str = include_str!(concat!(env!("OUT_DIR"), "/static/app.css"));
 const HTMX_JS: &str = include_str!("../../static/htmx.min.js");
+const OSACA_LOGO_SVG: &str = include_str!("../../static/osaca-logo-color.svg");
 
 const IMMUTABLE_CACHE_CONTROL: &str = "public, max-age=31536000, immutable";
 
@@ -92,6 +93,7 @@ pub fn build_router(config: AdminConfig) -> Router {
         .route("/static/app.css", get(app_css))
         .route("/static/fonts/{file_name}", get(font_asset))
         .route("/static/htmx.min.js", get(htmx_js))
+        .route("/static/osaca-logo-color.svg", get(osaca_logo_svg))
         .merge(auth::router())
         .merge(protected)
         .fallback(not_found)
@@ -207,6 +209,16 @@ async fn htmx_js() -> impl IntoResponse {
             "application/javascript; charset=utf-8",
         )],
         HTMX_JS,
+    )
+}
+
+async fn osaca_logo_svg() -> impl IntoResponse {
+    (
+        [
+            (header::CONTENT_TYPE, "image/svg+xml"),
+            (header::CACHE_CONTROL, IMMUTABLE_CACHE_CONTROL),
+        ],
+        OSACA_LOGO_SVG,
     )
 }
 

@@ -481,7 +481,7 @@ fn gateway_rollout_section(
 
                     h3 class="text-sm font-semibold text-neutral-900" { "Voice E2EE" }
                     (select_input("gateway_rollout_voice_e2ee_scope", "Enforcement scope", &[
-                        ("guild_feature_only", "Guild feature only (require VOICE_E2EE on the guild; DMs/GDMs never E2EE)"),
+                        ("guild_feature_only", "Guild feature only (require VOICE_E2EE on the guild; voice calls in DMs/GDMs are not E2EE)"),
                         ("platform_wide", "Platform-wide (every guild voice channel, DM, and GDM)"),
                     ], gateway_rollout.voice_e2ee_scope.as_str()))
 

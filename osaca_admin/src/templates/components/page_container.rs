@@ -49,7 +49,7 @@ pub fn page_header_full(
     html! {
         div {
             @if let Some(href) = back_href {
-                a href=(href) class="-mt-1 mb-2 inline-flex items-center gap-1 rounded text-neutral-600 text-sm transition-colors hover:text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2" {
+                a href=(href) class="-mt-1 mb-2 inline-flex items-center gap-1 rounded text-neutral-600 text-sm transition-colors hover:text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-osaca-focus focus-visible:ring-offset-2" {
                     span aria-hidden="true" { (PreEscaped("&larr;")) }
                     span { (back_label.unwrap_or("Back")) }
                 }

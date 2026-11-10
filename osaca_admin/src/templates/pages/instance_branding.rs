@@ -19,7 +19,6 @@ pub const CUSTOM_CSS_FIELD: &str = "app_custom_css";
 pub const UPLOAD_LIMIT_MESSAGE_FIELD: &str = "app_upload_limit_message";
 pub const TRUSTED_DOMAINS_FIELD: &str = "app_trusted_domains";
 
-const OSACA_LOGO_SVG: &str = include_str!("../../../static/osaca-logo-color.svg");
 const OSACA_WORDMARK_SVG: &str = include_str!("../../../static/osaca-wordmark.svg");
 
 const ASSET_ORDER: [BrandingAssetKind; 7] = [
@@ -82,7 +81,7 @@ pub(super) fn branding_section(
             (config_form.fields())
             div class="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,27rem)_minmax(0,1fr)] xl:items-start" {
                 div class="min-w-0 xl:sticky xl:top-6 xl:col-start-2 xl:row-start-1" {
-                    (branding_preview(host, &config.image_origins()))
+                    (branding_preview(base, host, &config.image_origins()))
                 }
                 div class="min-w-0 space-y-6 xl:col-start-1 xl:row-start-1" {
                     div class="flex flex-col gap-2" {
@@ -297,7 +296,8 @@ pub fn branding_asset_field(
     }
 }
 
-fn branding_preview(host: &str, image_origins: &[String]) -> Markup {
+fn branding_preview(base: &str, host: &str, image_origins: &[String]) -> Markup {
+    let default_logo_src = format!("{base}/static/osaca-logo-color.svg");
     let image_origins = serde_json::to_string(image_origins).unwrap_or_else(|_| "[]".to_owned());
     html! {
         div class="bp-root" data-branding-preview data-bp-image-origins=(image_origins) {
@@ -317,7 +317,7 @@ fn branding_preview(host: &str, image_origins: &[String]) -> Markup {
                                 div class="bp-browser-tab" {
                                     span class="bp-favicon" data-bp-target="favicon" {
                                         img alt="" data-bp="favicon-img" hidden;
-                                        span class="bp-fill" data-bp="favicon-default" { (PreEscaped(OSACA_LOGO_SVG)) }
+                                        span class="bp-fill" data-bp="favicon-default" { img src=(default_logo_src) alt=""; }
                                     }
                                     span class="bp-tab-title" dir="auto" data-bp="name" data-bp-target="name" {}
                                 }
@@ -333,7 +333,7 @@ fn branding_preview(host: &str, image_origins: &[String]) -> Markup {
                                 div class="bp-card-brand" {
                                     span class="bp-card-logo" data-bp="logo-box" data-bp-target="logo" {
                                         img alt="" data-bp="logo-img" hidden;
-                                        span class="bp-fill" data-bp="logo-default" { (PreEscaped(OSACA_LOGO_SVG)) }
+                                        span class="bp-fill" data-bp="logo-default" { img src=(default_logo_src) alt=""; }
                                     }
                                     span class="bp-card-wordmark" data-bp-target="wordmark" {
                                         (wordmark_slots())
@@ -471,7 +471,7 @@ const CHECKERBOARD_STYLE: &str = "background-color:#2a2a31;background-image:line
 const BRANDING_ASSET_BUTTON_CLASS: &str = "inline-flex h-8 shrink-0 items-center justify-center \
      rounded-lg border border-neutral-300 bg-neutral-50 px-3 text-xs font-medium \
      text-neutral-700 transition-all hover:border-neutral-400 hover:text-neutral-900 \
-     focus:outline-none focus:ring-2 focus:ring-brand-primary/20 \
+     focus:outline-none focus:ring-2 focus:ring-osaca-focus/20 \
      disabled:cursor-not-allowed disabled:opacity-50";
 
 const BRANDING_PREVIEW_STYLE: &str = r#"
@@ -486,7 +486,7 @@ const BRANDING_PREVIEW_STYLE: &str = r#"
 .bp-note{margin:0;font-size:12px;line-height:1.5;color:#71717a}
 .bp-caption{margin:10px 0 0;font-size:12px;line-height:1.5;color:#71717a}
 .bp-hl{outline:calc(2*var(--u,1px)) dashed #8b87ff;outline-offset:calc(4*var(--u,1px))}
-.bp-fill,.bp-fill svg{display:block;width:100%;height:100%}
+.bp-fill,.bp-fill svg,.bp-fill img{display:block;width:100%;height:100%}
 .bp-computer{--u:calc(100cqw/1280);container-type:inline-size;display:flex;flex-direction:column;overflow:hidden;border:1px solid #d4d4d8;border-radius:10px;background:#202024}
 .bp-chrome{background:#202024;color:#e3e3e8}
 .bp-tabstrip{display:flex;align-items:flex-end;height:calc(40*var(--u));padding-inline:calc(84*var(--u)) calc(16*var(--u))}

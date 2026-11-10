@@ -281,6 +281,7 @@ fn server_card(
                 input type="hidden" name="vip_only" value=(if vip_only { "true" } else { "false" });
                 @if is_active {
                     button type="submit"
+                        data-confirm="Deactivate this voice server? It stops taking new calls."
                         class="inline-flex items-center justify-center gap-2 font-medium \
                                rounded-lg transition-all duration-150 focus:outline-none \
                                focus:ring-2 focus:ring-offset-2 bg-red-600 text-white \
@@ -302,6 +303,7 @@ fn server_card(
                 input type="hidden" name="region_id" value=(region_id);
                 input type="hidden" name="server_id" value=(server.server_id);
                 button type="submit"
+                    data-confirm="Delete this voice server?"
                     class="inline-flex items-center justify-center gap-2 font-medium \
                            rounded-lg transition-all duration-150 focus:outline-none \
                            focus:ring-2 focus:ring-offset-2 bg-red-600 text-white \

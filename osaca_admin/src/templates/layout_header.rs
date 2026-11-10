@@ -13,7 +13,7 @@ pub fn render_header(config: &AdminConfig, auth: &AuthContext, csrf_token: &str)
     html! {
         header class="sticky top-0 z-10 flex items-center justify-between gap-3 border-neutral-200 border-b bg-white px-3 py-3 sm:gap-4 sm:px-6 sm:py-4 lg:px-8" {
             div class="flex min-w-0 flex-1 items-center gap-2 sm:gap-3" {
-                button type="button" data-sidebar-toggle="" aria-label="Open navigation menu" aria-expanded="false" aria-controls="admin-sidebar" class="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-md border border-neutral-300 text-neutral-700 transition-colors hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary lg:hidden" {
+                button type="button" data-sidebar-toggle="" aria-label="Open navigation menu" aria-expanded="false" aria-controls="admin-sidebar" class="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-md border border-neutral-300 text-neutral-700 transition-colors hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-osaca-focus lg:hidden" {
                     svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" {
                         line x1="3" y1="6" x2="21" y2="6" {}
                         line x1="3" y1="12" x2="21" y2="12" {}
@@ -21,7 +21,7 @@ pub fn render_header(config: &AdminConfig, auth: &AuthContext, csrf_token: &str)
                     }
                 }
                 @if let Some(ref admin) = auth.admin_user {
-                    a href={(base) "/users/" (auth.session.user_id)} class="flex min-w-0 items-center gap-2 rounded transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 sm:gap-3" {
+                    a href={(base) "/users/" (auth.session.user_id)} class="flex min-w-0 items-center gap-2 rounded transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-osaca-focus focus-visible:ring-offset-2 sm:gap-3" {
                         img
                             src=(user_avatar_url(config, &admin.id, admin.avatar.as_deref(), 160, true))
                             alt=(format!("{}'s avatar", admin.username))
@@ -41,14 +41,14 @@ pub fn render_header(config: &AdminConfig, auth: &AuthContext, csrf_token: &str)
                 } @else {
                     div class="min-w-0 truncate text-neutral-600 text-sm" {
                         span class="hidden sm:inline" { "Logged in as: " }
-                        a href={(base) "/users/" (auth.session.user_id)} class="rounded text-blue-600 hover:text-blue-800 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary" {
+                        a href={(base) "/users/" (auth.session.user_id)} class="rounded text-blue-600 hover:text-blue-800 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-osaca-focus" {
                             (auth.session.user_id)
                         }
                     }
                 }
             }
             div class="flex flex-shrink-0 items-center gap-2" {
-                button type="button" data-theme-toggle="" aria-label="Switch between light and dark theme" title="Switch between light and dark theme" class="inline-flex h-11 w-11 items-center justify-center rounded border border-neutral-300 text-neutral-700 transition-colors hover:border-neutral-400 hover:text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary" {
+                button type="button" data-theme-toggle="" aria-label="Switch between light and dark theme" title="Switch between light and dark theme" class="inline-flex h-11 w-11 items-center justify-center rounded border border-neutral-300 text-neutral-700 transition-colors hover:border-neutral-400 hover:text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-osaca-focus" {
                     svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="theme-toggle-to-light h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" {
                         circle cx="12" cy="12" r="4" {}
                         path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" {}
@@ -59,7 +59,7 @@ pub fn render_header(config: &AdminConfig, auth: &AuthContext, csrf_token: &str)
                 }
                 form method="post" action={(base) "/logout"} class="flex-shrink-0" hx-boost="false" {
                     input type="hidden" name="_csrf" value=(csrf_token);
-                    button type="submit" aria-label="Log out" class="inline-flex h-11 items-center justify-center rounded border border-neutral-300 px-3 font-medium text-neutral-700 text-sm transition-colors hover:border-neutral-400 hover:text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary sm:px-4" {
+                    button type="submit" aria-label="Log out" class="inline-flex h-11 items-center justify-center rounded border border-neutral-300 px-3 font-medium text-neutral-700 text-sm transition-colors hover:border-neutral-400 hover:text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-osaca-focus sm:px-4" {
                         svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-5 w-5 sm:hidden" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" {
                             path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" {}
                             polyline points="16 17 21 12 16 7" {}

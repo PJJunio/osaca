@@ -18,8 +18,8 @@ use crate::{
 use maud::{Markup, html};
 
 const INPUT_CLS: &str = "block w-full rounded-md border border-neutral-300 px-3 py-2 \
-                          text-sm shadow-sm focus:border-brand-primary focus:outline-none \
-                          focus:ring-1 focus:ring-brand-primary";
+                          text-sm shadow-sm focus:border-osaca-focus focus:outline-none \
+                          focus:ring-1 focus:ring-osaca-focus";
 const BTN_CLS: &str = "w-full inline-flex items-center justify-center rounded-md \
                         bg-brand-primary px-4 py-2 text-sm font-medium text-white \
                         shadow-sm hover:bg-brand-primary-dark";

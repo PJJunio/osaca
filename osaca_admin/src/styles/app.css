@@ -4,14 +4,23 @@
 @source "../**/*.rs";
 
 @theme {
-  --font-sans: "OSACA Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "OSACA Sans", ui-sans-serif, system-ui, sans-serif;
-  --color-brand-primary: hsl(242 70% 55%);
-  --color-brand-primary-dark: hsl(242 70% 47%);
+  --font-sans: "Inter", "OSACA Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Montserrat", "OSACA Sans", ui-sans-serif, system-ui, sans-serif;
+  --color-osaca-navy: #102b42;
+  --color-osaca-earth-red: #e84b35;
+  --color-osaca-ivory: #f3f1eb;
+  --color-osaca-slate: #687783;
+  --color-osaca-focus: var(--osaca-focus);
+  --color-brand-primary: #c73a27;
+  --color-brand-primary-dark: #a52e1d;
+  --color-neutral-50: #f6f5f1;
+  --color-red-600: hsl(355 72% 48%);
+  --color-red-700: hsl(355 72% 40%);
 }
 
 :root {
-  --brand-primary: hsl(242 70% 55%);
+  --brand-primary: var(--color-brand-primary);
+  --osaca-focus: #1d5fbf;
 }
 
 html,
@@ -44,7 +53,7 @@ a:focus-visible,
 button:focus-visible,
 [role="button"]:focus-visible,
 summary:focus-visible {
-  outline: 2px solid var(--brand-primary);
+  outline: 2px solid var(--osaca-focus);
   outline-offset: 2px;
   border-radius: 6px;
 }
@@ -176,7 +185,7 @@ input:disabled + .checkbox-custom {
 }
 
 .table-scroll:focus-visible {
-  outline: 2px solid var(--brand-primary);
+  outline: 2px solid var(--osaca-focus);
   outline-offset: -2px;
 }
 
@@ -195,7 +204,7 @@ input:disabled + .checkbox-custom {
 
 .sidebar-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #475569 #020617;
+  scrollbar-color: #2a4a66 transparent;
 }
 
 .sidebar-scrollbar::-webkit-scrollbar {
@@ -203,11 +212,11 @@ input:disabled + .checkbox-custom {
 }
 
 .sidebar-scrollbar::-webkit-scrollbar-track {
-  background: #020617;
+  background: transparent;
 }
 
 .sidebar-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #475569;
+  background-color: #2a4a66;
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: content-box;
@@ -227,34 +236,35 @@ input:disabled + .checkbox-custom {
   }
 
   50% {
-    background-color: hsl(242 70% 55% / 0.18);
+    background-color: color-mix(in srgb, var(--osaca-focus) 18%, transparent);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   :target {
-    background-color: hsl(242 70% 55% / 0.12);
+    background-color: color-mix(in srgb, var(--osaca-focus) 12%, transparent);
     animation: none;
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --color-white: oklch(0.205 0 0);
-  --color-black: oklch(0.985 0 0);
-  --color-neutral-50: oklch(0.17 0 0);
-  --color-neutral-100: oklch(0.25 0 0);
-  --color-neutral-200: oklch(0.3 0 0);
-  --color-neutral-300: oklch(0.4 0 0);
-  --color-neutral-400: oklch(0.55 0 0);
-  --color-neutral-500: oklch(0.7 0 0);
-  --color-neutral-600: oklch(0.78 0 0);
-  --color-neutral-700: oklch(0.85 0 0);
-  --color-neutral-800: oklch(0.92 0 0);
-  --color-neutral-900: oklch(0.97 0 0);
-  --color-gray-500: oklch(0.7 0 0);
-  --color-gray-600: oklch(0.78 0 0);
-  --color-gray-900: oklch(0.97 0 0);
+  --osaca-focus: #7db6ff;
+  --color-white: #172635;
+  --color-black: #f3f5f7;
+  --color-neutral-50: #10202e;
+  --color-neutral-100: #1d3040;
+  --color-neutral-200: #24394c;
+  --color-neutral-300: #2f4a61;
+  --color-neutral-400: #5b7083;
+  --color-neutral-500: #9aa8b2;
+  --color-neutral-600: #b8c2ca;
+  --color-neutral-700: #d3dade;
+  --color-neutral-800: #e7ebee;
+  --color-neutral-900: #f3f5f7;
+  --color-gray-500: #9aa8b2;
+  --color-gray-600: #b8c2ca;
+  --color-gray-900: #f3f5f7;
   --color-red-50: oklch(0.258 0.092 26.042);
   --color-red-100: oklch(0.396 0.141 25.723);
   --color-red-200: oklch(0.444 0.177 26.899);
@@ -298,15 +308,26 @@ input:disabled + .checkbox-custom {
   --color-purple-700: oklch(0.827 0.119 306.383);
 }
 
+#admin-sidebar {
+  background-color: var(--color-osaca-navy);
+  --color-white: #ffffff;
+  --color-neutral-200: #e3e7ea;
+  --color-neutral-300: #c9d1d7;
+  --color-neutral-400: #9aa8b2;
+  --color-neutral-500: #8a9aa6;
+  --color-neutral-700: #2a4a66;
+  --color-neutral-800: #1d3a55;
+  --color-neutral-900: var(--color-osaca-navy);
+}
+
 :root[data-theme="dark"] #admin-sidebar {
-  --color-white: oklch(1 0 0);
-  --color-neutral-200: oklch(0.922 0 0);
-  --color-neutral-300: oklch(0.87 0 0);
-  --color-neutral-400: oklch(0.708 0 0);
-  --color-neutral-500: oklch(0.556 0 0);
-  --color-neutral-700: oklch(0.371 0 0);
-  --color-neutral-800: oklch(0.269 0 0);
-  --color-neutral-900: oklch(0.145 0 0);
+  background-color: #0b1722;
+  --color-neutral-800: #172635;
+  --color-neutral-900: #0b1722;
+}
+
+:root[data-theme="dark"] .text-red-600 {
+  color: hsl(355 85% 72%);
 }
 
 :root[data-theme="dark"] :is(.text-white:is(.bg-red-600, .bg-green-600, .bg-brand-primary, .bg-blue-600, .bg-black), .skip-link) {

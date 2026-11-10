@@ -39,12 +39,12 @@ pub fn detail_page_href(base_url: &str, entity_id: &str, tab: &str) -> String {
 
 const MOBILE_TAB_BASE: &str = "inline-flex min-h-[44px] flex-shrink-0 items-center \
     whitespace-nowrap rounded-md px-3 py-2 font-medium text-sm transition-colors \
-    focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary \
+    focus:outline-none focus-visible:ring-2 focus-visible:ring-osaca-focus \
     focus-visible:ring-offset-2";
 
 const DESKTOP_TAB_BASE: &str = "flex min-h-[44px] items-center border-l-2 py-2 pl-3 \
     pr-2 font-medium text-sm transition-colors focus:outline-none \
-    focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-inset";
+    focus-visible:ring-2 focus-visible:ring-osaca-focus focus-visible:ring-inset";
 
 pub fn detail_tabs(tabs: &[DetailTab], aria_label: &str, target_id: &str) -> Markup {
     let hx_target = format!("#{target_id}");

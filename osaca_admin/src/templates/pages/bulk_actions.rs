@@ -150,8 +150,8 @@ fn bulk_update_guild_features_section(base: &str, csrf_token: &str) -> Markup {
                                 placeholder="CUSTOM_FEATURE_1, CUSTOM_FEATURE_2"
                                 class="w-full rounded-lg border border-neutral-300 bg-white \
                                        text-neutral-900 text-sm h-8 px-3 py-1.5 \
-                                       focus:border-brand-primary focus:outline-none \
-                                       focus:ring-2 focus:ring-brand-primary/20";
+                                       focus:border-osaca-focus focus:outline-none \
+                                       focus:ring-2 focus:ring-osaca-focus/20";
                         },
                     ))
                     (form_field_group("Custom features to remove", "custom_remove_features", false, None,
@@ -161,8 +161,8 @@ fn bulk_update_guild_features_section(base: &str, csrf_token: &str) -> Markup {
                                 placeholder="CUSTOM_FEATURE_1, CUSTOM_FEATURE_2"
                                 class="w-full rounded-lg border border-neutral-300 bg-white \
                                        text-neutral-900 text-sm h-8 px-3 py-1.5 \
-                                       focus:border-brand-primary focus:outline-none \
-                                       focus:ring-2 focus:ring-brand-primary/20";
+                                       focus:border-osaca-focus focus:outline-none \
+                                       focus:ring-2 focus:ring-osaca-focus/20";
                         },
                     ))
                     (text_input("audit_log_reason", "Audit Log Reason (optional)", "", "Reason for this bulk operation"))

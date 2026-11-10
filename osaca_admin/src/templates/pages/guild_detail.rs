@@ -129,7 +129,7 @@ fn render_guild_detail(
             a href={(base) "/guilds"}
                 class="inline-flex w-fit items-center gap-2 rounded text-neutral-600 \
                        transition-colors hover:text-neutral-900 focus:outline-none \
-                       focus-visible:ring-2 focus-visible:ring-brand-primary \
+                       focus-visible:ring-2 focus-visible:ring-osaca-focus \
                        focus-visible:ring-offset-2" {
                 span class="text-lg" aria-hidden="true" { (PreEscaped("&larr;")) }
                 "Back to Guilds"
@@ -184,7 +184,7 @@ fn render_guild_header(config: &AdminConfig, guild: &GuildDetailInfo) -> Markup 
                             a href={(base) "/users/" (guild.owner_id)}
                                 class="block break-words rounded text-sm text-neutral-900 \
                                        hover:text-blue-600 hover:underline focus:outline-none \
-                                       focus-visible:ring-2 focus-visible:ring-brand-primary \
+                                       focus-visible:ring-2 focus-visible:ring-osaca-focus \
                                        focus-visible:ring-offset-2" {
                                 (owner_display)
                             }

@@ -181,8 +181,8 @@ fn cancel_section(base: &str, job: &serde_json::Value, job_id: &str, csrf_token:
                         input type="text" id="audit_log_reason" name="audit_log_reason" required
                             class="w-full rounded-lg border border-neutral-300 bg-white \
                                    text-neutral-900 text-sm h-8 px-3 py-1.5 \
-                                   focus:border-brand-primary focus:outline-none \
-                                   focus:ring-2 focus:ring-brand-primary/20";
+                                   focus:border-osaca-focus focus:outline-none \
+                                   focus:ring-2 focus:ring-osaca-focus/20";
                     }))
                     div class="w-full" { (danger_button("Request cancel")) }
                 }

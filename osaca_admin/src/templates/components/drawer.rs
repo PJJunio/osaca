@@ -98,7 +98,7 @@ pub fn drawer(
                                   justify-center rounded-md text-neutral-500 \
                                   transition-colors hover:bg-neutral-100 \
                                   hover:text-neutral-900 focus:outline-none \
-                                  focus-visible:ring-2 focus-visible:ring-brand-primary"
+                                  focus-visible:ring-2 focus-visible:ring-osaca-focus"
                     {
                         (close_icon())
                     }

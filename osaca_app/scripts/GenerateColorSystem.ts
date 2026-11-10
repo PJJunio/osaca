@@ -497,7 +497,7 @@ hsl(245, calc(100% * var(--saturation-factor)), 80%) 40%
 			{name: '--accent-primary', value: 'var(--brand-primary)'},
 			{name: '--accent-success', value: 'var(--status-online)'},
 			{name: '--accent-warning', value: 'var(--status-idle)'},
-			{name: '--accent-danger', value: 'var(--status-dnd)'},
+			{name: '--accent-danger', value: 'var(--status-danger)'},
 			{name: '--accent-info', value: 'var(--text-link)'},
 			{name: '--accent-purple', family: 'accentPurple', lightness: 65},
 			{name: '--alert-note-color', family: 'link', lightness: 70},

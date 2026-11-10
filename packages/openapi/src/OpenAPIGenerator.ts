@@ -89,8 +89,7 @@ export class OpenAPIGenerator {
 				version: this.settings.version,
 				description: this.settings.description,
 				contact: {
-					name: 'Fluxer Platform AB',
-					email: 'support@osaca.example',
+					name: 'OSACA contributors',
 				},
 				license: {
 					name: 'AGPL-3.0',

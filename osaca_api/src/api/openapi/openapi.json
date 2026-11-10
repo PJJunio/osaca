@@ -5,7 +5,7 @@
 		"title": "OSACA API",
 		"version": "1.0.0",
 		"description": "API for OSACA, a free and open source instant messaging and VoIP chat app built for friends, groups, and communities.",
-		"contact": {"name": "Fluxer Platform AB", "email": "support@osaca.example"},
+		"contact": {"name": "OSACA contributors"},
 		"license": {"name": "AGPL-3.0", "url": "https://www.gnu.org/licenses/agpl-3.0.html"}
 	},
 	"servers": [{"url": "https://api.osaca.example/v1", "description": "Production API"}],

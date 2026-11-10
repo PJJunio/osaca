@@ -1674,7 +1674,7 @@ module.exports = {
 		: {}),
 	appId,
 	productName: installedProductName,
-	copyright: 'Copyright © 2026 Fluxer Platform AB',
+	copyright: 'Copyright © 2026 OSACA contributors',
 	artifactName: `${artifactProductName}-\${version}-\${os}-\${arch}.\${ext}`,
 	directories: {
 		buildResources: 'build_resources',
@@ -1720,9 +1720,6 @@ module.exports = {
 			to: 'badges',
 			filter: ['**/*'],
 		},
-		...(buildChannel === 'development' && targetPlatform === 'darwin'
-			? [{from: `build_resources/${iconDir}/_compiled/Assets.car`, to: 'Assets.car'}]
-			: []),
 	],
 	asar: {
 		smartUnpack: false,
@@ -1828,7 +1825,6 @@ module.exports = {
 			NSAppleEventsUsageDescription: 'OSACA needs access to Apple Events for automation features.',
 			NSAudioCaptureUsageDescription: 'OSACA captures audio from the screen or window you choose to share.',
 			NSScreenCaptureUsageDescription: 'OSACA captures the screen or window you choose to share.',
-			...(buildChannel === 'development' ? {CFBundleIconName: 'AppIcon'} : {}),
 			NSLocalNetworkUsageDescription:
 				'OSACA needs local network access to reach a OSACA instance you host on your own network. It never scans your network or connects to devices you have not pointed it at.',
 		},

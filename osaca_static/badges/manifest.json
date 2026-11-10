@@ -1,0 +1,14 @@
+{
+	"staff": {
+		"source": "staff.svg",
+		"hash": "479954de1ebdb72b"
+	},
+	"partner": {
+		"source": "partner.svg",
+		"hash": "ebe06b22b7e9d0fe"
+	},
+	"bug_hunter": {
+		"source": "bug-hunter.svg",
+		"hash": "586165822a31f697"
+	}
+}

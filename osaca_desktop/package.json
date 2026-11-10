@@ -3,7 +3,7 @@
 	"version": "0.0.0",
 	"description": "Instant messaging and VoIP application",
 	"homepage": "https://osaca.example",
-	"author": "Fluxer Platform AB <support@osaca.example>",
+	"author": "OSACA contributors",
 	"license": "AGPL-3.0-or-later",
 	"private": true,
 	"type": "module",

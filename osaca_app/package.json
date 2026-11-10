@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "OSACA is a free and open source instant messaging and VoIP chat app built for friends, groups, and communities.",
 	"homepage": "https://osaca.example",
-	"author": "Fluxer Platform AB <support@osaca.example>",
+	"author": "OSACA contributors",
 	"sideEffects": [
 		"*.css",
 		"**/*.css",

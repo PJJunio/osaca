@@ -63,7 +63,7 @@ export const COLOR_FAMILIES: Record<string, ColorFamily> = {
 	statusIdle: {hue: 45, saturation: 93, useSaturationFactor: true},
 	statusDnd: {hue: 7, saturation: 80, useSaturationFactor: true},
 	statusOffline: {hue: 207, saturation: 11, useSaturationFactor: true},
-	statusDanger: {hue: 7, saturation: 80, useSaturationFactor: true},
+	statusDanger: {hue: 355, saturation: 70, useSaturationFactor: true},
 	textCode: {hue: 7, saturation: 70, useSaturationFactor: true},
 	brandIcon: {hue: 7, saturation: 80, useSaturationFactor: true},
 };

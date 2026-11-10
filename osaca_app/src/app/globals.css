@@ -72,6 +72,45 @@ var {
 	--font-keybind: -apple-system, BlinkMacSystemFont, var(--font-sans);
 	--font-display: 'Montserrat', var(--font-sans);
 
+	/* OSACA shared visual foundation */
+	--osaca-color-navy: #102b42;
+	--osaca-color-earth-red: #e84b35;
+	--osaca-color-ivory: #f3f1eb;
+	--osaca-color-slate: #687783;
+	--osaca-color-white: #ffffff;
+	--osaca-color-black: #0b1722;
+	--osaca-color-focus: #2f80ed;
+
+	--osaca-surface-page: var(--chat-canvas-bg);
+	--osaca-surface-raised: var(--chat-surface-bg);
+	--osaca-surface-navigation: var(--guild-sidebar-bg);
+	--osaca-surface-subnavigation: var(--channel-sidebar-bg);
+	--osaca-content-primary: var(--text-primary);
+	--osaca-content-secondary: var(--text-secondary);
+	--osaca-content-muted: var(--message-timestamp-color);
+	--osaca-border-subtle: var(--border-color);
+	--osaca-border-strong: var(--border-color-hover);
+	--osaca-action-primary: var(--brand-primary);
+	--osaca-action-primary-hover: var(--brand-secondary);
+	--osaca-action-primary-content: var(--text-on-brand-primary);
+	--osaca-status-success: var(--status-online);
+	--osaca-status-warning: var(--status-warning);
+	--osaca-status-danger: #b52f2a;
+	--osaca-status-info: var(--text-link);
+
+	--focus-ring: 0 0 0 0.1875rem color-mix(in srgb, var(--osaca-color-focus) 72%, transparent);
+	--focus-ring-offset: 0.125rem;
+	--motion-duration-fast: 100ms;
+	--motion-duration-normal: 180ms;
+	--motion-duration-slow: 280ms;
+	--motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+	--motion-easing-emphasized: cubic-bezier(0.2, 0, 0, 0.8);
+	--container-content-max: 90rem;
+	--container-reading-max: 72rem;
+	--breakpoint-mobile: 40rem;
+	--breakpoint-tablet: 64rem;
+	--breakpoint-desktop: 90rem;
+
 	--z-index-base: 0;
 	--z-index-elevated-1: 10;
 	--z-index-elevated-2: 20;
@@ -90,14 +129,14 @@ var {
 	--macos-traffic-light-inset: 78px;
 
 	/* OSACA Hybrid Identity Design Tokens */
-	--guild-sidebar-bg: #102B42;
+	--guild-sidebar-bg: #102b42;
 	--guild-sidebar-item-bg: rgba(255, 255, 255, 0.12);
 	--guild-sidebar-item-hover: rgba(255, 255, 255, 0.2);
-	--channel-sidebar-bg: #F3F1EB;
-	--chat-canvas-bg: #FFFFFF;
-	--chat-surface-bg: #FFFFFF;
+	--channel-sidebar-bg: #f3f1eb;
+	--chat-canvas-bg: #ffffff;
+	--chat-surface-bg: #ffffff;
 	--message-timestamp-color: #687783;
-	--composer-pill-bg: #FFFFFF;
+	--composer-pill-bg: #ffffff;
 	--composer-pill-border: rgba(104, 119, 131, 0.22);
 
 	--radius-sm: 0.25rem;
@@ -360,6 +399,14 @@ html.platform-native.platform-macos {
 }
 
 .theme-light {
+	--osaca-color-focus: #1d5fbf;
+	--osaca-status-danger: #b52f2a;
+	--guild-sidebar-bg: #102b42;
+	--channel-sidebar-bg: #f3f1eb;
+	--chat-canvas-bg: #ffffff;
+	--chat-surface-bg: #ffffff;
+	--message-timestamp-color: #687783;
+	--composer-pill-bg: #ffffff;
 	--guilds-layout-item-bg: var(--guild-sidebar-item-bg, var(--guild-list-foreground));
 	--form-surface-background: var(--background-primary);
 	--message-preview-card-background: hsl(0, 0%, 100%);
@@ -510,6 +557,19 @@ body {
 	padding: 0;
 }
 
+.theme-dark,
+.theme-coal,
+.theme-dark_legacy {
+	--osaca-color-focus: #7db6ff;
+	--osaca-status-danger: #ff6b5f;
+	--guild-sidebar-bg: #0b1722;
+	--channel-sidebar-bg: #172635;
+	--chat-canvas-bg: #10202e;
+	--chat-surface-bg: #172635;
+	--message-timestamp-color: #9aa8b2;
+	--composer-pill-bg: #1d3040;
+}
+
 button,
 input,
 select,
@@ -522,6 +582,36 @@ a {
 [role='button'],
 [tabindex] {
 	outline: none;
+}
+
+:where(a, button, input, select, textarea, [role='button'], [tabindex]):focus {
+	outline: 0.125rem solid var(--osaca-color-focus);
+	outline-offset: var(--focus-ring-offset);
+	box-shadow: var(--focus-ring);
+}
+
+@supports selector(:focus-visible) {
+	:where(a, button, input, select, textarea, [role='button'], [tabindex]):focus {
+		outline: none;
+		box-shadow: none;
+	}
+
+	:where(a, button, input, select, textarea, [role='button'], [tabindex]):focus-visible {
+		outline: 0.125rem solid var(--osaca-color-focus);
+		outline-offset: var(--focus-ring-offset);
+		box-shadow: var(--focus-ring);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		scroll-behavior: auto !important;
+		transition-duration: 0.01ms !important;
+	}
 }
 
 input,

@@ -19,6 +19,7 @@ interface ErrorFallbackProps {
 }
 
 const logger = new Logger('ErrorFallback');
+const ERROR_FALLBACK_TITLE_ID = 'osaca-error-fallback-title';
 const UNKNOWN_ERROR_DESCRIPTOR = msg({
 	message: 'Unknown error',
 	comment: 'Fallback diagnostic text on the crash screen when an Error object has no message.',
@@ -128,13 +129,22 @@ export const ErrorFallback: React.FC<ErrorFallbackProps> = ({error}) => {
 		);
 	}
 	return (
-		<div className={errorFallbackStyles.errorFallbackContainer} data-flx="app.error-fallback.div">
+		<div
+			className={errorFallbackStyles.errorFallbackContainer}
+			role="alert"
+			aria-labelledby={ERROR_FALLBACK_TITLE_ID}
+			data-flx="app.error-fallback.div"
+		>
 			{isNative && !useSystemTitleBar && (
 				<NativeTitlebar platform={platform} data-flx="app.error-fallback.native-titlebar" />
 			)}
 			<OsacaIcon className={errorFallbackStyles.errorFallbackIcon} data-flx="app.error-fallback.osaca-icon" />
 			<div className={errorFallbackStyles.errorFallbackContent} data-flx="app.error-fallback.div--2">
-				<h1 className={errorFallbackStyles.errorFallbackTitle} data-flx="app.error-fallback.h1">
+				<h1
+					id={ERROR_FALLBACK_TITLE_ID}
+					className={errorFallbackStyles.errorFallbackTitle}
+					data-flx="app.error-fallback.h1"
+				>
 					<Trans>The app crashed</Trans>
 				</h1>
 				<p className={errorFallbackStyles.errorFallbackDescription} data-flx="app.error-fallback.p">

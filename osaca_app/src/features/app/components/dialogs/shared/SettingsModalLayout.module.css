@@ -21,9 +21,17 @@
 	--settings-selected-color: var(--text-primary);
 	--settings-sidebar-highlight: var(--text-primary);
 	--settings-sidebar-selected-background: var(--settings-selected-background);
-	--settings-danger-text: color-mix(in srgb, var(--status-danger) 78%, var(--text-primary) 22%);
-	--settings-danger-background: color-mix(in srgb, var(--status-danger) 6%, var(--surface-interactive-hover-bg));
-	--settings-danger-border-color: color-mix(in srgb, var(--status-danger) 32%, transparent);
+	--settings-danger-text: color-mix(
+		in srgb,
+		var(--osaca-status-danger, var(--status-danger)) 78%,
+		var(--text-primary) 22%
+	);
+	--settings-danger-background: color-mix(
+		in srgb,
+		var(--osaca-status-danger, var(--status-danger)) 6%,
+		var(--surface-interactive-hover-bg)
+	);
+	--settings-danger-border-color: color-mix(in srgb, var(--osaca-status-danger, var(--status-danger)) 32%, transparent);
 	--settings-control-radius: 0.5rem;
 	--settings-sidebar-item-border-width: 0.0625rem;
 	--settings-sidebar-item-padding-inline: 0.625rem;
@@ -95,7 +103,7 @@
 	flex: 0 0 clamp(15.75rem, 24svw, 20rem);
 	display: flex;
 	border-inline-end: 0.0625rem solid var(--settings-border-color);
-	background: var(--settings-surface-background);
+	background: var(--osaca-surface-subnavigation, var(--settings-surface-background));
 	overflow: hidden;
 	position: relative;
 }
@@ -124,7 +132,7 @@
 	flex: 1;
 	display: flex;
 	flex-direction: column;
-	background: var(--background-secondary);
+	background: var(--osaca-surface-page, var(--background-secondary));
 	min-width: 0;
 	min-height: 0;
 	overflow: hidden;
@@ -161,7 +169,7 @@
 	justify-content: space-between;
 	padding: 0 1rem;
 	flex-shrink: 0;
-	background: var(--background-secondary);
+	background: var(--osaca-surface-page, var(--background-secondary));
 	border-bottom: 0.0625rem solid var(--settings-border-color);
 	contain: layout style paint;
 }
@@ -202,10 +210,6 @@
 	.desktopScrollInner {
 		max-width: clamp(62.5rem, 70%, 75rem);
 	}
-}
-
-:global(.theme-light) .desktopContent {
-	background: var(--background-primary);
 }
 
 .sidebarHeader {

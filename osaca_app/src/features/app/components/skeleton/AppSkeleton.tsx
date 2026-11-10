@@ -33,12 +33,15 @@ import {
 } from '@app/features/app/components/skeleton/SkeletonLayoutMemory';
 import {UserAreaSkeleton} from '@app/features/app/components/skeleton/UserAreaSkeleton';
 import KeybindManager from '@app/features/app/keybindings/KeybindManager';
+import {getServedDocumentBranding} from '@app/features/app/state/ServedDocumentBranding';
 import {useCanFitMemberList} from '@app/features/member/hooks/useMemberListVisible';
 import {useLocation} from '@app/features/platform/components/router/RouterReact';
 import MobileLayout from '@app/features/ui/state/MobileLayout';
 import SidebarWidth from '@app/features/ui/state/SidebarWidth';
 import VoiceCallFullscreen from '@app/features/voice/state/VoiceCallFullscreen';
 import {flxElementClassName} from '@app/lib/react';
+import {msg} from '@lingui/core/macro';
+import {useLingui} from '@lingui/react/macro';
 import {observer} from 'mobx-react-lite';
 import type React from 'react';
 import {useLayoutEffect, useRef, useState} from 'react';
@@ -48,6 +51,10 @@ const VOICE_CONNECTION_HEIGHT_VARIABLE = '--layout-voice-connection-height';
 const SKELETON_SHIMMER_DELAY_VARIABLE = '--skeleton-shimmer-delay';
 const SKELETON_SHIMMER_DURATION_MS = 3200;
 const GUILD_ID_PATH_INDEX = 2;
+const LOADING_LABEL_DESCRIPTOR = msg({
+	message: 'Loading {productName}',
+	comment: 'Screen reader label announced while the app shell is loading. productName is the instance product name.',
+});
 
 function resolveSkeletonGuildId(pathname: string): string | null {
 	if (!Routes.isGuildChannelRoute(pathname)) {
@@ -120,6 +127,10 @@ export const AppSkeleton = observer(({isExiting = false, onTransitionEnd, effect
 	const isOsacaSelected = pathname.startsWith(Routes.ME) || Routes.isSpecialPage(pathname);
 	const isFavoritesSelected = pathname.startsWith(Routes.FAVORITES);
 	const isDiscoverySelected = Routes.isDiscoverRoute(pathname);
+	const {i18n} = useLingui();
+	const loadingLabel = isExiting
+		? undefined
+		: i18n._(LOADING_LABEL_DESCRIPTOR, {productName: getServedDocumentBranding().productName});
 	const isMobile = MobileLayout.enabled;
 	const isVoiceCallFullscreenActive = VoiceCallFullscreen.isActive;
 	const shell = resolveSkeletonShell(pathname);
@@ -160,6 +171,8 @@ export const AppSkeleton = observer(({isExiting = false, onTransitionEnd, effect
 		return (
 			<flx-app-skeleton
 				className={flxElementClassName(styles.container, isExiting && styles.containerExiting)}
+				role={isExiting ? undefined : 'status'}
+				aria-label={loadingLabel}
 				aria-busy={isExiting ? undefined : 'true'}
 				aria-hidden={isExiting || undefined}
 				onTransitionEnd={onTransitionEnd}
@@ -200,6 +213,8 @@ export const AppSkeleton = observer(({isExiting = false, onTransitionEnd, effect
 				isExiting && styles.containerExiting,
 			)}
 			style={shellStyle}
+			role={isExiting ? undefined : 'status'}
+			aria-label={loadingLabel}
 			aria-busy={isExiting ? undefined : 'true'}
 			aria-hidden={isExiting || undefined}
 			onTransitionEnd={onTransitionEnd}

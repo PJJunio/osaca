@@ -101,6 +101,12 @@ if (typeof (globalThis as unknown as {document?: unknown}).document === 'undefin
 			appendChild: () => {},
 			removeChild: () => {},
 		},
+		head: {
+			querySelector: () => null,
+			querySelectorAll: () => [],
+			appendChild: () => {},
+			removeChild: () => {},
+		},
 	};
 }
 

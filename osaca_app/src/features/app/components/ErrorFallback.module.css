@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: AGPL-3.0-or-later */
 
 .errorFallbackContainer {
+	color: var(--osaca-content-primary, var(--text-primary));
+	background-color: var(--osaca-surface-page, var(--background-primary));
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -25,6 +27,7 @@
 }
 
 .errorFallbackTitle {
+	font-family: var(--font-display);
 	font-weight: 600;
 	font-size: 1.875rem;
 	line-height: 2.25rem;
@@ -47,7 +50,7 @@
 
 .errorFallbackDescription {
 	max-width: 21rem;
-	color: var(--text-primary-muted);
+	color: var(--osaca-content-secondary, var(--text-primary-muted));
 }
 
 .errorFallbackActions {

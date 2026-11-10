@@ -1,0 +1,3 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+export default 'osaca_crypto_bg.wasm';

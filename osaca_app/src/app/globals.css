@@ -97,6 +97,13 @@ var {
 	--osaca-status-warning: var(--status-warning);
 	--osaca-status-danger: #b52f2a;
 	--osaca-status-info: var(--text-link);
+	--osaca-gradient-brand: linear-gradient(
+		145deg,
+		var(--osaca-color-navy) 0%,
+		color-mix(in srgb, var(--osaca-color-navy) 78%, var(--osaca-color-black)) 52%,
+		var(--osaca-color-black) 100%
+	);
+	--osaca-auth-backdrop: var(--osaca-gradient-brand);
 
 	--focus-ring: 0 0 0 0.1875rem color-mix(in srgb, var(--osaca-color-focus) 72%, transparent);
 	--focus-ring-offset: 0.125rem;
@@ -399,6 +406,7 @@ html.platform-native.platform-macos {
 }
 
 .theme-light {
+	--osaca-auth-backdrop: var(--osaca-color-ivory);
 	--osaca-color-focus: #1d5fbf;
 	--osaca-status-danger: #b52f2a;
 	--guild-sidebar-bg: #102b42;

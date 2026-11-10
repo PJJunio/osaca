@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: AGPL-3.0-or-later */
 
 :root {
-	--message-timestamp-color: #687783;
 	--system-message-icon-opacity: 0.6;
 
 	--message-highlight-bar-width: 0.125rem;

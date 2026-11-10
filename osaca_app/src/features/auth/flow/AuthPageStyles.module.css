@@ -155,13 +155,13 @@ img.entityIcon {
 	align-items: center;
 	justify-content: center;
 	border-radius: 624.9375rem;
-	background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary, #4752c4) 100%);
+	background: var(--osaca-action-primary, var(--brand-primary));
 }
 
 .themeIcon {
 	height: 2.5rem;
 	width: 2.5rem;
-	color: var(--brand-primary-fill);
+	color: var(--osaca-action-primary-content, var(--brand-primary-fill));
 }
 
 .form {

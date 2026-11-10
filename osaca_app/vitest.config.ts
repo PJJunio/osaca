@@ -12,6 +12,10 @@ export default defineConfig({
 	resolve: {
 		alias: {
 			'@app': path.resolve(import.meta.dirname, './src'),
+			'@osaca/crypto/wasm/osaca_crypto_bg.wasm': path.resolve(
+				import.meta.dirname,
+				'./src/test/crypto-wasm-url-mock.ts',
+			),
 			'@osaca/crypto': path.resolve(import.meta.dirname, '../packages/osaca_crypto/src'),
 			'@osaca/voice_engine_v2/bridge': path.resolve(import.meta.dirname, '../packages/voice_engine_v2/src/bridge/index.ts'),
 			'@osaca/voice_engine_v2/ports': path.resolve(import.meta.dirname, '../packages/voice_engine_v2/src/ports/index.ts'),

@@ -2,7 +2,7 @@
 
 import assert from 'node:assert/strict';
 import {existsSync, readFileSync} from 'node:fs';
-import {describe, it} from 'node:test';
+import {describe, it} from 'vitest';
 
 const globalsCss = readFileSync(new URL('./globals.css', import.meta.url), 'utf8');
 const colorSystemSource = readFileSync(new URL('../../scripts/GenerateColorSystem.ts', import.meta.url), 'utf8');

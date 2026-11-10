@@ -26,14 +26,14 @@
 	position: fixed;
 	inset: 0;
 	display: flex;
-	background: var(--osaca-gradient-brand);
+	background: var(--osaca-auth-backdrop);
 }
 
 .container {
 	position: relative;
 	min-height: 100svh;
 	width: 100%;
-	background-color: var(--osaca-color-navy, #102b42);
+	background: var(--osaca-auth-backdrop);
 }
 
 :global(.auth-page),
@@ -46,6 +46,7 @@
 
 .characterBackground {
 	composes: spaceBackground from '@app/features/ui/space_background/SpaceBackground.module.css';
+	background: var(--osaca-auth-backdrop);
 	--starfield-position: fixed;
 	min-height: 100svh;
 	overflow: auto;
@@ -287,7 +288,7 @@
 	composes: starfield from '@app/features/ui/space_background/SpaceBackground.module.css';
 	--starfield-position: fixed;
 	min-height: 100dvh;
-	background: var(--osaca-gradient-brand);
+	background: var(--osaca-auth-backdrop);
 	padding: calc(2rem + env(safe-area-inset-top, 0px)) 1.5rem calc(2.5rem + env(safe-area-inset-bottom, 0px));
 	overflow-y: auto;
 	overflow-x: hidden;
@@ -365,7 +366,7 @@
 :global(html.auth-page),
 :global(html.auth-page body) {
 	height: 100%;
-	background-color: var(--osaca-color-black, #0b1722);
+	background: var(--osaca-auth-backdrop);
 }
 
 @supports (padding: env(safe-area-inset-top)) {
@@ -375,4 +376,11 @@
 		padding-bottom: env(safe-area-inset-bottom);
 		padding-left: env(safe-area-inset-left);
 	}
+}
+
+:global(.theme-light) .characterBackground::before,
+:global(.theme-light) .characterBackground::after,
+:global(.theme-light) .mobileContainer::before,
+:global(.theme-light) .mobileContainer::after {
+	display: none;
 }

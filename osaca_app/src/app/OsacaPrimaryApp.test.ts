@@ -17,9 +17,20 @@ describe('OSACA primary app experience', () => {
 
 		assert.doesNotMatch(authLayout, INHERITED_SPACE_PALETTE);
 		assert.doesNotMatch(spaceBackground, INHERITED_SPACE_PALETTE);
-		assert.match(authLayout, /var\(--osaca-color-navy/);
+		assert.match(authLayout, /var\(--osaca-auth-backdrop\)/);
 		assert.match(authLayout, /var\(--osaca-surface-raised/);
 		assert.doesNotMatch(authPage, /#4752c4/i);
+	});
+
+	it('authentication keeps the navy backdrop in dark themes and switches to ivory in the light theme', () => {
+		const globals = read('src/app/globals.css');
+		const authLayout = read('src/features/app/components/layout/AuthLayout.module.css');
+		const lightTheme = globals.match(/^\.theme-light \{([^}]*)\}/m)?.[1] ?? '';
+
+		assert.match(globals, /--osaca-auth-backdrop: var\(--osaca-gradient-brand\);/);
+		assert.match(lightTheme, /--osaca-auth-backdrop: var\(--osaca-color-ivory\);/);
+		assert.equal(authLayout.match(/var\(--osaca-auth-backdrop\)/g)?.length, 5);
+		assert.match(authLayout, /:global\(\.theme-light\) \.mobileContainer::before/);
 	});
 
 	it('Community Channels and Private Conversations share the OSACA navigation surfaces', () => {

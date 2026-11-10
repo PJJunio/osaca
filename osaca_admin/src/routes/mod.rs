@@ -213,7 +213,13 @@ async fn htmx_js() -> impl IntoResponse {
 }
 
 async fn osaca_logo_svg() -> impl IntoResponse {
-    ([(header::CONTENT_TYPE, "image/svg+xml")], OSACA_LOGO_SVG)
+    (
+        [
+            (header::CONTENT_TYPE, "image/svg+xml"),
+            (header::CACHE_CONTROL, IMMUTABLE_CACHE_CONTROL),
+        ],
+        OSACA_LOGO_SVG,
+    )
 }
 
 async fn dashboard(State(state): State<AppState>) -> impl IntoResponse {

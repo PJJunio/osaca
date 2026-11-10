@@ -35,7 +35,10 @@ describe('OSACA admin panel', () => {
 		const logo = read('static/osaca-logo-color.svg');
 		const wordmark = read('static/osaca-wordmark.svg');
 		const approvedLogo = readFileSync(new URL('../osaca_app/src/media/images/osaca-logo-color.svg', adminRoot), 'utf8');
-		const approvedWordmark = readFileSync(new URL('../osaca_app/src/media/images/osaca-wordmark.svg', adminRoot), 'utf8');
+		const approvedWordmark = readFileSync(
+			new URL('../osaca_app/src/media/images/osaca-wordmark.svg', adminRoot),
+			'utf8',
+		);
 
 		assert.equal(logo.replace(/\r\n/g, '\n'), approvedLogo.replace(/\r\n/g, '\n'));
 		assert.equal(wordmark.replace(/\r\n/g, '\n'), approvedWordmark.replace(/\r\n/g, '\n'));
@@ -66,11 +69,22 @@ describe('OSACA admin panel', () => {
 		assert.match(dark, /--color-white: #172635;/);
 		assert.match(dark, /--color-neutral-50: #10202e;/);
 		assert.doesNotMatch(dark, /--color-neutral-\d+: oklch\([\d.]+ 0 0\)/);
+		assert.notEqual(
+			dark.match(/--color-white: (#[0-9a-f]{6});/)?.[1],
+			dark.match(/--color-neutral-100: (#[0-9a-f]{6});/)?.[1],
+			'hover:bg-neutral-100 must stay visible on white surfaces',
+		);
 	});
 
 	it('keeps the navigation sidebar on OSACA navy in both themes', () => {
 		const css = read('src/styles/app.css');
+		const sidebar = css.match(/^#admin-sidebar \{([^}]*)\}/m)?.[1] ?? '';
+		const greys = [...sidebar.matchAll(/--color-neutral-(200|300|400|500): (#[0-9a-f]{6});/g)];
 
+		assert.equal(greys.length, 4);
+		for (const [, shade, hex] of greys) {
+			assert.ok(contrast(hex, '#102b42') >= 4.5, `sidebar neutral-${shade} ${hex} reaches AA on navy`);
+		}
 		assert.match(css, /^#admin-sidebar \{\n {2}background-color: var\(--color-osaca-navy\);/m);
 		assert.match(css, /^:root\[data-theme="dark"\] #admin-sidebar \{[^}]*background-color: #0b1722;/m);
 	});
@@ -94,7 +108,9 @@ describe('OSACA admin panel', () => {
 			...filesUnder(new URL('src/', adminRoot), /\.(rs|css)$/),
 			...filesUnder(new URL('static/', adminRoot), /\.(svg|js|css)$/),
 		];
-		const offenders = files.filter((file) => /fluxer/i.test(readFileSync(file, 'utf8')));
+		const offenders = files.filter((file) =>
+			/fluxer/i.test(readFileSync(file, 'utf8').replace(/^.*SPDX-FileCopyrightText:.*$/gm, '')),
+		);
 
 		assert.deepEqual(
 			offenders.map((file) => file.pathname),

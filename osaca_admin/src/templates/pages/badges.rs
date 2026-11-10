@@ -15,7 +15,7 @@ use crate::{
             error_display::error_alert,
             form::{
                 FORM_INPUT_CLASS, FORM_LABEL_CLASS, FORM_SELECT_CLASS, csrf_input,
-                danger_button_for, form_actions, secondary_button, secondary_button_for,
+                danger_button_confirming, form_actions, secondary_button, secondary_button_for,
                 submit_button,
             },
             page_container::{card_with_header, page_header},
@@ -501,10 +501,13 @@ fn badge_row(
                         (move_form(config, badge, BadgeMove::Last, state, csrf_token))
                     }
                     @if permissions.delete {
-                        form method="post" action={(base) "/badges/" (badge.id) "/delete" (state.current_query())}
-                            onsubmit="return confirm('Delete this badge? Everyone it was given to stops showing it.')" {
+                        form method="post" action={(base) "/badges/" (badge.id) "/delete" (state.current_query())} {
                             (csrf_input(csrf_token))
-                            (danger_button_for("Delete badge", &badge.name))
+                            (danger_button_confirming(
+                                "Delete badge",
+                                &badge.name,
+                                "Delete this badge? Everyone it was given to stops showing it.",
+                            ))
                         }
                     }
                 }

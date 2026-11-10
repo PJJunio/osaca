@@ -253,9 +253,9 @@ input:disabled + .checkbox-custom {
   --color-white: #172635;
   --color-black: #f3f5f7;
   --color-neutral-50: #10202e;
-  --color-neutral-100: #172635;
-  --color-neutral-200: #1d3040;
-  --color-neutral-300: #2a4256;
+  --color-neutral-100: #1d3040;
+  --color-neutral-200: #24394c;
+  --color-neutral-300: #2f4a61;
   --color-neutral-400: #5b7083;
   --color-neutral-500: #9aa8b2;
   --color-neutral-600: #b8c2ca;
@@ -314,7 +314,7 @@ input:disabled + .checkbox-custom {
   --color-neutral-200: #e3e7ea;
   --color-neutral-300: #c9d1d7;
   --color-neutral-400: #9aa8b2;
-  --color-neutral-500: #7d8d99;
+  --color-neutral-500: #8a9aa6;
   --color-neutral-700: #2a4a66;
   --color-neutral-800: #1d3a55;
   --color-neutral-900: var(--color-osaca-navy);

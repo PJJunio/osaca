@@ -36,9 +36,14 @@ const DANGER_BUTTON_CLASS: &str = "bg-red-600 text-white hover:bg-red-700 focus:
 const SECONDARY_BUTTON_CLASS: &str = "bg-neutral-50 text-neutral-700 hover:text-neutral-900 \
      border border-neutral-300 hover:border-neutral-400";
 
-fn button_markup(label: &str, button_type: &str, variant_class: &str) -> Markup {
+fn button_markup(
+    label: &str,
+    button_type: &str,
+    variant_class: &str,
+    confirm: Option<&str>,
+) -> Markup {
     html! {
-        button type=(button_type) class={(BUTTON_BASE_CLASS) " " (variant_class)} {
+        button type=(button_type) class={(BUTTON_BASE_CLASS) " " (variant_class)} data-confirm=[confirm] {
             span { (label) }
         }
     }
@@ -144,20 +149,16 @@ pub fn form_actions(content: Markup) -> Markup {
 }
 
 pub fn submit_button(label: &str) -> Markup {
-    button_markup(label, "submit", PRIMARY_BUTTON_CLASS)
+    button_markup(label, "submit", PRIMARY_BUTTON_CLASS, None)
 }
 
 pub fn danger_button(label: &str) -> Markup {
-    let confirm = format!("{label}?");
-    html! {
-        button type="submit" class={(BUTTON_BASE_CLASS) " " (DANGER_BUTTON_CLASS)} data-confirm=(confirm) {
-            span { (label) }
-        }
-    }
+    let confirm = format!("{label}: are you sure?");
+    button_markup(label, "submit", DANGER_BUTTON_CLASS, Some(&confirm))
 }
 
 pub fn secondary_button(label: &str) -> Markup {
-    button_markup(label, "submit", SECONDARY_BUTTON_CLASS)
+    button_markup(label, "submit", SECONDARY_BUTTON_CLASS, None)
 }
 
 fn subject_button_markup(
@@ -178,8 +179,12 @@ pub fn secondary_button_for(label: &str, subject: &str) -> Markup {
 }
 
 pub fn danger_button_for(label: &str, subject: &str) -> Markup {
-    let confirm = format!("{label} {subject}?");
-    subject_button_markup(label, subject, DANGER_BUTTON_CLASS, Some(&confirm))
+    let confirm = format!("{label} {subject}: are you sure?");
+    danger_button_confirming(label, subject, &confirm)
+}
+
+pub fn danger_button_confirming(label: &str, subject: &str, confirm: &str) -> Markup {
+    subject_button_markup(label, subject, DANGER_BUTTON_CLASS, Some(confirm))
 }
 
 pub fn form_field_group(
@@ -365,11 +370,29 @@ mod tests {
         let plain = danger_button("Revoke key").into_string();
         let with_subject = danger_button_for("Delete", "voice region eu-west").into_string();
 
-        assert!(plain.contains(r#"data-confirm="Revoke key?""#), "{plain}");
+        assert!(plain.contains(r#"data-confirm="Revoke key: are you sure?""#), "{plain}");
         assert!(
-            with_subject.contains(r#"data-confirm="Delete voice region eu-west?""#),
+            with_subject.contains(r#"data-confirm="Delete voice region eu-west: are you sure?""#),
             "{with_subject}"
         );
+    }
+
+    #[test]
+    fn danger_buttons_can_explain_the_consequence_in_their_confirmation() {
+        let button = danger_button_confirming(
+            "Delete badge",
+            "Early supporter",
+            "Delete this badge? Everyone it was given to stops showing it.",
+        )
+        .into_string();
+
+        assert!(
+            button.contains(
+                r#"data-confirm="Delete this badge? Everyone it was given to stops showing it.""#
+            ),
+            "{button}"
+        );
+        assert!(button.contains("Early supporter"), "{button}");
     }
 
     #[test]

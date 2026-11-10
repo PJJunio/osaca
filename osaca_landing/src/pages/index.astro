@@ -2,19 +2,19 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import {Font} from 'astro:assets';
 import wordmark from '../assets/osaca-wordmark.svg?raw';
-import {SECURITY_MODEL_URL, SELF_HOSTING_URL, SOURCE_URL} from '../Links';
+import {LICENSE_URL, NOTICE_URL, SECURITY_MODEL_URL, SELF_HOSTING_URL, SOURCE_URL} from '../links';
 import '../styles/landing.css';
 
 const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
 const wordmarkMarkup = wordmark
 	.replace(/<!--[\s\S]*?-->/g, '')
-	.replace('<svg ', '<svg role="img" aria-label="OSACA" focusable="false" ');
+	.replace('<svg ', '<svg aria-hidden="true" focusable="false" ');
 
 const pillars = [
 	{
 		id: 'anonymous-accounts',
 		title: 'Anonymous Accounts',
-		body: 'Sign up with a username and a password. OSACA never asks for an email address, a phone number or a date of birth, and default avatars are generated on your device instead of coming from personal data.',
+		body: 'Start with just a name. OSACA never asks for an email address, a phone number or a date of birth, and default avatars are generated on your device instead of coming from personal data.',
 	},
 	{
 		id: 'end-to-end-encryption',
@@ -24,7 +24,7 @@ const pillars = [
 	{
 		id: 'self-hosting',
 		title: 'Self-hosting',
-		body: 'Run your own Instance on infrastructure you control. Instances are independent: there is no federation and no central service your community depends on.',
+		body: 'Run your own Instance on infrastructure you control. Instances are independent: there is no federation and no OSACA-run central service your community depends on.',
 	},
 	{
 		id: 'no-tracking',
@@ -34,7 +34,9 @@ const pillars = [
 ];
 
 const limits = [
-	'Metadata is minimised, not hidden: the Operator can still see who talks to whom, when, and how much.',
+	'Metadata is minimised, not hidden: the Operator can still see who talks to whom, when, and how much, along with IP addresses at connection time.',
+	'Profiles such as usernames, display names and avatars are stored in plaintext.',
+	'A reported message is sent to the Operator so it can be reviewed.',
 	'There is no protection against a global passive adversary who watches traffic across the network.',
 	'A modified client served by a malicious Operator can defeat the encryption, so get the client from a source you trust.',
 	'A compromised Device, or a Member who shares a conversation, exposes its content.',
@@ -42,8 +44,8 @@ const limits = [
 ];
 
 const roadmap = [
-	{phase: 'F0', title: 'A chat app without surveillance', state: 'Done: tracking, email, billing and server-side content processing removed.'},
-	{phase: 'F1', title: 'End-to-end encrypted Private Conversations', state: 'Mostly done: messages, attachments and safety numbers ship; client-side search and security property tests remain.'},
+	{phase: 'F0', title: 'A chat app without surveillance', state: 'Done: email, date of birth, billing and location tracking removed.'},
+	{phase: 'F1', title: 'End-to-end encrypted Private Conversations', state: 'Mostly done: encrypted messages, attachments and safety numbers ship, and server-side content processing is gone; client-side search and most security property tests remain.'},
 	{phase: 'F2', title: 'End-to-end encrypted Communities and voice', state: 'Next.'},
 	{phase: 'F3', title: 'Multiple Devices per Account', state: 'Planned.'},
 	{phase: 'F4', title: 'Shared history, encrypted profiles and an official .onion', state: 'Later.'},
@@ -58,7 +60,7 @@ const roadmap = [
 		<title>OSACA · Comunidade, sem vigilância.</title>
 		<meta
 			name="description"
-			content="OSACA is an open-source, self-hosted community chat built so the Operator cannot read your Private Conversations. Experimental and unaudited."
+			content="OSACA is an open-source, self-hosted community chat built so the Operator cannot read the messages in your Private Conversations. Experimental and unaudited."
 		/>
 		<meta name="color-scheme" content="light dark" />
 		<link rel="icon" type="image/png" sizes="32x32" href={`${base}favicon-32x32.png`} />
@@ -79,7 +81,7 @@ const roadmap = [
 		<header class="site-header">
 			<div class="container site-header__bar">
 				<a class="brand" href={base}>
-					<img src={`${base}osaca-logo-color.svg`} alt="" width="36" height="36" />
+					<img src={`${base}apple-touch-icon.png`} alt="" width="36" height="36" />
 					<span>OSACA</span>
 				</a>
 				<nav aria-label="Primary" class="site-nav">
@@ -89,9 +91,9 @@ const roadmap = [
 						<li><a href="#roadmap">Roadmap</a></li>
 						<li><a href={SOURCE_URL}>Source</a></li>
 						<li>
-							<button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch between light and dark theme">
+							<button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false">
 								<span aria-hidden="true">◐</span>
-								<span>Theme</span>
+								<span>Dark theme</span>
 							</button>
 						</li>
 					</ul>
@@ -101,10 +103,10 @@ const roadmap = [
 				<img class="hero__logo" src={`${base}osaca-logo-color.svg`} alt="OSACA logo" width="256" height="256" />
 				<div>
 					<p class="status">Experimental, unaudited</p>
-					<h1 set:html={wordmarkMarkup} />
+					<h1><span class="visually-hidden">OSACA</span><Fragment set:html={wordmarkMarkup} /></h1>
 					<p class="hero__tagline" lang="pt-BR">Comunidade, sem vigilância.</p>
 					<p class="hero__lead">
-						An open-source, self-hosted community chat with anonymous Accounts, built so the Operator who runs the server cannot read your Private Conversations.
+						An open-source, self-hosted community chat with anonymous Accounts, built so the Operator who runs the server cannot read the messages in your Private Conversations.
 					</p>
 					<div class="actions">
 						<a class="button button--primary" href={SECURITY_MODEL_URL}>Read the security model</a>
@@ -171,8 +173,8 @@ const roadmap = [
 			<div class="container">
 				<p>
 					OSACA is free software under the
-					<a href={`${SOURCE_URL}/blob/main/LICENSE`}>GNU AGPL v3</a>. Copyright and attribution notices are in the
-					<a href={`${SOURCE_URL}/blob/main/NOTICE`}>NOTICE</a> file.
+					<a href={LICENSE_URL}>GNU AGPL v3</a>. Copyright and attribution notices are in the
+					<a href={NOTICE_URL}>NOTICE</a> file.
 				</p>
 			</div>
 		</footer>
@@ -181,15 +183,24 @@ const roadmap = [
 			(function () {
 				var button = document.querySelector('[data-theme-toggle]');
 				if (!button) return;
+				var root = document.documentElement;
+				var media = window.matchMedia('(prefers-color-scheme: dark)');
+				function current() {
+					return root.dataset.theme || (media.matches ? 'dark' : 'light');
+				}
+				function sync() {
+					button.setAttribute('aria-pressed', current() === 'dark' ? 'true' : 'false');
+				}
 				button.addEventListener('click', function () {
-					var root = document.documentElement;
-					var current = root.dataset.theme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-					var next = current === 'dark' ? 'light' : 'dark';
+					var next = current() === 'dark' ? 'light' : 'dark';
 					root.dataset.theme = next;
 					try {
 						localStorage.setItem('osaca-landing-theme', next);
 					} catch (e) {}
+					sync();
 				});
+				media.addEventListener('change', sync);
+				sync();
 			})();
 		</script>
 	</body>

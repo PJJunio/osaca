@@ -11,3 +11,7 @@ const deployedDocs = import.meta.env.OSACA_LANDING_DOCS_URL?.replace(/\/+$/, '')
 export const SECURITY_MODEL_URL = deployedDocs ? `${deployedDocs}/security-model/` : `${DOCS_SOURCE}/security-model.md`;
 
 export const SELF_HOSTING_URL = deployedDocs ? `${deployedDocs}/operator/` : `${DOCS_SOURCE}/operator/index.mdx`;
+
+export const LICENSE_URL = `${SOURCE_URL}/blob/main/LICENSE`;
+
+export const NOTICE_URL = `${SOURCE_URL}/blob/main/NOTICE`;

@@ -11,6 +11,16 @@ const colorPaletteSource = readFileSync(
 	'utf8',
 );
 const entrypoint = readFileSync(new URL('../index.tsx', import.meta.url), 'utf8');
+const buttonStyles = readFileSync(new URL('../features/ui/button/Button.module.css', import.meta.url), 'utf8');
+const inputStyles = readFileSync(
+	new URL('../features/ui/components/form/FormInput.module.css', import.meta.url),
+	'utf8',
+);
+const menuStyles = readFileSync(new URL('../features/ui/action_menu/ContextMenu.module.css', import.meta.url), 'utf8');
+const shellStyles = readFileSync(
+	new URL('../features/app/components/layout/GuildsLayout.module.css', import.meta.url),
+	'utf8',
+);
 const imageDirectory = new URL('../media/images/', import.meta.url);
 
 describe('OSACA visual foundation', () => {
@@ -43,5 +53,14 @@ describe('OSACA visual foundation', () => {
 		assert.equal(existsSync(new URL('osaca-logo-color.svg', imageDirectory)), true);
 		assert.equal(existsSync(new URL('osaca-logo-wordmark-monochrome.svg', imageDirectory)), true);
 		assert.equal(existsSync(new URL('osaca-wordmark.svg', imageDirectory)), true);
+	});
+
+	it('applies shared OSACA states to shell primitives', () => {
+		assert.match(buttonStyles, /var\(--osaca-action-primary/);
+		assert.match(buttonStyles, /var\(--osaca-status-danger/);
+		assert.match(inputStyles, /var\(--osaca-color-focus/);
+		assert.match(inputStyles, /var\(--osaca-status-danger/);
+		assert.match(menuStyles, /min-height: 2\.25rem/);
+		assert.match(shellStyles, /var\(--osaca-surface-navigation/);
 	});
 });

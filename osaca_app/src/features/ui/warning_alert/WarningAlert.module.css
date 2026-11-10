@@ -8,8 +8,8 @@
 	padding-block: 0.375rem;
 	padding-inline: 1rem 0.75rem;
 	border-radius: var(--radius-md);
-	background: transparent;
-	color: var(--alert-warning-color);
+	color: var(--osaca-status-warning, var(--alert-warning-color));
+	background: color-mix(in srgb, currentColor 7%, transparent);
 }
 
 .alert::before {
@@ -51,7 +51,7 @@
 
 .link {
 	font-size: 0.8125rem;
-	color: var(--alert-warning-color);
+	color: inherit;
 	cursor: pointer;
 	text-decoration: none;
 	text-align: start;
@@ -62,6 +62,12 @@
 
 .link:hover {
 	text-decoration: underline;
+}
+
+.link:focus-visible {
+	outline: 0.125rem solid var(--osaca-color-focus);
+	outline-offset: 0.125rem;
+	border-radius: 0.125rem;
 }
 
 .actions {

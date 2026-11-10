@@ -32,11 +32,12 @@
 }
 
 .input.focusable:focus-within {
-	border-color: var(--background-modifier-accent-focus);
+	border-color: var(--osaca-color-focus, var(--background-modifier-accent-focus));
+	box-shadow: var(--focus-ring);
 }
 
 .input.error {
-	border-color: var(--status-danger);
+	border-color: var(--osaca-status-danger, var(--status-danger));
 }
 
 .fieldset {
@@ -80,7 +81,7 @@
 .errorText {
 	font-size: 0.875rem;
 	line-height: 1.25rem;
-	color: color-mix(in srgb, var(--status-danger) 78%, var(--text-primary) 22%);
+	color: color-mix(in srgb, var(--osaca-status-danger, var(--status-danger)) 78%, var(--text-primary) 22%);
 }
 
 .inputContainer {
@@ -168,11 +169,12 @@
 }
 
 .textareaWrapper.focusable:focus-within {
-	border-color: var(--background-modifier-accent-focus);
+	border-color: var(--osaca-color-focus, var(--background-modifier-accent-focus));
+	box-shadow: var(--focus-ring);
 }
 
 .textareaWrapper.error {
-	border-color: var(--status-danger);
+	border-color: var(--osaca-status-danger, var(--status-danger));
 }
 
 textarea.input {

@@ -22,11 +22,11 @@
 	max-width: 100%;
 	outline: none;
 	transition:
-		background-color 0.12s ease,
-		border-color 0.12s ease,
-		box-shadow 0.12s ease,
-		color 0.12s ease,
-		opacity 0.12s ease;
+		background-color var(--motion-duration-fast) var(--motion-easing-standard),
+		border-color var(--motion-duration-fast) var(--motion-easing-standard),
+		box-shadow var(--motion-duration-fast) var(--motion-easing-standard),
+		color var(--motion-duration-fast) var(--motion-easing-standard),
+		opacity var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
 .button.matchSkeletonHeight {
@@ -116,16 +116,16 @@
 }
 
 .button.primary {
-	background-color: var(--brand-primary);
-	border-color: color-mix(in srgb, var(--brand-primary) 82%, white 18%);
-	color: var(--brand-primary-fill);
+	background-color: var(--osaca-action-primary, var(--brand-primary));
+	border-color: color-mix(in srgb, var(--osaca-action-primary, var(--brand-primary)) 82%, white 18%);
+	color: var(--osaca-action-primary-content, var(--brand-primary-fill));
 }
 
 :global(:where(html.window-focused, html.unfocused-fully-interactive):not(.window-focus-activation-guard))
 	.button.primary:hover:not(:disabled):not([data-disabled]),
 .button.primary[data-context-menu-open='true']:not(:disabled):not([data-disabled]) {
-	background-color: var(--brand-secondary);
-	border-color: color-mix(in srgb, var(--brand-secondary) 84%, white 16%);
+	background-color: var(--osaca-action-primary-hover, var(--brand-secondary));
+	border-color: color-mix(in srgb, var(--osaca-action-primary-hover, var(--brand-secondary)) 84%, white 16%);
 }
 
 .button.primary:active:not(:disabled):not([data-disabled]) {
@@ -157,19 +157,27 @@
 }
 
 .button.danger {
-	background-color: color-mix(in srgb, var(--button-danger-fill) 92%, var(--background-primary));
-	border-color: color-mix(in srgb, var(--button-danger-fill) 70%, transparent);
-	color: var(--button-danger-text);
+	background-color: color-mix(
+		in srgb,
+		var(--osaca-status-danger, var(--button-danger-fill)) 18%,
+		var(--background-primary)
+	);
+	border-color: color-mix(in srgb, var(--osaca-status-danger, var(--button-danger-fill)) 70%, transparent);
+	color: color-mix(in srgb, var(--osaca-status-danger, var(--button-danger-text)) 78%, var(--text-primary) 22%);
 }
 
 :global(:where(html.window-focused, html.unfocused-fully-interactive):not(.window-focus-activation-guard))
 	.button.danger:hover:not(:disabled):not([data-disabled]) {
-	background-color: color-mix(in srgb, var(--button-danger-active-fill) 92%, var(--background-primary));
-	border-color: color-mix(in srgb, var(--button-danger-active-fill) 72%, transparent);
+	background-color: color-mix(
+		in srgb,
+		var(--osaca-status-danger, var(--button-danger-active-fill)) 26%,
+		var(--background-primary)
+	);
+	border-color: color-mix(in srgb, var(--osaca-status-danger, var(--button-danger-active-fill)) 72%, transparent);
 }
 
 .button.danger:active:not(:disabled):not([data-disabled]) {
-	background-color: color-mix(in srgb, var(--button-danger-active-fill) 78%, #000);
+	background-color: color-mix(in srgb, var(--osaca-status-danger, var(--button-danger-active-fill)) 32%, #000);
 }
 
 .button.inverted {

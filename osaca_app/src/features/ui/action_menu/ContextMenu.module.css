@@ -17,9 +17,21 @@
 
 .contextMenu {
 	--context-menu-viewport-max-width: calc(100vw - 1.5rem);
-	--context-menu-danger-text: color-mix(in srgb, var(--status-danger) 78%, var(--text-primary) 22%);
-	--context-menu-danger-background: color-mix(in srgb, var(--status-danger) 6%, var(--surface-interactive-hover-bg));
-	--context-menu-danger-control-border: color-mix(in srgb, var(--status-danger) 46%, transparent);
+	--context-menu-danger-text: color-mix(
+		in srgb,
+		var(--osaca-status-danger, var(--status-danger)) 78%,
+		var(--text-primary) 22%
+	);
+	--context-menu-danger-background: color-mix(
+		in srgb,
+		var(--osaca-status-danger, var(--status-danger)) 8%,
+		var(--surface-interactive-hover-bg)
+	);
+	--context-menu-danger-control-border: color-mix(
+		in srgb,
+		var(--osaca-status-danger, var(--status-danger)) 46%,
+		transparent
+	);
 	pointer-events: auto;
 	min-width: min(13rem, var(--context-menu-viewport-max-width));
 	max-width: min(21.5rem, var(--context-menu-viewport-max-width), var(--available-width, 21.5rem));
@@ -69,7 +81,7 @@
 	color: var(--text-primary);
 	cursor: pointer;
 	box-sizing: border-box;
-	min-height: 2rem;
+	min-height: 2.25rem;
 	width: 100%;
 	transition: none;
 }

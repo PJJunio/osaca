@@ -16,14 +16,24 @@ type AstroFontFamily = {
 	fallbacks: Array<string>;
 };
 
-export const radioCanadaBigFont: AstroFontFamily = {
-	cssVariable: '--font-radio-canada-big',
+export const interFont: AstroFontFamily = {
+	cssVariable: '--font-inter',
 	fallbacks: [],
-	name: 'Radio Canada Big',
+	name: 'Inter',
 	provider: fontsource,
 	styles: ['normal'],
 	subsets: ['latin', 'latin-ext'],
 	weights: ['400 700'],
+};
+
+export const montserratFont: AstroFontFamily = {
+	cssVariable: '--font-montserrat',
+	fallbacks: [],
+	name: 'Montserrat',
+	provider: fontsource,
+	styles: ['normal'],
+	subsets: ['latin', 'latin-ext'],
+	weights: ['500 800'],
 };
 
 export const notoSansFont: AstroFontFamily = {

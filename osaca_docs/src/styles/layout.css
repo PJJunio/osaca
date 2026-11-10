@@ -4,6 +4,11 @@ html {
 	scrollbar-gutter: stable;
 }
 
+:focus-visible {
+	outline: 2px solid var(--flx-focus);
+	outline-offset: 2px;
+}
+
 ::-webkit-scrollbar {
 	height: 16px;
 	width: 16px;
@@ -91,8 +96,6 @@ flx-sidebar-brand .site-title img {
 	width: 100%;
 	height: auto;
 }
-
-
 
 flx-sidebar-actions {
 	display: flex;

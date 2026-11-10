@@ -1,8 +1,8 @@
 /* SPDX-License-Identifier: AGPL-3.0-or-later */
 
 :root {
-	--sl-font: 'Inter', var(--osaca-font-stack), sans-serif;
-	--sl-font-headings: 'Montserrat', var(--osaca-heading-stack), sans-serif;
+	--sl-font: var(--osaca-font-stack);
+	--sl-font-headings: var(--osaca-heading-stack);
 	--sl-font-mono: var(--osaca-mono-stack);
 	--saturation-factor: 1;
 
@@ -48,15 +48,15 @@
 	--flx-radius-lg: 0.5rem;
 	--flx-radius-pill: 999px;
 
-	--flx-brand: hsl(7, 80%, 56%);
-	--flx-on-brand: hsl(0, 0%, 98%);
-
 	--flx-code-block-font-size: 0.875rem;
 	--flx-code-inline-font-size: 0.9375em;
 }
 
 :root {
 	--flx-background-primary: #102b42;
+	--flx-brand: #c73a27;
+	--flx-on-brand: #ffffff;
+	--flx-focus: #7db6ff;
 	--flx-background-secondary: #0d2336;
 	--flx-background-secondary-lighter: #15344e;
 	--flx-background-secondary-alt: #1a3c5a;
@@ -64,10 +64,10 @@
 
 	--flx-text-primary: #f3f1eb;
 	--flx-text-secondary: #d4d7db;
-	--flx-text-tertiary: #687783;
+	--flx-text-tertiary: #9aa8b2;
 	--flx-border-color: rgba(104, 119, 131, 0.25);
 
-	--flx-link: #e84b35;
+	--flx-link: #ff8a75;
 	--flx-hover-bg: rgba(243, 241, 235, 0.06);
 	--flx-selected-bg: rgba(232, 75, 53, 0.16);
 
@@ -79,7 +79,7 @@
 	--flx-code-selection-bg: rgba(232, 75, 53, 0.28);
 	--flx-code-veil: rgba(243, 241, 235, 0.08);
 	--flx-code-text: #f3f1eb;
-	--flx-code-link: #e84b35;
+	--flx-code-link: #ff8a75;
 
 	--flx-scrollbar-thumb: #687783;
 	--flx-scrollbar-track: var(--flx-background-secondary);
@@ -87,7 +87,7 @@
 	--flx-accent-info: hsl(198, calc(92% * var(--saturation-factor)), 70%);
 	--flx-accent-success: hsl(152, calc(72% * var(--saturation-factor)), 40%);
 	--flx-accent-warning: hsl(45, calc(93% * var(--saturation-factor)), 50%);
-	--flx-accent-danger: #e84b35;
+	--flx-accent-danger: #ff8f9a;
 	--flx-accent-method-put: hsl(24, calc(90% * var(--saturation-factor)), 58%);
 	--flx-accent-method-head: hsl(281, calc(78% * var(--saturation-factor)), 68%);
 	--flx-tint-strength: 18%;
@@ -95,6 +95,7 @@
 }
 
 :root[data-theme='light'] {
+	--flx-focus: #1d5fbf;
 	--flx-background-primary: #f3f1eb;
 	--flx-background-secondary: #e7e4dc;
 	--flx-background-secondary-lighter: #eeebe3;
@@ -103,10 +104,10 @@
 
 	--flx-text-primary: #102b42;
 	--flx-text-secondary: #2b4154;
-	--flx-text-tertiary: #687783;
+	--flx-text-tertiary: #56636d;
 	--flx-border-color: rgba(104, 119, 131, 0.2);
 
-	--flx-link: #e84b35;
+	--flx-link: #ad311d;
 	--flx-hover-bg: rgba(16, 43, 66, 0.05);
 	--flx-selected-bg: rgba(232, 75, 53, 0.12);
 
@@ -118,7 +119,7 @@
 	--flx-code-selection-bg: rgba(232, 75, 53, 0.2);
 	--flx-code-veil: rgba(16, 43, 66, 0.06);
 	--flx-code-text: #102b42;
-	--flx-code-link: #e84b35;
+	--flx-code-link: #ad311d;
 
 	--flx-scrollbar-thumb: #687783;
 	--flx-scrollbar-track: var(--flx-background-secondary);
@@ -126,12 +127,12 @@
 	--flx-accent-info: hsl(198, calc(92% * var(--saturation-factor)), 45%);
 	--flx-accent-success: hsl(152, calc(70% * var(--saturation-factor)), 40%);
 	--flx-accent-warning: hsl(45, calc(90% * var(--saturation-factor)), 45%);
-	--flx-accent-danger: #e84b35;
+	--flx-accent-danger: #b81e2b;
 
 	--flx-aside-note-text: hsl(198, calc(92% * var(--saturation-factor)), 27%);
 	--flx-aside-tip-text: hsl(152, calc(70% * var(--saturation-factor)), 23%);
 	--flx-aside-caution-text: hsl(45, calc(90% * var(--saturation-factor)), 23%);
-	--flx-aside-danger-text: #e84b35;
+	--flx-aside-danger-text: #b81e2b;
 	--flx-aside-note-border: var(--flx-aside-note-text);
 	--flx-aside-tip-border: var(--flx-aside-tip-text);
 	--flx-aside-caution-border: var(--flx-aside-caution-text);

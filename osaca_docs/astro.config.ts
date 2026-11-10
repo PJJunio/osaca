@@ -8,7 +8,7 @@ import node from '@astrojs/node';
 import starlight from '@astrojs/starlight';
 import {defineConfig} from 'astro/config';
 import type {Root, RootContent} from 'hast';
-import {jetBrainsMonoFont, notoSansFont, radioCanadaBigFont} from './src/fonts/Fonts';
+import {interFont, jetBrainsMonoFont, montserratFont, notoSansFont} from './src/fonts/Fonts';
 import {docsBaseDomain, docsListenHost, docsListenPort, docsPublicEndpoint} from './src/server/DocsConfig';
 import {resolveViteDevWebSocket} from './src/server/ViteDevWebSocket';
 import {osacaDarkCodeTheme, osacaLightCodeTheme} from './src/styles/CodeTheme';
@@ -77,7 +77,7 @@ export default defineConfig({
 	devToolbar: {
 		enabled: false,
 	},
-	fonts: [radioCanadaBigFont, notoSansFont, jetBrainsMonoFont],
+	fonts: [interFont, montserratFont, notoSansFont, jetBrainsMonoFont],
 	integrations: [
 		starlight({
 			components: {
@@ -157,7 +157,7 @@ export default defineConfig({
 			sidebar: [
 				{
 					label: 'Reference',
-					items: [{label: 'Introduction', link: '/'}, 'authentication', 'snowflakes'],
+					items: [{label: 'Introduction', link: '/'}, 'security-model', 'authentication', 'snowflakes'],
 				},
 				{
 					label: 'Self-hosting',

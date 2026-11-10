@@ -7,6 +7,8 @@
 		"build": "astro build",
 		"dev": "astro dev",
 		"start": "tsx scripts/StartServer.ts",
+		"test": "node --test src/styles/OsacaDocsTheme.test.mjs",
+		"test:rendered": "astro build && node --test src/styles/OsacaDocsRendered.test.mjs",
 		"typecheck": "astro check --minimumFailingSeverity warning"
 	},
 	"dependencies": {

@@ -206,7 +206,7 @@
 	--flx-aside-caution-text: hsl(45, calc(93% * var(--saturation-factor)), 50%);
 	--flx-aside-danger-border: var(--flx-accent-danger);
 	--flx-aside-danger-bg: color-mix(in srgb, var(--flx-accent-danger) var(--flx-tint-strength), var(--flx-tint-base));
-	--flx-aside-danger-text: hsl(0, calc(84% * var(--saturation-factor)), 71%);
+	--flx-aside-danger-text: var(--flx-accent-danger);
 
 	--flx-method-get-border: var(--flx-accent-info);
 	--flx-method-get-bg: color-mix(in srgb, var(--flx-accent-info) var(--flx-tint-strength), var(--flx-tint-base));

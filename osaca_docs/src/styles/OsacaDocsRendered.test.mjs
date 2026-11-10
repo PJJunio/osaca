@@ -37,7 +37,9 @@ describe('OSACA documentation (rendered)', () => {
 		assert.match(text, /experimental, unaudited/i);
 		assert.match(text, /untrusted Operator/i);
 		assert.match(text, /Private Conversations/);
-		assert.match(text, /Community Channels are not end-to-end encrypted yet/i);
+		assert.match(text, /Channels in a Community are not end-to-end encrypted yet/i);
+		assert.match(text, /Calls in Private Conversations Not end-to-end encrypted against the Operator yet/i);
+		assert.match(text, /Tor and SOCKS proxy support Not available yet/i);
 		assert.match(text, /global passive adversary/i);
 		assert.match(text, /no protection/i);
 		assert.doesNotMatch(text, /military[- ]grade|unbreakable|completely anonymous|100% (secure|private)/i);
@@ -55,7 +57,11 @@ describe('OSACA documentation (rendered)', () => {
 	});
 
 	it('renders no visible Fluxer branding on any page', () => {
-		const offenders = htmlPages(clientRoot).filter((file) => /fluxer/i.test(visibleText(readFileSync(file, 'utf8'))));
+		// ADR-0001 keeps the hard-fork copyright notice; only that attribution may name Fluxer.
+		const attribution = /(Copyright|©)[^.]*Fluxer Platform AB/gi;
+		const offenders = htmlPages(clientRoot).filter((file) =>
+			/fluxer/i.test(visibleText(readFileSync(file, 'utf8')).replace(attribution, '')),
+		);
 
 		assert.deepEqual(
 			offenders.map((file) => file.pathname),

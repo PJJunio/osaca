@@ -292,7 +292,7 @@ fn copyable_registration_url(value: &str, label: &str) -> Markup {
 pub(super) fn compact_copy_button(value: &str, label: &str) -> Markup {
     html! {
         button type="button"
-            class="inline-flex h-8 shrink-0 items-center justify-center rounded-lg border border-neutral-300 bg-neutral-50 px-3 text-xs font-medium text-neutral-700 transition-all hover:border-neutral-400 hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
+            class="inline-flex h-8 shrink-0 items-center justify-center rounded-lg border border-neutral-300 bg-neutral-50 px-3 text-xs font-medium text-neutral-700 transition-all hover:border-neutral-400 hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-osaca-focus/20"
             data-copy-value=(value)
             onclick="window.__adminCopyToClipboard && window.__adminCopyToClipboard(this.dataset.copyValue, this, 'Copied')" {
             (label)
@@ -311,7 +311,7 @@ pub(super) fn compact_button(label: &str, variant: CompactButtonVariant) -> Mark
             "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500/30"
         }
         CompactButtonVariant::Neutral => {
-            "bg-neutral-900 text-white hover:bg-neutral-800 focus:ring-brand-primary/20"
+            "bg-neutral-900 text-white hover:bg-neutral-800 focus:ring-osaca-focus/20"
         }
     };
     html! {

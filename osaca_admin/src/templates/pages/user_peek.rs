@@ -93,7 +93,7 @@ pub fn user_peek_fragment(config: &AdminConfig, user: &AdminUser) -> Markup {
                        rounded-lg bg-neutral-900 px-4 py-2 font-medium text-sm \
                        text-white transition-colors hover:bg-neutral-800 \
                        focus:outline-none focus-visible:ring-2 \
-                       focus-visible:ring-brand-primary focus-visible:ring-offset-2" {
+                       focus-visible:ring-osaca-focus focus-visible:ring-offset-2" {
                 "Open full user page"
             }
         }
@@ -107,7 +107,7 @@ fn peek_link(href: &str, label: &str) -> Markup {
                    border border-neutral-300 px-3 py-2 font-medium text-neutral-700 \
                    text-sm transition-colors hover:border-neutral-400 \
                    hover:bg-neutral-50 focus:outline-none focus-visible:ring-2 \
-                   focus-visible:ring-brand-primary focus-visible:ring-offset-2" {
+                   focus-visible:ring-osaca-focus focus-visible:ring-offset-2" {
             (label)
         }
     }

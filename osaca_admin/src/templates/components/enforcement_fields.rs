@@ -21,8 +21,8 @@ use maud::{Markup, html};
 pub const FIELD_LABEL_CLASS: &str = "block text-sm font-medium text-neutral-700";
 pub const FIELD_HELP_CLASS: &str = "text-xs text-neutral-500";
 pub const FIELD_INPUT_CLASS: &str = "block w-full rounded-md border border-neutral-300 \
-     px-3 py-2 text-sm shadow-sm focus:border-brand-primary focus:outline-none \
-     focus:ring-1 focus:ring-brand-primary";
+     px-3 py-2 text-sm shadow-sm focus:border-osaca-focus focus:outline-none \
+     focus:ring-1 focus:ring-osaca-focus";
 pub const INTERNAL_NOTE_MAX_CHARS: usize = 512;
 const STATEMENT_MAX_CHARS: usize = 500;
 const ACCOUNT_DELETION_MIN_DAYS: u32 = 14;

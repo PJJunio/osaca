@@ -686,7 +686,7 @@ fn message_shred_card(
                             input id="message-shred-file" type="file" accept=".csv" class="hidden";
                             div class="flex items-center gap-2" {
                                 button type="button"
-                                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-1.5 text-sm font-medium text-neutral-700 transition-all duration-150 hover:border-neutral-400 hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
+                                    class="inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-1.5 text-sm font-medium text-neutral-700 transition-all duration-150 hover:border-neutral-400 hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-osaca-focus/20"
                                     onclick="document.getElementById('message-shred-file').click()" {
                                     span { "Choose file" }
                                 }

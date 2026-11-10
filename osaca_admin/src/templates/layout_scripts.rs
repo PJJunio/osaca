@@ -33,6 +33,21 @@ pub const THEME_TOGGLE_SCRIPT: &str = r#"
 })();
 "#;
 
+pub const DESTRUCTIVE_CONFIRM_SCRIPT: &str = r#"
+(function () {
+	if (window.__osacaAdminConfirm) return;
+	window.__osacaAdminConfirm = true;
+	document.addEventListener('click', function (event) {
+		var button = event.target.closest && event.target.closest('[data-confirm]');
+		if (!button || button.disabled) return;
+		if (!window.confirm(button.getAttribute('data-confirm'))) {
+			event.preventDefault();
+			event.stopImmediatePropagation();
+		}
+	}, true);
+})();
+"#;
+
 pub const SIDEBAR_ACTIVE_SCROLL_SCRIPT: &str = r#"
 (function () {
 	var sidebar = document.querySelector('[data-sidebar]');

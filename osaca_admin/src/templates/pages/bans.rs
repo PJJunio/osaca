@@ -391,8 +391,8 @@ fn duration_field() -> Markup {
             }
             select id="duration_hours" name="duration_hours"
                 class="block w-full rounded-md border border-neutral-300 px-3 py-2 text-sm \
-                       shadow-sm focus:border-brand-primary focus:outline-none focus:ring-1 \
-                       focus:ring-brand-primary" {
+                       shadow-sm focus:border-osaca-focus focus:outline-none focus:ring-1 \
+                       focus:ring-osaca-focus" {
                 @for &(value, label) in IP_BAN_DURATIONS {
                     option value=(value) { (label) }
                 }
@@ -409,8 +409,8 @@ fn textarea_field(name: &str, label: &str, required: bool) -> Markup {
             }
             textarea id=(name) name=(name) rows="8" required[required]
                 class="block w-full rounded-md border border-neutral-300 px-3 py-2 text-sm \
-                       shadow-sm focus:border-brand-primary focus:outline-none focus:ring-1 \
-                       focus:ring-brand-primary" {}
+                       shadow-sm focus:border-osaca-focus focus:outline-none focus:ring-1 \
+                       focus:ring-osaca-focus" {}
         }
     }
 }
@@ -423,7 +423,7 @@ fn submit_btn(action: &str, entity: &str, danger: bool) -> Markup {
     } else {
         "inline-flex items-center rounded-md bg-brand-primary px-4 py-2 text-sm \
          font-medium text-white shadow-sm hover:bg-brand-primary-dark focus:outline-none \
-         focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
+         focus:ring-2 focus:ring-osaca-focus focus:ring-offset-2"
     };
     html! {
         button type="submit" class=(classes) {

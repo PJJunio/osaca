@@ -252,8 +252,8 @@ fn form_field_with_helper(
                 step=[if input_type == "number" { Some("any") } else { None }]
                 class="block w-full rounded-md border border-neutral-300 \
                        px-3 py-2 text-sm shadow-sm \
-                       focus:border-brand-primary focus:outline-none \
-                       focus:ring-1 focus:ring-brand-primary";
+                       focus:border-osaca-focus focus:outline-none \
+                       focus:ring-1 focus:ring-osaca-focus";
             p class="text-xs text-neutral-500" { (helper) }
         }
     }
@@ -269,8 +269,8 @@ fn notes_field(id: &str, value: &str) -> Markup {
                 placeholder="Anything worth remembering about this server"
                 class="block w-full rounded-md border border-neutral-300 \
                        px-3 py-2 text-sm shadow-sm \
-                       focus:border-brand-primary focus:outline-none \
-                       focus:ring-1 focus:ring-brand-primary" {
+                       focus:border-osaca-focus focus:outline-none \
+                       focus:ring-1 focus:ring-osaca-focus" {
                 (value)
             }
             p class="text-xs text-neutral-500" { "Only admins see this" }

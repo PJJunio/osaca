@@ -374,7 +374,7 @@ fn render_users_table(config: &AdminConfig, users: &[AdminUser]) -> Markup {
                                        font-medium text-neutral-700 text-sm transition-colors \
                                        hover:border-neutral-400 hover:bg-neutral-50 \
                                        focus:outline-none focus-visible:ring-2 \
-                                       focus-visible:ring-brand-primary \
+                                       focus-visible:ring-osaca-focus \
                                        focus-visible:ring-offset-2" {
                                 "Peek"
                             }

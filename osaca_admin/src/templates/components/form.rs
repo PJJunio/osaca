@@ -4,8 +4,8 @@ use maud::{Markup, PreEscaped, html};
 
 pub const FORM_CONTROL_CLASS: &str = "w-full rounded-lg border border-neutral-300 bg-white \
      text-neutral-900 text-sm transition-all placeholder:text-neutral-400 \
-     focus:border-brand-primary focus:outline-none focus:ring-2 \
-     focus:ring-brand-primary/20 disabled:cursor-not-allowed \
+     focus:border-osaca-focus focus:outline-none focus:ring-2 \
+     focus:ring-osaca-focus/20 disabled:cursor-not-allowed \
      disabled:bg-neutral-50 disabled:opacity-50";
 const FORM_INPUT_SIZE_CLASS: &str = "h-8 px-3 py-1.5";
 pub const FORM_SEARCH_INPUT_SIZE_CLASS: &str = "h-10 px-3 py-1.5";
@@ -14,18 +14,18 @@ const FORM_TEXTAREA_SIZE_CLASS: &str = "px-3 py-1.5";
 pub const FORM_LABEL_CLASS: &str = "font-semibold text-neutral-500 text-xs uppercase tracking-wide";
 pub const FORM_INPUT_CLASS: &str = "w-full rounded-lg border border-neutral-300 bg-white \
      text-neutral-900 text-sm transition-all placeholder:text-neutral-400 \
-     focus:border-brand-primary focus:outline-none focus:ring-2 \
-     focus:ring-brand-primary/20 disabled:cursor-not-allowed \
+     focus:border-osaca-focus focus:outline-none focus:ring-2 \
+     focus:ring-osaca-focus/20 disabled:cursor-not-allowed \
      disabled:bg-neutral-50 disabled:opacity-50 h-8 px-3 py-1.5";
 pub const FORM_TEXTAREA_CLASS: &str = "w-full rounded-lg border border-neutral-300 bg-white \
      text-neutral-900 text-sm transition-all placeholder:text-neutral-400 \
-     focus:border-brand-primary focus:outline-none focus:ring-2 \
-     focus:ring-brand-primary/20 disabled:cursor-not-allowed \
+     focus:border-osaca-focus focus:outline-none focus:ring-2 \
+     focus:ring-osaca-focus/20 disabled:cursor-not-allowed \
      disabled:bg-neutral-50 disabled:opacity-50 px-3 py-1.5";
 pub const FORM_SELECT_CLASS: &str = "w-full rounded-lg border border-neutral-300 bg-white \
      text-neutral-900 text-sm transition-all placeholder:text-neutral-400 \
-     focus:border-brand-primary focus:outline-none focus:ring-2 \
-     focus:ring-brand-primary/20 disabled:cursor-not-allowed \
+     focus:border-osaca-focus focus:outline-none focus:ring-2 \
+     focus:ring-osaca-focus/20 disabled:cursor-not-allowed \
      disabled:bg-neutral-50 disabled:opacity-50 h-8 appearance-none px-3 py-1.5 pr-10";
 const BUTTON_BASE_CLASS: &str = "inline-flex items-center justify-center gap-2 font-medium \
      rounded-lg transition-all duration-150 focus:outline-none focus:ring-2 \
@@ -148,27 +148,38 @@ pub fn submit_button(label: &str) -> Markup {
 }
 
 pub fn danger_button(label: &str) -> Markup {
-    button_markup(label, "submit", DANGER_BUTTON_CLASS)
+    let confirm = format!("{label}?");
+    html! {
+        button type="submit" class={(BUTTON_BASE_CLASS) " " (DANGER_BUTTON_CLASS)} data-confirm=(confirm) {
+            span { (label) }
+        }
+    }
 }
 
 pub fn secondary_button(label: &str) -> Markup {
     button_markup(label, "submit", SECONDARY_BUTTON_CLASS)
 }
 
-fn subject_button_markup(label: &str, subject: &str, variant_class: &str) -> Markup {
+fn subject_button_markup(
+    label: &str,
+    subject: &str,
+    variant_class: &str,
+    confirm: Option<&str>,
+) -> Markup {
     html! {
-        button type="submit" class={(BUTTON_BASE_CLASS) " " (variant_class)} {
+        button type="submit" class={(BUTTON_BASE_CLASS) " " (variant_class)} data-confirm=[confirm] {
             span { (label) span class="sr-only" { ", " (subject) } }
         }
     }
 }
 
 pub fn secondary_button_for(label: &str, subject: &str) -> Markup {
-    subject_button_markup(label, subject, SECONDARY_BUTTON_CLASS)
+    subject_button_markup(label, subject, SECONDARY_BUTTON_CLASS, None)
 }
 
 pub fn danger_button_for(label: &str, subject: &str) -> Markup {
-    subject_button_markup(label, subject, DANGER_BUTTON_CLASS)
+    let confirm = format!("{label} {subject}?");
+    subject_button_markup(label, subject, DANGER_BUTTON_CLASS, Some(&confirm))
 }
 
 pub fn form_field_group(
@@ -339,8 +350,31 @@ pub(crate) fn form_field_with_id(
                 step=[if input_type == "number" { Some("any") } else { None }]
                 class="block w-full rounded-md border border-neutral-300 \
                        px-3 py-2 text-sm shadow-sm \
-                       focus:border-brand-primary focus:outline-none \
-                       focus:ring-1 focus:ring-brand-primary";
+                       focus:border-osaca-focus focus:outline-none \
+                       focus:ring-1 focus:ring-osaca-focus";
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn danger_buttons_ask_for_confirmation_before_submitting() {
+        let plain = danger_button("Revoke key").into_string();
+        let with_subject = danger_button_for("Delete", "voice region eu-west").into_string();
+
+        assert!(plain.contains(r#"data-confirm="Revoke key?""#), "{plain}");
+        assert!(
+            with_subject.contains(r#"data-confirm="Delete voice region eu-west?""#),
+            "{with_subject}"
+        );
+    }
+
+    #[test]
+    fn primary_and_secondary_buttons_submit_without_confirmation() {
+        assert!(!submit_button("Save").into_string().contains("data-confirm"));
+        assert!(!secondary_button("Cancel").into_string().contains("data-confirm"));
     }
 }

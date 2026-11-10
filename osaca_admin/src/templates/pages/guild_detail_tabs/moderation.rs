@@ -23,8 +23,8 @@ const MODERATION_ACLS: &[&str] = &[
 ];
 const TEXT_INPUT_CLS: &str = "block w-full rounded-md border border-neutral-300 \
                                px-3 py-2 text-sm shadow-sm \
-                               focus:border-brand-primary focus:outline-none \
-                               focus:ring-1 focus:ring-brand-primary";
+                               focus:border-osaca-focus focus:outline-none \
+                               focus:ring-1 focus:ring-osaca-focus";
 
 pub fn moderation_tab(
     config: &AdminConfig,

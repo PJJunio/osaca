@@ -84,7 +84,7 @@ pub fn voice_restriction_fields(
                 input type="text" name="required_guild_features" value=(required_features)
                     placeholder="e.g. FEATURE_1, FEATURE_2"
                     id=[(!features_id.is_empty()).then_some(features_id.as_str())]
-                    class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary";
+                    class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-osaca-focus focus:outline-none focus:ring-1 focus:ring-osaca-focus";
                 p class="text-xs text-neutral-500" { "Separate features with commas." }
             }
             div class="space-y-1" {
@@ -92,7 +92,7 @@ pub fn voice_restriction_fields(
                 input type="text" name="allowed_guild_ids" value=(allowed_guild_ids)
                     placeholder="e.g. 123456789, 987654321"
                     id=[(!guilds_id.is_empty()).then_some(guilds_id.as_str())]
-                    class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary";
+                    class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-osaca-focus focus:outline-none focus:ring-1 focus:ring-osaca-focus";
                 p class="text-xs text-neutral-500" { "Separate guild IDs with commas." }
             }
         }

@@ -142,8 +142,8 @@ pub fn archives_page(
                         placeholder="Subject ID (user or guild)"
                         class="flex-1 rounded-lg border border-neutral-300 bg-white \
                                text-neutral-900 text-sm px-3 py-2 \
-                               focus:border-brand-primary focus:outline-none \
-                               focus:ring-2 focus:ring-brand-primary/20"
+                               focus:border-osaca-focus focus:outline-none \
+                               focus:ring-2 focus:ring-osaca-focus/20"
                         autocomplete="off";
                     (submit_button("Search"))
                 }

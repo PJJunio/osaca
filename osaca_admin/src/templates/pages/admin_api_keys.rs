@@ -77,8 +77,8 @@ fn create_form(base: &str, csrf_token: &str, acls: &[&str]) -> Markup {
                             placeholder="Enter a descriptive name"
                             class="w-full rounded-lg border border-neutral-300 bg-white \
                                    text-neutral-900 text-sm h-8 px-3 py-1.5 \
-                                   focus:border-brand-primary focus:outline-none \
-                                   focus:ring-2 focus:ring-brand-primary/20";
+                                   focus:border-osaca-focus focus:outline-none \
+                                   focus:ring-2 focus:ring-osaca-focus/20";
                         p class="text-xs text-neutral-500" {
                             "A descriptive name to help you identify this API key."
                         }
@@ -164,6 +164,7 @@ fn api_key_item(base: &str, csrf_token: &str, key: &ListAdminApiKeyEntry) -> Mar
                     (csrf_input(csrf_token))
                     input type="hidden" name="key_id" value=(key_id);
                     button type="submit"
+                        data-confirm="Revoke this admin API key? Anything using it stops working immediately."
                         class="inline-flex w-full items-center justify-center gap-2 \
                                font-medium rounded-lg bg-red-600 text-white \
                                px-3 py-1.5 text-sm hover:bg-red-700" {

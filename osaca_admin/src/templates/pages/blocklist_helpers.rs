@@ -22,8 +22,8 @@ pub(crate) fn blocklist_text_field(
             input type="text" id=(name) name=(name) placeholder=(placeholder)
                 required[required]
                 class="block w-full rounded-md border border-neutral-300 px-3 py-2 \
-                       text-sm shadow-sm focus:border-brand-primary focus:outline-none \
-                       focus:ring-1 focus:ring-brand-primary";
+                       text-sm shadow-sm focus:border-osaca-focus focus:outline-none \
+                       focus:ring-1 focus:ring-osaca-focus";
         }
     }
 }

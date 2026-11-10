@@ -100,7 +100,7 @@ fn render_user_detail(
         @if let Some(banner) = banner_url {
             div class="mb-4 space-y-2" {
                 a href=(banner) target="_blank" rel="noreferrer noopener"
-                    class="block max-w-2xl rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2" {
+                    class="block max-w-2xl rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-osaca-focus focus-visible:ring-offset-2" {
                     img src=(banner) alt={(user.username) "'s banner"}
                         class="aspect-[17/6] w-full rounded-lg border border-neutral-200 bg-neutral-50 object-cover"
                         loading="lazy";

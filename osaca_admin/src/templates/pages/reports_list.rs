@@ -471,7 +471,7 @@ fn render_reports_table(config: &AdminConfig, reports: &[ReportEntry]) -> Markup
                                    border border-neutral-300 px-3 py-1.5 font-medium \
                                    text-neutral-700 text-sm transition-colors hover:border-neutral-400 \
                                    hover:bg-neutral-50 focus:outline-none focus-visible:ring-2 \
-                                   focus-visible:ring-brand-primary focus-visible:ring-offset-2" {
+                                   focus-visible:ring-osaca-focus focus-visible:ring-offset-2" {
                             "Peek"
                         }
                         a href={(base) "/reports/" (report.report_id)}

@@ -221,6 +221,14 @@ const ANY_AUTHOR: TakeAction<'static> = TakeAction {
     report_id: None,
 };
 
+fn private_conversation_notice() -> Markup {
+    html! {
+        div role="note" class="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 text-blue-700 text-sm" {
+            "Private Conversations are end-to-end encrypted on members' devices. The Operator cannot read their content; these tools show readable message content only for Community Channels."
+        }
+    }
+}
+
 pub fn messages_page(
     config: &AdminConfig,
     auth: &AuthContext,
@@ -232,6 +240,7 @@ pub fn messages_page(
     };
     let content = html! {
         (page_header("Message Tools", None))
+        (private_conversation_notice())
 
         div class="space-y-6" {
             @if let Some(error) = params.error {
@@ -713,4 +722,19 @@ fn delete_message_form(config: &AdminConfig, csrf_token: &str) -> Markup {
             }
         }
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn message_tools_state_that_private_conversations_are_unreadable_to_the_operator() {
+        let notice = private_conversation_notice().into_string();
+
+        assert!(notice.contains("Private Conversations"), "{notice}");
+        assert!(notice.contains("end-to-end encrypted"), "{notice}");
+        assert!(notice.contains("cannot read"), "{notice}");
+        assert!(notice.contains(r#"role="note""#), "{notice}");
+    }
 }

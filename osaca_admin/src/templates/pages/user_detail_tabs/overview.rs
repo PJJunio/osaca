@@ -509,7 +509,7 @@ fn traits_form(
                     }
                     textarea id="custom-traits" name="traits" rows="2"
                         placeholder="beta-tester, experimental"
-                        class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20" {
+                        class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-osaca-focus focus:outline-none focus:ring-2 focus:ring-osaca-focus/20" {
                         (custom_traits.join("\n"))
                     }
                 }

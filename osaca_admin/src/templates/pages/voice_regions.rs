@@ -134,6 +134,7 @@ fn region_card(config: &AdminConfig, region: &VoiceRegion, csrf_token: &str) -> 
                     (csrf_input(csrf_token))
                     input type="hidden" name="id" value=(region.id);
                     button type="submit"
+                        data-confirm="Delete this voice region?"
                         class="inline-flex items-center justify-center gap-2 font-medium \
                                rounded-lg transition-all duration-150 focus:outline-none \
                                focus:ring-2 focus:ring-offset-2 bg-red-600 text-white \

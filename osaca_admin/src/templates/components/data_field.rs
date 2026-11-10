@@ -9,7 +9,7 @@ const DATA_FIELD_MONO_CLASS: &str = "text-sm text-gray-900 break-all";
 const DATA_FIELD_MUTED_CLASS: &str = "text-sm text-neutral-500 break-words";
 const DATA_FIELD_LINK_CLASS: &str = "rounded text-blue-600 text-sm transition-colors \
      hover:text-blue-800 hover:underline focus:outline-none focus-visible:ring-2 \
-     focus-visible:ring-brand-primary focus-visible:ring-offset-2";
+     focus-visible:ring-osaca-focus focus-visible:ring-offset-2";
 
 fn data_field_value(value: &str, class: &str) -> Markup {
     if value.is_empty() {

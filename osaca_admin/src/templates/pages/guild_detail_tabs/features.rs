@@ -81,8 +81,8 @@ pub fn features_tab(
                             value=(custom.join(", "))
                             class="block w-full rounded-md border border-neutral-300 \
                                    px-3 py-2 text-sm shadow-sm \
-                                   focus:border-brand-primary focus:outline-none \
-                                   focus:ring-1 focus:ring-brand-primary";
+                                   focus:border-osaca-focus focus:outline-none \
+                                   focus:ring-1 focus:ring-osaca-focus";
                     }
                     div class="mt-6 border-t border-neutral-200 pt-6" {
                         (form_actions(html! {

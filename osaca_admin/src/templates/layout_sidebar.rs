@@ -19,7 +19,8 @@ pub fn render_sidebar(
     html! {
         aside id="admin-sidebar" data-sidebar="" class="fixed inset-y-0 left-0 z-40 flex h-[100dvh] w-72 max-w-[85vw] -translate-x-full transform flex-col bg-neutral-900 text-white shadow-2xl transition-transform duration-200 ease-in-out lg:static lg:inset-auto lg:w-64 lg:max-w-none lg:translate-x-0 lg:shadow-none" role="navigation" aria-label="Admin navigation" tabindex="-1" {
             div class="flex items-center justify-between gap-3 border-neutral-800 border-b px-5 py-4 lg:px-6 lg:py-6" {
-                a href={(base) "/users"} class="rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900" {
+                a href={(base) "/users"} class="flex items-center gap-3 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900" {
+                    img src={(base) "/static/osaca-logo-color.svg"} alt="" class="h-8 w-8 flex-shrink-0 rounded-full";
                     h1 class="font-semibold text-base" { (heading) }
                 }
                 button type="button" data-sidebar-close="" class="inline-flex h-11 w-11 items-center justify-center rounded-md text-neutral-200 transition-colors hover:bg-neutral-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 lg:hidden" aria-label="Close sidebar" {
@@ -85,5 +86,49 @@ pub fn pending_registration_count_markup(count: Option<u32>, out_of_band: bool) 
                 (count)
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::ProxyConfig;
+
+    fn config() -> AdminConfig {
+        AdminConfig {
+            host: "127.0.0.1".to_owned(),
+            port: 0,
+            secret_key_base: String::new(),
+            base_path: "/admin".to_owned(),
+            api_endpoint: String::new(),
+            api_public_endpoint: String::new(),
+            media_endpoint: String::new(),
+            static_cdn_endpoint: String::new(),
+            reports_bucket_origin: String::new(),
+            admin_endpoint: String::new(),
+            web_app_endpoint: String::new(),
+            oauth_client_id: String::new(),
+            oauth_client_secret: String::new(),
+            oauth_redirect_uri: String::new(),
+            build_version: String::new(),
+            self_hosted: true,
+            proxy: ProxyConfig {
+                trust_client_ip_header: false,
+                client_ip_header_name: String::new(),
+            },
+        }
+    }
+
+    #[test]
+    fn sidebar_leads_with_the_osaca_logo_next_to_the_panel_heading() {
+        let html = render_sidebar(&config(), "OSACA Admin", &[], "users", None, None, false)
+            .into_string();
+
+        assert!(
+            html.contains(r#"<img src="/admin/static/osaca-logo-color.svg" alt="""#),
+            "{html}"
+        );
+        assert!(html.contains("OSACA Admin"), "{html}");
+        assert!(html.contains(r#"aria-label="Admin navigation""#), "{html}");
     }
 }

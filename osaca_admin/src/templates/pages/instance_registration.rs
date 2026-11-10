@@ -221,7 +221,7 @@ fn registration_url_row(
                         value=(url.label.as_deref().unwrap_or(""))
                         aria-label="New label" placeholder="New label"
                         class="h-8 min-w-0 flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-800";
-                    (compact_button("Rename", CompactButtonVariant::Neutral))
+                    (compact_button("Rename", CompactButtonVariant::Neutral, None))
                 }
             }
             td class="px-4 py-3 align-top text-neutral-700" {
@@ -250,7 +250,11 @@ fn registration_url_row(
                         data-admin-allow-swap="true" {
                         (csrf_input(csrf_token))
                         input type="hidden" name="registration_url_id" value=(&url.id);
-                        (compact_button("Revoke", CompactButtonVariant::Danger))
+                        (compact_button(
+                            "Revoke",
+                            CompactButtonVariant::Danger,
+                            Some("Revoke this registration URL? New accounts can no longer use it."),
+                        ))
                     }
                 } @else {
                     form method="post" action=(&remove_action)
@@ -258,11 +262,14 @@ fn registration_url_row(
                         hx-target="#registration-url-list"
                         hx-swap="outerHTML"
                         hx-push-url="false"
-                        hx-confirm="Remove this registration URL from the list?"
                         data-admin-allow-swap="true" {
                         (csrf_input(csrf_token))
                         input type="hidden" name="registration_url_id" value=(&url.id);
-                        (compact_button("Remove", CompactButtonVariant::Danger))
+                        (compact_button(
+                            "Remove",
+                            CompactButtonVariant::Danger,
+                            Some("Remove this registration URL from the list?"),
+                        ))
                     }
                 }
             }
@@ -305,7 +312,11 @@ pub(super) enum CompactButtonVariant {
     Danger,
 }
 
-pub(super) fn compact_button(label: &str, variant: CompactButtonVariant) -> Markup {
+pub(super) fn compact_button(
+    label: &str,
+    variant: CompactButtonVariant,
+    confirm: Option<&str>,
+) -> Markup {
     let variant_class = match variant {
         CompactButtonVariant::Danger => {
             "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500/30"
@@ -316,6 +327,7 @@ pub(super) fn compact_button(label: &str, variant: CompactButtonVariant) -> Mark
     };
     html! {
         button type="submit"
+            data-confirm=[confirm]
             class={"inline-flex h-8 shrink-0 items-center justify-center rounded-lg px-3 text-xs font-medium transition-all focus:outline-none focus:ring-2 " (variant_class)} {
             (label)
         }

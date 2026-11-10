@@ -103,6 +103,18 @@ describe('OSACA admin panel', () => {
 		);
 	});
 
+	it('asks for confirmation through the shared data-confirm primitive only', () => {
+		const templates = filesUnder(new URL('src/', adminRoot), /\.rs$/);
+		const offenders = templates.filter((file) =>
+			/hx-confirm|onsubmit="return confirm\(/.test(readFileSync(file, 'utf8')),
+		);
+
+		assert.deepEqual(
+			offenders.map((file) => file.pathname),
+			[],
+		);
+	});
+
 	it('carries no Fluxer branding in admin source, styles or static assets', () => {
 		const files = [
 			...filesUnder(new URL('src/', adminRoot), /\.(rs|css)$/),

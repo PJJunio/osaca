@@ -7,7 +7,7 @@ use crate::{
     templates::{
         components::{
             auto_refresh::auto_refresh,
-            form::{csrf_input, submit_button},
+            form::{csrf_input, submit_button_confirming},
             page_container::page_header,
             section_card::section_card_simple,
         },
@@ -54,11 +54,13 @@ fn reindex_everything(base: &str, csrf_token: &str) -> Markup {
                  and the messages in every channel and DM, one at a time. Search shows \
                  partial results until it finishes, which can take hours on a large instance."
             }
-            form method="post" action={(base) "/search-index?action=reindex"} class="w-fit"
-                onsubmit="return confirm('Rebuild every search index? Search shows partial results until it finishes.')" {
+            form method="post" action={(base) "/search-index?action=reindex"} class="w-fit" {
                 (csrf_input(csrf_token))
                 input type="hidden" name="index_type" value="all";
-                (submit_button("Reindex everything"))
+                (submit_button_confirming(
+                    "Reindex everything",
+                    "Rebuild every search index? Search shows partial results until it finishes.",
+                ))
             }
         },
     )

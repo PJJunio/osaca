@@ -154,11 +154,10 @@ fn decision_form(
             hx-target="#pending-registration-list"
             hx-swap="outerHTML"
             hx-push-url="false"
-            hx-confirm=[confirm]
             data-admin-allow-swap="true" {
             (csrf_input(csrf_token))
             input type="hidden" name="user_id" value=(user_id);
-            (compact_button(label, variant))
+            (compact_button(label, variant, confirm))
         }
     }
 }

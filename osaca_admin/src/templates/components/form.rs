@@ -152,6 +152,10 @@ pub fn submit_button(label: &str) -> Markup {
     button_markup(label, "submit", PRIMARY_BUTTON_CLASS, None)
 }
 
+pub fn submit_button_confirming(label: &str, confirm: &str) -> Markup {
+    button_markup(label, "submit", PRIMARY_BUTTON_CLASS, Some(confirm))
+}
+
 pub fn danger_button(label: &str) -> Markup {
     let confirm = format!("{label}: are you sure?");
     button_markup(label, "submit", DANGER_BUTTON_CLASS, Some(&confirm))
@@ -399,5 +403,10 @@ mod tests {
     fn primary_and_secondary_buttons_submit_without_confirmation() {
         assert!(!submit_button("Save").into_string().contains("data-confirm"));
         assert!(!secondary_button("Cancel").into_string().contains("data-confirm"));
+        assert!(
+            submit_button_confirming("Reindex", "Rebuild every index?")
+                .into_string()
+                .contains(r#"data-confirm="Rebuild every index?""#)
+        );
     }
 }

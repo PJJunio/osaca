@@ -11,6 +11,7 @@ packages:
   - osaca_desktop
   - osaca_admin
   - osaca_docs
+  - osaca_landing
 
 allowBuilds:
   '@bufbuild/buf': true

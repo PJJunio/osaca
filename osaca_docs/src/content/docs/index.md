@@ -6,6 +6,8 @@ description: Where to start with the OSACA API and how to read the reference pag
 
 OSACA is a self-hostable chat platform. You can build clients and bots with its HTTP API and Gateway, or run your own instance.
 
+OSACA is experimental and unaudited. Read the [Security model](/security-model/) to see what end-to-end encryption covers today and what it does not.
+
 | Section | Description |
 | --- | --- |
 | [HTTP API](/http-api/) | Read and change users, guilds, channels and messages |

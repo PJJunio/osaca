@@ -26,14 +26,14 @@
 	position: fixed;
 	inset: 0;
 	display: flex;
-	background: linear-gradient(145deg, #102b42 0%, #0d1f30 48%, #081420 100%);
+	background: var(--osaca-gradient-brand);
 }
 
 .container {
 	position: relative;
 	min-height: 100svh;
 	width: 100%;
-	background-color: #102b42;
+	background-color: var(--osaca-color-navy, #102b42);
 }
 
 :global(.auth-page),
@@ -153,11 +153,11 @@
 .backdropScrim {
 	position: absolute;
 	inset: 0;
-	background-color: rgb(5 4 13 / 0.55);
+	background-color: color-mix(in srgb, var(--osaca-color-black, #0b1722) 55%, transparent);
 }
 
 .backdropScrimMobile {
-	background-color: rgb(5 4 13 / 0.75);
+	background-color: color-mix(in srgb, var(--osaca-color-black, #0b1722) 75%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -201,9 +201,9 @@
 	width: 100%;
 	max-width: 32rem;
 	overflow: hidden;
-	border: 0.0625rem solid var(--border-color, rgb(255 255 255 / 0.12));
+	border: 0.0625rem solid var(--osaca-border-subtle, rgb(255 255 255 / 0.12));
 	border-radius: var(--radius-xl, 0.75rem);
-	background-color: var(--background-secondary);
+	background-color: var(--osaca-surface-raised, var(--background-secondary));
 	box-shadow: 0 1.25rem 4rem -1.5rem rgb(0 0 0 / 0.5);
 	transition:
 		max-width 180ms ease,
@@ -232,7 +232,7 @@
 	flex-direction: column;
 	justify-content: center;
 	padding: var(--auth-card-padding);
-	background: var(--background-secondary);
+	background: var(--osaca-surface-raised, var(--background-secondary));
 }
 
 .cardBranded .formSide {
@@ -287,7 +287,7 @@
 	composes: starfield from '@app/features/ui/space_background/SpaceBackground.module.css';
 	--starfield-position: fixed;
 	min-height: 100dvh;
-	background: linear-gradient(145deg, #05040d 0%, #080616 46%, #0d0a1c 100%);
+	background: var(--osaca-gradient-brand);
 	padding: calc(2rem + env(safe-area-inset-top, 0px)) 1.5rem calc(2.5rem + env(safe-area-inset-bottom, 0px));
 	overflow-y: auto;
 	overflow-x: hidden;
@@ -365,7 +365,7 @@
 :global(html.auth-page),
 :global(html.auth-page body) {
 	height: 100%;
-	background-color: #080616;
+	background-color: var(--osaca-color-black, #0b1722);
 }
 
 @supports (padding: env(safe-area-inset-top)) {

@@ -8,14 +8,14 @@
 	min-height: 100vh;
 	padding: 2rem;
 	text-align: center;
-	background-color: var(--background-primary);
+	background-color: var(--osaca-surface-page, var(--background-primary));
 }
 
 .icon {
 	width: 6rem;
 	height: 6rem;
 	margin-bottom: 1.5rem;
-	color: var(--brand-primary-foreground);
+	color: var(--osaca-action-primary, var(--brand-primary-foreground));
 }
 
 .content {
@@ -24,17 +24,18 @@
 }
 
 .title {
+	font-family: var(--font-display);
 	font-size: 2rem;
 	font-weight: 700;
 	margin: 0 0 1rem 0;
-	color: var(--text-primary);
+	color: var(--osaca-content-primary, var(--text-primary));
 }
 
 .description {
 	font-size: 1rem;
 	line-height: 1.5;
 	margin: 0;
-	color: var(--text-primary);
+	color: var(--osaca-content-secondary, var(--text-secondary));
 }
 
 .actions {

@@ -14,17 +14,18 @@
 	margin-bottom: 1rem;
 	height: 4rem;
 	width: 4rem;
-	color: var(--text-tertiary);
+	color: var(--osaca-content-secondary, var(--text-tertiary));
 }
 
 .title {
 	margin-bottom: 0.5rem;
+	font-family: var(--font-display);
 	font-weight: 600;
-	color: var(--text-primary);
+	color: var(--osaca-content-primary, var(--text-primary));
 	font-size: 1.25rem;
 }
 
 .subtitle {
 	max-width: 28rem;
-	color: var(--text-tertiary);
+	color: var(--osaca-content-secondary, var(--text-tertiary));
 }

@@ -14,7 +14,7 @@
 	user-select: none;
 	-webkit-user-select: none;
 	overflow: hidden;
-	background-color: var(--background-secondary);
+	background-color: var(--osaca-surface-subnavigation, var(--background-secondary));
 	padding-bottom: 0;
 }
 
@@ -23,7 +23,7 @@
 	align-items: center;
 	height: var(--layout-header-height);
 	min-height: var(--layout-header-height);
-	background-color: var(--background-secondary);
+	background-color: var(--osaca-surface-subnavigation, var(--background-secondary));
 	padding: 0 var(--spacing-2);
 	width: 100%;
 	border: none;
@@ -102,7 +102,7 @@
 	min-height: 0;
 	width: 100%;
 	min-width: 0;
-	background-color: var(--background-secondary);
+	background-color: var(--osaca-surface-subnavigation, var(--background-secondary));
 }
 
 .mobileHeader {
@@ -183,7 +183,7 @@
 	align-items: center;
 	justify-content: center;
 	border-radius: var(--radius-full);
-	background-color: var(--status-danger);
+	background-color: var(--osaca-status-danger, var(--status-danger));
 	padding-inline-start: 0.25rem;
 	padding-inline-end: 0.25rem;
 	color: white;
@@ -202,11 +202,11 @@
 }
 
 .desktopScroller {
-	background-color: var(--background-secondary);
+	background-color: var(--osaca-surface-subnavigation, var(--background-secondary));
 }
 
 .mobileScroller {
-	background-color: var(--background-secondary);
+	background-color: var(--osaca-surface-subnavigation, var(--background-secondary));
 }
 
 .mobileFab {
@@ -385,7 +385,7 @@
 	display: flex;
 	flex-direction: column;
 	gap: 0.0625rem;
-	background-color: var(--background-secondary);
+	background-color: var(--osaca-surface-subnavigation, var(--background-secondary));
 	padding: 0;
 }
 

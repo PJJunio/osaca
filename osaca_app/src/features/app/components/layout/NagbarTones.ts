@@ -43,7 +43,7 @@ export const NAGBAR_TONES: Readonly<Record<NagbarToneKind, NagbarTone>> = Object
 	[NagbarToneKind.VOICE]: Object.freeze({backgroundColor: '#15803d', textColor: '#ffffff'}),
 	[NagbarToneKind.CRITICAL]: Object.freeze({backgroundColor: '#b00000', textColor: '#ffffff'}),
 	[NagbarToneKind.DEVELOPMENT]: Object.freeze({backgroundColor: '#17231d', textColor: '#72e6a2'}),
-	[NagbarToneKind.STREAMER]: Object.freeze({backgroundColor: '#5865f2', textColor: '#ffffff'}),
+	[NagbarToneKind.STREAMER]: Object.freeze({backgroundColor: '#102b42', textColor: '#ffffff'}),
 	[NagbarToneKind.ENCODER]: Object.freeze({backgroundColor: '#b45309', textColor: '#ffffff'}),
 });
 

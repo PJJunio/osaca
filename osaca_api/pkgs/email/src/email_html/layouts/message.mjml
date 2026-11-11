@@ -6,7 +6,7 @@
 				<mj-raw>
 					<tr>
 						<td dir="[[dir]]" style="padding:0;font-family:[[font]];text-align:[[start]];direction:[[dir]]">
-							%%?logo_url%%<a href="%%home_url%%" target="_blank" class="x-light" style="display:inline-block;text-decoration:none"><img src="%%logo_url%%" width="92" height="24" alt="%%product_name%%" style="display:block;width:92px;height:24px;border:0;font-size:18px;line-height:24px;font-weight:700;color:#4641d9"></a><!--[if !mso]><!--><div class="x-dark" style="display:none;max-height:0;overflow:hidden;mso-hide:all"><a href="%%home_url%%" target="_blank" style="display:inline-block;text-decoration:none"><img src="%%logo_dark_url%%" width="92" height="24" alt="%%product_name%%" style="display:block;width:92px;height:24px;border:0;font-size:18px;line-height:24px;font-weight:700;color:#ffffff"></a></div><!--<![endif]-->%%/logo_url%%
+							%%?logo_url%%<a href="%%home_url%%" target="_blank" class="x-light" style="display:inline-block;text-decoration:none"><img src="%%logo_url%%" width="92" height="24" alt="%%product_name%%" style="display:block;width:92px;height:24px;border:0;font-size:18px;line-height:24px;font-weight:700;color:#ad311d"></a><!--[if !mso]><!--><div class="x-dark" style="display:none;max-height:0;overflow:hidden;mso-hide:all"><a href="%%home_url%%" target="_blank" style="display:inline-block;text-decoration:none"><img src="%%logo_dark_url%%" width="92" height="24" alt="%%product_name%%" style="display:block;width:92px;height:24px;border:0;font-size:18px;line-height:24px;font-weight:700;color:#ffffff"></a></div><!--<![endif]-->%%/logo_url%%
 							%%?wordmark%%<a href="%%home_url%%" target="_blank" class="x-ink" style="font-size:18px;line-height:24px;font-weight:700;color:#1b1a2e;text-decoration:none">%%wordmark%%</a>%%/wordmark%%
 						</td>
 					</tr>
@@ -47,7 +47,7 @@
 									<td align="[[start]]" style="padding:24px 0 0">
 										<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="[[start]]" style="border-collapse:separate">
 											<tr>
-												<td align="center" bgcolor="#4641d9" style="border-radius:6px;background-color:#4641d9;mso-padding-alt:12px 22px">
+												<td align="center" bgcolor="#c73a27" style="border-radius:6px;background-color:#c73a27;mso-padding-alt:12px 22px">
 													<a href="%%cta_url%%" target="_blank" class="x-btn" style="display:inline-block;padding:12px 22px;font-family:[[font]];font-size:16px;line-height:22px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:6px">%%cta%%</a>
 												</td>
 											</tr>
@@ -63,7 +63,7 @@
 								<mj-include path="./partials/section.mjml" n="4" />
 								<mj-include path="./partials/muted-row.mjml" slot="note" gap="16px" />
 								%%?end_link%%<tr>
-									<td dir="[[dir]]" style="padding:16px 0 0;font-family:[[font]];font-size:16px;line-height:24px;text-align:[[start]];direction:[[dir]]"><a href="%%end_link_url%%" class="x-link" style="color:#4641d9">%%end_link%%</a></td>
+									<td dir="[[dir]]" style="padding:16px 0 0;font-family:[[font]];font-size:16px;line-height:24px;text-align:[[start]];direction:[[dir]]"><a href="%%end_link_url%%" class="x-link" style="color:#ad311d">%%end_link%%</a></td>
 								</tr>%%/end_link%%
 								<tr>
 									<td dir="[[dir]]" class="x-ink" style="padding:24px 0 0;font-family:[[font]];font-size:16px;line-height:24px;color:#1b1a2e;text-align:[[start]];direction:[[dir]]">%%signoff%%</td>

@@ -3,9 +3,10 @@
 import assert from 'node:assert/strict';
 import {readdirSync, readFileSync, statSync} from 'node:fs';
 import {describe, it} from 'node:test';
+import {resolvePalette} from '../../../tools/branding/palette.mjs';
 
 const adminRoot = new URL('../../', import.meta.url);
-const read = (path) => readFileSync(new URL(path, adminRoot), 'utf8').replace(/\r\n/g, '\n');
+const read = (path) => resolvePalette(readFileSync(new URL(path, adminRoot), 'utf8').replace(/\r\n/g, '\n'));
 
 function filesUnder(dir, pattern) {
 	return readdirSync(dir).flatMap((name) => {

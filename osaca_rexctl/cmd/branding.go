@@ -43,7 +43,7 @@ func newBrandingCmd(app *App) *cobra.Command {
 	var f brandingFlags
 	set := &cobra.Command{Use: "set", Short: "Change the name, colour, logo or icon", Args: noArgs}
 	set.Flags().StringVar(&f.Name, "name", "", "your instance's name")
-	set.Flags().StringVar(&f.Colour, "colour", "", "accent colour as a hex code, like #4641d9")
+	set.Flags().StringVar(&f.Colour, "colour", "", "accent colour as a hex code, like #e84b35")
 	set.Flags().StringVar(&f.Logo, "logo", "", "image file for the logo")
 	set.Flags().StringVar(&f.Icon, "icon", "", "image file for the icon")
 	set.RunE = func(c *cobra.Command, _ []string) error {
@@ -54,7 +54,7 @@ func newBrandingCmd(app *App) *cobra.Command {
 		colour := strings.TrimSpace(f.Colour)
 		if colour != "" {
 			if !hexColour.MatchString(colour) {
-				return ui.Usage("Pass --colour as a hex code, like #4641d9.")
+				return ui.Usage("Pass --colour as a hex code, like #e84b35.")
 			}
 			colour = "#" + strings.ToLower(strings.TrimPrefix(colour, "#"))
 		}

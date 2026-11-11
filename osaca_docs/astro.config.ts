@@ -89,6 +89,7 @@ export default defineConfig({
 				ThemeSelect: './src/components/ThemeSelect.astro',
 			},
 			customCss: [
+				'../packages/brand/css/palette.css',
 				'./src/fonts/font-stack.css',
 				'./src/styles/tokens.css',
 				'./src/styles/layout.css',

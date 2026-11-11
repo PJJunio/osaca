@@ -53,16 +53,16 @@
 }
 
 :root {
-	--flx-background-primary: #102b42;
-	--flx-brand: #c73a27;
-	--flx-on-brand: #ffffff;
-	--flx-focus: #7db6ff;
+	--flx-background-primary: var(--osaca-color-navy);
+	--flx-brand: var(--osaca-color-action);
+	--flx-on-brand: var(--osaca-color-white);
+	--flx-focus: var(--osaca-color-focus-on-dark);
 	--flx-background-secondary: #0d2336;
 	--flx-background-secondary-lighter: #15344e;
 	--flx-background-secondary-alt: #1a3c5a;
 	--flx-background-tertiary: #1f4566;
 
-	--flx-text-primary: #f3f1eb;
+	--flx-text-primary: var(--osaca-color-ivory);
 	--flx-text-secondary: #d4d7db;
 	--flx-text-tertiary: #9aa8b2;
 	--flx-border-color: rgba(104, 119, 131, 0.25);
@@ -72,16 +72,16 @@
 	--flx-selected-bg: rgba(232, 75, 53, 0.16);
 
 	--flx-code-bg: #091927;
-	--flx-code-fg: #f3f1eb;
+	--flx-code-fg: var(--osaca-color-ivory);
 	--flx-code-chrome-bg: #0d2336;
 	--flx-code-border: rgba(104, 119, 131, 0.3);
-	--flx-code-dots: #687783;
+	--flx-code-dots: var(--osaca-color-slate);
 	--flx-code-selection-bg: rgba(232, 75, 53, 0.28);
 	--flx-code-veil: rgba(243, 241, 235, 0.08);
-	--flx-code-text: #f3f1eb;
+	--flx-code-text: var(--osaca-color-ivory);
 	--flx-code-link: #ff8a75;
 
-	--flx-scrollbar-thumb: #687783;
+	--flx-scrollbar-thumb: var(--osaca-color-slate);
 	--flx-scrollbar-track: var(--flx-background-secondary);
 
 	--flx-accent-info: hsl(198, calc(92% * var(--saturation-factor)), 70%);
@@ -95,14 +95,14 @@
 }
 
 :root[data-theme='light'] {
-	--flx-focus: #1d5fbf;
-	--flx-background-primary: #f3f1eb;
+	--flx-focus: var(--osaca-color-focus-on-light);
+	--flx-background-primary: var(--osaca-color-ivory);
 	--flx-background-secondary: #e7e4dc;
 	--flx-background-secondary-lighter: #eeebe3;
 	--flx-background-secondary-alt: #ded9cd;
 	--flx-background-tertiary: #d6d0c2;
 
-	--flx-text-primary: #102b42;
+	--flx-text-primary: var(--osaca-color-navy);
 	--flx-text-secondary: #2b4154;
 	--flx-text-tertiary: #56636d;
 	--flx-border-color: rgba(104, 119, 131, 0.2);
@@ -111,17 +111,17 @@
 	--flx-hover-bg: rgba(16, 43, 66, 0.05);
 	--flx-selected-bg: rgba(232, 75, 53, 0.12);
 
-	--flx-code-bg: #ffffff;
-	--flx-code-fg: #102b42;
+	--flx-code-bg: var(--osaca-color-white);
+	--flx-code-fg: var(--osaca-color-navy);
 	--flx-code-chrome-bg: #e7e4dc;
 	--flx-code-border: rgba(104, 119, 131, 0.25);
-	--flx-code-dots: #687783;
+	--flx-code-dots: var(--osaca-color-slate);
 	--flx-code-selection-bg: rgba(232, 75, 53, 0.2);
 	--flx-code-veil: rgba(16, 43, 66, 0.06);
-	--flx-code-text: #102b42;
+	--flx-code-text: var(--osaca-color-navy);
 	--flx-code-link: #ad311d;
 
-	--flx-scrollbar-thumb: #687783;
+	--flx-scrollbar-thumb: var(--osaca-color-slate);
 	--flx-scrollbar-track: var(--flx-background-secondary);
 
 	--flx-accent-info: hsl(198, calc(92% * var(--saturation-factor)), 45%);

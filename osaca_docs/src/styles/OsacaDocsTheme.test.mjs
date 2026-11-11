@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {describe, it} from 'node:test';
+import {resolvePalette} from '../../../tools/branding/palette.mjs';
 
 const docsRoot = new URL('../../', import.meta.url);
 const read = (path) => readFileSync(new URL(path, docsRoot), 'utf8').replace(/\r\n/g, '\n');
@@ -26,7 +27,7 @@ function themeTokens(block) {
 	);
 }
 
-const tokensCss = read('src/styles/tokens.css');
+const tokensCss = resolvePalette(read('src/styles/tokens.css'));
 const dark = themeTokens(tokensCss.match(/^:root \{([^}]*--flx-background-primary[^}]*)\}/m)?.[1] ?? '');
 const light = {...dark, ...themeTokens(tokensCss.match(/^:root\[data-theme='light'\] \{([^}]*)\}/m)?.[1] ?? '')};
 

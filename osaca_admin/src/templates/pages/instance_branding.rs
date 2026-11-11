@@ -100,7 +100,7 @@ pub(super) fn branding_section(
                             "app_theme_color",
                             "Theme Color (hex)",
                             app_public.branding.theme_color.as_deref().unwrap_or(""),
-                            "#4641d9",
+                            "#e84b35",
                         ))
                         p class="text-xs leading-5 text-neutral-500" {
                             "Buttons, links and highlights across the app use this color, and phone browsers use it for their toolbar. Leave it empty to keep OSACA's indigo."
@@ -480,7 +480,7 @@ const BRANDING_PREVIEW_STYLE: &str = r#"
 .bp-tab{flex:1 1 0;min-width:0;padding:6px 8px;border-radius:7px;font-size:13px;font-weight:600;color:#52525b;line-height:1.3}
 .bp-tab:hover{color:#18181b}
 .bp-tab[aria-selected="true"]{background:#fff;color:#18181b;box-shadow:0 1px 2px rgb(0 0 0/.08)}
-.bp-tab:focus-visible{outline:2px solid #4641d9;outline-offset:1px}
+.bp-tab:focus-visible{outline:2px solid #1d5fbf;outline-offset:1px}
 [data-theme="dark"] .bp-tabs{background:#27272a;border-color:#3f3f46}[data-theme="dark"] .bp-tab{color:#a1a1aa}[data-theme="dark"] .bp-tab:hover{color:#fafafa}[data-theme="dark"] .bp-tab[aria-selected="true"]{background:#3f3f46;color:#fafafa;box-shadow:none}[data-theme="dark"] .bp-tab:focus-visible{outline-color:#8b87ff}[data-theme="dark"] .bp-note,[data-theme="dark"] .bp-caption{color:#a1a1aa}[data-theme="dark"] .bp-computer{border-color:#3f3f46}
 .bp-stage{min-width:0}
 .bp-note{margin:0;font-size:12px;line-height:1.5;color:#71717a}
@@ -519,7 +519,7 @@ const BRANDING_PREVIEW_STYLE: &str = r#"
 .bp-sk-title{width:55%;height:calc(22*var(--u));border-radius:calc(6*var(--u));background:rgb(242 242 245/.22)}
 .bp-sk-line{width:80%;height:calc(12*var(--u));margin-bottom:calc(8*var(--u));border-radius:calc(6*var(--u));background:rgb(242 242 245/.12)}
 .bp-sk-input{height:calc(40*var(--u));border-radius:calc(6*var(--u));border:calc(1*var(--u)) solid rgb(255 255 255/.08);background:#121116}
-.bp-sk-button{height:calc(40*var(--u));margin-top:calc(6*var(--u));border-radius:calc(6*var(--u));background:#4641d9}
+.bp-sk-button{height:calc(40*var(--u));margin-top:calc(6*var(--u));border-radius:calc(6*var(--u));background:#c73a27}
 .bp-phone-stage{display:flex;justify-content:center}
 .bp-phone{--u:calc(100cqw/390);container-type:inline-size;display:flex;flex-direction:column;width:min(100%,15rem);overflow:hidden;border:6px solid #232327;border-radius:28px;background:#080616}
 .bp-phone-toolbar{display:flex;align-items:flex-end;justify-content:center;height:calc(92*var(--u));padding-bottom:calc(10*var(--u));background:#18171f}

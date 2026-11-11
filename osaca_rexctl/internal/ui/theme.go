@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	Indigo   = lipgloss.Color("#4641d9")
+	Indigo   = lipgloss.Color("#e84b35")
 	Lavender = lipgloss.Color("#b0adff")
 )
 

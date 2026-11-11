@@ -4,6 +4,6 @@
 		%%?section_[[n]]_body%%<div dir="auto" style="margin:0;text-align:start">%%section_[[n]]_body%%</div>%%/section_[[n]]_body%%
 		%%?section_[[n]]_list%%<ul dir="auto" style="margin:0;padding-[[start]]:20px;text-align:start">%%section_[[n]]_list%%</ul>%%/section_[[n]]_list%%
 		%%?section_[[n]]_note%%<div dir="auto" style="margin:8px 0 0;text-align:start">%%section_[[n]]_note%%</div>%%/section_[[n]]_note%%
-		%%?section_[[n]]_link%%<p dir="auto" style="margin:8px 0 0;text-align:start"><a href="%%section_[[n]]_link_url%%" class="x-link" style="color:#4641d9">%%section_[[n]]_link%%</a></p>%%/section_[[n]]_link%%
+		%%?section_[[n]]_link%%<p dir="auto" style="margin:8px 0 0;text-align:start"><a href="%%section_[[n]]_link_url%%" class="x-link" style="color:#ad311d">%%section_[[n]]_link%%</a></p>%%/section_[[n]]_link%%
 	</td>
 </tr>%%/section_[[n]]_title%%

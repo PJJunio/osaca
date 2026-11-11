@@ -5,6 +5,7 @@ import '@app/app/AbortSignalPolyfill';
 import '@app/app/BootShell.css';
 import {startAppStorage} from '@app/features/platform/state/AppStorageBootstrap';
 import {installBrowserStorageAccessProtection} from '@app/features/platform/state/ProtectedWebStorage';
+import '@osaca/brand/css/palette.css';
 import '@osaca/fonts/css/montserrat.css';
 import '@osaca/fonts/css/inter.css';
 import '@osaca/fonts/css/osaca-sans.css';

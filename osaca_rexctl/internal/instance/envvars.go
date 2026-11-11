@@ -283,7 +283,7 @@ var envVars = []envVar{
 	{"OSACA_APP_FAVICON_URL", "instance", "The URL of the favicon."},
 	{"OSACA_APP_FAVICON_DARK_URL", "instance", "The URL of the favicon for browsers in dark mode."},
 	{"OSACA_APP_SIGN_IN_BACKDROP_URL", "instance", "The URL of the image behind the sign-in screen."},
-	{"OSACA_APP_THEME_COLOR", "instance", "The brand colour of the web app and the browser theme colour, as a hex value such as `#4641d9`."},
+	{"OSACA_APP_THEME_COLOR", "instance", "The brand colour of the web app and the browser theme colour, as a hex value such as `#e84b35`."},
 	{"OSACA_APP_STATUS_PAGE_URL", "instance", "The URL of your public status page. The web app links to it when loading takes a long time. OSACA checks whether it is an Instatus page. If it is, the web app also reads its current incidents and maintenance automatically."},
 	{"OSACA_APP_STATUS_PAGE_INCIDENT_HISTORY_URL", "instance", "The URL of the incident history on your status page. The apps don't use it yet."},
 	{"OSACA_INSTANCE_SETUP_CONFIGURED", "instance", "Whether a new instance starts as already set up. Use `true` or `false`. With `true`, the setup wizard is skipped and registration opens without making the first account an admin. Once a setup state is saved, this has no effect. When it's empty, OSACA uses `false`."},

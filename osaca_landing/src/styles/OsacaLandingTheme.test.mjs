@@ -3,8 +3,9 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {describe, it} from 'node:test';
+import {resolvePalette} from '../../../tools/branding/palette.mjs';
 
-const css = readFileSync(new URL('./landing.css', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
+const css = resolvePalette(readFileSync(new URL('./landing.css', import.meta.url), 'utf8').replace(/\r\n/g, '\n'));
 
 function luminance(hex) {
 	const [r, g, b] = [1, 3, 5].map((i) => {

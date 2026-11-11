@@ -18,15 +18,15 @@
 	--primary-font:
 		'OSACA Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
-	--brand: #4641d9;
-	--brand-bright: #5b56e8;
-	--brand-primary-light: hsl(242, 100%, 84%);
+	--brand: #e84b35;
+	--brand-bright: #ff8a75;
+	--brand-primary-light: #f3f1eb;
 
 	--white: #fff;
 	--muted: #8a8e94;
 	--track: rgba(255, 255, 255, 0.1);
 
-	--window-background: #1a1a1a;
+	--window-background: #0b1722;
 }
 
 * {

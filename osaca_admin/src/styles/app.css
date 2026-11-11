@@ -12,8 +12,8 @@
   --color-osaca-ivory: var(--osaca-color-ivory);
   --color-osaca-slate: var(--osaca-color-slate);
   --color-osaca-focus: var(--osaca-focus);
-  --color-brand-primary: #c73a27;
-  --color-brand-primary-dark: #a52e1d;
+  --color-brand-primary: var(--osaca-color-action);
+  --color-brand-primary-dark: var(--osaca-color-action-strong);
   --color-neutral-50: #f6f5f1;
   --color-red-600: hsl(355 72% 48%);
   --color-red-700: hsl(355 72% 40%);
@@ -21,7 +21,7 @@
 
 :root {
   --brand-primary: var(--color-brand-primary);
-  --osaca-focus: #1d5fbf;
+  --osaca-focus: var(--osaca-color-focus-on-light);
 }
 
 html,
@@ -250,7 +250,7 @@ input:disabled + .checkbox-custom {
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --osaca-focus: #7db6ff;
+  --osaca-focus: var(--osaca-color-focus-on-dark);
   --color-white: #172635;
   --color-black: #f3f5f7;
   --color-neutral-50: #10202e;

@@ -17,6 +17,11 @@ const OFFICIAL = {
 	slate: '#687783',
 	white: '#ffffff',
 	black: '#0b1722',
+	// Derived for accessibility: actions with white text and focus rings on light or dark surfaces.
+	action: '#c73a27',
+	'action-strong': '#a52e1d',
+	'focus-on-light': '#1d5fbf',
+	'focus-on-dark': '#7db6ff',
 };
 
 const SURFACE_STYLES = {
@@ -50,11 +55,9 @@ describe('shared OSACA palette', () => {
 	for (const [surface, file] of Object.entries(SURFACE_STYLES)) {
 		it(`is not redefined or hard-coded in the ${surface} styles`, () => {
 			const css = read(file);
-			assert.doesNotMatch(css, /--osaca-color-(navy|earth-red|ivory|slate|white|black):/);
-			if (surface !== 'app') {
-				const official = new RegExp(`--[a-z-]+: (${Object.values(OFFICIAL).join('|')});`, 'gi');
-				assert.deepEqual(css.match(official) ?? [], [], 'official colours come from the palette');
-			}
+			assert.doesNotMatch(css, new RegExp(`--osaca-color-(${Object.keys(OFFICIAL).join('|')}):`));
+			const hardCoded = new RegExp(`--[a-z-]+: (${Object.values(OFFICIAL).join('|')});`, 'gi');
+			assert.deepEqual(css.match(hardCoded) ?? [], [], 'palette colours come from the shared palette');
 		});
 	}
 });

@@ -11,12 +11,12 @@
 	--text: var(--osaca-color-navy);
 	--text-muted: #56636d;
 	--link: #ad311d;
-	--action: #c73a27;
-	--action-hover: #a52e1d;
+	--action: var(--osaca-color-action);
+	--action-hover: var(--osaca-color-action-strong);
 	--action-text: var(--osaca-color-white);
 	--warning-surface: #fbefd5;
 	--warning-text: #6b4a00;
-	--focus: #1d5fbf;
+	--focus: var(--osaca-color-focus-on-light);
 	--border: rgb(104 119 131 / 0.25);
 	--hero-surface: var(--osaca-color-navy);
 	--hero-text: var(--osaca-color-ivory);
@@ -34,12 +34,12 @@
 	--text: var(--osaca-color-ivory);
 	--text-muted: #9aa8b2;
 	--link: #ff8a75;
-	--action: #c73a27;
-	--action-hover: #a52e1d;
+	--action: var(--osaca-color-action);
+	--action-hover: var(--osaca-color-action-strong);
 	--action-text: var(--osaca-color-white);
 	--warning-surface: #3a2f12;
 	--warning-text: #f5d68a;
-	--focus: #7db6ff;
+	--focus: var(--osaca-color-focus-on-dark);
 	--hero-surface: var(--osaca-color-black);
 	color-scheme: dark;
 }
@@ -51,12 +51,12 @@
 		--text: var(--osaca-color-ivory);
 		--text-muted: #9aa8b2;
 		--link: #ff8a75;
-		--action: #c73a27;
-		--action-hover: #a52e1d;
+		--action: var(--osaca-color-action);
+		--action-hover: var(--osaca-color-action-strong);
 		--action-text: var(--osaca-color-white);
 		--warning-surface: #3a2f12;
 		--warning-text: #f5d68a;
-		--focus: #7db6ff;
+		--focus: var(--osaca-color-focus-on-dark);
 		--hero-surface: var(--osaca-color-black);
 		color-scheme: dark;
 	}
@@ -133,7 +133,7 @@ a {
 }
 
 .site-header {
-	--focus: #7db6ff;
+	--focus: var(--osaca-color-focus-on-dark);
 	background: var(--hero-surface);
 	color: var(--hero-text);
 }

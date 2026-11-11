@@ -43,7 +43,7 @@ export const DEPLOYED_OFFICIAL_DOCUMENT = {
 			logo_url: 'https://cdn.osaca.example/logo.png',
 			wordmark_url: 'https://cdn.osaca.example/wordmark.png',
 			favicon_url: 'https://cdn.osaca.example/favicon.png',
-			theme_color: '#5865f2',
+			theme_color: '#e84b35',
 		},
 		setup: {configured: true, admin_url: 'https://admin.osaca.example'},
 		legal: {terms_url: 'https://osaca.example/terms', privacy_url: 'https://osaca.example/privacy'},

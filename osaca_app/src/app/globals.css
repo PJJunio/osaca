@@ -130,14 +130,14 @@ var {
 	--macos-traffic-light-inset: 78px;
 
 	/* OSACA Hybrid Identity Design Tokens */
-	--guild-sidebar-bg: #102b42;
+	--guild-sidebar-bg: var(--osaca-color-navy);
 	--guild-sidebar-item-bg: rgba(255, 255, 255, 0.12);
 	--guild-sidebar-item-hover: rgba(255, 255, 255, 0.2);
-	--channel-sidebar-bg: #f3f1eb;
-	--chat-canvas-bg: #ffffff;
-	--chat-surface-bg: #ffffff;
-	--message-timestamp-color: #687783;
-	--composer-pill-bg: #ffffff;
+	--channel-sidebar-bg: var(--osaca-color-ivory);
+	--chat-canvas-bg: var(--osaca-color-white);
+	--chat-surface-bg: var(--osaca-color-white);
+	--message-timestamp-color: var(--osaca-color-slate);
+	--composer-pill-bg: var(--osaca-color-white);
 	--composer-pill-border: rgba(104, 119, 131, 0.22);
 
 	--radius-sm: 0.25rem;
@@ -401,14 +401,14 @@ html.platform-native.platform-macos {
 
 .theme-light {
 	--osaca-auth-backdrop: var(--osaca-color-ivory);
-	--osaca-color-focus: #1d5fbf;
+	--osaca-color-focus: var(--osaca-color-focus-on-light);
 	--osaca-status-danger: #b52f2a;
-	--guild-sidebar-bg: #102b42;
-	--channel-sidebar-bg: #f3f1eb;
-	--chat-canvas-bg: #ffffff;
-	--chat-surface-bg: #ffffff;
-	--message-timestamp-color: #687783;
-	--composer-pill-bg: #ffffff;
+	--guild-sidebar-bg: var(--osaca-color-navy);
+	--channel-sidebar-bg: var(--osaca-color-ivory);
+	--chat-canvas-bg: var(--osaca-color-white);
+	--chat-surface-bg: var(--osaca-color-white);
+	--message-timestamp-color: var(--osaca-color-slate);
+	--composer-pill-bg: var(--osaca-color-white);
 	--guilds-layout-item-bg: var(--guild-sidebar-item-bg, var(--guild-list-foreground));
 	--form-surface-background: var(--background-primary);
 	--message-preview-card-background: hsl(0, 0%, 100%);
@@ -562,9 +562,9 @@ body {
 .theme-dark,
 .theme-coal,
 .theme-dark_legacy {
-	--osaca-color-focus: #7db6ff;
+	--osaca-color-focus: var(--osaca-color-focus-on-dark);
 	--osaca-status-danger: #ff6b5f;
-	--guild-sidebar-bg: #0b1722;
+	--guild-sidebar-bg: var(--osaca-color-black);
 	--channel-sidebar-bg: #172635;
 	--chat-canvas-bg: #10202e;
 	--chat-surface-bg: #172635;

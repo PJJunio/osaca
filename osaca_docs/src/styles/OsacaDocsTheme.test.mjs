@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {describe, it} from 'node:test';
+import {resolvePalette} from '../../../tools/branding/palette.mjs';
 
 const docsRoot = new URL('../../', import.meta.url);
 const read = (path) => readFileSync(new URL(path, docsRoot), 'utf8').replace(/\r\n/g, '\n');
@@ -25,17 +26,6 @@ function themeTokens(block) {
 		[...block.matchAll(/--(flx-[a-z-]+): (#[0-9a-f]{6});/g)].map(([, name, hex]) => [name, hex]),
 	);
 }
-
-// Resolves var(--osaca-color-*) from the shared palette so contrast checks see real colours.
-const PALETTE = Object.fromEntries(
-	[
-		...readFileSync(new URL('../packages/brand/css/palette.css', docsRoot), 'utf8').matchAll(
-			/--(osaca-color-[a-z-]+): (#[0-9a-f]{6});/g,
-		),
-	].map(([, name, hex]) => [name, hex]),
-);
-const resolvePalette = (text) =>
-	text.replace(/var\(--(osaca-color-[a-z-]+)\)/g, (match, name) => PALETTE[name] ?? match);
 
 const tokensCss = resolvePalette(read('src/styles/tokens.css'));
 const dark = themeTokens(tokensCss.match(/^:root \{([^}]*--flx-background-primary[^}]*)\}/m)?.[1] ?? '');

@@ -3,18 +3,9 @@
 import assert from 'node:assert/strict';
 import {readdirSync, readFileSync, statSync} from 'node:fs';
 import {describe, it} from 'node:test';
+import {resolvePalette} from '../../../tools/branding/palette.mjs';
 
 const adminRoot = new URL('../../', import.meta.url);
-// Resolves var(--osaca-color-*) from the shared palette so colour checks see real values.
-const PALETTE = Object.fromEntries(
-	[
-		...readFileSync(new URL('../packages/brand/css/palette.css', adminRoot), 'utf8').matchAll(
-			/--(osaca-color-[a-z-]+): (#[0-9a-f]{6});/g,
-		),
-	].map(([, name, hex]) => [name, hex]),
-);
-const resolvePalette = (text) =>
-	text.replace(/var\(--(osaca-color-[a-z-]+)\)/g, (match, name) => PALETTE[name] ?? match);
 const read = (path) => resolvePalette(readFileSync(new URL(path, adminRoot), 'utf8').replace(/\r\n/g, '\n'));
 
 function filesUnder(dir, pattern) {

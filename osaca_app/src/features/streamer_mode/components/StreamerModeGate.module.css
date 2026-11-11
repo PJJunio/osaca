@@ -20,7 +20,7 @@
 
 .privacyMark {
 	align-items: center;
-	background: #5865f2;
+	background: var(--osaca-color-navy, #102b42);
 	border-radius: 62.4375rem;
 	box-shadow: 0 1.125rem 3.25rem rgb(88 101 242 / 32%);
 	color: #fff;

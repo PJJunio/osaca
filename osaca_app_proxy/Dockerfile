@@ -61,6 +61,7 @@ COPY packages/record_utils/ ./packages/record_utils/
 COPY packages/schema/ ./packages/schema/
 COPY packages/snowflake/ ./packages/snowflake/
 COPY packages/voice_engine_v2/ ./packages/voice_engine_v2/
+COPY packages/brand/ ./packages/brand/
 COPY packages/fonts/css/ ./packages/fonts/css/
 COPY packages/fonts/files/ ./packages/fonts/files/
 COPY packages/fonts/NOTICE.md packages/fonts/LICENSE-IBM-PLEX.txt ./packages/fonts/

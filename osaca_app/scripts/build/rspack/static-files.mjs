@@ -40,7 +40,7 @@ function generateManifest(staticCdnEndpoint) {
 		start_url: '/app',
 		display: 'standalone',
 		orientation: 'portrait-primary',
-		theme_color: '#4641D9',
+		theme_color: '#102B42',
 		background_color: '#2b2d31',
 		categories: ['social', 'communication'],
 		lang: 'en',
@@ -87,7 +87,7 @@ function generateBrowserConfig(staticCdnEndpoint) {
   <msapplication>
     <tile>
       <square150x150logo src="${cdn}/web/mstile-150x150.png"/>
-      <TileColor>#4641D9</TileColor>
+      <TileColor>#102B42</TileColor>
     </tile>
   </msapplication>
 </browserconfig>`;

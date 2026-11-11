@@ -194,7 +194,7 @@ function inlineHtml(
 			}
 			const href = part.url ?? '';
 			const dir = href.startsWith('mailto:') ? ' dir="ltr"' : '';
-			return `<a href="${escapeHtml(href)}" class="x-link"${dir} style="color:#4641d9">${escapeText(part.anchor)}</a>`;
+			return `<a href="${escapeHtml(href)}" class="x-link"${dir} style="color:#ad311d">${escapeText(part.anchor)}</a>`;
 		})
 		.join('');
 }

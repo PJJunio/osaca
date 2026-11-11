@@ -12,4 +12,10 @@
 	--osaca-color-slate: #687783;
 	--osaca-color-white: #ffffff;
 	--osaca-color-black: #0b1722;
+
+	/* Derived for accessibility: actions under white text (AA) and focus rings on light or dark surfaces. */
+	--osaca-color-action: #c73a27;
+	--osaca-color-action-strong: #a52e1d;
+	--osaca-color-focus-on-light: #1d5fbf;
+	--osaca-color-focus-on-dark: #7db6ff;
 }

@@ -21,7 +21,10 @@ const ALLOWED = [
 	['TESTING.md', 'phase F0 is named "Fluxer without surveillance" in ADR-0016'],
 	['docs/', 'architecture decisions and history (ADR-0001, technical survey)'],
 	['tools/ci/src/desktop.rs', 'inherited desktop signing identity; replacing it needs OSACA certificates'],
-	['osaca_desktop/build_resources/profiles/', 'inherited Apple provisioning profiles; same follow-up as desktop signing'],
+	[
+		'osaca_desktop/build_resources/profiles/',
+		'inherited Apple provisioning profiles; same follow-up as desktop signing',
+	],
 	['tools/branding/', 'this inventory'],
 ];
 
@@ -65,8 +68,34 @@ describe('Fluxer reference inventory', () => {
 		assert.deepEqual(indigo, []);
 	});
 
+	it('uses no inherited brand colours anywhere in tracked text', () => {
+		// #4641D9 is the Fluxer indigo and #5865F2 the inherited blurple.
+		const output = execFileSync('git', ['grep', '-l', '-i', '-E', '#4641d9|#5865f2', '--', '.', ':!pnpm-lock.yaml'], {
+			cwd: repoRoot,
+			encoding: 'utf8',
+		});
+		const offenders = output
+			.split('\n')
+			.filter(Boolean)
+			.filter((path) => !path.startsWith('tools/branding/'))
+			.filter((path) => !readFileSync(new URL(path, repoRoot)).includes(0));
+
+		assert.deepEqual(offenders, []);
+	});
+
+	it('keeps no inherited premium artwork that nothing uses', () => {
+		const tracked = execFileSync('git', ['ls-files', 'osaca_app/src/media/images'], {cwd: repoRoot, encoding: 'utf8'});
+		assert.deepEqual(
+			tracked.split('\n').filter((path) => /\/(operator_pass|premium)\//.test(path)),
+			[],
+		);
+	});
+
 	it('serves built-in profile badges rendered from the OSACA badge sources', () => {
-		const assets = readFileSync(new URL('osaca_api/src/api/user/profile_badges/ProfileBadgeAssets.ts', repoRoot), 'utf8');
+		const assets = readFileSync(
+			new URL('osaca_api/src/api/user/profile_badges/ProfileBadgeAssets.ts', repoRoot),
+			'utf8',
+		);
 		const manifest = JSON.parse(readFileSync(new URL('osaca_static/badges/manifest.json', repoRoot), 'utf8'));
 
 		for (const kind of ['staff', 'partner', 'bug_hunter']) {

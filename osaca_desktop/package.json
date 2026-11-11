@@ -10,6 +10,7 @@
 	"main": "dist/main/index.js",
 	"scripts": {
 		"build": "node scripts/build.mjs",
+		"generate:macos-icns": "node scripts/generate-macos-icns.mjs",
 		"generate:windows-badges": "electron scripts/generate-windows-badges.mjs",
 		"set-channel": "node ../tools/ci/run.mjs build-desktop --step set_build_channel",
 		"typecheck": "pnpm set-channel && tsc --noEmit"

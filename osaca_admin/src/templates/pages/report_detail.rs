@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use crate::templates::components::report_category::{
-    message_lookup_href, report_status, report_type, reported_guild_icon,
+    report_status, report_type, reported_guild_icon,
 };
 
 use crate::{
@@ -293,7 +293,7 @@ fn reported_entity_section(config: &AdminConfig, report: &ReportEntry) -> Markup
                         } @else {
                             (reported_user_field(config, "User", report))
                         }
-                        (reported_message_fields(config, report))
+                        (reported_message_fields(report))
                         (reported_guild_field(config, report))
                     }
                     1 => {
@@ -372,7 +372,7 @@ fn reported_webhook_fields(
             (data_field_text("Webhook Created", created_at))
         }
         @if let Some(channel_id) = moved_channel {
-            (data_field_link_mono("Webhook Channel ID", &message_lookup_href(base, channel_id, None), channel_id))
+            (data_field_mono("Webhook Channel ID", channel_id))
         }
         @if let Some(guild_id) = moved_guild {
             (data_field_link_mono("Webhook Guild ID", &format!("{base}/guilds/{guild_id}"), guild_id))
@@ -394,18 +394,13 @@ fn reported_webhook_fields(
     }
 }
 
-fn reported_message_fields(config: &AdminConfig, report: &ReportEntry) -> Markup {
-    let base = &config.base_path;
+fn reported_message_fields(report: &ReportEntry) -> Markup {
     html! {
         @if let Some(ref message_id) = report.reported_message_id {
-            @if let Some(ref channel_id) = report.reported_channel_id {
-                (data_field_link_mono("Message ID", &message_lookup_href(base, channel_id, Some(message_id)), message_id))
-            } @else {
-                (data_field_mono("Message ID", message_id))
-            }
+            (data_field_mono("Message ID", message_id))
         }
         @if let Some(ref channel_id) = report.reported_channel_id {
-            (data_field_link_mono("Channel ID", &message_lookup_href(base, channel_id, report.reported_message_id.as_deref()), channel_id))
+            (data_field_mono("Channel ID", channel_id))
         }
         @if report.reported_channel_name.is_some()
             || report.reported_channel_nsfw == Some(true)
@@ -540,11 +535,6 @@ fn actions_card(
                 }
                 @if let Some(ref reporter_id) = report.reporter_id {
                     (nav_link(&format!("{base}/users/{reporter_id}"), "View Reporter"))
-                }
-                @if report.report_type == 1 {
-                    @if let Some(ref channel_id) = report.mutual_dm_channel_id {
-                        (nav_link(&message_lookup_href(base, channel_id, None), "View Mutual DM Channel"))
-                    }
                 }
             }
         }))
@@ -1135,7 +1125,6 @@ fn message_context_section(
                     config,
                     &config.base_path,
                     &messages,
-                    false,
                     report.reported_message_id.as_deref(),
                     take_action
                         .then_some(report.reported_user_id.as_deref())

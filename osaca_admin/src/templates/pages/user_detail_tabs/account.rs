@@ -4,11 +4,10 @@ use crate::{
     acl,
     api::{
         generated::types::EnforcementKindType,
-        types::{AdminUser, PasswordResetLinkResponse, UserSession, WebAuthnCredential},
+        types::{AdminUser, UserSession, WebAuthnCredential},
     },
     config::AdminConfig,
     templates::components::{
-        alert::{AlertVariant, alert},
         enforcement_fields::{BasisFields, DecisionFields, FIELD_HELP_CLASS, basis_fields},
         form::{Checkbox, csrf_input, form_actions, submit_button},
         page_container::card_with_header,
@@ -26,7 +25,6 @@ const BTN_CLS: &str = "w-full inline-flex items-center justify-center rounded-md
 
 pub struct AccountTabOptions<'a> {
     pub admin_acls: &'a [String],
-    pub password_reset_link: Option<&'a PasswordResetLinkResponse>,
 }
 
 pub fn account_tab(
@@ -38,17 +36,12 @@ pub fn account_tab(
     options: &AccountTabOptions<'_>,
 ) -> Markup {
     let base = &config.base_path;
-    let can_create_reset_link =
-        acl::has_permission(options.admin_acls, acl::USER_CREATE_PASSWORD_RESET_LINK);
     let can_revoke_recovery_kit =
         !user.bot && acl::has_permission(options.admin_acls, acl::USER_DELETE_RECOVERY_KIT);
     html! {
         div class="space-y-6" {
-            @if can_create_reset_link {
-                (password_reset_link_card(base, user, csrf_token, options.password_reset_link))
-            }
             (edit_account_card(base, user, csrf_token))
-            (sessions_card(config, sessions))
+            (sessions_card(sessions))
             @if can_revoke_recovery_kit {
                 (quick_actions_card(base, user, csrf_token))
             }
@@ -60,76 +53,7 @@ pub fn account_tab(
     }
 }
 
-fn password_reset_link_card(
-    base: &str,
-    user: &AdminUser,
-    csrf_token: &str,
-    link: Option<&PasswordResetLinkResponse>,
-) -> Markup {
-    let action_url = format!(
-        "{base}/users/{}?action=create_password_reset_link&tab=account",
-        user.id
-    );
-    html! {
-        (card_with_header("Password Reset Link", html! {
-            div class="space-y-4" {
-                (password_reset_link_result(link))
-                p class="text-sm text-neutral-600" {
-                    "Create a one-time link that lets this user choose a new password. \
-                     Hand it to them yourself. It works once and expires after an hour."
-                }
-                form method="post"
-                    action=(&action_url)
-                    data-admin-result-form="true"
-                    hx-post=(&action_url)
-                    hx-target={"#" (PASSWORD_RESET_LINK_RESULT_ID)}
-                    hx-swap="outerHTML"
-                    hx-push-url="false" {
-                    (csrf_input(csrf_token))
-                    button type="submit" class=(BTN_CLS) { "Create Password Reset Link" }
-                }
-            }
-        }))
-    }
-}
-
-pub const PASSWORD_RESET_LINK_RESULT_ID: &str = "password-reset-link-result";
-
-pub fn password_reset_link_result(link: Option<&PasswordResetLinkResponse>) -> Markup {
-    html! {
-        div id=(PASSWORD_RESET_LINK_RESULT_ID) hx-history=[link.is_some().then_some("false")] {
-            @if let Some(link) = link {
-                (alert(AlertVariant::Success, Some("Password reset link created"), html! {
-                    div class="flex flex-col gap-2" {
-                        p class="text-sm" {
-                            "Copy this link now. It is shown only once."
-                        }
-                        div class="flex items-center gap-2" {
-                            input type="url" readonly value=(link.url)
-                                aria-label="Password reset link"
-                                class="h-8 min-w-0 flex-1 rounded-lg border border-green-200 bg-white px-3 py-1.5 text-xs text-neutral-900";
-                            button type="button"
-                                class="inline-flex h-8 shrink-0 items-center justify-center rounded-lg border border-neutral-300 bg-neutral-50 px-3 text-xs font-medium text-neutral-700 hover:border-neutral-400 hover:text-neutral-900"
-                                data-copy-value=(link.url)
-                                onclick="window.__adminCopyToClipboard && window.__adminCopyToClipboard(this.dataset.copyValue, this, 'Copied')" {
-                                "Copy Link"
-                            }
-                        }
-                        p class="text-xs" {
-                            "Expires " (format_admin_timestamp(&link.expires_at))
-                        }
-                    }
-                }))
-            }
-        }
-    }
-}
-
-fn edit_account_card(
-    base: &str,
-    user: &AdminUser,
-    csrf_token: &str,
-) -> Markup {
+fn edit_account_card(base: &str, user: &AdminUser, csrf_token: &str) -> Markup {
     html! {
         (card_with_header("Edit Account Information", html! {
             div class="grid gap-4 md:grid-cols-2" {
@@ -151,8 +75,7 @@ fn edit_account_card(
     }
 }
 
-fn sessions_card(config: &AdminConfig, sessions: &[UserSession]) -> Markup {
-    let base = &config.base_path;
+fn sessions_card(sessions: &[UserSession]) -> Markup {
     let active: Vec<_> = sessions.iter().filter(|s| s.deleted_at.is_none()).collect();
     let terminated: Vec<_> = sessions.iter().filter(|s| s.deleted_at.is_some()).collect();
     html! {
@@ -165,13 +88,13 @@ fn sessions_card(config: &AdminConfig, sessions: &[UserSession]) -> Markup {
                         p class="text-xs font-medium uppercase tracking-wide text-neutral-500" { "Active" }
                     }
                     @for s in &active {
-                        (session_entry(base, s))
+                        (session_entry(s))
                     }
                     @if !terminated.is_empty() {
                         p class="mt-4 text-xs font-medium uppercase tracking-wide text-neutral-400" { "Terminated" }
                     }
                     @for s in &terminated {
-                        (session_entry(base, s))
+                        (session_entry(s))
                     }
                 }
             }
@@ -179,7 +102,7 @@ fn sessions_card(config: &AdminConfig, sessions: &[UserSession]) -> Markup {
     }
 }
 
-fn session_entry(base: &str, s: &UserSession) -> Markup {
+fn session_entry(s: &UserSession) -> Markup {
     let is_tombstone = s.deleted_at.is_some();
     let border_cls = if is_tombstone {
         "rounded-lg border border-neutral-200 bg-neutral-100/60 p-4 opacity-75"
@@ -201,26 +124,11 @@ fn session_entry(base: &str, s: &UserSession) -> Markup {
                 } @else {
                     (meta_cell("Last Used", html! { (format_admin_timestamp(&s.approx_last_used_at)) }))
                 }
-                div class="md:col-span-3" {
-                    (meta_cell("IP Address", html! {
-                        span class="" { (s.client_ip) }
-                        a href={(base) "/users?ip=" (s.client_ip)}
-                            class="ml-2 text-xs text-blue-600 no-underline hover:underline" {
-                            "Find related users"
-                        }
-                        @if let Some(ref rev) = s.client_ip_reverse {
-                            span class="ml-2 text-neutral-600" { "(" (rev) ")" }
-                        }
-                    }))
-                }
                 @if let Some(ref p) = s.client_platform {
                     (meta_cell("Platform", html! { (p) }))
                 }
                 @if let Some(ref o) = s.client_os {
                     (meta_cell("OS", html! { (o) }))
-                }
-                @if let Some(ref l) = s.client_location {
-                    (meta_cell("Location", html! { (l) }))
                 }
                 @if let Some(app) = session_app_label(s) {
                     (meta_cell("App", html! { (app) }))
@@ -359,9 +267,6 @@ fn security_actions_card(base: &str, user: &AdminUser, csrf_token: &str) -> Mark
     html! {
         (card_with_header("Security Actions", html! {
             div class="grid grid-cols-1 gap-3 md:grid-cols-2" {
-                @if user.has_totp {
-                    (action_form(base, &user.id, "disable_mfa", "account", "Disable MFA/TOTP", csrf_token))
-                }
                 (action_form(base, &user.id, "terminate_sessions", "account",
                     "Terminate All Sessions", csrf_token))
             }

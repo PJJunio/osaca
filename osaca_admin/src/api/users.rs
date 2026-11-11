@@ -11,15 +11,13 @@ use crate::templates::components::enforcement_fields::BasisSubmission;
 use super::client::{AdminApiClient, ApiError, ApiResult};
 use super::types::{
     AdminUser, AdminUserMeResponse, GuildInfo, ListUserGuildsResponse, LookupUserResponse,
-    PasswordResetLinkResponse, SearchUsersResponse, TerminateSessionsResponse,
-    UserMutationResponse,
+    SearchUsersResponse, TerminateSessionsResponse, UserMutationResponse,
 };
 
 impl AdminApiClient {
     pub async fn search_users(
         &self,
         query: Option<&str>,
-        last_active_ip: Option<&str>,
         limit: u32,
         offset: u64,
     ) -> ApiResult<SearchUsersResponse> {
@@ -29,7 +27,7 @@ impl AdminApiClient {
             .generated()
             .list_admin_users(
                 None,
-                nonempty(last_active_ip),
+                None,
                 Some(limit.as_str()),
                 Some(offset.as_str()),
                 nonempty(query),
@@ -151,60 +149,6 @@ impl AdminApiClient {
         self.generated_value(response.into_inner())
     }
 
-    pub async fn list_user_relationships(
-        &self,
-        user_id: &str,
-    ) -> ApiResult<super::types::ListUserRelationshipsResponse> {
-        let response = self
-            .generated()
-            .list_admin_user_relationships(&snowflake(user_id))
-            .await
-            .map_err(|e| self.generated_error(e))?;
-        self.generated_value(response.into_inner())
-    }
-
-    pub async fn list_user_dm_channels(
-        &self,
-        user_id: &str,
-        before: Option<&str>,
-        after: Option<&str>,
-        limit: Option<u32>,
-    ) -> ApiResult<super::types::ListUserDmChannelsResponse> {
-        let after = after.map(snowflake);
-        let before = before.map(snowflake);
-        let limit = limit.unwrap_or(50).to_string();
-        let response = self
-            .generated()
-            .list_admin_user_dm_channels(
-                &snowflake(user_id),
-                after.as_ref(),
-                before.as_ref(),
-                Some(limit.as_str()),
-                Some(generated_types::AdminUserDmChannelType::Dm),
-            )
-            .await
-            .map_err(|e| self.generated_error(e))?;
-        self.generated_value(response.into_inner())
-    }
-
-    pub async fn list_user_group_dm_channels(
-        &self,
-        user_id: &str,
-    ) -> ApiResult<super::types::ListUserGroupDmChannelsResponse> {
-        let response = self
-            .generated()
-            .list_admin_user_dm_channels(
-                &snowflake(user_id),
-                None,
-                None,
-                None,
-                Some(generated_types::AdminUserDmChannelType::GroupDm),
-            )
-            .await
-            .map_err(|e| self.generated_error(e))?;
-        self.generated_value(response.into_inner())
-    }
-
     pub async fn set_user_acls(&self, user_id: &str, acls: &[String]) -> ApiResult<AdminUser> {
         let body = generated_types::AdminUserAclsRequest {
             acls: super::admin_api_keys::parse_acls(acls),
@@ -229,14 +173,6 @@ impl AdminApiClient {
             .map_err(|e| self.generated_error(e))?;
         let resp: UserMutationResponse = self.generated_value(response.into_inner())?;
         Ok(resp.user)
-    }
-
-    pub async fn disable_mfa(&self, user_id: &str) -> ApiResult<()> {
-        self.generated()
-            .disable_admin_user_mfa(&snowflake(user_id))
-            .await
-            .map_err(|e| self.generated_error(e))?;
-        Ok(())
     }
 
     pub async fn clear_user_fields(
@@ -346,54 +282,12 @@ impl AdminApiClient {
         Ok(resp.user)
     }
 
-    pub async fn create_password_reset_link(
-        &self,
-        user_id: &str,
-    ) -> ApiResult<PasswordResetLinkResponse> {
-        let response = self
-            .generated()
-            .create_admin_user_password_reset_link(&snowflake(user_id))
-            .await
-            .map_err(|e| self.generated_error(e))?;
-        self.generated_value(response.into_inner())
-    }
-
     pub async fn revoke_recovery_kit(&self, user_id: &str) -> ApiResult<()> {
         self.generated()
             .revoke_admin_user_recovery_kit(&snowflake(user_id))
             .await
             .map_err(|e| self.generated_error(e))?;
         Ok(())
-    }
-
-    pub async fn remove_relationship(
-        &self,
-        user_id: &str,
-        target_id: &str,
-        category: &str,
-    ) -> ApiResult<()> {
-        let category = generated_types::RelationshipCategoryEnum::try_from(category)
-            .map_err(|e| ApiError::Parse(e.to_string()))?;
-        self.generated()
-            .remove_admin_user_relationship(&snowflake(user_id), &snowflake(target_id), category)
-            .await
-            .map_err(|e| self.generated_error(e))?;
-        Ok(())
-    }
-
-    pub async fn remove_relationships_by_category(
-        &self,
-        user_id: &str,
-        category: &str,
-    ) -> ApiResult<super::types::RemoveRelationshipsResponse> {
-        let category = generated_types::RelationshipCategoryEnum::try_from(category)
-            .map_err(|e| ApiError::Parse(e.to_string()))?;
-        let response = self
-            .generated()
-            .clear_admin_user_relationships(&snowflake(user_id), category)
-            .await
-            .map_err(|e| self.generated_error(e))?;
-        self.generated_value(response.into_inner())
     }
 
     pub async fn delete_webauthn_credential(
@@ -448,4 +342,3 @@ impl AdminApiClient {
 fn nonempty(value: Option<&str>) -> Option<&str> {
     value.filter(|value| !value.is_empty())
 }
-

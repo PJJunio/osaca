@@ -68,7 +68,6 @@ pub fn pending_registration_list(
                                 th scope="col" class="px-4 py-3 text-left font-semibold text-neutral-600" { "Applicant" }
                                 th scope="col" class="px-4 py-3 text-left font-semibold text-neutral-600" { "Requested" }
                                 th scope="col" class="px-4 py-3 text-left font-semibold text-neutral-600" { "Registration URL" }
-                                th scope="col" class="px-4 py-3 text-left font-semibold text-neutral-600" { "IP" }
                                 th scope="col" class="px-4 py-3 text-left font-semibold text-neutral-600" { "Action" }
                             }
                         }
@@ -93,7 +92,6 @@ fn pending_registration_row(
 ) -> Markup {
     let account_name = pending_registration_account_name(pending);
     let requested_at = format_admin_timestamp(&pending.requested_at);
-    let client_ip = pending.client_ip.as_deref().unwrap_or("None");
     let approve_action = format!("{base}/pending-registrations/approve");
     let reject_action = format!("{base}/pending-registrations/reject");
     html! {
@@ -119,9 +117,6 @@ fn pending_registration_row(
                 } @else {
                     span class="text-neutral-500" { "None" }
                 }
-            }
-            td class="px-4 py-3 align-top text-neutral-700 whitespace-nowrap" {
-                (client_ip)
             }
             td class="px-4 py-3 align-top" {
                 div class="flex flex-nowrap gap-2" {

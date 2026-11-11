@@ -3,7 +3,6 @@
 pub mod admin_api_keys;
 pub mod application_detail;
 pub mod applications_list;
-pub mod archives;
 pub mod audit_logs;
 pub mod audit_logs_table;
 pub mod badges;
@@ -26,7 +25,6 @@ pub mod jobs_list;
 pub mod jobs_list_helpers;
 pub mod limit_config;
 pub mod login;
-pub mod messages_page;
 pub mod pending_registrations;
 pub mod profile_substring_bans;
 pub mod report_detail;

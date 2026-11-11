@@ -587,7 +587,6 @@ pub struct PendingRegistrationResponse {
     pub global_name: Option<String>,
     pub requested_at: String,
     pub registration_url_id: Option<String>,
-    pub client_ip: Option<String>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

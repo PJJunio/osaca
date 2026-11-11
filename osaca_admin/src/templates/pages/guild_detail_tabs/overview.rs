@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use std::time::{SystemTime, UNIX_EPOCH};
-
 use crate::{
     acl,
     api::types::{GuildDetailInfo, GuildRoleSummary},
@@ -15,18 +13,6 @@ use crate::{
     },
 };
 use maud::{Markup, html};
-
-const OSACA_EPOCH: u64 = 1_420_070_400_000;
-
-fn current_snowflake() -> String {
-    let now_ms = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .expect("system clock before Unix epoch")
-        .as_millis() as u64;
-    let offset = now_ms.saturating_sub(OSACA_EPOCH);
-    let snowflake = (offset as u128) * 4_194_304;
-    snowflake.to_string()
-}
 
 fn channel_type_label(channel_type: i32) -> &'static str {
     match channel_type {
@@ -109,8 +95,6 @@ pub fn overview_tab(
         480,
         true,
     );
-
-    let snowflake = current_snowflake();
 
     html! {
         div class="flex flex-col gap-6 items-stretch" {
@@ -254,14 +238,8 @@ pub fn overview_tab(
                                     }
                                 }
                             } @else {
-                                a href={
-                                    (base) "/messages?channel_id=" (channel.id)
-                                    "&message_id=" (snowflake)
-                                    "&context_limit=50"
-                                }
-                                class="flex items-center gap-3 rounded border \
-                                       border-neutral-200 bg-neutral-50 p-3 \
-                                       transition-colors hover:bg-neutral-100" {
+                                div class="flex items-center gap-3 rounded border \
+                                       border-neutral-200 bg-neutral-50 p-3" {
                                     div class="flex flex-1 flex-col gap-0" {
                                         span class="text-sm font-semibold" {
                                             (channel.name.as_deref().unwrap_or(""))

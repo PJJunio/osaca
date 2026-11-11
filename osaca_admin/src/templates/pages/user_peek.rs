@@ -82,7 +82,6 @@ pub fn user_peek_fragment(config: &AdminConfig, user: &AdminUser) -> Markup {
                     (peek_link(&user_href, "Overview"))
                     (peek_link(&format!("{user_href}?tab=account"), "Account"))
                     (peek_link(&format!("{user_href}?tab=guilds"), "Guilds"))
-                    (peek_link(&format!("{user_href}?tab=dm_history"), "DMs"))
                     (peek_link(&format!("{user_href}?tab=reports"), "Reports"))
                     (peek_link(&format!("{user_href}?tab=moderation"), "Moderation"))
                 }

@@ -78,22 +78,6 @@ pub(crate) fn report_type(report_type: i32) -> (&'static str, BadgeVariant) {
     }
 }
 
-pub(crate) fn message_lookup_href(
-    base: &str,
-    channel_id: &str,
-    message_id: Option<&str>,
-) -> String {
-    let mut href = format!(
-        "{base}/messages?channel_id={}&context_limit=50",
-        urlencoding::encode(channel_id)
-    );
-    if let Some(message_id) = message_id.filter(|id| !id.is_empty()) {
-        href.push_str("&message_id=");
-        href.push_str(&urlencoding::encode(message_id));
-    }
-    href
-}
-
 pub(crate) fn reported_guild_icon(
     config: &AdminConfig,
     report: &ReportEntry,

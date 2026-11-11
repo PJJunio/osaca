@@ -1,6 +1,9 @@
 {
 	"name": "osaca_admin",
 	"private": true,
+	"scripts": {
+		"test": "node --test src/OperationalScope.test.mjs src/styles/OsacaAdminTheme.test.mjs"
+	},
 	"devDependencies": {
 		"@tailwindcss/cli": "catalog:",
 		"tailwindcss": "catalog:"

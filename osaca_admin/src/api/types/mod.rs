@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 mod admin_api_keys;
+mod admin_branding;
 mod applications;
-mod archives;
 mod audit;
 mod badges;
 mod bulk;
@@ -14,7 +14,6 @@ mod instance_config;
 mod jobs;
 mod limit_config;
 mod messages;
-mod admin_branding;
 mod search;
 mod system;
 mod system_dm;
@@ -22,8 +21,8 @@ mod user_detail;
 mod voice;
 
 pub use admin_api_keys::*;
+pub use admin_branding::*;
 pub use applications::*;
-pub use archives::*;
 pub use audit::*;
 pub use badges::*;
 pub use bulk::*;
@@ -35,7 +34,6 @@ pub use instance_config::*;
 pub use jobs::*;
 pub use limit_config::*;
 pub use messages::*;
-pub use admin_branding::*;
 pub use search::*;
 pub use system::*;
 pub use system_dm::*;

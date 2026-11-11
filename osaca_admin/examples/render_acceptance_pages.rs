@@ -20,7 +20,7 @@ use osaca_admin::{
         pages::{
             bulk_actions::bulk_actions_page,
             login::login_page,
-            messages_page::{MessagesPageParams, messages_page},
+            system_dm::{SystemDmParams, system_dm_page},
             users_list::{
                 UserListOutput, UserListParams, UserListResults, UserListView, users_list_page,
             },
@@ -88,25 +88,11 @@ fn main() {
     let auth = auth();
     let csrf = "acceptance";
 
-    let params = UserListParams::from_query(None, None, None, None, None);
+    let params = UserListParams::from_query(None, None, None, None);
     let users = [
         user("2", "quiet-heron", &[]),
         user("3", "night-owl", &["user:lookup"]),
     ];
-    let messages = MessagesPageParams {
-        csrf_token: csrf,
-        prefill_channel_id: None,
-        can_lookup: true,
-        can_delete: true,
-        can_take_action: true,
-        lookup_result: None,
-        browse_result: None,
-        search_result: None,
-        browse_channel_id: None,
-        search_query_text: None,
-        context_limit: 50,
-        error: None,
-    };
     let success = FlashMessage {
         level: FlashLevel::Success,
         message: "Bulk action queued.".to_owned(),
@@ -150,15 +136,25 @@ fn main() {
                 },
             ),
         ),
-        ("messages", messages_page(&config, &auth, &messages)),
         (
-            "messages-error",
-            messages_page(
+            "system-dms",
+            system_dm_page(
                 &config,
                 &auth,
-                &MessagesPageParams {
-                    error: Some("The API did not respond. Try again."),
-                    ..messages
+                &SystemDmParams {
+                    form_error: None,
+                    csrf_token: csrf,
+                },
+            ),
+        ),
+        (
+            "system-dms-error",
+            system_dm_page(
+                &config,
+                &auth,
+                &SystemDmParams {
+                    form_error: Some("Recipients and content are required"),
+                    csrf_token: csrf,
                 },
             ),
         ),

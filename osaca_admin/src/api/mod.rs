@@ -4,7 +4,6 @@ pub mod generated;
 
 pub mod admin_api_keys;
 pub mod applications;
-pub mod archives;
 pub mod assets;
 pub mod audit;
 pub mod badges;

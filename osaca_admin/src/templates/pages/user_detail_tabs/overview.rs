@@ -52,14 +52,7 @@ pub fn overview_tab_with_sources(
     csrf_token: &str,
     sources: &OverviewSources,
 ) -> Markup {
-    render_overview_tab(
-        config,
-        user,
-        admin_acls,
-        csrf_token,
-        sources,
-        true,
-    )
+    render_overview_tab(config, user, admin_acls, csrf_token, sources, true)
 }
 
 fn render_overview_tab(
@@ -184,25 +177,6 @@ fn render_overview_tab(
                     (detail_row("Last Active", html! {
                         (user.last_active_at.as_deref().map_or_else(|| "Never".to_string(), format_admin_timestamp))
                     }))
-                    @if acl::has_permission(admin_acls, acl::USER_VIEW_IP) {
-                        (detail_row("Last IP", html! {
-                            @if let Some(ip) = &user.last_active_ip {
-                                span class="font-mono text-xs" { (ip) }
-                                a href={(config.base_path) "/users?ip=" (urlencoding::encode(ip))}
-                                    class="ml-2 text-xs text-blue-600 hover:underline" {
-                                    "Find related"
-                                }
-                                @if let Some(reverse) = &user.last_active_ip_reverse {
-                                    span class="ml-2 text-neutral-500" { "(" (reverse) ")" }
-                                }
-                            } @else {
-                                span class="text-neutral-400" { "Not recorded" }
-                            }
-                        }))
-                        (detail_row("Location", html! {
-                            (user.last_active_location.as_deref().unwrap_or("Unknown"))
-                        }))
-                    }
                 }
             }))
             (flags_card(config, user, admin_acls, csrf_token))

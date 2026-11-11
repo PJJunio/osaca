@@ -124,9 +124,6 @@ pub struct AdminUser {
     #[serde(default)]
     pub enforcement_decision_id: Option<String>,
     pub last_active_at: Option<String>,
-    pub last_active_ip: Option<String>,
-    pub last_active_ip_reverse: Option<String>,
-    pub last_active_location: Option<String>,
 }
 
 pub fn account_tier_label(tier: AccountTierSchema) -> &'static str {
@@ -324,9 +321,4 @@ pub struct SuccessResponse {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct TerminateSessionsResponse {
     pub terminated_count: i32,
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct RemoveRelationshipsResponse {
-    pub removed_count: i32,
 }

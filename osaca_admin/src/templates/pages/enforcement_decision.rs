@@ -389,20 +389,12 @@ fn notice_section(decision: &EnforcementDecisionResponse) -> Markup {
     }
 }
 
-fn evidence_row(
-    base: &str,
-    item: &EnforcementDecisionResponseEvidenceItem,
-    restricted: bool,
-) -> Markup {
+fn evidence_row(item: &EnforcementDecisionResponseEvidenceItem, restricted: bool) -> Markup {
     html! {
         li class="space-y-1 py-3" data-evidence-message=(item.message_id.as_str()) {
             div class="flex flex-wrap items-baseline gap-x-3 text-xs text-neutral-500" {
                 span { (format_admin_timestamp(&item.timestamp)) }
                 span { "Message " (item.message_id.as_str()) }
-                @if let Some(channel_id) = &item.channel_id {
-                    a href={(base) "/messages?channel_id=" (channel_id.as_str()) "&message_id=" (item.message_id.as_str()) "&context_limit=50"}
-                        class="text-blue-600 hover:underline" { "Open in message tools" }
-                }
             }
             @if let Some(content) = &item.content {
                 p class="whitespace-pre-wrap break-words text-sm text-neutral-900" { (content) }
@@ -422,7 +414,7 @@ fn evidence_row(
     }
 }
 
-fn evidence_section(base: &str, decision: &EnforcementDecisionResponse) -> Markup {
+fn evidence_section(decision: &EnforcementDecisionResponse) -> Markup {
     let restricted = is_restricted(*decision.reason_code);
     html! {
         (section_card_simple("Evidence", html! {
@@ -431,7 +423,7 @@ fn evidence_section(base: &str, decision: &EnforcementDecisionResponse) -> Marku
             } @else {
                 ul class="divide-y divide-neutral-100" {
                     @for item in &decision.evidence {
-                        (evidence_row(base, item, restricted))
+                        (evidence_row(item, restricted))
                     }
                 }
             }
@@ -572,7 +564,7 @@ pub fn decision_detail(
                 })))
             }
             (notice_section(decision))
-            (evidence_section(base, decision))
+            (evidence_section(decision))
             (reports_section(base, decision))
             (network_blocks_section(decision))
             (notes_section(

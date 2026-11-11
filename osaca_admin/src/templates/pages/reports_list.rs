@@ -3,7 +3,7 @@
 use crate::templates::components::pagination::pager_with_missing;
 
 use crate::templates::components::report_category::{
-    message_lookup_href, report_status, report_type, reported_guild_icon,
+    report_status, report_type, reported_guild_icon,
 };
 
 use crate::{
@@ -318,7 +318,6 @@ fn reported_guild_cell(config: &AdminConfig, report: &ReportEntry) -> Markup {
 }
 
 fn reported_message_cell(config: &AdminConfig, report: &ReportEntry) -> Markup {
-    let base = &config.base_path;
     let channel_label = report
         .reported_channel_name
         .as_deref()
@@ -337,11 +336,8 @@ fn reported_message_cell(config: &AdminConfig, report: &ReportEntry) -> Markup {
             } @else {
                 (reported_user_cell(config, report))
             }
-            @if let Some(channel_id) = &report.reported_channel_id {
-                a href=(message_lookup_href(base, channel_id, report.reported_message_id.as_deref()))
-                    class="text-blue-600 text-xs hover:underline" {
-                    (channel_prefix) (channel_label)
-                }
+            @if report.reported_channel_id.is_some() {
+                span class="text-neutral-500 text-xs" { (channel_prefix) (channel_label) }
             } @else {
                 span class="text-neutral-500 text-xs" { "Channel: " (channel_label) }
             }

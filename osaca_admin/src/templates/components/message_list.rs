@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use maud::{Markup, PreEscaped, html};
+use maud::{Markup, html};
 
 use super::badge::{BadgeVariant, badge};
 use super::enforcement_fields::{TakeAction, take_action_href};
@@ -19,7 +19,7 @@ fn is_image(att: &Attachment) -> bool {
         .is_some_and(|ct| ct.starts_with("image/"))
 }
 
-fn render_image_attachments(msg: &Message, include_delete: bool) -> Markup {
+fn render_image_attachments(msg: &Message) -> Markup {
     let mut images = msg.attachments.iter().filter(|a| is_image(a)).peekable();
     if images.peek().is_none() {
         return html! {};
@@ -45,16 +45,6 @@ fn render_image_attachments(msg: &Message, include_delete: bool) -> Markup {
                             a href=(att.url) target="_blank" rel="noopener noreferrer"
                               class="font-medium text-blue-600 hover:underline" { (att.filename) }
                             (attachment_nsfw_badge(att.nsfw.unwrap_or(false)))
-                        }
-                        @if include_delete {
-                            div class="flex flex-wrap gap-2" {
-                                button type="button"
-                                    class="delete-message-btn rounded bg-white px-2.5 py-1 \
-                                           text-red-600 text-xs shadow-sm ring-1 ring-neutral-200 \
-                                           transition-colors hover:bg-red-50 hover:text-red-700"
-                                    data-channel-id=(msg.channel_id)
-                                    data-message-id=(msg.id) { "Delete" }
-                            }
                         }
                     }
                 }
@@ -317,7 +307,6 @@ fn message_row(
     base_path: &str,
     avatar_url: &str,
     msg: &Message,
-    include_delete: bool,
     is_highlighted: bool,
     is_grouped: bool,
     meta: &Markup,
@@ -350,22 +339,12 @@ fn message_row(
                                    text-sm leading-snug" { (render_content(&msg.content)) }
                     }
                     @if !msg.attachments.is_empty() {
-                        (render_image_attachments(msg, include_delete))
+                        (render_image_attachments(msg))
                         (render_other_attachments(msg, has_content_or_images))
                     }
                     (render_embeds(msg))
                     (render_missing_attachments(msg))
                     (meta)
-                    @if include_delete && !has_images {
-                        div class="absolute top-0 right-2 hidden group-hover:block" {
-                            button type="button"
-                                class="delete-message-btn rounded bg-white px-2 py-0.5 \
-                                       text-red-600 text-xs shadow-sm ring-1 ring-neutral-200 \
-                                       transition-colors hover:bg-red-50 hover:text-red-700"
-                                data-channel-id=(msg.channel_id)
-                                data-message-id=(msg.id) { "Delete" }
-                        }
-                    }
                 }
             }
         };
@@ -432,22 +411,12 @@ fn message_row(
                                text-sm leading-snug" { (render_content(&msg.content)) }
                 }
                 @if !msg.attachments.is_empty() {
-                    (render_image_attachments(msg, include_delete))
+                    (render_image_attachments(msg))
                     (render_other_attachments(msg, has_content_or_images))
                 }
                 (render_embeds(msg))
                 (render_missing_attachments(msg))
                 (meta)
-            }
-            @if include_delete && !has_images {
-                div class="absolute top-1 right-2 hidden group-hover:block" {
-                    button type="button"
-                        class="delete-message-btn rounded bg-white px-2 py-0.5 \
-                               text-red-600 text-xs shadow-sm ring-1 ring-neutral-200 \
-                               transition-colors hover:bg-red-50 hover:text-red-700"
-                        data-channel-id=(msg.channel_id)
-                        data-message-id=(msg.id) { "Delete" }
-                }
             }
         }
     }
@@ -457,7 +426,6 @@ pub fn message_list(
     config: &AdminConfig,
     base_path: &str,
     messages: &[Message],
-    include_delete: bool,
     highlight_message_id: Option<&str>,
     take_action: Option<&TakeAction<'_>>,
 ) -> Markup {
@@ -486,33 +454,10 @@ pub fn message_list(
                 @let meta = message_meta(msg, jump_link.as_deref(), take_action_href.as_deref());
                 (message_row(
                     base_path, &avatar_url, msg,
-                    include_delete, is_highlighted, is_grouped,
+                    is_highlighted, is_grouped,
                     &meta,
                 ))
             }
         }
     }
 }
-
-pub fn message_delete_prefill_script() -> Markup {
-    html! {
-        script defer { (PreEscaped(MESSAGE_DELETE_PREFILL_SCRIPT)) }
-    }
-}
-
-const MESSAGE_DELETE_PREFILL_SCRIPT: &str = r#"(function() {
-    if (window.__osacaMessageDeletePrefill) return;
-    window.__osacaMessageDeletePrefill = true;
-    document.addEventListener('click', function(e) {
-        var t = e.target;
-        if (!(t instanceof HTMLElement)) return;
-        var button = t.closest('.delete-message-btn');
-        var form = document.getElementById('delete-message-form');
-        if (!(button instanceof HTMLButtonElement) || !form) return;
-        e.preventDefault();
-        form.querySelector('[name="channel_id"]').value = button.dataset.channelId || '';
-        form.querySelector('[name="message_id"]').value = button.dataset.messageId || '';
-        form.scrollIntoView({behavior: 'smooth', block: 'center'});
-        form.querySelector('[name="basis"]').focus({preventScroll: true});
-    });
-})();"#;

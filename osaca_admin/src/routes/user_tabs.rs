@@ -17,9 +17,6 @@ pub struct TabQuery {
     pub reports_sent_page: Option<u32>,
     pub reports_received_page: Option<u32>,
     pub reports_limit: Option<u32>,
-    pub dm_before: Option<String>,
-    pub dm_after: Option<String>,
-    pub dm_limit: Option<u32>,
     pub audit_logs_page: Option<u32>,
     pub message_shred_job_id: Option<String>,
     pub delete_all_messages_dry_run: Option<String>,
@@ -88,10 +85,7 @@ pub async fn render(
                 config,
                 csrf_token,
                 user_id,
-                &tabs::account::AccountTabOptions {
-                    admin_acls,
-                    password_reset_link: None,
-                },
+                &tabs::account::AccountTabOptions { admin_acls },
             )
             .await
         }

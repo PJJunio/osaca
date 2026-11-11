@@ -500,13 +500,6 @@ fn has_legacy_flag_delta_fields(form: &MultiValueForm) -> bool {
         .any(|key| form.contains_key(key))
 }
 
-fn is_relationship_category(category: &str) -> bool {
-    matches!(
-        category,
-        "friend" | "incoming_request" | "outgoing_request" | "blocked"
-    )
-}
-
 fn parse_dry_run(value: Option<&str>) -> bool {
     !matches!(value.map(|value| value.trim().to_ascii_lowercase()), Some(value) if value == "false" || value == "0")
 }

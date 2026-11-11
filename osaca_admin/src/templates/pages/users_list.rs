@@ -30,7 +30,6 @@ use maud::{Markup, html};
 
 pub struct UserListParams {
     pub q: String,
-    pub ip: String,
     pub requested_ids: Vec<String>,
     pub limit: u32,
     pub page: u32,
@@ -39,7 +38,6 @@ pub struct UserListParams {
 impl UserListParams {
     pub fn from_query(
         q: Option<String>,
-        ip: Option<String>,
         ids: Option<String>,
         limit: Option<u32>,
         page: Option<u32>,
@@ -47,7 +45,6 @@ impl UserListParams {
         let ids = ids.unwrap_or_default();
         Self {
             q: q.unwrap_or_default().trim().to_owned(),
-            ip: ip.unwrap_or_default().trim().to_owned(),
             requested_ids: parse_ids_query(&ids),
             limit: match limit.unwrap_or(25) {
                 50 => 50,
@@ -64,23 +61,11 @@ impl UserListParams {
     }
 
     pub fn has_search(&self) -> bool {
-        self.has_id_lookup() || !self.q.is_empty() || !self.ip.is_empty()
+        self.has_id_lookup() || !self.q.is_empty()
     }
 
     pub fn search_query(&self) -> Option<&str> {
-        if self.ip.is_empty() && !self.q.is_empty() {
-            Some(&self.q)
-        } else {
-            None
-        }
-    }
-
-    pub fn ip_query(&self) -> Option<&str> {
-        if self.ip.is_empty() {
-            None
-        } else {
-            Some(&self.ip)
-        }
+        (!self.q.is_empty()).then_some(self.q.as_str())
     }
 }
 
@@ -172,7 +157,6 @@ fn search_form(base: &str, params: &UserListParams) -> Markup {
             class="flex flex-col gap-3 sm:flex-row sm:items-center" {
             div class="flex flex-1 flex-col gap-2 sm:flex-row" {
                 (search_input("q", &params.q, "Search by user ID or username", placeholder, &action))
-                (search_input("ip", &params.ip, "Last active IP address", "Last active IP address...", &action))
                 div class="flex-1" {
                     div class="relative" {
                         select id="search-limit" name="limit"
@@ -264,8 +248,6 @@ fn empty_state_title(params: &UserListParams) -> String {
             "No users found for the {} requested IDs",
             params.requested_ids.len()
         )
-    } else if !params.ip.is_empty() {
-        format!("No users found with last active IP \"{}\"", params.ip)
     } else {
         format!("No users found matching \"{}\"", params.q)
     }
@@ -404,9 +386,6 @@ fn users_url(base: &str, params: &UserListParams, page: u32) -> String {
     if !params.q.is_empty() {
         pairs.push(format!("q={}", urlencoding::encode(&params.q)));
     }
-    if !params.ip.is_empty() {
-        pairs.push(format!("ip={}", urlencoding::encode(&params.ip)));
-    }
     pairs.push(format!("limit={}", params.limit));
     pairs.push(format!("page={page}"));
     format!("{base}/users?{}", pairs.join("&"))
@@ -419,7 +398,7 @@ mod tests {
 
     #[test]
     fn user_search_fields_have_accessible_names() {
-        let params = UserListParams::from_query(None, None, None, None, None);
+        let params = UserListParams::from_query(None, None, None, None);
         let html = users_list_page(
             &config(),
             &auth(),
@@ -433,7 +412,6 @@ mod tests {
 
         for (id, name) in [
             ("search-q", "Search by user ID or username"),
-            ("search-ip", "Last active IP address"),
             ("search-limit", "Users per page"),
         ] {
             let tag = html

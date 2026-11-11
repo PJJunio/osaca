@@ -221,12 +221,6 @@ pub const ADMIN_ACTION_FORM_SCRIPT: &str = r#"
 		var path = stripBase(url.pathname);
 		var action = url.searchParams.get('action') || '';
 		if (path === '/logout') return true;
-		if (path === '/messages' && (
-			action === 'search' ||
-			action === 'browse' ||
-			action === 'lookup' ||
-			action === 'lookup-by-attachment'
-		)) return true;
 		return false;
 	}
 

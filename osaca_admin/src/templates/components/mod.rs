@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 pub mod alert;
-pub mod archive;
 pub mod audit_logs_for_target;
 pub mod auto_refresh;
 pub mod badge;

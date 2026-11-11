@@ -11,10 +11,7 @@ use crate::{
     state::AppState,
     templates::{
         self,
-        pages::user_detail_tabs::{
-            account::{PASSWORD_RESET_LINK_RESULT_ID, password_reset_link_result},
-            moderation::{MESSAGE_SHRED_PREVIEW_ID, message_shred_preview},
-        },
+        pages::user_detail_tabs::moderation::{MESSAGE_SHRED_PREVIEW_ID, message_shred_preview},
     },
     utils::forms::MultiValueForm,
 };
@@ -32,7 +29,6 @@ const USER_ID_LOOKUP_BATCH: usize = 100;
 #[derive(Deserialize)]
 struct UserListQuery {
     q: Option<String>,
-    ip: Option<String>,
     ids: Option<String>,
     limit: Option<u32>,
     page: Option<u32>,
@@ -44,9 +40,6 @@ struct UserDetailQuery {
     reports_sent_page: Option<u32>,
     reports_received_page: Option<u32>,
     reports_limit: Option<u32>,
-    dm_before: Option<String>,
-    dm_after: Option<String>,
-    dm_limit: Option<u32>,
     audit_logs_page: Option<u32>,
     message_shred_job_id: Option<String>,
     delete_all_messages_dry_run: Option<String>,
@@ -81,7 +74,6 @@ async fn users_list(
     let config = state.config();
     let params = templates::pages::users_list::UserListParams::from_query(
         query.q,
-        query.ip,
         query.ids,
         query.limit,
         query.page,
@@ -96,12 +88,7 @@ async fn users_list(
     } else {
         let offset = u64::from(params.page) * u64::from(params.limit);
         client
-            .search_users(
-                params.search_query(),
-                params.ip_query(),
-                params.limit,
-                offset,
-            )
+            .search_users(params.search_query(), params.limit, offset)
             .await
             .log_error("search users")
             .map(|r| {
@@ -159,13 +146,7 @@ async fn user_detail(
     let admin_acls = auth.0.acls();
     let tab_body = if user.is_some() {
         user_tabs::render(
-            &client,
-            config,
-            &csrf.0.0,
-            &user_id,
-            active_tab,
-            &tq,
-            admin_acls,
+            &client, config, &csrf.0.0, &user_id, active_tab, &tq, admin_acls,
         )
         .await
     } else {
@@ -187,7 +168,6 @@ async fn user_detail_post(
     State(state): State<AppState>,
     headers: HeaderMap,
     auth: axum::Extension<AuthContext>,
-    csrf: axum::Extension<CsrfToken>,
     Path(user_id): Path<String>,
     Query(aq): Query<ActionQuery>,
     request: Request,
@@ -269,61 +249,6 @@ async fn preview_message_shred(
     }
 }
 
-async fn create_password_reset_link(
-    state: &AppState,
-    headers: &HeaderMap,
-    auth: &AuthContext,
-    csrf_token: &str,
-    client: &AdminApiClient,
-    user_id: &str,
-) -> Response {
-    let config = state.config();
-    let account_url = format!("{}/users/{user_id}?tab=account", config.base_path);
-    let link = match client.create_password_reset_link(user_id).await {
-        Ok(link) => link,
-        Err(error) => {
-            tracing::warn!(%error, user_id, "admin API request failed: create password reset link");
-            let flash = flash::FlashData::error("Failed to create password reset link");
-            if htmx::is_htmx_request(headers)
-                && (htmx::targets(headers, "flash-container")
-                    || htmx::targets(headers, PASSWORD_RESET_LINK_RESULT_ID))
-            {
-                return htmx::toast_response(&flash);
-            }
-            return flash::redirect_with_flash(&account_url, flash, config.secure_cookies());
-        }
-    };
-    if htmx::is_htmx_request(headers) && htmx::targets(headers, PASSWORD_RESET_LINK_RESULT_ID) {
-        return Html(password_reset_link_result(Some(&link)).into_string()).into_response();
-    }
-    let admin_acls = auth.acls();
-    let user = client
-        .get_user_by_id(user_id)
-        .await
-        .log_error("load user after creating password reset link");
-    let tab_body = user_tabs::render_account(
-        client,
-        config,
-        csrf_token,
-        user_id,
-        &templates::pages::user_detail_tabs::account::AccountTabOptions {
-            admin_acls,
-            password_reset_link: Some(&link),
-        },
-    )
-    .await;
-    let markup = templates::pages::user_detail::user_detail_with_tab(
-        config,
-        auth,
-        user.as_ref(),
-        user_id,
-        "account",
-        tab_body,
-        htmx::targets(headers, "main-content"),
-    );
-    Html(markup.into_string()).into_response()
-}
-
 async fn user_tab(
     State(state): State<AppState>,
     auth: axum::Extension<AuthContext>,
@@ -351,9 +276,6 @@ async fn user_tab(
         reports_sent_page: None,
         reports_received_page: None,
         reports_limit: None,
-        dm_before: None,
-        dm_after: None,
-        dm_limit: None,
         audit_logs_page: None,
         message_shred_job_id: None,
         delete_all_messages_dry_run: None,
@@ -366,17 +288,13 @@ async fn user_tab(
     };
     let admin_acls = auth.0.acls();
     let markup = match user {
-        Some(ref u) => user_tabs::render(
-            &client,
-            config,
-            &csrf.0.0,
-            &user_id,
-            &tab,
-            &tq,
-            admin_acls,
-        )
-        .await
-        .unwrap_or_else(|| templates::pages::user_detail::simple_tab_content(config, u, &tab)),
+        Some(ref u) => {
+            user_tabs::render(&client, config, &csrf.0.0, &user_id, &tab, &tq, admin_acls)
+                .await
+                .unwrap_or_else(|| {
+                    templates::pages::user_detail::simple_tab_content(config, u, &tab)
+                })
+        }
         None => maud::html! {
             div class="p-4 text-red-600 text-sm" { "Failed to load user data." }
         },
@@ -409,9 +327,6 @@ fn to_tab_query(q: &UserDetailQuery) -> user_tabs::TabQuery {
         reports_sent_page: q.reports_sent_page,
         reports_received_page: q.reports_received_page,
         reports_limit: q.reports_limit,
-        dm_before: q.dm_before.clone(),
-        dm_after: q.dm_after.clone(),
-        dm_limit: q.dm_limit,
         audit_logs_page: q.audit_logs_page,
         message_shred_job_id: q.message_shred_job_id.clone(),
         delete_all_messages_dry_run: q.delete_all_messages_dry_run.clone(),

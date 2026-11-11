@@ -8,11 +8,8 @@ pub struct UserSession {
     pub session_id_hash: String,
     pub created_at: String,
     pub approx_last_used_at: String,
-    pub client_ip: String,
-    pub client_ip_reverse: Option<String>,
     pub client_os: Option<String>,
     pub client_platform: Option<String>,
-    pub client_location: Option<String>,
     pub app_version: Option<String>,
     pub app_release_channel: Option<String>,
     pub app_build_number: Option<i32>,
@@ -23,61 +20,6 @@ pub struct UserSession {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ListUserSessionsResponse {
     pub sessions: Vec<UserSession>,
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct AdminResolvedUser {
-    pub id: String,
-    pub username: String,
-    #[serde(deserialize_with = "deserialize_discriminator")]
-    pub discriminator: String,
-    pub global_name: Option<String>,
-    pub avatar: Option<String>,
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct RelationshipEntry {
-    pub target_user_id: String,
-    pub category: String,
-    pub nickname: Option<String>,
-    pub since: Option<String>,
-    pub target: Option<AdminResolvedUser>,
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct ListUserRelationshipsResponse {
-    pub friends: Vec<RelationshipEntry>,
-    pub incoming_requests: Vec<RelationshipEntry>,
-    pub outgoing_requests: Vec<RelationshipEntry>,
-    pub blocked: Vec<RelationshipEntry>,
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct DmChannel {
-    pub channel_id: String,
-    pub channel_type: Option<i32>,
-    pub channel_nsfw: Option<bool>,
-    pub guild_nsfw_level: Option<i32>,
-    #[serde(default)]
-    pub recipient_ids: Vec<String>,
-    #[serde(default)]
-    pub recipients: Vec<AdminResolvedUser>,
-    pub last_message_id: Option<String>,
-    #[serde(default)]
-    pub is_open: bool,
-    pub name: Option<String>,
-    pub icon: Option<String>,
-    pub owner_id: Option<String>,
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct ListUserDmChannelsResponse {
-    pub channels: Vec<DmChannel>,
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct ListUserGroupDmChannelsResponse {
-    pub channels: Vec<DmChannel>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -414,9 +356,3 @@ pub struct WebAuthnCredential {
 }
 
 pub type WebAuthnCredentialListResponse = Vec<WebAuthnCredential>;
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct PasswordResetLinkResponse {
-    pub url: String,
-    pub expires_at: String,
-}

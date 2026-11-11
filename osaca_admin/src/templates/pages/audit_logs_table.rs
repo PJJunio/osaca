@@ -111,7 +111,7 @@ pub fn target_cell(base: &str, entry: &AuditLogEntry) -> Markup {
             }))
         },
         "channel" => html! {
-            (channel_link(base, &entry.target_id, entry.target_channel.as_ref(), html! {
+            (channel_link(&entry.target_id, entry.target_channel.as_ref(), html! {
                 div class="flex flex-col" {
                     span class="text-sm font-medium" {
                         @if let Some(channel) = entry.target_channel.as_ref() {
@@ -148,7 +148,7 @@ pub fn target_cell(base: &str, entry: &AuditLogEntry) -> Markup {
                 @if let Some(channel) = entry.target_channel.as_ref() {
                     span class="text-xs text-neutral-500" {
                         "Channel: "
-                        (channel_link(base, &channel.id, Some(channel), html! { (channel_label(channel)) }))
+                        (channel_link(&channel.id, Some(channel), html! { (channel_label(channel)) }))
                     }
                 }
             }
@@ -171,26 +171,16 @@ fn job_link(base: &str, job_id: &str, display: Markup) -> Markup {
     }
 }
 
-fn channel_href(base: &str, channel_id: &str) -> String {
-    format!(
-        "{base}/messages?channel_id={}&context_limit=50",
-        urlencoding::encode(channel_id)
-    )
-}
-
 fn channel_link(
-    base: &str,
     channel_id: &str,
     channel: Option<&AuditLogChannelSummary>,
     display: Markup,
 ) -> Markup {
-    let href = channel_href(base, channel_id);
     let title = channel
         .map(channel_label)
         .unwrap_or_else(|| format!("Channel {channel_id}"));
     html! {
-        a href=(href) title=(title)
-            class="text-neutral-900 underline decoration-neutral-300 hover:text-neutral-600 hover:decoration-neutral-500 text-sm" {
+        span title=(title) class="text-neutral-900 text-sm" {
             (display)
         }
     }
@@ -237,7 +227,7 @@ fn metadata_value(base: &str, entry: &AuditLogEntry, key: &str, value: &str) -> 
         && let Some(channel) = entry.related_channels.get(value)
     {
         return html! {
-            (channel_link(base, value, Some(channel), html! {
+            (channel_link(value, Some(channel), html! {
                 span class="text-sm text-neutral-700" { (channel_label(channel)) }
             }))
             span class="ml-2 text-xs text-neutral-500" { (value) }

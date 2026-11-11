@@ -7,3 +7,5 @@ pub mod layout_scripts;
 pub mod layout_sidebar;
 pub mod layout_sidebar_nav;
 pub mod pages;
+#[cfg(test)]
+pub(crate) mod test_support;

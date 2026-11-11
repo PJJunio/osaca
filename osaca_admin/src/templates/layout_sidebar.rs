@@ -92,37 +92,12 @@ pub fn pending_registration_count_markup(count: Option<u32>, out_of_band: bool) 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::ProxyConfig;
-
-    fn config() -> AdminConfig {
-        AdminConfig {
-            host: "127.0.0.1".to_owned(),
-            port: 0,
-            secret_key_base: String::new(),
-            base_path: "/admin".to_owned(),
-            api_endpoint: String::new(),
-            api_public_endpoint: String::new(),
-            media_endpoint: String::new(),
-            static_cdn_endpoint: String::new(),
-            reports_bucket_origin: String::new(),
-            admin_endpoint: String::new(),
-            web_app_endpoint: String::new(),
-            oauth_client_id: String::new(),
-            oauth_client_secret: String::new(),
-            oauth_redirect_uri: String::new(),
-            build_version: String::new(),
-            self_hosted: true,
-            proxy: ProxyConfig {
-                trust_client_ip_header: false,
-                client_ip_header_name: String::new(),
-            },
-        }
-    }
+    use crate::templates::test_support::config;
 
     #[test]
     fn sidebar_leads_with_the_osaca_logo_next_to_the_panel_heading() {
-        let html = render_sidebar(&config(), "OSACA Admin", &[], "users", None, None, false)
-            .into_string();
+        let html =
+            render_sidebar(&config(), "OSACA Admin", &[], "users", None, None, false).into_string();
 
         assert!(
             html.contains(r#"<img src="/admin/static/osaca-logo-color.svg" alt="""#),

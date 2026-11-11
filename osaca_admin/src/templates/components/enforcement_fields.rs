@@ -103,7 +103,7 @@ pub fn field_label(for_id: &str, text: &str) -> Markup {
 
 pub fn required_mark() -> Markup {
     html! {
-        span class="text-red-500 ml-0.5" { "*" }
+        span class="text-red-600 ml-0.5" { "*" }
     }
 }
 

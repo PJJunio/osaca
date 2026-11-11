@@ -15,6 +15,7 @@
   --color-brand-primary: var(--osaca-color-action);
   --color-brand-primary-dark: var(--osaca-color-action-strong);
   --color-neutral-50: #f6f5f1;
+  --color-neutral-500: #606e7a;
   --color-red-600: hsl(355 72% 48%);
   --color-red-700: hsl(355 72% 40%);
 }
@@ -94,6 +95,12 @@ main:focus {
   will-change: translate;
 }
 
+/* The panel's `flex` class overrides the closed popover's display:none; hide it after the slide-out. */
+.drawer-panel:not(:popover-open):not([data-open]) {
+  visibility: hidden;
+  transition: translate 0.25s cubic-bezier(0.32, 0.72, 0, 1), visibility 0s linear 0.25s;
+}
+
 .drawer-panel[data-drawer-side="right"] { right: 0; top: 0; }
 
 .drawer-panel[data-open],
@@ -138,7 +145,8 @@ main:focus {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .drawer-panel {
+  .drawer-panel,
+  .drawer-panel:not(:popover-open):not([data-open]) {
     transition: none;
   }
   .drawer-overlay {
@@ -307,6 +315,14 @@ input:disabled + .checkbox-custom {
   --color-purple-50: oklch(0.291 0.149 302.717);
   --color-purple-100: oklch(0.381 0.176 304.987);
   --color-purple-700: oklch(0.827 0.119 306.383);
+}
+
+/* Closed on mobile, the sidebar sits off-screen: hide it after the slide-out so its links leave the tab order. */
+@media (width < 64rem) {
+  #admin-sidebar.-translate-x-full {
+    visibility: hidden;
+    transition: transform 200ms ease-in-out, visibility 0s linear 200ms;
+  }
 }
 
 #admin-sidebar {

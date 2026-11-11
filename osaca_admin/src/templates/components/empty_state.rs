@@ -37,7 +37,7 @@ pub fn not_found_state(
                 "No " (entity_type.to_lowercase()) " found with ID " (entity_id)
             }
             a href=(back_url.unwrap_or("javascript:history.back()"))
-                class="text-sm text-blue-600 hover:text-blue-800 hover:underline" {
+                class="inline-block py-1 text-sm text-blue-600 hover:text-blue-800 hover:underline" {
                 (back_label.unwrap_or("Go back"))
             }
         }

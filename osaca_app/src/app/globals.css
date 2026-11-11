@@ -129,15 +129,16 @@ var {
 	--native-titlebar-height: 32px;
 	--macos-traffic-light-inset: 78px;
 
-	/* OSACA Hybrid Identity Design Tokens */
-	--guild-sidebar-bg: var(--osaca-color-navy);
+	/* OSACA Hybrid Identity Design Tokens. Dark by default, like the generated colour system;
+	   .theme-light redefines the surfaces. */
+	--guild-sidebar-bg: var(--osaca-color-black);
 	--guild-sidebar-item-bg: rgba(255, 255, 255, 0.12);
 	--guild-sidebar-item-hover: rgba(255, 255, 255, 0.2);
-	--channel-sidebar-bg: var(--osaca-color-ivory);
-	--chat-canvas-bg: var(--osaca-color-white);
-	--chat-surface-bg: var(--osaca-color-white);
-	--message-timestamp-color: var(--osaca-color-slate);
-	--composer-pill-bg: var(--osaca-color-white);
+	--channel-sidebar-bg: #172635;
+	--chat-canvas-bg: #10202e;
+	--chat-surface-bg: #172635;
+	--message-timestamp-color: #9aa8b2;
+	--composer-pill-bg: #1d3040;
 	--composer-pill-border: rgba(104, 119, 131, 0.22);
 
 	--radius-sm: 0.25rem;

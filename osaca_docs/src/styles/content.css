@@ -481,3 +481,11 @@
 .sl-markdown-content .starlight-aside :is(th, td, hr, blockquote):not(:where(.not-content *)) {
 	border-color: var(--flx-aside-border);
 }
+
+/* Heading anchor links: at least a 24px target (WCAG 2.2 2.5.8). */
+.sl-anchor-link {
+	min-inline-size: 24px;
+	min-block-size: 24px;
+	align-items: center;
+	justify-content: center;
+}

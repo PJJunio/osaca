@@ -24,6 +24,7 @@ RUN TAILWIND_OXIDE_VERSION="4.2.1" \
 COPY Cargo.lock Cargo.lock
 COPY osaca_admin osaca_admin
 COPY osaca_common osaca_common
+COPY packages/brand packages/brand
 COPY packages/fonts/manifest.json packages/fonts/manifest.json
 COPY packages/fonts/NOTICE.md packages/fonts/NOTICE.md
 COPY packages/fonts/LICENSE-IBM-PLEX.txt packages/fonts/LICENSE-IBM-PLEX.txt

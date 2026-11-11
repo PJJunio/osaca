@@ -26,7 +26,18 @@ function themeTokens(block) {
 	);
 }
 
-const tokensCss = read('src/styles/tokens.css');
+// Resolves var(--osaca-color-*) from the shared palette so contrast checks see real colours.
+const PALETTE = Object.fromEntries(
+	[
+		...readFileSync(new URL('../packages/brand/css/palette.css', docsRoot), 'utf8').matchAll(
+			/--(osaca-color-[a-z-]+): (#[0-9a-f]{6});/g,
+		),
+	].map(([, name, hex]) => [name, hex]),
+);
+const resolvePalette = (text) =>
+	text.replace(/var\(--(osaca-color-[a-z-]+)\)/g, (match, name) => PALETTE[name] ?? match);
+
+const tokensCss = resolvePalette(read('src/styles/tokens.css'));
 const dark = themeTokens(tokensCss.match(/^:root \{([^}]*--flx-background-primary[^}]*)\}/m)?.[1] ?? '');
 const light = {...dark, ...themeTokens(tokensCss.match(/^:root\[data-theme='light'\] \{([^}]*)\}/m)?.[1] ?? '')};
 

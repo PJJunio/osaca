@@ -1,15 +1,16 @@
 /* SPDX-License-Identifier: AGPL-3.0-or-later */
 
 @import "tailwindcss";
+@import "../../../packages/brand/css/palette.css";
 @source "../**/*.rs";
 
 @theme {
   --font-sans: "Inter", "OSACA Sans", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Montserrat", "OSACA Sans", ui-sans-serif, system-ui, sans-serif;
-  --color-osaca-navy: #102b42;
-  --color-osaca-earth-red: #e84b35;
-  --color-osaca-ivory: #f3f1eb;
-  --color-osaca-slate: #687783;
+  --color-osaca-navy: var(--osaca-color-navy);
+  --color-osaca-earth-red: var(--osaca-color-earth-red);
+  --color-osaca-ivory: var(--osaca-color-ivory);
+  --color-osaca-slate: var(--osaca-color-slate);
   --color-osaca-focus: var(--osaca-focus);
   --color-brand-primary: #c73a27;
   --color-brand-primary-dark: #a52e1d;
@@ -310,7 +311,7 @@ input:disabled + .checkbox-custom {
 
 #admin-sidebar {
   background-color: var(--color-osaca-navy);
-  --color-white: #ffffff;
+  --color-white: var(--osaca-color-white);
   --color-neutral-200: #e3e7ea;
   --color-neutral-300: #c9d1d7;
   --color-neutral-400: #9aa8b2;

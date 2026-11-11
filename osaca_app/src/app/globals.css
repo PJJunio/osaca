@@ -73,12 +73,6 @@ var {
 	--font-display: 'Montserrat', var(--font-sans);
 
 	/* OSACA shared visual foundation */
-	--osaca-color-navy: #102b42;
-	--osaca-color-earth-red: #e84b35;
-	--osaca-color-ivory: #f3f1eb;
-	--osaca-color-slate: #687783;
-	--osaca-color-white: #ffffff;
-	--osaca-color-black: #0b1722;
 	--osaca-color-focus: #2f80ed;
 
 	--osaca-surface-page: var(--chat-canvas-bg);

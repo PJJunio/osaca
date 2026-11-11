@@ -18,6 +18,7 @@ fn main() {
     let out_dir = PathBuf::from(env::var("OUT_DIR").expect("OUT_DIR missing"));
 
     println!("cargo:rerun-if-changed=src/styles/app.css");
+    println!("cargo:rerun-if-changed=../packages/brand/css/palette.css");
     println!("cargo:rerun-if-changed=src/");
     println!("cargo:rerun-if-changed=openapi-admin.json");
 

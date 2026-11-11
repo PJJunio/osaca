@@ -1,0 +1,15 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
+
+/*
+ * The official OSACA palette (visual-identity/details.md), shared by the app, admin panel,
+ * documentation and landing page. Surfaces derive their semantic tokens from these values
+ * instead of repeating the hex codes.
+ */
+:root {
+	--osaca-color-navy: #102b42;
+	--osaca-color-earth-red: #e84b35;
+	--osaca-color-ivory: #f3f1eb;
+	--osaca-color-slate: #687783;
+	--osaca-color-white: #ffffff;
+	--osaca-color-black: #0b1722;
+}

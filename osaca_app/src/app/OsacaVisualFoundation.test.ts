@@ -11,6 +11,7 @@ const colorPaletteSource = readFileSync(
 	'utf8',
 );
 const entrypoint = readFileSync(new URL('../index.tsx', import.meta.url), 'utf8');
+const sharedPalette = readFileSync(new URL('../../../packages/brand/css/palette.css', import.meta.url), 'utf8');
 const buttonStyles = readFileSync(new URL('../features/ui/button/Button.module.css', import.meta.url), 'utf8');
 const inputStyles = readFileSync(
 	new URL('../features/ui/components/form/FormInput.module.css', import.meta.url),
@@ -25,11 +26,12 @@ const imageDirectory = new URL('../media/images/', import.meta.url);
 
 describe('OSACA visual foundation', () => {
 	it('publishes the official palette and shared layout primitives', () => {
-		assert.match(globalsCss, /--osaca-color-navy: #102b42;/);
-		assert.match(globalsCss, /--osaca-color-earth-red: #e84b35;/);
-		assert.match(globalsCss, /--osaca-color-ivory: #f3f1eb;/);
-		assert.match(globalsCss, /--osaca-color-slate: #687783;/);
-		assert.match(globalsCss, /--osaca-color-white: #ffffff;/);
+		assert.match(entrypoint, /@osaca\/brand\/css\/palette\.css/);
+		assert.match(sharedPalette, /--osaca-color-navy: #102b42;/);
+		assert.match(sharedPalette, /--osaca-color-earth-red: #e84b35;/);
+		assert.match(sharedPalette, /--osaca-color-ivory: #f3f1eb;/);
+		assert.match(sharedPalette, /--osaca-color-slate: #687783;/);
+		assert.match(sharedPalette, /--osaca-color-white: #ffffff;/);
 		assert.match(globalsCss, /--focus-ring:/);
 		assert.match(globalsCss, /--breakpoint-tablet: 64rem;/);
 		assert.match(globalsCss, /\.theme-light \{/);

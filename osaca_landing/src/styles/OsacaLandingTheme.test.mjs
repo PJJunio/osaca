@@ -4,7 +4,18 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {describe, it} from 'node:test';
 
-const css = readFileSync(new URL('./landing.css', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
+// Resolves var(--osaca-color-*) from the shared palette so contrast checks see real colours.
+const PALETTE = Object.fromEntries(
+	[
+		...readFileSync(new URL('../../../packages/brand/css/palette.css', import.meta.url), 'utf8').matchAll(
+			/--(osaca-color-[a-z-]+): (#[0-9a-f]{6});/g,
+		),
+	].map(([, name, hex]) => [name, hex]),
+);
+const resolvePalette = (text) =>
+	text.replace(/var\(--(osaca-color-[a-z-]+)\)/g, (match, name) => PALETTE[name] ?? match);
+
+const css = resolvePalette(readFileSync(new URL('./landing.css', import.meta.url), 'utf8').replace(/\r\n/g, '\n'));
 
 function luminance(hex) {
 	const [r, g, b] = [1, 3, 5].map((i) => {

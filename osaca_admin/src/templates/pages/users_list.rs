@@ -24,10 +24,7 @@ use crate::{
         },
         layout::admin_layout,
     },
-    utils::{
-        bigint::format_discriminator,
-        user_tag::user_tag,
-    },
+    utils::{bigint::format_discriminator, user_tag::user_tag},
 };
 use maud::{Markup, html};
 
@@ -150,10 +147,11 @@ fn parse_ids_query(ids_query: &str) -> Vec<String> {
     ids
 }
 
-fn search_input(name: &str, value: &str, placeholder: &str, action: &str) -> Markup {
+fn search_input(name: &str, value: &str, label: &str, placeholder: &str, action: &str) -> Markup {
     html! {
         div class="flex-1" {
             input id={"search-" (name)} type="text" name=(name) value=(value)
+                aria-label=(label)
                 placeholder=(placeholder)
                 class={(FORM_CONTROL_CLASS) " " (FORM_SEARCH_INPUT_SIZE_CLASS)}
                 hx-get=(action)
@@ -173,11 +171,12 @@ fn search_form(base: &str, params: &UserListParams) -> Markup {
         form method="get" action=(&action)
             class="flex flex-col gap-3 sm:flex-row sm:items-center" {
             div class="flex flex-1 flex-col gap-2 sm:flex-row" {
-                (search_input("q", &params.q, placeholder, &action))
-                (search_input("ip", &params.ip, "Last active IP address...", &action))
+                (search_input("q", &params.q, "Search by user ID or username", placeholder, &action))
+                (search_input("ip", &params.ip, "Last active IP address", "Last active IP address...", &action))
                 div class="flex-1" {
                     div class="relative" {
                         select id="search-limit" name="limit"
+                            aria-label="Users per page"
                             hx-get=(&action)
                             hx-trigger="change"
                             hx-target="#users-results"
@@ -411,4 +410,41 @@ fn users_url(base: &str, params: &UserListParams, page: u32) -> String {
     pairs.push(format!("limit={}", params.limit));
     pairs.push(format!("page={page}"));
     format!("{base}/users?{}", pairs.join("&"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::templates::test_support::{auth, config};
+
+    #[test]
+    fn user_search_fields_have_accessible_names() {
+        let params = UserListParams::from_query(None, None, None, None, None);
+        let html = users_list_page(
+            &config(),
+            &auth(),
+            UserListView {
+                params: &params,
+                results: None,
+                output: UserListOutput::Page,
+            },
+        )
+        .into_string();
+
+        for (id, name) in [
+            ("search-q", "Search by user ID or username"),
+            ("search-ip", "Last active IP address"),
+            ("search-limit", "Users per page"),
+        ] {
+            let tag = html
+                .split(&format!(r#"id="{id}""#))
+                .nth(1)
+                .and_then(|rest| rest.split('>').next())
+                .unwrap_or_else(|| panic!("#{id} is rendered"));
+            assert!(
+                tag.contains(&format!(r#"aria-label="{name}""#)),
+                "#{id}: {tag}"
+            );
+        }
+    }
 }

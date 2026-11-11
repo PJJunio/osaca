@@ -60,6 +60,41 @@ describe('OSACA admin panel', () => {
 		assert.match(css, /:focus-visible \{\n {2}outline: 2px solid var\(--osaca-focus\);/);
 	});
 
+	it('keeps secondary text at AA contrast on light page and card surfaces', () => {
+		// Found in the #45 browser pass: Tailwind's neutral-500 reached 4.35:1 on the ivory page background.
+		const theme = read('src/styles/app.css').match(/^@theme \{([^}]*)\}/m)?.[1] ?? '';
+		const muted = theme.match(/--color-neutral-500: (#[0-9a-f]{6});/)?.[1];
+		const page = theme.match(/--color-neutral-50: (#[0-9a-f]{6});/)?.[1];
+
+		assert.ok(muted && page, '--color-neutral-500 and --color-neutral-50 are hex colours');
+		for (const surface of [page, '#ffffff']) {
+			const ratio = contrast(muted, surface);
+			assert.ok(ratio >= 4.5, `neutral-500 ${muted} on ${surface} is ${ratio.toFixed(2)}:1`);
+		}
+	});
+
+	it('takes closed drawers out of the keyboard order and accessibility tree', () => {
+		// The panels carry Tailwind's `flex`, which overrides the browser's display:none for a closed popover.
+		const css = read('src/styles/app.css');
+		const closed = css.match(/^\.drawer-panel:not\(:popover-open\):not\(\[data-open\]\) \{([^}]*)\}/m)?.[1] ?? '';
+		assert.match(closed, /visibility: hidden;/);
+	});
+
+	it('takes the closed mobile sidebar out of the keyboard order', () => {
+		// Below lg the sidebar slides off-screen with -translate-x-full but its links stayed focusable.
+		const css = read('src/styles/app.css');
+		const mobile =
+			css.match(/@media \(width < 64rem\) \{\n {2}#admin-sidebar\.-translate-x-full \{([^}]*)\}/)?.[1] ?? '';
+		assert.match(mobile, /visibility: hidden;/);
+	});
+
+	it('marks required fields with an AA-contrast indicator', () => {
+		const offenders = filesUnder(new URL('src/templates/', adminRoot), /\.rs$/)
+			.filter((file) => /text-red-500[^"]*" \{ "\*" \}/.test(readFileSync(file, 'utf8')))
+			.map((file) => file.pathname.split('/src/').pop());
+		assert.deepEqual(offenders, [], 'red-500 is 3.81:1 on white');
+	});
+
 	it('gives the dark theme OSACA navy surfaces and a lighter focus colour', () => {
 		const css = read('src/styles/app.css');
 		const light = css.match(/^:root \{([^}]*)\}/m)?.[1] ?? '';

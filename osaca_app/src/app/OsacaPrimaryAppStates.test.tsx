@@ -43,4 +43,13 @@ describe('OSACA primary app states', () => {
 		expect(html).toMatch(/<div[^>]*role="alert"[^>]*aria-labelledby="osaca-error-fallback-title"/);
 		expect(html).toMatch(/<h1[^>]*id="osaca-error-fallback-title"[^>]*>The app crashed<\/h1>/);
 	});
+
+	it('shows the approved OSACA logo, named for assistive technology, on the crash screen', () => {
+		const html = renderToStaticMarkup(<ErrorFallback error={new Error('boom')} />);
+		const icon = html.match(/<svg\b[^>]*data-flx="app\.error-fallback\.osaca-icon"[^>]*>[\s\S]*?<\/svg>/)?.[0] ?? '';
+
+		expect(icon).toMatch(/role="img"/);
+		expect(icon).toMatch(/aria-label="OSACA application icon"/);
+		expect(icon).toContain('OSACA Pagoda');
+	});
 });

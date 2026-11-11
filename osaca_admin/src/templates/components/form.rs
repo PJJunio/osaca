@@ -50,12 +50,23 @@ fn button_markup(
 }
 
 pub fn text_input(name: &str, label: &str, value: &str, placeholder: &str) -> Markup {
+    text_input_with_id(name, name, label, value, placeholder)
+}
+
+/// A text field whose id differs from its name, for pages that repeat a field across several forms.
+pub fn text_input_with_id(
+    id: &str,
+    name: &str,
+    label: &str,
+    value: &str,
+    placeholder: &str,
+) -> Markup {
     html! {
         div class="flex flex-col gap-2" {
-            label for=(name) class=(FORM_LABEL_CLASS) {
+            label for=(id) class=(FORM_LABEL_CLASS) {
                 (label)
             }
-            input type="text" id=(name) name=(name) value=(value)
+            input type="text" id=(id) name=(name) value=(value)
                 placeholder=(placeholder)
                 class={(FORM_CONTROL_CLASS) " " (FORM_INPUT_SIZE_CLASS)};
         }
@@ -204,7 +215,7 @@ pub fn form_field_group(
             label for=(name) class=(FORM_LABEL_CLASS) {
                 (label)
                 @if required {
-                    span class="text-red-500 ml-0.5" { "*" }
+                    span class="text-red-600 ml-0.5" { "*" }
                 }
             }
             (content)
@@ -264,15 +275,28 @@ pub fn textarea_input(
     rows: u32,
     required: bool,
 ) -> Markup {
+    textarea_input_with_id(name, name, label, placeholder, value, rows, required)
+}
+
+/// A textarea whose id differs from its name, for pages that repeat a field across several forms.
+pub fn textarea_input_with_id(
+    id: &str,
+    name: &str,
+    label: &str,
+    placeholder: &str,
+    value: &str,
+    rows: u32,
+    required: bool,
+) -> Markup {
     html! {
         div class="flex flex-col gap-2" {
-            label for=(name) class=(FORM_LABEL_CLASS) {
+            label for=(id) class=(FORM_LABEL_CLASS) {
                 (label)
                 @if required {
-                    span class="text-red-500 ml-0.5" { "*" }
+                    span class="text-red-600 ml-0.5" { "*" }
                 }
             }
-            textarea id=(name) name=(name) placeholder=(placeholder) rows=(rows)
+            textarea id=(id) name=(name) placeholder=(placeholder) rows=(rows)
                 class={(FORM_CONTROL_CLASS) " " (FORM_TEXTAREA_SIZE_CLASS)}
                 required[required] {
                 (value)
@@ -374,7 +398,10 @@ mod tests {
         let plain = danger_button("Revoke key").into_string();
         let with_subject = danger_button_for("Delete", "voice region eu-west").into_string();
 
-        assert!(plain.contains(r#"data-confirm="Revoke key: are you sure?""#), "{plain}");
+        assert!(
+            plain.contains(r#"data-confirm="Revoke key: are you sure?""#),
+            "{plain}"
+        );
         assert!(
             with_subject.contains(r#"data-confirm="Delete voice region eu-west: are you sure?""#),
             "{with_subject}"
@@ -402,7 +429,11 @@ mod tests {
     #[test]
     fn primary_and_secondary_buttons_submit_without_confirmation() {
         assert!(!submit_button("Save").into_string().contains("data-confirm"));
-        assert!(!secondary_button("Cancel").into_string().contains("data-confirm"));
+        assert!(
+            !secondary_button("Cancel")
+                .into_string()
+                .contains("data-confirm")
+        );
         assert!(
             submit_button_confirming("Reindex", "Rebuild every index?")
                 .into_string()

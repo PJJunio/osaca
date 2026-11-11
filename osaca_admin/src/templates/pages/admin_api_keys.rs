@@ -71,7 +71,7 @@ fn create_form(base: &str, csrf_token: &str, acls: &[&str]) -> Markup {
                         label for="api-key-name"
                             class="font-semibold text-neutral-500 text-xs uppercase tracking-wide" {
                             "Key Name"
-                            span class="text-red-500 ml-0.5" { "*" }
+                            span class="text-red-600 ml-0.5" { "*" }
                         }
                         input type="text" id="api-key-name" name="name" required
                             placeholder="Enter a descriptive name"

@@ -14,7 +14,7 @@ use crate::{
             },
             form::{
                 Checkbox, csrf_input, danger_button, form_actions, form_field_group, submit_button,
-                text_input, textarea_input,
+                text_input, text_input_with_id, textarea_input, textarea_input_with_id,
             },
             page_container::page_header,
             section_card::section_card_simple,
@@ -100,7 +100,7 @@ fn bulk_update_user_flags_section(base: &str, csrf_token: &str) -> Markup {
             form method="post" action={(base) "/bulk-actions?action=bulk-update-user-flags"} {
                 (csrf_input(csrf_token))
                 div class="space-y-4" {
-                    (textarea_input("user_ids", "User IDs (one per line)", "123456789\n987654321", "", 5, true))
+                    (textarea_input_with_id("user-flags-user-ids", "user_ids", "User IDs (one per line)", "123456789\n987654321", "", 5, true))
                     div {
                         p class="font-semibold text-neutral-500 text-xs uppercase tracking-wide mb-2" {
                             "Flags to Add"
@@ -113,7 +113,7 @@ fn bulk_update_user_flags_section(base: &str, csrf_token: &str) -> Markup {
                         }
                         (user_flag_checkbox_grid("remove_flags[]"))
                     }
-                    (text_input("audit_log_reason", "Audit Log Reason (optional)", "", "Reason for this bulk operation"))
+                    (text_input_with_id("user-flags-audit-log-reason", "audit_log_reason", "Audit Log Reason (optional)", "", "Reason for this bulk operation"))
                     (form_actions(html! {
                         (submit_button("Update User Flags"))
                     }))
@@ -165,7 +165,7 @@ fn bulk_update_guild_features_section(base: &str, csrf_token: &str) -> Markup {
                                        focus:ring-2 focus:ring-osaca-focus/20";
                         },
                     ))
-                    (text_input("audit_log_reason", "Audit Log Reason (optional)", "", "Reason for this bulk operation"))
+                    (text_input_with_id("guild-features-audit-log-reason", "audit_log_reason", "Audit Log Reason (optional)", "", "Reason for this bulk operation"))
                     (form_actions(html! {
                         (submit_button("Update Guild Features"))
                     }))
@@ -183,8 +183,8 @@ fn bulk_add_guild_members_section(base: &str, csrf_token: &str) -> Markup {
                 (csrf_input(csrf_token))
                 div class="space-y-4" {
                     (text_input("guild_id", "Guild ID", "", "123456789"))
-                    (textarea_input("user_ids", "User IDs (one per line)", "123456789\n987654321", "", 5, true))
-                    (text_input("audit_log_reason", "Audit Log Reason (optional)", "", "Reason for this bulk operation"))
+                    (textarea_input_with_id("add-members-user-ids", "user_ids", "User IDs (one per line)", "123456789\n987654321", "", 5, true))
+                    (text_input_with_id("add-members-audit-log-reason", "audit_log_reason", "Audit Log Reason (optional)", "", "Reason for this bulk operation"))
                     (form_actions(html! {
                         (submit_button("Add Members"))
                     }))
@@ -224,7 +224,7 @@ fn bulk_close_accounts_section(base: &str, self_hosted: bool, csrf_token: &str) 
             form method="post" action={(base) "/bulk-actions?action=bulk-schedule-user-deletion"} {
                 (csrf_input(csrf_token))
                 div class="space-y-4" {
-                    (textarea_input("user_ids", "User IDs (one per line)", "123456789\n987654321", "", 5, true))
+                    (textarea_input_with_id("close-accounts-user-ids", "user_ids", "User IDs (one per line)", "123456789\n987654321", "", 5, true))
                     (radio_group("Basis", "basis", "bulk-close", &[
                         ("enforcement", "A rule was broken"),
                         ("holder_request", "The account holders asked"),
@@ -257,7 +257,7 @@ fn bulk_delete_user_messages_section(base: &str, csrf_token: &str) -> Markup {
                     p class="text-neutral-500 text-sm" {
                         "Deletes every message each account wrote, in every channel. This cannot be undone."
                     }
-                    (textarea_input("user_ids", "User IDs (one per line)", "123456789\n987654321", "", 5, true))
+                    (textarea_input_with_id("delete-messages-user-ids", "user_ids", "User IDs (one per line)", "123456789\n987654321", "", 5, true))
                     (radio_group("Basis", "basis", "bulk-delete-messages", &[
                         ("enforcement", "A rule was broken"),
                         ("holder_request", "The account holders asked"),
@@ -277,4 +277,31 @@ fn bulk_delete_user_messages_section(base: &str, csrf_token: &str) -> Markup {
             }
         },
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::templates::test_support::{attribute_values, auth, config};
+
+    #[test]
+    fn every_bulk_form_field_has_its_own_label() {
+        let html = bulk_actions_page(&config(), &auth(), "csrf").into_string();
+        let ids = attribute_values(&html, "id");
+
+        let mut duplicates: Vec<&str> = ids
+            .iter()
+            .filter(|id| ids.iter().filter(|other| other == id).count() > 1)
+            .copied()
+            .collect();
+        duplicates.sort_unstable();
+        duplicates.dedup();
+        assert!(
+            duplicates.is_empty(),
+            "duplicate ids break label association: {duplicates:?}"
+        );
+        for target in attribute_values(&html, "for") {
+            assert!(ids.contains(&target), "label for={target} has no field");
+        }
+    }
 }

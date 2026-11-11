@@ -317,7 +317,7 @@ hsl(258, calc(10% * var(--saturation-factor)), 2%) 10%
 			{name: '--control-button-active-text', value: 'var(--text-primary)'},
 			{name: '--control-button-danger-text', hue: 1, saturation: 77, useSaturationFactor: true, lightness: 60},
 			{name: '--control-button-danger-hover-bg', hue: 1, saturation: 77, useSaturationFactor: true, lightness: 20},
-			{name: '--brand-primary', family: 'brand', lightness: 55, instanceOverride: '--instance-brand-primary'},
+			{name: '--brand-primary', family: 'brand', lightness: 47, instanceOverride: '--instance-brand-primary'},
 			{
 				name: '--brand-secondary',
 				family: 'brand',

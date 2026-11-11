@@ -19,6 +19,7 @@ The entry point for OSACA's project documentation. Open the repository root as a
 - [[osaca-technical-survey|Technical Survey]]: the Fluxer baseline, the gap analysis, the decisions and the roadmap.
 - [[GLOSSARY|Glossary]]: shared vocabulary.
 - [[fluxer-docs-rewrite-plan|Docs Rewrite Plan]]: how `osaca_docs/` becomes OSACA's docs.
+- [[redesign-validation|Redesign Validation]]: the acceptance matrix for the OSACA visual identity redesign.
 
 ## Architecture Decision Records
 

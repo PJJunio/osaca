@@ -39,6 +39,56 @@ describe('OSACA visual foundation', () => {
 		assert.match(globalsCss, /@media \(prefers-reduced-motion: reduce\)/);
 	});
 
+	it('defaults the OSACA surfaces to the dark theme like the generated colour system', () => {
+		// Screens shown before a theme class is applied (boot failure, crash) read :root. The generated text
+		// tokens there are the dark theme's, so the surfaces must be too (found in the #45 browser pass).
+		const block = (selector: RegExp) => globalsCss.match(selector)?.[1] ?? '';
+		const tokens = (css: string) =>
+			Object.fromEntries([...css.matchAll(/(--[a-z-]+):\s*([^;]+);/g)].map(([, name, value]) => [name, value.trim()]));
+		const root = tokens(block(/^:root \{([^}]*)\}/m));
+		const dark = tokens(block(/^\.theme-dark,\n\.theme-coal,\n\.theme-dark_legacy \{([^}]*)\}/m));
+
+		const surfaces = [
+			'--guild-sidebar-bg',
+			'--channel-sidebar-bg',
+			'--chat-canvas-bg',
+			'--chat-surface-bg',
+			'--message-timestamp-color',
+			'--composer-pill-bg',
+		];
+		for (const name of surfaces) {
+			assert.ok(dark[name], `${name} has a dark value`);
+			assert.equal(root[name], dark[name], `${name} at :root matches .theme-dark`);
+		}
+	});
+
+	it('keeps white text on the default brand action at AA contrast', () => {
+		// Found in the #45 browser pass: hsl(7, 80%, 55%) under white button text was 3.76:1.
+		const brand = colorPaletteSource.match(/\bbrand: \{hue: (\d+), saturation: (\d+)/);
+		const lightness = colorSystemSource.match(/\{name: '--brand-primary', family: 'brand', lightness: (\d+)/)?.[1];
+		assert.ok(brand && lightness, 'brand family and --brand-primary lightness are declared');
+
+		const [h, s, l] = [Number(brand[1]), Number(brand[2]) / 100, Number(lightness) / 100];
+		const channel = (n: number) => {
+			const k = (n + h / 30) % 12;
+			return l - s * Math.min(l, 1 - l) * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+		};
+		const luminance = (rgb: Array<number>) =>
+			rgb
+				.map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+				.reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i], 0);
+		const background = luminance([channel(0), channel(8), channel(4)]);
+		// --text-on-brand-primary is a grey (saturation 0), so its lightness is each RGB channel.
+		const textLightness = colorSystemSource.match(
+			/name: '--text-on-brand-primary',\s*hue: 0,\s*saturation: 0,\s*lightness: (\d+)/,
+		)?.[1];
+		assert.ok(textLightness, '--text-on-brand-primary is a declared grey');
+		const grey = Number(textLightness) / 100;
+		const text = luminance([grey, grey, grey]);
+		const ratio = (text + 0.05) / (background + 0.05);
+		assert.ok(ratio >= 4.5, `text on --brand-primary is ${ratio.toFixed(2)}:1`);
+	});
+
 	it('keeps danger feedback separate from the earth-red brand action', () => {
 		assert.match(colorPaletteSource, /statusDanger:/);
 		assert.match(colorPaletteSource, /hue: 355/);

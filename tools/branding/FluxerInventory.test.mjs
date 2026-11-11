@@ -43,6 +43,16 @@ function trackedFilesMentioningFluxer() {
 		.filter((path) => !readFileSync(new URL(path, repoRoot)).includes(0));
 }
 
+/** Tracked files containing `pattern`; git grep exits 1 when nothing matches. */
+function gitGrepFiles(pattern) {
+	try {
+		return execFileSync('git', ['grep', '-l', '-F', pattern, '--', '.'], {cwd: repoRoot, encoding: 'utf8'}).split('\n');
+	} catch (error) {
+		if (error.status === 1) return [];
+		throw error;
+	}
+}
+
 describe('Fluxer reference inventory', () => {
 	it('keeps Fluxer names out of every file outside the attribution allowlist', () => {
 		const offenders = trackedFilesMentioningFluxer()
@@ -80,6 +90,15 @@ describe('Fluxer reference inventory', () => {
 			.filter((path) => !path.startsWith('tools/branding/'))
 			.filter((path) => !readFileSync(new URL(path, repoRoot)).includes(0));
 
+		assert.deepEqual(offenders, []);
+	});
+
+	it('draws no inherited Fluxer mark inline in source', () => {
+		// Opening of the Fluxer "≈" mark path. The rename kept it inline in OsacaIconMark.tsx (found in the #45
+		// browser pass); the crash screen render test checks the approved logo is drawn instead.
+		const offenders = gitGrepFiles('M121.272 233.143C107.829')
+			.filter(Boolean)
+			.filter((path) => !path.startsWith('tools/branding/'));
 		assert.deepEqual(offenders, []);
 	});
 

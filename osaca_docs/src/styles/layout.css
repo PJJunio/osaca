@@ -54,9 +54,11 @@ flx-header .site-title {
 	color: var(--flx-content-heading);
 }
 
+/* The OSACA logo is square: size it by height so it fits the bar. */
 flx-header .site-title img {
-	width: 100%;
-	height: auto;
+	width: auto;
+	max-width: 100%;
+	height: 2.5rem;
 }
 
 .sidebar-pane {
@@ -92,9 +94,11 @@ flx-sidebar-brand .site-title {
 	color: var(--flx-sidebar-heading);
 }
 
+/* The OSACA logo is square: size it by height so it fits the bar. */
 flx-sidebar-brand .site-title img {
-	width: 100%;
-	height: auto;
+	width: auto;
+	max-width: 100%;
+	height: 2.5rem;
 }
 
 flx-sidebar-actions {

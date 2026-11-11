@@ -336,6 +336,15 @@ a {
 	background: var(--surface-raised);
 }
 
+.section__more {
+	margin: 0;
+}
+
+.section__more a {
+	display: inline-block;
+	padding-block: 0.375rem;
+}
+
 .roadmap {
 	display: grid;
 	gap: 1rem;

@@ -147,7 +147,9 @@ const roadmap = [
 					<ul class="limits">
 						{limits.map((limit) => <li>{limit}</li>)}
 					</ul>
-					<a href={SECURITY_MODEL_URL}>See the full security model and what is implemented today</a>
+					<p class="section__more">
+						<a href={SECURITY_MODEL_URL}>See the full security model and what is implemented today</a>
+					</p>
 				</div>
 			</section>
 
@@ -173,8 +175,8 @@ const roadmap = [
 		<footer class="site-footer">
 			<div class="container">
 				<p>
-					OSACA is free software under the
-					<a href={LICENSE_URL}>GNU AGPL v3</a>. Copyright and attribution notices are in the
+					OSACA is free software under the{" "}
+					<a href={LICENSE_URL}>GNU AGPL v3</a>. Copyright and attribution notices are in the{" "}
 					<a href={NOTICE_URL}>NOTICE</a> file.
 				</p>
 			</div>

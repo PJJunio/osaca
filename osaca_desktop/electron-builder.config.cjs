@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 const {execFile} = require('node:child_process');
-const {readFileSync} = require('node:fs');
+const {readFileSync, writeFileSync} = require('node:fs');
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
@@ -20,8 +20,6 @@ const CHANNELS = {
 		linuxComment: 'Instant messaging and VoIP',
 		protocolScheme: 'osaca',
 		macEntitlements: 'build_resources/entitlements.mac.stable.plist',
-		notarize: true,
-		provisioningProfile: 'build_resources/profiles/OSACA.provisionprofile',
 	},
 	canary: {
 		productName: 'OSACA Canary',
@@ -35,8 +33,6 @@ const CHANNELS = {
 		linuxComment: 'Canary build of OSACA',
 		protocolScheme: 'osaca',
 		macEntitlements: 'build_resources/entitlements.mac.canary.plist',
-		notarize: true,
-		provisioningProfile: 'build_resources/profiles/Osaca_Canary.provisionprofile',
 	},
 	development: {
 		productName: 'OSACA Development',
@@ -50,12 +46,64 @@ const CHANNELS = {
 		linuxComment: 'Development build of OSACA',
 		protocolScheme: 'osaca-development',
 		macEntitlements: 'build_resources/entitlements.mac.development.plist',
-		notarize: false,
-		provisioningProfile: null,
 	},
 };
 const buildChannel = process.env.BUILD_CHANNEL || 'stable';
 const channel = CHANNELS[buildChannel];
+// macOS signing is opt-in: OSACA has no Apple Developer certificate yet, so without these variables the build is
+// unsigned and the release says so. Development builds are never signed.
+// Keep in sync with MACOS_SIGNING_ENV in tools/ci/src/desktop.rs, which refuses a partial set the same way.
+const MAC_SIGNING_ENV = [
+	'APPLE_ID',
+	'APPLE_APP_SPECIFIC_PASSWORD',
+	'APPLE_TEAM_ID',
+	'OSACA_MACOS_PROVISIONING_PROFILE',
+];
+const macSigningMissing = MAC_SIGNING_ENV.filter((name) => !process.env[name]?.trim());
+if (macSigningMissing.length > 0 && macSigningMissing.length < MAC_SIGNING_ENV.length) {
+	throw new Error(
+		`macOS signing is only partly configured; missing ${macSigningMissing.join(' ')}. Set every one of ${MAC_SIGNING_ENV.join(' ')} to sign, or none of them to build unsigned.`,
+	);
+}
+const macSigning = buildChannel !== 'development' && macSigningMissing.length === 0;
+const macProvisioningProfile = macSigning ? process.env.OSACA_MACOS_PROVISIONING_PROFILE : null;
+
+// The app identity and passkey domains depend on the signing team, so a signed build derives them from the
+// configuration instead of committing another organisation's Team ID.
+function macEntitlementsPath() {
+	if (!macSigning) {
+		return channel.macEntitlements;
+	}
+	const teamId = process.env.APPLE_TEAM_ID.trim();
+	if (!/^[A-Z0-9]{10}$/.test(teamId)) {
+		throw new Error(`APPLE_TEAM_ID must be a 10-character Apple Team ID (received ${teamId})`);
+	}
+	const domains = (process.env.OSACA_MACOS_ASSOCIATED_DOMAINS || '')
+		.split(',')
+		.map((domain) => domain.trim())
+		.filter(Boolean);
+	for (const domain of domains) {
+		if (!/^[a-z0-9.-]+$/i.test(domain)) {
+			throw new Error(`OSACA_MACOS_ASSOCIATED_DOMAINS has an invalid host: ${domain}`);
+		}
+	}
+	const identity = [
+		'    <key>com.apple.application-identifier</key>',
+		`    <string>${teamId}.${channel.appId}</string>`,
+		...(domains.length > 0
+			? [
+					'    <key>com.apple.developer.associated-domains</key>',
+					'    <array>',
+					...domains.map((domain) => `        <string>webcredentials:${domain}</string>`),
+					'    </array>',
+				]
+			: []),
+	].join('\n');
+	const base = readFileSync(path.join(__dirname, channel.macEntitlements), 'utf8');
+	const derived = path.join(os.tmpdir(), `osaca-${buildChannel}-entitlements.mac.plist`);
+	writeFileSync(derived, base.replace('</dict>', `${identity}\n</dict>`));
+	return derived;
+}
 
 if (!channel) {
 	throw new Error(`Unsupported BUILD_CHANNEL: ${buildChannel}. Expected one of ${Object.keys(CHANNELS).join(', ')}`);
@@ -1802,11 +1850,12 @@ module.exports = {
 		minimumSystemVersion: macOSMinimumSystemVersion,
 		icon: `build_resources/${iconDir}/_compiled/AppIcon.icns`,
 		darkModeSupport: true,
-		notarize: channel.notarize,
+		notarize: macSigning,
+		...(macSigning ? {} : {identity: null}),
 		sign: {
 			hardenedRuntime: true,
-			...(channel.provisioningProfile ? {provisioningProfile: channel.provisioningProfile} : {}),
-			entitlements: channel.macEntitlements,
+			...(macProvisioningProfile ? {provisioningProfile: macProvisioningProfile} : {}),
+			entitlements: macEntitlementsPath(),
 			entitlementsInherit: 'build_resources/entitlements.mac.inherit.plist',
 		},
 		target: [

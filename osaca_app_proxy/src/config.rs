@@ -349,6 +349,7 @@ pub struct AppProxyConfig {
     pub manifest_scope_extensions: Vec<String>,
     pub release_channel: Option<&'static str>,
     pub self_hosted: bool,
+    pub mobile_apps: crate::mobile_apps::MobileAppIdentity,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -499,6 +500,7 @@ impl AppProxyConfig {
                 self_hosted,
             ),
             self_hosted,
+            mobile_apps: crate::mobile_apps::MobileAppIdentity::from_env(),
         }
     }
 }

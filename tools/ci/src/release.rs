@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use crate::common::{CommandSpec, output_text, parse_version_instant, run_command};
+use crate::common::{CommandSpec, env_string, output_text, parse_version_instant, run_command};
 use crate::desktop::{
     DESKTOP_CHANNEL_MANIFEST_NAME, DESKTOP_MODULE_PACKAGE_NAME, DESKTOP_MODULES_KEY_SEGMENT,
     DESKTOP_RENDERER_MODULE, DesktopChannelManifest, desktop_module_package_url,
@@ -838,7 +838,8 @@ fn publish(args: PublishArgs) -> Result<()> {
         }
     };
 
-    let body = release_body(&previous_sha, &source_sha);
+    let notice = desktop_release_notice(&args.component)?;
+    let body = release_body(&previous_sha, &source_sha, notice.as_deref());
     let assets = local_release_assets(
         &args.component,
         &args.build_version,
@@ -1487,12 +1488,25 @@ fn release_title(component: &str, version: &str) -> String {
     format!("{component} {version}")
 }
 
-fn release_body(previous_sha: &str, source_sha: &str) -> String {
-    format!(
+fn release_body(previous_sha: &str, source_sha: &str, notice: Option<&str>) -> String {
+    let changes = format!(
         "Changes: [`{}..{}`]({RELEASE_COMPARE_URL}/{previous_sha}..{source_sha})",
         &previous_sha[..7],
         &source_sha[..7]
-    )
+    );
+    match notice {
+        Some(notice) => format!("{notice}\n\n{changes}"),
+        None => changes,
+    }
+}
+
+/// Desktop releases say when a platform ships unsigned (see `crate::desktop::SigningMode`).
+fn desktop_release_notice(component: &str) -> Result<Option<String>> {
+    if desktop_channel(component).is_none() {
+        return Ok(None);
+    }
+    let (macos, windows) = crate::desktop::released_signing_modes(env_string)?;
+    Ok(crate::desktop::unsigned_release_notice(macos, windows))
 }
 
 fn desktop_channel(component: &str) -> Option<&str> {
@@ -1504,6 +1518,19 @@ mod tests {
     use super::*;
 
     const SAMPLE_CHANNEL: &str = "canary";
+
+    #[test]
+    fn a_release_body_leads_with_the_unsigned_notice_when_there_is_one() {
+        let previous = "0123456789abcdef0123456789abcdef01234567";
+        let source = "89abcdef0123456789abcdef0123456789abcdef";
+
+        assert!(release_body(previous, source, None).starts_with("Changes: "));
+        let body = release_body(previous, source, Some("**Unsigned build.** Not signed."));
+        assert!(
+            body.starts_with("**Unsigned build.** Not signed.\n\nChanges: "),
+            "{body}"
+        );
+    }
     const SAMPLE_VERSION: &str = "2026.913.210037";
     const SAMPLE_SOURCE_SHA: &str = "0123456789abcdef0123456789abcdef01234567";
 

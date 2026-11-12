@@ -5,6 +5,7 @@ pub mod config;
 pub mod csp;
 mod instance_brand_colors;
 mod local_files;
+pub mod mobile_apps;
 pub mod routes;
 pub mod state;
 mod static_asset_policy;

@@ -35,7 +35,6 @@ import {KVThreadAutoArchiveQueueService} from '@app/api/infrastructure/KVThreadA
 import {createStorageService} from '@app/api/infrastructure/StorageServiceFactory';
 import {UserCacheService} from '@app/api/infrastructure/UserCacheService';
 import {createUsersServiceClient} from '@app/api/infrastructure/UsersServiceClient';
-import {NoopUnfurlerService} from '@app/api/test/mocks/NoopUnfurlerService';
 import {CustomBadgeCatalog} from '@app/api/instance/custom_badges/CustomBadgeCatalog';
 import {InstanceConfigRepository} from '@app/api/instance/InstanceConfigRepository';
 import {NatsConfigPublisher} from '@app/api/instance/NatsConfigPublisher';
@@ -63,6 +62,7 @@ import {ReadStateRequestService} from '@app/api/read_state/ReadStateRequestServi
 import {ReadStateService} from '@app/api/read_state/ReadStateService';
 import {ReportRepository} from '@app/api/report/ReportRepository';
 import {getGuildSearchService} from '@app/api/SearchFactory';
+import {NoopUnfurlerService} from '@app/api/test/mocks/NoopUnfurlerService';
 import {ThemeService} from '@app/api/theme/ThemeService';
 import {EntranceSoundPlayService} from '@app/api/user/entrance_sound/EntranceSoundPlayService';
 import {EntranceSoundRepository} from '@app/api/user/entrance_sound/EntranceSoundRepository';
@@ -249,8 +249,6 @@ export const getAdminArchiveService = singleton(
 		new AdminArchiveService(
 			getAdminArchiveRepository(),
 			getUserRepository(),
-			getGuildRepository(),
-			getStorageService(),
 			getSnowflakeService(),
 			getWorkerService(),
 		),

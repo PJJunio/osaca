@@ -110,6 +110,24 @@ describe('Admin API operational scope (ADR-0010)', () => {
 		expect(result.sessions.flatMap(ipFieldsIn)).toEqual([]);
 	});
 
+	test('offers no guild archive, archive listing or archive download', async () => {
+		const admin = await setUserACLs(harness, await createTestAccount(harness), [AdminACLs.WILDCARD]);
+		const target = await createTestAccount(harness);
+		await createBuilder(harness, admin.token)
+			.post('/admin/guilds/1/archives')
+			.body({})
+			.expect(HTTP_STATUS.NOT_FOUND)
+			.execute();
+		await createBuilder(harness, admin.token)
+			.get(`/admin/archives?subject_type=user&subject_id=${target.userId}`)
+			.expect(HTTP_STATUS.NOT_FOUND)
+			.execute();
+		await createBuilder(harness, admin.token)
+			.get(`/admin/archives/user/${target.userId}/1/download`)
+			.expect(HTTP_STATUS.NOT_FOUND)
+			.execute();
+	});
+
 	test('lists pending registrations without an IP address', async () => {
 		const admin = await setUserACLs(harness, await createTestAccount(harness), [
 			AdminACLs.AUTHENTICATE,

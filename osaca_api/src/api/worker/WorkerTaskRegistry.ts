@@ -31,7 +31,6 @@ import {
 } from '@app/api/worker/tasks/GuildVisitTasks';
 import handleMentionChunk from '@app/api/worker/tasks/HandleMentionChunk';
 import handleMentions from '@app/api/worker/tasks/HandleMentions';
-import harvestGuildData from '@app/api/worker/tasks/HarvestGuildData';
 import harvestUserData from '@app/api/worker/tasks/HarvestUserData';
 import indexChannelMessages from '@app/api/worker/tasks/IndexChannelMessages';
 import indexGuildMembers from '@app/api/worker/tasks/IndexGuildMembers';
@@ -100,7 +99,6 @@ export const workerTasks: Record<WorkerTaskName, WorkerTaskHandler> = {
 	guildProcessDeletion,
 	handleMentions,
 	handleMentionChunk,
-	harvestGuildData,
 	harvestUserData,
 	indexChannelMessages,
 	indexGuildMembers,

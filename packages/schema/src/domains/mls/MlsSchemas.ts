@@ -141,3 +141,26 @@ export const MlsDeleteCiphertextResponse = z.object({
 	success: z.boolean().describe('Whether a stored ciphertext message was deleted'),
 });
 export type MlsDeleteCiphertextResponse = z.infer<typeof MlsDeleteCiphertextResponse>;
+
+export const MlsDeviceIdParam = z.object({
+	device_id: z.string().min(1).describe('Target device identifier'),
+});
+
+export const MlsGroupIdParam = z.object({
+	group_id: z.string().min(1).describe('MLS group identifier'),
+});
+
+export const MlsGroupIdEpochParam = z.object({
+	group_id: z.string().min(1).describe('MLS group identifier'),
+	epoch: z.coerce.number().int().nonnegative().describe('MLS epoch number'),
+});
+
+export const MlsGroupIdMessageIdParam = z.object({
+	group_id: z.string().min(1).describe('MLS group identifier'),
+	message_id: z.string().min(1).describe('Unique message identifier'),
+});
+
+export type MlsDeviceIdParam = z.infer<typeof MlsDeviceIdParam>;
+export type MlsGroupIdParam = z.infer<typeof MlsGroupIdParam>;
+export type MlsGroupIdEpochParam = z.infer<typeof MlsGroupIdEpochParam>;
+export type MlsGroupIdMessageIdParam = z.infer<typeof MlsGroupIdMessageIdParam>;

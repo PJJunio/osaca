@@ -1,17 +1,8 @@
-import {
-	createNamedStringLiteralUnion,
-	createStringType,
-	SnowflakeStringType,
-} from '@osaca/schema/src/primitives/SchemaPrimitives';
+import {createNamedLiteral, createStringType, SnowflakeStringType} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
-export const ArchiveSubjectTypeSchema = createNamedStringLiteralUnion(
-	[
-		['user', 'user', 'User data archive'],
-		['guild', 'guild', 'Guild data archive'],
-	],
-	'Type of subject being archived',
-);
+// Only users are archived (before deletion); guild archives were removed with the Operator's data access.
+export const ArchiveSubjectTypeSchema = createNamedLiteral('user', 'user', 'User data archive');
 export type ArchiveSubjectType = z.infer<typeof ArchiveSubjectTypeSchema>;
 
 export const AdminArchiveResponseSchema = z.object({

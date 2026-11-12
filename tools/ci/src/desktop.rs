@@ -2514,11 +2514,22 @@ impl DesktopBuildPlatform {
 }
 
 fn build_app_step(platform: DesktopBuildPlatform) -> Result<()> {
-    let macos_keychain = if matches!(platform, DesktopBuildPlatform::Macos) {
+    let macos_signing = if matches!(platform, DesktopBuildPlatform::Macos) {
+        Some(macos_signing_mode()?)
+    } else {
+        None
+    };
+    let macos_keychain = if macos_signing == Some(SigningMode::Signed) {
         Some(validate_macos_signing_env()?)
     } else {
         None
     };
+    if macos_signing == Some(SigningMode::Unsigned) {
+        println!(
+            "macOS build is unsigned: no signing variables are set ({}).",
+            MACOS_SIGNING_ENV.join(" ")
+        );
+    }
 
     if let Some(keychain) = &macos_keychain {
         println!(
@@ -2548,6 +2559,8 @@ fn build_app_step(platform: DesktopBuildPlatform) -> Result<()> {
                 .env("CSC_KEYCHAIN", keychain.as_os_str())
                 .env_remove("CSC_LINK")
                 .env_remove("CSC_KEY_PASSWORD");
+        } else if macos_signing == Some(SigningMode::Unsigned) {
+            command = command.env("CSC_IDENTITY_AUTO_DISCOVERY", "false");
         }
         let result = capture(command);
         println!("::endgroup::");
@@ -2579,17 +2592,8 @@ fn build_app_step(platform: DesktopBuildPlatform) -> Result<()> {
     bail!("electron-builder failed after retries")
 }
 
+/// Runs only for a signed build, after `macos_signing_mode` confirmed every signing variable is set.
 fn validate_macos_signing_env() -> Result<PathBuf> {
-    let missing = ["APPLE_ID", "APPLE_APP_SPECIFIC_PASSWORD", "APPLE_TEAM_ID"]
-        .into_iter()
-        .filter(|name| env_string(name).is_none())
-        .collect::<Vec<_>>();
-    ensure!(
-        missing.is_empty(),
-        "Missing macOS notarization environment variables: {}. APPLE_ID maps to repo secret APPLE_ID; APPLE_APP_SPECIFIC_PASSWORD maps to APPLE_PASSWORD; APPLE_TEAM_ID maps to APPLE_TEAM_ID.",
-        missing.join(" ")
-    );
-
     let keychain = require_home()?.join("Library/Keychains/osaca-build.keychain-db");
     ensure!(
         keychain.exists(),
@@ -2697,43 +2701,47 @@ fn verify_bundle_id_step() -> Result<()> {
         info_plist.to_string_lossy().as_ref(),
     ]))?;
 
-    let expected = if build_channel == "canary" {
-        "app.osaca.canary"
-    } else {
-        "app.osaca"
-    };
-    let expected_profile = if build_channel == "canary" {
-        "3G5837T29K.app.osaca.canary"
-    } else {
-        "3G5837T29K.app.osaca"
-    };
+    let expected = macos_bundle_id(&build_channel);
     println!("Bundle id in zip: {bid} (expected: {expected})");
     ensure!(bid == expected, "Unexpected bundle id: {bid}");
+    let signed = macos_signing_mode()? == SigningMode::Signed;
+    let expected_profile = if signed {
+        macos_profile_app_id(&require_env("APPLE_TEAM_ID")?, &build_channel)
+    } else {
+        String::new()
+    };
     ensure!(
-        profile.exists(),
-        "Missing provisioning profile: {}",
+        signed || !profile.exists(),
+        "Unsigned build carries a provisioning profile: {}",
         profile.display()
     );
+    if signed {
+        ensure!(
+            profile.exists(),
+            "Missing provisioning profile: {}",
+            profile.display()
+        );
 
-    let decoded_profile = temp.path().join("embedded.provisionprofile.plist");
-    let decoded = output_bytes(CommandSpec::new("security").args([
-        "cms",
-        "-D",
-        "-i",
-        profile.to_string_lossy().as_ref(),
-    ]))?;
-    fs::write(&decoded_profile, decoded)
-        .with_context(|| format!("Failed to write {}", decoded_profile.display()))?;
-    let profile_app_id = output_text(CommandSpec::new("/usr/libexec/PlistBuddy").args([
-        "-c",
-        "Print :Entitlements:com.apple.application-identifier",
-        decoded_profile.to_string_lossy().as_ref(),
-    ]))?;
-    println!("Provisioning profile app id: {profile_app_id} (expected: {expected_profile})");
-    ensure!(
-        profile_app_id == expected_profile,
-        "Unexpected provisioning profile app id: {profile_app_id}"
-    );
+        let decoded_profile = temp.path().join("embedded.provisionprofile.plist");
+        let decoded = output_bytes(CommandSpec::new("security").args([
+            "cms",
+            "-D",
+            "-i",
+            profile.to_string_lossy().as_ref(),
+        ]))?;
+        fs::write(&decoded_profile, decoded)
+            .with_context(|| format!("Failed to write {}", decoded_profile.display()))?;
+        let profile_app_id = output_text(CommandSpec::new("/usr/libexec/PlistBuddy").args([
+            "-c",
+            "Print :Entitlements:com.apple.application-identifier",
+            decoded_profile.to_string_lossy().as_ref(),
+        ]))?;
+        println!("Provisioning profile app id: {profile_app_id} (expected: {expected_profile})");
+        ensure!(
+            profile_app_id == expected_profile,
+            "Unexpected provisioning profile app id: {profile_app_id}"
+        );
+    }
 
     for (rel, expected_macho_arch) in macos_native_runtime_targets(&electron_arch) {
         let native_file = app
@@ -2751,6 +2759,10 @@ fn verify_bundle_id_step() -> Result<()> {
         check_macho_arch(&native_file, expected_macho_arch)?;
     }
 
+    if !signed {
+        println!("macOS build is unsigned; skipping codesign, stapler and Gatekeeper checks.");
+        return Ok(());
+    }
     run_command(CommandSpec::new("codesign").args([
         "--verify",
         "--deep",
@@ -2822,6 +2834,7 @@ fn check_macho_arch(file: &Path, expected: &str) -> Result<()> {
     Ok(())
 }
 
+const WINDOWS_SIGNER_COMMON_NAME_ENV: &str = "OSACA_WINDOWS_SIGNER_COMMON_NAME";
 const WINDOWS_SIGNING_ENV: &[&str] = &[
     "AZURE_CLIENT_ID",
     "AZURE_TENANT_ID",
@@ -2829,7 +2842,119 @@ const WINDOWS_SIGNING_ENV: &[&str] = &[
     "AZURE_ARTIFACT_SIGNING_ENDPOINT",
     "AZURE_ARTIFACT_SIGNING_ACCOUNT_NAME",
     "AZURE_ARTIFACT_SIGNING_CERTIFICATE_PROFILE_NAME",
+    WINDOWS_SIGNER_COMMON_NAME_ENV,
 ];
+const MACOS_SIGNING_ENV: &[&str] = &[
+    "APPLE_ID",
+    "APPLE_APP_SPECIFIC_PASSWORD",
+    "APPLE_TEAM_ID",
+    "OSACA_MACOS_PROVISIONING_PROFILE",
+];
+/// Which platforms a release was built signed, e.g. `macos,windows`. The workflow sets it once OSACA has
+/// certificates; the release job has no signing secrets of its own to infer it from.
+const SIGNED_PLATFORMS_ENV: &str = "OSACA_DESKTOP_SIGNED_PLATFORMS";
+
+/// OSACA has no code-signing certificates yet, so signing is opt-in per platform: it signs only when every
+/// one of that platform's signing variables is set, and a partial set is refused rather than guessed.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum SigningMode {
+    Signed,
+    Unsigned,
+}
+
+pub(crate) fn signing_mode(
+    platform: &str,
+    names: &[&str],
+    lookup: impl Fn(&str) -> Option<String>,
+) -> Result<SigningMode> {
+    let missing = names
+        .iter()
+        .copied()
+        .filter(|name| lookup(name).is_none())
+        .collect::<Vec<_>>();
+    if missing.is_empty() {
+        return Ok(SigningMode::Signed);
+    }
+    ensure!(
+        missing.len() == names.len(),
+        "{platform} signing is only partly configured; missing {}. Set every one of {} to sign, or none of them to build unsigned.",
+        missing.join(" "),
+        names.join(" ")
+    );
+    Ok(SigningMode::Unsigned)
+}
+
+/// Development builds are never signed, matching electron-builder.config.cjs.
+fn macos_signing_mode_for(
+    build_channel: &str,
+    lookup: impl Fn(&str) -> Option<String>,
+) -> Result<SigningMode> {
+    if build_channel == "development" {
+        return Ok(SigningMode::Unsigned);
+    }
+    signing_mode("macOS", MACOS_SIGNING_ENV, lookup)
+}
+
+pub(crate) fn macos_signing_mode() -> Result<SigningMode> {
+    let build_channel = env::var("BUILD_CHANNEL").unwrap_or_else(|_| "stable".to_string());
+    macos_signing_mode_for(&build_channel, env_string)
+}
+
+/// The macOS and Windows signing modes a release declares through `OSACA_DESKTOP_SIGNED_PLATFORMS`.
+pub(crate) fn released_signing_modes(
+    lookup: impl Fn(&str) -> Option<String>,
+) -> Result<(SigningMode, SigningMode)> {
+    let mut macos = SigningMode::Unsigned;
+    let mut windows = SigningMode::Unsigned;
+    for platform in lookup(SIGNED_PLATFORMS_ENV)
+        .unwrap_or_default()
+        .split(',')
+        .map(str::trim)
+        .filter(|platform| !platform.is_empty())
+    {
+        match platform {
+            "macos" => macos = SigningMode::Signed,
+            "windows" => windows = SigningMode::Signed,
+            other => bail!(
+                "{SIGNED_PLATFORMS_ENV} names an unknown platform: {other} (use macos, windows)"
+            ),
+        }
+    }
+    Ok((macos, windows))
+}
+
+pub(crate) fn windows_signing_mode() -> Result<SigningMode> {
+    signing_mode("Windows", WINDOWS_SIGNING_ENV, env_string)
+}
+
+/// Text for the release notes when at least one platform ships unsigned.
+pub(crate) fn unsigned_release_notice(macos: SigningMode, windows: SigningMode) -> Option<String> {
+    let unsigned = [("macOS", macos), ("Windows", windows)]
+        .into_iter()
+        .filter(|(_, mode)| *mode == SigningMode::Unsigned)
+        .map(|(name, _)| name)
+        .collect::<Vec<_>>();
+    let apps = match unsigned.as_slice() {
+        [] => return None,
+        [one] => format!("The {one} app is"),
+        many => format!("The {} apps are", many.join(" and ")),
+    };
+    Some(format!(
+        "**Unsigned build.** {apps} not signed: OSACA has no code-signing certificate yet, so the operating system warns before the first launch."
+    ))
+}
+
+fn macos_bundle_id(build_channel: &str) -> &'static str {
+    if build_channel == "canary" {
+        "app.osaca.canary"
+    } else {
+        "app.osaca"
+    }
+}
+
+fn macos_profile_app_id(team_id: &str, build_channel: &str) -> String {
+    format!("{team_id}.{}", macos_bundle_id(build_channel))
+}
 const VELOPACK_TRUSTED_SIGN_FILE_ENV: &str = "VELOPACK_TRUSTED_SIGN_FILE";
 const TRUSTED_SIGNING_EXCLUDED_CREDENTIALS: &[&str] = &[
     "ManagedIdentityCredential",
@@ -2843,20 +2968,16 @@ const TRUSTED_SIGNING_EXCLUDED_CREDENTIALS: &[&str] = &[
 ];
 
 fn validate_windows_signing_inputs_step() -> Result<()> {
-    let missing = WINDOWS_SIGNING_ENV
-        .iter()
-        .copied()
-        .filter(|name| env_string(name).is_none())
-        .collect::<Vec<_>>();
-    ensure!(
-        missing.is_empty(),
-        "Missing Windows code signing environment variables: {}. Windows releases are always signed; every Azure Trusted Signing input is mandatory and there is no unsigned fallback.",
-        missing.join(" ")
-    );
-    println!(
-        "Windows code signing inputs present: {}",
-        WINDOWS_SIGNING_ENV.join(" ")
-    );
+    match windows_signing_mode()? {
+        SigningMode::Signed => println!(
+            "Windows code signing inputs present: {}",
+            WINDOWS_SIGNING_ENV.join(" ")
+        ),
+        SigningMode::Unsigned => println!(
+            "Windows build is unsigned: no code signing inputs are set ({}).",
+            WINDOWS_SIGNING_ENV.join(" ")
+        ),
+    }
     Ok(())
 }
 
@@ -2878,6 +2999,10 @@ fn windows_trusted_signing_metadata_path() -> PathBuf {
 
 fn write_windows_signing_metadata_step() -> Result<()> {
     validate_windows_signing_inputs_step()?;
+    if windows_signing_mode()? == SigningMode::Unsigned {
+        println!("Skipping Trusted Signing metadata for an unsigned Windows build.");
+        return Ok(());
+    }
     let metadata = TrustedSigningMetadata {
         endpoint: require_env("AZURE_ARTIFACT_SIGNING_ENDPOINT")?,
         code_signing_account_name: require_env("AZURE_ARTIFACT_SIGNING_ACCOUNT_NAME")?,
@@ -2991,23 +3116,32 @@ fn package_app_windows_velopack_step() -> Result<()> {
         )
     })?;
     let vpk = find_velopack_cli()?;
-    let trusted_sign_file = PathBuf::from(require_env(VELOPACK_TRUSTED_SIGN_FILE_ENV).context(
-        "Velopack packaging requires the Trusted Signing metadata written by the write_windows_signing_metadata step. Windows packages are never produced unsigned.",
-    )?);
-    ensure!(
-        trusted_sign_file.is_file(),
-        "Velopack Trusted Signing metadata file is missing: {}",
-        trusted_sign_file.display()
-    );
+    let trusted_sign_file = match windows_signing_mode()? {
+        SigningMode::Unsigned => None,
+        SigningMode::Signed => {
+            let path = PathBuf::from(require_env(VELOPACK_TRUSTED_SIGN_FILE_ENV).context(
+                "Signed Velopack packaging requires the Trusted Signing metadata written by the write_windows_signing_metadata step.",
+            )?);
+            ensure!(
+                path.is_file(),
+                "Velopack Trusted Signing metadata file is missing: {}",
+                path.display()
+            );
+            Some(path)
+        }
+    };
     let packaged = pack_and_validate_windows_velopack(
         &vpk,
         &config,
         &version,
         &arch,
         &pack_dir,
-        &trusted_sign_file,
+        trusted_sign_file.as_deref(),
     );
-    let metadata_removed = remove_file_if_exists(&trusted_sign_file);
+    let metadata_removed = match &trusted_sign_file {
+        Some(path) => remove_file_if_exists(path),
+        None => Ok(()),
+    };
     packaged?;
     metadata_removed?;
     print_directory(&config.output_dir)
@@ -3019,11 +3153,13 @@ fn pack_and_validate_windows_velopack(
     version: &str,
     arch: &str,
     pack_dir: &Path,
-    trusted_sign_file: &Path,
+    trusted_sign_file: Option<&Path>,
 ) -> Result<()> {
-    ensure_velopack_pack_supports(vpk, &["--azureTrustedSignFile"])?;
+    if trusted_sign_file.is_some() {
+        ensure_velopack_pack_supports(vpk, &["--azureTrustedSignFile"])?;
+    }
 
-    run_command(CommandSpec::new(vpk).args([
+    let mut command = CommandSpec::new(vpk).args([
         "--yes",
         "pack",
         "--packId",
@@ -3037,7 +3173,7 @@ fn pack_and_validate_windows_velopack(
         "--packTitle",
         config.pack_title,
         "--packAuthors",
-        "Fluxer Platform AB",
+        "OSACA contributors",
         "--shortcuts",
         "Desktop,StartMenu",
         "--runtime",
@@ -3048,9 +3184,11 @@ fn pack_and_validate_windows_velopack(
         config.output_dir.to_string_lossy().as_ref(),
         "--delta",
         "None",
-        "--azureTrustedSignFile",
-        trusted_sign_file.to_string_lossy().as_ref(),
-    ]))?;
+    ]);
+    if let Some(path) = trusted_sign_file {
+        command = command.args(["--azureTrustedSignFile", path.to_string_lossy().as_ref()]);
+    }
+    run_command(command)?;
 
     validate_velopack_output(config, version, arch)?;
     remove_velopack_portable_archives(&config.output_dir)
@@ -3401,7 +3539,6 @@ fn create_portable_zip_windows_step() -> Result<()> {
     Ok(())
 }
 
-const OSACA_WINDOWS_SIGNER_COMMON_NAME: &str = "Fluxer Platform AB";
 const THIRD_PARTY_WINDOWS_SIGNATURE_ALLOWLIST: &[(&str, &str)] = &[
     (
         "d3dcompiler_47.dll",
@@ -4011,7 +4148,7 @@ fn certificate_common_name(subject: &str) -> Option<&str> {
         .find_map(|component| component.strip_prefix("CN="))
 }
 
-fn assert_osaca_signed(row: &SignatureRow) -> Result<()> {
+fn assert_osaca_signed(row: &SignatureRow, expected_common_name: &str) -> Result<()> {
     ensure!(
         row.status == "Valid",
         "Authenticode status is {} (expected Valid)",
@@ -4028,9 +4165,9 @@ fn assert_osaca_signed(row: &SignatureRow) -> Result<()> {
     let common_name = certificate_common_name(subject)
         .ok_or_else(|| anyhow!("Signer subject has no CN= component: {subject}"))?;
     ensure!(
-        common_name == OSACA_WINDOWS_SIGNER_COMMON_NAME,
+        common_name == expected_common_name,
         "Signer CN is '{common_name}', expected '{}' (thumbprint {})",
-        OSACA_WINDOWS_SIGNER_COMMON_NAME,
+        expected_common_name,
         row.thumbprint.as_deref().unwrap_or("unknown")
     );
     Ok(())
@@ -4062,7 +4199,7 @@ fn assert_third_party_signed(row: &SignatureRow, relative: &str) -> Result<()> {
 }
 
 fn assert_signed_by_known_publisher(row: &SignatureRow, relative: &str) -> Result<()> {
-    match assert_osaca_signed(row) {
+    match assert_osaca_signed(row, &require_env(WINDOWS_SIGNER_COMMON_NAME_ENV)?) {
         Ok(()) => Ok(()),
         Err(osaca_error) => assert_third_party_signed(row, relative)
             .map_err(|third_party_error| anyhow!("{osaca_error}; {third_party_error}")),
@@ -4264,6 +4401,10 @@ fn verify_windows_unpacked_signatures_step() -> Result<()> {
         "No .dll was detected as a PE file under {}; the exe,dll,node signing filter would have been a silent no-op.",
         pack_dir.display()
     );
+    if windows_signing_mode()? == SigningMode::Unsigned {
+        println!("Windows build is unsigned; skipping Authenticode verification of win-unpacked.");
+        return Ok(());
+    }
     let signtool = find_signtool()?;
     verify_windows_pe_signatures(&signtool, "win-unpacked", &pack_dir, &files)
 }
@@ -4373,6 +4514,10 @@ fn verify_windows_signed_artifacts_step() -> Result<()> {
         unverified_zips.join("\n")
     );
 
+    if windows_signing_mode()? == SigningMode::Unsigned {
+        println!("Windows build is unsigned; skipping Authenticode verification of the packages.");
+        return Ok(());
+    }
     let signtool = find_signtool()?;
     let root = short_extraction_root(&format!("{}-{version}-{arch}", config.pack_id));
     remove_dir_if_exists(&root)?;
@@ -7739,13 +7884,30 @@ mod tests {
         fs::write(path, contents).unwrap();
     }
 
-    const BUILD_DESKTOP_WORKFLOW: &str =
-        include_str!("../../../.github/workflows/build-desktop.yaml");
-    const BUILD_DESKTOP_MODULES_WORKFLOW: &str =
-        include_str!("../../../.github/workflows/build-desktop-modules.yaml");
+    /// The release workflows are not tracked in this repository, so the tests that read them skip when absent.
+    fn repo_workflow(name: &str) -> Option<&'static str> {
+        let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../.github/workflows")
+            .join(name);
+        match fs::read_to_string(&path) {
+            Ok(text) => Some(&*Box::leak(text.into_boxed_str())),
+            Err(_) => {
+                eprintln!("skipping: {} is not in this checkout", path.display());
+                None
+            }
+        }
+    }
+
+    fn desktop_workflows() -> Option<(&'static str, &'static str)> {
+        Some((
+            repo_workflow("build-desktop.yaml")?,
+            repo_workflow("build-desktop-modules.yaml")?,
+        ))
+    }
 
     fn workflow_job(job: &str) -> &'static str {
-        workflow_job_in(BUILD_DESKTOP_WORKFLOW, job)
+        let (desktop, _) = desktop_workflows().expect("callers skip when the workflows are absent");
+        workflow_job_in(desktop, job)
     }
 
     fn workflow_job_in(workflow: &'static str, job: &str) -> &'static str {
@@ -7765,6 +7927,9 @@ mod tests {
 
     #[test]
     fn the_job_handoff_travels_as_github_actions_artifacts() {
+        if desktop_workflows().is_none() {
+            return;
+        }
         let build = workflow_job("build");
         assert!(build.contains("--step stage_handoff"));
         assert!(build.contains("name: ${{ steps.handoff.outputs.artifact_name }}"));
@@ -7815,7 +7980,10 @@ mod tests {
 
     #[test]
     fn shell_contract_reaches_the_contract_check_in_both_workflows() {
-        for workflow in [BUILD_DESKTOP_WORKFLOW, BUILD_DESKTOP_MODULES_WORKFLOW] {
+        let Some((desktop, modules)) = desktop_workflows() else {
+            return;
+        };
+        for workflow in [desktop, modules] {
             let input = workflow
                 .split("\n      shell_contract:\n")
                 .nth(1)
@@ -7831,10 +7999,7 @@ mod tests {
         for (body, modules_only) in [
             (workflow_job("meta"), "false"),
             (workflow_job("upload"), "false"),
-            (
-                workflow_job_in(BUILD_DESKTOP_MODULES_WORKFLOW, "assemble"),
-                "true",
-            ),
+            (workflow_job_in(modules, "assemble"), "true"),
         ] {
             let check = workflow_step_index(body, "check_shell_contract");
             assert!(body.contains("fetch-depth: 0"), "{body}");
@@ -7866,7 +8031,7 @@ mod tests {
                     .unwrap()
         );
         assert!(check < workflow_step_index(upload, "build_module_manifest"));
-        let assemble = workflow_job_in(BUILD_DESKTOP_MODULES_WORKFLOW, "assemble");
+        let assemble = workflow_job_in(modules, "assemble");
         assert!(
             workflow_step_index(assemble, "check_shell_contract")
                 < workflow_step_index(assemble, "build_modules_only_manifest")
@@ -7875,7 +8040,10 @@ mod tests {
 
     #[test]
     fn both_desktop_workflows_share_one_concurrency_group() {
-        for workflow in [BUILD_DESKTOP_WORKFLOW, BUILD_DESKTOP_MODULES_WORKFLOW] {
+        let Some((desktop, modules)) = desktop_workflows() else {
+            return;
+        };
+        for workflow in [desktop, modules] {
             assert!(
                 workflow.contains(
                     "\nconcurrency:\n  group: desktop-${{ inputs.channel }}\n  cancel-in-progress: false\n"
@@ -8428,11 +8596,7 @@ mod tests {
 
         assert_eq!(
             removed.keys().map(String::as_str).collect::<Vec<_>>(),
-            vec![
-                "osaca_fonts_jp",
-                "osaca_grammar_rust",
-                "osaca_sourcemaps"
-            ]
+            vec!["osaca_fonts_jp", "osaca_grammar_rust", "osaca_sourcemaps"]
         );
         assert!(root.join("index.html").is_file());
         assert!(root.join("assets/main.js").is_file());
@@ -8664,5 +8828,142 @@ mod tests {
         let error = selected_platforms(&args).unwrap_err();
 
         assert!(error.to_string().contains("Unknown desktop skip target"));
+    }
+
+    fn signing_env(set: &[&str]) -> impl Fn(&str) -> Option<String> {
+        let set: Vec<String> = set.iter().map(|name| (*name).to_owned()).collect();
+        move |name| {
+            set.iter()
+                .any(|item| item == name)
+                .then(|| "value".to_owned())
+        }
+    }
+
+    #[test]
+    fn a_platform_without_signing_variables_builds_unsigned() {
+        assert_eq!(
+            signing_mode("macOS", MACOS_SIGNING_ENV, signing_env(&[])).unwrap(),
+            SigningMode::Unsigned
+        );
+        assert_eq!(
+            signing_mode("Windows", WINDOWS_SIGNING_ENV, signing_env(&[])).unwrap(),
+            SigningMode::Unsigned
+        );
+    }
+
+    #[test]
+    fn a_platform_with_every_signing_variable_builds_signed() {
+        assert_eq!(
+            signing_mode("macOS", MACOS_SIGNING_ENV, signing_env(MACOS_SIGNING_ENV)).unwrap(),
+            SigningMode::Signed
+        );
+        assert_eq!(
+            signing_mode(
+                "Windows",
+                WINDOWS_SIGNING_ENV,
+                signing_env(WINDOWS_SIGNING_ENV)
+            )
+            .unwrap(),
+            SigningMode::Signed
+        );
+    }
+
+    #[test]
+    fn a_partly_configured_platform_is_refused_and_names_what_is_missing() {
+        let error = signing_mode("macOS", MACOS_SIGNING_ENV, signing_env(&["APPLE_ID"]))
+            .unwrap_err()
+            .to_string();
+
+        assert!(error.contains("APPLE_TEAM_ID"), "{error}");
+        assert!(error.contains("APPLE_APP_SPECIFIC_PASSWORD"), "{error}");
+    }
+
+    #[test]
+    fn the_windows_signer_name_comes_from_the_signing_configuration() {
+        let row = SignatureRow {
+            path: "OSACA.exe".to_owned(),
+            status: "Valid".to_owned(),
+            subject: Some("CN=Inherited Publisher, O=Someone Else".to_owned()),
+            thumbprint: None,
+            ts_subject: Some("CN=Timestamp".to_owned()),
+        };
+
+        assert!(assert_osaca_signed(&row, "OSACA contributors").is_err());
+        assert!(assert_osaca_signed(&row, "Inherited Publisher").is_ok());
+    }
+
+    #[test]
+    fn the_macos_provisioning_profile_must_belong_to_the_signing_team() {
+        assert_eq!(
+            macos_profile_app_id("ABCDE12345", "stable"),
+            "ABCDE12345.app.osaca"
+        );
+        assert_eq!(
+            macos_profile_app_id("ABCDE12345", "canary"),
+            "ABCDE12345.app.osaca.canary"
+        );
+    }
+
+    #[test]
+    fn macos_signing_needs_the_provisioning_profile_too() {
+        let without_profile =
+            signing_env(&["APPLE_ID", "APPLE_APP_SPECIFIC_PASSWORD", "APPLE_TEAM_ID"]);
+        let error = macos_signing_mode_for("stable", without_profile)
+            .unwrap_err()
+            .to_string();
+
+        assert!(
+            error.contains("OSACA_MACOS_PROVISIONING_PROFILE"),
+            "{error}"
+        );
+    }
+
+    #[test]
+    fn development_builds_are_never_signed() {
+        assert_eq!(
+            macos_signing_mode_for("development", signing_env(MACOS_SIGNING_ENV)).unwrap(),
+            SigningMode::Unsigned
+        );
+        assert_eq!(
+            macos_signing_mode_for("canary", signing_env(MACOS_SIGNING_ENV)).unwrap(),
+            SigningMode::Signed
+        );
+    }
+
+    #[test]
+    fn the_release_job_reads_the_signed_platforms_it_is_told_about() {
+        let told = |value: &'static str| {
+            move |name: &str| (name == SIGNED_PLATFORMS_ENV).then(|| value.to_owned())
+        };
+
+        assert_eq!(
+            released_signing_modes(|_| None).unwrap(),
+            (SigningMode::Unsigned, SigningMode::Unsigned)
+        );
+        assert_eq!(
+            released_signing_modes(told("windows")).unwrap(),
+            (SigningMode::Unsigned, SigningMode::Signed)
+        );
+        assert_eq!(
+            released_signing_modes(told(" macos , windows ")).unwrap(),
+            (SigningMode::Signed, SigningMode::Signed)
+        );
+        assert!(released_signing_modes(told("linux")).is_err());
+    }
+
+    #[test]
+    fn an_unsigned_release_says_which_platforms_are_unsigned() {
+        assert_eq!(
+            unsigned_release_notice(SigningMode::Signed, SigningMode::Signed),
+            None
+        );
+        let both = unsigned_release_notice(SigningMode::Unsigned, SigningMode::Unsigned).unwrap();
+        assert!(both.contains("macOS") && both.contains("Windows"), "{both}");
+        assert!(both.contains("not signed"), "{both}");
+        let windows = unsigned_release_notice(SigningMode::Signed, SigningMode::Unsigned).unwrap();
+        assert!(
+            windows.contains("Windows") && !windows.contains("macOS"),
+            "{windows}"
+        );
     }
 }

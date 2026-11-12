@@ -20,11 +20,6 @@ const ALLOWED = [
 	['GLOSSARY.md', 'notes inherited identifiers that still say guild'],
 	['TESTING.md', 'phase F0 is named "Fluxer without surveillance" in ADR-0016'],
 	['docs/', 'architecture decisions and history (ADR-0001, technical survey)'],
-	['tools/ci/src/desktop.rs', 'inherited desktop signing identity; replacing it needs OSACA certificates'],
-	[
-		'osaca_desktop/build_resources/profiles/',
-		'inherited Apple provisioning profiles; same follow-up as desktop signing',
-	],
 	['tools/branding/', 'this inventory'],
 ];
 
@@ -137,6 +132,22 @@ describe('Fluxer reference inventory', () => {
 			assert.equal(icns.subarray(0, 4).toString('latin1'), 'icns', `${channel} icon is an ICNS file`);
 			assert.ok(icns.includes(artwork), `${channel} AppIcon.icns embeds icons-${channel}/1024x1024.png`);
 		}
+	});
+
+	it('vouches for no app signed with an inherited identity', () => {
+		// The Apple Team ID and Android signing certificates of the apps OSACA was forked from (issue #53).
+		const inherited = [
+			'3G5837T29K',
+			'91:E4:98:E1:B8:A6:C8:BA:99:41:5E:DB:29:78:29:6B:6C:58:BA:A5:E2:D2:A6:49:CE:C6:2D:A7:A8:29:C7:BC',
+			'2D:DE:2A:9D:3D:13:7C:17:87:31:3D:D8:BB:61:F4:59:3C:2A:97:18:05:B3:ED:F6:B8:39:B0:AA:D2:E7:76:C9',
+		];
+		const offenders = inherited.flatMap((value) =>
+			gitGrepFiles(value)
+				.filter(Boolean)
+				.filter((path) => !path.startsWith('tools/branding/'))
+				.map((path) => `${path}: ${value.slice(0, 12)}`),
+		);
+		assert.deepEqual(offenders, []);
 	});
 
 	it('keeps the ADR-0001 attribution in NOTICE', () => {

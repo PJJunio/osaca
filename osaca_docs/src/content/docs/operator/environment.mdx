@@ -950,6 +950,14 @@ Extra hostnames that serve the web app, separated by commas or spaces, with no s
 
 HTTPS origins with no path, separated by commas or spaces, that the app-proxy service adds to the `scope_extensions` list of the web app manifest. An installed web app keeps them inside its window. Each origin must serve `/.well-known/web-app-origin-association` for this web app. Invalid entries are logged and dropped. With rexctl, use `rexctl config set OSACA_APP_PROXY_MANIFEST_SCOPE_EXTENSIONS`.
 
+### `OSACA_APPLE_TEAM_ID`
+
+The 10-character Apple Team ID that signs your OSACA apps. The app-proxy service lists its apps in `/.well-known/apple-app-site-association` so they can use passkeys and saved passwords for this domain. When it's empty, the list is empty and the domain vouches for no app. With rexctl, use `rexctl config set OSACA_APPLE_TEAM_ID`.
+
+### `OSACA_ANDROID_CERT_FINGERPRINTS`
+
+SHA-256 fingerprints of the certificates that sign your OSACA Android apps, separated by commas, in the AA:BB:… form. The app-proxy service lists them in `/.well-known/assetlinks.json`. When it's empty, the file is an empty list and the domain vouches for no app. With rexctl, use `rexctl config set OSACA_ANDROID_CERT_FINGERPRINTS`.
+
 ### `OSACA_CSP_EXTRA_DEFAULT_SRC`
 
 Extra sources the app-proxy service adds to the default-src directive of the web app's Content-Security-Policy, separated by commas or spaces. Set one only when a browser must connect to an origin the built-in policy doesn't cover. With rexctl, use `rexctl config set OSACA_CSP_EXTRA_DEFAULT_SRC`.

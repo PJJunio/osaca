@@ -1,27 +1,19 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use crate::{mobile_apps, state::AppState};
 use axum::{
     Json,
+    extract::State,
     http::header,
     response::{IntoResponse, Response},
 };
-use serde_json::json;
 
-pub async fn apple_app_site_association() -> Response {
-    let body = json!({
-        "webcredentials": {
-            "apps": [
-                "3G5837T29K.app.osaca",
-                "3G5837T29K.app.osaca.canary",
-                "3G5837T29K.com.osaca",
-                "3G5837T29K.com.osaca.canary"
-            ]
-        }
-    });
-
+pub async fn apple_app_site_association(State(state): State<AppState>) -> Response {
     (
         [(header::CACHE_CONTROL, "public, max-age=1800")],
-        Json(body),
+        Json(mobile_apps::apple_app_site_association(
+            &state.config.mobile_apps,
+        )),
     )
         .into_response()
 }

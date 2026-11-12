@@ -21,14 +21,5 @@
     <true/>
     <key>com.apple.security.network.server</key>
     <true/>
-    <key>com.apple.application-identifier</key>
-    <string>3G5837T29K.app.osaca</string>
-    <key>com.apple.developer.associated-domains</key>
-    <array>
-        <string>webcredentials:osaca.example</string>
-        <string>webcredentials:web.osaca.example</string>
-        <string>webcredentials:osaca.example</string>
-        <string>webcredentials:canary.osaca.example</string>
-    </array>
 </dict>
 </plist>

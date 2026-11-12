@@ -14,7 +14,6 @@ import {AdminMessageShredService} from '@app/api/admin/services/AdminMessageShre
 import {AdminReportService} from '@app/api/admin/services/AdminReportService';
 import {AdminSearchService} from '@app/api/admin/services/AdminSearchService';
 import {AdminUserBanService} from '@app/api/admin/services/AdminUserBanService';
-import {AdminUserRelationshipService} from '@app/api/admin/services/AdminUserRelationshipService';
 import {AdminUserService} from '@app/api/admin/services/AdminUserService';
 import {AdminVoiceService} from '@app/api/admin/services/AdminVoiceService';
 import {ReporterResolutionNotifier} from '@app/api/admin/services/ReporterResolutionNotifier';
@@ -68,7 +67,6 @@ export class AdminService {
 	readonly assetPurgeService: AdminAssetPurgeService;
 	readonly applicationService: AdminApplicationService;
 	readonly jobAdminService: JobAdminService;
-	readonly relationshipService: AdminUserRelationshipService;
 
 	constructor(
 		private readonly apiContext: ApiContext,
@@ -231,11 +229,6 @@ export class AdminService {
 			guildRepository: this.guildRepository,
 		});
 		this.jobAdminService = new JobAdminService(this.jobLedger, worker);
-		this.relationshipService = new AdminUserRelationshipService({
-			apiContext: this.apiContext,
-			auditService: this.auditService,
-			userRelationshipService: this.runtimeUserService.relationshipService,
-		});
 	}
 
 	async sendSystemDm(

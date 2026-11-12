@@ -333,7 +333,6 @@ async function createAccountAfterSetupCheck(
 				global_name: userRow.global_name,
 				requested_at: now.toISOString(),
 				registration_url_id: registrationAccess.registrationUrl?.id ?? null,
-				client_ip: '',
 				invite_code: inviteCode || config.instance.autoJoinInviteCode || null,
 			});
 		}

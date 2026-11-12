@@ -27,7 +27,6 @@ impl AdminApiClient {
             .generated()
             .list_admin_users(
                 None,
-                None,
                 Some(limit.as_str()),
                 Some(offset.as_str()),
                 nonempty(query),
@@ -280,52 +279,6 @@ impl AdminApiClient {
             )
             .await?;
         Ok(resp.user)
-    }
-
-    pub async fn revoke_recovery_kit(&self, user_id: &str) -> ApiResult<()> {
-        self.generated()
-            .revoke_admin_user_recovery_kit(&snowflake(user_id))
-            .await
-            .map_err(|e| self.generated_error(e))?;
-        Ok(())
-    }
-
-    pub async fn delete_webauthn_credential(
-        &self,
-        user_id: &str,
-        credential_id: &str,
-    ) -> ApiResult<()> {
-        self.generated()
-            .delete_admin_user_webauthn_credential(&snowflake(user_id), credential_id)
-            .await
-            .map_err(|e| self.generated_error(e))?;
-        Ok(())
-    }
-
-    pub async fn list_user_change_log(
-        &self,
-        user_id: &str,
-        limit: Option<u32>,
-    ) -> ApiResult<super::types::ListUserChangeLogResponse> {
-        let limit = limit.unwrap_or(50).to_string();
-        let response = self
-            .generated()
-            .list_admin_user_change_log(&snowflake(user_id), Some(limit.as_str()), None)
-            .await
-            .map_err(|e| self.generated_error(e))?;
-        self.generated_value(response.into_inner())
-    }
-
-    pub async fn list_webauthn_credentials(
-        &self,
-        user_id: &str,
-    ) -> ApiResult<super::types::WebAuthnCredentialListResponse> {
-        let response = self
-            .generated()
-            .list_admin_user_webauthn_credentials(&snowflake(user_id))
-            .await
-            .map_err(|e| self.generated_error(e))?;
-        self.generated_value(response.into_inner())
     }
 
     pub async fn cancel_bulk_message_deletion(&self, user_id: &str) -> ApiResult<AdminUser> {

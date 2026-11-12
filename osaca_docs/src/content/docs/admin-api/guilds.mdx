@@ -333,7 +333,7 @@ The rate limit is 100 requests per minute, on the `admin:guild:modify` bucket.
 Deletes a guild with its channels, messages, attachments, invites and webhooks. You need `guild:delete`. Members get [Guild Delete](/gateway/events/#guild-delete).
 
 :::danger
-Deletion is immediate and can't be undone. [Create a guild archive](#create-guild-archive) first if you need the content.
+Deletion is immediate and can't be undone.
 :::
 
 ### JSON body
@@ -641,24 +641,3 @@ Stops a guild on the Gateway without touching stored data. You need `guild:shutd
 | 404 | [error response](/admin-api/#error-response) | `UNKNOWN_GUILD` when the guild doesn't exist |
 
 The rate limit is 100 requests per minute, on the `admin:guild:modify` bucket.
-
-## Create guild archive
-
-<RouteHeader method="POST" path="/v1/admin/guilds/{guild_id}/archives" auditReason />
-
-Starts building an archive of a guild's channels, messages, members, roles and settings. You need `archive:trigger:guild`. Check progress and download it through [Archives](/admin-api/archives/).
-
-### JSON body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| include_attachments? | boolean | Whether to include uploaded files (default false) |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | [archive](/admin-api/archives/#archive-object) object | The archive was queued |
-| 404 | [error response](/admin-api/#error-response) | `UNKNOWN_GUILD` when the guild doesn't exist |
-
-The rate limit is 200 requests per minute, on the `admin:lookup` bucket.

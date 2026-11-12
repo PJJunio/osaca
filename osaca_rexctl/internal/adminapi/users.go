@@ -15,9 +15,9 @@ import (
 
 const (
 	osacaEpochMillis = 1420070400000
-	userFlagDisabled  = uint64(1) << 38
-	userFlagDeleted   = uint64(1) << 34
-	listPageSize      = 100
+	userFlagDisabled = uint64(1) << 38
+	userFlagDeleted  = uint64(1) << 34
+	listPageSize     = 100
 )
 
 type User struct {
@@ -256,14 +256,6 @@ func (c *Client) CreateUser(ctx context.Context, username string, admin bool) (*
 	return &CreatedUser{User: toUser(resp.User), ResetLink: resp.PasswordReset.Url}, nil
 }
 
-func (c *Client) ResetLink(ctx context.Context, id string) (string, string, error) {
-	var resp AdminPasswordResetLinkResponse
-	if err := c.Call(ctx, http.MethodPost, userPath(id, "password-reset-link"), nil, nil, &resp); err != nil {
-		return "", "", err
-	}
-	return resp.Url, resp.ExpiresAt.UTC().Format(time.RFC3339), nil
-}
-
 func (c *Client) SignInLink(ctx context.Context, id string) (string, time.Time, error) {
 	var resp AdminSignInLinkResponse
 	if err := c.Call(ctx, http.MethodPost, userPath(id, "sign-in-link"), nil, nil, &resp); err != nil {
@@ -278,10 +270,6 @@ func (c *Client) SignOut(ctx context.Context, id string) (int, error) {
 		return 0, err
 	}
 	return int(resp.TerminatedCount), nil
-}
-
-func (c *Client) DisableMFA(ctx context.Context, id string) error {
-	return c.Call(ctx, http.MethodDelete, userPath(id, "mfa"), nil, nil, nil)
 }
 
 func (c *Client) SetAdmin(ctx context.Context, id string, admin bool) error {

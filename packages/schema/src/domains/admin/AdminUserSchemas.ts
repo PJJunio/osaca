@@ -12,7 +12,6 @@ import {
 	SkippedNetworkBlock,
 } from '@osaca/schema/src/domains/admin/EnforcementSchemas';
 import {AdminProfileBadgeResponse} from '@osaca/schema/src/domains/user/ProfileBadgeSchemas';
-import {NSFWLevelSchema} from '@osaca/schema/src/primitives/GuildValidators';
 import {createQueryIntegerType, QueryBooleanType} from '@osaca/schema/src/primitives/QueryValidators';
 import {
 	createBitflagStringType,
@@ -77,9 +76,6 @@ export const UserAdminResponseSchema = z.object({
 	account_tier: AccountTierSchema.describe('How far the account has got with setting up a way to sign in'),
 	authenticator_types: z.array(Int32Type).max(10),
 	last_active_at: z.string().nullable(),
-	last_active_ip: z.string().nullable(),
-	last_active_ip_reverse: z.string().nullable(),
-	last_active_location: z.string().nullable(),
 });
 
 export type UserAdminResponse = z.infer<typeof UserAdminResponseSchema>;
@@ -140,11 +136,8 @@ const UserSessionResponse = z.object({
 	session_id_hash: createStringType(8, 256).describe('Hashed session identifier (base64url)'),
 	created_at: z.string().describe('ISO timestamp when the session was created'),
 	approx_last_used_at: z.string().describe('ISO timestamp of the session last usage (approximate)'),
-	client_ip: createStringType(1, 64).describe('Client IP address'),
-	client_ip_reverse: z.string().nullable().describe('Reverse DNS hostname for the client IP (PTR), if available'),
 	client_os: z.string().nullable().describe('Client operating system, if detected'),
 	client_platform: z.string().nullable().describe('Client platform, if detected'),
-	client_location: z.string().nullable().describe('Approximate geo location label for the client IP, if available'),
 	app_platform: z.string().nullable().describe('Platform the native app last reported for this session'),
 	app_version: z.string().nullable().describe('App version the native app last reported for this session'),
 	app_release_channel: z.string().nullable().describe('Release channel the native app last reported for this session'),
@@ -191,56 +184,6 @@ export const ListAppSessionsResponse = z.object({
 
 export type ListAppSessionsResponse = z.infer<typeof ListAppSessionsResponse>;
 
-export const ListUserDmChannelsRequest = z
-	.object({
-		user_id: SnowflakeType.describe('ID of the user to list DM channels for'),
-		before: SnowflakeType.optional().describe('Return channels with IDs lower than this channel ID'),
-		after: SnowflakeType.optional().describe('Return channels with IDs higher than this channel ID'),
-		limit: z.number().int().min(1).max(200).default(50).describe('Maximum number of DM channels to return'),
-	})
-	.refine((value) => value.before === undefined || value.after === undefined, {
-		error: 'before and after cannot both be provided',
-	});
-
-export type ListUserDmChannelsRequest = z.infer<typeof ListUserDmChannelsRequest>;
-
-export type AdminResolvedUser = z.infer<typeof AdminResolvedUserSchema>;
-
-const AdminResolvedUserSchema = z.object({
-	id: SnowflakeStringType,
-	username: z.string(),
-	discriminator: z.string(),
-	global_name: z.string().nullable(),
-	avatar: z.string().nullable(),
-});
-
-const AdminUserDmChannelSchema = z.object({
-	channel_id: SnowflakeStringType,
-	channel_type: Int32Type.nullable(),
-	channel_nsfw: z.boolean().nullable(),
-	guild_nsfw_level: NSFWLevelSchema.nullable(),
-	recipient_ids: z.array(SnowflakeStringType).max(100),
-	recipients: z.array(AdminResolvedUserSchema).max(100),
-	last_message_id: SnowflakeStringType.nullable(),
-	is_open: z.boolean(),
-	name: z.string().nullable(),
-	icon: z.string().nullable(),
-	owner_id: SnowflakeStringType.nullable(),
-});
-
-const ListUserDmChannelsResponse = z.object({
-	channels: z.array(AdminUserDmChannelSchema).max(200),
-});
-export const ListUserGroupDmChannelsRequest = z.object({
-	user_id: SnowflakeType.describe('ID of the user to list group DM channels for'),
-});
-
-export type ListUserGroupDmChannelsRequest = z.infer<typeof ListUserGroupDmChannelsRequest>;
-
-const ListUserGroupDmChannelsResponse = z.object({
-	channels: z.array(AdminUserDmChannelSchema).max(500),
-});
-
 export const TerminateSessionsResponse = z.object({
 	terminated_count: Int32Type,
 });
@@ -258,12 +201,6 @@ const UpdateUserFlagsRequest = z.object({
 	add_flags: z.array(UserFlagValueType).max(64).default([]).describe('User flags to add'),
 	remove_flags: z.array(UserFlagValueType).max(64).default([]).describe('User flags to remove'),
 });
-
-export const DisableMfaRequest = z.object({
-	user_id: SnowflakeType.describe('ID of the user to disable MFA for'),
-});
-
-export type DisableMfaRequest = z.infer<typeof DisableMfaRequest>;
 
 export const CancelBulkMessageDeletionRequest = z.object({
 	user_id: SnowflakeType.describe('ID of the user to cancel bulk message deletion for'),
@@ -390,79 +327,6 @@ export const BulkScheduleUserDeletionRequest = z.object({
 
 export type BulkScheduleUserDeletionRequest = z.infer<typeof BulkScheduleUserDeletionRequest>;
 
-export const ListWebAuthnCredentialsRequest = z.object({
-	user_id: SnowflakeType.describe('ID of the user to list WebAuthn credentials for'),
-});
-
-export type ListWebAuthnCredentialsRequest = z.infer<typeof ListWebAuthnCredentialsRequest>;
-
-export const DeleteWebAuthnCredentialRequest = z.object({
-	user_id: SnowflakeType.describe('ID of the user who owns the credential'),
-	credential_id: createStringType(1, 512).describe('ID of the WebAuthn credential to delete'),
-});
-
-export type DeleteWebAuthnCredentialRequest = z.infer<typeof DeleteWebAuthnCredentialRequest>;
-
-export const ListUserChangeLogRequest = z.object({
-	user_id: SnowflakeType.describe('ID of the user to list change logs for'),
-	limit: z.number().int().min(1).max(200).default(50).describe('Maximum number of entries to return'),
-	page_token: z.string().optional().describe('Pagination token for the next page of results'),
-});
-
-export type ListUserChangeLogRequest = z.infer<typeof ListUserChangeLogRequest>;
-
-export const RelationshipCategoryEnum = z.enum(['friend', 'incoming_request', 'outgoing_request', 'blocked']);
-
-export type RelationshipCategory = z.infer<typeof RelationshipCategoryEnum>;
-
-export const ListUserRelationshipsRequest = z.object({
-	user_id: SnowflakeType.describe('ID of the user to list relationships for'),
-});
-
-export type ListUserRelationshipsRequest = z.infer<typeof ListUserRelationshipsRequest>;
-
-export const AdminRelationshipEntrySchema = z.object({
-	target_user_id: SnowflakeStringType,
-	category: RelationshipCategoryEnum,
-	nickname: z.string().nullable(),
-	since: z.string().nullable(),
-	target: AdminResolvedUserSchema.nullable(),
-});
-
-export type AdminRelationshipEntry = z.infer<typeof AdminRelationshipEntrySchema>;
-
-export const ListUserRelationshipsResponse = z.object({
-	friends: z.array(AdminRelationshipEntrySchema),
-	incoming_requests: z.array(AdminRelationshipEntrySchema),
-	outgoing_requests: z.array(AdminRelationshipEntrySchema),
-	blocked: z.array(AdminRelationshipEntrySchema),
-});
-
-export type ListUserRelationshipsResponse = z.infer<typeof ListUserRelationshipsResponse>;
-
-export const RemoveUserRelationshipRequest = z.object({
-	user_id: SnowflakeType.describe('ID of the user whose relationship is being removed'),
-	target_user_id: SnowflakeType.describe('ID of the other party in the relationship'),
-	category: RelationshipCategoryEnum.describe(
-		'Which relationship to remove. Friend and outgoing_request also remove the mirror entry on the target user.',
-	),
-});
-
-export type RemoveUserRelationshipRequest = z.infer<typeof RemoveUserRelationshipRequest>;
-
-export const RemoveUserRelationshipsByCategoryRequest = z.object({
-	user_id: SnowflakeType.describe('ID of the user to bulk-remove relationships for'),
-	category: RelationshipCategoryEnum.describe('Category of relationships to remove for this user'),
-});
-
-export type RemoveUserRelationshipsByCategoryRequest = z.infer<typeof RemoveUserRelationshipsByCategoryRequest>;
-
-export const RemoveUserRelationshipsResponse = z.object({
-	removed_count: Int32Type,
-});
-
-export type RemoveUserRelationshipsResponse = z.infer<typeof RemoveUserRelationshipsResponse>;
-
 export const AdminAclListResponse = z.object({
 	acls: z
 		.array(createStringType(1, 64))
@@ -479,9 +343,6 @@ export const AdminUserListQuery = z.object({
 		.optional()
 		.describe('Restrict the results to these users. Repeat the parameter to pass more than one.'),
 	resolve: createStringType(1, 1024).optional().describe('Resolve one exact identifier: a username or a user ID'),
-	last_active_ip: createStringType(1, 64)
-		.optional()
-		.describe('Restrict the results to the users whose last active IP address matches this one exactly'),
 	acl: AdminAclType.optional().describe(
 		'Restrict the results to the users granted this admin permission, ordered by user ID. Pass * to list the admins with full access',
 	),
@@ -530,28 +391,6 @@ export const AdminUserDmChannelListQuery = z
 	});
 
 export type AdminUserDmChannelListQuery = z.infer<typeof AdminUserDmChannelListQuery>;
-
-export const AdminUserChangeLogQuery = z.object({
-	limit: createQueryIntegerType({defaultValue: 50, minValue: 1, maxValue: 200}).describe(
-		'Maximum number of entries to return',
-	),
-	page_token: createStringType(1, 64).optional().describe('Pagination token for the next page of results'),
-});
-
-export type AdminUserChangeLogQuery = z.infer<typeof AdminUserChangeLogQuery>;
-
-export const AdminUserRelationshipCategoryQuery = z.object({
-	category: RelationshipCategoryEnum.describe('Category of relationships the operation applies to'),
-});
-
-export type AdminUserRelationshipCategoryQuery = z.infer<typeof AdminUserRelationshipCategoryQuery>;
-
-export const AdminUserRelationshipParam = z.object({
-	user_id: SnowflakeType.describe('The ID of the user'),
-	target_user_id: SnowflakeType.describe('The ID of the target user'),
-});
-
-export type AdminUserRelationshipParam = z.infer<typeof AdminUserRelationshipParam>;
 
 export const AdminUserWebAuthnCredentialParam = z.object({
 	user_id: SnowflakeType.describe('The ID of the user'),
@@ -624,7 +463,3 @@ export type AdminUserTraitsRequest = z.infer<typeof AdminUserTraitsRequest>;
 export const AdminUserFlagsUpdateRequest = UpdateUserFlagsRequest.omit({user_id: true});
 
 export type AdminUserFlagsUpdateRequest = z.infer<typeof AdminUserFlagsUpdateRequest>;
-
-export const AdminUserDmChannelListResponse = z.union([ListUserDmChannelsResponse, ListUserGroupDmChannelsResponse]);
-
-export type AdminUserDmChannelListResponse = z.infer<typeof AdminUserDmChannelListResponse>;

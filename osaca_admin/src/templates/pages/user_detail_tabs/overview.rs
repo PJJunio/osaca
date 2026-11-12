@@ -3,8 +3,7 @@
 use crate::{
     acl, admin_flags,
     api::types::{
-        AdminUser, BadgeAssignment, CustomBadgeType, LimitConfigResponse,
-        ListUserChangeLogResponse, account_tier_label,
+        AdminUser, BadgeAssignment, CustomBadgeType, LimitConfigResponse, account_tier_label,
     },
     config::AdminConfig,
     templates::components::{
@@ -26,7 +25,6 @@ use maud::{Markup, html};
 
 #[derive(Default)]
 pub struct OverviewSources<'a> {
-    pub change_log: Option<&'a ListUserChangeLogResponse>,
     pub limit_config: Option<&'a LimitConfigResponse>,
     pub custom_badges: Option<&'a BadgeAssignment>,
 }
@@ -36,13 +34,15 @@ pub fn overview_tab(
     user: &AdminUser,
     admin_acls: &[String],
     csrf_token: &str,
-    change_log: Option<&ListUserChangeLogResponse>,
 ) -> Markup {
-    let sources = OverviewSources {
-        change_log,
-        ..OverviewSources::default()
-    };
-    render_overview_tab(config, user, admin_acls, csrf_token, &sources, false)
+    render_overview_tab(
+        config,
+        user,
+        admin_acls,
+        csrf_token,
+        &OverviewSources::default(),
+        false,
+    )
 }
 
 pub fn overview_tab_with_sources(
@@ -64,7 +64,6 @@ fn render_overview_tab(
     show_traits: bool,
 ) -> Markup {
     let OverviewSources {
-        change_log,
         limit_config,
         custom_badges,
     } = *sources;
@@ -186,36 +185,6 @@ fn render_overview_tab(
                 @if let Some(badges) = custom_badges {
                     (custom_badges_card(config, user, admin_acls, csrf_token, badges))
                 }
-            }
-            @if acl::has_permission(admin_acls, acl::USER_VIEW_CONTACT_LOG) {
-                (card_with_header("Contact Change Log", html! {
-                    @if let Some(log) = change_log {
-                        @if log.entries.is_empty() {
-                            p class="text-sm text-neutral-500" { "No contact changes recorded." }
-                        } @else {
-                            dl class="divide-y divide-neutral-100" {
-                                @for entry in &log.entries {
-                                    div class="py-3 text-sm" {
-                                        dt class="font-medium text-neutral-900" {
-                                            (entry.field)
-                                            span class="ml-2 font-normal text-xs text-neutral-500" { (format_admin_timestamp(&entry.event_at)) }
-                                        }
-                                        dd class="mt-1 font-mono text-xs text-neutral-700" {
-                                            (entry.old_value.as_deref().unwrap_or("null"))
-                                            " \u{2192} "
-                                            (entry.new_value.as_deref().unwrap_or("null"))
-                                        }
-                                        @if let Some(ref reason) = entry.reason {
-                                            dd class="text-xs text-neutral-500" { (reason) }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } @else {
-                        p class="text-sm text-red-700" { "Failed to load change log." }
-                    }
-                }))
             }
         }
     }

@@ -46,7 +46,7 @@ describe('admin panel operational scope (ADR-0010)', () => {
 	});
 
 	it('offers no MFA reset or Account recovery (the Operator cannot recover an Account)', () => {
-		assert.deepEqual(offenders(/disable_mfa|password_reset/), []);
+		assert.deepEqual(offenders(/disable_mfa|password_reset|revoke_recovery_kit|webauthn_credential/), []);
 	});
 
 	it('offers no search of Accounts by IP address', () => {

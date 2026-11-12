@@ -477,7 +477,6 @@ export const PendingRegistrationResponse = z.object({
 	global_name: z.string().nullable(),
 	requested_at: z.iso.datetime(),
 	registration_url_id: createStringType(1, 128).nullable(),
-	client_ip: z.string().nullable(),
 	invite_code: createStringType(0, 256).nullable(),
 });
 export type PendingRegistrationResponse = z.infer<typeof PendingRegistrationResponse>;

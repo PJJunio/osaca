@@ -5,29 +5,11 @@ import {
 	MessageDeletionBasis,
 	ModerationBasis,
 } from '@osaca/schema/src/domains/admin/EnforcementSchemas';
-import {FilenameType} from '@osaca/schema/src/primitives/FileValidators';
 import {createQueryIntegerType} from '@osaca/schema/src/primitives/QueryValidators';
 import {Int32Type, SnowflakeStringType, SnowflakeType} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
 const FALSE_QUERY_VALUES = ['false', 'False', '0'];
-
-export const LookupMessageRequest = z.object({
-	channel_id: SnowflakeType,
-	message_id: SnowflakeType,
-	context_limit: z.number().int().min(1).max(100).default(50),
-});
-
-export type LookupMessageRequest = z.infer<typeof LookupMessageRequest>;
-
-export const LookupMessageByAttachmentRequest = z.object({
-	channel_id: SnowflakeType,
-	attachment_id: SnowflakeType,
-	filename: FilenameType,
-	context_limit: z.number().int().min(1).max(100).default(50),
-});
-
-export type LookupMessageByAttachmentRequest = z.infer<typeof LookupMessageByAttachmentRequest>;
 
 export const AdminMessageDeleteRequest = z.object({
 	basis: MessageDeletionBasis,

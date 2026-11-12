@@ -10,15 +10,13 @@ When someone forgets their password, they use their recovery kit. The app shows 
 
 ## Lost passwords
 
-You can create a reset link for someone who has lost their password and their recovery kit.
+You can't reset another person's password or recover their account. Someone who has lost both their password and their recovery kit has lost the account and makes a new one.
+
+If you lose access to your own admin account, run this on the machine. It prints a link that signs the admin in once, and it works only for accounts with full admin access.
 
 ```sh
-rexctl users reset-link alex
+rexctl admins sign-in-link you
 ```
-
-The link works once and expires after an hour, and anyone who has it can set a new password for the account. Send it to the person over a channel you trust. Creating the link deletes their recovery kit, and they can make a new one in their account settings.
-
-If you lose access to your own admin account, `rexctl users reset-link` works on the machine without signing in.
 
 ## More settings
 

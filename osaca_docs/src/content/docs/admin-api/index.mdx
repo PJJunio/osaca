@@ -42,9 +42,6 @@ Each route needs one or more ACLs, and the caller needs at least one of them. Th
 | application:lookup | Reads [Admin application](/admin-api/applications/) resources and lists the applications whose bots are in a guild |
 | application:list:by_owner | Lists the applications one account owns |
 | application:transfer_ownership | Transfers OAuth2 application ownership |
-| archive:trigger:guild | Creates and reads guild [archives](/admin-api/archives/) |
-| archive:trigger:user | Creates and reads user archives |
-| archive:view_all | Reads and downloads archives |
 | asset:purge | Reads a guild's emojis and stickers, and purges guild media assets |
 | audit_log:view | Reads the [Admin audit log](#admin-audit-entry-object) |
 | admin:authenticate | Lets the account use the Admin API, and is enough for [List ACLs](#list-acls) and [Get current Admin user](/admin-api/users/#get-current-admin-user) |
@@ -107,7 +104,7 @@ Each route needs one or more ACLs, and the caller needs at least one of them. Th
 | instance:limit_config:view | Reads the instance-wide limit configuration |
 | message:delete_all | Queues deletion of every message one account sent, and deletes a [thread](/admin-api/threads/#delete-thread) |
 | message:delete | Deletes one message |
-| message:lookup | Reads, browses and searches [messages](/admin-api/messages/) through the Admin API |
+| message:lookup | Reads the content of reported messages in [enforcement](/admin-api/enforcement/) evidence |
 | message:shred | Queues an explicit message shred job and reads its state |
 | registration:review | Reads and decides [pending registrations](/admin-api/instance/#list-pending-registrations) |
 | report:delete | Deletes a [report](/admin-api/reports/#delete-report) with its stored evidence |
@@ -116,22 +113,15 @@ Each route needs one or more ACLs, and the caller needs at least one of them. Th
 | report:view:reporter_pii | Unredacts the contact fields a reporter supplied |
 | system_dm:send | Sends an official direct message from the instance to one or many accounts |
 | user:cancel:bulk_message_deletion | Cancels the bulk message deletion an account scheduled for itself |
-| user:create:password_reset_link | Creates a password reset link on an instance where members sign in with a username |
-| user:delete:recovery_kit | Revokes a recovery kit on an instance where members sign in with a username |
 | user:delete | Schedules or cancels account deletion |
-| user:list:dm_channels | Reads a user's direct message and group direct message channels |
 | user:list:guilds | Reads a user's guild memberships |
-| user:list:relationships | Reads a user's relationships |
 | user:list:sessions | Reads a user's login sessions and lists app sessions by platform |
 | user:lookup | Reads and searches the base Admin [user](/admin-api/users/) resource |
-| user:remove:relationship | Removes one relationship or every relationship in one category |
-| user:view:contact_log | Reads a user's tag change log |
-| user:view:ip | Unredacts the last active IP address and the location derived from it |
+| user:view:ip | Blocks the networks an account used, through `block_networks` on an [enforcement decision](/admin-api/enforcement/#network-blocks) |
 | user:temp_ban | Suspends accounts and lifts suspensions |
 | user:update:badges | Replaces the custom badges of an account |
 | user:update:bot_status | Updates bot and system account state |
 | user:update:flags | Updates account flags, and ends every login session of an account |
-| user:update:mfa | Reads and removes a user's WebAuthn credentials, and removes MFA state |
 | user:update:profile | Clears profile fields |
 | user:update:traits | Replaces account traits |
 | user:update:username | Updates usernames and discriminators |
@@ -292,7 +282,7 @@ Expect values that aren't in this table.
 
 ### Audit actions
 
-Expect values that aren't in these tables.
+Expect values that aren't in these tables. Entries marked "no longer recorded" come from tools ADR-0010 removed and appear only in older logs.
 
 #### Read actions
 
@@ -303,8 +293,8 @@ These entries have `access` set to `read`.
 | check_blocklist_entry | A value was checked against a blocklist |
 | get_admin_api_key | An Admin API key was read |
 | get_application | An application was read |
-| get_archive | An archive was read |
-| get_archive_download_url | A download URL for an archive was issued |
+| get_archive | An archive was read. No longer recorded |
+| get_archive_download_url | A download URL for an archive was issued. No longer recorded |
 | get_audit_log | An Admin audit entry was read |
 | get_gateway_stats | Gateway node statistics were read |
 | get_guild | A guild was read |
@@ -320,7 +310,7 @@ These entries have `access` set to `read`.
 | list_admin_acls | The Admin ACL registry was read |
 | list_admin_api_keys | The acting Admin's API keys were listed |
 | list_app_sessions | Active app sessions were listed for one platform and release channel |
-| list_archives | Archives were listed |
+| list_archives | Archives were listed. No longer recorded |
 | list_audit_logs | A page of the Admin audit log was read |
 | list_badges | The custom badges were listed |
 | list_blocklist_entries | A page of blocklist entries was read |
@@ -338,23 +328,23 @@ These entries have `access` set to `read`.
 | list_guild_memory_stats | Guild memory statistics were listed |
 | list_guild_stickers | The stickers of a guild were listed |
 | list_guild_threads | The threads of a guild were listed |
-| list_network_block_candidates | The networks an account used in the last 30 days were listed, with how many other accounts share each |
+| list_network_block_candidates | The networks an account used in the last 30 days were listed, with how many other accounts share each. No longer recorded |
 | list_pending_registrations | Pending registrations were read |
 | list_report_notes | The internal notes on a report were listed |
 | list_report_reasons | The report reason catalog was listed |
 | list_user_applications | The applications an account owns were read |
-| list_user_change_log | The contact change log of an account was read |
-| list_user_dm_channels | The direct message channels of an account were read |
+| list_user_change_log | The contact change log of an account was read. No longer recorded |
+| list_user_dm_channels | The direct message channels of an account were read. No longer recorded |
 | list_user_guilds | The guild memberships of an account were read |
-| list_user_relationships | The relationships of an account were read |
+| list_user_relationships | The relationships of an account were read. No longer recorded |
 | list_user_sessions | An account's login sessions were read |
 | list_voice_join_tokens | Voice join tokens were listed |
 | list_voice_regions | Voice regions were listed |
 | list_voice_servers | The voice servers of a region were listed |
-| list_webauthn_credentials | An account's WebAuthn credentials were read |
+| list_webauthn_credentials | An account's WebAuthn credentials were read. No longer recorded |
 | search_audit_logs | The Admin audit log was searched |
 | search_guilds | Guilds were listed or searched |
-| search_messages | The messages of a channel were searched, or one message was looked up |
+| search_messages | The messages of a channel were searched, or one message was looked up. No longer recorded |
 | search_reports | Reports were listed or searched |
 | search_users | Accounts were listed or searched |
 | view_enforcement_decision | An enforcement decision was read |
@@ -394,7 +384,7 @@ These entries have `access` set to `write`.
 | clear_role_icon | The icon of a guild role was cleared |
 | create_admin_api_key | An Admin API key was created |
 | create_badge | A custom badge was made |
-| create_password_reset_link | A password reset link was created for an account |
+| create_password_reset_link | A password reset link was created for an account. No longer recorded |
 | create_registration_url | A registration URL was issued |
 | create_sign_in_link | A sign-in link was created for an admin account |
 | create_user | An account was created by an Admin |
@@ -411,8 +401,8 @@ These entries have `access` set to `write`.
 | delete_thread | A thread was deleted |
 | delete_voice_region | A voice region was deleted |
 | delete_voice_server | A registered voice server was deleted |
-| delete_webauthn_credential | A WebAuthn credential was removed from an account |
-| disable_mfa | Multi-factor authentication was disabled on an account |
+| delete_webauthn_credential | A WebAuthn credential was removed from an account. No longer recorded |
+| disable_mfa | Multi-factor authentication was disabled on an account. No longer recorded |
 | end_enforcement_decision | An enforcement decision was ended as lifted or reversed |
 | force_add_to_guild | An account was added to a guild while bypassing the ban check |
 | generate_gift_codes | Gift codes were generated |
@@ -432,16 +422,16 @@ These entries have `access` set to `write`.
 | reload_guild | One guild was reloaded on the main Gateway |
 | reload_guilds | Many guilds were reloaded on the main Gateway |
 | remove_discovery_listing | A guild was removed from discovery |
-| remove_relationship | One relationship was removed from an account |
+| remove_relationship | One relationship was removed from an account. No longer recorded |
 | remove_registration_url | A revoked registration URL was removed from the list |
-| remove_relationships_by_category | Every relationship in one category was removed from an account |
+| remove_relationships_by_category | Every relationship in one category was removed from an account. No longer recorded |
 | rename_registration_url | A registration URL was given a new label |
 | reorder_badges | The display order of the custom badges was changed |
 | replace_built_in_badge_image | The image of a built-in badge was replaced |
 | reset_built_in_badge_image | A built-in badge went back to its built-in image |
 | resolve_report | A report was updated or resolved |
 | revoke_admin_api_key | An Admin API key was revoked |
-| revoke_recovery_kit | The recovery kit of an account was revoked |
+| revoke_recovery_kit | The recovery kit of an account was revoked. No longer recorded |
 | revoke_registration_url | A registration URL was revoked |
 | revoke_voice_join_token | A voice join token was revoked |
 | schedule_deletion | Account deletion was scheduled |
@@ -457,8 +447,8 @@ These entries have `access` set to `write`.
 | temp_ban | An account was suspended for a time or permanently |
 | terminate_sessions | Every login session of an account was revoked |
 | transfer_ownership | Ownership of a guild or an OAuth2 application was transferred |
-| trigger_guild_archive | A guild archive was created |
-| trigger_user_archive | A user archive was created |
+| trigger_guild_archive | A guild archive was created. No longer recorded |
+| trigger_user_archive | A user archive was created. No longer recorded |
 | unban | A suspension without an enforcement decision was lifted |
 | unban_avatar_hash | An avatar hash was removed from the avatar blocklist |
 | unban_file_sha | A file hash was removed from the attachment blocklist |

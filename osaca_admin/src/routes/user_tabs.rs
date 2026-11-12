@@ -43,7 +43,6 @@ pub async fn render(
                 .get_user_by_id(user_id)
                 .await
                 .log_error("load user overview")?;
-            let change_log = None;
             let (limit_config, custom_badges) = tokio::join!(
                 async {
                     client
@@ -73,22 +72,12 @@ pub async fn render(
                 admin_acls,
                 csrf_token,
                 &tabs::overview::OverviewSources {
-                    change_log: change_log.as_ref(),
                     limit_config: limit_config.as_ref(),
                     custom_badges: custom_badges.as_ref(),
                 },
             ))
         }
-        "account" => {
-            render_account(
-                client,
-                config,
-                csrf_token,
-                user_id,
-                &tabs::account::AccountTabOptions { admin_acls },
-            )
-            .await
-        }
+        "account" => render_account(client, config, csrf_token, user_id).await,
         "moderation" => {
             let u = client
                 .get_user_by_id(user_id)
@@ -154,12 +143,10 @@ pub async fn render(
             if let Some(Err(error)) = &decisions {
                 tracing::warn!(%error, user_id, "admin API request failed: list user decisions");
             }
-            let network_candidates = None;
             let context = tabs::moderation::ModerationContext {
                 deletion_scheduler: deletion_scheduler.as_ref(),
                 legacy_suspension: tabs::moderation::find_legacy_suspension(&u, &legacy_logs),
                 decisions: decisions.as_ref(),
-                network_candidates: network_candidates.as_ref(),
                 prefill: tabs::moderation::DecisionPrefill {
                     report_ids: query.report_id.iter().cloned().collect(),
                     messages: query.message.iter().cloned().collect(),
@@ -264,7 +251,6 @@ pub async fn render_account(
     config: &AdminConfig,
     csrf_token: &str,
     user_id: &str,
-    options: &tabs::account::AccountTabOptions<'_>,
 ) -> Option<maud::Markup> {
     let u = client
         .get_user_by_id(user_id)
@@ -278,15 +264,7 @@ pub async fn render_account(
             |error| tracing::warn!(%error, user_id, "admin API request failed: list user sessions"),
         )
         .unwrap_or_default();
-    let webauthn_credentials = Vec::new();
-    Some(tabs::account::account_tab(
-        config,
-        &u,
-        &s,
-        &webauthn_credentials,
-        csrf_token,
-        options,
-    ))
+    Some(tabs::account::account_tab(config, &u, &s, csrf_token))
 }
 
 fn parse_bool_flag(value: &str) -> Option<bool> {

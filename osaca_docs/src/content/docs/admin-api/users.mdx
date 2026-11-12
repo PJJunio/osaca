@@ -8,11 +8,11 @@ import RouteHeader from '@/components/RouteHeader.astro';
 
 These routes read and change any account on the instance. Each field group has its own route and [ACL](/admin-api/#acl-registry), and every route except [Get current Admin user](#get-current-admin-user) records an [Admin audit entry](/admin-api/#admin-audit-entry-object), reads included.
 
-You reset a password with [Create password reset link](#create-password-reset-link). On routes that record an [enforcement decision](/admin-api/enforcement/), the `X-Audit-Log-Reason` header is required and becomes the decision's first note. Blocking a user's avatar is on [Blocklists](/admin-api/blocklists/#block-a-users-current-avatar).
+The Operator cannot recover a Member's account: people use their [recovery kit](/http-api/users/password-and-recovery/). On routes that record an [enforcement decision](/admin-api/enforcement/), the `X-Audit-Log-Reason` header is required and becomes the decision's first note. Blocking a user's avatar is on [Blocklists](/admin-api/blocklists/#block-a-users-current-avatar).
 
 ## Admin user object
 
-The full admin view of one account, with the flags, lifecycle, contact and network fields the public [user object](/http-api/users/#user-object) leaves out. Without `user:view:ip`, the fields that ACL protects are null and the request still succeeds.
+The full admin view of one account, with the flags and lifecycle fields the public [user object](/http-api/users/#user-object) leaves out. It carries no IP address or location.
 
 ### Structure
 
@@ -50,13 +50,8 @@ The full admin view of one account, with the flags, lifecycle, contact and netwo
 | account_tier | string | The [account tier](/http-api/users/#account-tiers) |
 | authenticator_types | array[integer] | Second-factor [authenticator types](/http-api/users/#authenticator-types) (at most 10) |
 | last_active_at | ?ISO8601 timestamp | When the account was last active |
-| last_active_ip<sup>2</sup> | ?string | The IP address the account was last active from |
-| last_active_ip_reverse<sup>2</sup> | ?string | The reverse DNS name of that address |
-| last_active_location<sup>2</sup> | ?string | The approximate location of that address |
 
 <sup>1</sup> Other Admin objects use a zero-padded string. Every account that is not a bot has `0`
-
-<sup>2</sup> Needs `user:view:ip`
 
 ### Example
 
@@ -81,10 +76,7 @@ The full admin view of one account, with the flags, lifecycle, contact and netwo
   "claimed": true,
   "account_tier": "verified",
   "authenticator_types": [1, 2],
-  "last_active_at": "2026-08-30T21:04:02.771000+00:00",
-  "last_active_ip": "203.0.113.24",
-  "last_active_ip_reverse": "host24.example.com",
-  "last_active_location": "Stockholm, Sweden"
+  "last_active_at": "2026-08-30T21:04:02.771000+00:00"
 }
 ```
 
@@ -187,17 +179,6 @@ The values [Clear user profile fields](#clear-user-profile-fields) accepts.
 | pronouns | Pronouns |
 | global_name | Display name |
 
-## Relationship categories
-
-The values [Clear user relationships](#clear-user-relationships) and [Remove user relationship](#remove-user-relationship) accept.
-
-| Value | Description |
-| --- | --- |
-| friend | A friendship |
-| incoming_request | A friend request the account received |
-| outgoing_request | A friend request the account sent |
-| blocked | An account this account blocked |
-
 ## Password reset link object
 
 A link the account holder opens to choose a password. Anyone with the link can set the password until it expires.
@@ -231,19 +212,14 @@ One sign-in session of an account. Ended sessions stay in the list with `deleted
 | session_id_hash | string | The base64url hash of the session ID (8-256 characters) |
 | created_at | ISO8601 timestamp | When the session started |
 | approx_last_used_at | ISO8601 timestamp | About when the session was last used |
-| client_ip<sup>1</sup> | string | The IP address the session started from |
-| client_ip_reverse<sup>1</sup> | ?string | The reverse DNS name of that address |
 | client_os | ?string | The operating system from the user agent |
 | client_platform | ?string | The platform from the user agent |
-| client_location<sup>1</sup> | ?string | The approximate location of that address |
 | app_platform<sup>2</sup> | ?string | The app platform, one of `android`, `ios`, `linux` or `desktop` |
 | app_version<sup>2</sup> | ?string | The app version |
 | app_release_channel<sup>2</sup> | ?string | The release channel, one of `stable`, `beta` or `canary` |
 | app_build_number<sup>2</sup> | ?integer | The platform build number |
 | app_beta_number<sup>2</sup> | ?integer | The beta number, only on `beta` builds |
 | deleted_at | ?ISO8601 timestamp | When the session ended, or null while it is active |
-
-<sup>1</sup> Needs `user:view:ip`. Without it `client_ip` is `[redacted]` and the other two are null
 
 <sup>2</sup> From the `X-OSACA-Client-Properties` header of the last request the session made, and null when that header is missing or on ended sessions
 
@@ -263,70 +239,6 @@ One active session with the app version and build that its last `X-OSACA-Client-
 | app_build_number | ?integer | The platform build number |
 | app_beta_number | ?integer | The beta number, only on `beta` builds |
 
-## Admin resolved user object
-
-The account summary in Admin direct message channel and relationship objects.
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| id | snowflake | The ID of the account |
-| username | string | The username |
-| discriminator | string | The discriminator, zero-padded to four digits |
-| global_name | ?string | The display name |
-| avatar | ?string | The avatar hash |
-
-## Admin direct message channel object
-
-A direct message or group direct message channel the account is in.
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| channel_id | snowflake | The ID of the channel |
-| channel_type | ?integer | [Channel type](/http-api/channels/#channel-types) |
-| channel_nsfw | ?boolean | Whether the channel is age-restricted |
-| guild_nsfw_level | ?integer | Always null |
-| recipient_ids | array[snowflake] | The IDs of the recipients (at most 100) |
-| recipients | array[[Admin resolved user](#admin-resolved-user-object) object] | The recipients whose accounts still exist (at most 100) |
-| last_message_id | ?snowflake | The ID of the latest message |
-| is_open | boolean | Whether the channel is open in the account's client |
-| name | ?string | The group name |
-| icon | ?string | The group icon hash |
-| owner_id | ?snowflake | The ID of the group owner |
-
-## Admin relationship object
-
-One relationship between the account and another account.
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| target_user_id | snowflake | The ID of the other account |
-| category | string | [Relationship category](#relationship-categories) |
-| nickname | ?string | The nickname the account gave the other account |
-| since | ?ISO8601 timestamp | When the relationship started |
-| target | ?[Admin resolved user](#admin-resolved-user-object) object | The other account, or null when it no longer exists |
-
-## Admin user change log object
-
-One change to the account's tag, by the account holder or an Admin.
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| event_id | string | The ID of the entry, which you send as `page_token` |
-| field | string | `osaca_tag` |
-| old_value | ?string | The value before the change |
-| new_value | ?string | The value after the change |
-| reason | ?string | The reason, `admin_action` for an Admin change |
-| actor_user_id | ?snowflake | The ID of the Admin, or null for the account holder's own change |
-| event_at | ISO8601 timestamp | When the change happened |
-
 ## Message shred entry object
 
 One message to shred.
@@ -342,7 +254,7 @@ One message to shred.
 
 <RouteHeader method="GET" path="/v1/admin/users" auditReason />
 
-Finds accounts by one selector and returns [Admin user](#admin-user-object) objects. You need `user:lookup`. When you send more than one selector, the first one in this order wins: `user_id`, `resolve`, `last_active_ip`, `acl`, then `q`.
+Finds accounts by one selector and returns [Admin user](#admin-user-object) objects. You need `user:lookup`. When you send more than one selector, the first one in this order wins: `user_id`, `resolve`, `acl`, then `q`.
 
 ### Query parameters
 
@@ -350,15 +262,12 @@ Finds accounts by one selector and returns [Admin user](#admin-user-object) obje
 | --- | --- | --- |
 | user_id? | array[snowflake] | Exact account IDs, repeated for more than one (at most 100) |
 | resolve? | string | A tag or account ID to match one account (1-1024 characters) |
-| last_active_ip?<sup>1</sup> | string | An exact last active IP address (1-64 characters) |
 | acl? | string | An [ACL](/admin-api/#acl-registry), to list the accounts that have it |
 | q? | string | A search query (1-1024 characters) |
-| limit?<sup>2</sup> | integer | How many accounts to return (1-200, default 50) |
-| offset?<sup>2</sup> | integer | How many results to skip (0-100000, default 0) |
+| limit?<sup>1</sup> | integer | How many accounts to return (1-200, default 50) |
+| offset?<sup>1</sup> | integer | How many results to skip (0-100000, default 0) |
 
-<sup>1</sup> Needs `user:view:ip`
-
-<sup>2</sup> Only for `last_active_ip`, `acl` and `q`
+<sup>1</sup> Only for `acl` and `q`
 
 ### Response body
 
@@ -478,21 +387,6 @@ OSACA sends [User Update](/gateway/events/#user-update) and [Guild Member Update
 
 The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
 
-## Create password reset link
-
-<RouteHeader method="POST" path="/v1/admin/users/{user_id}/password-reset-link" auditReason />
-
-Returns a [password reset link](#password-reset-link-object). You need `user:create:password_reset_link` and every ACL the account has. Earlier reset links and the account's recovery kit stop working.
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | [password reset link](#password-reset-link-object) object | The link was created |
-| 403 | [error response](/admin-api/#error-response) | `MISSING_ACL` when the account has an ACL you lack, or `BOT_USER_AUTH_ENDPOINT_ACCESS_DENIED` for a bot |
-
-The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
-
 ## Create admin sign-in link
 
 <RouteHeader method="POST" path="/v1/admin/users/{user_id}/sign-in-link" auditReason />
@@ -505,20 +399,6 @@ Returns a [sign-in link](#sign-in-link-object) for an account that has `*`. Only
 | --- | --- | --- |
 | 200 | [sign-in link](#sign-in-link-object) object | The link was created |
 | 403 | [error response](/admin-api/#error-response) | `ACCESS_DENIED` outside rexctl, `MISSING_ACL` when the account lacks `*` |
-
-The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
-
-## Revoke user recovery kit
-
-<RouteHeader method="DELETE" path="/v1/admin/users/{user_id}/recovery-kit" auditReason />
-
-Deletes the account's recovery kit. You need `user:delete:recovery_kit` and every ACL the account has. The account holder can make a new kit in their settings.
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 204 | none | The kit was deleted, or there was none |
 
 The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
 
@@ -756,7 +636,7 @@ Suspends the account for some hours or permanently, records the [enforcement dec
 | ips<sup>1</sup> | array[string] | The IP addresses to block (1-20) |
 | days? | integer | How many days the blocks last (1-365, default 90) |
 
-<sup>1</sup> Each must be one [List network block candidates](#list-network-block-candidates) returns
+<sup>1</sup> Each must be an address the account was last active from in the last 30 days
 
 ### Response body
 
@@ -774,28 +654,6 @@ Suspends the account for some hours or permanently, records the [enforcement dec
 | 409 | [error response](/admin-api/#error-response) | `ENFORCEMENT_ACCOUNT_CLOSED` when the account is closed |
 
 The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
-
-## List network block candidates
-
-<RouteHeader method="GET" path="/v1/admin/users/{user_id}/network-block-candidates" />
-
-Lists the addresses the account used in the last 30 days, newest first, which you can pass in `block_networks`. You need `user:view:ip`.
-
-### Response body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| networks | array[object] | One entry per address, with `ip`, `last_seen_at`, `skip_reason` and `other_unrestricted_accounts` |
-
-`skip_reason` is `exempt` or `special_purpose` for an address OSACA never blocks. An address with `other_unrestricted_accounts` above zero is shared with an account in good standing and can't be blocked.
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | response body | The addresses were listed |
-
-The rate limit is 200 requests per minute, on the `admin:lookup` bucket.
 
 ## Lift a suspension without a decision
 
@@ -984,37 +842,6 @@ Lists the guilds the account is in, by ascending guild ID. You need `user:list:g
 
 The rate limit is 200 requests per minute, on the `admin:lookup` bucket.
 
-## List user direct message channels
-
-<RouteHeader method="GET" path="/v1/admin/users/{user_id}/dm-channels" auditReason />
-
-Lists the direct message channels the account is in, without opening or marking any as read. You need `user:list:dm_channels`. Ask for group direct messages with `type=group_dm`, which returns all of them and ignores the paging fields.
-
-### Query parameters
-
-| Field | Type | Description |
-| --- | --- | --- |
-| type? | string | `dm` or `group_dm` (default `dm`) |
-| before?<sup>1</sup> | snowflake | Return channels with lower IDs |
-| after?<sup>1</sup> | snowflake | Return channels with higher IDs |
-| limit? | integer | How many channels to return (1-200, default 50) |
-
-<sup>1</sup> Send one or the other
-
-### Response body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| channels | array[[Admin direct message channel](#admin-direct-message-channel-object) object] | The channels in this page |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | response body | The channels were returned |
-
-The rate limit is 200 requests per minute, on the `admin:lookup` bucket.
-
 ## List user applications
 
 <RouteHeader method="GET" path="/v1/admin/users/{user_id}/applications" auditReason />
@@ -1035,84 +862,11 @@ Lists the OAuth2 applications the account owns. You need `application:list:by_ow
 
 The rate limit is 200 requests per minute, on the `admin:lookup` bucket.
 
-## List user relationships
-
-<RouteHeader method="GET" path="/v1/admin/users/{user_id}/relationships" auditReason />
-
-Lists the account's friends, friend requests and blocks. You need `user:list:relationships`.
-
-### Response body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| friends | array[[Admin relationship](#admin-relationship-object) object] | The account's friends |
-| incoming_requests | array[[Admin relationship](#admin-relationship-object) object] | The friend requests the account received |
-| outgoing_requests | array[[Admin relationship](#admin-relationship-object) object] | The friend requests the account sent |
-| blocked | array[[Admin relationship](#admin-relationship-object) object] | The accounts this account blocked |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | response body | The relationships were returned |
-
-The rate limit is 200 requests per minute, on the `admin:lookup` bucket.
-
-## Clear user relationships
-
-<RouteHeader method="DELETE" path="/v1/admin/users/{user_id}/relationships" auditReason />
-
-Removes all of the account's relationships in one [category](#relationship-categories). You need `user:remove:relationship`.
-
-### Query parameters
-
-| Field | Type | Description |
-| --- | --- | --- |
-| category | string | The [relationship category](#relationship-categories) to clear |
-
-### Response body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| removed_count | integer | How many relationships were removed |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | response body | The relationships were removed |
-
-Both accounts get [Relationship Remove](/gateway/events/#relationship-remove) for a removed friendship or request, and only this account for a removed block.
-
-The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
-
-## Remove user relationship
-
-<RouteHeader method="DELETE" path="/v1/admin/users/{user_id}/relationships/{target_user_id}" auditReason />
-
-Removes the account's relationship with `target_user_id` in one category. You need `user:remove:relationship`.
-
-### Query parameters
-
-| Field | Type | Description |
-| --- | --- | --- |
-| category | string | The [relationship category](#relationship-categories) to remove |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 204 | empty | The relationship was removed |
-
-OSACA sends [Relationship Remove](/gateway/events/#relationship-remove) as on [Clear user relationships](#clear-user-relationships).
-
-The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
-
 ## List user sessions
 
 <RouteHeader method="GET" path="/v1/admin/users/{user_id}/sessions" auditReason />
 
-Lists the account's active and ended sessions, active first and then newest first. You need `user:list:sessions`, and `user:view:ip` for the address fields.
+Lists the account's active and ended sessions, active first and then newest first. You need `user:list:sessions`. Sessions carry no IP address or location.
 
 ### Response body
 
@@ -1125,7 +879,6 @@ Lists the account's active and ended sessions, active first and then newest firs
 | Status | Body | Condition |
 | --- | --- | --- |
 | 200 | response body | The sessions were returned |
-| 503 | [error response](/admin-api/#error-response) | `SERVICE_UNAVAILABLE` when every location lookup failed |
 
 The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
 
@@ -1175,59 +928,6 @@ Signs the account out of every session. You need `user:update:flags`. Admin API 
 | Status | Body | Condition |
 | --- | --- | --- |
 | 200 | response body | The sessions were ended |
-
-The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
-
-## List user WebAuthn credentials
-
-<RouteHeader method="GET" path="/v1/admin/users/{user_id}/webauthn-credentials" auditReason />
-
-Lists the account's passkeys and security keys as a JSON array. You need `user:update:mfa`.
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | array[[WebAuthn credential](/http-api/users/mfa/#webauthn-credential-object) object] | The credentials were returned |
-
-The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
-
-## Delete user WebAuthn credential
-
-<RouteHeader method="DELETE" path="/v1/admin/users/{user_id}/webauthn-credentials/{credential_id}" auditReason />
-
-Deletes one passkey or security key from the account. You need `user:update:mfa`. An unknown credential returns 404 `UNKNOWN_USER`.
-
-### Path parameters
-
-| Field | Type | Description |
-| --- | --- | --- |
-| user_id | snowflake | The ID of the account |
-| credential_id | string | The WebAuthn credential ID (1-512 characters) |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 204 | empty | The credential was deleted |
-
-OSACA sends [WebAuthn Credentials Update](/gateway/events/#webauthn-credentials-update), and [User Update](/gateway/events/#user-update) when the account's last passkey is removed.
-
-The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
-
-## Disable user MFA
-
-<RouteHeader method="DELETE" path="/v1/admin/users/{user_id}/mfa" auditReason />
-
-Removes the account's TOTP authenticator, second-factor types and backup codes. You need `user:update:mfa`. Passkeys stay registered and still sign the account in until you remove them with [Delete user WebAuthn credential](#delete-user-webauthn-credential).
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 204 | empty | MFA was turned off |
-
-OSACA sends [User Update](/gateway/events/#user-update).
 
 The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
 
@@ -1362,51 +1062,3 @@ Cancels the message deletion the account holder scheduled for their own account 
 | 200 | response body | The deletion was canceled, or none was scheduled |
 
 The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
-
-## Create user archive
-
-<RouteHeader method="POST" path="/v1/admin/users/{user_id}/archives" auditReason />
-
-Starts building an [archive](/admin-api/archives/) of the account's data. You need `archive:trigger:user`.
-
-### JSON body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| include_attachments? | boolean | Whether to include uploaded files (default false) |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | [archive](/admin-api/archives/#archive-object) object | The archive was queued |
-
-The rate limit is 200 requests per minute, on the `admin:lookup` bucket.
-
-## List user change log
-
-<RouteHeader method="GET" path="/v1/admin/users/{user_id}/change-log" auditReason />
-
-Lists the account's tag changes, newest first. You need `user:view:contact_log`.
-
-### Query parameters
-
-| Field | Type | Description |
-| --- | --- | --- |
-| limit? | integer | How many entries to return (1-200, default 50) |
-| page_token? | string | The `next_page_token` from the previous page (1-64 characters) |
-
-### Response body
-
-| Field | Type | Description |
-| --- | --- | --- |
-| entries | array[[Admin user change log](#admin-user-change-log-object) object] | The changes in this page |
-| next_page_token | ?string | The token for the next page, or null at the end |
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 200 | response body | The changes were returned |
-
-The rate limit is 200 requests per minute, on the `admin:lookup` bucket.

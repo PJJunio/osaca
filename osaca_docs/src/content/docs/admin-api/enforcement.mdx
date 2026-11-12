@@ -99,7 +99,7 @@ A content removal or profile reset that leaves the reported item in place leaves
 
 ### Network blocks
 
-A permanent suspension, or a closure for a broken rule, can block the networks the account used in the last 30 days. Set `block_networks` on [Suspend user](/admin-api/users/#suspend-user) or [Schedule user deletion](/admin-api/users/#schedule-user-deletion), and use [List network block candidates](/admin-api/users/#list-network-block-candidates) to see which addresses qualify. The blocks last 90 days unless the request sets another length, and they are removed when the decision ends. These are separate from [plain IP blocks](/admin-api/blocklists/#network-blocks-from-decisions).
+A permanent suspension, or a closure for a broken rule, can block the networks the account used in the last 30 days. Set `block_networks` on [Suspend user](/admin-api/users/#suspend-user) or [Schedule user deletion](/admin-api/users/#schedule-user-deletion). Each address must be one the account was last active from. The blocks last 90 days unless the request sets another length, and they are removed when the decision ends. These are separate from [plain IP blocks](/admin-api/blocklists/#network-blocks-from-decisions).
 
 OSACA never blocks an exempt address or a special-purpose range, such as a private, loopback or link-local range, and leaves an address that is already blocked as it is. It lists all of these in `skipped_ips`. It refuses an address where another account that is not suspended or closed was last active, matching IPv6 addresses by their /64.
 

@@ -561,7 +561,7 @@ The rate limit is 20 requests per minute, on the `auth:reset:validate` bucket.
 
 <RouteHeader method="POST" path="/v1/auth/reset" unauthenticated />
 
-Sets a new password with a reset token. Returns an [authentication token response](#authentication-token-response), or an [MFA challenge response](#mfa-challenge-response) when the account has a second factor. Reset tokens come from an admin's [password reset link](/admin-api/users/#create-password-reset-link).
+Sets a new password with a reset token. Returns an [authentication token response](#authentication-token-response), or an [MFA challenge response](#mfa-challenge-response) when the account has a second factor. Reset tokens come from the [password reset link](/admin-api/users/#password-reset-link-object) returned when an admin [creates an account](/admin-api/users/#create-user).
 
 :::caution[Resetting a password signs out every session]
 A reset ends every session on the account and then creates one new session.

@@ -6,9 +6,6 @@ pub const ADMIN_API_KEY_MANAGE: &str = "admin_api_key:manage";
 pub const APPLICATION_LOOKUP: &str = "application:lookup";
 pub const APPLICATION_LIST_BY_OWNER: &str = "application:list:by_owner";
 pub const APPLICATION_TRANSFER_OWNERSHIP: &str = "application:transfer_ownership";
-pub const ARCHIVE_TRIGGER_GUILD: &str = "archive:trigger:guild";
-pub const ARCHIVE_TRIGGER_USER: &str = "archive:trigger:user";
-pub const ARCHIVE_VIEW_ALL: &str = "archive:view_all";
 pub const ASSET_PURGE: &str = "asset:purge";
 pub const AUDIT_LOG_VIEW: &str = "audit_log:view";
 pub const AUTHENTICATE: &str = "admin:authenticate";
@@ -80,22 +77,15 @@ pub const REPORT_VIEW: &str = "report:view";
 pub const REPORT_VIEW_REPORTER_PII: &str = "report:view:reporter_pii";
 pub const SYSTEM_DM_SEND: &str = "system_dm:send";
 pub const USER_CANCEL_BULK_MESSAGE_DELETION: &str = "user:cancel:bulk_message_deletion";
-pub const USER_CREATE_PASSWORD_RESET_LINK: &str = "user:create:password_reset_link";
-pub const USER_DELETE_RECOVERY_KIT: &str = "user:delete:recovery_kit";
 pub const USER_DELETE: &str = "user:delete";
-pub const USER_LIST_DM_CHANNELS: &str = "user:list:dm_channels";
 pub const USER_LIST_GUILDS: &str = "user:list:guilds";
-pub const USER_LIST_RELATIONSHIPS: &str = "user:list:relationships";
 pub const USER_LIST_SESSIONS: &str = "user:list:sessions";
 pub const USER_LOOKUP: &str = "user:lookup";
-pub const USER_REMOVE_RELATIONSHIP: &str = "user:remove:relationship";
-pub const USER_VIEW_CONTACT_LOG: &str = "user:view:contact_log";
 pub const USER_VIEW_IP: &str = "user:view:ip";
 pub const USER_TEMP_BAN: &str = "user:temp_ban";
 pub const USER_UPDATE_BADGES: &str = "user:update:badges";
 pub const USER_UPDATE_BOT_STATUS: &str = "user:update:bot_status";
 pub const USER_UPDATE_FLAGS: &str = "user:update:flags";
-pub const USER_UPDATE_MFA: &str = "user:update:mfa";
 pub const USER_UPDATE_PROFILE: &str = "user:update:profile";
 pub const USER_UPDATE_TRAITS: &str = "user:update:traits";
 pub const USER_UPDATE_USERNAME: &str = "user:update:username";
@@ -117,9 +107,6 @@ pub const ALL_ACLS: &[&str] = &[
     APPLICATION_LOOKUP,
     APPLICATION_LIST_BY_OWNER,
     APPLICATION_TRANSFER_OWNERSHIP,
-    ARCHIVE_TRIGGER_GUILD,
-    ARCHIVE_TRIGGER_USER,
-    ARCHIVE_VIEW_ALL,
     ASSET_PURGE,
     AUDIT_LOG_VIEW,
     AUTHENTICATE,
@@ -191,22 +178,15 @@ pub const ALL_ACLS: &[&str] = &[
     REPORT_VIEW_REPORTER_PII,
     SYSTEM_DM_SEND,
     USER_CANCEL_BULK_MESSAGE_DELETION,
-    USER_CREATE_PASSWORD_RESET_LINK,
-    USER_DELETE_RECOVERY_KIT,
     USER_DELETE,
-    USER_LIST_DM_CHANNELS,
     USER_LIST_GUILDS,
-    USER_LIST_RELATIONSHIPS,
     USER_LIST_SESSIONS,
     USER_LOOKUP,
-    USER_REMOVE_RELATIONSHIP,
-    USER_VIEW_CONTACT_LOG,
     USER_VIEW_IP,
     USER_TEMP_BAN,
     USER_UPDATE_BADGES,
     USER_UPDATE_BOT_STATUS,
     USER_UPDATE_FLAGS,
-    USER_UPDATE_MFA,
     USER_UPDATE_PROFILE,
     USER_UPDATE_TRAITS,
     USER_UPDATE_USERNAME,

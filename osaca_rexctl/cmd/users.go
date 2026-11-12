@@ -164,27 +164,6 @@ func newUsersCmd(app *App) *cobra.Command {
 		})
 	}
 
-	resetLink := &cobra.Command{Use: "reset-link <user>", Short: "Print a link to set a new password", Args: exactArgs(userArg)}
-	resetLink.RunE = func(c *cobra.Command, args []string) error {
-		return adminWrite(c, app, func(ctx context.Context, api *adminapi.Client, _ *instance.Instance) error {
-			u, err := api.ResolveUser(ctx, args[0])
-			if err != nil {
-				return err
-			}
-			link, expires, err := api.ResetLink(ctx, u.ID)
-			if err != nil {
-				return err
-			}
-			if t, err := time.Parse(time.RFC3339, expires); err == nil {
-				app.UI.OK("Made a link for %s to set a new password. It works until %s.", u.Username, t.Local().Format("15:04 on 2 January"))
-			} else {
-				app.UI.OK("Made a link for %s to set a new password.", u.Username)
-			}
-			printLink(app, link)
-			return nil
-		})
-	}
-
 	signOut := &cobra.Command{Use: "sign-out <user>", Short: "Sign an account out everywhere", Args: exactArgs(userArg)}
 	signOut.RunE = func(c *cobra.Command, args []string) error {
 		return adminWrite(c, app, func(ctx context.Context, api *adminapi.Client, _ *instance.Instance) error {
@@ -201,25 +180,6 @@ func newUsersCmd(app *App) *cobra.Command {
 				return nil
 			}
 			app.UI.OK("Signed %s out of %s.", u.Username, plural(n, "session", "sessions"))
-			return nil
-		})
-	}
-
-	disableMFA := &cobra.Command{Use: "disable-mfa <user>", Short: "Turn off two-factor authentication for an account", Args: exactArgs(userArg)}
-	disableMFA.RunE = func(c *cobra.Command, args []string) error {
-		return adminWrite(c, app, func(ctx context.Context, api *adminapi.Client, _ *instance.Instance) error {
-			u, err := api.ResolveUser(ctx, args[0])
-			if err != nil {
-				return err
-			}
-			if !u.MFA {
-				app.UI.OK("%s doesn't use two-factor authentication.", u.Username)
-				return nil
-			}
-			if err := api.DisableMFA(ctx, u.ID); err != nil {
-				return err
-			}
-			app.UI.OK("Turned off two-factor authentication for %s.", u.Username)
 			return nil
 		})
 	}
@@ -344,6 +304,6 @@ func newUsersCmd(app *App) *cobra.Command {
 		})
 	}
 
-	c.AddCommand(list, show, create, resetLink, signOut, disableMFA, ban, unban, del)
+	c.AddCommand(list, show, create, signOut, ban, unban, del)
 	return c
 }

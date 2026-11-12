@@ -505,10 +505,6 @@ export const ErrorCodeToI18nKey = {
 	[ValidationErrorCodes.ENFORCEMENT_KIND_NOT_ALLOWED]: 'admin_and_system.enforcement_kind_not_allowed',
 	[ValidationErrorCodes.ENFORCEMENT_LIMIT_END_INVALID]: 'admin_and_system.enforcement_limit_end_invalid',
 	[ValidationErrorCodes.ENFORCEMENT_LIMIT_NOT_ALLOWED]: 'admin_and_system.enforcement_limit_not_allowed',
-	[ValidationErrorCodes.ENFORCEMENT_NETWORK_BLOCK_NOT_ALLOWED]:
-		'admin_and_system.enforcement_network_block_not_allowed',
-	[ValidationErrorCodes.ENFORCEMENT_NETWORK_SHARED]: 'admin_and_system.enforcement_network_shared',
-	[ValidationErrorCodes.ENFORCEMENT_NETWORK_UNKNOWN]: 'admin_and_system.enforcement_network_unknown',
 	[ValidationErrorCodes.FLAG_REQUIRES_ENFORCEMENT_ROUTE]: 'admin_and_system.flag_requires_enforcement_route',
 	[ValidationErrorCodes.ENFORCEMENT_OUTCOME_NOT_ALLOWED]: 'admin_and_system.enforcement_outcome_not_allowed',
 	[ValidationErrorCodes.ENFORCEMENT_PERMANENT_REQUIRED]: 'admin_and_system.enforcement_permanent_required',

@@ -8,7 +8,6 @@
 	"enforcement.effect.limit_direct_messages": "I tuoi messaggi nelle conversazioni individuali e le tue richieste di amicizia non vengono consegnati e il tuo profilo è nascosto. Nelle community e nelle conversazioni di gruppo, gli altri vedono i tuoi messaggi compressi e contrassegnati come possibile spam.",
 	"enforcement.effect.limit_reports": "{safety_route, select, yes {Fino ad allora non puoi inviare segnalazioni nell'app. Per segnalare contenuti illegali, usa il canale di segnalazione indicato nella [pagina con le informazioni sulla nostra azienda]({url}).} other {Fino ad allora non puoi inviare segnalazioni nell'app.}}",
 	"enforcement.effect.messages_removed": "Abbiamo anche rimosso {count, plural, one {# messaggio} other {# messaggi}}.",
-	"enforcement.effect.networks_blocked": "Abbiamo anche bloccato fino al {date} l'accesso dalle reti usate da questo account.",
 	"enforcement.effect.no_other_accounts": "Non ti è consentito creare o usare altri account.",
 	"enforcement.effect.scope": "Questa decisione vale ovunque {product_name} sia disponibile.",
 	"enforcement.effect.suspension": "{target, select, bot {Fino ad allora il bot non può connettersi né agire da nessuna parte. Il tuo account personale non è soggetto a restrizioni.} other {Fino ad allora non puoi accedere né usare {product_name} da nessuna parte. Il tuo account, i tuoi messaggi e le tue community vengono conservati.}}",

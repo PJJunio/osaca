@@ -15,7 +15,6 @@ export const CONTENT_I18N_MESSAGES = {
 	'enforcement.effect.limit_reports':
 		"{safety_route, select, yes {You can't send reports in the app until then. To report illegal content, use the safety route on our [company information page]({url}).} other {You can't send reports in the app until then.}}",
 	'enforcement.effect.messages_removed': 'We also removed {count, plural, =1 {# message} other {# messages}}.',
-	'enforcement.effect.networks_blocked': 'We also blocked access from networks this account used until {date}.',
 	'enforcement.effect.no_other_accounts': 'You may not create or use other accounts.',
 	'enforcement.effect.scope': 'This decision applies everywhere {product_name} is available.',
 	'enforcement.effect.suspension':

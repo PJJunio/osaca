@@ -8,7 +8,6 @@
 	"enforcement.effect.limit_direct_messages": "Je berichten in een-op-eengesprekken en je vriendschapsverzoeken worden niet bezorgd, en je profiel is verborgen. In community's en groepsgesprekken zien anderen je berichten ingeklapt en gemarkeerd als mogelijke spam.",
 	"enforcement.effect.limit_reports": "{safety_route, select, yes {Je kunt tot dan geen meldingen versturen in de app. Gebruik de veiligheidsroute op onze [pagina met bedrijfsgegevens]({url}) om illegale inhoud te melden.} other {Je kunt tot dan geen meldingen versturen in de app.}}",
 	"enforcement.effect.messages_removed": "We hebben ook {count, plural, =1 {# bericht} other {# berichten}} verwijderd.",
-	"enforcement.effect.networks_blocked": "We hebben tot {date} ook de toegang geblokkeerd vanaf netwerken die dit account heeft gebruikt.",
 	"enforcement.effect.no_other_accounts": "Je mag geen andere accounts aanmaken of gebruiken.",
 	"enforcement.effect.scope": "Deze beslissing geldt overal waar {product_name} beschikbaar is.",
 	"enforcement.effect.suspension": "{target, select, bot {De bot kan tot die tijd nergens verbinding maken of acties uitvoeren. Je eigen account is niet beperkt.} other {Je kunt tot die tijd nergens inloggen of {product_name} gebruiken. Je account, berichten en community's blijven bewaard.}}",

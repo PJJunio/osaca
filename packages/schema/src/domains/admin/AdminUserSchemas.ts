@@ -5,12 +5,7 @@ import {UserFlags, UserFlagsDescriptions} from '@osaca/constants/src/UserConstan
 import {AccountTierSchema} from '@osaca/schema/src/domains/account/AccountTierSchemas';
 import {ADMIN_ACL_COUNT, AdminAclType} from '@osaca/schema/src/domains/admin/AdminAclType';
 import {CustomBadgeIdListResponse} from '@osaca/schema/src/domains/admin/AdminBadgeSchemas';
-import {
-	BulkModerationBasis,
-	ModerationBasis,
-	NetworkBlockRequest,
-	SkippedNetworkBlock,
-} from '@osaca/schema/src/domains/admin/EnforcementSchemas';
+import {BulkModerationBasis, ModerationBasis} from '@osaca/schema/src/domains/admin/EnforcementSchemas';
 import {AdminProfileBadgeResponse} from '@osaca/schema/src/domains/user/ProfileBadgeSchemas';
 import {createQueryIntegerType, QueryBooleanType} from '@osaca/schema/src/primitives/QueryValidators';
 import {
@@ -119,12 +114,6 @@ export const UserMutationResponse = z.object({
 });
 
 export type UserMutationResponse = z.infer<typeof UserMutationResponse>;
-
-export const UserRestrictionResponse = UserMutationResponse.extend({
-	skipped_ips: z.array(SkippedNetworkBlock).describe('Requested network blocks that were not written, with the reason'),
-});
-
-export type UserRestrictionResponse = z.infer<typeof UserRestrictionResponse>;
 
 export const LookupUserResponse = z.object({
 	users: z.array(UserAdminResponseSchema),
@@ -433,7 +422,6 @@ export const AdminUserDeletionScheduleRequest = z.object({
 		.describe(
 			'Remove the reported messages and the evidence you listed after they are snapshotted into the decision. Other messages from the reports are kept. Enforcement basis only',
 		),
-	block_networks: NetworkBlockRequest.optional(),
 	immediate: z
 		.boolean()
 		.optional()

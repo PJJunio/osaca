@@ -8,7 +8,6 @@
 	"enforcement.effect.limit_direct_messages": "Tvoje poruke u izravnim razgovorima jedan na jedan i zahtjevi za prijateljstvo ne isporučuju se, a tvoj je profil skriven. U zajednicama i grupnim razgovorima drugi vide tvoje poruke sklopljene i označene kao mogući spam.",
 	"enforcement.effect.limit_reports": "{safety_route, select, yes {Do tada ne možeš slati prijave u aplikaciji. Nezakonit sadržaj možeš prijaviti putem sigurnosnog kontakta na [stranici s podacima o našoj tvrtki]({url}).} other {Do tada ne možeš slati prijave u aplikaciji.}}",
 	"enforcement.effect.messages_removed": "Uklonili smo i {count, plural, one {# poruku} few {# poruke} other {# poruka}}.",
-	"enforcement.effect.networks_blocked": "Do {date} smo blokirali i pristup s mreža koje je ovaj račun koristio.",
 	"enforcement.effect.no_other_accounts": "Ne smiješ stvarati ni koristiti druge račune.",
 	"enforcement.effect.scope": "Ova odluka vrijedi svugdje gdje se {product_name} može koristiti.",
 	"enforcement.effect.suspension": "{target, select, bot {Do tada se bot nigdje ne može povezati ni izvršavati radnje. Tvoj vlastiti račun nije ograničen.} other {Do tada se nigdje ne možeš prijaviti ni koristiti {product_name}. Tvoj račun, poruke i zajednice ostaju sačuvani.}}",

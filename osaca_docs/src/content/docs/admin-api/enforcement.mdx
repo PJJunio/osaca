@@ -97,14 +97,6 @@ A decision that resolves linked reports tells each reporter what happened to the
 
 A content removal or profile reset that leaves the reported item in place leaves the report pending. [Update report](/admin-api/reports/#update-report) sets the outcome for a manual resolution.
 
-### Network blocks
-
-A permanent suspension, or a closure for a broken rule, can block the networks the account used in the last 30 days. Set `block_networks` on [Suspend user](/admin-api/users/#suspend-user) or [Schedule user deletion](/admin-api/users/#schedule-user-deletion). Each address must be one the account was last active from. The blocks last 90 days unless the request sets another length, and they are removed when the decision ends. These are separate from [plain IP blocks](/admin-api/blocklists/#network-blocks-from-decisions).
-
-OSACA never blocks an exempt address or a special-purpose range, such as a private, loopback or link-local range, and leaves an address that is already blocked as it is. It lists all of these in `skipped_ips`. It refuses an address where another account that is not suspended or closed was last active, matching IPv6 addresses by their /64.
-
-The notice says the networks were blocked and until when, and never shows an address.
-
 ### Review queue
 
 A decision with `automation` set to `automated` waits in the review queue until a person ends it or records a warning, suspension or closure on the same account. Its `decided_by` is the system user (ID 0).
@@ -138,7 +130,7 @@ The `X-Audit-Log-Reason` header is required on every route that takes a decision
 
 ### Validation
 
-OSACA checks ACLs before it looks anything up. Evidence needs `message:lookup`, `remove_evidence` needs `message:shred`, reports need `report:view` and `report:resolve`, and `block_networks` needs `ban:ip:add` and `user:view:ip`. Every other failure is a 400 `INVALID_FORM_BODY` with one of these codes.
+OSACA checks ACLs before it looks anything up. Evidence needs `message:lookup`, `remove_evidence` needs `message:shred`, and reports need `report:view` and `report:resolve`. Every other failure is a 400 `INVALID_FORM_BODY` with one of these codes.
 
 - `ENFORCEMENT_INTERNAL_NOTE_REQUIRED` when the `X-Audit-Log-Reason` header is missing
 - `ENFORCEMENT_KIND_NOT_ALLOWED` when the reason code does not allow this kind or action, or a bot is given anything other than a suspension or closure
@@ -157,9 +149,6 @@ OSACA checks ACLs before it looks anything up. Evidence needs `message:lookup`, 
 - `ENFORCEMENT_CONFIRMATIONS_REQUIRED` when a restricted reason is missing a confirmation
 - `ENFORCEMENT_RIGHTS_HOLDER_REQUIRED` when code 31 has no `rights_holder`
 - `ENFORCEMENT_RIGHTS_HOLDER_NOT_ALLOWED` when another code has a `rights_holder`
-- `ENFORCEMENT_NETWORK_BLOCK_NOT_ALLOWED` when `block_networks` is given with a temporary suspension or a closure not for a broken rule
-- `ENFORCEMENT_NETWORK_UNKNOWN` when the account did not use an address in `block_networks` in the last 30 days
-- `ENFORCEMENT_NETWORK_SHARED` when another unrestricted account was last active on an address in `block_networks`
 
 ### Notice delivery
 
@@ -213,12 +202,9 @@ A person's suspension or closure notice is shown at the holder's next sign-in. E
 | notes | array[object] | Internal notes in order, each with `note_id`, `author_id`, `body` and `created_at` |
 | evidence<sup>1</sup> | array[object] | Snapshot messages, each with `message_id`, `channel_id`, `timestamp`, `content`, `attachments` and `attachment_count` |
 | profile_values<sup>1</sup> | ?object | Profile values before a reset |
-| network_blocks<sup>2</sup> | array[object] | The decision's unexpired [network blocks](#network-blocks), each with `ip` and `expires_at` |
 | notice | object | The notice as the holder sees it, in English |
 
 <sup>1</sup> Message content, attachment details and profile values are null without `message:lookup`. Evidence is deleted a year after the decision, and each note a year after it was written
-
-<sup>2</sup> Each `ip` is masked to its /24 or /64 without `user:view:ip`
 
 ## List enforcement decisions
 
@@ -301,7 +287,7 @@ The rate limit is 100 requests per minute, on the `admin:user:modify` bucket.
 
 <RouteHeader method="POST" path="/v1/admin/enforcement-decisions/{decision_id}/end" auditReason />
 
-Ends an active decision, or reverses a suspension that ended as `expired`, and tells the holder. You need `enforcement:view` and the ACL of the route that made the decision, plus `ban:ip:remove` when the decision has network blocks.
+Ends an active decision, or reverses a suspension that ended as `expired`, and tells the holder. You need `enforcement:view` and the ACL of the route that made the decision.
 
 | Kind | ACL |
 | --- | --- |
@@ -319,7 +305,7 @@ A `content_removal` needs `message:shred`, or `message:delete_all` when every me
 | `closure` | Cancels the deletion and clears `DELETED`, `deletion_reason_code` and `enforcement_decision_id` |
 | `feature_limit` | Removes its flag unless another active decision has the same limit |
 
-Ending any other kind changes nothing on the account. Ending a suspension or closure removes its network blocks.
+Ending any other kind changes nothing on the account.
 
 ### JSON body
 

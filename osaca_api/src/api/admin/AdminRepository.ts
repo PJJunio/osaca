@@ -72,7 +72,6 @@ const createListAllAuditLogsFirstPageQuery = (limit: number) =>
 		limit,
 	});
 
-
 export class AdminRepository {
 	async createAuditLog(log: AdminAuditLogRow): Promise<AdminAuditLog> {
 		await upsertOne(AdminAuditLogs.insert(log));
@@ -132,22 +131,6 @@ export class AdminRepository {
 
 	async findIpBanDecision(_ip: string): Promise<bigint | null> {
 		return null;
-	}
-
-	async banIpForDecision(_ip: string, _decisionId: bigint, _expiresAt: Date): Promise<BannedIpEntry | null> {
-		return null;
-	}
-
-	async listDecisionIpBans(_decisionId: bigint): Promise<Array<BannedIpEntry>> {
-		return [];
-	}
-
-	async relinkDecisionIpBans(_fromDecisionId: bigint, _toDecisionId: bigint): Promise<Array<BannedIpEntry>> {
-		return [];
-	}
-
-	async removeDecisionIpBans(_decisionIds: ReadonlyArray<bigint>): Promise<Array<BannedIpEntry>> {
-		return [];
 	}
 
 	async unbanIp(_ip: string): Promise<void> {}

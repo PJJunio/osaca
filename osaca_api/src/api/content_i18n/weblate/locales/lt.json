@@ -8,7 +8,6 @@
 	"enforcement.effect.limit_direct_messages": "Tavo žinutės dviejų asmenų pokalbiuose ir draugystės užklausos nepristatomos, o tavo profilis paslėptas. Bendruomenėse ir grupių pokalbiuose žmonės tavo žinutes mato suskleistas ir pažymėtas kaip galimas šlamštas.",
 	"enforcement.effect.limit_reports": "{safety_route, select, yes {Iki tol negali siųsti pranešimų programėlėje. Apie neteisėtą turinį pranešk per saugos kanalą, nurodytą mūsų [įmonės informacijos puslapyje]({url}).} other {Iki tol negali siųsti pranešimų programėlėje.}}",
 	"enforcement.effect.messages_removed": "Taip pat pašalinome {count, plural, one {# žinutę} few {# žinutes} many {# žinutės} other {# žinučių}}.",
-	"enforcement.effect.networks_blocked": "Taip pat iki {date} užblokavome prieigą iš tinklų, kuriais naudojosi ši paskyra.",
 	"enforcement.effect.no_other_accounts": "Tau draudžiama kurti ar naudoti kitas paskyras.",
 	"enforcement.effect.scope": "Šis sprendimas galioja visur, kur galima naudotis {product_name}.",
 	"enforcement.effect.suspension": "{target, select, bot {Iki tol botas niekur negali prisijungti ir veikti. Tavo asmeninė paskyra neapribota.} other {Iki tol niekur negali prisijungti ir naudotis {product_name}. Tavo paskyra, žinutės ir bendruomenės išsaugomos.}}",

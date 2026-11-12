@@ -96,7 +96,7 @@ function notice(
 	evidence: ReadonlyArray<EvidenceMessageLocation> = IN_CHANNEL,
 	locale = 'en-US',
 ): EnforcementNotice {
-	return buildEnforcementNotice({type: 'decision', decision: row, evidence, networksBlockedUntil: null}, locale, NOW);
+	return buildEnforcementNotice({type: 'decision', decision: row, evidence}, locale, NOW);
 }
 
 function legacyUser(overrides: Partial<typeof EMPTY_USER_ROW>): User {

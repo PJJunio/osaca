@@ -8,7 +8,6 @@
 	"enforcement.effect.limit_direct_messages": "A kétszemélyes beszélgetésekben küldött üzeneteidet és az ismerősjelöléseidet nem kézbesítjük, és a profilod rejtve marad. A közösségekben és a csoportos beszélgetésekben mások összecsukva és lehetséges spamként megjelölve látják az üzeneteidet.",
 	"enforcement.effect.limit_reports": "{safety_route, select, yes {Addig nem küldhetsz bejelentéseket az alkalmazásban. Illegális tartalom bejelentéséhez használd a [cégadatainkat tartalmazó oldalon]({url}) található biztonsági csatornát.} other {Addig nem küldhetsz bejelentéseket az alkalmazásban.}}",
 	"enforcement.effect.messages_removed": "Ezenkívül eltávolítottunk {count, plural, one {# üzenetet} other {# üzenetet}}.",
-	"enforcement.effect.networks_blocked": "Ezenkívül a következő időpontig letiltottuk a hozzáférést azokról a hálózatokról, amelyeket ez a fiók használt: {date}.",
 	"enforcement.effect.no_other_accounts": "Tilos más fiókokat létrehoznod vagy használnod.",
 	"enforcement.effect.scope": "Ez a döntés mindenhol érvényes, ahol a(z) {product_name} elérhető.",
 	"enforcement.effect.suspension": "{target, select, bot {A bot addig sehol nem tud csatlakozni és semmilyen műveletet végezni. A saját fiókod nincs korlátozva.} other {Addig sehol nem jelentkezhetsz be, és nem használhatod a(z) {product_name} szolgáltatást. A fiókodat, az üzeneteidet és a közösségeidet megőrizzük.}}",

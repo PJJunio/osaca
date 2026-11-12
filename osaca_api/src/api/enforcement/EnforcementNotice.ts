@@ -61,7 +61,6 @@ type EnforcementNoticeSource =
 			type: 'decision';
 			decision: EnforcementDecisionRow;
 			evidence: ReadonlyArray<EvidenceMessageLocation>;
-			networksBlockedUntil: Date | null;
 	  }
 	| {type: 'legacy'; user: User};
 
@@ -260,12 +259,7 @@ function kindEffect(ctx: NoticeContext, decision: EnforcementDecisionRow, target
 	}
 }
 
-function decisionEffects(
-	ctx: NoticeContext,
-	decision: EnforcementDecisionRow,
-	target: NoticeTarget,
-	networksBlockedUntil: Date | null,
-): Array<string> {
+function decisionEffects(ctx: NoticeContext, decision: EnforcementDecisionRow, target: NoticeTarget): Array<string> {
 	const reason = ENFORCEMENT_REASONS[decision.reason_code];
 	const ownAccount = decision.subject_type === 'user' && target.target === 'account';
 	const accountKind = isAccountKind(decision.kind);
@@ -281,11 +275,6 @@ function decisionEffects(
 	}
 	if (accountKind && (decision.removed_message_count ?? 0) > 0) {
 		effects.push(text(ctx, 'enforcement.effect.messages_removed', {count: decision.removed_message_count ?? 0}));
-	}
-	if (accountKind && networksBlockedUntil) {
-		effects.push(
-			text(ctx, 'enforcement.effect.networks_blocked', {date: formatNoticeDate(networksBlockedUntil, ctx.locale)}),
-		);
 	}
 	return effects;
 }
@@ -333,7 +322,7 @@ function howWeDecided(ctx: NoticeContext, decision: EnforcementDecisionRow): Arr
 
 function buildDecisionNotice(
 	ctx: NoticeContext,
-	{decision, evidence, networksBlockedUntil}: Extract<EnforcementNoticeSource, {type: 'decision'}>,
+	{decision, evidence}: Extract<EnforcementNoticeSource, {type: 'decision'}>,
 ): EnforcementNotice {
 	const reason = ENFORCEMENT_REASONS[decision.reason_code];
 	const target: NoticeTarget = {
@@ -348,7 +337,7 @@ function buildDecisionNotice(
 		ends_at: toIsoOrNull(decision.ends_at),
 		deletion_at: toIsoOrNull(decision.deletion_at),
 		summary: decisionSummary(ctx, decision, target),
-		effects: decisionEffects(ctx, decision, target, networksBlockedUntil),
+		effects: decisionEffects(ctx, decision, target),
 		rule: ruleOf(ctx, reason.rule),
 		facts: decisionFacts(ctx, decision, evidence),
 		statement: reason.handling === 'restricted' ? null : decision.statement,

@@ -15,11 +15,9 @@ import type {EnforcementActor} from '@app/api/enforcement/EnforcementActor';
 import {
 	decisionAuditMetadata,
 	type EnforcementDecisionService,
-	networkBlockAuditMetadata,
 	type RecordedDecision,
 } from '@app/api/enforcement/EnforcementDecisionService';
 import type {EnforcementNoticeDelivery} from '@app/api/enforcement/EnforcementNoticeDelivery';
-import type {SkippedNetwork} from '@app/api/enforcement/NetworkBlocks';
 import {emitAdminAction} from '@app/api/infrastructure/activity/AccountChangeEvents';
 import type {KVAccountDeletionQueueService} from '@app/api/infrastructure/KVAccountDeletionQueueService';
 import {Logger} from '@app/api/Logger';
@@ -132,18 +130,15 @@ export class AdminUserDeletionService {
 	constructor(private readonly deps: AdminUserDeletionServiceDeps) {}
 
 	async scheduleAccountDeletion(userId: UserID, request: AdminUserDeletionScheduleRequest, actor: EnforcementActor) {
-		const {user, skippedNetworks} = await this.applyScheduledDeletion(userId, request, actor);
-		return {
-			user: await mapUserToAdminResponse(user, this.deps.apiContext.services.cache, actor.acls),
-			skipped_ips: skippedNetworks,
-		};
+		const user = await this.applyScheduledDeletion(userId, request, actor);
+		return {user: await mapUserToAdminResponse(user, this.deps.apiContext.services.cache, actor.acls)};
 	}
 
 	async applyScheduledDeletion(
 		userId: UserID,
 		request: AdminUserDeletionScheduleRequest,
 		actor: EnforcementActor,
-	): Promise<{user: User; skippedNetworks: Array<SkippedNetwork>}> {
+	): Promise<User> {
 		const {basis} = request;
 		const user = await this.deps.apiContext.services.users.findUniqueAssert(userId);
 		if (isDeletionComplete(user)) {
@@ -169,12 +164,6 @@ export class AdminUserDeletionService {
 			if (request.remove_evidence) {
 				throw InputValidationError.fromCode('remove_evidence', ValidationErrorCodes.ENFORCEMENT_EVIDENCE_REQUIRED);
 			}
-			if (request.block_networks) {
-				throw InputValidationError.fromCode(
-					'block_networks',
-					ValidationErrorCodes.ENFORCEMENT_NETWORK_BLOCK_NOT_ALLOWED,
-				);
-			}
 		}
 		const immediate = request.immediate === true;
 		if (immediate && !Config.instance.selfHosted) {
@@ -195,7 +184,6 @@ export class AdminUserDeletionService {
 					endsAt: null,
 					deletionAt: pendingDeletionAt,
 					removeEvidence: request.remove_evidence ?? false,
-					blockNetworks: request.block_networks,
 					actor,
 				},
 				async (decisionId) => {
@@ -230,7 +218,7 @@ export class AdminUserDeletionService {
 				['pending_deletion_at', pendingDeletionAt.toISOString()],
 				...(immediate ? ([['immediate', 'true']] as Array<[string, string]>) : []),
 				...describePendingDeletion(user, 'replaced'),
-				...(recorded ? [...decisionAuditMetadata(recorded.decision), ...networkBlockAuditMetadata(recorded)] : []),
+				...(recorded ? decisionAuditMetadata(recorded.decision) : []),
 			]),
 		});
 		const decision = recorded?.decision ?? null;
@@ -250,7 +238,7 @@ export class AdminUserDeletionService {
 				pendingDeletionAt: pendingDeletionAt.toISOString(),
 			});
 		}
-		return {user: closed, skippedNetworks: recorded?.skippedNetworks ?? []};
+		return closed;
 	}
 
 	async cancelAccountDeletion(userId: UserID, data: AdminUserDeletionCancelRequest, actor: EnforcementActor) {

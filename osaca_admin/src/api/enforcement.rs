@@ -1,17 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use reqwest::Method;
-use serde::Deserialize;
-
 use crate::api::generated::types as generated_types;
+use reqwest::Method;
 
 use super::client::{AdminApiClient, ApiError, ApiResult};
 use super::types::{AdminUser, UserMutationResponse};
-
-#[derive(Debug, Deserialize)]
-pub struct RestrictionResponse {
-    pub skipped_ips: Vec<generated_types::SkippedNetworkBlock>,
-}
 
 pub struct DecisionSubmission {
     pub decision: generated_types::EnforcementDecisionInput,
@@ -23,7 +16,6 @@ pub struct ClosureRequest {
     pub days_until_deletion: u32,
     pub immediate: bool,
     pub remove_evidence: bool,
-    pub block_networks: Option<generated_types::NetworkBlockRequest>,
     pub replace_pending_deletion_at: Option<chrono::DateTime<chrono::Utc>>,
     pub internal_note: Option<String>,
 }
@@ -34,11 +26,9 @@ impl AdminApiClient {
         user_id: &str,
         duration_hours: u32,
         remove_evidence: bool,
-        block_networks: Option<generated_types::NetworkBlockRequest>,
         submission: &DecisionSubmission,
-    ) -> ApiResult<RestrictionResponse> {
+    ) -> ApiResult<UserMutationResponse> {
         let body = generated_types::AdminUserBanRequest {
-            block_networks,
             decision: submission.decision.clone(),
             duration_hours: i64::from(duration_hours),
             remove_evidence: remove_evidence.then_some(true),
@@ -73,10 +63,9 @@ impl AdminApiClient {
         &self,
         user_id: &str,
         request: &ClosureRequest,
-    ) -> ApiResult<RestrictionResponse> {
+    ) -> ApiResult<UserMutationResponse> {
         let body = generated_types::AdminUserDeletionScheduleRequest {
             basis: request.basis.clone(),
-            block_networks: request.block_networks.clone(),
             days_until_deletion: crate::api::generated::nonzero_u32(
                 request.days_until_deletion,
                 "days_until_deletion",

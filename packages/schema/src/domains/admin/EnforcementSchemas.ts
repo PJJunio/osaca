@@ -111,69 +111,6 @@ export const CommunityRemovalBasis = z
 
 export type CommunityRemovalBasis = z.infer<typeof CommunityRemovalBasis>;
 
-const NETWORK_BLOCK_DEFAULT_DAYS = 90;
-
-const IpAddressType = z.union([z.ipv4(), z.ipv6()]);
-
-export const NetworkBlockRequest = z
-	.object({
-		ips: z
-			.array(
-				createStringType(1, 45).refine(
-					(value) => IpAddressType.safeParse(value).success,
-					'Must be a valid IPv4 or IPv6 address',
-				),
-			)
-			.min(1)
-			.max(20)
-			.describe(
-				'Addresses the account used in the last 30 days. An address on which another account that is not suspended or closed was last active is refused',
-			),
-		days: z
-			.number()
-			.int()
-			.min(1)
-			.max(365)
-			.default(NETWORK_BLOCK_DEFAULT_DAYS)
-			.describe(
-				'How many days the blocks last. Ending the decision or deleting the account removes them sooner. Defaults to 90',
-			),
-	})
-	.describe(
-		'Block networks the account used. Only with a permanent suspension or a closure for a broken rule. Requires BAN_IP_ADD and USER_VIEW_IP',
-	);
-
-export type NetworkBlockRequest = z.infer<typeof NetworkBlockRequest>;
-
-export const SkippedNetworkBlock = z.object({
-	ip: z.string(),
-	reason: z
-		.enum(['exempt', 'special_purpose', 'already_blocked'])
-		.describe(
-			'Exempt addresses and special-purpose ranges such as private, shared carrier and documentation ranges are never blocked. An address that is already blocked permanently or by another decision is left as it is',
-		),
-});
-
-export const NetworkBlockCandidatesResponse = z.object({
-	networks: z
-		.array(
-			z.object({
-				ip: z.string(),
-				last_seen_at: z.string().describe('When the account last used this address'),
-				skip_reason: z
-					.enum(['exempt', 'special_purpose'])
-					.nullable()
-					.describe('Why this address would be skipped. Null when it can be blocked'),
-				other_unrestricted_accounts: Int32Type.describe(
-					'Other accounts that are not suspended or closed and were last active on this address. Blocking is refused when this is above zero',
-				),
-			}),
-		)
-		.describe('Addresses the account used in the last 30 days, most recent first'),
-});
-
-export type NetworkBlockCandidatesResponse = z.infer<typeof NetworkBlockCandidatesResponse>;
-
 export const AdminUserBanRequest = z.object({
 	duration_hours: z
 		.number()
@@ -188,7 +125,6 @@ export const AdminUserBanRequest = z.object({
 		.describe(
 			'Remove the reported messages and the evidence you listed after they are snapshotted into the decision. Other messages from the reports are kept',
 		),
-	block_networks: NetworkBlockRequest.optional(),
 });
 
 export type AdminUserBanRequest = z.infer<typeof AdminUserBanRequest>;
@@ -325,14 +261,6 @@ export const EnforcementDecisionResponse = EnforcementDecisionSummary.extend({
 		.record(z.string(), z.string())
 		.nullable()
 		.describe('Profile values before a reset. Null without the message lookup permission'),
-	network_blocks: z
-		.array(
-			z.object({
-				ip: z.string().describe('Masked without the IP view permission'),
-				expires_at: z.string().nullable(),
-			}),
-		)
-		.describe('Network blocks that belong to this decision and have not expired'),
 	notice: EnforcementNotice.describe('What the holder sees now, rendered in English'),
 });
 

@@ -83,7 +83,6 @@ export function createWorkerEnforcementServices(deps: WorkerDependencies): Worke
 		repository: getEnforcementDecisionRepository(),
 		delivery,
 		auditService,
-		banManagementService,
 		channelRepository: deps.channelRepository,
 		guildRepository: deps.guildRepository,
 		reportService,

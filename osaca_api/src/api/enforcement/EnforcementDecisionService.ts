@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import assert from 'node:assert/strict';
-import type {BannedIpEntry} from '@app/api/admin/AdminRepository';
 import type {AdminAuditService} from '@app/api/admin/services/AdminAuditService';
-import type {AdminBanManagementService} from '@app/api/admin/services/AdminBanManagementService';
 import {queueMessageShredJob} from '@app/api/admin/services/AdminMessageShredService';
 import type {AdminReportService} from '@app/api/admin/services/AdminReportService';
 import {createChannelID, createMessageID, createReportID, createUserID, type UserID} from '@app/api/BrandedTypes';
@@ -34,13 +32,6 @@ import {
 } from '@app/api/enforcement/EnforcementEvidence';
 import type {EnforcementNoticeDelivery} from '@app/api/enforcement/EnforcementNoticeDelivery';
 import {findHoldingFeatureLimit, setFeatureLimit} from '@app/api/enforcement/FeatureLimitState';
-import {
-	latestNetworkBlockExpiry,
-	listNetworkBlockCandidates,
-	type NetworkBlockPlan,
-	planNetworkBlocks,
-	type SkippedNetwork,
-} from '@app/api/enforcement/NetworkBlocks';
 import {hasHolderDeletionPending, liftSuspension} from '@app/api/enforcement/SuspensionState';
 import type {GuildRepository} from '@app/api/guild/repositories/GuildRepository';
 import {emitAdminAction} from '@app/api/infrastructure/activity/AccountChangeEvents';
@@ -75,8 +66,6 @@ import type {
 	EnforcementDecisionListQuery,
 	EnforcementDecisionListResponse,
 	EnforcementDecisionResponse,
-	NetworkBlockCandidatesResponse,
-	NetworkBlockRequest,
 } from '@osaca/schema/src/domains/admin/EnforcementSchemas';
 
 type EnforcementSubject = {type: 'user'; user: User} | {type: 'guild'; guild: Guild};
@@ -98,21 +87,17 @@ interface RecordDecisionParams {
 	removeEvidence?: boolean;
 	removal?: ContentRemoval;
 	profileReset?: ProfileReset;
-	blockNetworks?: NetworkBlockRequest;
 	actor: EnforcementActor;
 }
 
 export interface RecordedDecision {
 	decision: EnforcementDecisionRow;
-	blockedNetworks: Array<BannedIpEntry>;
-	skippedNetworks: Array<SkippedNetwork>;
 }
 
 interface EnforcementDecisionServiceDeps extends ClosureStateDeps {
 	repository: EnforcementDecisionRepository;
 	delivery: EnforcementNoticeDelivery;
 	auditService: AdminAuditService;
-	banManagementService: AdminBanManagementService;
 	channelRepository: ChannelRepository;
 	guildRepository: GuildRepository;
 	reportService: ReportService;
@@ -169,17 +154,6 @@ export function decisionAuditMetadata(decision: EnforcementDecisionRow): Array<[
 	];
 }
 
-export function networkBlockAuditMetadata({blockedNetworks}: RecordedDecision): Array<[string, string]> {
-	const until = latestNetworkBlockExpiry(blockedNetworks);
-	if (!until) {
-		return [];
-	}
-	return [
-		['blocked_ips', blockedNetworks.map((entry) => entry.ip).join(',')],
-		['network_blocks_until', until.toISOString()],
-	];
-}
-
 type DecisionSubjectFields = Pick<
 	EnforcementDecisionRow,
 	'subject_type' | 'subject_id' | 'subject_name' | 'recipient_user_id'
@@ -209,10 +183,6 @@ function evidenceSubject(subject: EnforcementSubject): EvidenceSubject {
 	}
 	const {id, username, discriminator} = subject.user;
 	return {type: 'user', id, username, discriminator};
-}
-
-function canBlockNetworks(kind: EnforcementKind, endsAt: Date | null | undefined): boolean {
-	return kind === 'closure' || (kind === 'suspension' && !endsAt);
 }
 
 function reportOutcome(
@@ -249,11 +219,8 @@ export class EnforcementDecisionService {
 		params: RecordDecisionParams,
 		applyState: (decisionId: bigint) => Promise<void>,
 	): Promise<RecordedDecision> {
-		const {reports, evidence, removedEvidence, removedMessageCount, internalNote, networkPlan} =
-			await this.validate(params);
+		const {reports, evidence, removedEvidence, removedMessageCount, internalNote} = await this.validate(params);
 		const {subject, kind, input, removal, profileReset, actor} = params;
-		const replacedDecisionId =
-			subject.type === 'user' && isAccountKind(kind) ? subject.user.enforcementDecisionId : null;
 		const restricted = ENFORCEMENT_REASONS[input.reason_code].handling === 'restricted';
 		const stored = restricted ? evidence.map(restrictedEvidence) : evidence;
 		const channelKinds = await snapshotEvidenceChannelKinds(evidence, this.deps.channelRepository);
@@ -291,25 +258,13 @@ export class EnforcementDecisionService {
 		if (params.removeEvidence) {
 			await this.queueEvidenceRemoval(decision, removedEvidence, actor.adminUserId);
 		}
-		const carried = replacedDecisionId
-			? await this.takeOverNetworkBlocks(replacedDecisionId, decision, {keep: canBlockNetworks(kind, params.endsAt)})
-			: [];
-		const networks = networkPlan
-			? await this.blockNetworks(decision, networkPlan)
-			: {blocked: [], skipped: [] as Array<SkippedNetwork>};
-		const blocked = [
-			...carried.filter((entry) => !networks.blocked.some((block) => block.ip === entry.ip)),
-			...networks.blocked,
-		];
 		await this.resolveReports(
 			reports.map((report) => ({report, outcome: reportOutcome(report, params, removedEvidence)})),
 			actor,
 			internalNote,
 		);
 		return {
-			decision: await this.deliverNotice(decision, stored, channelKinds, latestNetworkBlockExpiry(blocked)),
-			blockedNetworks: blocked,
-			skippedNetworks: networks.skipped,
+			decision: await this.deliverNotice(decision, stored, channelKinds),
 		};
 	}
 
@@ -320,12 +275,6 @@ export class EnforcementDecisionService {
 	): Promise<EnforcementDecisionResponse> {
 		const decision = await this.requireDecision(decisionId);
 		requireGrantedAdminACLs(actor.acls, kindAcls(decision));
-		if (isAccountKind(decision.kind)) {
-			const networkBlocks = await this.deps.banManagementService.listDecisionNetworkBlocks(decisionId);
-			if (networkBlocks.length > 0) {
-				requireGrantedAdminACLs(actor.acls, [AdminACLs.BAN_IP_REMOVE]);
-			}
-		}
 		await this.finish(decision, request, actor.adminUserId, actor.internalNote);
 		return this.get(decisionId, actor.acls);
 	}
@@ -333,19 +282,17 @@ export class EnforcementDecisionService {
 	async get(decisionId: bigint, acls: ReadonlySet<string>): Promise<EnforcementDecisionResponse> {
 		const {repository} = this.deps;
 		const decision = await this.requireDecision(decisionId);
-		const [notes, evidence, subject, networkBlocks] = await Promise.all([
+		const [notes, evidence, subject] = await Promise.all([
 			repository.listNotes(decisionId),
 			repository.getEvidence(decisionId),
 			this.findUserSubject(decision),
-			this.deps.banManagementService.listDecisionNetworkBlocks(decisionId),
 		]);
 		const notice = loadDecisionNotice(this.deps, decision, {
 			messages: evidence?.messages ?? [],
 			channelKinds: evidence?.message_locations ?? null,
-			networkBlocks,
 			locale: 'en-US',
 		});
-		return toAdminDecisionResponse({decision, subject, notes, evidence, networkBlocks, notice: await notice, acls});
+		return toAdminDecisionResponse({decision, subject, notes, evidence, notice: await notice, acls});
 	}
 
 	async list(query: EnforcementDecisionListQuery, acls: ReadonlySet<string>): Promise<EnforcementDecisionListResponse> {
@@ -364,15 +311,6 @@ export class EnforcementDecisionService {
 				? await this.deps.apiContext.services.users.findUnique(createUserID(query.subject_id))
 				: null;
 		return {decisions: decisions.map((decision) => toDecisionSummary(decision, subject, acls))};
-	}
-
-	async listNetworkBlockCandidates(userId: bigint): Promise<NetworkBlockCandidatesResponse> {
-		const {users} = this.deps.apiContext.services;
-		const user = await users.findUnique(createUserID(userId));
-		if (!user) {
-			throw new UnknownUserError();
-		}
-		return listNetworkBlockCandidates(users, user);
 	}
 
 	async addNote(decisionId: bigint, body: string, actor: EnforcementActor) {
@@ -546,12 +484,10 @@ export class EnforcementDecisionService {
 					if (request.outcome !== 'reversed') {
 						throw InputValidationError.fromCode('outcome', ValidationErrorCodes.ENFORCEMENT_OUTCOME_NOT_ALLOWED);
 					}
-					await this.deps.banManagementService.removeDecisionNetworkBlocks([decision.decision_id]);
 					return false;
 				}
 				if (decision.kind === 'suspension') {
 					await liftSuspension(this.deps, user);
-					await this.deps.banManagementService.removeDecisionNetworkBlocks([decision.decision_id]);
 					await emitAdminAction(actorId, subjectId, 'unban');
 					return true;
 				}
@@ -559,7 +495,6 @@ export class EnforcementDecisionService {
 					throw new EnforcementDeletionStartedError();
 				}
 				await cancelClosure(this.deps, user);
-				await this.deps.banManagementService.removeDecisionNetworkBlocks([decision.decision_id]);
 				await emitAdminAction(actorId, subjectId, 'cancel_deletion');
 				return true;
 			}
@@ -592,26 +527,6 @@ export class EnforcementDecisionService {
 			);
 			return true;
 		}
-	}
-
-	private async takeOverNetworkBlocks(
-		replacedDecisionId: bigint,
-		decision: EnforcementDecisionRow,
-		options: {keep: boolean},
-	): Promise<Array<BannedIpEntry>> {
-		const {banManagementService} = this.deps;
-		try {
-			if (options.keep) {
-				return await banManagementService.relinkDecisionNetworkBlocks(replacedDecisionId, decision.decision_id);
-			}
-			await banManagementService.removeDecisionNetworkBlocks([replacedDecisionId]);
-		} catch (error) {
-			Logger.error(
-				{decisionId: decision.decision_id.toString(), replacedDecisionId: replacedDecisionId.toString(), error},
-				'Failed to move the network blocks of a replaced decision',
-			);
-		}
-		return [];
 	}
 
 	private async clearReviewQueueFor(subjectId: UserID): Promise<void> {
@@ -656,7 +571,6 @@ export class EnforcementDecisionService {
 		limit,
 		removeEvidence,
 		removal,
-		blockNetworks,
 		actor,
 	}: RecordDecisionParams): Promise<{
 		reports: Array<IARSubmission>;
@@ -664,7 +578,6 @@ export class EnforcementDecisionService {
 		removedEvidence: Array<IARMessageContextRow>;
 		removedMessageCount: number | null;
 		internalNote: string;
-		networkPlan: NetworkBlockPlan | null;
 	}> {
 		const reportIds = input.report_ids ?? [];
 		const explicitEvidence = input.evidence ?? [];
@@ -672,7 +585,6 @@ export class EnforcementDecisionService {
 			...(explicitEvidence.length > 0 ? [AdminACLs.MESSAGE_LOOKUP] : []),
 			...(reportIds.length > 0 ? [AdminACLs.REPORT_VIEW, AdminACLs.REPORT_RESOLVE] : []),
 			...(removeEvidence ? [AdminACLs.MESSAGE_SHRED] : []),
-			...(blockNetworks ? [AdminACLs.BAN_IP_ADD, AdminACLs.USER_VIEW_IP] : []),
 		]);
 		if (!actor.internalNote) {
 			throw InputValidationError.fromCode(
@@ -693,9 +605,6 @@ export class EnforcementDecisionService {
 		}
 		if (kind === 'feature_limit' && (!limit || !isEnforcementLimitAllowed(input.reason_code, limit))) {
 			throw InputValidationError.fromCode('limit', ValidationErrorCodes.ENFORCEMENT_LIMIT_NOT_ALLOWED);
-		}
-		if (blockNetworks && (subject.type !== 'user' || !canBlockNetworks(kind, endsAt))) {
-			throw InputValidationError.fromCode('block_networks', ValidationErrorCodes.ENFORCEMENT_NETWORK_BLOCK_NOT_ALLOWED);
 		}
 		if (input.source === 'report' && reportIds.length === 0) {
 			throw InputValidationError.fromCode('decision.report_ids', ValidationErrorCodes.ENFORCEMENT_REPORT_REQUIRED);
@@ -737,17 +646,13 @@ export class EnforcementDecisionService {
 				ValidationErrorCodes.ENFORCEMENT_RIGHTS_HOLDER_NOT_ALLOWED,
 			);
 		}
-		const networkPlan =
-			blockNetworks && subject.type === 'user'
-				? await planNetworkBlocks(this.deps.apiContext.services.users, subject.user, blockNetworks)
-				: null;
 		let removedMessageCount: number | null = null;
 		if (removal?.type === 'messages') {
 			removedMessageCount = evidence.length + (await this.countOwnMessages(subject, removed.slice(snapshotted)));
 		} else if (removeEvidence) {
 			removedMessageCount = removedEvidence.length;
 		}
-		return {reports, evidence, removedEvidence, removedMessageCount, internalNote: actor.internalNote, networkPlan};
+		return {reports, evidence, removedEvidence, removedMessageCount, internalNote: actor.internalNote};
 	}
 
 	private async countOwnMessages(
@@ -768,29 +673,6 @@ export class EnforcementDecisionService {
 			}
 		}
 		return count;
-	}
-
-	private async blockNetworks(
-		decision: EnforcementDecisionRow,
-		plan: NetworkBlockPlan,
-	): Promise<{blocked: Array<BannedIpEntry>; skipped: Array<SkippedNetwork>}> {
-		if (plan.ips.length === 0) {
-			return {blocked: [], skipped: plan.skipped};
-		}
-		try {
-			const {blocked, alreadyBlocked} = await this.deps.banManagementService.blockNetworksForDecision(
-				plan.ips,
-				decision.decision_id,
-				plan.expiresAt,
-			);
-			return {
-				blocked,
-				skipped: [...plan.skipped, ...alreadyBlocked.map((ip) => ({ip, reason: 'already_blocked' as const}))],
-			};
-		} catch (error) {
-			Logger.error({decisionId: decision.decision_id.toString(), error}, 'Failed to block the networks of a decision');
-			return {blocked: [], skipped: plan.skipped};
-		}
 	}
 
 	private validateRestricted(
@@ -887,12 +769,11 @@ export class EnforcementDecisionService {
 		decision: EnforcementDecisionRow,
 		evidence: ReadonlyArray<IARMessageContextRow>,
 		channelKinds: ReadonlyMap<bigint, EvidenceChannelKind>,
-		networksBlockedUntil: Date | null,
 	): Promise<EnforcementDecisionRow> {
 		const {repository, delivery, channelRepository, guildRepository} = this.deps;
 		try {
 			const locations = await resolveEvidenceLocations(evidence, channelKinds, channelRepository, guildRepository);
-			const notice = await delivery.deliver(decision, locations, networksBlockedUntil);
+			const notice = await delivery.deliver(decision, locations);
 			if (!notice) {
 				return decision;
 			}

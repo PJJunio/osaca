@@ -33,7 +33,6 @@ describe('immediate account deletion from the admin panel', () => {
 			AdminACLs.AUTHENTICATE,
 			AdminACLs.USER_DELETE,
 			AdminACLs.USER_LOOKUP,
-			AdminACLs.USER_VIEW_IP,
 			AdminACLs.AUDIT_LOG_VIEW,
 		]);
 	});

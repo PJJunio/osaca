@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import type {AdminRepository} from '@app/api/admin/AdminRepository';
 import {deleteRecoveryKit} from '@app/api/auth/AuthRecoveryKit';
 import {revokeAllAuthSessions} from '@app/api/auth/AuthSessionRevocation';
 import {createMessageID, createUserID, type MessageID, type UserID} from '@app/api/BrandedTypes';
@@ -9,7 +8,6 @@ import {mapChannelToResponse} from '@app/api/channel/ChannelMappers';
 import type {ChannelRepository} from '@app/api/channel/ChannelRepository';
 import {UserMessageDeletionService} from '@app/api/channel/services/message/UserMessageDeletionService';
 import type {ConnectionRepository} from '@app/api/connection/ConnectionRepository';
-import {IP_BAN_REFRESH_CHANNEL} from '@app/api/constants/IpBan';
 import {EMPTY_USER_ROW} from '@app/api/database/types/UserTypes';
 import type {FavoriteMemeRepository} from '@app/api/favorite_meme/FavoriteMemeRepository';
 import type {GuildRepository} from '@app/api/guild/repositories/GuildRepository';
@@ -23,7 +21,7 @@ import type {UserCacheService} from '@app/api/infrastructure/UserCacheService';
 import {REGISTRATION_PENDING_APPROVAL_TRAIT} from '@app/api/instance/InstanceConfigRepository';
 import {Logger} from '@app/api/Logger';
 import {createRequestCache} from '@app/api/middleware/RequestCacheMiddleware';
-import {getEnforcementDecisionRepository, getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
+import {getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
 import type {User} from '@app/api/models/User';
 import type {ApplicationRepository} from '@app/api/oauth/repositories/ApplicationRepository';
 import type {OAuth2TokenRepository} from '@app/api/oauth/repositories/OAuth2TokenRepository';
@@ -33,7 +31,6 @@ import {deletedUserIdentity, personalFieldsToClear} from '@app/api/user/UserHelp
 import type {WorkerTaskName} from '@app/api/worker/WorkerLaneConfig';
 import {ChannelTypes, MessageTypes} from '@osaca/constants/src/ChannelConstants';
 import * as BucketUtils from '@osaca/snowflake/src/SnowflakeBuckets';
-import type {ICacheService} from '@pkgs/cache/src/ICacheService';
 import type {IWorkerService} from '@pkgs/worker/src/contracts/IWorkerService';
 
 const CHUNK_SIZE = 100;
@@ -53,22 +50,11 @@ interface UserDeletionDependencies {
 	applicationRepository: ApplicationRepository;
 	workerService: IWorkerService<WorkerTaskName>;
 	connectionRepository: ConnectionRepository;
-	adminRepository: AdminRepository;
-	cacheService: ICacheService;
 }
 
 async function withdrawPendingRegistrationOf(user: User): Promise<void> {
 	if (!user.traits.has(REGISTRATION_PENDING_APPROVAL_TRAIT)) return;
 	await getInstanceConfigRepository().removePendingRegistration(user.id.toString());
-}
-
-async function removeNetworkBlocksOf(userId: UserID, deps: UserDeletionDependencies): Promise<void> {
-	const decisions = await getEnforcementDecisionRepository().listBySubject('user', userId);
-	if (decisions.length === 0) return;
-	const removed = await deps.adminRepository.removeDecisionIpBans(decisions.map((decision) => decision.decision_id));
-	if (removed.length > 0) {
-		await deps.cacheService.publish(IP_BAN_REFRESH_CHANNEL, 'refresh');
-	}
 }
 
 async function createDeletedUserPlaceholder(
@@ -126,7 +112,6 @@ export async function processUserDeletion(
 		Logger.info({userId, pendingDeletionAt}, 'Account deletion schedule is no longer eligible');
 		return;
 	}
-	await removeNetworkBlocksOf(userId, deps);
 	await withdrawPendingRegistrationOf(user);
 	await connectionRepository.sealAndDeleteForUser(userId);
 	Logger.debug({userId}, 'Leaving all guilds');

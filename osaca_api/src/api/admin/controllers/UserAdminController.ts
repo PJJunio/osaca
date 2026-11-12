@@ -41,7 +41,6 @@ import {
 	LookupUserResponse,
 	TerminateSessionsResponse,
 	UserMutationResponse,
-	UserRestrictionResponse,
 } from '@osaca/schema/src/domains/admin/AdminUserSchemas';
 import {
 	AdminUserBanRequest,
@@ -533,12 +532,12 @@ export function UserAdminController(app: HonoApp) {
 		OpenAPI({
 			operationId: 'ban_admin_user',
 			summary: 'Suspend user',
-			responseSchema: UserRestrictionResponse,
+			responseSchema: UserMutationResponse,
 			statusCode: 200,
 			security: 'adminApiKey',
 			tags: 'Admin',
 			description:
-				'Suspend the account for duration_hours, or permanently with a duration of zero, and record the enforcement decision behind it. The decision is written first, then the suspension, then linked reports are resolved and the notice is sent. The X-Audit-Log-Reason header is required and becomes the first note. remove_evidence queues removal of the reported messages and the evidence you listed after they are snapshotted, and keeps the other messages from the reports. block_networks blocks addresses the account used in the last 30 days, for 90 days unless days says otherwise, and only with a permanent suspension. Exempt and special-purpose addresses, and addresses already blocked permanently or by another decision, are skipped and listed in skipped_ips. An address on which another account that is not suspended or closed was last active is refused with ENFORCEMENT_NETWORK_SHARED. Returns 409 when the account is closed. Requires USER_TEMP_BAN permission, plus MESSAGE_LOOKUP for evidence, REPORT_VIEW and REPORT_RESOLVE for reports, MESSAGE_SHRED for remove_evidence, and BAN_IP_ADD and USER_VIEW_IP for block_networks.',
+				'Suspend the account for duration_hours, or permanently with a duration of zero, and record the enforcement decision behind it. The decision is written first, then the suspension, then linked reports are resolved and the notice is sent. The X-Audit-Log-Reason header is required and becomes the first note. remove_evidence queues removal of the reported messages and the evidence you listed after they are snapshotted, and keeps the other messages from the reports. Returns 409 when the account is closed. Requires USER_TEMP_BAN permission, plus MESSAGE_LOOKUP for evidence, REPORT_VIEW and REPORT_RESOLVE for reports, and MESSAGE_SHRED for remove_evidence.',
 		}),
 		async (ctx) => {
 			const {user_id: userId} = ctx.req.valid('param');
@@ -628,12 +627,12 @@ export function UserAdminController(app: HonoApp) {
 		OpenAPI({
 			operationId: 'schedule_admin_user_deletion',
 			summary: 'Schedule user deletion',
-			responseSchema: UserRestrictionResponse,
+			responseSchema: UserMutationResponse,
 			statusCode: 200,
 			security: 'adminApiKey',
 			tags: 'Admin',
 			description:
-				'Close the account and schedule its deletion. The basis says why. A broken rule records an enforcement decision kind closure, keeps the account for at least 74 days so an appeal can be reviewed first (14 days on a self-hosted instance, which has no appeals), sends the notice. The X-Audit-Log-Reason header is then required and becomes the first note. A holder request or housekeeping keeps the account for at least 14 days, sends a neutral email, and is cancelled when the holder signs in. Those two return 409 while an enforcement decision owns the account state. When a deletion is already scheduled, the request must name it in replace_pending_deletion_at or it returns 409. block_networks works as on the suspend route and is refused for the other bases. Executing the deletion removes the blocks. Creates audit log entry. Requires USER_DELETE permission, plus MESSAGE_LOOKUP for evidence, REPORT_VIEW and REPORT_RESOLVE for reports, MESSAGE_SHRED for remove_evidence, and BAN_IP_ADD and USER_VIEW_IP for block_networks.',
+				'Close the account and schedule its deletion. The basis says why. A broken rule records an enforcement decision kind closure, keeps the account for at least 74 days so an appeal can be reviewed first (14 days on a self-hosted instance, which has no appeals), sends the notice. The X-Audit-Log-Reason header is then required and becomes the first note. A holder request or housekeeping keeps the account for at least 14 days, sends a neutral email, and is cancelled when the holder signs in. Those two return 409 while an enforcement decision owns the account state. When a deletion is already scheduled, the request must name it in replace_pending_deletion_at or it returns 409. Creates audit log entry. Requires USER_DELETE permission, plus MESSAGE_LOOKUP for evidence, REPORT_VIEW and REPORT_RESOLVE for reports, and MESSAGE_SHRED for remove_evidence.',
 		}),
 		async (ctx) => {
 			const {user_id: userId} = ctx.req.valid('param');

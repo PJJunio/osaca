@@ -55,9 +55,7 @@ pub const BAN_CONFIGS: &[BanConfig] = &[
         show_bulk_tools: false,
         show_duration: true,
         add_title: Some("Block a network"),
-        add_help: Some(
-            "For accounts, block networks from the account's suspension or closure instead.",
-        ),
+        add_help: None,
     },
     BanConfig {
         title: "Phrase Bans",

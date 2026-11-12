@@ -8,7 +8,6 @@
 	"enforcement.effect.limit_direct_messages": "ההודעות שלכם בשיחות אחד על אחד ובקשות החברות שלכם לא נמסרות, והפרופיל שלכם מוסתר. בקהילות ובשיחות קבוצתיות, אנשים רואים את ההודעות שלכם מכווצות ומסומנות כחשודות כספאם.",
 	"enforcement.effect.limit_reports": "{safety_route, select, yes {אתם לא יכולים לשלוח דיווחים באפליקציה עד אז. כדי לדווח על תוכן לא חוקי, השתמשו בערוץ הבטיחות שמופיע [בדף פרטי החברה שלנו]({url}).} other {אתם לא יכולים לשלוח דיווחים באפליקציה עד אז.}}",
 	"enforcement.effect.messages_removed": "הסרנו גם {count, plural, =1 {הודעה אחת} two {שתי הודעות} other {# הודעות}}.",
-	"enforcement.effect.networks_blocked": "חסמנו גם, עד {date}, את הגישה מרשתות שהחשבון הזה השתמש בהן.",
 	"enforcement.effect.no_other_accounts": "אסור לכם ליצור חשבונות אחרים או להשתמש בהם.",
 	"enforcement.effect.scope": "ההחלטה הזו חלה בכל מקום שבו {product_name} זמין.",
 	"enforcement.effect.suspension": "{target, select, bot {הבוט לא יכול להתחבר או לפעול בשום מקום עד אז. החשבון האישי שלכם לא מוגבל.} other {אתם לא יכולים להתחבר או להשתמש ב-{product_name} בשום מקום עד אז. החשבון, ההודעות והקהילות שלכם נשמרים.}}",

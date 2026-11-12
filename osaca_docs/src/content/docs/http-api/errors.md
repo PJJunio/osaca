@@ -415,9 +415,6 @@ These are the values of `code` inside `errors`.
 | `ENFORCEMENT_KIND_NOT_ALLOWED` | This reason can't be used for this action |
 | `ENFORCEMENT_LIMIT_END_INVALID` | Only a reports limit has an end date, and it must be within the next 365 days |
 | `ENFORCEMENT_LIMIT_NOT_ALLOWED` | This reason can't be used for this limit |
-| `ENFORCEMENT_NETWORK_BLOCK_NOT_ALLOWED` | Only a permanent suspension or a closure for a broken rule can block networks |
-| `ENFORCEMENT_NETWORK_SHARED` | Other accounts that aren't restricted were last active on this network, so it can't be blocked |
-| `ENFORCEMENT_NETWORK_UNKNOWN` | This account hasn't used this network in the last 30 days |
 | `ENFORCEMENT_OUTCOME_NOT_ALLOWED` | Only a reversal can end this kind of decision, because there is nothing to lift |
 | `ENFORCEMENT_PERMANENT_REQUIRED` | Suspensions for this reason must be permanent |
 | `ENFORCEMENT_REPORT_MISMATCH` | Every linked report must exist and be about the account or community this decision is about |

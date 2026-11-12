@@ -123,7 +123,6 @@ const (
 	UserUpdateProfile             AdminAclType = "user:update:profile"
 	UserUpdateTraits              AdminAclType = "user:update:traits"
 	UserUpdateUsername            AdminAclType = "user:update:username"
-	UserViewIp                    AdminAclType = "user:view:ip"
 	VoiceJoinTokenCreate          AdminAclType = "voice:join_token:create"
 	VoiceJoinTokenList            AdminAclType = "voice:join_token:list"
 	VoiceJoinTokenRevoke          AdminAclType = "voice:join_token:revoke"
@@ -315,8 +314,6 @@ func (e AdminAclType) Valid() bool {
 	case UserUpdateTraits:
 		return true
 	case UserUpdateUsername:
-		return true
-	case UserViewIp:
 		return true
 	case VoiceJoinTokenCreate:
 		return true
@@ -930,27 +927,6 @@ func (e PendingRegistrationActionRequestStatus) Valid() bool {
 	}
 }
 
-// Defines values for SkippedNetworkBlockReason.
-const (
-	AlreadyBlocked SkippedNetworkBlockReason = "already_blocked"
-	Exempt         SkippedNetworkBlockReason = "exempt"
-	SpecialPurpose SkippedNetworkBlockReason = "special_purpose"
-)
-
-// Valid indicates whether the value is a known member of the SkippedNetworkBlockReason enum.
-func (e SkippedNetworkBlockReason) Valid() bool {
-	switch e {
-	case AlreadyBlocked:
-		return true
-	case Exempt:
-		return true
-	case SpecialPurpose:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for VoiceJoinTokenStatus.
 const (
 	Expired VoiceJoinTokenStatus = "expired"
@@ -1106,8 +1082,7 @@ type AdminUserAclsRequest struct {
 
 // AdminUserBanRequest defines model for AdminUserBanRequest.
 type AdminUserBanRequest struct {
-	BlockNetworks *NetworkBlockRequest     `json:"block_networks,omitempty"`
-	Decision      EnforcementDecisionInput `json:"decision"`
+	Decision EnforcementDecisionInput `json:"decision"`
 
 	// DurationHours Duration of the suspension in hours. Use 0 for a permanent suspension
 	DurationHours int `json:"duration_hours"`
@@ -1134,8 +1109,7 @@ type AdminUserCreateResponse struct {
 
 // AdminUserDeletionScheduleRequest defines model for AdminUserDeletionScheduleRequest.
 type AdminUserDeletionScheduleRequest struct {
-	Basis         ModerationBasis      `json:"basis"`
-	BlockNetworks *NetworkBlockRequest `json:"block_networks,omitempty"`
+	Basis ModerationBasis `json:"basis"`
 
 	// DaysUntilDeletion Days until the account is deleted. Raised to 14, or to 74 when a rule was broken so an appeal can be reviewed first. Self-hosted instances have no appeals and raise every basis to 14
 	DaysUntilDeletion int `json:"days_until_deletion"`
@@ -2011,15 +1985,6 @@ type ModerationBasis2 struct {
 // ModerationBasis2Type defines model for ModerationBasis.2.Type.
 type ModerationBasis2Type string
 
-// NetworkBlockRequest Block networks the account used. Only with a permanent suspension or a closure for a broken rule. Requires BAN_IP_ADD and USER_VIEW_IP
-type NetworkBlockRequest struct {
-	// Days How many days the blocks last. Ending the decision or deleting the account removes them sooner. Defaults to 90
-	Days *int `json:"days,omitempty"`
-
-	// Ips Addresses the account used in the last 30 days. An address on which another account that is not suspended or closed was last active is refused
-	Ips []string `json:"ips"`
-}
-
 // PendingRegistrationActionRequest defines model for PendingRegistrationActionRequest.
 type PendingRegistrationActionRequest struct {
 	// Status Pending registration decision
@@ -2050,17 +2015,6 @@ type SearchUsersResponse struct {
 	Total float32                   `json:"total"`
 	Users []UserAdminResponseSchema `json:"users"`
 }
-
-// SkippedNetworkBlock defines model for SkippedNetworkBlock.
-type SkippedNetworkBlock struct {
-	Ip string `json:"ip"`
-
-	// Reason Exempt addresses and special-purpose ranges such as private, shared carrier and documentation ranges are never blocked. An address that is already blocked permanently or by another decision is left as it is
-	Reason SkippedNetworkBlockReason `json:"reason"`
-}
-
-// SkippedNetworkBlockReason Exempt addresses and special-purpose ranges such as private, shared carrier and documentation ranges are never blocked. An address that is already blocked permanently or by another decision is left as it is
-type SkippedNetworkBlockReason string
 
 // SnowflakeStringType defines model for SnowflakeStringType.
 type SnowflakeStringType = string
@@ -2218,13 +2172,6 @@ type UserFlags = string
 // UserMutationResponse defines model for UserMutationResponse.
 type UserMutationResponse struct {
 	User UserAdminResponseSchema `json:"user"`
-}
-
-// UserRestrictionResponse defines model for UserRestrictionResponse.
-type UserRestrictionResponse struct {
-	// SkippedIps Requested network blocks that were not written, with the reason
-	SkippedIps []SkippedNetworkBlock   `json:"skipped_ips"`
-	User       UserAdminResponseSchema `json:"user"`
 }
 
 // UsernameType defines model for UsernameType.

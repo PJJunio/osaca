@@ -8,7 +8,6 @@
 	"enforcement.effect.limit_direct_messages": "Mesajele tale din conversațiile unu la unu și cererile tale de prietenie nu sunt livrate, iar profilul tău este ascuns. În comunități și în conversațiile de grup, ceilalți îți văd mesajele restrânse și marcate ca posibil spam.",
 	"enforcement.effect.limit_reports": "{safety_route, select, yes {Până atunci, nu poți trimite rapoarte în aplicație. Pentru a raporta conținut ilegal, folosește canalul de siguranță indicat pe [pagina cu informații despre companie]({url}).} other {Până atunci, nu poți trimite rapoarte în aplicație.}}",
 	"enforcement.effect.messages_removed": "Am eliminat și {count, plural, one {# mesaj} few {# mesaje} other {# de mesaje}}.",
-	"enforcement.effect.networks_blocked": "Am blocat și accesul din rețelele folosite de acest cont până la {date}.",
 	"enforcement.effect.no_other_accounts": "Nu ai voie să creezi sau să folosești alte conturi.",
 	"enforcement.effect.scope": "Această decizie se aplică peste tot unde se poate folosi {product_name}.",
 	"enforcement.effect.suspension": "{target, select, bot {Până atunci, botul nu se poate conecta și nu poate acționa nicăieri. Contul tău personal nu este restricționat.} other {Până atunci, nu te poți conecta și nu poți folosi {product_name} nicăieri. Contul, mesajele și comunitățile tale sunt păstrate.}}",

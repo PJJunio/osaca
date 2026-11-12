@@ -3,6 +3,7 @@
 // ADR-0010: the Operator sees no IP addresses or locations and holds no ACL for the removed tools (issue #57).
 
 import {createTestAccount, setUserACLs} from '@app/api/auth/tests/AuthTestUtils';
+import {decisionBody, getDecision, suspendRequest} from '@app/api/enforcement/tests/EnforcementTestUtils';
 import {getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {HTTP_STATUS} from '@app/api/test/TestConstants';
@@ -19,7 +20,8 @@ const IP_FIELDS = [
 	'client_location',
 ];
 
-// message:lookup (reported evidence) and user:view:ip (network blocks) serve kept tools and stay.
+// message:lookup (reported evidence) serves a kept tool and stays. user:view:ip guarded blocking a banned Account's
+// networks, which went with stored IP addresses (ADR-0009, issue #58).
 const REMOVED_ACLS = [
 	'archive:trigger:guild',
 	'archive:trigger:user',
@@ -31,6 +33,7 @@ const REMOVED_ACLS = [
 	'user:create:password_reset_link',
 	'user:delete:recovery_kit',
 	'user:view:contact_log',
+	'user:view:ip',
 ];
 
 function ipFieldsIn(record: Record<string, unknown>): Array<string> {
@@ -108,6 +111,22 @@ describe('Admin API operational scope (ADR-0010)', () => {
 			.execute();
 		expect(result.sessions.length).toBeGreaterThan(0);
 		expect(result.sessions.flatMap(ipFieldsIn)).toEqual([]);
+	});
+
+	test('suspends without blocking networks or reporting any address', async () => {
+		const admin = await setUserACLs(harness, await createTestAccount(harness), [AdminACLs.WILDCARD]);
+		const target = await createTestAccount(harness);
+		const response = await suspendRequest(harness, admin, target.userId, {
+			duration_hours: 24,
+			decision: decisionBody(),
+			block_networks: {ips: ['203.0.113.7'], days: 30},
+		})
+			.expect(HTTP_STATUS.OK)
+			.execute();
+		expect(Object.keys(response)).toEqual(['user']);
+		const decision = await getDecision(harness, admin, response.user.enforcement_decision_id!);
+		expect(Object.keys(decision)).not.toContain('network_blocks');
+		expect(decision.notice.effects.join(' ')).not.toMatch(/network/i);
 	});
 
 	test('offers no guild archive, archive listing or archive download', async () => {

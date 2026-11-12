@@ -8,7 +8,6 @@
 	"enforcement.effect.limit_direct_messages": "1対1のメッセージと友達リクエストは配信されず、プロフィールは非表示になります。コミュニティとグループDMでは、他の人にはあなたのメッセージが折りたたまれ、スパムの可能性があると表示されます。",
 	"enforcement.effect.limit_reports": "{safety_route, select, yes {それまでの間、アプリ内で報告を送信することはできません。違法なコンテンツを報告するには、[会社情報ページ]({url})にある安全に関する窓口をご利用ください。} other {それまでの間、アプリ内で報告を送信することはできません。}}",
 	"enforcement.effect.messages_removed": "また、{count, plural, other {#件のメッセージ}}を削除しました。",
-	"enforcement.effect.networks_blocked": "また、このアカウントが使用していたネットワークからのアクセスを{date}までブロックしました。",
 	"enforcement.effect.no_other_accounts": "他のアカウントを作成または使用することは禁止されています。",
 	"enforcement.effect.scope": "この決定は、{product_name}を利用できるすべての場所に適用されます。",
 	"enforcement.effect.suspension": "{target, select, bot {それまでの間、ボットはどこからも接続も操作もできません。あなた自身のアカウントは制限されていません。} other {それまでの間、どこからもログインや{product_name}の利用はできません。アカウント、メッセージ、コミュニティは保持されます。}}",

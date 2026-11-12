@@ -6982,7 +6982,7 @@
 				"responses": {
 					"200": {
 						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/UserRestrictionResponse"}}}
+						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/UserMutationResponse"}}}
 					},
 					"400": {
 						"description": "Bad Request - The request was malformed or contained invalid data",
@@ -7023,7 +7023,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Suspend the account for duration_hours, or permanently with a duration of zero, and record the enforcement decision behind it. The decision is written first, then the suspension, then linked reports are resolved and the notice is sent. The X-Audit-Log-Reason header is required and becomes the first note. remove_evidence queues removal of the reported messages and the evidence you listed after they are snapshotted, and keeps the other messages from the reports. block_networks blocks addresses the account used in the last 30 days, for 90 days unless days says otherwise, and only with a permanent suspension. Exempt and special-purpose addresses, and addresses already blocked permanently or by another decision, are skipped and listed in skipped_ips. An address on which another account that is not suspended or closed was last active is refused with ENFORCEMENT_NETWORK_SHARED. Returns 409 when the account is closed. Requires USER_TEMP_BAN permission, plus MESSAGE_LOOKUP for evidence, REPORT_VIEW and REPORT_RESOLVE for reports, MESSAGE_SHRED for remove_evidence, and BAN_IP_ADD and USER_VIEW_IP for block_networks.",
+				"description": "Suspend the account for duration_hours, or permanently with a duration of zero, and record the enforcement decision behind it. The decision is written first, then the suspension, then linked reports are resolved and the notice is sent. The X-Audit-Log-Reason header is required and becomes the first note. remove_evidence queues removal of the reported messages and the evidence you listed after they are snapshotted, and keeps the other messages from the reports. Returns 409 when the account is closed. Requires USER_TEMP_BAN permission, plus MESSAGE_LOOKUP for evidence, REPORT_VIEW and REPORT_RESOLVE for reports, and MESSAGE_SHRED for remove_evidence.",
 				"security": [{"adminApiKey": []}],
 				"parameters": [
 					{
@@ -7174,7 +7174,7 @@
 				"responses": {
 					"200": {
 						"description": "Success",
-						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/UserRestrictionResponse"}}}
+						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/UserMutationResponse"}}}
 					},
 					"400": {
 						"description": "Bad Request - The request was malformed or contained invalid data",
@@ -7215,7 +7215,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Close the account and schedule its deletion. The basis says why. A broken rule records an enforcement decision kind closure, keeps the account for at least 74 days so an appeal can be reviewed first (14 days on a self-hosted instance, which has no appeals), sends the notice. The X-Audit-Log-Reason header is then required and becomes the first note. A holder request or housekeeping keeps the account for at least 14 days, sends a neutral email, and is cancelled when the holder signs in. Those two return 409 while an enforcement decision owns the account state. When a deletion is already scheduled, the request must name it in replace_pending_deletion_at or it returns 409. block_networks works as on the suspend route and is refused for the other bases. Executing the deletion removes the blocks. Creates audit log entry. Requires USER_DELETE permission, plus MESSAGE_LOOKUP for evidence, REPORT_VIEW and REPORT_RESOLVE for reports, MESSAGE_SHRED for remove_evidence, and BAN_IP_ADD and USER_VIEW_IP for block_networks.",
+				"description": "Close the account and schedule its deletion. The basis says why. A broken rule records an enforcement decision kind closure, keeps the account for at least 74 days so an appeal can be reviewed first (14 days on a self-hosted instance, which has no appeals), sends the notice. The X-Audit-Log-Reason header is then required and becomes the first note. A holder request or housekeeping keeps the account for at least 14 days, sends a neutral email, and is cancelled when the holder signs in. Those two return 409 while an enforcement decision owns the account state. When a deletion is already scheduled, the request must name it in replace_pending_deletion_at or it returns 409. Creates audit log entry. Requires USER_DELETE permission, plus MESSAGE_LOOKUP for evidence, REPORT_VIEW and REPORT_RESOLVE for reports, and MESSAGE_SHRED for remove_evidence.",
 				"security": [{"adminApiKey": []}],
 				"parameters": [
 					{
@@ -10392,26 +10392,12 @@
 						"description": "Remove the reported messages and the evidence you listed after they are snapshotted into the decision. Other messages from the reports are kept. Enforcement basis only",
 						"type": "boolean"
 					},
-					"block_networks": {"allOf": [{"$ref": "#/components/schemas/NetworkBlockRequest"}]},
 					"immediate": {
 						"description": "Self-hosted instances only. Delete the account now instead of after days_until_deletion. This cannot be undone",
 						"type": "boolean"
 					}
 				},
 				"required": ["days_until_deletion", "basis"]
-			},
-			"UserRestrictionResponse": {
-				"type": "object",
-				"properties": {
-					"user": {"$ref": "#/components/schemas/UserAdminResponseSchema"},
-					"skipped_ips": {
-						"type": "array",
-						"items": {"$ref": "#/components/schemas/SkippedNetworkBlock"},
-						"description": "Requested network blocks that were not written, with the reason"
-					}
-				},
-				"required": ["user", "skipped_ips"],
-				"additionalProperties": false
 			},
 			"AdminUserBotStatusRequest": {
 				"type": "object",
@@ -10431,8 +10417,7 @@
 					"remove_evidence": {
 						"description": "Remove the reported messages and the evidence you listed after they are snapshotted into the decision. Other messages from the reports are kept",
 						"type": "boolean"
-					},
-					"block_networks": {"allOf": [{"$ref": "#/components/schemas/NetworkBlockRequest"}]}
+					}
 				},
 				"required": ["duration_hours", "decision"]
 			},
@@ -10463,7 +10448,7 @@
 				"type": "object",
 				"properties": {
 					"acls": {
-						"maxItems": 100,
+						"maxItems": 99,
 						"type": "array",
 						"items": {"$ref": "#/components/schemas/AdminAclType"},
 						"description": "List of access control permissions to assign"
@@ -10597,7 +10582,6 @@
 					"user:list:guilds",
 					"user:list:sessions",
 					"user:lookup",
-					"user:view:ip",
 					"user:temp_ban",
 					"user:update:badges",
 					"user:update:bot_status",
@@ -13165,19 +13149,6 @@
 						"type": "object",
 						"additionalProperties": {"type": "string"}
 					},
-					"network_blocks": {
-						"type": "array",
-						"items": {
-							"type": "object",
-							"properties": {
-								"ip": {"type": "string", "description": "Masked without the IP view permission"},
-								"expires_at": {"nullable": true, "type": "string"}
-							},
-							"required": ["ip", "expires_at"],
-							"additionalProperties": false
-						},
-						"description": "Network blocks that belong to this decision and have not expired"
-					},
 					"notice": {
 						"properties": {
 							"decision_id": {
@@ -13295,7 +13266,6 @@
 					"notes",
 					"evidence",
 					"profile_values",
-					"network_blocks",
 					"notice"
 				],
 				"additionalProperties": false
@@ -14320,7 +14290,7 @@
 					},
 					"acls": {
 						"description": "Replacement list of access control permissions for the key",
-						"maxItems": 100,
+						"maxItems": 99,
 						"type": "array",
 						"items": {"$ref": "#/components/schemas/AdminAclType"}
 					}
@@ -14338,7 +14308,7 @@
 						"type": "string"
 					},
 					"acls": {
-						"maxItems": 100,
+						"maxItems": 99,
 						"type": "array",
 						"items": {"type": "string"},
 						"description": "List of access control permissions for the key"
@@ -14368,7 +14338,7 @@
 						"maximum": 365
 					},
 					"acls": {
-						"maxItems": 100,
+						"maxItems": 99,
 						"type": "array",
 						"items": {"$ref": "#/components/schemas/AdminAclType"},
 						"description": "List of access control permissions for the key"
@@ -14389,7 +14359,7 @@
 						"type": "string"
 					},
 					"acls": {
-						"maxItems": 100,
+						"maxItems": 99,
 						"type": "array",
 						"items": {"type": "string"},
 						"description": "List of access control permissions for the key"
@@ -14402,7 +14372,7 @@
 				"type": "object",
 				"properties": {
 					"acls": {
-						"maxItems": 100,
+						"maxItems": 99,
 						"type": "array",
 						"items": {"type": "string", "minLength": 1, "maxLength": 64},
 						"description": "Every admin access control permission the admin API recognises"
@@ -17864,7 +17834,7 @@
 						"description": "The enforcement decision behind the current suspension or closure, null when none owns it",
 						"allOf": [{"$ref": "#/components/schemas/SnowflakeStringType"}]
 					},
-					"acls": {"maxItems": 100, "type": "array", "items": {"type": "string"}},
+					"acls": {"maxItems": 99, "type": "array", "items": {"type": "string"}},
 					"traits": {"maxItems": 100, "type": "array", "items": {"type": "string"}},
 					"badge_ids": {"allOf": [{"$ref": "#/components/schemas/CustomBadgeIdListResponse"}]},
 					"has_totp": {"type": "boolean"},
@@ -18053,40 +18023,6 @@
 				"additionalProperties": false
 			},
 			"UsernameType": {"type": "string"},
-			"NetworkBlockRequest": {
-				"type": "object",
-				"properties": {
-					"ips": {
-						"minItems": 1,
-						"maxItems": 20,
-						"type": "array",
-						"items": {"type": "string"},
-						"description": "Addresses the account used in the last 30 days. An address on which another account that is not suspended or closed was last active is refused"
-					},
-					"days": {
-						"default": 90,
-						"description": "How many days the blocks last. Ending the decision or deleting the account removes them sooner. Defaults to 90",
-						"type": "integer",
-						"minimum": 1,
-						"maximum": 365
-					}
-				},
-				"required": ["ips"],
-				"description": "Block networks the account used. Only with a permanent suspension or a closure for a broken rule. Requires BAN_IP_ADD and USER_VIEW_IP"
-			},
-			"SkippedNetworkBlock": {
-				"type": "object",
-				"properties": {
-					"ip": {"type": "string"},
-					"reason": {
-						"type": "string",
-						"enum": ["exempt", "special_purpose", "already_blocked"],
-						"description": "Exempt addresses and special-purpose ranges such as private, shared carrier and documentation ranges are never blocked. An address that is already blocked permanently or by another decision is left as it is"
-					}
-				},
-				"required": ["ip", "reason"],
-				"additionalProperties": false
-			},
 			"ModerationBasis": {
 				"oneOf": [
 					{

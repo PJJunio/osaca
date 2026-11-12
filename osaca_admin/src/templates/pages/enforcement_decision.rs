@@ -458,28 +458,6 @@ fn reports_section(base: &str, decision: &EnforcementDecisionResponse) -> Markup
     }
 }
 
-fn network_blocks_section(decision: &EnforcementDecisionResponse) -> Markup {
-    html! {
-        @if !decision.network_blocks.is_empty() {
-            (section_card_simple("Network blocks", html! {
-                ul class="space-y-1 text-sm text-neutral-900" {
-                    @for block in &decision.network_blocks {
-                        li {
-                            span class="font-mono" { (block.ip) }
-                            @if let Some(expires_at) = &block.expires_at {
-                                span class="text-neutral-500" { ", until " (format_admin_timestamp(expires_at)) }
-                            }
-                        }
-                    }
-                }
-                p class="mt-2 text-xs text-neutral-500" {
-                    "Ending the decision removes these blocks. Deleting the account removes them too."
-                }
-            }))
-        }
-    }
-}
-
 fn notes_section(
     base: &str,
     decision: &EnforcementDecisionResponse,
@@ -552,7 +530,6 @@ pub fn decision_detail(
             (summary_section(base, decision, users))
             @if open
                 && can_end(admin_acls, decision.kind, decision.removed_all_messages)
-                && (decision.network_blocks.is_empty() || acl::has_permission(admin_acls, acl::BAN_IP_REMOVE))
             {
                 (section_card_simple("End decision", end_decision_form(&EndDecisionForm {
                     base,
@@ -566,7 +543,6 @@ pub fn decision_detail(
             (notice_section(decision))
             (evidence_section(decision))
             (reports_section(base, decision))
-            (network_blocks_section(decision))
             (notes_section(
                 base,
                 decision,

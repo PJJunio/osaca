@@ -146,7 +146,6 @@ export class AdminService {
 			repository: getEnforcementDecisionRepository(),
 			delivery,
 			auditService: this.auditService,
-			banManagementService: this.banManagementService,
 			channelRepository: this.channelRepository,
 			guildRepository: this.guildRepository,
 			reportService: this.reportService,

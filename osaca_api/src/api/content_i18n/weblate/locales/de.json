@@ -8,7 +8,6 @@
 	"enforcement.effect.limit_direct_messages": "Deine Nachrichten in Einzelunterhaltungen und deine Freundschaftsanfragen werden nicht zugestellt, und dein Profil ist verborgen. In Communitys und Gruppenunterhaltungen sehen andere deine Nachrichten eingeklappt und als möglichen Spam markiert.",
 	"enforcement.effect.limit_reports": "{safety_route, select, yes {Du kannst bis dahin keine Meldungen in der App senden. Um rechtswidrige Inhalte zu melden, nutze den Sicherheitskontakt auf unserer [Seite mit den Unternehmensangaben]({url}).} other {Du kannst bis dahin keine Meldungen in der App senden.}}",
 	"enforcement.effect.messages_removed": "Außerdem haben wir {count, plural, =1 {# Nachricht} other {# Nachrichten}} entfernt.",
-	"enforcement.effect.networks_blocked": "Außerdem haben wir den Zugriff aus Netzwerken, die dieser Account genutzt hat, bis zum {date} gesperrt.",
 	"enforcement.effect.no_other_accounts": "Du darfst keine anderen Accounts erstellen oder nutzen.",
 	"enforcement.effect.scope": "Diese Entscheidung gilt überall, wo {product_name} verfügbar ist.",
 	"enforcement.effect.suspension": "{target, select, bot {Der Bot kann sich bis dahin nirgendwo verbinden oder Aktionen ausführen. Dein eigener Account ist nicht eingeschränkt.} other {Du kannst dich bis dahin nirgendwo anmelden oder {product_name} nutzen. Dein Account, deine Nachrichten und deine Communitys bleiben erhalten.}}",

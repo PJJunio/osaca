@@ -323,27 +323,6 @@ pub fn enforcement_fields(fields: &DecisionFields<'_>) -> Markup {
     }
 }
 
-pub fn skipped_networks_summary(
-    skipped: &[generated_types::SkippedNetworkBlock],
-) -> Option<String> {
-    use generated_types::SkippedNetworkBlockReason as Reason;
-    if skipped.is_empty() {
-        return None;
-    }
-    let entries = skipped
-        .iter()
-        .map(|entry| {
-            let reason = match entry.reason {
-                Reason::Exempt => "exempt",
-                Reason::SpecialPurpose => "special-purpose range",
-                Reason::AlreadyBlocked => "already blocked",
-            };
-            format!("{} ({reason})", entry.ip)
-        })
-        .collect::<Vec<_>>();
-    Some(format!("Not blocked: {}.", entries.join(", ")))
-}
-
 pub fn basis_fields(fields: &BasisFields<'_>) -> Markup {
     let prefix = fields.decision.id_prefix;
     let plain = fields

@@ -8,7 +8,6 @@
 	"enforcement.effect.limit_direct_messages": "Bire bir mesajların ve arkadaşlık isteklerin iletilmez ve profilin gizlenir. Topluluklarda ve grup sohbetlerinde diğer kişiler mesajlarını daraltılmış ve olası spam olarak işaretlenmiş şekilde görür.",
 	"enforcement.effect.limit_reports": "{safety_route, select, yes {O zamana kadar uygulama içinden rapor gönderemezsin. Yasa dışı içeriği bildirmek için [şirket bilgileri sayfamızda]({url}) yer alan güvenlik kanalını kullan.} other {O zamana kadar uygulama içinden rapor gönderemezsin.}}",
 	"enforcement.effect.messages_removed": "Ayrıca {count, plural, one {# mesajı} other {# mesajı}} kaldırdık.",
-	"enforcement.effect.networks_blocked": "Ayrıca bu hesabın kullandığı ağlardan erişimi {date} tarihine kadar engelledik.",
 	"enforcement.effect.no_other_accounts": "Başka hesaplar oluşturman veya kullanman yasaktır.",
 	"enforcement.effect.scope": "Bu karar, {product_name} hizmetinin sunulduğu her yerde geçerlidir.",
 	"enforcement.effect.suspension": "{target, select, bot {Bot o zamana kadar hiçbir yerde bağlanamaz veya işlem yapamaz. Kendi hesabın kısıtlanmadı.} other {O zamana kadar hiçbir yerde giriş yapamaz ve {product_name} hizmetini kullanamazsın. Hesabın, mesajların ve toplulukların korunur.}}",

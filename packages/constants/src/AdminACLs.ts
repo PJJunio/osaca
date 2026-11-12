@@ -82,7 +82,6 @@ export const AdminACLs = {
 	USER_LIST_GUILDS: 'user:list:guilds',
 	USER_LIST_SESSIONS: 'user:list:sessions',
 	USER_LOOKUP: 'user:lookup',
-	USER_VIEW_IP: 'user:view:ip',
 	USER_TEMP_BAN: 'user:temp_ban',
 	USER_UPDATE_BADGES: 'user:update:badges',
 	USER_UPDATE_BOT_STATUS: 'user:update:bot_status',

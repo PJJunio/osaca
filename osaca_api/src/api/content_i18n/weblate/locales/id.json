@@ -8,7 +8,6 @@
 	"enforcement.effect.limit_direct_messages": "Pesanmu di percakapan empat mata dan permintaan pertemananmu tidak sampai, dan profilmu disembunyikan. Di komunitas dan percakapan grup, orang lain melihat pesanmu diciutkan dan ditandai berpotensi spam.",
 	"enforcement.effect.limit_reports": "{safety_route, select, yes {Kamu tidak bisa mengirim laporan di aplikasi sampai saat itu. Untuk melaporkan konten ilegal, gunakan jalur keamanan di [halaman informasi perusahaan kami]({url}).} other {Kamu tidak bisa mengirim laporan di aplikasi sampai saat itu.}}",
 	"enforcement.effect.messages_removed": "Kami juga menghapus {count, plural, =1 {# pesan} other {# pesan}}.",
-	"enforcement.effect.networks_blocked": "Kami juga memblokir akses dari jaringan yang digunakan akun ini sampai {date}.",
 	"enforcement.effect.no_other_accounts": "Kamu tidak boleh membuat atau menggunakan akun lain.",
 	"enforcement.effect.scope": "Keputusan ini berlaku di mana pun {product_name} tersedia.",
 	"enforcement.effect.suspension": "{target, select, bot {Bot tidak bisa terhubung atau bertindak di mana pun sampai saat itu. Akunmu sendiri tidak dibatasi.} other {Kamu tidak bisa masuk atau menggunakan {product_name} di mana pun sampai saat itu. Akun, pesan, dan komunitasmu tetap disimpan.}}",

@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {ArchiveSubjectTypeSchema} from '@osaca/schema/src/domains/admin/AdminArchiveSchemas';
 import {createStringType, SnowflakeType} from '@osaca/schema/src/primitives/SchemaPrimitives';
 import {z} from 'zod';
 
@@ -183,14 +182,6 @@ export const CredentialIdParam = z.object({
 });
 
 export type CredentialIdParam = z.infer<typeof CredentialIdParam>;
-
-export const ArchivePathParam = z.object({
-	subject_type: ArchiveSubjectTypeSchema.describe('The type of subject (user or guild)'),
-	subject_id: SnowflakeType.describe('The ID of the subject'),
-	archive_id: SnowflakeType.describe('The ID of the archive'),
-});
-
-export type ArchivePathParam = z.infer<typeof ArchivePathParam>;
 
 export const JobIdParam = z.object({
 	job_id: SnowflakeType.describe('The ID of the job'),

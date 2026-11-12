@@ -37,7 +37,10 @@ export async function loadSchemas(basePath: string): Promise<Map<string, z.ZodTy
 	for (const modulePath of modulePaths) {
 		try {
 			const moduleExports = await import(pathToFileURL(modulePath).href);
-			for (const [exportName, exportValue] of Object.entries(moduleExports)) {
+			// An aliased schema is named after its first export, so the order must not depend on the loader: native ESM
+			// lists exports alphabetically, vite (vitest) in source order.
+			const sortedExports = Object.entries(moduleExports).sort(([a], [b]) => Number(a > b) - Number(a < b));
+			for (const [exportName, exportValue] of sortedExports) {
 				if (exportName.startsWith('_')) {
 					continue;
 				}

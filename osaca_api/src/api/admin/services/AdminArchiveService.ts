@@ -1,32 +1,20 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {buildAdminDownloadUrl} from '@app/api/admin/AdminSignedDownloads';
 import {AdminArchive} from '@app/api/admin/models/AdminArchiveModel';
 import type {AdminArchiveRepository} from '@app/api/admin/repositories/AdminArchiveRepository';
-import type {GuildID, UserID} from '@app/api/BrandedTypes';
-import type {GuildRepository} from '@app/api/guild/repositories/GuildRepository';
+import type {UserID} from '@app/api/BrandedTypes';
 import type {ISnowflakeService} from '@app/api/infrastructure/ISnowflakeService';
-import type {IStorageService} from '@app/api/infrastructure/IStorageService';
 import type {UserRepository} from '@app/api/user/repositories/UserRepository';
 import type {WorkerTaskName} from '@app/api/worker/WorkerLaneConfig';
-import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
-import {UnknownGuildError} from '@osaca/errors/src/domains/guild/UnknownGuildError';
-import {HarvestExpiredError} from '@osaca/errors/src/domains/moderation/HarvestExpiredError';
-import {HarvestFailedError} from '@osaca/errors/src/domains/moderation/HarvestFailedError';
-import {HarvestNotReadyError} from '@osaca/errors/src/domains/moderation/HarvestNotReadyError';
-import {UnknownHarvestError} from '@osaca/errors/src/domains/moderation/UnknownHarvestError';
 import type {AdminArchiveResponse, ArchiveSubjectType} from '@osaca/schema/src/domains/admin/AdminArchiveSchemas';
 import type {IWorkerService} from '@pkgs/worker/src/contracts/IWorkerService';
-import {ms, seconds} from 'itty-time';
+import {ms} from 'itty-time';
 
 const ARCHIVE_RETENTION_DAYS = 365;
-const DOWNLOAD_LINK_DAYS = 7;
-const DOWNLOAD_LINK_SECONDS = DOWNLOAD_LINK_DAYS * seconds('1 day');
 
 interface ListArchivesParams {
-	subjectType?: ArchiveSubjectType | 'all';
-	subjectId?: bigint;
-	requestedBy?: bigint;
+	subjectType: ArchiveSubjectType;
+	subjectId: bigint;
 	limit?: number;
 	includeExpired?: boolean;
 }
@@ -35,8 +23,6 @@ export class AdminArchiveService {
 	constructor(
 		private readonly adminArchiveRepository: AdminArchiveRepository,
 		private readonly userRepository: UserRepository,
-		private readonly guildRepository: GuildRepository,
-		private readonly storageService: IStorageService,
 		private readonly snowflakeService: ISnowflakeService,
 		private readonly workerService: IWorkerService<WorkerTaskName>,
 	) {}
@@ -88,92 +74,9 @@ export class AdminArchiveService {
 		return archive.toResponse();
 	}
 
-	async triggerGuildArchive(
-		targetGuildId: GuildID,
-		requestedBy: UserID,
-		includeAttachments: boolean,
-	): Promise<AdminArchiveResponse> {
-		const guild = await this.guildRepository.findUnique(targetGuildId);
-		if (!guild) {
-			throw new UnknownGuildError();
-		}
-		const archive = await this.createQueuedArchive('guild', targetGuildId, requestedBy);
-		await this.workerService.addJob('harvestGuildData', {
-			guildId: targetGuildId.toString(),
-			archiveId: archive.archiveId.toString(),
-			requestedBy: requestedBy.toString(),
-			includeAttachments,
-		});
-		return archive.toResponse();
-	}
-
-	async getArchive(
-		subjectType: ArchiveSubjectType,
-		subjectId: bigint,
-		archiveId: bigint,
-	): Promise<AdminArchiveResponse | null> {
-		const archive = await this.adminArchiveRepository.findBySubjectAndArchiveId(subjectType, subjectId, archiveId);
-		return archive ? archive.toResponse() : null;
-	}
-
 	async listArchives(params: ListArchivesParams): Promise<Array<AdminArchiveResponse>> {
-		const {subjectType = 'all', subjectId, requestedBy, limit = 50, includeExpired = false} = params;
-		if (subjectId !== undefined) {
-			if (subjectType === 'all') {
-				throw InputValidationError.create(
-					'subject_type',
-					'subject_type must name user or guild when subject_id is supplied',
-				);
-			}
-			const archives = await this.adminArchiveRepository.listBySubject(subjectType, subjectId, limit, includeExpired);
-			return archives.map((a) => a.toResponse());
-		}
-		if (requestedBy !== undefined) {
-			const archives = await this.adminArchiveRepository.listByRequester(requestedBy, limit, includeExpired);
-			return archives.filter((a) => subjectType === 'all' || a.subjectType === subjectType).map((a) => a.toResponse());
-		}
-		if (subjectType === 'all') {
-			const [users, guilds] = await Promise.all([
-				this.adminArchiveRepository.listByType('user', limit, includeExpired),
-				this.adminArchiveRepository.listByType('guild', limit, includeExpired),
-			]);
-			return [...users, ...guilds]
-				.sort((a, b) => b.requestedAt.getTime() - a.requestedAt.getTime())
-				.slice(0, limit)
-				.map((a) => a.toResponse());
-		}
-		const archives = await this.adminArchiveRepository.listByType(subjectType, limit, includeExpired);
+		const {subjectType, subjectId, limit = 50, includeExpired = false} = params;
+		const archives = await this.adminArchiveRepository.listBySubject(subjectType, subjectId, limit, includeExpired);
 		return archives.map((a) => a.toResponse());
-	}
-
-	async getDownloadUrl(
-		subjectType: ArchiveSubjectType,
-		subjectId: bigint,
-		archiveId: bigint,
-	): Promise<{
-		downloadUrl: string;
-		expiresAt: string;
-	}> {
-		const archive = await this.adminArchiveRepository.findBySubjectAndArchiveId(subjectType, subjectId, archiveId);
-		if (!archive) {
-			throw new UnknownHarvestError();
-		}
-		if (archive.failedAt) {
-			throw new HarvestFailedError();
-		}
-		if (!archive.completedAt || !archive.storageKey) {
-			throw new HarvestNotReadyError();
-		}
-		if (archive.expiresAt && archive.expiresAt < new Date()) {
-			throw new HarvestExpiredError();
-		}
-		const downloadUrl = await buildAdminDownloadUrl(this.storageService, {
-			bucket: 'harvests',
-			key: archive.storageKey,
-			filename: `${subjectType}-${subjectId}-${archiveId}.zip`,
-			expiresInSeconds: DOWNLOAD_LINK_SECONDS,
-		});
-		const expiresAt = new Date(Date.now() + ms('7 days'));
-		return {downloadUrl, expiresAt: expiresAt.toISOString()};
 	}
 }

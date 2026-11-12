@@ -15,7 +15,6 @@ import {
 	AuthConfigUpdateRequest,
 } from '@osaca/schema/src/domains/admin/AccountsConfigSchemas';
 import {ADMIN_ACL_COUNT, AdminAclType} from '@osaca/schema/src/domains/admin/AdminAclType';
-import {AdminArchiveResponseSchema} from '@osaca/schema/src/domains/admin/AdminArchiveSchemas';
 import {CustomBadgeIdListResponse} from '@osaca/schema/src/domains/admin/AdminBadgeSchemas';
 import {GuildAdminResponse} from '@osaca/schema/src/domains/admin/AdminGuildSchemas';
 import {ReportNoteResponse} from '@osaca/schema/src/domains/admin/AdminReportNoteSchemas';
@@ -52,7 +51,7 @@ import {
 	NSFWLevelSchema,
 } from '@osaca/schema/src/primitives/GuildValidators';
 import {PermissionStringType} from '@osaca/schema/src/primitives/PermissionValidators';
-import {createQueryIntegerType, QueryBooleanType} from '@osaca/schema/src/primitives/QueryValidators';
+import {createQueryIntegerType} from '@osaca/schema/src/primitives/QueryValidators';
 import {
 	createBitflagInt32Type,
 	createInt32EnumType,
@@ -121,14 +120,6 @@ const ReportSortByEnum = createNamedStringLiteralUnion(
 		['resolvedAt', 'resolvedAt', 'Sort by resolution timestamp'],
 	],
 	'Field to sort reports by',
-);
-const ArchiveListSubjectTypeEnum = createNamedStringLiteralUnion(
-	[
-		['user', 'user', 'List user archives'],
-		['guild', 'guild', 'List guild archives'],
-		['all', 'all', 'List all archives'],
-	],
-	'Type of archives to list',
 );
 const SearchIndexTypeEnum = createNamedStringLiteralUnion(
 	[
@@ -303,34 +294,6 @@ export const PurgeGuildAssetsRequest = z.object({
 });
 
 export type PurgeGuildAssetsRequest = z.infer<typeof PurgeGuildAssetsRequest>;
-
-export const AdminArchiveCreateRequest = z.object({
-	include_attachments: z.boolean().default(false).describe('Whether to include attachment binaries in the archive'),
-});
-
-export type AdminArchiveCreateRequest = z.infer<typeof AdminArchiveCreateRequest>;
-
-export const ListArchivesQuery = z
-	.object({
-		subject_type: ArchiveListSubjectTypeEnum.default('all'),
-		subject_id: SnowflakeType.optional().describe('Filter by specific subject ID'),
-		requested_by: SnowflakeType.optional().describe('Filter by user who requested the archive'),
-		limit: createQueryIntegerType({defaultValue: 50, minValue: 1, maxValue: 200}).describe(
-			'Maximum number of archives to return (1-200, default 50)',
-		),
-		include_expired: QueryBooleanType.describe('Whether to include archives past their expires_at'),
-	})
-	.superRefine((value, ctx) => {
-		if (value.subject_id !== undefined && value.subject_type === 'all') {
-			ctx.addIssue({
-				code: 'custom',
-				message: 'subject_type must name user or guild when subject_id is supplied',
-				path: ['subject_type'],
-			});
-		}
-	});
-
-export type ListArchivesQuery = z.infer<typeof ListArchivesQuery>;
 
 const IpOrCidrType = z.union([z.ipv4(), z.ipv6(), z.cidrv4(), z.cidrv6()]);
 export const BanIpRequest = z.object({
@@ -1009,16 +972,6 @@ export const IndexRefreshStatusResponse = z.union([
 
 export type IndexRefreshStatusResponse = z.infer<typeof IndexRefreshStatusResponse>;
 
-export const ListArchivesResponseSchema = z.object({
-	archives: z.array(AdminArchiveResponseSchema),
-});
-export const GetArchiveResponseSchema = z.object({
-	archive: AdminArchiveResponseSchema.nullable(),
-});
-export const DownloadUrlResponseSchema = z.object({
-	downloadUrl: createStringType(1, 2048),
-	expiresAt: z.string(),
-});
 const GuildAssetTypeEnum = createNamedStringLiteralUnion(
 	[
 		['emoji', 'emoji', 'Custom emoji asset'],

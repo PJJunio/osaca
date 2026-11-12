@@ -48,16 +48,4 @@ export class AdminArchiveRepository {
 	): Promise<Array<AdminArchive>> {
 		return [];
 	}
-
-	async listByType(
-		_subjectType: ArchiveSubjectType,
-		_limit = 50,
-		_includeExpired = false,
-	): Promise<Array<AdminArchive>> {
-		return [];
-	}
-
-	async listByRequester(_requestedBy: bigint, _limit = 50, _includeExpired = false): Promise<Array<AdminArchive>> {
-		return [];
-	}
 }

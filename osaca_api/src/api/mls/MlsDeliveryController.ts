@@ -19,30 +19,15 @@ import {
 	MlsCommitResponse,
 	MlsCreateGroupRequest,
 	MlsDeleteCiphertextResponse,
+	MlsDeviceIdParam,
+	MlsGroupIdEpochParam,
+	MlsGroupIdMessageIdParam,
+	MlsGroupIdParam,
 	MlsGroupResponse,
 	MlsKeyPackagesPublishRequest,
 	MlsKeyPackagesPublishResponse,
 	MlsWelcomeDetailResponse,
 } from '@osaca/schema/src/domains/mls/MlsSchemas';
-import {z} from 'zod';
-
-const DeviceIdParam = z.object({
-	device_id: z.string().min(1).describe('Target device identifier'),
-});
-
-const GroupIdParam = z.object({
-	group_id: z.string().min(1).describe('MLS group identifier'),
-});
-
-const GroupIdEpochParam = z.object({
-	group_id: z.string().min(1).describe('MLS group identifier'),
-	epoch: z.coerce.number().int().nonnegative().describe('MLS epoch number'),
-});
-
-const GroupIdMessageIdParam = z.object({
-	group_id: z.string().min(1).describe('MLS group identifier'),
-	message_id: z.string().min(1).describe('Unique message identifier'),
-});
 
 export function MlsDeliveryController(app: HonoApp): void {
 	app.post(
@@ -69,7 +54,7 @@ export function MlsDeliveryController(app: HonoApp): void {
 	app.post(
 		'/mls/devices/:device_id/claim-key-package',
 		LoginRequired,
-		Validator('param', DeviceIdParam),
+		Validator('param', MlsDeviceIdParam),
 		OpenAPI({
 			operationId: 'mls_claim_key_package',
 			summary: 'Claim a device KeyPackage',
@@ -111,7 +96,7 @@ export function MlsDeliveryController(app: HonoApp): void {
 	app.get(
 		'/mls/groups/:group_id',
 		LoginRequired,
-		Validator('param', GroupIdParam),
+		Validator('param', MlsGroupIdParam),
 		OpenAPI({
 			operationId: 'mls_get_group',
 			summary: 'Get MLS group metadata',
@@ -135,7 +120,7 @@ export function MlsDeliveryController(app: HonoApp): void {
 	app.post(
 		'/mls/groups/:group_id/commits',
 		LoginRequired,
-		Validator('param', GroupIdParam),
+		Validator('param', MlsGroupIdParam),
 		Validator('json', MlsCommitRequest),
 		OpenAPI({
 			operationId: 'mls_post_commit',
@@ -158,7 +143,7 @@ export function MlsDeliveryController(app: HonoApp): void {
 	app.get(
 		'/mls/groups/:group_id/commits/:epoch',
 		LoginRequired,
-		Validator('param', GroupIdEpochParam),
+		Validator('param', MlsGroupIdEpochParam),
 		OpenAPI({
 			operationId: 'mls_get_commit',
 			summary: 'Get an MLS Commit for an epoch',
@@ -182,7 +167,7 @@ export function MlsDeliveryController(app: HonoApp): void {
 	app.get(
 		'/mls/groups/:group_id/welcomes/:epoch',
 		LoginRequired,
-		Validator('param', GroupIdEpochParam),
+		Validator('param', MlsGroupIdEpochParam),
 		OpenAPI({
 			operationId: 'mls_get_welcome',
 			summary: 'Get an MLS Welcome for an epoch',
@@ -206,7 +191,7 @@ export function MlsDeliveryController(app: HonoApp): void {
 	app.post(
 		'/mls/groups/:group_id/messages',
 		LoginRequired,
-		Validator('param', GroupIdParam),
+		Validator('param', MlsGroupIdParam),
 		Validator('json', MlsCiphertextMessageRequest),
 		OpenAPI({
 			operationId: 'mls_post_ciphertext',
@@ -285,7 +270,7 @@ export function MlsDeliveryController(app: HonoApp): void {
 	app.get(
 		'/mls/groups/:group_id/messages',
 		LoginRequired,
-		Validator('param', GroupIdParam),
+		Validator('param', MlsGroupIdParam),
 		Validator('query', MlsCiphertextHistoryQuery),
 		OpenAPI({
 			operationId: 'mls_get_ciphertext_history',
@@ -309,7 +294,7 @@ export function MlsDeliveryController(app: HonoApp): void {
 	app.delete(
 		'/mls/groups/:group_id/messages/:message_id',
 		LoginRequired,
-		Validator('param', GroupIdMessageIdParam),
+		Validator('param', MlsGroupIdMessageIdParam),
 		OpenAPI({
 			operationId: 'mls_delete_ciphertext',
 			summary: 'Delete ciphertext message',

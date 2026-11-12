@@ -55,11 +55,6 @@ export const ERROR_I18N_MESSAGES = {
 	'admin_and_system.enforcement_limit_end_invalid':
 		'Only a reports limit has an end date, and it must be within the next 365 days.',
 	'admin_and_system.enforcement_limit_not_allowed': "This reason can't be used for this limit.",
-	'admin_and_system.enforcement_network_block_not_allowed':
-		'Only a permanent suspension or a closure for a broken rule can block networks.',
-	'admin_and_system.enforcement_network_shared':
-		"Other accounts that aren't restricted were last active on this network, so it can't be blocked.",
-	'admin_and_system.enforcement_network_unknown': "This account hasn't used this network in the last 30 days.",
 	'admin_and_system.enforcement_outcome_not_allowed':
 		'Only a reversal can end this kind of decision, because there is nothing to lift.',
 	'admin_and_system.enforcement_permanent_required': 'Suspensions for this reason must be permanent.',

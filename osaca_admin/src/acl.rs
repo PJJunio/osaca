@@ -81,7 +81,6 @@ pub const USER_DELETE: &str = "user:delete";
 pub const USER_LIST_GUILDS: &str = "user:list:guilds";
 pub const USER_LIST_SESSIONS: &str = "user:list:sessions";
 pub const USER_LOOKUP: &str = "user:lookup";
-pub const USER_VIEW_IP: &str = "user:view:ip";
 pub const USER_TEMP_BAN: &str = "user:temp_ban";
 pub const USER_UPDATE_BADGES: &str = "user:update:badges";
 pub const USER_UPDATE_BOT_STATUS: &str = "user:update:bot_status";
@@ -182,7 +181,6 @@ pub const ALL_ACLS: &[&str] = &[
     USER_LIST_GUILDS,
     USER_LIST_SESSIONS,
     USER_LOOKUP,
-    USER_VIEW_IP,
     USER_TEMP_BAN,
     USER_UPDATE_BADGES,
     USER_UPDATE_BOT_STATUS,

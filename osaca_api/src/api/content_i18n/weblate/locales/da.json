@@ -8,7 +8,6 @@
 	"enforcement.effect.limit_direct_messages": "Dine beskeder i samtaler mellem to personer og dine venneanmodninger bliver ikke leveret, og din profil er skjult. I fællesskaber og gruppesamtaler ser andre dine beskeder foldet sammen og markeret som mulig spam.",
 	"enforcement.effect.limit_reports": "{safety_route, select, yes {Du kan ikke sende anmeldelser i appen indtil da. Brug sikkerhedskontakten på vores [side med virksomhedsoplysninger]({url}) for at anmelde ulovligt indhold.} other {Du kan ikke sende anmeldelser i appen indtil da.}}",
 	"enforcement.effect.messages_removed": "Vi har også fjernet {count, plural, =1 {# besked} other {# beskeder}}.",
-	"enforcement.effect.networks_blocked": "Vi har også blokeret adgang fra netværk, som denne konto har brugt, indtil den {date}.",
 	"enforcement.effect.no_other_accounts": "Du må ikke oprette eller bruge andre konti.",
 	"enforcement.effect.scope": "Denne afgørelse gælder overalt, hvor {product_name} er tilgængelig.",
 	"enforcement.effect.suspension": "{target, select, bot {Botten kan ikke oprette forbindelse eller udføre handlinger nogen steder indtil da. Din egen konto er ikke begrænset.} other {Du kan ikke logge ind eller bruge {product_name} nogen steder indtil da. Din konto, dine beskeder og dine fællesskaber bevares.}}",

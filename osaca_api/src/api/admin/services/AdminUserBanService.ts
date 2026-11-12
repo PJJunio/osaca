@@ -5,11 +5,7 @@ import type {AdminAuditService} from '@app/api/admin/services/AdminAuditService'
 import type {UserID} from '@app/api/BrandedTypes';
 import type {ClosureStateDeps} from '@app/api/enforcement/ClosureState';
 import type {EnforcementActor} from '@app/api/enforcement/EnforcementActor';
-import {
-	decisionAuditMetadata,
-	type EnforcementDecisionService,
-	networkBlockAuditMetadata,
-} from '@app/api/enforcement/EnforcementDecisionService';
+import {decisionAuditMetadata, type EnforcementDecisionService} from '@app/api/enforcement/EnforcementDecisionService';
 import type {EnforcementNoticeDelivery} from '@app/api/enforcement/EnforcementNoticeDelivery';
 import {setFeatureLimit} from '@app/api/enforcement/FeatureLimitState';
 import {permanentSuspensionEnd} from '@app/api/enforcement/NoticeDates';
@@ -74,7 +70,6 @@ export class AdminUserBanService {
 				input: data.decision,
 				endsAt: permanent ? null : bannedUntil,
 				removeEvidence: data.remove_evidence ?? false,
-				blockNetworks: data.block_networks,
 				actor,
 			},
 			async (decisionId) => {
@@ -91,13 +86,11 @@ export class AdminUserBanService {
 				['duration_hours', data.duration_hours.toString()],
 				['banned_until', bannedUntil.toISOString()],
 				...decisionAuditMetadata(recorded.decision),
-				...networkBlockAuditMetadata(recorded),
 			]),
 		});
 		await emitAdminAction(actor.adminUserId, userId, 'temp_ban', {durationHours: data.duration_hours});
 		return {
 			user: await mapUserToAdminResponse(suspended, this.deps.apiContext.services.cache, actor.acls),
-			skipped_ips: recorded.skippedNetworks,
 		};
 	}
 

@@ -8,7 +8,6 @@
 	"enforcement.effect.limit_direct_messages": "Tin nhắn riêng một-một và lời mời kết bạn của bạn sẽ không được chuyển đi, và hồ sơ của bạn bị ẩn. Trong các cộng đồng và cuộc trò chuyện nhóm, mọi người sẽ thấy tin nhắn của bạn bị thu gọn và gắn nhãn có thể là spam.",
 	"enforcement.effect.limit_reports": "{safety_route, select, yes {Bạn không thể gửi báo cáo trong ứng dụng cho đến thời điểm đó. Để báo cáo nội dung bất hợp pháp, hãy dùng kênh báo cáo an toàn trên [trang thông tin công ty]({url}) của chúng tôi.} other {Bạn không thể gửi báo cáo trong ứng dụng cho đến thời điểm đó.}}",
 	"enforcement.effect.messages_removed": "Chúng tôi cũng đã xóa {count, plural, other {# tin nhắn}}.",
-	"enforcement.effect.networks_blocked": "Cho đến {date}, chúng tôi cũng chặn quyền truy cập từ các mạng mà tài khoản này đã dùng.",
 	"enforcement.effect.no_other_accounts": "Bạn không được phép tạo hoặc sử dụng tài khoản khác.",
 	"enforcement.effect.scope": "Quyết định này áp dụng ở mọi nơi có {product_name}.",
 	"enforcement.effect.suspension": "{target, select, bot {Bot không thể kết nối hoặc hoạt động ở bất cứ đâu cho đến thời điểm đó. Tài khoản của chính bạn không bị hạn chế.} other {Bạn không thể đăng nhập hoặc sử dụng {product_name} ở bất cứ đâu cho đến thời điểm đó. Tài khoản, tin nhắn và cộng đồng của bạn vẫn được giữ lại.}}",

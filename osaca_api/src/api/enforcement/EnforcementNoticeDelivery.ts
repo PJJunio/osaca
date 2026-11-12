@@ -120,7 +120,6 @@ export class EnforcementNoticeDelivery {
 	async deliver(
 		decision: EnforcementDecisionRow,
 		evidence: ReadonlyArray<EvidenceMessageLocation>,
-		networksBlockedUntil: Date | null,
 	): Promise<EnforcementNoticeRecord | null> {
 		const recipient = await this.findRecipient(decision);
 		const systemDm = sendsSystemDm(decision) && !(await systemDmsHidden());
@@ -133,7 +132,6 @@ export class EnforcementNoticeDelivery {
 				type: 'decision',
 				decision: {...decision, notice_sent_at: sentAt},
 				evidence,
-				networksBlockedUntil,
 			},
 			recipient.locale,
 		);

@@ -8,7 +8,6 @@
 	"enforcement.effect.limit_direct_messages": "Vaše zprávy v konverzacích jeden na jednoho a žádosti o přátelství se nedoručují a váš profil je skrytý. V komunitách a skupinových konverzacích vidí ostatní vaše zprávy sbalené a označené jako možný spam.",
 	"enforcement.effect.limit_reports": "{safety_route, select, yes {Do té doby nemůžete v aplikaci odesílat nahlášení. Nezákonný obsah můžete nahlásit přes bezpečnostní kontakt na [stránce s informacemi o naší společnosti]({url}).} other {Do té doby nemůžete v aplikaci odesílat nahlášení.}}",
 	"enforcement.effect.messages_removed": "Odstranili jsme také {count, plural, one {# zprávu} few {# zprávy} many {# zprávy} other {# zpráv}}.",
-	"enforcement.effect.networks_blocked": "Do {date} jsme také zablokovali přístup ze sítí, které tento účet používal.",
 	"enforcement.effect.no_other_accounts": "Nesmíte vytvářet ani používat jiné účty.",
 	"enforcement.effect.scope": "Toto rozhodnutí platí všude, kde je {product_name} k dispozici.",
 	"enforcement.effect.suspension": "{target, select, bot {Do té doby se bot nikde nemůže připojit ani nic provádět. Váš vlastní účet omezen není.} other {Do té doby se nikde nemůžete přihlásit ani používat {product_name}. Váš účet, zprávy a komunity zůstávají zachovány.}}",

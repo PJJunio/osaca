@@ -8,7 +8,6 @@
 	"enforcement.effect.limit_direct_messages": "您的一對一私訊和好友邀請不會送達，您的個人檔案也會被隱藏。在社群和群組私訊中，其他人看到的您的訊息會被摺疊，並標示為可能是垃圾訊息。",
 	"enforcement.effect.limit_reports": "{safety_route, select, yes {在此之前，您無法在應用程式內送出檢舉。如需檢舉違法內容，請使用我們[公司資訊頁面]({url})上的安全檢舉管道。} other {在此之前，您無法在應用程式內送出檢舉。}}",
 	"enforcement.effect.messages_removed": "我們也移除了 {count, plural, other {# 則訊息}}。",
-	"enforcement.effect.networks_blocked": "我們也封鎖了此帳號使用過的網路，封鎖持續到 {date}。",
 	"enforcement.effect.no_other_accounts": "您不得建立或使用其他帳號。",
 	"enforcement.effect.scope": "這項決定適用於所有提供 {product_name} 的地方。",
 	"enforcement.effect.suspension": "{target, select, bot {在此之前，該機器人在任何地方都無法連線或執行動作。您自己的帳號未受到限制。} other {在此之前，您在任何地方都無法登入或使用 {product_name}。您的帳號、訊息和社群都會保留。}}",

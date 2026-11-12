@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import type {BannedIpEntry} from '@app/api/admin/AdminRepository';
 import type {
 	EnforcementDecisionEvidenceRow,
 	EnforcementDecisionNoteRow,
@@ -10,14 +9,10 @@ import {isDecisionExpired, isDecisionReplaced} from '@app/api/enforcement/Decisi
 import {hasAdminACL} from '@app/api/middleware/AdminMiddleware';
 import type {User} from '@app/api/models/User';
 import {AdminACLs} from '@osaca/constants/src/AdminACLs';
-import {maskIpForDisplay} from '@osaca/ip_utils/src/IpAddress';
 import type {EnforcementDecisionResponse} from '@osaca/schema/src/domains/admin/EnforcementSchemas';
 import type {EnforcementNotice} from '@osaca/schema/src/domains/auth/EnforcementNoticeSchemas';
 
-type EnforcementDecisionSummary = Omit<
-	EnforcementDecisionResponse,
-	'notes' | 'evidence' | 'profile_values' | 'network_blocks' | 'notice'
->;
+type EnforcementDecisionSummary = Omit<EnforcementDecisionResponse, 'notes' | 'evidence' | 'profile_values' | 'notice'>;
 
 function iso(value: Date | null): string | null {
 	return value?.toISOString() ?? null;
@@ -80,7 +75,6 @@ export function toAdminDecisionResponse({
 	subject,
 	notes,
 	evidence,
-	networkBlocks,
 	notice,
 	acls,
 }: {
@@ -88,12 +82,10 @@ export function toAdminDecisionResponse({
 	subject: User | null;
 	notes: ReadonlyArray<EnforcementDecisionNoteRow>;
 	evidence: EnforcementDecisionEvidenceRow | null;
-	networkBlocks: ReadonlyArray<BannedIpEntry>;
 	notice: EnforcementNotice;
 	acls: ReadonlySet<string>;
 }): EnforcementDecisionResponse {
 	const canViewContent = hasAdminACL(acls, AdminACLs.MESSAGE_LOOKUP);
-	const canViewIp = hasAdminACL(acls, AdminACLs.USER_VIEW_IP);
 	return {
 		...toDecisionSummary(decision, subject, acls),
 		notes: notes.map(toNoteResponse),
@@ -112,10 +104,6 @@ export function toAdminDecisionResponse({
 			attachment_count: message.missing_attachments?.length ?? 0,
 		})),
 		profile_values: canViewContent && evidence?.profile_values ? Object.fromEntries(evidence.profile_values) : null,
-		network_blocks: networkBlocks.map((block) => ({
-			ip: canViewIp ? block.ip : (maskIpForDisplay(block.ip) ?? '[redacted]'),
-			expires_at: iso(block.expiresAt),
-		})),
 		notice,
 	};
 }

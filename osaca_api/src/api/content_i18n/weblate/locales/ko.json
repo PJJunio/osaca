@@ -8,7 +8,6 @@
 	"enforcement.effect.limit_direct_messages": "1:1 메시지와 친구 요청은 전달되지 않고, 프로필은 숨겨져요. 커뮤니티와 그룹 DM에서는 다른 사람에게 메시지가 접힌 채 스팸일 수 있다는 표시와 함께 보여요.",
 	"enforcement.effect.limit_reports": "{safety_route, select, yes {그때까지 앱에서 신고할 수 없어요. 불법 콘텐츠를 신고하려면 [회사 정보 페이지]({url})에 있는 안전 신고 창구를 이용해 주세요.} other {그때까지 앱에서 신고할 수 없어요.}}",
 	"enforcement.effect.messages_removed": "또한 메시지 {count, plural, other {#개}}를 삭제했어요.",
-	"enforcement.effect.networks_blocked": "또한 이 계정이 사용한 네트워크의 접속을 {date}까지 차단했어요.",
 	"enforcement.effect.no_other_accounts": "다른 계정을 만들거나 사용하는 것은 금지돼요.",
 	"enforcement.effect.scope": "이 결정은 {product_name} 서비스가 제공되는 모든 곳에 적용돼요.",
 	"enforcement.effect.suspension": "{target, select, bot {그때까지 봇은 어디에서도 연결하거나 작동할 수 없어요. 본인 계정은 제한되지 않아요.} other {그때까지 어디에서도 {product_name}에 로그인하거나 서비스를 이용할 수 없어요. 계정, 메시지, 커뮤니티는 그대로 유지돼요.}}",

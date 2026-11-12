@@ -8,7 +8,6 @@
 	"enforcement.effect.limit_direct_messages": "Your one-to-one messages and friend requests are not delivered, and your profile is hidden. In communities and group conversations, people see your messages collapsed and marked as possible spam.",
 	"enforcement.effect.limit_reports": "{safety_route, select, yes {You can't send reports in the app until then. To report illegal content, use the safety route on our [company information page]({url}).} other {You can't send reports in the app until then.}}",
 	"enforcement.effect.messages_removed": "We also removed {count, plural, =1 {# message} other {# messages}}.",
-	"enforcement.effect.networks_blocked": "We also blocked access from networks this account used until {date}.",
 	"enforcement.effect.no_other_accounts": "You may not create or use other accounts.",
 	"enforcement.effect.scope": "This decision applies everywhere {product_name} is available.",
 	"enforcement.effect.suspension": "{target, select, bot {The bot can't connect or act anywhere until then. Your own account is not restricted.} other {You can't sign in or use {product_name} anywhere until then. Your account, messages and communities are kept.}}",

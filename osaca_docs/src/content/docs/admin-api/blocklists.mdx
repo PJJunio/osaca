@@ -24,14 +24,6 @@ OSACA normalizes each value when you add or check it and stores the normalized f
 
 <sup>1</sup> Matching ignores case, Unicode look-alike forms, and whitespace, punctuation or invisible characters placed between letters
 
-## Network blocks from decisions
-
-A permanent suspension or an account deletion for a rule violation can block the addresses the account used in the last 30 days, through `block_networks` on [Suspend user](/admin-api/users/#suspend-user) and [Schedule user deletion](/admin-api/users/#schedule-user-deletion). Those `ip` entries belong to the [enforcement decision](/admin-api/enforcement/) and expire after 90 days unless the request sets another length.
-
-A decision takes over a plain entry that has an expiry and keeps the later of the two expiries, so ending the decision also removes that block. Add it again if you still want it. A permanent plain entry or another decision's entry is left as it is, and the request lists the address in `skipped_ips` as `already_blocked`.
-
-Ending the decision or executing the account's deletion removes its entries.
-
 ## Domain patterns
 
 A `url-domain` value whose leftmost label has `*` is a pattern. Each `*` matches any run of characters in that one label. For example `*shop*.example.com` matches `shop.example.com` and `my-shop-2.example.com` but not `example.com`. With `match_subdomains` true, a pattern or plain domain also matches every subdomain.

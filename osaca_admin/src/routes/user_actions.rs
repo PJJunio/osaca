@@ -16,7 +16,7 @@ use crate::{
     },
     middleware::flash::FlashData,
     templates::components::enforcement_fields::{
-        BasisSubmission, basis_from_form, decision_from_form, skipped_networks_summary,
+        BasisSubmission, basis_from_form, decision_from_form,
     },
     utils::forms::MultiValueForm,
 };
@@ -196,17 +196,14 @@ pub async fn dispatch(
             };
             let remove_evidence = form.bool_value("remove_evidence");
             match client
-                .suspend_user(user_id, duration_hours, remove_evidence, None, &submission)
+                .suspend_user(user_id, duration_hours, remove_evidence, &submission)
                 .await
             {
-                Ok(response) => {
-                    let done = if duration_hours == 0 {
-                        "Account banned."
-                    } else {
-                        "Account suspended."
-                    };
-                    DispatchOutcome::success(with_skipped(done, &response.skipped_ips))
-                }
+                Ok(_) => DispatchOutcome::success(if duration_hours == 0 {
+                    "Account banned."
+                } else {
+                    "Account suspended."
+                }),
                 Err(error) => decision_failure("Failed to suspend the account", user_id, &error),
             }
         }
@@ -343,16 +340,6 @@ pub async fn dispatch(
     }
 }
 
-fn with_skipped(
-    done: &str,
-    skipped: &[crate::api::generated::types::SkippedNetworkBlock],
-) -> String {
-    match skipped_networks_summary(skipped) {
-        Some(summary) => format!("{done} {summary}"),
-        None => done.to_owned(),
-    }
-}
-
 async fn close_account(
     client: &AdminApiClient,
     user_id: &str,
@@ -386,19 +373,15 @@ async fn close_account(
         days_until_deletion,
         immediate,
         remove_evidence: enforcement && form.bool_value("remove_evidence"),
-        block_networks: None,
         replace_pending_deletion_at,
         internal_note: basis.internal_note().map(str::to_owned),
     };
     match client.close_account(user_id, &request).await {
-        Ok(response) => DispatchOutcome::success(with_skipped(
-            if immediate {
-                "Account closed. It is being deleted now."
-            } else {
-                "Account closed."
-            },
-            &response.skipped_ips,
-        )),
+        Ok(_) => DispatchOutcome::success(if immediate {
+            "Account closed. It is being deleted now."
+        } else {
+            "Account closed."
+        }),
         Err(error) => decision_failure("Failed to close the account", user_id, &error),
     }
 }

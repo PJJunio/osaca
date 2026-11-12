@@ -8,7 +8,6 @@
 	"enforcement.effect.limit_direct_messages": "你的一对一私信和好友请求不会被送达，你的个人资料也会被隐藏。在社区和群聊中，其他人看到的你的消息会被折叠，并标记为可能是垃圾信息。",
 	"enforcement.effect.limit_reports": "{safety_route, select, yes {在此之前，你无法在应用内提交举报。如需举报违法内容，请使用我们[公司信息页面]({url})上的安全举报渠道。} other {在此之前，你无法在应用内提交举报。}}",
 	"enforcement.effect.messages_removed": "我们还删除了 {count, plural, other {# 条消息}}。",
-	"enforcement.effect.networks_blocked": "我们还封锁了此账号使用过的网络，封锁持续至 {date}。",
 	"enforcement.effect.no_other_accounts": "你不得创建或使用其他账号。",
 	"enforcement.effect.scope": "此决定适用于所有提供 {product_name} 的地方。",
 	"enforcement.effect.suspension": "{target, select, bot {在此之前，该机器人在任何地方都无法连接或执行操作。你自己的账号未受到限制。} other {在此之前，你在任何地方都无法登录或使用 {product_name}。你的账号、消息和社区都会保留。}}",

@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {AdminRepository, type BannedIpEntry} from '@app/api/admin/AdminRepository';
-import type {AdminBanManagementService} from '@app/api/admin/services/AdminBanManagementService';
 import type {ChannelRepository} from '@app/api/channel/ChannelRepository';
 import type {EnforcementDecisionRow, EvidenceChannelKind} from '@app/api/database/types/EnforcementTypes';
 import type {IARMessageContextRow} from '@app/api/database/types/ReportTypes';
@@ -9,7 +7,6 @@ import {EnforcementDecisionRepository} from '@app/api/enforcement/EnforcementDec
 import {resolveEvidenceLocations} from '@app/api/enforcement/EnforcementEvidence';
 import {buildEnforcementNotice} from '@app/api/enforcement/EnforcementNotice';
 import {renderNoticeText} from '@app/api/enforcement/EnforcementNoticeDelivery';
-import {latestNetworkBlockExpiry} from '@app/api/enforcement/NetworkBlocks';
 import type {GuildRepository} from '@app/api/guild/repositories/GuildRepository';
 import {getChannelRepository, getGuildRepository} from '@app/api/middleware/ServiceSingletons';
 import type {User} from '@app/api/models/User';
@@ -19,39 +16,34 @@ interface NoticeLookupDeps {
 	repository: EnforcementDecisionRepository;
 	channelRepository: ChannelRepository;
 	guildRepository: GuildRepository;
-	banManagementService: Pick<AdminBanManagementService, 'listDecisionNetworkBlocks'>;
 }
 
 interface DecisionNoticeInputs {
 	messages: ReadonlyArray<IARMessageContextRow>;
 	channelKinds: ReadonlyMap<bigint, EvidenceChannelKind> | null;
-	networkBlocks: ReadonlyArray<BannedIpEntry>;
 	locale: string | null;
 }
 
 export async function loadDecisionNotice(
 	deps: NoticeLookupDeps,
 	decision: EnforcementDecisionRow,
-	{messages, channelKinds, networkBlocks, locale}: DecisionNoticeInputs,
+	{messages, channelKinds, locale}: DecisionNoticeInputs,
 ): Promise<EnforcementNotice> {
 	return buildEnforcementNotice(
 		{
 			type: 'decision',
 			decision,
 			evidence: await resolveEvidenceLocations(messages, channelKinds, deps.channelRepository, deps.guildRepository),
-			networksBlockedUntil: latestNetworkBlockExpiry(networkBlocks),
 		},
 		locale,
 	);
 }
 
 export function createNoticeLookupDeps(): NoticeLookupDeps {
-	const adminRepository = new AdminRepository();
 	return {
 		repository: new EnforcementDecisionRepository(),
 		channelRepository: getChannelRepository(),
 		guildRepository: getGuildRepository(),
-		banManagementService: {listDecisionNetworkBlocks: (decisionId) => adminRepository.listDecisionIpBans(decisionId)},
 	};
 }
 
@@ -65,14 +57,10 @@ export async function loadAccountNotice(
 		return buildEnforcementNotice({type: 'legacy', user}, locale);
 	}
 	const decision = stored.notice_sent_at === null ? {...stored, notice_sent_at: new Date()} : stored;
-	const [evidence, networkBlocks] = await Promise.all([
-		deps.repository.getEvidence(decision.decision_id),
-		deps.banManagementService.listDecisionNetworkBlocks(decision.decision_id),
-	]);
+	const evidence = await deps.repository.getEvidence(decision.decision_id);
 	const notice = await loadDecisionNotice(deps, decision, {
 		messages: evidence?.messages ?? [],
 		channelKinds: evidence?.message_locations ?? null,
-		networkBlocks,
 		locale,
 	});
 	if (decision !== stored) {

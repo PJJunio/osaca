@@ -44,7 +44,6 @@ export function suspendRequest(
 ) {
 	const builder = createBuilder<{
 		user: {enforcement_decision_id: string | null; temp_banned_until: string | null};
-		skipped_ips: Array<{ip: string; reason: string}>;
 	}>(harness, staff.token)
 		.put(`/admin/users/${userId}/ban`)
 		.body(body);

@@ -8,7 +8,6 @@
 	"enforcement.effect.limit_direct_messages": "Dina meddelanden i konversationer mellan två personer och dina vänförfrågningar levereras inte, och din profil är dold. I communities och gruppkonversationer ser andra dina meddelanden hopfällda och markerade som möjlig spam.",
 	"enforcement.effect.limit_reports": "{safety_route, select, yes {Du kan inte skicka anmälningar i appen förrän dess. Om du vill anmäla olagligt innehåll kan du använda säkerhetskontakten på vår [sida med företagsinformation]({url}).} other {Du kan inte skicka anmälningar i appen förrän dess.}}",
 	"enforcement.effect.messages_removed": "Vi har också tagit bort {count, plural, =1 {# meddelande} other {# meddelanden}}.",
-	"enforcement.effect.networks_blocked": "Fram till den {date} blockerar vi också åtkomst från nätverk som det här kontot har använt.",
 	"enforcement.effect.no_other_accounts": "Du får inte skapa eller använda andra konton.",
 	"enforcement.effect.scope": "Det här beslutet gäller överallt där {product_name} finns.",
 	"enforcement.effect.suspension": "{target, select, bot {Boten kan inte ansluta eller utföra åtgärder någonstans förrän dess. Ditt eget konto är inte begränsat.} other {Du kan inte logga in eller använda {product_name} någonstans förrän dess. Ditt konto, dina meddelanden och dina communities finns kvar.}}",

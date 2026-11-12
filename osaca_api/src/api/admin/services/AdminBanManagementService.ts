@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type {ApiContext} from '@app/api/ApiContext';
-import type {AdminRepository, BannedIpEntry} from '@app/api/admin/AdminRepository';
+import type {AdminRepository} from '@app/api/admin/AdminRepository';
 import type {AdminAuditService} from '@app/api/admin/services/AdminAuditService';
 import {createUserID, type UserID} from '@app/api/BrandedTypes';
 import {isIpBanExempt} from '@app/api/ban/IpBanExemptions';
@@ -196,47 +196,6 @@ export class AdminBanManagementService {
 			expires_at: toIsoOrNull(match?.expiresAt),
 			decision_id: toSnowflakeString(match?.decision?.decisionId),
 		};
-	}
-
-	async blockNetworksForDecision(
-		ips: ReadonlyArray<string>,
-		decisionId: bigint,
-		expiresAt: Date,
-	): Promise<{blocked: Array<BannedIpEntry>; alreadyBlocked: Array<string>}> {
-		const blocked: Array<BannedIpEntry> = [];
-		const alreadyBlocked: Array<string> = [];
-		for (const ip of ips) {
-			const entry = await this.deps.adminRepository.banIpForDecision(ip, decisionId, expiresAt);
-			if (entry) {
-				blocked.push(entry);
-			} else {
-				alreadyBlocked.push(ip);
-			}
-		}
-		if (blocked.length > 0) {
-			await this.refreshIpBans();
-		}
-		return {blocked, alreadyBlocked};
-	}
-
-	async listDecisionNetworkBlocks(decisionId: bigint): Promise<Array<BannedIpEntry>> {
-		return this.deps.adminRepository.listDecisionIpBans(decisionId);
-	}
-
-	async removeDecisionNetworkBlocks(decisionIds: ReadonlyArray<bigint>): Promise<Array<BannedIpEntry>> {
-		const removed = await this.deps.adminRepository.removeDecisionIpBans(decisionIds);
-		if (removed.length > 0) {
-			await this.refreshIpBans();
-		}
-		return removed;
-	}
-
-	async relinkDecisionNetworkBlocks(fromDecisionId: bigint, toDecisionId: bigint): Promise<Array<BannedIpEntry>> {
-		const relinked = await this.deps.adminRepository.relinkDecisionIpBans(fromDecisionId, toDecisionId);
-		if (relinked.length > 0) {
-			await this.refreshIpBans();
-		}
-		return relinked;
 	}
 
 	private async refreshIpBans(): Promise<void> {

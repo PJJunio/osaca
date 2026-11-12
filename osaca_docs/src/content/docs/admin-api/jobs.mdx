@@ -6,7 +6,7 @@ description: List background jobs, follow their progress and request cancellatio
 
 import RouteHeader from '@/components/RouteHeader.astro';
 
-Admin requests such as [Queue bulk job](/admin-api/bulk-jobs/#queue-bulk-job), [Bulk add blocklist entries](/admin-api/blocklists/#bulk-add-blocklist-entries), [Create system DM broadcast](/admin-api/system-dms/#create-system-dm-broadcast), [Refresh search index](/admin-api/search-indexes/#refresh-search-index) and [archive](/admin-api/archives/) requests return a job ID that you follow here. OSACA deletes a job record about 90 days after the job was queued.
+Admin requests such as [Queue bulk job](/admin-api/bulk-jobs/#queue-bulk-job), [Bulk add blocklist entries](/admin-api/blocklists/#bulk-add-blocklist-entries), [Create system DM broadcast](/admin-api/system-dms/#create-system-dm-broadcast) and [Refresh search index](/admin-api/search-indexes/#refresh-search-index) requests return a job ID that you follow here. OSACA deletes a job record about 90 days after the job was queued.
 
 ## Admin job object
 
@@ -36,7 +36,7 @@ Admin requests such as [Queue bulk job](/admin-api/bulk-jobs/#queue-bulk-job), [
 | payload | ?string | The JSON-encoded job input |
 | result | ?string | The JSON-encoded result |
 
-`payload` can include user IDs and message text. Status and progress can lag a few moments behind the running task. Use the [archive routes](/admin-api/archives/) to track archive progress and failures.
+`payload` can include user IDs and message text. Status and progress can lag a few moments behind the running task.
 
 ### Example
 
@@ -113,8 +113,8 @@ The table lists the task types that admin requests queue and the guild and threa
 | bulkAddGuildMembers | A [bulk job](/admin-api/bulk-jobs/) |
 | bulkScheduleUserDeletion | A [bulk job](/admin-api/bulk-jobs/) |
 | bulkBanFileShas | Adds entries from [Bulk add blocklist entries](/admin-api/blocklists/#bulk-add-blocklist-entries) |
-| harvestUserData | Builds a user [archive](/admin-api/archives/) |
-| harvestGuildData | Builds a guild [archive](/admin-api/archives/) |
+| harvestUserData | Builds the data export an account asks for |
+| harvestGuildData | Builds a guild archive |
 | sendSystemDm | Delivers a [system DM broadcast](/admin-api/system-dms/) |
 | refreshSearchIndex | Rebuilds a [search index](/admin-api/search-indexes/) |
 | guildProcessDeletion | Removes the records of a deleted guild |

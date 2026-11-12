@@ -9,7 +9,7 @@ use crate::{
         generated::types::{
             EnforcementDecisionListResponse, EnforcementDecisionListResponseDecisionsItem,
             EnforcementKindType, MessageShredPreviewResponse,
-            MessageShredPreviewResponseSkippedItemReason, NetworkBlockCandidatesResponse,
+            MessageShredPreviewResponseSkippedItemReason,
         },
         types::{AdminUser, AuditLogEntry, MessageShredStatusResponse},
     },
@@ -19,7 +19,7 @@ use crate::{
             enforcement_fields::{
                 BasisFields, DecisionFields, FIELD_HELP_CLASS, FIELD_INPUT_CLASS,
                 FIELD_LABEL_CLASS, basis_fields, deletion_days_field, enforcement_fields,
-                field_label, internal_note_field, network_block_fields, required_mark,
+                field_label, internal_note_field, required_mark,
             },
             form::{Checkbox, csrf_input, danger_button, form_actions, submit_button},
             page_container::card_with_header,
@@ -69,7 +69,6 @@ pub struct ModerationContext<'a> {
     pub deletion_scheduler: Option<&'a AdminUser>,
     pub legacy_suspension: Option<LegacySuspension<'a>>,
     pub decisions: Option<&'a ApiResult<EnforcementDecisionListResponse>>,
-    pub network_candidates: Option<&'a ApiResult<NetworkBlockCandidatesResponse>>,
     pub prefill: DecisionPrefill,
 }
 
@@ -326,11 +325,6 @@ fn suspend_card(
                         allow_restricted: true,
                     }))
                     (remove_evidence_field())
-                    @if let Some(candidates) = context.network_candidates {
-                        fieldset data-show-for-duration_hours="0" hidden disabled {
-                            (network_block_fields("suspend", candidates))
-                        }
-                    }
                     (form_actions(submit_button("Suspend account")))
                 }
             }
@@ -494,9 +488,6 @@ fn close_card(
                         plain_note_help: "Staff only. Saved in the audit log. The holder can cancel the deletion by signing in.",
                         enforcement_extra: html! {
                             (remove_evidence_field())
-                            @if let Some(candidates) = context.network_candidates {
-                                (network_block_fields("close", candidates))
-                            }
                         },
                     }))
                     (deletion_days_field("close-days", self_hosted))

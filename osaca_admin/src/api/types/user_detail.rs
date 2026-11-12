@@ -329,30 +329,3 @@ pub struct ListGuildMembersResponse {
     pub limit: u64,
     pub offset: u64,
 }
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct UserContactChangeLogEntry {
-    pub event_id: String,
-    pub field: String,
-    pub old_value: Option<String>,
-    pub new_value: Option<String>,
-    pub reason: Option<String>,
-    pub actor_user_id: Option<String>,
-    pub event_at: String,
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct ListUserChangeLogResponse {
-    pub entries: Vec<UserContactChangeLogEntry>,
-    pub next_page_token: Option<String>,
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct WebAuthnCredential {
-    pub id: String,
-    pub name: String,
-    pub created_at: String,
-    pub last_used_at: Option<String>,
-}
-
-pub type WebAuthnCredentialListResponse = Vec<WebAuthnCredential>;

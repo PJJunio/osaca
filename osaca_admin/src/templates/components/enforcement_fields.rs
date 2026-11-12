@@ -6,15 +6,11 @@ use crate::{
         self, COPYRIGHT_REASON_CODE, ENFORCEMENT_REASONS, EnforcementHandling, user_flag_bits,
     },
     api::{
-        client::ApiResult,
         enforcement::DecisionSubmission,
         generated::{snowflake, types as generated_types},
     },
     templates::components::form::Checkbox,
-    utils::{
-        forms::MultiValueForm, plural::count_noun, snowflake::is_snowflake,
-        timestamps::format_admin_timestamp,
-    },
+    utils::{forms::MultiValueForm, snowflake::is_snowflake},
 };
 use maud::{Markup, html};
 
@@ -325,100 +321,6 @@ pub fn enforcement_fields(fields: &DecisionFields<'_>) -> Markup {
             (internal_note_field(prefix, "Staff only. Saved as the first note on the decision."))
         }
     }
-}
-
-const NETWORK_BLOCK_DEFAULT_DAYS: u64 = 90;
-
-fn network_note(network: &generated_types::NetworkBlockCandidatesResponseNetworksItem) -> String {
-    use generated_types::NetworkBlockCandidatesResponseNetworksItemSkipReason as SkipReason;
-    match network.skip_reason {
-        Some(SkipReason::Exempt) => "Exempt, never blocked".to_owned(),
-        Some(SkipReason::SpecialPurpose) => {
-            "Private or special-purpose range, never blocked".to_owned()
-        }
-        None => {
-            let others = u64::try_from(*network.other_unrestricted_accounts).unwrap_or(0);
-            format!(
-                "{} last active here",
-                count_noun(
-                    others,
-                    "other unrestricted account",
-                    "other unrestricted accounts"
-                )
-            )
-        }
-    }
-}
-
-fn is_blockable(network: &generated_types::NetworkBlockCandidatesResponseNetworksItem) -> bool {
-    network.skip_reason.is_none() && *network.other_unrestricted_accounts == 0
-}
-
-pub fn network_block_fields(
-    id_prefix: &str,
-    candidates: &ApiResult<generated_types::NetworkBlockCandidatesResponse>,
-) -> Markup {
-    let days_id = format!("{id_prefix}-network-block-days");
-    html! {
-        fieldset class="space-y-2" data-network-blocks="" {
-            legend class=(FIELD_LABEL_CLASS) { "Block networks this account used" }
-            @match candidates {
-                Err(_) => {
-                    p class="text-sm text-red-700" { "Failed to load the networks this account used." }
-                }
-                Ok(response) if response.networks.is_empty() => {
-                    p class=(FIELD_HELP_CLASS) { "This account used no networks in the last 30 days." }
-                }
-                Ok(response) => {
-                    p class=(FIELD_HELP_CLASS) {
-                        "Networks from the last 30 days. A network other unrestricted accounts use can't be blocked."
-                    }
-                    @for network in &response.networks {
-                        div {
-                            (Checkbox {
-                                name: "block_networks",
-                                value: &network.ip,
-                                label: &network.ip,
-                                checked: false,
-                                enabled: is_blockable(network),
-                            }.render())
-                            p class={(FIELD_HELP_CLASS) " pl-7"} {
-                                "Last used " (format_admin_timestamp(&network.last_seen_at)) ". " (network_note(network)) "."
-                            }
-                        }
-                    }
-                    div class="space-y-1" {
-                        (field_label(&days_id, "Block length in days"))
-                        input type="number" id=(days_id) name="network_block_days"
-                            value=(NETWORK_BLOCK_DEFAULT_DAYS) min="1" max="365" class=(FIELD_INPUT_CLASS);
-                        p class=(FIELD_HELP_CLASS) { "Ending the decision or deleting the account removes the blocks sooner." }
-                    }
-                }
-            }
-        }
-    }
-}
-
-pub fn network_blocks_from_form(
-    form: &MultiValueForm,
-) -> Result<Option<generated_types::NetworkBlockRequest>, String> {
-    let ips = form
-        .values("block_networks")
-        .iter()
-        .map(|ip| ip.trim().to_owned())
-        .filter(|ip| !ip.is_empty())
-        .collect::<Vec<_>>();
-    if ips.is_empty() {
-        return Ok(None);
-    }
-    let days = match form.parse_value::<u64>("network_block_days") {
-        Ok(Some(days)) => days,
-        Ok(None) => NETWORK_BLOCK_DEFAULT_DAYS,
-        Err(_) => return Err("Enter the block length as a number of days".to_owned()),
-    };
-    let days =
-        std::num::NonZeroU64::new(days).ok_or("The block length must be at least one day")?;
-    Ok(Some(generated_types::NetworkBlockRequest { days, ips }))
 }
 
 pub fn skipped_networks_summary(

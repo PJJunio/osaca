@@ -55,8 +55,8 @@ pub fn user_detail_with_tab(
 
 pub fn simple_tab_content(config: &AdminConfig, user: &AdminUser, tab: &str) -> Markup {
     match tab {
-        "overview" => user_detail_tabs::overview::overview_tab(config, user, &[], "", None),
-        _ => user_detail_tabs::overview::overview_tab(config, user, &[], "", None),
+        "overview" => user_detail_tabs::overview::overview_tab(config, user, &[], ""),
+        _ => user_detail_tabs::overview::overview_tab(config, user, &[], ""),
     }
 }
 

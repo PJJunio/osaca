@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use crate::{
-    acl,
     api::{
         generated::types::EnforcementKindType,
-        types::{AdminUser, UserSession, WebAuthnCredential},
+        types::{AdminUser, UserSession},
     },
     config::AdminConfig,
     templates::components::{
@@ -23,32 +22,20 @@ const BTN_CLS: &str = "w-full inline-flex items-center justify-center rounded-md
                         bg-brand-primary px-4 py-2 text-sm font-medium text-white \
                         shadow-sm hover:bg-brand-primary-dark";
 
-pub struct AccountTabOptions<'a> {
-    pub admin_acls: &'a [String],
-}
-
 pub fn account_tab(
     config: &AdminConfig,
     user: &AdminUser,
     sessions: &[UserSession],
-    webauthn_credentials: &[WebAuthnCredential],
     csrf_token: &str,
-    options: &AccountTabOptions<'_>,
 ) -> Markup {
     let base = &config.base_path;
-    let can_revoke_recovery_kit =
-        !user.bot && acl::has_permission(options.admin_acls, acl::USER_DELETE_RECOVERY_KIT);
     html! {
         div class="space-y-6" {
             (edit_account_card(base, user, csrf_token))
             (sessions_card(sessions))
-            @if can_revoke_recovery_kit {
-                (quick_actions_card(base, user, csrf_token))
-            }
             (clear_fields_card(base, user, csrf_token))
             (user_status_card(base, user, csrf_token))
             (security_actions_card(base, user, csrf_token))
-            (webauthn_credentials_card(base, user, webauthn_credentials, csrf_token))
         }
     }
 }
@@ -152,17 +139,6 @@ fn session_app_label(s: &UserSession) -> Option<String> {
         (None, _) => {}
     }
     (!parts.is_empty()).then(|| parts.join(", "))
-}
-
-fn quick_actions_card(base: &str, user: &AdminUser, csrf_token: &str) -> Markup {
-    html! {
-        (card_with_header("Quick Actions", html! {
-            div class="flex flex-wrap gap-3" {
-                (action_form(base, &user.id, "revoke_recovery_kit", "account",
-                    "Revoke Recovery Kit", csrf_token))
-            }
-        }))
-    }
 }
 
 fn clear_fields_card(base: &str, user: &AdminUser, csrf_token: &str) -> Markup {
@@ -271,80 +247,6 @@ fn security_actions_card(base: &str, user: &AdminUser, csrf_token: &str) -> Mark
                     "Terminate All Sessions", csrf_token))
             }
         }))
-    }
-}
-
-fn webauthn_credentials_card(
-    base: &str,
-    user: &AdminUser,
-    credentials: &[WebAuthnCredential],
-    csrf_token: &str,
-) -> Markup {
-    if credentials.is_empty() {
-        return html! {};
-    }
-    html! {
-        (card_with_header("WebAuthn Credentials", html! {
-            div class="overflow-x-auto" {
-                table class="w-full text-sm" {
-                    thead {
-                        tr class="border-neutral-200 border-b text-left" {
-                            th class="pb-2 font-medium text-neutral-600" { "Name" }
-                            th class="pb-2 font-medium text-neutral-600" { "Created" }
-                            th class="pb-2 font-medium text-neutral-600" { "Last Used" }
-                            th class="pb-2 font-medium text-neutral-600" {}
-                        }
-                    }
-                    tbody {
-                        @for credential in credentials {
-                            (webauthn_credential_row(base, user, credential, csrf_token))
-                        }
-                    }
-                }
-            }
-        }))
-    }
-}
-
-fn webauthn_credential_row(
-    base: &str,
-    user: &AdminUser,
-    credential: &WebAuthnCredential,
-    csrf_token: &str,
-) -> Markup {
-    let action_url = format!(
-        "{base}/users/{}?action=delete_webauthn_credential&tab=account",
-        user.id
-    );
-    html! {
-        tr class="border-neutral-100 border-b" {
-            td class="py-2 pr-4" {
-                p class="text-sm text-neutral-900" { (credential.name) }
-            }
-            td class="py-2 pr-4" {
-                p class="text-sm text-neutral-900" { (format_admin_timestamp(&credential.created_at)) }
-            }
-            td class="py-2 pr-4" {
-                p class="text-sm text-neutral-900" {
-                    (credential.last_used_at.as_deref().map_or_else(|| "Never".to_string(), format_admin_timestamp))
-                }
-            }
-            td class="py-2" {
-                form method="post"
-                    action=(&action_url)
-                    hx-post=(&action_url)
-                    hx-target="#flash-container"
-                    hx-swap="none"
-                    hx-push-url="false" {
-                    (csrf_input(csrf_token))
-                    input type="hidden" name="credential_id" value=(credential.id);
-                    button type="submit"
-                        class="inline-flex items-center justify-center rounded-md bg-brand-primary px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-brand-primary-dark" {
-                        "Delete"
-                    }
-                }
-            }
-        }
     }
 }
 

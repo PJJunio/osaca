@@ -1,18 +1,16 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import type {UserID} from '@app/api/BrandedTypes';
 import {hasAdminACL} from '@app/api/middleware/AdminMiddleware';
 import type {User} from '@app/api/models/User';
 import {getAccountTier} from '@app/api/user/AccountTier';
 import {isProfileHidden} from '@app/api/user/ProfileVisibility';
 import {buildOperatorProfileBadges} from '@app/api/user/profile_badges/ProfileBadgeBuilder';
 import {loadProfileBadgeEnvironment} from '@app/api/user/profile_badges/ProfileBadgeEnvironment';
-import type {UserRepository} from '@app/api/user/repositories/UserRepository';
 import {AccountTiers} from '@osaca/constants/src/AccountTierConstants';
 import {AdminACLs, filterKnownAdminACLs} from '@osaca/constants/src/AdminACLs';
 import {DeletionReasons} from '@osaca/constants/src/Core';
 import type {ValueOf} from '@osaca/constants/src/ValueOf';
-import type {AdminResolvedUser, UserAdminResponse} from '@osaca/schema/src/domains/admin/AdminUserSchemas';
+import type {UserAdminResponse} from '@osaca/schema/src/domains/admin/AdminUserSchemas';
 import type {AdminProfileBadgeResponse} from '@osaca/schema/src/domains/user/ProfileBadgeSchemas';
 import type {ICacheService} from '@pkgs/cache/src/ICacheService';
 
@@ -78,28 +76,5 @@ export async function mapUserToAdminResponse(
 		account_tier: accountTier,
 		authenticator_types: user.authenticatorTypes ? Array.from(user.authenticatorTypes) : [],
 		last_active_at: user.lastActiveAt?.toISOString() ?? null,
-		last_active_ip: null,
-		last_active_ip_reverse: null,
-		last_active_location: null,
 	};
-}
-
-export async function resolveAdminUsers(
-	userRepository: Pick<UserRepository, 'findUnique'>,
-	userIds: Array<UserID>,
-): Promise<Map<UserID, AdminResolvedUser>> {
-	const results = new Map<UserID, AdminResolvedUser>();
-	const users = await Promise.all(userIds.map((id) => userRepository.findUnique(id)));
-	for (let i = 0; i < userIds.length; i++) {
-		const user = users[i];
-		if (user)
-			results.set(userIds[i], {
-				id: user.id.toString(),
-				username: user.username,
-				discriminator: String(user.discriminator).padStart(4, '0'),
-				global_name: user.globalName,
-				avatar: user.avatarHash,
-			});
-	}
-	return results;
 }

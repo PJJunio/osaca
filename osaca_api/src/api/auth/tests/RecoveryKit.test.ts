@@ -16,11 +16,10 @@ import {
 	REGISTRATION_PENDING_APPROVAL_TRAIT,
 	REGISTRATION_REJECTED_TRAIT,
 } from '@app/api/instance/InstanceConfigRepository';
-import {getAdminRepository, getUserRepository} from '@app/api/middleware/ServiceSingletons';
+import {getUserRepository} from '@app/api/middleware/ServiceSingletons';
 import type {ApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {server} from '@app/api/test/msw/server';
 import {createBuilder, createBuilderWithoutAuth} from '@app/api/test/TestRequestBuilder';
-import {AdminACLs} from '@osaca/constants/src/AdminACLs';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {UserFlags} from '@osaca/constants/src/UserConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
@@ -373,26 +372,6 @@ describe('Recovery kit', () => {
 		expect((await findRecoveryKitCreatedAt(userId))?.toISOString()).toBe(kit.created_at);
 	});
 
-	it('ends every outstanding admin reset link', async () => {
-		const admin = await createAccount();
-		await createBuilder(harness, '')
-			.post(`/test/users/${admin.userId}/acls`)
-			.body({acls: [AdminACLs.WILDCARD]})
-			.execute();
-		const account = await createAccount();
-		const link = await createBuilder<{url: string}>(harness, admin.token)
-			.post(`/admin/users/${account.userId}/password-reset-link`)
-			.execute();
-		const token = link.url.split('/reset#token=')[1]!;
-		const kit = await createKit(account);
-		await createBuilderWithoutAuth<RecoverTokenResponse>(harness)
-			.post('/auth/recover')
-			.body({login: account.username, recovery_key: kit.recovery_key, password: NEW_PASSWORD})
-			.execute();
-		const validation = await createBuilderWithoutAuth<{valid: boolean}>(harness).get(`/auth/reset/${token}`).execute();
-		expect(validation.valid).toBe(false);
-	});
-
 	it('lifts an expired temporary ban and sets the password on the lifted account', async () => {
 		const account = await createAccount();
 		const kit = await createKit(account);
@@ -499,16 +478,6 @@ describe('Recovery kit', () => {
 			.execute();
 	});
 
-	async function createAdmin(acls: Array<string>): Promise<TestAccount> {
-		const account = await createAccount();
-		await createBuilder(harness, '').post(`/test/users/${account.userId}/acls`).body({acls}).execute();
-		return account;
-	}
-
-	function hasKit(account: TestAccount): Promise<boolean> {
-		return findRecoveryKitCreatedAt(createUserID(BigInt(account.userId))).then((createdAt) => createdAt !== null);
-	}
-
 	it('deletes the kit when the password changes', async () => {
 		const account = await createAccount();
 		await createKit(account);
@@ -517,80 +486,6 @@ describe('Recovery kit', () => {
 			.body({password: account.password, new_password: NEW_PASSWORD})
 			.execute();
 		expect(await getStatus({...account, token: changed.token})).toEqual({has_recovery_kit: false, created_at: null});
-	});
-
-	it('deletes the kit when an admin creates a reset link and again when the link is used', async () => {
-		const admin = await createAdmin([AdminACLs.WILDCARD]);
-		const account = await createAccount();
-		const kit = await createKit(account);
-		const link = await createBuilder<{url: string}>(harness, admin.token)
-			.post(`/admin/users/${account.userId}/password-reset-link`)
-			.execute();
-		expect(await hasKit(account)).toBe(false);
-		await expectInvalidRecoveryKey({login: account.username, recovery_key: kit.recovery_key, password: NEW_PASSWORD});
-		await createKit(account);
-		await createBuilderWithoutAuth(harness)
-			.post('/auth/reset')
-			.body({token: link.url.split('/reset#token=')[1]!, password: NEW_PASSWORD})
-			.execute();
-		expect(await hasKit(account)).toBe(false);
-	});
-
-	it('lets an admin revoke a kit and audits it', async () => {
-		const admin = await createAdmin([AdminACLs.AUTHENTICATE, AdminACLs.USER_DELETE_RECOVERY_KIT]);
-		const account = await createAccount();
-		const kit = await createKit(account);
-		await createBuilder(harness, admin.token)
-			.delete(`/admin/users/${account.userId}/recovery-kit`)
-			.expect(204)
-			.execute();
-		expect(await getStatus(account)).toEqual({has_recovery_kit: false, created_at: null});
-		await expectInvalidRecoveryKey({login: account.username, recovery_key: kit.recovery_key, password: NEW_PASSWORD});
-		const audit = (await getAdminRepository().listAllAuditLogsPaginated(1000)).find(
-			(log) => log.action === 'revoke_recovery_kit',
-		);
-		expect(audit?.targetId.toString()).toBe(account.userId);
-		expect(audit?.adminUserId.toString()).toBe(admin.userId);
-	});
-
-	it('needs its own ACL to revoke a kit', async () => {
-		const admin = await createAdmin([AdminACLs.AUTHENTICATE, AdminACLs.USER_CREATE_PASSWORD_RESET_LINK]);
-		const account = await createAccount();
-		await createKit(account);
-		await createBuilder(harness, admin.token)
-			.delete(`/admin/users/${account.userId}/recovery-kit`)
-			.expect(403, APIErrorCodes.MISSING_ACL)
-			.execute();
-		expect(await hasKit(account)).toBe(true);
-		const wildcard = await createAdmin([AdminACLs.WILDCARD]);
-		await createBuilder(harness, wildcard.token)
-			.delete(`/admin/users/${account.userId}/recovery-kit`)
-			.expect(204)
-			.execute();
-		expect(await hasKit(account)).toBe(false);
-	});
-
-	it('refuses a reset link or a revocation for an account holding ACLs the caller lacks', async () => {
-		const admin = await createAdmin([
-			AdminACLs.AUTHENTICATE,
-			AdminACLs.USER_CREATE_PASSWORD_RESET_LINK,
-			AdminACLs.USER_DELETE_RECOVERY_KIT,
-		]);
-		const target = await createAdmin([AdminACLs.AUTHENTICATE, AdminACLs.USER_UPDATE_USERNAME]);
-		await createKit(target);
-		await createBuilder(harness, admin.token)
-			.post(`/admin/users/${target.userId}/password-reset-link`)
-			.expect(403, APIErrorCodes.MISSING_ACL)
-			.execute();
-		await createBuilder(harness, admin.token)
-			.delete(`/admin/users/${target.userId}/recovery-kit`)
-			.expect(403, APIErrorCodes.MISSING_ACL)
-			.execute();
-		expect(await hasKit(target)).toBe(true);
-		const peer = await createAdmin([AdminACLs.AUTHENTICATE]);
-		await createBuilder(harness, admin.token).post(`/admin/users/${peer.userId}/password-reset-link`).execute();
-		const wildcard = await createAdmin([AdminACLs.WILDCARD]);
-		await createBuilder(harness, wildcard.token).post(`/admin/users/${target.userId}/password-reset-link`).execute();
 	});
 
 	it('refuses recovery for a registration awaiting approval or rejected', async () => {

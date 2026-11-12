@@ -3,10 +3,8 @@
 import type {ApiContext} from '@app/api/ApiContext';
 import {mapUserToAdminResponse} from '@app/api/admin/models/UserTypes';
 import type {AdminAuditService} from '@app/api/admin/services/AdminAuditService';
-import * as AuthMfa from '@app/api/auth/AuthMfa';
 import {revokeAllAuthSessions} from '@app/api/auth/AuthSessionRevocation';
 import * as AuthUtility from '@app/api/auth/AuthUtility';
-import {visibleWebAuthnCredentials} from '@app/api/auth/services/PasskeyRelyingParty';
 import {RecoveryKitRepository} from '@app/api/auth/services/RecoveryKitRepository';
 import {createPasswordResetToken, createUserID, type UserID} from '@app/api/BrandedTypes';
 import {Config} from '@app/api/Config';
@@ -22,7 +20,6 @@ import {
 	type PartialUserChangePropagationDeps,
 	propagateUserUpdate,
 } from '@app/api/user/services/PartialUserChangePropagation';
-import {mapWebAuthnCredentialToResponse} from '@app/api/user/UserMappers';
 import {resolveAssignedTraits} from '@app/api/user/UserTraits';
 import * as RandomUtils from '@app/api/utils/RandomUtils';
 import {resolveSessionClientInfo} from '@app/api/utils/SessionClientIdentity';
@@ -35,17 +32,13 @@ import {EnforcementDecisionOwnsStateError} from '@osaca/errors/src/domains/moder
 import {UnknownUserError} from '@osaca/errors/src/domains/user/UnknownUserError';
 import type {
 	AdminPasswordResetLinkResponse,
-	DeleteWebAuthnCredentialRequest,
-	DisableMfaRequest,
 	ListAppSessionsQuery,
 	ListAppSessionsResponse,
-	ListWebAuthnCredentialsRequest,
 	SendPasswordResetRequest,
 	SetUserAclsRequest,
 	SetUserTraitsRequest,
 	TerminateSessionsRequest,
 } from '@osaca/schema/src/domains/admin/AdminUserSchemas';
-import type {WebAuthnCredentialListResponse} from '@osaca/schema/src/domains/auth/AuthSchemas';
 
 const RESTRICTION_USER_FLAGS = UserFlags.DISABLED | UserFlags.DELETED | UserFlags.SPAMMER | UserFlags.REPORT_BANNED;
 
@@ -218,34 +211,6 @@ export class AdminUserSecurityService {
 		};
 	}
 
-	async disableMfa(data: DisableMfaRequest, adminUserId: UserID, auditLogReason: string | null) {
-		const {users: userRepository, botMfaMirror: botMfaMirrorService} = this.deps.apiContext.services;
-		const {auditService, userUpdateDeps} = this.deps;
-		const userId = createUserID(data.user_id);
-		const user = await userRepository.findUniqueAssert(userId);
-		const updatedUser = await userRepository.patchUpsert(
-			userId,
-			{
-				totp_secret: null,
-				authenticator_types: null,
-			},
-			user.toRow(),
-		);
-		if (updatedUser) {
-			await botMfaMirrorService.syncAuthenticatorTypesForOwner(updatedUser);
-		}
-		await userRepository.clearMfaBackupCodes(userId);
-		await propagateUserUpdate(userUpdateDeps, user, updatedUser);
-		await auditService.createAuditLog({
-			adminUserId,
-			targetType: 'user',
-			targetId: BigInt(userId),
-			action: 'disable_mfa',
-			auditLogReason,
-			metadata: new Map(),
-		});
-	}
-
 	async createPasswordResetLink(
 		data: SendPasswordResetRequest,
 		adminUserId: UserID,
@@ -278,27 +243,6 @@ export class AdminUserSecurityService {
 			url: `${Config.endpoints.webApp}/reset#token=${token}`,
 			expires_at: expiresAt.toISOString(),
 		};
-	}
-
-	async revokeRecoveryKit(
-		data: SendPasswordResetRequest,
-		adminUserId: UserID,
-		auditLogReason: string | null,
-		acls: ReadonlySet<string>,
-	): Promise<void> {
-		const {users: userRepository} = this.deps.apiContext.services;
-		const userId = createUserID(data.user_id);
-		const user = await userRepository.findUniqueAssert(userId);
-		requireGrantedAdminACLs(acls, user.acls);
-		await new RecoveryKitRepository().delete(userId);
-		await this.deps.auditService.createAuditLog({
-			adminUserId,
-			targetType: 'user',
-			targetId: BigInt(userId),
-			action: 'revoke_recovery_kit',
-			auditLogReason,
-			metadata: new Map(),
-		});
 	}
 
 	async terminateSessions(data: TerminateSessionsRequest, adminUserId: UserID, auditLogReason: string | null) {
@@ -386,53 +330,6 @@ export class AdminUserSecurityService {
 		};
 	}
 
-	async listWebAuthnCredentials(
-		data: ListWebAuthnCredentialsRequest,
-		adminUserId: UserID,
-		auditLogReason: string | null,
-	): Promise<WebAuthnCredentialListResponse> {
-		const {users: userRepository} = this.deps.apiContext.services;
-		const {auditService} = this.deps;
-		const userId = createUserID(data.user_id);
-		await userRepository.findUniqueAssert(userId);
-		const credentials = visibleWebAuthnCredentials(await userRepository.listWebAuthnCredentials(userId));
-		await auditService.createAuditLog({
-			adminUserId,
-			targetType: 'user',
-			targetId: BigInt(userId),
-			action: 'list_webauthn_credentials',
-			auditLogReason,
-			metadata: new Map([['credential_count', credentials.length.toString()]]),
-		});
-		return credentials.map((cred) =>
-			mapWebAuthnCredentialToResponse(cred, this.deps.apiContext.services.config.auth.passkeys.rpId),
-		);
-	}
-
-	async deleteWebAuthnCredential(
-		data: DeleteWebAuthnCredentialRequest,
-		adminUserId: UserID,
-		auditLogReason: string | null,
-	) {
-		const {users: userRepository} = this.deps.apiContext.services;
-		const {apiContext, auditService} = this.deps;
-		const userId = createUserID(data.user_id);
-		await userRepository.findUniqueAssert(userId);
-		const credential = await userRepository.getWebAuthnCredential(userId, data.credential_id);
-		if (!credential) {
-			throw new UnknownUserError();
-		}
-		await AuthMfa.deleteWebAuthnCredential(apiContext, userId, data.credential_id);
-		await auditService.createAuditLog({
-			adminUserId,
-			targetType: 'user',
-			targetId: BigInt(userId),
-			action: 'delete_webauthn_credential',
-			auditLogReason,
-			metadata: new Map([['credential_id', data.credential_id]]),
-		});
-	}
-
 	async listUserSessions(
 		userId: bigint,
 		adminUserId: UserID,
@@ -451,7 +348,6 @@ export class AdminUserSecurityService {
 			sessionIdHash: Buffer;
 			createdAt: Date;
 			approximateLastUsedAt: Date;
-			clientIp: string;
 			clientUserAgent: string | null;
 			clientOs: string | null;
 			app: AdminSessionApp;
@@ -461,7 +357,6 @@ export class AdminUserSecurityService {
 				sessionIdHash: s.sessionIdHash,
 				createdAt: s.createdAt,
 				approximateLastUsedAt: s.approximateLastUsedAt,
-				clientIp: s.clientIp,
 				clientUserAgent: s.clientUserAgent,
 				clientOs: s.clientOs ?? null,
 				app: sessionApp(s),
@@ -471,7 +366,6 @@ export class AdminUserSecurityService {
 				sessionIdHash: t.sessionIdHash,
 				createdAt: t.createdAt,
 				approximateLastUsedAt: t.approximateLastUsedAt,
-				clientIp: t.clientIp,
 				clientUserAgent: t.clientUserAgent,
 				clientOs: t.clientOs ?? null,
 				app: EMPTY_SESSION_APP,
@@ -504,11 +398,8 @@ export class AdminUserSecurityService {
 					session_id_hash: entry.sessionIdHash.toString('base64url'),
 					created_at: entry.createdAt.toISOString(),
 					approx_last_used_at: entry.approximateLastUsedAt.toISOString(),
-					client_ip: '[redacted]',
-					client_ip_reverse: null,
 					client_os: clientInfo.os,
 					client_platform: clientInfo.platform,
-					client_location: null,
 					...entry.app,
 					deleted_at: entry.deletedAt?.toISOString() ?? null,
 				};

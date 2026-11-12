@@ -136,3 +136,8 @@ export const ContactIdentityRecordSchema = z.object({
 		.describe('History of previously acknowledged keys for this account'),
 });
 export type ContactIdentityRecord = z.infer<typeof ContactIdentityRecordSchema>;
+
+export const MlsDeleteCiphertextResponse = z.object({
+	success: z.boolean().describe('Whether a stored ciphertext message was deleted'),
+});
+export type MlsDeleteCiphertextResponse = z.infer<typeof MlsDeleteCiphertextResponse>;

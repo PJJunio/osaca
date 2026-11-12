@@ -16,8 +16,7 @@ use crate::{
     },
     middleware::flash::FlashData,
     templates::components::enforcement_fields::{
-        BasisSubmission, basis_from_form, decision_from_form, network_blocks_from_form,
-        skipped_networks_summary,
+        BasisSubmission, basis_from_form, decision_from_form, skipped_networks_summary,
     },
     utils::forms::MultiValueForm,
 };
@@ -195,19 +194,9 @@ pub async fn dispatch(
                 Ok(submission) => submission,
                 Err(message) => return DispatchOutcome::error(message),
             };
-            let block_networks = match network_blocks_from_form(form) {
-                Ok(block_networks) => block_networks,
-                Err(message) => return DispatchOutcome::error(message),
-            };
             let remove_evidence = form.bool_value("remove_evidence");
             match client
-                .suspend_user(
-                    user_id,
-                    duration_hours,
-                    remove_evidence,
-                    block_networks,
-                    &submission,
-                )
+                .suspend_user(user_id, duration_hours, remove_evidence, None, &submission)
                 .await
             {
                 Ok(response) => {
@@ -388,10 +377,6 @@ async fn close_account(
         Err(message) => return DispatchOutcome::error(message),
     };
     let enforcement = matches!(basis, BasisSubmission::Enforcement(_));
-    let block_networks = match network_blocks_from_form(form) {
-        Ok(block_networks) => block_networks.filter(|_| enforcement),
-        Err(message) => return DispatchOutcome::error(message),
-    };
     let immediate = form.bool_value("delete_immediately");
     if immediate && form.clean("delete_immediately_confirm").as_deref() != Some("DELETE") {
         return DispatchOutcome::error("Type DELETE to confirm deleting the account now");
@@ -401,7 +386,7 @@ async fn close_account(
         days_until_deletion,
         immediate,
         remove_evidence: enforcement && form.bool_value("remove_evidence"),
-        block_networks,
+        block_networks: None,
         replace_pending_deletion_at,
         internal_note: basis.internal_note().map(str::to_owned),
     };

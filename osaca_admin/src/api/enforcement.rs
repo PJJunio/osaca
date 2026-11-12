@@ -52,20 +52,6 @@ impl AdminApiClient {
         .await
     }
 
-    pub async fn list_network_block_candidates(
-        &self,
-        user_id: &str,
-    ) -> ApiResult<generated_types::NetworkBlockCandidatesResponse> {
-        self.get(
-            &format!(
-                "/admin/users/{}/network-block-candidates",
-                urlencoding::encode(user_id)
-            ),
-            None,
-        )
-        .await
-    }
-
     pub async fn warn_user(
         &self,
         user_id: &str,

@@ -102,7 +102,6 @@ export class AdminSearchService {
 	async searchUsers(
 		data: {
 			query?: string;
-			last_active_ip?: string;
 			acl?: string;
 			limit: number;
 			offset: number;
@@ -111,15 +110,6 @@ export class AdminSearchService {
 		locale?: string,
 	) {
 		const {users: userRepository, cache: cacheService} = this.deps.apiContext.services;
-		const lastActiveIp = data.last_active_ip?.trim();
-		if (lastActiveIp) {
-			const {userIds, total} = await userRepository.listUserIdsByLastActiveIp(lastActiveIp, data.limit, data.offset);
-			const response = await this.mapOrderedUsers(userIds, acls, locale);
-			return {
-				users: response,
-				total,
-			};
-		}
 		if (data.acl !== undefined) {
 			const userIds = (await userRepository.listUserIdsWithAcl(data.acl))
 				.filter((userId) => !isSyntheticUserId(userId))

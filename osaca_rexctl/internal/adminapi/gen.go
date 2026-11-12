@@ -41,9 +41,6 @@ const (
 	ApplicationListByOwner        AdminAclType = "application:list:by_owner"
 	ApplicationLookup             AdminAclType = "application:lookup"
 	ApplicationTransferOwnership  AdminAclType = "application:transfer_ownership"
-	ArchiveTriggerGuild           AdminAclType = "archive:trigger:guild"
-	ArchiveTriggerUser            AdminAclType = "archive:trigger:user"
-	ArchiveViewAll                AdminAclType = "archive:view_all"
 	AssetPurge                    AdminAclType = "asset:purge"
 	Asterisk                      AdminAclType = "*"
 	AuditLogView                  AdminAclType = "audit_log:view"
@@ -115,24 +112,17 @@ const (
 	ReportViewReporterPii         AdminAclType = "report:view:reporter_pii"
 	SystemDmSend                  AdminAclType = "system_dm:send"
 	UserCancelBulkMessageDeletion AdminAclType = "user:cancel:bulk_message_deletion"
-	UserCreatePasswordResetLink   AdminAclType = "user:create:password_reset_link"
 	UserDelete                    AdminAclType = "user:delete"
-	UserDeleteRecoveryKit         AdminAclType = "user:delete:recovery_kit"
-	UserListDmChannels            AdminAclType = "user:list:dm_channels"
 	UserListGuilds                AdminAclType = "user:list:guilds"
-	UserListRelationships         AdminAclType = "user:list:relationships"
 	UserListSessions              AdminAclType = "user:list:sessions"
 	UserLookup                    AdminAclType = "user:lookup"
-	UserRemoveRelationship        AdminAclType = "user:remove:relationship"
 	UserTempBan                   AdminAclType = "user:temp_ban"
 	UserUpdateBadges              AdminAclType = "user:update:badges"
 	UserUpdateBotStatus           AdminAclType = "user:update:bot_status"
 	UserUpdateFlags               AdminAclType = "user:update:flags"
-	UserUpdateMfa                 AdminAclType = "user:update:mfa"
 	UserUpdateProfile             AdminAclType = "user:update:profile"
 	UserUpdateTraits              AdminAclType = "user:update:traits"
 	UserUpdateUsername            AdminAclType = "user:update:username"
-	UserViewContactLog            AdminAclType = "user:view:contact_log"
 	UserViewIp                    AdminAclType = "user:view:ip"
 	VoiceJoinTokenCreate          AdminAclType = "voice:join_token:create"
 	VoiceJoinTokenList            AdminAclType = "voice:join_token:list"
@@ -161,12 +151,6 @@ func (e AdminAclType) Valid() bool {
 	case ApplicationLookup:
 		return true
 	case ApplicationTransferOwnership:
-		return true
-	case ArchiveTriggerGuild:
-		return true
-	case ArchiveTriggerUser:
-		return true
-	case ArchiveViewAll:
 		return true
 	case AssetPurge:
 		return true
@@ -310,23 +294,13 @@ func (e AdminAclType) Valid() bool {
 		return true
 	case UserCancelBulkMessageDeletion:
 		return true
-	case UserCreatePasswordResetLink:
-		return true
 	case UserDelete:
 		return true
-	case UserDeleteRecoveryKit:
-		return true
-	case UserListDmChannels:
-		return true
 	case UserListGuilds:
-		return true
-	case UserListRelationships:
 		return true
 	case UserListSessions:
 		return true
 	case UserLookup:
-		return true
-	case UserRemoveRelationship:
 		return true
 	case UserTempBan:
 		return true
@@ -336,15 +310,11 @@ func (e AdminAclType) Valid() bool {
 		return true
 	case UserUpdateFlags:
 		return true
-	case UserUpdateMfa:
-		return true
 	case UserUpdateProfile:
 		return true
 	case UserUpdateTraits:
 		return true
 	case UserUpdateUsername:
-		return true
-	case UserViewContactLog:
 		return true
 	case UserViewIp:
 		return true
@@ -1938,15 +1908,6 @@ type ListUserSessionsResponse struct {
 		// ApproxLastUsedAt ISO timestamp of the session last usage (approximate)
 		ApproxLastUsedAt string `json:"approx_last_used_at"`
 
-		// ClientIp Client IP address
-		ClientIp string `json:"client_ip"`
-
-		// ClientIpReverse Reverse DNS hostname for the client IP (PTR), if available
-		ClientIpReverse *string `json:"client_ip_reverse"`
-
-		// ClientLocation Approximate geo location label for the client IP, if available
-		ClientLocation *string `json:"client_location"`
-
 		// ClientOs Client operating system, if detected
 		ClientOs *string `json:"client_os"`
 
@@ -2075,7 +2036,6 @@ type PendingRegistrationListResponse struct {
 
 // PendingRegistrationResponse defines model for PendingRegistrationResponse.
 type PendingRegistrationResponse struct {
-	ClientIp          *string             `json:"client_ip"`
 	Discriminator     int                 `json:"discriminator"`
 	GlobalName        *string             `json:"global_name"`
 	InviteCode        *string             `json:"invite_code"`
@@ -2239,9 +2199,6 @@ type UserAdminResponseSchema struct {
 	HasTotp                      bool                `json:"has_totp"`
 	Id                           SnowflakeStringType `json:"id"`
 	LastActiveAt                 *string             `json:"last_active_at"`
-	LastActiveIp                 *string             `json:"last_active_ip"`
-	LastActiveIpReverse          *string             `json:"last_active_ip_reverse"`
-	LastActiveLocation           *string             `json:"last_active_location"`
 	Locale                       *string             `json:"locale"`
 	PendingBulkMessageDeletionAt *string             `json:"pending_bulk_message_deletion_at"`
 	PendingDeletionAt            *string             `json:"pending_deletion_at"`
@@ -2493,9 +2450,6 @@ type ListAdminUsersParams struct {
 
 	// Resolve Resolve one exact identifier: a username or a user ID
 	Resolve *string `form:"resolve,omitempty" json:"resolve,omitempty"`
-
-	// LastActiveIp Restrict the results to the users whose last active IP address matches this one exactly
-	LastActiveIp *string `form:"last_active_ip,omitempty" json:"last_active_ip,omitempty"`
 
 	// Acl Restrict the results to the users granted this admin permission, ordered by user ID. Pass * to list the admins with full access
 	Acl *AdminAclType `form:"acl,omitempty" json:"acl,omitempty"`

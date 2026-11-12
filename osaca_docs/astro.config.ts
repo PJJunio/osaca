@@ -312,7 +312,6 @@ export default defineConfig({
 						'admin-api/voice',
 						'admin-api/jobs',
 						'admin-api/bulk-jobs',
-						'admin-api/archives',
 						'admin-api/search-indexes',
 					],
 				},

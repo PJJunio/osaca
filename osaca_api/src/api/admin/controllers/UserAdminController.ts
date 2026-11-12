@@ -113,7 +113,7 @@ export function UserAdminController(app: HonoApp) {
 			security: 'adminApiKey',
 			tags: 'Admin',
 			description:
-				'Lists and searches users. Exactly one selector is honoured, in this precedence order: user_id, resolve, last_active_ip, acl, then the indexed q search. The acl selector lists the users granted one admin permission, ordered by user ID. The resolve selector takes one exact identifier, a username or a user ID. The user_id selector ignores limit and offset. Requires USER_LOOKUP permission.',
+				'Lists and searches users. Exactly one selector is honoured, in this precedence order: user_id, resolve, acl, then the indexed q search. The acl selector lists the users granted one admin permission, ordered by user ID. The resolve selector takes one exact identifier, a username or a user ID. The user_id selector ignores limit and offset. Requires USER_LOOKUP permission.',
 		}),
 		async (ctx) => {
 			const adminService = ctx.get('adminService');
@@ -218,7 +218,7 @@ export function UserAdminController(app: HonoApp) {
 			security: 'adminApiKey',
 			tags: 'Admin',
 			description:
-				'Look up one detailed user profile by ID. Returns account status, permissions, and metadata. The IP address is redacted without the matching view permission. Requires USER_LOOKUP permission.',
+				'Look up one detailed user profile by ID. Returns account status, permissions, and metadata. Requires USER_LOOKUP permission.',
 		}),
 		async (ctx) => {
 			const adminService = ctx.get('adminService');
@@ -290,7 +290,7 @@ export function UserAdminController(app: HonoApp) {
 			security: 'adminApiKey',
 			tags: 'Admin',
 			description:
-				'List all active user sessions across devices. Shows device info, IP, last activity, and creation time. Requires USER_LIST_SESSIONS permission.',
+				'List all active user sessions across devices. Shows device info, last activity, and creation time. Requires USER_LIST_SESSIONS permission.',
 		}),
 		async (ctx) => {
 			const adminService = ctx.get('adminService');

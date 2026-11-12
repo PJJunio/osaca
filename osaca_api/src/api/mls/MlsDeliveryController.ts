@@ -18,6 +18,7 @@ import {
 	MlsCommitRequest,
 	MlsCommitResponse,
 	MlsCreateGroupRequest,
+	MlsDeleteCiphertextResponse,
 	MlsGroupResponse,
 	MlsKeyPackagesPublishRequest,
 	MlsKeyPackagesPublishResponse,
@@ -312,7 +313,7 @@ export function MlsDeliveryController(app: HonoApp): void {
 		OpenAPI({
 			operationId: 'mls_delete_ciphertext',
 			summary: 'Delete ciphertext message',
-			responseSchema: z.object({success: z.boolean()}),
+			responseSchema: MlsDeleteCiphertextResponse,
 			statusCode: 200,
 			security: ['bearerToken', 'sessionToken'],
 			tags: ['MLS', 'DeliveryService'],

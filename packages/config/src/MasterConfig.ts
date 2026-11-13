@@ -85,7 +85,6 @@ export interface MasterConfig {
 			request_timeout_ms: number;
 			max_inflight_requests: number;
 			automated_message_deletion_delay_days: number;
-			ip_ban_exempt_ips: Array<string>;
 			trusted_callers: Array<{
 				name: string;
 				key: string;

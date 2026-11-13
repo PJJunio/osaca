@@ -3,7 +3,6 @@
 import {
 	BanAvatarHashRequest,
 	BanFileShaRequest,
-	BanIpRequest,
 	BanPhraseRequest,
 	BanProfileSubstringRequest,
 	BanUrlDomainRequest,
@@ -15,7 +14,7 @@ import {createStringType, Int32Type, SnowflakeStringType} from '@osaca/schema/sr
 import {z} from 'zod';
 
 export const AdminBlocklistListType = z
-	.enum(['ip', 'phrase', 'url', 'url-domain', 'file-sha', 'avatar-hash', 'profile-substring'])
+	.enum(['phrase', 'url', 'url-domain', 'file-sha', 'avatar-hash', 'profile-substring'])
 	.describe('The blocklist an entry belongs to');
 
 export type AdminBlocklistListType = z.infer<typeof AdminBlocklistListType>;
@@ -88,8 +87,6 @@ const AdminBlocklistEntryResponse = z.object({
 		.boolean()
 		.nullable()
 		.describe('Whether subdomains are covered by the entry, or null when the blocklist has no such flag'),
-	reason: z.string().nullable().describe('The stored reason for the entry, or null'),
-	expires_at: z.string().nullable().describe('ISO 8601 timestamp when the entry expires, or null'),
 	created_at: z.string().nullable().describe('ISO 8601 timestamp when the entry was added, or null'),
 	created_by_user_id: SnowflakeStringType.nullable().describe('The admin who added the entry, or null when unknown'),
 });
@@ -105,7 +102,6 @@ export const AdminBlocklistEntryListResponse = z.object({
 
 export const AdminBlocklistEntryCreateRequest = z
 	.union([
-		BanIpRequest,
 		BanPhraseRequest,
 		BanUrlRequest,
 		BanUrlDomainRequest,

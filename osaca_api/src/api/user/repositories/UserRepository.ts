@@ -135,17 +135,6 @@ export class UserRepository {
 		return this.lookupRepo.listUserIdsWithAcl(acl);
 	}
 
-	async listUserIdsByLastActiveIp(
-		lastActiveIp: string,
-		limit: number,
-		offset: number,
-	): Promise<{
-		userIds: Array<UserID>;
-		total: number;
-	}> {
-		return this.lookupRepo.listUserIdsByLastActiveIp(lastActiveIp, limit, offset);
-	}
-
 	async listUsers(userIds: Array<UserID>): Promise<Array<User>> {
 		return this.accountRepo.listUsers(userIds);
 	}
@@ -164,12 +153,9 @@ export class UserRepository {
 		return this.guildRepo.getUserGuildIds(userId);
 	}
 
-	async getActivityTracking(userId: UserID): Promise<{
-		last_active_at: Date | null;
-		last_active_ip: string | null;
-	}> {
+	async getActivityTracking(userId: UserID): Promise<{last_active_at: Date | null}> {
 		const result = await this.accountRepo.getActivityTracking(userId);
-		return result ?? {last_active_at: null, last_active_ip: null};
+		return result ?? {last_active_at: null};
 	}
 
 	async indexUserAcls(user: User): Promise<void> {

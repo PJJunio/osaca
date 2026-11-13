@@ -9,7 +9,6 @@ import {banUser} from '@app/api/moderation/tests/ModerationTestUtils';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {HTTP_STATUS} from '@app/api/test/TestConstants';
 import {createBuilder, createBuilderWithoutAuth} from '@app/api/test/TestRequestBuilder';
-import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {InviteTypes} from '@osaca/constants/src/ChannelConstants';
 import type {GuildInviteMetadataResponse} from '@osaca/schema/src/domains/invite/InviteSchemas';
 import {afterAll, beforeAll, beforeEach, describe, expect, test} from 'vitest';
@@ -117,51 +116,6 @@ describe('Invite Security Checks', () => {
 			.expect(HTTP_STATUS.FORBIDDEN)
 			.execute();
 		await deleteInvite(harness, owner.token, newInvite.code);
-	});
-	test('same /64 IPv6 guild ban blocks invite joins from rotated privacy addresses', async () => {
-		const owner = await createTestAccount(harness);
-		const bannedUser = await createTestAccount(harness, {ipAddress: '2a01:e0a:d10:95b0:8f54:410e:f290:1c66'});
-		const altUser = await createTestAccount(harness, {ipAddress: '2a01:e0a:d10:95b0:1e4:53a8:d0dd:7733'});
-		const guild = await createGuild(harness, owner.token, 'IPv6 Guild Ban Test');
-		const systemChannel = await getChannel(harness, owner.token, guild.system_channel_id!);
-		const firstInvite = await createChannelInvite(harness, owner.token, systemChannel.id);
-		await createBuilder(harness, bannedUser.token)
-			.post(`/invites/${firstInvite.code}`)
-			.header('x-forwarded-for', bannedUser.ipAddress!)
-			.body(null)
-			.expect(HTTP_STATUS.OK)
-			.execute();
-		await banUser(harness, owner.token, guild.id, bannedUser.userId, 0);
-		const secondInvite = await createChannelInvite(harness, owner.token, systemChannel.id);
-		await createBuilder(harness, altUser.token)
-			.post(`/invites/${secondInvite.code}`)
-			.header('x-forwarded-for', altUser.ipAddress!)
-			.body(null)
-			.expect(HTTP_STATUS.FORBIDDEN, APIErrorCodes.USER_IP_BANNED_FROM_GUILD)
-			.execute();
-		await deleteInvite(harness, owner.token, secondInvite.code);
-	});
-	test('guild invite bans keep IPv4 matching exact', async () => {
-		const owner = await createTestAccount(harness);
-		const bannedUser = await createTestAccount(harness, {ipAddress: '203.0.113.10'});
-		const altUser = await createTestAccount(harness, {ipAddress: '203.0.113.11'});
-		const guild = await createGuild(harness, owner.token, 'IPv4 Guild Ban Test');
-		const systemChannel = await getChannel(harness, owner.token, guild.system_channel_id!);
-		const firstInvite = await createChannelInvite(harness, owner.token, systemChannel.id);
-		await createBuilder(harness, bannedUser.token)
-			.post(`/invites/${firstInvite.code}`)
-			.header('x-forwarded-for', bannedUser.ipAddress!)
-			.body(null)
-			.expect(HTTP_STATUS.OK)
-			.execute();
-		await banUser(harness, owner.token, guild.id, bannedUser.userId, 0);
-		const secondInvite = await createChannelInvite(harness, owner.token, systemChannel.id);
-		await createBuilder(harness, altUser.token)
-			.post(`/invites/${secondInvite.code}`)
-			.header('x-forwarded-for', altUser.ipAddress!)
-			.body(null)
-			.expect(HTTP_STATUS.OK)
-			.execute();
 	});
 	test('unauthenticated request can view public invite', async () => {
 		const owner = await createTestAccount(harness);

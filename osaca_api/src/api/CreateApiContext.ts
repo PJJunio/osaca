@@ -54,7 +54,6 @@ const ANONYMOUS_REQUEST_SCOPE: RequestScope = {
 	clientIp: null,
 	userAgent: null,
 	locale: Locales.EN_US,
-	blockedNetworkSignIn: null,
 };
 
 export function createApiContext(scope: RequestScope = ANONYMOUS_REQUEST_SCOPE): ApiContext {

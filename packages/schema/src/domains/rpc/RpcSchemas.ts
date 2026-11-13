@@ -361,7 +361,7 @@ export const RpcResponseSessionData = z.object({
 		.describe('Subset of visit_guild_ids opened by the instance operator entry, which ignore the guild visit setting'),
 	adult_content_allowed: z.boolean().optional().describe('Whether the user may see adult channels while visiting'),
 	account_tier: AccountTierSchema.optional().describe('Account tier of the user'),
-	ip_key: z.string().nullish().describe('Address key of the identifying connection, used to evict visitors on IP bans'),
+	ip_key: z.string().nullish().describe('Address key of the identifying connection. It is never stored'),
 });
 
 export type RpcResponseSessionData = z.infer<typeof RpcResponseSessionData>;

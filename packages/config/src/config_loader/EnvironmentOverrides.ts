@@ -69,7 +69,6 @@ const NAMED_OSACA_ENV_OVERRIDES: Record<string, NamedEnvOverride> = {
 		path: ['services', 'api', 'automated_message_deletion_delay_days'],
 		parse: parseInteger,
 	},
-	OSACA_API_IP_BAN_EXEMPT_IPS: {path: ['services', 'api', 'ip_ban_exempt_ips'], parse: parseCsv},
 	OSACA_API_TRUSTED_CALLERS: {path: ['services', 'api', 'trusted_callers'], parse: parseJsonArray},
 	OSACA_API_PRESIGNED_ATTACHMENT_UPLOADS_ENABLED: {
 		path: ['services', 'api', 'presigned_attachment_uploads_enabled'],

@@ -108,7 +108,6 @@ interface UserDataJsonParams {
 	}>;
 	activityData: {
 		last_active_at: Date | null;
-		last_active_ip: string | null;
 	};
 }
 
@@ -126,14 +125,12 @@ export function mapSecurityData(params: {
 	}>;
 	activityData: {
 		last_active_at: Date | null;
-		last_active_ip: string | null;
 	};
 }) {
 	return {
 		authorized_ips: params.authorizedIps,
 		activity_tracking: {
 			last_active_at: params.activityData.last_active_at?.toISOString() ?? null,
-			last_active_ip: params.activityData.last_active_ip,
 		},
 	};
 }

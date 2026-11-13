@@ -1981,16 +1981,6 @@ msgstr "{productName}-appikon"
 msgid "{productName} avoids sending push notifications to your mobile devices when you are at your computer. Choose how long you need to be inactive on desktop before you receive push notifications."
 msgstr "{productName} forhindrer, at der sendes push-notifikationer til dine mobilenheder, når du er ved din computer. Vælg hvor længe du skal være inaktiv på din computer, før du modtager push-notifikationer."
 
-#. First sentence of the network blocked screen when a rule is shown. productName is the app name. Must read the same as the error message for this block.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "{productName} blocked access from this network because of activity that broke its rules."
-msgstr "{productName} har blokeret adgang fra dette netværk på grund af aktivitet, der brød reglerne."
-
-#. First sentence of the network blocked screen when no rule is shown. productName is the app name. Must read the same as the error message for this block.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "{productName} blocked access from this network."
-msgstr "{productName} har blokeret adgang fra dette netværk."
-
 #. Linux settings text before system-wide shortcuts are set up. The desktop environment owns the keys. {productName} is the app name.
 #: src/features/user/components/modals/tabs/components/SystemShortcutsSection.tsx
 msgid "{productName} can ask your desktop to run its keybinds while {productName} is not focused. Your desktop asks you to confirm and lets you pick the keys."
@@ -19242,16 +19232,6 @@ msgstr "Hvis du gemmer dette brugernavn, vil dit tag blive ændret tilfældigt, 
 msgid "If you save this username, your tag will reroll randomly when your {PREMIUM_PRODUCT_NAME} expires, unless it renews."
 msgstr "Hvis du gemmer dette brugernavn, vil dit tag blive ændret tilfældigt, når dit {PREMIUM_PRODUCT_NAME} udløber, medmindre det fornyes."
 
-#. Paragraph on the network blocked screen for people who share a network with others. Must read the same as the error message for this block.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "If you share this network, for example at school, at work, on public Wi-Fi, through your mobile carrier or a VPN, this block may have nothing to do with you. The quickest fix is to switch networks, for example to mobile data instead of Wi-Fi, or to turn your VPN on or off."
-msgstr "Hvis du deler dette netværk med andre, f.eks. i skolen, på arbejdet, på offentligt Wi-Fi, via dit mobilselskab eller en VPN, har blokeringen måske intet med dig at gøre. Den hurtigste løsning er at skifte netværk, f.eks. til mobildata i stedet for Wi-Fi, eller at slå din VPN til eller fra."
-
-#. Line on the network blocked screen. The link is the contact email address and ip is the blocked IP address.
-#: src/features/auth/flow/AccountRestrictionScreen.tsx
-msgid "If you think this block is a mistake, email <0>{email}</0> and include your IP address, {ip}."
-msgstr "Hvis du mener, at blokeringen er en fejl, så send en e-mail til <0>{email}</0>, og oplys din IP-adresse, {ip}."
-
 #. Appeal line for a restriction from before the team recorded decisions, with no appeal deadline. The link is the appeals email address.
 #: src/features/auth/flow/AccountRestrictionScreen.tsx
 msgid "If you think we got this wrong, email <0>{email}</0> and include your username."
@@ -24003,11 +23983,6 @@ msgstr "Holland"
 #: src/features/voice/components/voice_connection_status/shared.ts
 msgid "Network"
 msgstr "Netværk"
-
-#. Title of the screen and dialog shown when the instance blocks the network a request came from.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "Network blocked"
-msgstr "Netværk blokeret"
 
 #. Error message in the devices tab.
 #: src/features/user/components/modals/tabs/DevicesTab.tsx
@@ -36431,11 +36406,6 @@ msgstr "Udelukkelsen var allerede udløbet den {date}"
 msgid "The ban was scheduled to expire on {date}"
 msgstr "Udelukkelsen var planlagt til at udløbe den {date}"
 
-#. Line on the network blocked screen for a block with an end. date is a date and time.
-#: src/features/auth/flow/AccountRestrictionScreen.tsx
-msgid "The block ends on {date}."
-msgstr "Blokeringen ophører den {date}."
-
 #: src/features/auth/components/pages/oauth_authorize_page/OAuthSuccessState.tsx
 msgid "The bot has been added to <0>{destinationName}</0>."
 msgstr "Botten er blevet føjet til <0>{destinationName}</0>."
@@ -44386,16 +44356,6 @@ msgstr "Din invitation udløber om 24 timer"
 #: src/features/auth/components/pages/AuthorizeIPPage.tsx
 msgid "Your IP address has been successfully authorized. You can close this page or sign in again."
 msgstr "Din IP-adresse er blevet godkendt. Du kan lukke denne side eller logge ind igen."
-
-#. Error message in the user ip banned from guild modal. Keep the tone plain and specific.
-#: src/features/invite/commands/InviteCommands.tsx
-msgid "Your IP address is banned from this community and you cannot join."
-msgstr "Din IP-adresse er udelukket fra dette fællesskab, og du kan ikke deltage."
-
-#. Label in the user ip banned from guild modal. Keep the tone plain and specific.
-#: src/features/invite/commands/InviteCommands.tsx
-msgid "Your IP is banned"
-msgstr "Din IP-adresse er udelukket"
 
 #: src/features/app/components/dialogs/components/plutonium/RefundsSection.tsx
 msgid "Your last purchase is outside the refund window. Contact support for billing issues."

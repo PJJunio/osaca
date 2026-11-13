@@ -49,6 +49,10 @@ describe('admin panel operational scope (ADR-0010)', () => {
 		assert.deepEqual(offenders(/disable_mfa|password_reset|revoke_recovery_kit|webauthn_credential/), []);
 	});
 
+	it('offers no IP blocklist (ADR-0009: IP bans disappear)', () => {
+		assert.deepEqual(offenders(/ip-bans|IP Bans|BAN_IP_/), []);
+	});
+
 	it('offers no search of Accounts by IP address', () => {
 		assert.deepEqual(offenders(/Last active IP address|\/users\?ip=/), []);
 	});

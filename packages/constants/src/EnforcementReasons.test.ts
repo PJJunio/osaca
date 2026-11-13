@@ -29,30 +29,30 @@ const ALL_KINDS: ReadonlyArray<EnforcementKind> = [
 const ALL_LIMITS: ReadonlyArray<EnforcementLimit> = ['direct_messages', 'reports'];
 
 const RULE_TABLE = [
-	['spam', 'guidelines', '6-spam-and-service-abuse', true, true],
-	['service_abuse', 'guidelines', '6-spam-and-service-abuse', true, true],
-	['raids', 'guidelines', '1-harassment-threats-and-privacy', true, true],
-	['automation', 'guidelines', '6-spam-and-service-abuse', true, true],
-	['intimate_images', 'guidelines', '1-harassment-threats-and-privacy', true, false],
-	['fraud', 'guidelines', '5-illegal-and-dangerous-activity', true, false],
-	['child_safety', 'guidelines', '4-sexual-content-and-protection-of-minors', true, false],
-	['privacy', 'guidelines', '1-harassment-threats-and-privacy', true, false],
-	['harassment', 'guidelines', '1-harassment-threats-and-privacy', true, false],
-	['unwanted_sexual_content', 'guidelines', '1-harassment-threats-and-privacy', true, false],
-	['violent_content', 'guidelines', '3-violence-extremism-and-self-harm', true, true],
-	['ban_evasion', 'guidelines', '6-spam-and-service-abuse', true, false],
-	['hate', 'guidelines', '2-hate-and-discrimination', true, false],
-	['malware', 'guidelines', '5-illegal-and-dangerous-activity', true, false],
-	['impersonation', 'guidelines', '6-spam-and-service-abuse', true, true],
-	['threats', 'guidelines', '1-harassment-threats-and-privacy', true, false],
-	['violent_extremism', 'guidelines', '3-violence-extremism-and-self-harm', true, false],
-	['self_harm', 'guidelines', '3-violence-extremism-and-self-harm', true, false],
-	['adult_content', 'guidelines', '4-sexual-content-and-protection-of-minors', true, true],
-	['illegal_activity', 'guidelines', '5-illegal-and-dangerous-activity', true, false],
-	['harmful_deception', 'guidelines', '7-harmful-deception-and-manipulated-media', true, false],
-	['report_abuse', 'guidelines', '8-reporting', true, true],
-	['age_requirement', 'terms', '1-agreement-and-eligibility', false, false],
-	['copyright', 'terms', '3-4-copyright', true, true],
+	['spam', 'guidelines', '6-spam-and-service-abuse', true],
+	['service_abuse', 'guidelines', '6-spam-and-service-abuse', true],
+	['raids', 'guidelines', '1-harassment-threats-and-privacy', true],
+	['automation', 'guidelines', '6-spam-and-service-abuse', true],
+	['intimate_images', 'guidelines', '1-harassment-threats-and-privacy', true],
+	['fraud', 'guidelines', '5-illegal-and-dangerous-activity', true],
+	['child_safety', 'guidelines', '4-sexual-content-and-protection-of-minors', true],
+	['privacy', 'guidelines', '1-harassment-threats-and-privacy', true],
+	['harassment', 'guidelines', '1-harassment-threats-and-privacy', true],
+	['unwanted_sexual_content', 'guidelines', '1-harassment-threats-and-privacy', true],
+	['violent_content', 'guidelines', '3-violence-extremism-and-self-harm', true],
+	['ban_evasion', 'guidelines', '6-spam-and-service-abuse', true],
+	['hate', 'guidelines', '2-hate-and-discrimination', true],
+	['malware', 'guidelines', '5-illegal-and-dangerous-activity', true],
+	['impersonation', 'guidelines', '6-spam-and-service-abuse', true],
+	['threats', 'guidelines', '1-harassment-threats-and-privacy', true],
+	['violent_extremism', 'guidelines', '3-violence-extremism-and-self-harm', true],
+	['self_harm', 'guidelines', '3-violence-extremism-and-self-harm', true],
+	['adult_content', 'guidelines', '4-sexual-content-and-protection-of-minors', true],
+	['illegal_activity', 'guidelines', '5-illegal-and-dangerous-activity', true],
+	['harmful_deception', 'guidelines', '7-harmful-deception-and-manipulated-media', true],
+	['report_abuse', 'guidelines', '8-reporting', true],
+	['age_requirement', 'terms', '1-agreement-and-eligibility', false],
+	['copyright', 'terms', '3-4-copyright', true],
 ] as const;
 
 const enforcementCodes = Object.keys(ENFORCEMENT_REASONS).map(Number).filter(isEnforcementReasonCode);
@@ -99,15 +99,9 @@ describe('ENFORCEMENT_REASONS', () => {
 });
 
 describe('ENFORCEMENT_RULES', () => {
-	it('pins policy anchors, the new account bar and network screen visibility', () => {
+	it('pins policy anchors and the new account bar', () => {
 		expect(
-			Object.entries(ENFORCEMENT_RULES).map(([key, rule]) => [
-				key,
-				rule.policy,
-				rule.anchor,
-				rule.barsNewAccounts,
-				rule.showOnNetworkScreen,
-			]),
+			Object.entries(ENFORCEMENT_RULES).map(([key, rule]) => [key, rule.policy, rule.anchor, rule.barsNewAccounts]),
 		).toEqual(RULE_TABLE);
 	});
 });

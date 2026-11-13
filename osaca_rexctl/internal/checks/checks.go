@@ -120,7 +120,6 @@ var order = []string{
 	"voice-webhook",
 	"voice-keys",
 	"voice-health",
-	"client-ip",
 	"backup-age",
 }
 

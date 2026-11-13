@@ -1981,16 +1981,6 @@ msgstr "{productName} programos piktograma"
 msgid "{productName} avoids sending push notifications to your mobile devices when you are at your computer. Choose how long you need to be inactive on desktop before you receive push notifications."
 msgstr "„{productName}“ nesiunčia tiesioginių pranešimų į jūsų mobiliuosius įrenginius, kai esate prie kompiuterio. Nustatykite, po kiek laiko neaktyvumo darbalaukyje turėtų būti pradėti siųsti pranešimai."
 
-#. First sentence of the network blocked screen when a rule is shown. productName is the app name. Must read the same as the error message for this block.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "{productName} blocked access from this network because of activity that broke its rules."
-msgstr "{productName} užblokavo prieigą iš šio tinklo dėl veiklos, pažeidusios taisykles."
-
-#. First sentence of the network blocked screen when no rule is shown. productName is the app name. Must read the same as the error message for this block.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "{productName} blocked access from this network."
-msgstr "{productName} užblokavo prieigą iš šio tinklo."
-
 #. Linux settings text before system-wide shortcuts are set up. The desktop environment owns the keys. {productName} is the app name.
 #: src/features/user/components/modals/tabs/components/SystemShortcutsSection.tsx
 msgid "{productName} can ask your desktop to run its keybinds while {productName} is not focused. Your desktop asks you to confirm and lets you pick the keys."
@@ -19243,16 +19233,6 @@ msgstr "Jei išsaugosite šį naudotojo vardą, jūsų žyma bus atsitiktinai pa
 msgid "If you save this username, your tag will reroll randomly when your {PREMIUM_PRODUCT_NAME} expires, unless it renews."
 msgstr "Jei išsaugosite šį naudotojo vardą, jūsų žyma bus atsitiktinai pakeista, kai baigs galioti jūsų {PREMIUM_PRODUCT_NAME}, nebent ji bus atnaujinta."
 
-#. Paragraph on the network blocked screen for people who share a network with others. Must read the same as the error message for this block.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "If you share this network, for example at school, at work, on public Wi-Fi, through your mobile carrier or a VPN, this block may have nothing to do with you. The quickest fix is to switch networks, for example to mobile data instead of Wi-Fi, or to turn your VPN on or off."
-msgstr "Jei šiuo tinklu naudojiesi kartu su kitais, pavyzdžiui, mokykloje, darbe, viešajame Wi-Fi tinkle, per mobiliojo ryšio operatorių ar VPN, šis blokavimas gali būti visai nesusijęs su tavimi. Greičiausiai padės pakeisti tinklą, pavyzdžiui, vietoj Wi-Fi naudoti mobiliuosius duomenis, arba įjungti ar išjungti VPN."
-
-#. Line on the network blocked screen. The link is the contact email address and ip is the blocked IP address.
-#: src/features/auth/flow/AccountRestrictionScreen.tsx
-msgid "If you think this block is a mistake, email <0>{email}</0> and include your IP address, {ip}."
-msgstr "Jei manai, kad šis blokavimas yra klaida, parašyk adresu <0>{email}</0> ir nurodyk savo IP adresą: {ip}."
-
 #. Appeal line for a restriction from before the team recorded decisions, with no appeal deadline. The link is the appeals email address.
 #: src/features/auth/flow/AccountRestrictionScreen.tsx
 msgid "If you think we got this wrong, email <0>{email}</0> and include your username."
@@ -24004,11 +23984,6 @@ msgstr "Nyderlandai"
 #: src/features/voice/components/voice_connection_status/shared.ts
 msgid "Network"
 msgstr "Tinklas"
-
-#. Title of the screen and dialog shown when the instance blocks the network a request came from.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "Network blocked"
-msgstr "Tinklas užblokuotas"
 
 #. Error message in the devices tab.
 #: src/features/user/components/modals/tabs/DevicesTab.tsx
@@ -36432,11 +36407,6 @@ msgstr "Užblokavimas jau buvo pasibaigęs {date}"
 msgid "The ban was scheduled to expire on {date}"
 msgstr "Užblokavimas turėjo pasibaigti {date}"
 
-#. Line on the network blocked screen for a block with an end. date is a date and time.
-#: src/features/auth/flow/AccountRestrictionScreen.tsx
-msgid "The block ends on {date}."
-msgstr "Blokavimas baigsis {date}."
-
 #: src/features/auth/components/pages/oauth_authorize_page/OAuthSuccessState.tsx
 msgid "The bot has been added to <0>{destinationName}</0>."
 msgstr "Botas pridėtas prie <0>{destinationName}</0>."
@@ -44387,16 +44357,6 @@ msgstr "Jūsų kvietimas baigs galioti po 24 valandų"
 #: src/features/auth/components/pages/AuthorizeIPPage.tsx
 msgid "Your IP address has been successfully authorized. You can close this page or sign in again."
 msgstr "Jūsų IP adresas sėkmingai įgaliotas. Galite uždaryti šį puslapį arba prisijungti iš naujo."
-
-#. Error message in the user ip banned from guild modal. Keep the tone plain and specific.
-#: src/features/invite/commands/InviteCommands.tsx
-msgid "Your IP address is banned from this community and you cannot join."
-msgstr "Jūsų IP adresas užblokuotas šioje bendruomenėje ir negalite prisijungti."
-
-#. Label in the user ip banned from guild modal. Keep the tone plain and specific.
-#: src/features/invite/commands/InviteCommands.tsx
-msgid "Your IP is banned"
-msgstr "Jūsų IP užblokuotas"
 
 #: src/features/app/components/dialogs/components/plutonium/RefundsSection.tsx
 msgid "Your last purchase is outside the refund window. Contact support for billing issues."

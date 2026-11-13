@@ -4,20 +4,13 @@ import {HttpError} from '@app/features/platform/types/EndpointError';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {HttpStatus} from '@osaca/constants/src/HttpConstants';
 import {isObjectLike as isRecord} from '@osaca/record_utils/src/RecordGuards';
-import {EnforcementNotice, NetworkBlock} from '@osaca/schema/src/domains/auth/EnforcementNoticeSchemas';
+import {EnforcementNotice} from '@osaca/schema/src/domains/auth/EnforcementNoticeSchemas';
 
-export type AccountRestriction =
-	| {type: 'notice'; notice: EnforcementNotice}
-	| {type: 'network_blocked'; block: NetworkBlock};
+export type AccountRestriction = {type: 'notice'; notice: EnforcementNotice};
 
 const NOTICE_CODES: ReadonlySet<unknown> = new Set([
 	APIErrorCodes.ACCOUNT_SUSPENDED_PERMANENTLY,
 	APIErrorCodes.ACCOUNT_SUSPENDED_TEMPORARILY,
-]);
-
-const NETWORK_BLOCK_CODES: ReadonlySet<unknown> = new Set([
-	APIErrorCodes.GLOBAL_IP_BANNED,
-	APIErrorCodes.GLOBAL_IP_TEMPORARILY_BANNED,
 ]);
 
 export function accountRestrictionFromBody(body: unknown): AccountRestriction | null {
@@ -25,10 +18,6 @@ export function accountRestrictionFromBody(body: unknown): AccountRestriction | 
 	if (NOTICE_CODES.has(body.code)) {
 		const notice = EnforcementNotice.safeParse(body.notice);
 		return notice.success ? {type: 'notice', notice: notice.data} : null;
-	}
-	if (NETWORK_BLOCK_CODES.has(body.code)) {
-		const block = NetworkBlock.safeParse(body);
-		return block.success ? {type: 'network_blocked', block: block.data} : null;
 	}
 	return null;
 }

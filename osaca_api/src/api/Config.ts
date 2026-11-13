@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type {APIConfig, BlueskyOAuthConfig, TrustedCallerConfig} from '@app/api/config/APIConfig';
-import {parseIpBanEntry} from '@app/api/utils/IpRangeUtils';
 import {trimTrailingSlash} from '@app/api/utils/UrlUtils';
 import type {WorkerTaskName} from '@app/api/worker/WorkerLaneConfig';
 import type {MasterConfig} from '@osaca/config/src/MasterConfig';
-import {parseIpAddress} from '@osaca/ip_utils/src/IpAddress';
 import {normalizeString} from '@osaca/schema/src/primitives/SchemaPrimitives';
 
 function extractHostname(url: string): string {
@@ -33,26 +31,6 @@ function resolveTrustClientIpHeader(proxyConfig: object): boolean {
 		return configuredValue;
 	}
 	return false;
-}
-
-function normalizeIpBanExemptIps(values: Array<string>): Array<string> {
-	const normalized = new Set<string>();
-	for (const value of values) {
-		if (value.includes('/')) {
-			const range = parseIpBanEntry(value);
-			if (range?.type !== 'range') {
-				throw new Error(`OSACA_API_IP_BAN_EXEMPT_IPS contains an invalid CIDR range: ${value}`);
-			}
-			normalized.add(range.canonical);
-			continue;
-		}
-		const parsed = parseIpAddress(value);
-		if (!parsed) {
-			throw new Error(`OSACA_API_IP_BAN_EXEMPT_IPS contains an invalid IP address: ${value}`);
-		}
-		normalized.add(parsed.normalized);
-	}
-	return Array.from(normalized);
 }
 
 const TRUSTED_CALLER_MIN_KEY_LENGTH = 32;
@@ -142,7 +120,6 @@ export function buildAPIConfigFromMaster(master: MasterConfig): APIConfig {
 		requestTimeoutMs: master.services.api.request_timeout_ms,
 		maxInflightRequests: master.services.api.max_inflight_requests,
 		automatedMessageDeletionDelayDays: master.services.api.automated_message_deletion_delay_days,
-		ipBanExemptIps: normalizeIpBanExemptIps(master.services.api.ip_ban_exempt_ips),
 		postgres: {
 			url: postgresSource?.url ?? '',
 			host: postgresSource?.host ?? '127.0.0.1',

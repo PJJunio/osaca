@@ -9,8 +9,8 @@ import {failureCode, failureMessage} from '@app/features/platform/utils/Response
 import * as ModalCommands from '@app/features/ui/commands/ModalCommands';
 import {modal} from '@app/features/ui/commands/ModalCommands';
 import {blockIfAccountLimited, showAccountLimitedModal} from '@app/features/user/utils/AccountLimitUtils';
-import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {msg} from '@lingui/core/macro';
+import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 
 const COULDN_T_JOIN_DESCRIPTOR = msg({
 	message: "Couldn't join this community",
@@ -76,7 +76,6 @@ function resolveJoinGuildErrorContent(code: string | undefined): {title: string;
 				message: i18n._(TOO_MANY_SERVERS_MESSAGE_DESCRIPTOR),
 			};
 		case APIErrorCodes.USER_BANNED_FROM_GUILD:
-		case APIErrorCodes.USER_IP_BANNED_FROM_GUILD:
 			return {
 				title: i18n._(BANNED_TITLE_DESCRIPTOR),
 				message: i18n._(BANNED_MESSAGE_DESCRIPTOR),

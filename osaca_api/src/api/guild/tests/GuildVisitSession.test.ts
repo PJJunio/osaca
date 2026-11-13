@@ -52,10 +52,7 @@ describe('Guild visit session ban checks', () => {
 			.body({type: 'session', token: visitor.token, version: 1, ip: VISITOR_IP, guild_visits_capable: true});
 	}
 
-	it.each([
-		['account', 'visitor', null],
-		['IP address', 'owner', VISITOR_IP],
-	] as const)('ends the visit when the %s is banned', async (_label, target, ip) => {
+	it.each([['account', 'visitor']] as const)('ends the visit when the %s is banned', async (_label, target) => {
 		const {owner, visitor, guildId} = await createVisit();
 		const userId = createUserID(BigInt(visitor.userId));
 		const targets = {owner: owner.userId, visitor: visitor.userId};
@@ -66,7 +63,6 @@ describe('Guild visit session ban checks', () => {
 			banned_at: new Date(),
 			expires_at: null,
 			reason: null,
-			ip,
 		});
 
 		const session = await restoreSession(visitor).execute();

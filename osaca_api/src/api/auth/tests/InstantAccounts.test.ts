@@ -204,7 +204,6 @@ describe('Username-only accounts', () => {
 		const user = await getUserRepository().findUniqueAssert(createUserID(BigInt(redeemed.user_id)));
 		expect(user.username).toBe('Web_Visitor');
 		expect(user.globalName).toBe('Web Visitor');
-		expect(user.lastActiveIp).toBe(VISITOR_IP);
 		expect(user.termsAgreedAt).not.toBeNull();
 		expect(user.privacyAgreedAt).not.toBeNull();
 		await redeem(handoff_code, nonce).expect(HTTP_STATUS.BAD_REQUEST, APIErrorCodes.UNKNOWN_ACCOUNT_HANDOFF).execute();

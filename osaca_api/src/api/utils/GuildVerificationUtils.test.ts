@@ -41,7 +41,6 @@ function createUser(params?: {claimed?: boolean}): User {
 		terms_agreed_at: null,
 		privacy_agreed_at: null,
 		last_active_at: null,
-		last_active_ip: null,
 		temp_banned_until: null,
 		pending_bulk_message_deletion_at: null,
 		pending_bulk_message_deletion_channel_count: null,

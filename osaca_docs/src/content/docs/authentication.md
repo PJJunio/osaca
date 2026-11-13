@@ -61,7 +61,7 @@ Requests to [threads](/http-api/threads/), [thread members](/http-api/thread-mem
 
 A credential on an unauthenticated operation selects account-based [rate limits](/topics/rate-limits/) and can waive a [CAPTCHA](/topics/captcha/).
 
-Repeated authentication failures can get your IP banned, and retrying a rejected credential counts as one.
+Repeated authentication failures are rate limited, and retrying a rejected credential counts as one.
 
 ## Account restrictions
 

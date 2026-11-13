@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {resetSudoModeServiceForTesting} from '@app/api/auth/services/SudoModeService';
-import {resetIpBanExemptionsForTesting} from '@app/api/ban/IpBanExemptions';
 import {resetGlobalLimitConfigServiceForTesting} from '@app/api/limits/LimitConfigService';
 import {bannedAvatarHashCache} from '@app/api/middleware/BannedAvatarHashCache';
 import {fileShaCache} from '@app/api/middleware/FileShaCache';
-import {ipBanCache} from '@app/api/middleware/IpBanMiddleware';
 import {phraseBlocklistCache} from '@app/api/middleware/PhraseBlocklistCache';
 import {profileSubstringBlocklistCache} from '@app/api/middleware/ProfileSubstringBlocklistCache';
 import {resetServiceMiddlewareForTesting} from '@app/api/middleware/ServiceMiddleware';
@@ -19,13 +17,10 @@ export async function resetServiceStateForTesting(): Promise<void> {
 	resetServiceRegistryForTesting();
 	resetServiceSingletonsForTesting();
 	resetServiceMiddlewareForTesting();
-	resetIpBanExemptionsForTesting();
 	resetGlobalLimitConfigServiceForTesting();
 	resetSudoModeServiceForTesting();
 	resetAdminSecretHashForTesting();
 	setThemeCssMaxBytesForTesting(undefined);
-	await ipBanCache.shutdown();
-	ipBanCache.resetCaches();
 	urlBlocklistCache.resetForTesting();
 	fileShaCache.resetForTesting();
 	phraseBlocklistCache.resetForTesting();

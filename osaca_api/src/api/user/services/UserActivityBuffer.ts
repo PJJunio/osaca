@@ -29,7 +29,7 @@ const FETCH_AUTH_SESSION_OWNERS_CQL = AuthSessions.selectCql({
 });
 
 interface UserActivityAccountWriter {
-	updateLastActiveAt(params: {userId: UserID; lastActiveAt: Date; lastActiveIp?: string}): Promise<void>;
+	updateLastActiveAt(params: {userId: UserID; lastActiveAt: Date}): Promise<void>;
 }
 
 interface PendingEntry {

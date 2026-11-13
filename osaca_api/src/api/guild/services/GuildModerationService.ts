@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type {GuildID, UserID} from '@app/api/BrandedTypes';
-import {isIpBanExempt} from '@app/api/ban/IpBanExemptions';
 import {SYSTEM_USER_ID} from '@app/api/constants/Core';
 import type {GuildAuditLogService} from '@app/api/guild/GuildAuditLogService';
 import {mapGuildBansToResponse} from '@app/api/guild/GuildModel';
@@ -139,7 +138,6 @@ export class GuildModerationService {
 			reason,
 			banDurationSeconds,
 			by,
-			targetUser,
 			targetMember,
 			guild: guildBeforeBan,
 			guildAuditLogReason,
@@ -153,7 +151,6 @@ export class GuildModerationService {
 				seconds: effectiveDeleteMessageSeconds,
 			});
 		}
-		const targetIp = isIpBanExempt(targetUser.lastActiveIp) ? null : targetUser.lastActiveIp || null;
 		let expiresAt: Date | null = null;
 		if (banDurationSeconds && banDurationSeconds > 0) {
 			expiresAt = new Date(Date.now() + banDurationSeconds * 1000);
@@ -166,7 +163,6 @@ export class GuildModerationService {
 			banned_at: new Date(),
 			expires_at: expiresAt,
 			reason: reason || null,
-			ip: targetIp,
 		});
 		const metadata: Record<string, string> | undefined =
 			effectiveDeleteMessageSeconds && effectiveDeleteMessageSeconds > 0
@@ -199,7 +195,7 @@ export class GuildModerationService {
 				user: {id: targetId.toString()},
 			},
 		});
-		await onGuildBanAdded({guildId, targetUserId: targetId, targetIp, gateway: this.gatewayService});
+		await onGuildBanAdded({guildId, targetUserId: targetId, gateway: this.gatewayService});
 		if (targetMember) {
 			await this.guildRepository.deleteMember(guildId, targetId);
 			const guild = await this.guildRepository.findUnique(guildId);

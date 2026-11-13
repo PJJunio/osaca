@@ -741,7 +741,7 @@ Turns your visit into membership and returns the [guild object](#guild-object). 
 | --- | --- | --- |
 | 200 | [guild object](#guild-object) | You joined the guild, or were already a member |
 | 400 | [error response](/http-api/#error-response) | `MAX_GUILDS` or `MAX_GUILD_MEMBERS` |
-| 403 | [error response](/http-api/#error-response) | `ACCOUNT_VERIFICATION_REQUIRED`, `INVITES_DISABLED`, `USER_BANNED_FROM_GUILD` or `USER_IP_BANNED_FROM_GUILD` |
+| 403 | [error response](/http-api/#error-response) | `ACCOUNT_VERIFICATION_REQUIRED`, `INVITES_DISABLED`, `USER_BANNED_FROM_GUILD` |
 | 404 | [error response](/http-api/#error-response) | `GUILD_VISIT_NOT_FOUND`, or `UNKNOWN_INVITE` when the invite that started the visit is gone |
 | 404 | [error response](/http-api/#error-response) | `UNKNOWN_GUILD` when the discovery listing that started the visit is no longer approved |
 

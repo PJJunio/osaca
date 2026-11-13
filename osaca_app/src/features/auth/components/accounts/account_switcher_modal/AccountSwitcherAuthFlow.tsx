@@ -235,7 +235,6 @@ export const AccountSwitcherAuthFlow = observer(function AccountSwitcherAuthFlow
 				<AccountRestrictionScreen
 					restriction={accountRestriction}
 					onBackToSignIn={handleBackToSignIn}
-					onTryAgain={AuthenticationCommands.clearAccountRestriction}
 					onStepTitleChange={stepTitleChange}
 					data-flx="auth.accounts.account-switcher-modal.account-switcher-auth-flow.account-restriction-screen"
 				/>

@@ -12,7 +12,7 @@ A guild ban keeps an account out of a guild until you remove the ban or it expir
 
 A guild ban object describes one ban.
 
-A ban also blocks joins from the account's last IP address. A join returns 403 `USER_BANNED_FROM_GUILD` for an account match and 403 `USER_IP_BANNED_FROM_GUILD` for an IP match. OSACA skips the IP match for an address on the instance's IP ban exemption list. Removing the ban lifts both blocks, and permanently deleting the banned account removes all its guild bans.
+A banned account's joins return 403 `USER_BANNED_FROM_GUILD`. Bans apply to the account only, never to a network address. Removing the ban lifts the block, and permanently deleting the banned account removes all its guild bans.
 
 ### Structure
 

@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use crate::utils::plural::count_noun;
 use crate::{
     config::AdminConfig,
     middleware::auth::AuthContext,
@@ -21,42 +20,11 @@ pub struct BanConfig {
     pub entity_name: &'static str,
     pub active_page: &'static str,
     pub show_bulk_tools: bool,
-    pub show_duration: bool,
     pub add_title: Option<&'static str>,
     pub add_help: Option<&'static str>,
 }
 
-const IP_BAN_DURATIONS: &[(u32, &str)] = &[
-    (24, "1 day"),
-    (168, "7 days"),
-    (720, "30 days"),
-    (0, "Permanent"),
-];
-
-pub fn ip_ban_duration_label(hours: u32) -> String {
-    IP_BAN_DURATIONS
-        .iter()
-        .find(|(value, _)| *value == hours)
-        .map_or_else(
-            || count_noun(u64::from(hours), "hour", "hours"),
-            |(_, label)| (*label).to_owned(),
-        )
-}
-
 pub const BAN_CONFIGS: &[BanConfig] = &[
-    BanConfig {
-        title: "IP Bans",
-        route: "/ip-bans",
-        input_label: "IP Address or CIDR",
-        input_name: "ip",
-        placeholder: "192.168.1.1 or 192.168.0.0/16",
-        entity_name: "IP/CIDR",
-        active_page: "ip-bans",
-        show_bulk_tools: false,
-        show_duration: true,
-        add_title: Some("Block a network"),
-        add_help: None,
-    },
     BanConfig {
         title: "Phrase Bans",
         route: "/phrase-bans",
@@ -66,7 +34,6 @@ pub const BAN_CONFIGS: &[BanConfig] = &[
         entity_name: "Phrase",
         active_page: "phrase-bans",
         show_bulk_tools: false,
-        show_duration: false,
         add_title: None,
         add_help: None,
     },
@@ -79,7 +46,6 @@ pub const BAN_CONFIGS: &[BanConfig] = &[
         entity_name: "URL",
         active_page: "url-bans",
         show_bulk_tools: false,
-        show_duration: false,
         add_title: None,
         add_help: None,
     },
@@ -92,7 +58,6 @@ pub const BAN_CONFIGS: &[BanConfig] = &[
         entity_name: "SHA-256",
         active_page: "file-sha-bans",
         show_bulk_tools: true,
-        show_duration: false,
         add_title: None,
         add_help: None,
     },
@@ -105,7 +70,6 @@ pub const BAN_CONFIGS: &[BanConfig] = &[
         entity_name: "Avatar Hash",
         active_page: "avatar-hash-bans",
         show_bulk_tools: false,
-        show_duration: false,
         add_title: None,
         add_help: None,
     },
@@ -168,9 +132,6 @@ fn ban_card(base: &str, cfg: &BanConfig, csrf_token: &str) -> Markup {
                 (csrf_input(csrf_token))
                 div class="space-y-4" {
                     (blocklist_text_field(cfg.input_name, cfg.input_label, cfg.placeholder, true))
-                    @if cfg.show_duration {
-                        (duration_field())
-                    }
                     (blocklist_text_field("audit_log_reason", "Private reason (audit log, optional)", "Why is this ban being applied?", false))
                     (submit_btn("Ban", cfg.entity_name, false))
                 }
@@ -377,24 +338,6 @@ fn file_upload_ban_card(base: &str, cfg: &BanConfig, csrf_token: &str) -> Markup
 	}
 })();
 "#))
-        }
-    }
-}
-
-fn duration_field() -> Markup {
-    html! {
-        div class="space-y-1" {
-            label for="duration_hours" class="block text-sm font-medium text-neutral-700" {
-                "Duration"
-            }
-            select id="duration_hours" name="duration_hours"
-                class="block w-full rounded-md border border-neutral-300 px-3 py-2 text-sm \
-                       shadow-sm focus:border-osaca-focus focus:outline-none focus:ring-1 \
-                       focus:ring-osaca-focus" {
-                @for &(value, label) in IP_BAN_DURATIONS {
-                    option value=(value) { (label) }
-                }
-            }
         }
     }
 }

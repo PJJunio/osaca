@@ -1981,16 +1981,6 @@ msgstr "{productName} ऐप्लिकेशन आइकॉन"
 msgid "{productName} avoids sending push notifications to your mobile devices when you are at your computer. Choose how long you need to be inactive on desktop before you receive push notifications."
 msgstr "जब आप अपने कंप्यूटर पर होते हैं, तब {productName} आपके मोबाइल डिवाइस पर पुश नोटिफ़िकेशन भेजने से बचता है। चुनें कि पुश नोटिफ़िकेशन मिलने से पहले आपको डेस्कटॉप पर कितनी देर निष्क्रिय रहना चाहिए।"
 
-#. First sentence of the network blocked screen when a rule is shown. productName is the app name. Must read the same as the error message for this block.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "{productName} blocked access from this network because of activity that broke its rules."
-msgstr "{productName} ने अपने नियम तोड़ने वाली गतिविधि की वजह से इस नेटवर्क से एक्सेस ब्लॉक कर दिया है।"
-
-#. First sentence of the network blocked screen when no rule is shown. productName is the app name. Must read the same as the error message for this block.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "{productName} blocked access from this network."
-msgstr "{productName} ने इस नेटवर्क से एक्सेस ब्लॉक कर दिया है।"
-
 #. Linux settings text before system-wide shortcuts are set up. The desktop environment owns the keys. {productName} is the app name.
 #: src/features/user/components/modals/tabs/components/SystemShortcutsSection.tsx
 msgid "{productName} can ask your desktop to run its keybinds while {productName} is not focused. Your desktop asks you to confirm and lets you pick the keys."
@@ -19242,16 +19232,6 @@ msgstr "अगर आप यह यूज़रनेम सेव करते 
 msgid "If you save this username, your tag will reroll randomly when your {PREMIUM_PRODUCT_NAME} expires, unless it renews."
 msgstr "अगर आप यह यूज़रनेम सेव करते हैं, तो आपके {PREMIUM_PRODUCT_NAME} की अवधि खत्म होने पर आपका टैग रैंडमली रीरोल हो जाएगा, बशर्ते कि यह रिन्यू न हो।"
 
-#. Paragraph on the network blocked screen for people who share a network with others. Must read the same as the error message for this block.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "If you share this network, for example at school, at work, on public Wi-Fi, through your mobile carrier or a VPN, this block may have nothing to do with you. The quickest fix is to switch networks, for example to mobile data instead of Wi-Fi, or to turn your VPN on or off."
-msgstr "अगर आप यह नेटवर्क दूसरों के साथ शेयर करते हैं, जैसे स्कूल में, ऑफ़िस में, पब्लिक Wi-Fi पर, अपने मोबाइल कैरियर के ज़रिए या VPN से, तो हो सकता है कि इस ब्लॉक का आपसे कोई लेना-देना न हो। सबसे जल्दी हल है नेटवर्क बदलना, जैसे Wi-Fi की जगह मोबाइल डेटा इस्तेमाल करना, या अपना VPN चालू या बंद करना।"
-
-#. Line on the network blocked screen. The link is the contact email address and ip is the blocked IP address.
-#: src/features/auth/flow/AccountRestrictionScreen.tsx
-msgid "If you think this block is a mistake, email <0>{email}</0> and include your IP address, {ip}."
-msgstr "अगर आपको लगता है कि यह ब्लॉक गलती से हुआ है, तो <0>{email}</0> पर ईमेल करें और अपना IP एड्रेस, {ip}, लिखें।"
-
 #. Appeal line for a restriction from before the team recorded decisions, with no appeal deadline. The link is the appeals email address.
 #: src/features/auth/flow/AccountRestrictionScreen.tsx
 msgid "If you think we got this wrong, email <0>{email}</0> and include your username."
@@ -24003,11 +23983,6 @@ msgstr "नीदरलैंड"
 #: src/features/voice/components/voice_connection_status/shared.ts
 msgid "Network"
 msgstr "नेटवर्क"
-
-#. Title of the screen and dialog shown when the instance blocks the network a request came from.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "Network blocked"
-msgstr "नेटवर्क ब्लॉक किया गया"
 
 #. Error message in the devices tab.
 #: src/features/user/components/modals/tabs/DevicesTab.tsx
@@ -36431,11 +36406,6 @@ msgstr "बैन {date} को पहले ही खत्म हो चु�
 msgid "The ban was scheduled to expire on {date}"
 msgstr "बैन {date} को समाप्त होने वाला था"
 
-#. Line on the network blocked screen for a block with an end. date is a date and time.
-#: src/features/auth/flow/AccountRestrictionScreen.tsx
-msgid "The block ends on {date}."
-msgstr "यह ब्लॉक {date} को खत्म होगा।"
-
 #: src/features/auth/components/pages/oauth_authorize_page/OAuthSuccessState.tsx
 msgid "The bot has been added to <0>{destinationName}</0>."
 msgstr "बॉट को <0>{destinationName}</0> में जोड़ दिया गया है।"
@@ -44386,16 +44356,6 @@ msgstr "आपका इनवाइट 24 घंटे में समाप�
 #: src/features/auth/components/pages/AuthorizeIPPage.tsx
 msgid "Your IP address has been successfully authorized. You can close this page or sign in again."
 msgstr "आपके आईपी पते को सफलतापूर्वक अधिकृत कर दिया गया है। आप इस पेज को बंद कर सकते हैं या फिर से साइन इन कर सकते हैं।"
-
-#. Error message in the user ip banned from guild modal. Keep the tone plain and specific.
-#: src/features/invite/commands/InviteCommands.tsx
-msgid "Your IP address is banned from this community and you cannot join."
-msgstr "आपका आईपी पता इस कम्युनिटी से बैन कर दिया गया है और आप इसमें शामिल नहीं हो सकते।"
-
-#. Label in the user ip banned from guild modal. Keep the tone plain and specific.
-#: src/features/invite/commands/InviteCommands.tsx
-msgid "Your IP is banned"
-msgstr "आपका आईपी बैन है"
 
 #: src/features/app/components/dialogs/components/plutonium/RefundsSection.tsx
 msgid "Your last purchase is outside the refund window. Contact support for billing issues."

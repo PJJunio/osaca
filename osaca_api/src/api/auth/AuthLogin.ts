@@ -144,9 +144,6 @@ export async function login(
 					retryAfter: Math.ceil(failureLimit.windowMs / failureLimit.maxAttempts / 1000),
 				}
 			: null;
-	if (failureLockout && ctx.request.blockedNetworkSignIn) {
-		throw createRateLimitError(failureLockout);
-	}
 	const rejectCredentials = async (): Promise<never> => {
 		await rateLimit.checkLimit(ipFailureLimit);
 		if (failureLimit) {
@@ -155,7 +152,6 @@ export async function login(
 		if (failureLockout) {
 			throw createRateLimitError(failureLockout);
 		}
-		AuthUtility.assertNetworkAllowed(ctx);
 		throw invalidCredentials();
 	};
 	const user = await identifier.lookup();
@@ -183,9 +179,6 @@ export async function login(
 	const hasMfa =
 		user.authenticatorTypes.has(UserAuthenticatorTypes.TOTP) ||
 		user.authenticatorTypes.has(UserAuthenticatorTypes.WEBAUTHN);
-	if (hasMfa) {
-		AuthUtility.assertMfaTicketAllowed(ctx, user);
-	}
 	const currentUser = hasMfa ? user : await AuthUtility.assertSignInAllowed(ctx, user);
 	if (currentUser.traits.has(REGISTRATION_PENDING_APPROVAL_TRAIT)) {
 		throw new RegistrationPendingApprovalError();

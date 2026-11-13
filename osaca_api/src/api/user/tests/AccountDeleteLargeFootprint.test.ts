@@ -60,7 +60,6 @@ describe('Deleting an account with a large footprint', () => {
 				banned_at: new Date(),
 				expires_at: null,
 				reason: null,
-				ip: null,
 			});
 		}
 		for (let index = 0; index < NOTES_ABOUT_USER; index++) {

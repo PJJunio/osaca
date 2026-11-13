@@ -91,7 +91,6 @@ function defaultConfig(): MasterConfig {
 				request_timeout_ms: 120_000,
 				max_inflight_requests: 512,
 				automated_message_deletion_delay_days: 7,
-				ip_ban_exempt_ips: [],
 				trusted_callers: [],
 				presigned_attachment_uploads_enabled: false,
 				presigned_harvest_downloads_enabled: true,

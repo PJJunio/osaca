@@ -1,16 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type {ApiContext} from '@app/api/ApiContext';
-import type {AdminRepository} from '@app/api/admin/AdminRepository';
 import type {AdminArchiveService} from '@app/api/admin/services/AdminArchiveService';
 import {type ChannelID, createUserID, type MessageID, type UserID} from '@app/api/BrandedTypes';
-import {isIpBanExempt} from '@app/api/ban/IpBanExemptions';
 import type {ChannelRepository} from '@app/api/channel/ChannelRepository';
 import type {ChannelDataRepository} from '@app/api/channel/repositories/ChannelDataRepository';
 import type {MessageRepository} from '@app/api/channel/repositories/MessageRepository';
 import {dispatchChannelEvent} from '@app/api/channel/services/ChannelGatewayDispatch';
 import {SYSTEM_USER_ID} from '@app/api/constants/Core';
-import {IP_BAN_REFRESH_CHANNEL} from '@app/api/constants/IpBan';
 import {withAccountChangeSource} from '@app/api/infrastructure/activity/ActivityMeta';
 import type {
 	ActionEnvelope,
@@ -31,7 +28,6 @@ import {
 import {isDeletionComplete} from '@app/api/user/UserHelpers';
 import {dispatchUserUpdate} from '@app/api/user/UserMappers';
 import {UserFlags} from '@osaca/constants/src/UserConstants';
-import {getSameIpDecisionKey, isPublicIpAddress, parseIpAddress} from '@osaca/ip_utils/src/IpAddress';
 import {snowflakeToDate} from '@osaca/snowflake/src/Snowflake';
 import type {ICacheService} from '@pkgs/cache/src/ICacheService';
 import {ms} from 'itty-time';
@@ -48,7 +44,6 @@ interface AccountUpdateDispatch {
 export interface AccountStateDeps {
 	users: Pick<UserRepository, 'findUnique' | 'compareAndSetFlags' | 'patchUpsert'>;
 	dispatch: AccountUpdateDispatch;
-	ipBans: Pick<AdminRepository, 'isIpBanned' | 'banIpTemp'>;
 	cache: Pick<ICacheService, 'publish' | 'get' | 'set' | 'delete'>;
 	archives: Pick<AdminArchiveService, 'triggerUserArchive' | 'listArchives'>;
 	messageDeletionQueue: Pick<KVBulkMessageDeletionQueueService, 'scheduleDeletion' | 'removeFromQueue'>;
@@ -59,7 +54,6 @@ export interface AccountStateDeps {
 
 const FLAGS_WRITE_ATTEMPTS = 3;
 const AUTHORED_PAGE_SIZE = 200;
-const MIN_TEMP_BAN_SECONDS = 60;
 const RECENT_ARCHIVE_MS = ms('1 day');
 const RECENT_ARCHIVE_SCAN = 20;
 
@@ -97,7 +91,6 @@ function gatewayDispatch(
 
 export function accountStateDepsFromContext(
 	ctx: ApiContext,
-	ipBans: AccountStateDeps['ipBans'],
 	profile: Omit<ProfilePropagation, 'userRepository'>,
 	messageDeletion: Pick<AccountStateDeps, 'archives' | 'messageDeletionQueue' | 'messageDeletionDelayMs'>,
 	channels: Pick<ChannelRepository, 'channelData' | 'messages'>,
@@ -109,7 +102,6 @@ export function accountStateDepsFromContext(
 			{...profile, userRepository: ctx.services.users},
 			channels.channelData,
 		),
-		ipBans,
 		cache: ctx.services.cache,
 		...messageDeletion,
 		authored: channels.messages,
@@ -303,30 +295,6 @@ async function cancelScheduledMessageDeletion(
 	await deps.messageDeletionQueue.removeFromQueue(user.id);
 	await deps.dispatch.userUpdated(cancelled);
 	return outcomeOf(env, 'applied', cancelled);
-}
-
-function parseBanTarget(value: string): ReturnType<typeof parseIpAddress> {
-	const direct = parseIpAddress(value);
-	if (direct) return direct;
-	const slash = value.lastIndexOf('/');
-	if (slash <= 0) return null;
-	const network = parseIpAddress(value.slice(0, slash));
-	if (!network || getSameIpDecisionKey(network.normalized) !== value) return null;
-	return network;
-}
-
-export async function applyTempBanIp(deps: AccountStateDeps, env: ActionOf<'temp_ban_ip'>): Promise<ActionOutcome> {
-	const parsed = parseBanTarget(env.ip);
-	if (!parsed || !isPublicIpAddress(parsed.normalized) || isIpBanExempt(parsed.normalized)) {
-		return outcomeOf(env, 'exempt');
-	}
-	const now = deps.now?.() ?? Date.now();
-	const ttlSeconds = Math.floor((env.until_ms - now) / 1000);
-	if (ttlSeconds < MIN_TEMP_BAN_SECONDS) return outcomeOf(env, 'noop');
-	if (await deps.ipBans.isIpBanned(parsed.normalized)) return outcomeOf(env, 'noop');
-	await deps.ipBans.banIpTemp(getSameIpDecisionKey(parsed.normalized) ?? parsed.normalized, ttlSeconds);
-	await deps.cache.publish(IP_BAN_REFRESH_CHANNEL, 'refresh');
-	return outcomeOf(env, 'applied');
 }
 
 export async function applyLimitNewConversations(

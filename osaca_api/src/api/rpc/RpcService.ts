@@ -1009,7 +1009,7 @@ export class RpcService {
 		);
 		const visitGuildIds = guildVisitsCapable
 			? await timings.time('resolve_guild_visits', async () =>
-					resolveSessionGuildVisits({user, ip: ip ?? null, memberGuildIds: userData.guildIds}),
+					resolveSessionGuildVisits({user, memberGuildIds: userData.guildIds}),
 				)
 			: [];
 		const responseBuildSteps: RpcTimingSteps = {};

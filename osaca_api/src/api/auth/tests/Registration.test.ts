@@ -3,7 +3,6 @@
 import {createAuthHarness, createUniqueUsername, registerUser} from '@app/api/auth/tests/AuthTestUtils';
 import {createUserID} from '@app/api/BrandedTypes';
 import {getConfig} from '@app/api/Config';
-import {applySharedListUpdate, resetSharedListsForTests} from '@app/api/infrastructure/activity/SharedLists';
 import {
 	getInstanceConfigRepository,
 	getRateLimitService,
@@ -184,23 +183,6 @@ describe('Auth registration', () => {
 				setup: {configured: true},
 			});
 		});
-	});
-	it('blocks any request from an address on the shared blocked list', async () => {
-		applySharedListUpdate('ip_blocked', '127.0.0.1\n');
-		try {
-			await createBuilderWithoutAuth(harness)
-				.post('/auth/register')
-				.body({
-					username: createUniqueUsername('blockedregister'),
-					global_name: 'Blocked Register',
-					password: 'a-strong-password',
-					consent: true,
-				})
-				.expect(403, 'GLOBAL_IP_BANNED')
-				.execute();
-		} finally {
-			resetSharedListsForTests();
-		}
 	});
 });
 

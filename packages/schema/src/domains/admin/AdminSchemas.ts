@@ -295,22 +295,6 @@ export const PurgeGuildAssetsRequest = z.object({
 
 export type PurgeGuildAssetsRequest = z.infer<typeof PurgeGuildAssetsRequest>;
 
-const IpOrCidrType = z.union([z.ipv4(), z.ipv6(), z.cidrv4(), z.cidrv6()]);
-export const BanIpRequest = z.object({
-	ip: createStringType(1, 45)
-		.refine((value) => IpOrCidrType.safeParse(value).success, 'Must be a valid IPv4/IPv6 address or CIDR range')
-		.describe('IPv4/IPv6 address or CIDR range to ban'),
-	duration_hours: z
-		.number()
-		.int()
-		.min(0)
-		.max(8760)
-		.optional()
-		.describe('Hours until the ban expires and its entry is removed. Omit it or use 0 for a permanent ban.'),
-});
-
-export type BanIpRequest = z.infer<typeof BanIpRequest>;
-
 export const BanPhraseRequest = z.object({
 	phrase: createStringType(1, 500).describe(
 		'Phrase to ban. Matching is case-insensitive and also normalizes common bypass tricks such as inserted whitespace, punctuation, invisible characters, and compatibility glyphs.',
@@ -1049,15 +1033,6 @@ export const AuditLogsListResponseSchema = z.object({
 export type AuditLogsListResponse = z.infer<typeof AuditLogsListResponseSchema>;
 export const BanCheckResponseSchema = z.object({
 	banned: z.boolean(),
-	expires_at: z
-		.string()
-		.nullable()
-		.describe(
-			'ISO 8601 timestamp when the matching ban expires. Null when the ban is permanent, when nothing matches, and on every blocklist other than ip.',
-		),
-	decision_id: SnowflakeStringType.nullable().describe(
-		'Enforcement decision the matching ip block belongs to. Null for a block added through the blocklist, when nothing matches, and on every blocklist other than ip.',
-	),
 });
 export const BulkJobResponse = z.object({
 	job_id: SnowflakeStringType,

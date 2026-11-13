@@ -51,18 +51,10 @@ export class UserIndexRepository {
 		await batch.execute();
 	}
 
-	async updateLastActiveIpIndex(
-		_userId: UserID,
-		_lastActiveIp: string,
-		_lastActiveAt: Date,
-		_previousLastActiveIp?: string | null,
-	): Promise<void> {}
-
 	async deleteIndices(
 		userId: UserID,
 		username: string,
 		discriminator: number,
-		_lastActiveIp?: string | null,
 		acls?: ReadonlySet<string> | null,
 	): Promise<void> {
 		const batch = new BatchBuilder();

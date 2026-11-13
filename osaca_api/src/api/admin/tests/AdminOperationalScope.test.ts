@@ -21,8 +21,12 @@ const IP_FIELDS = [
 ];
 
 // message:lookup (reported evidence) serves a kept tool and stays. user:view:ip guarded blocking a banned Account's
-// networks, which went with stored IP addresses (ADR-0009, issue #58).
+// networks, which went with stored IP addresses (ADR-0009, issue #58). The ban:ip ACLs guarded the IP blocklist, gone
+// with the rest of IP blocking (issue #63).
 const REMOVED_ACLS = [
+	'ban:ip:add',
+	'ban:ip:check',
+	'ban:ip:remove',
 	'archive:trigger:guild',
 	'archive:trigger:user',
 	'archive:view_all',
@@ -127,6 +131,21 @@ describe('Admin API operational scope (ADR-0010)', () => {
 		const decision = await getDecision(harness, admin, response.user.enforcement_decision_id!);
 		expect(Object.keys(decision)).not.toContain('network_blocks');
 		expect(decision.notice.effects.join(' ')).not.toMatch(/network/i);
+	});
+
+	test('keeps no IP blocklist', async () => {
+		const admin = await setUserACLs(harness, await createTestAccount(harness), [AdminACLs.WILDCARD]);
+		const {items} = await createBuilder<{items: Array<{list_type: string}>}>(harness, admin.token)
+			.get('/admin/blocklists')
+			.expect(HTTP_STATUS.OK)
+			.execute();
+		expect(items.map((item) => item.list_type)).not.toContain('ip');
+		await createBuilder(harness, admin.token)
+			.post('/admin/blocklists/ip/entries')
+			.header('X-Audit-Log-Reason', 'scope check')
+			.body({ip: '203.0.113.7'})
+			.expect(HTTP_STATUS.BAD_REQUEST)
+			.execute();
 	});
 
 	test('offers no guild archive, archive listing or archive download', async () => {

@@ -54,9 +54,6 @@ Each route needs one or more ACLs, and the caller needs at least one of them. Th
 | ban:phrase:add | Adds and updates `phrase` blocklist entries |
 | ban:phrase:check | Reads the `phrase` blocklist |
 | ban:phrase:remove | Removes `phrase` blocklist entries |
-| ban:ip:add | Adds and updates `ip` blocklist entries |
-| ban:ip:check | Reads the `ip` blocklist |
-| ban:ip:remove | Removes `ip` blocklist entries |
 | ban:url:add | Adds and updates `url` blocklist entries |
 | ban:url:check | Reads the `url` blocklist |
 | ban:url:remove | Removes `url` blocklist entries |
@@ -271,7 +268,7 @@ Expect values that aren't in this table.
 | system | API process that served the request |
 | voice_region | Voice region |
 | voice_server | Voice server registration |
-| ip | IP blocklist entry |
+| ip | IP blocklist entry. No longer recorded |
 | phrase | Phrase blocklist entry |
 | url | Exact URL blocklist entry |
 | url_domain | URL domain blocklist entry |
@@ -281,7 +278,7 @@ Expect values that aren't in this table.
 
 ### Audit actions
 
-Expect values that aren't in these tables. Entries marked "no longer recorded" come from tools ADR-0010 removed and appear only in older logs.
+Expect values that aren't in these tables. Entries marked "no longer recorded" come from tools ADR-0009 and ADR-0010 removed and appear only in older logs.
 
 #### Read actions
 
@@ -361,8 +358,8 @@ These entries have `access` set to `write`.
 | auto_resolve_reports_on_deletion | The pending reports against an account were processed as part of its deletion |
 | ban_avatar_hash | An avatar hash was added to the avatar blocklist |
 | ban_file_sha | A file hash was added to the attachment blocklist |
-| ban_ip | An address was added to the IP blocklist |
-| ban_ip_skipped_exempt | An IP blocklist entry was skipped because the address is exempt |
+| ban_ip | An address was added to the IP blocklist. No longer recorded |
+| ban_ip_skipped_exempt | An IP blocklist entry was skipped because the address is exempt. No longer recorded |
 | ban_member | An account was banned from a guild |
 | ban_phrase | A phrase was added to the message phrase blocklist |
 | ban_profile_substring | A substring was added to the profile substring blocklist |
@@ -451,7 +448,7 @@ These entries have `access` set to `write`.
 | unban | A suspension without an enforcement decision was lifted |
 | unban_avatar_hash | An avatar hash was removed from the avatar blocklist |
 | unban_file_sha | A file hash was removed from the attachment blocklist |
-| unban_ip | An address was removed from the IP blocklist |
+| unban_ip | An address was removed from the IP blocklist. No longer recorded |
 | unban_member | A guild ban was removed |
 | unban_phrase | A phrase was removed from the message phrase blocklist |
 | unban_profile_substring | A substring was removed from the profile substring blocklist |

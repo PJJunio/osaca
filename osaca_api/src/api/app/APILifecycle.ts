@@ -5,7 +5,6 @@ import {ensureDeletionQueueState} from '@app/api/app/DeletionQueueStartup';
 import type {APIConfig} from '@app/api/config/APIConfig';
 import {hasDatabaseQueryExecutor, setDatabaseQueryExecutor} from '@app/api/database/CassandraQueryExecution';
 import {ensurePostgresKvSchema, PostgresKvQueryExecutor} from '@app/api/database/PostgresKvQueryExecutor';
-import {ensureMlsSchema} from '@app/api/mls/PostgresMlsDeliveryService';
 import {GuildRepository} from '@app/api/guild/repositories/GuildRepository';
 import {
 	jetStreamActivityPublisher,
@@ -13,14 +12,8 @@ import {
 	shutdownActivityEvents,
 	startActivityEvents,
 } from '@app/api/infrastructure/activity/ActivityEvents';
-import {
-	renderSharedListMetrics,
-	startSharedListWatch,
-	stopSharedListWatch,
-} from '@app/api/infrastructure/activity/SharedLists';
 import {shutdownStorageChangeFeed} from '@app/api/infrastructure/StorageServiceFactory';
 import {JobLedgerRepository} from '@app/api/jobs/JobLedgerRepository';
-import {ipBanCache} from '@app/api/middleware/IpBanMiddleware';
 import {startRequestErrorTelemetry, stopRequestErrorTelemetry} from '@app/api/middleware/RequestErrorTelemetry';
 import {initializeServiceSingletons, shutdownReportService} from '@app/api/middleware/ServiceMiddleware';
 import {
@@ -39,6 +32,7 @@ import {
 	shutdownInstanceConfigRepository,
 	shutdownServiceSingletons,
 } from '@app/api/middleware/ServiceSingletons';
+import {ensureMlsSchema} from '@app/api/mls/PostgresMlsDeliveryService';
 import {initializeSearch, shutdownSearch} from '@app/api/SearchFactory';
 import {warmupAdminSearchIndexes} from '@app/api/search/SearchWarmup';
 import {VoiceDataInitializer} from '@app/api/voice/VoiceDataInitializer';
@@ -186,8 +180,6 @@ export function createInitializer(config: APIConfig, logger: LoggerInterface): (
 				logger.info('Using injected database query executor for tests');
 			}
 			const kvClient = getKVClient();
-			ipBanCache.setRefreshSubscriber(kvClient);
-			await initializeRefreshCache(ipBanCache, 'IP ban cache', logger);
 			const {urlBlocklistCache} = await import('@app/api/middleware/UrlBlocklistCache');
 			urlBlocklistCache.setRefreshSubscriber(kvClient);
 			const {getStorageService} = await import('@app/api/middleware/ServiceSingletons');
@@ -231,11 +223,7 @@ export function createInitializer(config: APIConfig, logger: LoggerInterface): (
 					spoolWhileMissing: !config.instance.selfHosted,
 				});
 				startRequestErrorTelemetry();
-				startSharedListWatch(connection.getJetStreamClient(), {selfHosted: config.instance.selfHosted});
-				unregisterMetricsSections.push(
-					registerMetricsSection(renderActivityMetrics),
-					registerMetricsSection(renderSharedListMetrics),
-				);
+				unregisterMetricsSections.push(registerMetricsSection(renderActivityMetrics));
 				logger.info('Activity events initialized');
 			}
 			await ensureDeletionQueueState(getKVAccountDeletionQueue(), logger);
@@ -272,7 +260,6 @@ export function createShutdown(_config: APIConfig, logger: LoggerInterface): () 
 			logger.error({error}, 'Error shutting down voice resources');
 		}
 		stopRequestErrorTelemetry();
-		stopSharedListWatch();
 		for (const unregister of unregisterMetricsSections.splice(0)) unregister();
 		await shutdownActivityEvents();
 		jobQueue = null;

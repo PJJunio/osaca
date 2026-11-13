@@ -45,7 +45,6 @@ export interface UserRow {
 	terms_agreed_at: Date | null;
 	privacy_agreed_at: Date | null;
 	last_active_at: Date | null;
-	last_active_ip: string | null;
 	temp_banned_until: Date | null;
 	pending_bulk_message_deletion_at: Date | null;
 	pending_bulk_message_deletion_channel_count: number | null;
@@ -93,7 +92,6 @@ export const USER_COLUMNS = [
 	'terms_agreed_at',
 	'privacy_agreed_at',
 	'last_active_at',
-	'last_active_ip',
 	'temp_banned_until',
 	'pending_bulk_message_deletion_at',
 	'pending_bulk_message_deletion_channel_count',
@@ -140,7 +138,6 @@ export const EMPTY_USER_ROW: UserRow = {
 	terms_agreed_at: null,
 	privacy_agreed_at: null,
 	last_active_at: null,
-	last_active_ip: null,
 	temp_banned_until: null,
 	pending_bulk_message_deletion_at: null,
 	pending_bulk_message_deletion_channel_count: null,
@@ -514,32 +511,10 @@ export interface UserByAclRow {
 	user_id: UserID;
 }
 
-export interface UserByLastActiveIpRow {
-	last_active_ip: string;
-	user_id: UserID;
-	last_active_at: Date | null;
-}
-
-export interface UserByLastActiveIpTrustKeyRow {
-	last_active_ip_trust_key: string;
-	user_id: UserID;
-	last_active_at: Date | null;
-}
-
 export const USER_BY_USERNAME_COLUMNS = ['username', 'discriminator', 'user_id'] as const satisfies ReadonlyArray<
 	keyof UserByUsernameRow
 >;
 export const USER_BY_ACL_COLUMNS = ['acl', 'user_id'] as const satisfies ReadonlyArray<keyof UserByAclRow>;
-export const USER_BY_LAST_ACTIVE_IP_COLUMNS = [
-	'last_active_ip',
-	'user_id',
-	'last_active_at',
-] as const satisfies ReadonlyArray<keyof UserByLastActiveIpRow>;
-export const USER_BY_LAST_ACTIVE_IP_TRUST_KEY_COLUMNS = [
-	'last_active_ip_trust_key',
-	'user_id',
-	'last_active_at',
-] as const satisfies ReadonlyArray<keyof UserByLastActiveIpTrustKeyRow>;
 
 export interface UserDmHistoryRow {
 	user_id: UserID;

@@ -7,7 +7,6 @@ import type {APIConfig} from '@app/api/config/APIConfig';
 import {recordRequestStatus} from '@app/api/middleware/RequestErrorTelemetry';
 import type {HonoApp, HonoEnv} from '@app/api/types/HonoEnv';
 import {AppErrorHandler, AppNotFoundHandler} from '@osaca/errors/src/domains/core/ErrorHandlers';
-import {IpBannedError} from '@osaca/errors/src/domains/moderation/IpBannedError';
 import {resolveErrorStatus} from '@osaca/errors/src/error_handling/ErrorIntrospection';
 import {createMetricsMiddleware} from '@osaca/hono/src/middleware/Metrics';
 import {LOCKED_DOWN_PERMISSIONS_POLICY, securityHeaders} from '@osaca/hono/src/middleware/SecurityHeaders';
@@ -29,11 +28,9 @@ interface APIAppResult {
 }
 
 function TelemetryAwareAppErrorHandler(err: Error, ctx: Context<HonoEnv>): Response | Promise<Response> {
-	if (!(err instanceof IpBannedError)) {
-		const status = resolveErrorStatus(err);
-		if (status !== null && !ctx.get('user')) {
-			recordRequestStatus(ctx.req.raw, status);
-		}
+	const status = resolveErrorStatus(err);
+	if (status !== null && !ctx.get('user')) {
+		recordRequestStatus(ctx.req.raw, status);
 	}
 	return AppErrorHandler(err, ctx);
 }

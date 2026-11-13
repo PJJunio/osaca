@@ -26,7 +26,6 @@ import {
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {ChannelTypes} from '@osaca/constants/src/ChannelConstants';
 import {DiscoveryCategories} from '@osaca/constants/src/DiscoveryConstants';
-import {getSameIpDecisionKey} from '@osaca/ip_utils/src/IpAddress';
 import type {GuildResponse} from '@osaca/schema/src/domains/guild/GuildResponseSchemas';
 import type {GuildVisitStartResponse} from '@osaca/schema/src/domains/guild/GuildVisitSchemas';
 import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it} from 'vitest';
@@ -117,40 +116,6 @@ describe('Guild visit lifecycle', () => {
 		expect(await visitRow(first.user_id, guildId)).toBeNull();
 		expect(await visitRow(second.user_id, guildId)).toBeNull();
 		expect(gateway.visitEvents.filter((event) => event.kind === 'end')).toHaveLength(2);
-	});
-
-	it('ends visits and evicts other visitors on the address when someone is banned', async () => {
-		const {owner, guildId, code} = await createScene();
-		const ip = '198.51.100.23';
-		const target = await createTestAccount(harness, {ipAddress: ip});
-		await createBuilder(harness, target.token)
-			.post(`/invites/${code}/visit`)
-			.header('x-forwarded-for', ip)
-			.body(null)
-			.execute();
-		const alt = await createUnclaimed(ip);
-		await createBuilder(harness, alt.token)
-			.post(`/invites/${code}/visit`)
-			.header('x-forwarded-for', ip)
-			.body(null)
-			.execute();
-		gateway.setLiveVisitors(createGuildID(BigInt(guildId)), [
-			{userId: createUserID(BigInt(alt.user_id)), ipKey: getSameIpDecisionKey(ip)!},
-		]);
-		await createBuilder(harness, owner.token)
-			.put(`/guilds/${guildId}/bans/${target.userId}`)
-			.body({delete_message_days: 0})
-			.expect(HTTP_STATUS.NO_CONTENT)
-			.execute();
-		expect(await visitRow(target.userId, guildId)).toBeNull();
-		expect(await visitRow(alt.user_id, guildId)).toBeNull();
-		const late = await createUnclaimed(ip);
-		await createBuilder(harness, late.token)
-			.post(`/invites/${code}/visit`)
-			.header('x-forwarded-for', ip)
-			.body(null)
-			.expect(HTTP_STATUS.FORBIDDEN, APIErrorCodes.USER_IP_BANNED_FROM_GUILD)
-			.execute();
 	});
 
 	it('restores visits for visit-capable sessions and drops stale ones', async () => {

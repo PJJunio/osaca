@@ -4,12 +4,10 @@ import type {ApiContext} from '@app/api/ApiContext';
 import {mapUserToAdminResponse} from '@app/api/admin/models/UserTypes';
 import type {AdminAuditService} from '@app/api/admin/services/AdminAuditService';
 import type {AdminBanManagementService} from '@app/api/admin/services/AdminBanManagementService';
-import {collectKnownUserIps} from '@app/api/admin/services/KnownUserIps';
 import {type ReporterResolutionNotifier, wasReporterNotified} from '@app/api/admin/services/ReporterResolutionNotifier';
 import {revokeAllAuthSessions} from '@app/api/auth/AuthSessionRevocation';
 import {createReportID, type UserID} from '@app/api/BrandedTypes';
 import {Config} from '@app/api/Config';
-import type {EnforcementDecisionRow} from '@app/api/database/types/EnforcementTypes';
 import {cancelClosure} from '@app/api/enforcement/ClosureState';
 import type {EnforcementActor} from '@app/api/enforcement/EnforcementActor';
 import {
@@ -35,12 +33,7 @@ import {reschedulePendingDeletion} from '@app/api/user/services/PendingDeletionC
 import {isDeletionComplete, isHeldByDecision} from '@app/api/user/UserHelpers';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {DeletionReasons} from '@osaca/constants/src/Core';
-import {
-	ACCOUNT_DELETION_MIN_DAYS,
-	ENFORCEMENT_CLOSURE_MIN_DAYS,
-	ENFORCEMENT_REASONS,
-	ENFORCEMENT_RULES,
-} from '@osaca/constants/src/EnforcementReasons';
+import {ACCOUNT_DELETION_MIN_DAYS, ENFORCEMENT_CLOSURE_MIN_DAYS} from '@osaca/constants/src/EnforcementReasons';
 import {UserFlags} from '@osaca/constants/src/UserConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {ConflictError} from '@osaca/errors/src/domains/core/ConflictError';
@@ -222,13 +215,11 @@ export class AdminUserDeletionService {
 			]),
 		});
 		const decision = recorded?.decision ?? null;
-		const knownIps = decision ? await this.banIdentifiers(user, decision) : new Set<string>();
 		if (decision && reportResolvingDeletionReasons.has(decision.reason_code)) {
 			await this.resolvePendingReportsAgainstUser({user, adminUserId: actor.adminUserId});
 		}
 		await emitAdminAction(actor.adminUserId, userId, 'schedule_deletion', {
 			reasonCode: closed.deletionReasonCode,
-			ips: knownIps,
 		});
 		await propagateUserUpdate(this.deps.userUpdateDeps, user, closed);
 		if (immediate) {
@@ -307,14 +298,6 @@ export class AdminUserDeletionService {
 		await this.deps.oauth2Tokens.deleteAllAccessTokensForUser(user.id);
 		await this.deps.oauth2Tokens.deleteAllRefreshTokensForUser(user.id);
 		return closed;
-	}
-
-	private async banIdentifiers(user: User, decision: EnforcementDecisionRow): Promise<ReadonlySet<string>> {
-		const {rule} = ENFORCEMENT_REASONS[decision.reason_code];
-		if (!ENFORCEMENT_RULES[rule].barsNewAccounts) {
-			return new Set();
-		}
-		return collectKnownUserIps(this.deps.apiContext.services.users, user);
 	}
 
 	private async resolvePendingReportsAgainstUser(params: {user: User; adminUserId: UserID}): Promise<void> {

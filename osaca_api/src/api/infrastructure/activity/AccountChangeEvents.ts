@@ -43,7 +43,7 @@ export async function emitAdminAction(
 	adminId: bigint,
 	targetId: bigint,
 	action: AdminActionKind,
-	details: {reasonCode?: number | null; durationHours?: number | null; ips?: Iterable<string>} = {},
+	details: {reasonCode?: number | null; durationHours?: number | null} = {},
 ): Promise<void> {
 	const target = targetId.toString();
 	await emitActivity('admin_action', target, {
@@ -52,6 +52,7 @@ export async function emitAdminAction(
 		action,
 		reason_code: details.reasonCode ?? null,
 		duration_h: details.durationHours ?? null,
-		ips: [...(details.ips ?? [])],
+		// The contract keeps the field; OSACA stores no IP addresses to send (ADR-0009).
+		ips: [],
 	});
 }

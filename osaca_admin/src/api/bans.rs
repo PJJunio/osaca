@@ -8,29 +8,6 @@ use super::client::{AdminApiClient, ApiError, ApiResult};
 use super::types::{BanCheckResult, BlocklistEntryPage, BulkBanResult};
 
 impl AdminApiClient {
-    pub async fn ban_ip(
-        &self,
-        ip: &str,
-        duration_hours: u32,
-        audit_log_reason: Option<&str>,
-    ) -> ApiResult<()> {
-        self.create_blocklist_entry(
-            "ip",
-            generated_types::AdminBlocklistEntryCreateRequest::from(
-                generated_types::BanIpRequest {
-                    duration_hours: Some(
-                        i32::try_from(duration_hours)
-                            .map_err(|e| ApiError::Parse(e.to_string()))?
-                            .into(),
-                    ),
-                    ip: ip.to_owned(),
-                },
-            ),
-            audit_log_reason,
-        )
-        .await
-    }
-
     pub async fn ban_phrase(&self, phrase: &str, audit_log_reason: Option<&str>) -> ApiResult<()> {
         self.create_blocklist_entry(
             "phrase",

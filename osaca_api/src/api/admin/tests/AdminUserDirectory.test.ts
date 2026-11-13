@@ -10,7 +10,6 @@ import {afterAll, beforeAll, beforeEach, describe, expect, test} from 'vitest';
 interface UserListResponse {
 	users: Array<{
 		id: string;
-		last_active_ip: string | null;
 	}>;
 	total: number;
 }

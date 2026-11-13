@@ -53,15 +53,4 @@ export class UserLookupRepository {
 		const rows = await fetchMany<Pick<UserByAclRow, 'user_id'>>(FETCH_USER_IDS_BY_ACL_QUERY.bind({acl}));
 		return rows.map((row) => row.user_id);
 	}
-
-	async listUserIdsByLastActiveIp(
-		_lastActiveIp: string,
-		_limit: number,
-		_offset: number,
-	): Promise<{
-		userIds: Array<UserID>;
-		total: number;
-	}> {
-		return {userIds: [], total: 0};
-	}
 }

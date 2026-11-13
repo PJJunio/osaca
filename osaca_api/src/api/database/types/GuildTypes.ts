@@ -199,7 +199,6 @@ export interface GuildBanRow {
 	banned_at: Date;
 	expires_at: Date | null;
 	reason: string | null;
-	ip: string | null;
 }
 
 export const GUILD_BAN_COLUMNS = [
@@ -209,7 +208,6 @@ export const GUILD_BAN_COLUMNS = [
 	'banned_at',
 	'expires_at',
 	'reason',
-	'ip',
 ] as const satisfies ReadonlyArray<keyof GuildBanRow>;
 
 export interface GuildBanByUserIdRow {

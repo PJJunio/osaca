@@ -310,7 +310,6 @@ async function createAccountAfterSetupCheck(
 		terms_agreed_at: requiresTermsConsent ? now : null,
 		privacy_agreed_at: requiresPrivacyConsent ? now : null,
 		last_active_at: now,
-		last_active_ip: null,
 		acls: null,
 		traits: traits.size > 0 ? traits : null,
 		version: 1,
@@ -401,7 +400,6 @@ async function createAccountAfterSetupCheck(
 		entries,
 		tierContext,
 		requestCache,
-		ip: clientIp,
 	});
 	const [token] = await AuthSession.createAuthSession(ctx, {
 		user,

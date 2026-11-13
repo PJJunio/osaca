@@ -1981,16 +1981,6 @@ msgstr "Икона на приложението {productName}"
 msgid "{productName} avoids sending push notifications to your mobile devices when you are at your computer. Choose how long you need to be inactive on desktop before you receive push notifications."
 msgstr "{productName} избягва да изпраща push известия до мобилните ти устройства, докато си пред компютъра. Избери колко време трябва да си неактивен на компютъра, преди да получаваш push известия."
 
-#. First sentence of the network blocked screen when a rule is shown. productName is the app name. Must read the same as the error message for this block.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "{productName} blocked access from this network because of activity that broke its rules."
-msgstr "{productName} блокира достъпа от тази мрежа заради дейност, която нарушава правилата му."
-
-#. First sentence of the network blocked screen when no rule is shown. productName is the app name. Must read the same as the error message for this block.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "{productName} blocked access from this network."
-msgstr "{productName} блокира достъпа от тази мрежа."
-
 #. Linux settings text before system-wide shortcuts are set up. The desktop environment owns the keys. {productName} is the app name.
 #: src/features/user/components/modals/tabs/components/SystemShortcutsSection.tsx
 msgid "{productName} can ask your desktop to run its keybinds while {productName} is not focused. Your desktop asks you to confirm and lets you pick the keys."
@@ -19242,16 +19232,6 @@ msgstr "Ако запазиш това потребителско име, таг
 msgid "If you save this username, your tag will reroll randomly when your {PREMIUM_PRODUCT_NAME} expires, unless it renews."
 msgstr "Ако запазиш това потребителско име, тагът ти ще бъде преизбран на случаен принцип, когато {PREMIUM_PRODUCT_NAME} ти изтече, освен ако не се поднови."
 
-#. Paragraph on the network blocked screen for people who share a network with others. Must read the same as the error message for this block.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "If you share this network, for example at school, at work, on public Wi-Fi, through your mobile carrier or a VPN, this block may have nothing to do with you. The quickest fix is to switch networks, for example to mobile data instead of Wi-Fi, or to turn your VPN on or off."
-msgstr "Ако ползваш тази мрежа заедно с други хора, например в училище, на работа, в обществена Wi-Fi мрежа, чрез мобилния си оператор или VPN, това блокиране може да няма нищо общо с теб. Най-бързото решение е да смениш мрежата, например да минеш от Wi-Fi на мобилни данни, или да включиш или изключиш VPN."
-
-#. Line on the network blocked screen. The link is the contact email address and ip is the blocked IP address.
-#: src/features/auth/flow/AccountRestrictionScreen.tsx
-msgid "If you think this block is a mistake, email <0>{email}</0> and include your IP address, {ip}."
-msgstr "Ако смяташ, че това блокиране е грешка, пиши на <0>{email}</0> и посочи своя IP адрес: {ip}."
-
 #. Appeal line for a restriction from before the team recorded decisions, with no appeal deadline. The link is the appeals email address.
 #: src/features/auth/flow/AccountRestrictionScreen.tsx
 msgid "If you think we got this wrong, email <0>{email}</0> and include your username."
@@ -24003,11 +23983,6 @@ msgstr "Нидерландия"
 #: src/features/voice/components/voice_connection_status/shared.ts
 msgid "Network"
 msgstr "Мрежа"
-
-#. Title of the screen and dialog shown when the instance blocks the network a request came from.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "Network blocked"
-msgstr "Мрежата е блокирана"
 
 #. Error message in the devices tab.
 #: src/features/user/components/modals/tabs/DevicesTab.tsx
@@ -36431,11 +36406,6 @@ msgstr "Забраната вече е изтекла на {date}"
 msgid "The ban was scheduled to expire on {date}"
 msgstr "Забраната трябваше да изтече на {date}"
 
-#. Line on the network blocked screen for a block with an end. date is a date and time.
-#: src/features/auth/flow/AccountRestrictionScreen.tsx
-msgid "The block ends on {date}."
-msgstr "Блокирането е в сила до {date}."
-
 #: src/features/auth/components/pages/oauth_authorize_page/OAuthSuccessState.tsx
 msgid "The bot has been added to <0>{destinationName}</0>."
 msgstr "Ботът е добавен към <0>{destinationName}</0>."
@@ -44386,16 +44356,6 @@ msgstr "Поканата ти изтича след 24 часа"
 #: src/features/auth/components/pages/AuthorizeIPPage.tsx
 msgid "Your IP address has been successfully authorized. You can close this page or sign in again."
 msgstr "Вашият IP адрес е успешно оторизиран. Можете да затворите тази страница или да влезете отново."
-
-#. Error message in the user ip banned from guild modal. Keep the tone plain and specific.
-#: src/features/invite/commands/InviteCommands.tsx
-msgid "Your IP address is banned from this community and you cannot join."
-msgstr "На IP адреса ти е наложена забрана в тази общност и не можеш да се присъединиш."
-
-#. Label in the user ip banned from guild modal. Keep the tone plain and specific.
-#: src/features/invite/commands/InviteCommands.tsx
-msgid "Your IP is banned"
-msgstr "На IP адреса ти е наложена забрана"
 
 #: src/features/app/components/dialogs/components/plutonium/RefundsSection.tsx
 msgid "Your last purchase is outside the refund window. Contact support for billing issues."

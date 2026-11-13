@@ -69,7 +69,6 @@ interface EntryParams {
 	user: User;
 	tierContext: TierContext;
 	requestCache: RequestCache;
-	ip?: string | null;
 }
 
 async function startEntryVisit(
@@ -77,7 +76,7 @@ async function startEntryVisit(
 	params: EntryParams & {entry: PendingEntry},
 ): Promise<GuildEntryResult | null> {
 	const {user, entry, tierContext} = params;
-	const context = {user, tierContext, ip: params.ip ?? null};
+	const context = {user, tierContext};
 	const result =
 		entry.kind === 'invite'
 			? await visits.startFromInvite({...context, code: entry.code})

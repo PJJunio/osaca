@@ -39,24 +39,3 @@ export const EnforcementNotice = z.object({
 });
 
 export type EnforcementNotice = z.infer<typeof EnforcementNotice>;
-
-export const NetworkBlock = z.object({
-	ip_address: z.string().describe('The blocked address the request came from'),
-	appeal_email: z
-		.string()
-		.nullable()
-		.describe('Address to write to about the block, null when the instance names none'),
-	appeals_supported: z.boolean().describe('Whether the instance takes appeals'),
-	ban_kind: z.enum(['permanent', 'temporary_24h']).describe('Whether the block has an end'),
-	expires_at: z.string().nullable().describe('When the block ends, as an ISO 8601 timestamp'),
-	reason: z
-		.object({
-			title: z.string().describe('Title of the rule behind the block'),
-			url: z.string().nullable().describe('Link to the rule, null when the instance publishes none'),
-		})
-		.nullable()
-		.describe('The rule behind the block, null when it is not shown'),
-	product_name: z.string().describe('Name of the instance, as the server writes it in its own messages'),
-});
-
-export type NetworkBlock = z.infer<typeof NetworkBlock>;

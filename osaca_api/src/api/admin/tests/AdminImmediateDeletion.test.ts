@@ -94,7 +94,6 @@ describe('immediate account deletion from the admin panel', () => {
 		expect(listed.filter((user) => user.id === target.userId || user.username === 'DeletedUser')).toEqual([]);
 		const row = await createApiContext().services.users.findUniqueAssert(createUserID(BigInt(target.userId)));
 		expect(row.toRow()).toMatchObject({
-			last_active_ip: null,
 			last_active_at: null,
 			locale: null,
 			terms_agreed_at: null,
@@ -112,7 +111,6 @@ describe('immediate account deletion from the admin panel', () => {
 		const leftover = await users.patchUpsert(
 			targetId,
 			{
-				last_active_ip: '203.0.113.45',
 				last_active_at: new Date(),
 				locale: 'sv-SE',
 				terms_agreed_at: new Date(),
@@ -123,7 +121,6 @@ describe('immediate account deletion from the admin panel', () => {
 		expect((await listedUsers()).map((user) => user.id)).toContain(target.userId);
 		expect(await backfillDeletedUsers(users, 2)).toMatchObject({scrubbed: 1});
 		expect((await users.findUniqueAssert(targetId)).toRow()).toMatchObject({
-			last_active_ip: null,
 			last_active_at: null,
 			locale: null,
 			terms_agreed_at: null,

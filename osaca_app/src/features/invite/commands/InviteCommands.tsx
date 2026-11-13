@@ -41,16 +41,6 @@ const InviteAcceptFailedModal_FAILED_TO_ACCEPT_INVITE_DESCRIPTOR = msg({
 	comment: 'Error modal title shown when accepting a community invite fails.',
 });
 
-const UserIpBannedFromGuildModal_YOUR_IP_IS_BANNED_DESCRIPTOR = msg({
-	message: 'Your IP is banned',
-	comment: 'Label in the user ip banned from guild modal. Keep the tone plain and specific.',
-});
-
-const UserIpBannedFromGuildModal_YOUR_IP_ADDRESS_IS_BANNED_FROM_THIS_COMMUNITY_DESCRIPTOR = msg({
-	message: 'Your IP address is banned from this community and you cannot join.',
-	comment: 'Error message in the user ip banned from guild modal. Keep the tone plain and specific.',
-});
-
 const UserBannedFromGuildModal_YOU_RE_BANNED_DESCRIPTOR = msg({
 	message: "You're banned",
 	comment: 'Short label in the user banned from guild modal. Keep it concise. Keep the tone plain and specific.',
@@ -111,12 +101,6 @@ export function showGuildJoinRefusal(error: unknown): boolean {
 			title: () => modalI18n._(UserBannedFromGuildModal_YOU_RE_BANNED_DESCRIPTOR),
 			message: () => modalI18n._(UserBannedFromGuildModal_YOU_ARE_BANNED_FROM_THIS_COMMUNITY_AND_CANNOT_DESCRIPTOR),
 			dataFlx: 'moderation.user-banned-from-guild-modal.confirm-modal',
-		});
-	} else if (errorCode === APIErrorCodes.USER_IP_BANNED_FROM_GUILD) {
-		showGenericErrorModal({
-			title: () => modalI18n._(UserIpBannedFromGuildModal_YOUR_IP_IS_BANNED_DESCRIPTOR),
-			message: () => modalI18n._(UserIpBannedFromGuildModal_YOUR_IP_ADDRESS_IS_BANNED_FROM_THIS_COMMUNITY_DESCRIPTOR),
-			dataFlx: 'moderation.user-ip-banned-from-guild-modal.confirm-modal',
 		});
 	} else {
 		return false;

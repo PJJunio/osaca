@@ -16,7 +16,6 @@ import type {StreamService} from '@app/api/channel/services/StreamService';
 import type {ThreadService} from '@app/api/channel/services/thread/ThreadService';
 import type {ConnectionRequestService} from '@app/api/connection/ConnectionRequestService';
 import type {ConnectionService} from '@app/api/connection/ConnectionService';
-import type {NetworkBlock} from '@app/api/enforcement/NetworkBlockError';
 import type {FavoriteMemeRequestService} from '@app/api/favorite_meme/FavoriteMemeRequestService';
 import type {FavoriteMemeService} from '@app/api/favorite_meme/FavoriteMemeService';
 import type {GatewayRequestService} from '@app/api/gateway/GatewayRequestService';
@@ -82,7 +81,6 @@ export interface HonoEnv {
 		user: User;
 		requestId?: string;
 		clientIpResolution?: ClientIpResolution;
-		blockedNetworkSignIn?: NetworkBlock;
 		adminService: AdminService;
 		adminArchiveService: AdminArchiveService;
 		adminApiKeyService: AdminApiKeyService;

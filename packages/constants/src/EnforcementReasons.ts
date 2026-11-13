@@ -54,7 +54,6 @@ interface EnforcementRule {
 	policy: 'guidelines' | 'terms';
 	anchor: string;
 	barsNewAccounts: boolean;
-	showOnNetworkScreen: boolean;
 }
 
 interface EnforcementReason {
@@ -73,40 +72,39 @@ const SEXUAL_CONTENT_ANCHOR = '4-sexual-content-and-protection-of-minors';
 const ILLEGAL_ACTIVITY_ANCHOR = '5-illegal-and-dangerous-activity';
 const SERVICE_ABUSE_ANCHOR = '6-spam-and-service-abuse';
 
-function guidelinesRule(anchor: string, showOnNetworkScreen: boolean): EnforcementRule {
-	return {policy: 'guidelines', anchor, barsNewAccounts: true, showOnNetworkScreen};
+function guidelinesRule(anchor: string): EnforcementRule {
+	return {policy: 'guidelines', anchor, barsNewAccounts: true};
 }
 
 export const ENFORCEMENT_RULES: Readonly<Record<EnforcementRuleKey, EnforcementRule>> = {
-	spam: guidelinesRule(SERVICE_ABUSE_ANCHOR, true),
-	service_abuse: guidelinesRule(SERVICE_ABUSE_ANCHOR, true),
-	raids: guidelinesRule(HARASSMENT_ANCHOR, true),
-	automation: guidelinesRule(SERVICE_ABUSE_ANCHOR, true),
-	intimate_images: guidelinesRule(HARASSMENT_ANCHOR, false),
-	fraud: guidelinesRule(ILLEGAL_ACTIVITY_ANCHOR, false),
-	child_safety: guidelinesRule(SEXUAL_CONTENT_ANCHOR, false),
-	privacy: guidelinesRule(HARASSMENT_ANCHOR, false),
-	harassment: guidelinesRule(HARASSMENT_ANCHOR, false),
-	unwanted_sexual_content: guidelinesRule(HARASSMENT_ANCHOR, false),
-	violent_content: guidelinesRule(VIOLENCE_ANCHOR, true),
-	ban_evasion: guidelinesRule(SERVICE_ABUSE_ANCHOR, false),
-	hate: guidelinesRule('2-hate-and-discrimination', false),
-	malware: guidelinesRule(ILLEGAL_ACTIVITY_ANCHOR, false),
-	impersonation: guidelinesRule(SERVICE_ABUSE_ANCHOR, true),
-	threats: guidelinesRule(HARASSMENT_ANCHOR, false),
-	violent_extremism: guidelinesRule(VIOLENCE_ANCHOR, false),
-	self_harm: guidelinesRule(VIOLENCE_ANCHOR, false),
-	adult_content: guidelinesRule(SEXUAL_CONTENT_ANCHOR, true),
-	illegal_activity: guidelinesRule(ILLEGAL_ACTIVITY_ANCHOR, false),
-	harmful_deception: guidelinesRule('7-harmful-deception-and-manipulated-media', false),
-	report_abuse: guidelinesRule('8-reporting', true),
+	spam: guidelinesRule(SERVICE_ABUSE_ANCHOR),
+	service_abuse: guidelinesRule(SERVICE_ABUSE_ANCHOR),
+	raids: guidelinesRule(HARASSMENT_ANCHOR),
+	automation: guidelinesRule(SERVICE_ABUSE_ANCHOR),
+	intimate_images: guidelinesRule(HARASSMENT_ANCHOR),
+	fraud: guidelinesRule(ILLEGAL_ACTIVITY_ANCHOR),
+	child_safety: guidelinesRule(SEXUAL_CONTENT_ANCHOR),
+	privacy: guidelinesRule(HARASSMENT_ANCHOR),
+	harassment: guidelinesRule(HARASSMENT_ANCHOR),
+	unwanted_sexual_content: guidelinesRule(HARASSMENT_ANCHOR),
+	violent_content: guidelinesRule(VIOLENCE_ANCHOR),
+	ban_evasion: guidelinesRule(SERVICE_ABUSE_ANCHOR),
+	hate: guidelinesRule('2-hate-and-discrimination'),
+	malware: guidelinesRule(ILLEGAL_ACTIVITY_ANCHOR),
+	impersonation: guidelinesRule(SERVICE_ABUSE_ANCHOR),
+	threats: guidelinesRule(HARASSMENT_ANCHOR),
+	violent_extremism: guidelinesRule(VIOLENCE_ANCHOR),
+	self_harm: guidelinesRule(VIOLENCE_ANCHOR),
+	adult_content: guidelinesRule(SEXUAL_CONTENT_ANCHOR),
+	illegal_activity: guidelinesRule(ILLEGAL_ACTIVITY_ANCHOR),
+	harmful_deception: guidelinesRule('7-harmful-deception-and-manipulated-media'),
+	report_abuse: guidelinesRule('8-reporting'),
 	age_requirement: {
 		policy: 'terms',
 		anchor: '1-agreement-and-eligibility',
 		barsNewAccounts: false,
-		showOnNetworkScreen: false,
 	},
-	copyright: {policy: 'terms', anchor: '3-4-copyright', barsNewAccounts: true, showOnNetworkScreen: true},
+	copyright: {policy: 'terms', anchor: '3-4-copyright', barsNewAccounts: true},
 };
 
 const RESTRICTED_KINDS: ReadonlyArray<EnforcementKind> = ['suspension', 'content_removal'];

@@ -31,7 +31,6 @@ export interface APIConfig {
 	requestTimeoutMs: number;
 	maxInflightRequests: number;
 	automatedMessageDeletionDelayDays: number;
-	ipBanExemptIps: Array<string>;
 	postgres: {
 		url: string;
 		host: string;

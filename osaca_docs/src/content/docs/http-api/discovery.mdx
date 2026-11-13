@@ -309,7 +309,7 @@ Starts a [visit](/http-api/guilds/#visiting-guilds) to a listed guild without an
 | 200 | [guild visit start](/http-api/guilds/#guild-visit-start-object) object | The visit started, was already open or you're a member (`member: true`) |
 | 403 | [error response](/http-api/#error-response) | `GUILD_VISITS_DISABLED` when the guild doesn't accept visitors |
 | 403 | [error response](/http-api/#error-response) | `INVITES_DISABLED` when the guild has invites turned off |
-| 403 | [error response](/http-api/#error-response) | `USER_BANNED_FROM_GUILD` or `USER_IP_BANNED_FROM_GUILD` when you're banned |
+| 403 | [error response](/http-api/#error-response) | `USER_BANNED_FROM_GUILD` when you're banned |
 | 404 | [error response](/http-api/#error-response) | `UNKNOWN_GUILD` when the guild isn't listed or you don't have the assignment |
 
 The rate limit is 10 requests per 60 seconds, on the `guild:visit:start` bucket.
@@ -330,7 +330,7 @@ Adds you to a guild with an approved listing, without an invite, and returns 204
 | 400 | [error response](/http-api/#error-response) | `MAX_GUILD_MEMBERS` when the guild is full |
 | 403 | [error response](/http-api/#error-response) | `ACCOUNT_LIMITED` when your account is limited |
 | 403 | [error response](/http-api/#error-response) | `INVITES_DISABLED` when the guild has invites turned off |
-| 403 | [error response](/http-api/#error-response) | `USER_BANNED_FROM_GUILD` or `USER_IP_BANNED_FROM_GUILD` when you're banned |
+| 403 | [error response](/http-api/#error-response) | `USER_BANNED_FROM_GUILD` when you're banned |
 
 The rate limit is 10 requests per minute, on the `discovery:join` bucket.
 

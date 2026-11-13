@@ -7,7 +7,6 @@ import {ConcurrencyLimitMiddleware} from '@app/api/middleware/ConcurrencyLimitMi
 import ContentFilterMiddleware from '@app/api/middleware/ContentFilterMiddleware';
 import {GuildAvailabilityMiddleware} from '@app/api/middleware/GuildAvailabilityMiddleware';
 import {GuildVisitorRequestContextMiddleware} from '@app/api/middleware/GuildVisitorRequestContextMiddleware';
-import {IpBanMiddleware} from '@app/api/middleware/IpBanMiddleware';
 import {LocaleMiddleware} from '@app/api/middleware/LocaleMiddleware';
 import {RequestBodyLimitMiddleware} from '@app/api/middleware/RequestBodyLimitMiddleware';
 import {RequestCacheMiddleware} from '@app/api/middleware/RequestCacheMiddleware';
@@ -17,7 +16,7 @@ import {ServiceMiddleware} from '@app/api/middleware/ServiceMiddleware';
 import {TrustedClientIpHeaderMiddleware} from '@app/api/middleware/TrustedClientIpHeaderMiddleware';
 import {UserMiddleware} from '@app/api/middleware/UserMiddleware';
 import type {HonoApp} from '@app/api/types/HonoEnv';
-import {PeerAddressMiddleware} from '@app/api/utils/RequestClientIp';
+import {ClientIpResolutionMiddleware, PeerAddressMiddleware} from '@app/api/utils/RequestClientIp';
 import {embeddedWorkerStalledComponents} from '@app/api/worker/EmbeddedWorker';
 import {Headers as HttpHeaders} from '@osaca/constants/src/Headers';
 import {InvalidApiOriginError} from '@osaca/errors/src/domains/core/InvalidApiOriginError';
@@ -89,7 +88,7 @@ export function configureMiddleware(routes: HonoApp, options: MiddlewarePipeline
 	routes.get('/_health', async (ctx) =>
 		embeddedWorkerStalledComponents().length > 0 ? ctx.text('Worker stalled', 503) : ctx.text('OK'),
 	);
-	routes.use(IpBanMiddleware);
+	routes.use(ClientIpResolutionMiddleware);
 	routes.use(
 		requestLogger({
 			log: createInfoRequestLogger(logger),

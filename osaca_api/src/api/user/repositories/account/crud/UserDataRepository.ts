@@ -27,7 +27,7 @@ const FETCH_USER_BY_ID_CQL = Users.selectCql({
 });
 const FETCH_ALL_USERS_SCAN_CQL = Users.selectCql();
 const FETCH_ACTIVITY_TRACKING_CQL = Users.selectCql({
-	columns: ['last_active_at', 'last_active_ip'],
+	columns: ['last_active_at'],
 	where: Users.where.eq('user_id'),
 	limit: 1,
 });
@@ -106,14 +106,13 @@ export class UserDataRepository {
 	}
 
 	async upsertUserRow(
-		rawData: UserRow,
+		data: UserRow,
 		oldData?: UserRow | null,
 	): Promise<{
 		finalVersion: number | null;
 		previousData: UserRow | null;
 		updatedData: UserRow;
 	}> {
-		const data: UserRow = {...rawData, last_active_ip: null};
 		const userId = data.user_id;
 		assertWritableUserId(userId);
 		const result = await executeVersionedUpdate<UserRow, 'user_id'>(
@@ -135,17 +134,13 @@ export class UserDataRepository {
 
 	async patchUser(
 		userId: UserID,
-		rawPatch: UserPatch,
+		patch: UserPatch,
 		oldData?: UserRow | null,
 	): Promise<{
 		finalVersion: number | null;
 		previousData: UserRow | null;
 		updatedData: UserRow;
 	}> {
-		const patch: UserPatch = {
-			...rawPatch,
-			...(rawPatch.last_active_ip !== undefined ? {last_active_ip: Db.clear()} : {}),
-		};
 		assertWritableUserId(userId);
 		assertOrdinaryUserPatch(patch);
 		const result = await executeVersionedUpdate<UserRow, 'user_id'>(
@@ -285,42 +280,13 @@ export class UserDataRepository {
 		return new User({...user.toRow(), deletion_started_at: startedAt, version});
 	}
 
-	async updateLastActiveAt(params: {userId: UserID; lastActiveAt: Date; lastActiveIp?: string}): Promise<{
-		previousData: {
-			last_active_at: Date | null;
-			last_active_ip: string | null;
-		};
-		updatedData: {
-			last_active_at: Date | null;
-			last_active_ip: string | null;
-		};
-	}> {
+	async updateLastActiveAt(params: {userId: UserID; lastActiveAt: Date}): Promise<void> {
 		const {userId, lastActiveAt} = params;
 		assertWritableUserId(userId);
-		const previousData = (await this.getActivityTracking(userId)) ?? {last_active_at: null, last_active_ip: null};
-		await upsertOne(
-			Users.patchByPk(
-				{user_id: userId},
-				{
-					last_active_at: Db.set(lastActiveAt),
-					last_active_ip: Db.clear(),
-				},
-			),
-		);
-		return {
-			previousData,
-			updatedData: {last_active_at: lastActiveAt, last_active_ip: null},
-		};
+		await upsertOne(Users.patchByPk({user_id: userId}, {last_active_at: Db.set(lastActiveAt)}));
 	}
 
-	async getActivityTracking(userId: UserID): Promise<{
-		last_active_at: Date | null;
-		last_active_ip: string | null;
-	} | null> {
-		const result = await fetchOne<{
-			last_active_at: Date | null;
-			last_active_ip: string | null;
-		}>(FETCH_ACTIVITY_TRACKING_CQL, {user_id: userId});
-		return result;
+	async getActivityTracking(userId: UserID): Promise<{last_active_at: Date | null} | null> {
+		return fetchOne<{last_active_at: Date | null}>(FETCH_ACTIVITY_TRACKING_CQL, {user_id: userId});
 	}
 }

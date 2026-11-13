@@ -238,7 +238,7 @@ async function refreshGuildVisitOpenedAt(visit: GuildVisitRow, now: Date): Promi
 
 async function visitorStillAllowedIn(guildId: GuildID, user: User): Promise<boolean> {
 	try {
-		await assertNotBannedFromGuildVisit({guildId, user, ip: visitorRequestContext.getStore()?.ip ?? null});
+		await assertNotBannedFromGuildVisit({guildId, user});
 		return true;
 	} catch (error) {
 		if (!(error instanceof BannedFromGuildError)) {

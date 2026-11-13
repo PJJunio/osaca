@@ -5,7 +5,6 @@ import {promisify} from 'node:util';
 import type {ApiContext} from '@app/api/ApiContext';
 import {createNoticeLookupDeps, loadAccountNotice} from '@app/api/enforcement/EnforcementAccountNotice';
 import {EnforcementDecisionRepository} from '@app/api/enforcement/EnforcementDecisionRepository';
-import {createNetworkBlockError} from '@app/api/enforcement/NetworkBlockError';
 import {clearExpiredSuspension} from '@app/api/enforcement/SuspensionState';
 import type {KVAccountDeletionQueueService} from '@app/api/infrastructure/KVAccountDeletionQueueService';
 import {Logger} from '@app/api/Logger';
@@ -61,15 +60,6 @@ export function assertNonBotUser(_ctx: ApiContext, user: User): void {
 	}
 }
 
-export function assertNetworkAllowed(ctx: ApiContext): void {
-	const block = ctx.request.blockedNetworkSignIn;
-	if (block) throw createNetworkBlockError(block, ctx.request.locale);
-}
-
-export function assertMfaTicketAllowed(ctx: ApiContext, user: User): void {
-	if (!isSignInRefused(user)) assertNetworkAllowed(ctx);
-}
-
 const HOLDER_OR_HOUSEKEEPING_DELETION_REASONS: ReadonlySet<number> = new Set([
 	DeletionReasons.USER_REQUESTED,
 	DeletionReasons.INACTIVITY,
@@ -93,7 +83,6 @@ async function refuseRestrictedSignIn(ctx: ApiContext, user: User): Promise<neve
 
 export async function assertSignInAllowed(ctx: ApiContext, user: User): Promise<User> {
 	if (isSignInRefused(user)) await refuseRestrictedSignIn(ctx, user);
-	assertNetworkAllowed(ctx);
 	const expiry = await clearExpiredSuspension(
 		{users: ctx.services.users, repository: new EnforcementDecisionRepository()},
 		user,

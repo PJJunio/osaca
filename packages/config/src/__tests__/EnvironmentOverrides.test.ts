@@ -13,7 +13,6 @@ describe('buildNamedOsacaEnvOverrides', () => {
 				OSACA_BASE_DOMAIN: blank,
 				OSACA_API_PORT: blank,
 				OSACA_S3_FORCE_PATH_STYLE: blank,
-				OSACA_API_IP_BAN_EXEMPT_IPS: blank,
 				OSACA_PASSKEY_ADDITIONAL_ALLOWED_ORIGINS: blank,
 				OSACA_LIVEKIT_DEFAULT_REGION: blank,
 				OSACA_VOICE_P2P_STUN_URLS: blank,

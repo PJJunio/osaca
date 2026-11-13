@@ -39,17 +39,6 @@ export interface AdminAuditLog {
 	createdAt: Date;
 }
 
-export type BannedIpKind = 'permanent' | 'temporary_24h';
-
-export interface BannedIpEntry {
-	ip: string;
-	kind: BannedIpKind;
-	reason: string | null;
-	expiresAt: Date | null;
-	createdAt: Date | null;
-	decisionId: bigint | null;
-}
-
 const FETCH_AUDIT_LOG_BY_ID_QUERY = AdminAuditLogs.select({
 	where: AdminAuditLogs.where.eq('log_id'),
 });
@@ -119,24 +108,6 @@ export class AdminRepository {
 			rows = await fetchMany<AdminAuditLogRow>(query.bind({}));
 		}
 		return rows.map((row) => this.mapRowToAuditLog(row));
-	}
-
-	async isIpBanned(_ip: string): Promise<boolean> {
-		return false;
-	}
-
-	async banIp(_ip: string, _ttlSeconds: number | null = null): Promise<void> {}
-
-	async banIpTemp(_ip: string, _ttlSeconds: number): Promise<void> {}
-
-	async findIpBanDecision(_ip: string): Promise<bigint | null> {
-		return null;
-	}
-
-	async unbanIp(_ip: string): Promise<void> {}
-
-	async loadAllBannedIpEntries(): Promise<Array<BannedIpEntry>> {
-		return [];
 	}
 
 	async banPhrase(_phrase: string): Promise<void> {}

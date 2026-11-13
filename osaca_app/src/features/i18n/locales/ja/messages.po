@@ -1981,16 +1981,6 @@ msgstr "{productName}アプリのアイコン"
 msgid "{productName} avoids sending push notifications to your mobile devices when you are at your computer. Choose how long you need to be inactive on desktop before you receive push notifications."
 msgstr "{productName}は、パソコンを使用中はモバイルデバイスにプッシュ通知を送信しません。デスクトップでどのくらい非アクティブな状態が続いたらプッシュ通知を受け取るかを選択してください。"
 
-#. First sentence of the network blocked screen when a rule is shown. productName is the app name. Must read the same as the error message for this block.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "{productName} blocked access from this network because of activity that broke its rules."
-msgstr "{productName}は、ルールに違反する活動があったため、このネットワークからのアクセスをブロックしました。"
-
-#. First sentence of the network blocked screen when no rule is shown. productName is the app name. Must read the same as the error message for this block.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "{productName} blocked access from this network."
-msgstr "{productName}は、このネットワークからのアクセスをブロックしました。"
-
 #. Linux settings text before system-wide shortcuts are set up. The desktop environment owns the keys. {productName} is the app name.
 #: src/features/user/components/modals/tabs/components/SystemShortcutsSection.tsx
 msgid "{productName} can ask your desktop to run its keybinds while {productName} is not focused. Your desktop asks you to confirm and lets you pick the keys."
@@ -19242,16 +19232,6 @@ msgstr "このユーザー名を保存すると、{PREMIUM_PRODUCT_NAME}の有�
 msgid "If you save this username, your tag will reroll randomly when your {PREMIUM_PRODUCT_NAME} expires, unless it renews."
 msgstr "このユーザー名を保存すると、{PREMIUM_PRODUCT_NAME}の有効期限が切れた際にタグがランダムに再抽選されます（更新されない場合）。"
 
-#. Paragraph on the network blocked screen for people who share a network with others. Must read the same as the error message for this block.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "If you share this network, for example at school, at work, on public Wi-Fi, through your mobile carrier or a VPN, this block may have nothing to do with you. The quickest fix is to switch networks, for example to mobile data instead of Wi-Fi, or to turn your VPN on or off."
-msgstr "学校、職場、公共Wi-Fi、モバイルキャリア、VPNなどでこのネットワークを他の人と共有している場合、このブロックはあなたとは関係ないかもしれません。いちばん早い解決策は、Wi-Fiからモバイルデータに切り替えるなどしてネットワークを変えるか、VPNをオンまたはオフにすることです。"
-
-#. Line on the network blocked screen. The link is the contact email address and ip is the blocked IP address.
-#: src/features/auth/flow/AccountRestrictionScreen.tsx
-msgid "If you think this block is a mistake, email <0>{email}</0> and include your IP address, {ip}."
-msgstr "このブロックが誤りだと思われる場合は、IPアドレス（{ip}）を記載して<0>{email}</0>までメールでご連絡ください。"
-
 #. Appeal line for a restriction from before the team recorded decisions, with no appeal deadline. The link is the appeals email address.
 #: src/features/auth/flow/AccountRestrictionScreen.tsx
 msgid "If you think we got this wrong, email <0>{email}</0> and include your username."
@@ -24003,11 +23983,6 @@ msgstr "オランダ"
 #: src/features/voice/components/voice_connection_status/shared.ts
 msgid "Network"
 msgstr "ネットワーク"
-
-#. Title of the screen and dialog shown when the instance blocks the network a request came from.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "Network blocked"
-msgstr "ネットワークがブロックされています"
 
 #. Error message in the devices tab.
 #: src/features/user/components/modals/tabs/DevicesTab.tsx
@@ -36431,11 +36406,6 @@ msgstr "そのBANは{date}にすでに期限切れになっていました"
 msgid "The ban was scheduled to expire on {date}"
 msgstr "そのBANは{date}に終了する予定でした"
 
-#. Line on the network blocked screen for a block with an end. date is a date and time.
-#: src/features/auth/flow/AccountRestrictionScreen.tsx
-msgid "The block ends on {date}."
-msgstr "ブロックは{date}に解除されます。"
-
 #: src/features/auth/components/pages/oauth_authorize_page/OAuthSuccessState.tsx
 msgid "The bot has been added to <0>{destinationName}</0>."
 msgstr "ボットが<0>{destinationName}</0>に追加されました。"
@@ -44386,16 +44356,6 @@ msgstr "招待の有効期限は24時間です"
 #: src/features/auth/components/pages/AuthorizeIPPage.tsx
 msgid "Your IP address has been successfully authorized. You can close this page or sign in again."
 msgstr "IPアドレスの認証に成功しました。このページを閉じるか、再度サインインしてください。"
-
-#. Error message in the user ip banned from guild modal. Keep the tone plain and specific.
-#: src/features/invite/commands/InviteCommands.tsx
-msgid "Your IP address is banned from this community and you cannot join."
-msgstr "このコミュニティからIPアドレスがBANされているため、参加できません。"
-
-#. Label in the user ip banned from guild modal. Keep the tone plain and specific.
-#: src/features/invite/commands/InviteCommands.tsx
-msgid "Your IP is banned"
-msgstr "IPアドレスがBANされています"
 
 #: src/features/app/components/dialogs/components/plutonium/RefundsSection.tsx
 msgid "Your last purchase is outside the refund window. Contact support for billing issues."

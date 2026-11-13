@@ -20,7 +20,6 @@ import {
 } from '@osaca/constants/src/GuildVisitConstants';
 import {BannedFromGuildError} from '@osaca/errors/src/domains/guild/BannedFromGuildError';
 
-
 const BAN_MEMO_TTL_SECONDS = 600;
 const GUILD_PAGE_SIZE = 1000;
 
@@ -69,11 +68,7 @@ export async function bumpGuildBanGeneration(guildId: GuildID): Promise<void> {
 	await getKVClient().incr(banGenerationKey(guildId));
 }
 
-export async function assertNotBannedFromGuildVisit(params: {
-	guildId: GuildID;
-	user: Pick<User, 'id' | 'lastActiveIp'>;
-	ip: string | null;
-}): Promise<void> {
+export async function assertNotBannedFromGuildVisit(params: {guildId: GuildID; user: Pick<User, 'id'>}): Promise<void> {
 	const {guildId, user} = params;
 	const kv = getKVClient();
 	const generation = (await kv.get(banGenerationKey(guildId))) ?? '0';
@@ -90,7 +85,6 @@ export async function assertNotBannedFromGuildVisit(params: {
 export async function onGuildBanAdded(params: {
 	guildId: GuildID;
 	targetUserId: UserID;
-	targetIp: string | null;
 	gateway: IGatewayService;
 }): Promise<void> {
 	const {guildId, targetUserId, gateway} = params;

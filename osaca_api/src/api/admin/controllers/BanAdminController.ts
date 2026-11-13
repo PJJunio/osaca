@@ -35,7 +35,6 @@ import {
 	BanAvatarHashRequest,
 	BanCheckResponseSchema,
 	BanFileShaRequest,
-	BanIpRequest,
 	BanPhraseRequest,
 	BanProfileSubstringRequest,
 	BanUrlDomainRequest,
@@ -52,17 +51,6 @@ import type {ZodType} from 'zod';
 type ProfileSubstringScope = BanProfileSubstringRequest['scope'];
 
 const BLOCKLIST_CATALOG = [
-	{
-		list_type: 'ip' as const,
-		description:
-			'IPv4/IPv6 addresses and CIDR ranges denied service. Applies to live connections and can be applied retroactively. An entry can carry an expiry, after which it stops applying and is removed.',
-		value_field: 'ip',
-		fields: ['duration_hours'],
-		scoped: false,
-		supports_bulk_create: false,
-		supports_bulk_delete: false,
-		supports_update: false,
-	},
 	{
 		list_type: 'phrase' as const,
 		description:
@@ -129,7 +117,6 @@ const BLOCKLIST_CATALOG = [
 ];
 
 const BLOCKLIST_TYPE_ACLS: Record<AdminBlocklistListType, {add: string; check: string; remove: string}> = {
-	ip: {add: AdminACLs.BAN_IP_ADD, check: AdminACLs.BAN_IP_CHECK, remove: AdminACLs.BAN_IP_REMOVE},
 	phrase: {add: AdminACLs.BAN_PHRASE_ADD, check: AdminACLs.BAN_PHRASE_CHECK, remove: AdminACLs.BAN_PHRASE_REMOVE},
 	url: {add: AdminACLs.BAN_URL_ADD, check: AdminACLs.BAN_URL_CHECK, remove: AdminACLs.BAN_URL_REMOVE},
 	'url-domain': {
@@ -155,7 +142,6 @@ const BLOCKLIST_TYPE_ACLS: Record<AdminBlocklistListType, {add: string; check: s
 };
 
 const BLOCKLIST_AUDIT_TARGET_TYPES: Record<AdminBlocklistListType, string> = {
-	ip: 'ip',
 	phrase: 'phrase',
 	url: 'url',
 	'url-domain': 'url_domain',
@@ -215,10 +201,8 @@ async function checkBlocklistEntry(
 	listType: AdminBlocklistListType,
 	entryValue: string,
 	scope: ProfileSubstringScope | undefined,
-): Promise<{banned: boolean; expires_at?: string | null; decision_id?: string | null}> {
+): Promise<{banned: boolean}> {
 	switch (listType) {
-		case 'ip':
-			return bans.checkIpBan({ip: entryValue});
 		case 'phrase':
 			return bans.checkPhraseBan({phrase: entryValue});
 		case 'url':
@@ -320,7 +304,7 @@ export function BanAdminController(app: HonoApp) {
 			tags: ['Admin'],
 			requestSchema: AdminBlocklistEntryCreateRequest,
 			description:
-				'Add a value to a blocklist. The request body is the shape the blocklist named by list_type accepts, and the value is validated and canonicalized for that blocklist. Adding an IP address that is on the instance exemption list is refused with 400 IP_BAN_DECLINED and recorded in the audit log. An IP address blocked by an enforcement decision returns 409 IP_BAN_LINKED_TO_DECISION with the decision ID, because only an account decision creates or changes such a block.',
+				'Add a value to a blocklist. The request body is the shape the blocklist named by list_type accepts, and the value is validated and canonicalized for that blocklist.',
 		}),
 		async (ctx) => {
 			const adminService = ctx.get('adminService');
@@ -331,9 +315,6 @@ export function BanAdminController(app: HonoApp) {
 			const bans = adminService.banManagementService;
 			const raw = await requireRequestJsonBody(ctx.req);
 			switch (listType) {
-				case 'ip':
-					await bans.banIp(await parseBlocklistBody(BanIpRequest, raw), adminUserId, auditLogReason);
-					break;
 				case 'phrase':
 					await bans.banPhrase(await parseBlocklistBody(BanPhraseRequest, raw), adminUserId, auditLogReason);
 					break;
@@ -466,7 +447,7 @@ export function BanAdminController(app: HonoApp) {
 			security: ['adminApiKey'],
 			tags: ['Admin'],
 			description:
-				'Report whether a value is currently blocked by a blocklist. The value is percent-encoded in the path. An IP address can still match a broader stored CIDR entry, and a url-domain value can be a hostname or an http(s) URL that a stored domain or pattern covers. The profile-substring blocklist requires a scope.',
+				'Report whether a value is currently blocked by a blocklist. The value is percent-encoded in the path. A url-domain value can be a hostname or an http(s) URL that a stored domain or pattern covers. The profile-substring blocklist requires a scope.',
 		}),
 		async (ctx) => {
 			const adminService = ctx.get('adminService');
@@ -485,11 +466,7 @@ export function BanAdminController(app: HonoApp) {
 					banned: result.banned,
 				},
 			});
-			return ctx.json({
-				banned: result.banned,
-				expires_at: result.expires_at ?? null,
-				decision_id: result.decision_id ?? null,
-			});
+			return ctx.json({banned: result.banned});
 		},
 	);
 	app.patch(
@@ -562,7 +539,7 @@ export function BanAdminController(app: HonoApp) {
 			security: ['adminApiKey'],
 			tags: ['Admin'],
 			description:
-				'Remove an entry from a blocklist. The value is percent-encoded in the path and is canonicalized the same way it was on add, so an IP covered only by a broader CIDR entry cannot be removed through the narrower address. An IP block that belongs to an enforcement decision returns 409 IP_BAN_LINKED_TO_DECISION with the decision ID, and is removed by ending that decision. The profile-substring blocklist requires a scope.',
+				'Remove an entry from a blocklist. The value is percent-encoded in the path and is canonicalized the same way it was on add. The profile-substring blocklist requires a scope.',
 		}),
 		async (ctx) => {
 			const adminService = ctx.get('adminService');
@@ -574,9 +551,6 @@ export function BanAdminController(app: HonoApp) {
 			assertBlocklistScopeAllowed(listType, scope);
 			const bans = adminService.banManagementService;
 			switch (listType) {
-				case 'ip':
-					await bans.unbanIp({ip: entryValue}, adminUserId, auditLogReason);
-					break;
 				case 'phrase':
 					await bans.unbanPhrase({phrase: entryValue}, adminUserId, auditLogReason);
 					break;

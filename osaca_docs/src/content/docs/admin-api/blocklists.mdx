@@ -6,7 +6,7 @@ description: The safety blocklists, their value forms, and the operations that m
 
 import RouteHeader from '@/components/RouteHeader.astro';
 
-OSACA has eight blocklists, and each one blocks one kind of value, such as an IP address, a link or a file hash. Each list has three [Admin ACLs](/admin-api/#acl-registry) in the form `ban:<list>:<verb>`, with hyphens in the list name written as underscores. For example, `url-domain` uses `ban:url_domain:check`. You need `check` to read a list, `add` to add or update entries and `remove` to remove them.
+OSACA has six blocklists, and each one blocks one kind of value, such as a link or a file hash. There is no IP blocklist, because OSACA stores no IP addresses. Each list has three [Admin ACLs](/admin-api/#acl-registry) in the form `ban:<list>:<verb>`, with hyphens in the list name written as underscores. For example, `url-domain` uses `ban:url_domain:check`. You need `check` to read a list, `add` to add or update entries and `remove` to remove them.
 
 ## Blocklist types
 
@@ -14,7 +14,6 @@ OSACA normalizes each value when you add or check it and stores the normalized f
 
 | Value | Description |
 | --- | --- |
-| ip | IPv4 addresses, IPv6 addresses and CIDR ranges denied service |
 | phrase<sup>1</sup> | Phrases blocked from content |
 | url | Absolute `http` and `https` URLs blocked from being posted |
 | url-domain | Domains or [domain patterns](#domain-patterns) blocked from being linked |
@@ -100,12 +99,8 @@ An entry stored in a blocklist. Every field is present, and a field the list doe
 | notes | ?string | The internal note |
 | content_type | ?string | The media type hint of a `file-sha` entry |
 | match_subdomains | ?boolean | Whether a `url-domain` entry also covers subdomains |
-| reason<sup>1</sup> | ?string | The reason stored on an `ip` entry |
-| expires_at | ?ISO8601 timestamp | When an `ip` entry expires |
 | created_at | ?ISO8601 timestamp | When the entry was added |
 | created_by_user_id | ?snowflake | The Admin who added the entry |
-
-<sup>1</sup> `platform_admin_enforcement` for an entry added through these routes, or `enforcement_decision` for one an enforcement decision added
 
 ### Example
 
@@ -120,8 +115,6 @@ An entry stored in a blocklist. Every field is present, and a field the list doe
   "notes": null,
   "content_type": null,
   "match_subdomains": true,
-  "reason": null,
-  "expires_at": null,
   "created_at": "2026-01-22T07:41:19.003Z",
   "created_by_user_id": "1483920011884392448"
 }
@@ -136,8 +129,6 @@ What [Check blocklist entry](#check-blocklist-entry) returns for one value.
 | Field | Type | Description |
 | --- | --- | --- |
 | banned | boolean | Whether the list blocks the value |
-| expires_at | ?ISO8601 timestamp | When the matching `ip` block expires, or null when it is permanent |
-| decision_id | ?snowflake | The [enforcement decision](/admin-api/enforcement/) the matching `ip` block belongs to |
 
 ## Blocklist entry creation object
 
@@ -147,7 +138,6 @@ The body of [Add blocklist entry](#add-blocklist-entry) has the value field for 
 
 | Blocklist | Field | Accepted value |
 | --- | --- | --- |
-| ip | ip | IPv4 address, IPv6 address or CIDR range (1-45 characters) |
 | phrase | phrase | Phrase (1-500 characters) |
 | url | url | Absolute `http` or `https` URL (1-2048 characters) |
 | url-domain | domain | Domain or [domain pattern](#domain-patterns) (1-253 characters) |
@@ -166,8 +156,7 @@ The body of [Add blocklist entry](#add-blocklist-entry) has the value field for 
 | content_type? | string | The media type hint of a `file-sha` entry (1-128 characters) |
 | source_url?<sup>2</sup> | string | The feed or evidence URL (1-2048 characters) |
 | reason? | string | The reason for `avatar-hash` and `profile-substring`, kept in the audit entry (1-1024 characters) |
-| notes? | string | The internal note, for every list but `ip` and `phrase` (1-1024 characters) |
-| duration_hours? | integer | Hours until an `ip` entry expires, with `0` for permanent (0-8760, default 0) |
+| notes? | string | The internal note, for every list but `phrase` (1-1024 characters) |
 
 <sup>1</sup> Required for `profile-substring`
 
@@ -183,7 +172,7 @@ Returns a [blocklist object](#blocklist-object) for each blocklist. You need the
 
 | Field | Type | Description |
 | --- | --- | --- |
-| items | array[[blocklist](#blocklist-object) object] | All eight blocklists |
+| items | array[[blocklist](#blocklist-object) object] | All six blocklists |
 
 ### Response
 
@@ -244,8 +233,6 @@ Adding a value that is already stored replaces its entry, and every optional fie
 | Status | Body | Condition |
 | --- | --- | --- |
 | 204 | empty | The values were written |
-| 400 | [error response](/admin-api/#error-response) | `IP_BAN_DECLINED` when the address is on the instance exemption list |
-| 409 | [error response](/admin-api/#error-response) | `IP_BAN_LINKED_TO_DECISION` with `decision_id` when the address belongs to an enforcement decision |
 
 The rate limit is 60 requests per minute, on the `admin:ban:operation` bucket.
 
@@ -309,7 +296,7 @@ The rate limit is 60 requests per minute, on the `admin:ban:operation` bucket.
 
 Returns a [blocklist check object](#blocklist-check-object) saying whether the list blocks a value. You need the list's `check` permission. Percent-encode `entry_value`.
 
-A value can be blocked without an entry of its own when an `ip` address is inside a stored CIDR range or a `url-domain` hostname or URL matches a parent domain or a pattern. The `url` check doesn't look at the `url-domain` list.
+A value can be blocked without an entry of its own when a `url-domain` hostname or URL matches a parent domain or a pattern. The `url` check doesn't look at the `url-domain` list.
 
 ### Query parameters
 
@@ -331,7 +318,7 @@ The rate limit is 60 requests per minute, on the `admin:ban:operation` bucket.
 
 <RouteHeader method="PATCH" path="/v1/admin/blocklists/{list_type}/entries/{entry_value}" auditReason />
 
-Rewrites the fields of one entry, or creates it when it doesn't exist. You need the list's `add` permission. The `ip` and `phrase` lists return 400 `INVALID_FORM_BODY`.
+Rewrites the fields of one entry, or creates it when it doesn't exist. You need the list's `add` permission. The `phrase` list returns 400 `INVALID_FORM_BODY`.
 
 ### JSON body
 
@@ -379,7 +366,6 @@ Removes one entry. You need the list's `remove` permission. Percent-encode `entr
 | Status | Body | Condition |
 | --- | --- | --- |
 | 204 | empty | The entry was removed, or there was none |
-| 409 | [error response](/admin-api/#error-response) | `IP_BAN_LINKED_TO_DECISION` with `decision_id` when the address belongs to an enforcement decision |
 
 The rate limit is 60 requests per minute, on the `admin:ban:operation` bucket.
 

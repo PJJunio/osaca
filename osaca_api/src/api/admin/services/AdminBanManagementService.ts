@@ -4,7 +4,6 @@ import type {ApiContext} from '@app/api/ApiContext';
 import type {AdminRepository} from '@app/api/admin/AdminRepository';
 import type {AdminAuditService} from '@app/api/admin/services/AdminAuditService';
 import {createUserID, type UserID} from '@app/api/BrandedTypes';
-import {isIpBanExempt} from '@app/api/ban/IpBanExemptions';
 import {
 	BANNED_AVATAR_HASHES_REFRESH_CHANNEL,
 	BANNED_FILE_SHAS_REFRESH_CHANNEL,
@@ -15,12 +14,10 @@ import {
 	ContentBlocklistCategory,
 	ContentBlocklistSeverity,
 } from '@app/api/constants/ContentModeration';
-import {IP_BAN_REFRESH_CHANNEL} from '@app/api/constants/IpBan';
 import type {BannedProfileSubstringScope} from '@app/api/database/types/AdminArchiveTypes';
 import {stripAnimationPrefix} from '@app/api/infrastructure/AssetEntitlementUtils';
 import {bannedAvatarHashCache} from '@app/api/middleware/BannedAvatarHashCache';
 import {fileShaCache} from '@app/api/middleware/FileShaCache';
-import {ipBanCache} from '@app/api/middleware/IpBanMiddleware';
 import {phraseBlocklistCache} from '@app/api/middleware/PhraseBlocklistCache';
 import {profileSubstringBlocklistCache} from '@app/api/middleware/ProfileSubstringBlocklistCache';
 import {urlBlocklistCache} from '@app/api/middleware/UrlBlocklistCache';
@@ -31,10 +28,8 @@ import {canonicalizeUrl} from '@app/api/utils/UrlNormalizer';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {toIsoOrNull} from '@osaca/date_utils/src/DateSerialization';
-import {BadRequestError} from '@osaca/errors/src/domains/core/BadRequestError';
 import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
 import {NotFoundError} from '@osaca/errors/src/domains/core/NotFoundError';
-import {IpBanLinkedToDecisionError} from '@osaca/errors/src/domains/moderation/IpBanLinkedToDecisionError';
 import type {AdminBlocklistListType} from '@osaca/schema/src/domains/admin/AdminBlocklistSchemas';
 
 interface AdminBanManagementServiceDeps {
@@ -53,8 +48,6 @@ interface AdminBlocklistEntry {
 	notes: string | null;
 	content_type: string | null;
 	match_subdomains: boolean | null;
-	reason: string | null;
-	expires_at: string | null;
 	created_at: string | null;
 	created_by_user_id: string | null;
 }
@@ -80,8 +73,6 @@ function createBlocklistEntry(
 		notes: null,
 		content_type: null,
 		match_subdomains: null,
-		reason: null,
-		expires_at: null,
 		created_at: null,
 		created_by_user_id: null,
 		...overrides,
@@ -116,99 +107,6 @@ function withReasonMetadata(entries: Array<[string, string]>, reason: string | u
 
 export class AdminBanManagementService {
 	constructor(private readonly deps: AdminBanManagementServiceDeps) {}
-
-	async banIp(
-		data: {
-			ip: string;
-			duration_hours?: number;
-		},
-		adminUserId: UserID,
-		auditLogReason: string | null,
-	) {
-		const {adminRepository, auditService} = this.deps;
-		if (isIpBanExempt(data.ip)) {
-			await auditService.createAuditLog({
-				adminUserId,
-				targetType: 'ip',
-				targetId: BigInt(0),
-				action: 'ban_ip_skipped_exempt',
-				auditLogReason,
-				metadata: new Map([['ip', data.ip]]),
-			});
-			throw new BadRequestError({
-				code: APIErrorCodes.IP_BAN_DECLINED,
-				message: 'This IP address is on the instance exemption list',
-			});
-		}
-		await this.assertIpBanNotLinked(data.ip);
-		const durationHours = data.duration_hours ?? 0;
-		const metadata = new Map([['ip', data.ip]]);
-		if (durationHours > 0) {
-			const ttlSeconds = durationHours * 3600;
-			await adminRepository.banIp(data.ip, ttlSeconds);
-			metadata.set('duration_hours', durationHours.toString());
-			metadata.set('expires_at', new Date(Date.now() + ttlSeconds * 1000).toISOString());
-		} else {
-			await adminRepository.banIp(data.ip);
-		}
-		await this.refreshIpBans();
-		await this.deps.auditService.createAuditLog({
-			targetId: 0n,
-			adminUserId,
-			targetType: 'ip',
-			action: 'ban_ip',
-			auditLogReason,
-			metadata,
-		});
-	}
-
-	async unbanIp(
-		data: {
-			ip: string;
-		},
-		adminUserId: UserID,
-		auditLogReason: string | null,
-	) {
-		const {adminRepository} = this.deps;
-		const {cache: cacheService} = this.deps.apiContext.services;
-		await this.assertIpBanNotLinked(data.ip);
-		await adminRepository.unbanIp(data.ip);
-		ipBanCache.unban(data.ip);
-		await cacheService.publish(IP_BAN_REFRESH_CHANNEL, 'refresh');
-		await this.deps.auditService.createAuditLog({
-			targetId: 0n,
-			adminUserId,
-			targetType: 'ip',
-			action: 'unban_ip',
-			auditLogReason,
-			metadata: new Map([['ip', data.ip]]),
-		});
-	}
-
-	async checkIpBan(data: {ip: string}): Promise<{
-		banned: boolean;
-		expires_at: string | null;
-		decision_id: string | null;
-	}> {
-		const match = ipBanCache.getMatch(data.ip);
-		return {
-			banned: match !== null,
-			expires_at: toIsoOrNull(match?.expiresAt),
-			decision_id: toSnowflakeString(match?.decision?.decisionId),
-		};
-	}
-
-	private async refreshIpBans(): Promise<void> {
-		await ipBanCache.refresh();
-		await this.deps.apiContext.services.cache.publish(IP_BAN_REFRESH_CHANNEL, 'refresh');
-	}
-
-	private async assertIpBanNotLinked(ip: string): Promise<void> {
-		const decisionId = await this.deps.adminRepository.findIpBanDecision(ip);
-		if (decisionId !== null) {
-			throw new IpBanLinkedToDecisionError(decisionId);
-		}
-	}
 
 	async banPhrase(
 		data: {
@@ -690,16 +588,6 @@ export class AdminBanManagementService {
 	): Promise<Array<AdminBlocklistEntry>> {
 		const {adminRepository} = this.deps;
 		switch (listType) {
-			case 'ip': {
-				const rows = await adminRepository.loadAllBannedIpEntries();
-				return rows.map((row) =>
-					createBlocklistEntry(listType, row.ip, {
-						reason: row.reason,
-						expires_at: toIsoOrNull(row.expiresAt),
-						created_at: toIsoOrNull(row.createdAt),
-					}),
-				);
-			}
 			case 'phrase': {
 				const rows = await adminRepository.loadAllBannedPhrases();
 				return rows.map((value) => createBlocklistEntry(listType, value));

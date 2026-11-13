@@ -441,23 +441,22 @@ export class GuildRepository {
 	}
 
 	async upsertBan(data: GuildBanRow): Promise<GuildBan> {
-		const sanitized: GuildBanRow = {...data, ip: null};
 		const batch = new BatchBuilder();
 		const byUserRow: GuildBanByUserIdRow = {
-			user_id: sanitized.user_id,
-			guild_id: sanitized.guild_id,
+			user_id: data.user_id,
+			guild_id: data.guild_id,
 		};
-		if (sanitized.expires_at) {
+		if (data.expires_at) {
 			const now = Date.now();
-			const ttl = Math.max(0, Math.ceil((sanitized.expires_at.getTime() - now) / 1000));
-			batch.addPrepared(GuildBans.insertWithTtl(sanitized, ttl));
+			const ttl = Math.max(0, Math.ceil((data.expires_at.getTime() - now) / 1000));
+			batch.addPrepared(GuildBans.insertWithTtl(data, ttl));
 			batch.addPrepared(GuildBansByUserId.insertWithTtl(byUserRow, ttl));
 		} else {
-			batch.addPrepared(GuildBans.insert(sanitized));
+			batch.addPrepared(GuildBans.insert(data));
 			batch.addPrepared(GuildBansByUserId.insert(byUserRow));
 		}
 		await batch.execute();
-		return new GuildBan(sanitized);
+		return new GuildBan(data);
 	}
 
 	async deleteBan(guildId: GuildID, userId: UserID): Promise<void> {

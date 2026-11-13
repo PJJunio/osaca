@@ -1024,14 +1024,6 @@ Whether OSACA trusts the client address in the `OSACA_CLIENT_IP_HEADER_NAME` hea
 
 The request header that has the client's IP address. When it's empty, the api, worker, admin and gateway services use `x-forwarded-for`, the header the edge sets. With rexctl, use `rexctl config set OSACA_CLIENT_IP_HEADER_NAME`.
 
-### `OSACA_API_IP_BAN_EXEMPT_IPS`
-
-IP addresses and CIDR ranges, separated by commas, that IP bans never apply to, such as `203.0.113.7,2001:db8::/56`. The API refuses to start when an entry doesn't parse. With rexctl, use `rexctl config set OSACA_API_IP_BAN_EXEMPT_IPS`.
-
-### `OSACA_IP_BAN_REFRESH_INTERVAL_MS`
-
-How often the API reloads its IP ban list, in milliseconds. When it's empty, the API uses `300000`. A value of `0` turns the periodic reload off. With rexctl, use `rexctl config set OSACA_IP_BAN_REFRESH_INTERVAL_MS`.
-
 ### `OSACA_API_TRUSTED_CALLERS`
 
 A JSON array of trusted callers, such as a front end that calls the API for its own visitors. Each entry is an object with a `name`, a `key` of at least 32 characters and `buckets`, a non-empty list of the rate limit buckets the caller may pass a client address for. The caller sends its key in the `X-OSACA-Internal-Key` header and the client address in the `X-OSACA-Client-IP` header. Keep it secret. With rexctl, use `rexctl config set OSACA_API_TRUSTED_CALLERS`.

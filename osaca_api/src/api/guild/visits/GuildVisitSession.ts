@@ -22,12 +22,7 @@ export interface SessionGuildVisit {
 
 type SessionVisitCheck = 'keep' | 'drop' | keyof typeof GuildVisitEndReasons;
 
-async function checkSessionVisit(
-	row: GuildVisitRow,
-	user: User,
-	ip: string | null,
-	now: number,
-): Promise<SessionVisitCheck> {
+async function checkSessionVisit(row: GuildVisitRow, user: User, now: number): Promise<SessionVisitCheck> {
 	if (row.invite_expires_at !== null && row.invite_expires_at.getTime() <= now) return 'EXPIRED';
 	const view = await loadGuildVisitorView(row.guild_id);
 	if (!view || !guildVisitAuthorizedByView(row, view)) return 'drop';
@@ -36,7 +31,7 @@ async function checkSessionVisit(
 		if (!invite || invite.guildId !== row.guild_id) return 'INVITE_REVOKED';
 	}
 	try {
-		await assertNotBannedFromGuildVisit({guildId: row.guild_id, user, ip});
+		await assertNotBannedFromGuildVisit({guildId: row.guild_id, user});
 	} catch (error) {
 		if (error instanceof BannedFromGuildError) {
 			return 'BANNED';
@@ -48,10 +43,9 @@ async function checkSessionVisit(
 
 export async function resolveSessionGuildVisits(params: {
 	user: User;
-	ip: string | null;
 	memberGuildIds: ReadonlyArray<GuildID>;
 }): Promise<Array<SessionGuildVisit>> {
-	const {user, ip} = params;
+	const {user} = params;
 	if (user.isBot || !userGuildVisitsActive(user.id)) return [];
 	const members = new Set(params.memberGuildIds.map((guildId) => guildId.toString()));
 	const rows = await guildVisitRepository().list(user.id);
@@ -65,7 +59,7 @@ export async function resolveSessionGuildVisits(params: {
 			continue;
 		}
 		if (kept.length >= cap) break;
-		const check = await checkSessionVisit(row, user, ip, now);
+		const check = await checkSessionVisit(row, user, now);
 		if (check === 'keep') {
 			kept.push({guildId: row.guild_id, operator: row.source === GuildVisitSources.OPERATOR});
 		} else if (check !== 'drop') {

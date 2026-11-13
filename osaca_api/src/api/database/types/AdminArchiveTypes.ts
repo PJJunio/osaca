@@ -71,24 +71,6 @@ export const ADMIN_AUDIT_LOG_COLUMNS = [
 	'created_at',
 ] as const satisfies ReadonlyArray<keyof AdminAuditLogRow>;
 
-export interface BannedIpRow {
-	ip: string;
-	ban_kind?: string | null;
-	reason?: string | null;
-	expires_at?: Date | null;
-	created_at?: Date | null;
-	decision_id?: bigint | null;
-}
-
-export const BANNED_IP_COLUMNS = [
-	'ip',
-	'ban_kind',
-	'reason',
-	'expires_at',
-	'created_at',
-	'decision_id',
-] as const satisfies ReadonlyArray<keyof BannedIpRow>;
-
 export interface BannedPhraseRow {
 	phrase: string;
 }

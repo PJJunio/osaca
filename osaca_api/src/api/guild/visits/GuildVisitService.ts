@@ -66,7 +66,6 @@ import type {GuildVisitResponse, GuildVisitStartResponse} from '@osaca/schema/sr
 
 interface VisitStartContext {
 	user: User;
-	ip: string | null;
 }
 
 interface VisitAuthorization {
@@ -151,7 +150,7 @@ export class GuildVisitService {
 	}
 
 	private async start(context: VisitStartContext, auth: VisitAuthorization): Promise<GuildVisitStartResponse> {
-		const {user, ip} = context;
+		const {user} = context;
 		const {guild, source, invite} = auth;
 		const guildId = guild.id;
 		const viaInvite = source === GuildVisitSources.INVITE || source === GuildVisitSources.VANITY_URL;
@@ -169,7 +168,7 @@ export class GuildVisitService {
 			throw new GuildVisitsDisabledError();
 		}
 		assertAccountNotLimited(user);
-		await assertNotBannedFromGuildVisit({guildId, user, ip});
+		await assertNotBannedFromGuildVisit({guildId, user});
 		const repository = guildVisitRepository();
 		const now = new Date();
 		const visits = await repository.list(user.id);

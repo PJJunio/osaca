@@ -111,7 +111,6 @@ interface ArchiveParams {
 	}>;
 	activityData: {
 		last_active_at: Date | null;
-		last_active_ip: string | null;
 	};
 	storageService: IStorageService;
 }

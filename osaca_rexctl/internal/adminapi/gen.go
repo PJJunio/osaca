@@ -54,9 +54,6 @@ const (
 	BanFileShaAdd                 AdminAclType = "ban:file_sha:add"
 	BanFileShaCheck               AdminAclType = "ban:file_sha:check"
 	BanFileShaRemove              AdminAclType = "ban:file_sha:remove"
-	BanIpAdd                      AdminAclType = "ban:ip:add"
-	BanIpCheck                    AdminAclType = "ban:ip:check"
-	BanIpRemove                   AdminAclType = "ban:ip:remove"
 	BanPhraseAdd                  AdminAclType = "ban:phrase:add"
 	BanPhraseCheck                AdminAclType = "ban:phrase:check"
 	BanPhraseRemove               AdminAclType = "ban:phrase:remove"
@@ -176,12 +173,6 @@ func (e AdminAclType) Valid() bool {
 	case BanFileShaCheck:
 		return true
 	case BanFileShaRemove:
-		return true
-	case BanIpAdd:
-		return true
-	case BanIpCheck:
-		return true
-	case BanIpRemove:
 		return true
 	case BanPhraseAdd:
 		return true

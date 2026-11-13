@@ -135,7 +135,7 @@ Joins the authenticated account to the target of the invite and returns an [invi
 | 403 | [error response](/http-api/#error-response) | `NSFW_CONTENT_AGE_RESTRICTED` when the guild or channel is age restricted and the age check fails |
 | 403 | [error response](/http-api/#error-response) | `INVITES_DISABLED` when the guild has paused invites |
 | 403 | [error response](/http-api/#error-response) | `FEATURE_TEMPORARILY_DISABLED` when `INSTANT_INVITES` is set in the guild's [disabled operations](/http-api/guilds/#disabled-guild-operations) |
-| 403 | [error response](/http-api/#error-response) | `USER_BANNED_FROM_GUILD` or `USER_IP_BANNED_FROM_GUILD` when the account or its network address is banned |
+| 403 | [error response](/http-api/#error-response) | `USER_BANNED_FROM_GUILD` when the account is banned |
 | 403 | [error response](/http-api/#error-response) | `ACCOUNT_LIMITED` when the account is [limited](/http-api/users/#account-limitation) and not already in the target |
 | 404 | [error response](/http-api/#error-response) | `UNKNOWN_INVITE` when the code is unknown or used up, `UNKNOWN_GUILD` or `UNKNOWN_CHANNEL` when the target is gone |
 
@@ -157,7 +157,7 @@ Starts a [visit](/http-api/guilds/#visiting-guilds) to the guild of a guild invi
 | 403 | [error response](/http-api/#error-response) | `GUILD_VISITS_DISABLED` when the guild does not accept visitors |
 | 403 | [error response](/http-api/#error-response) | `INVITES_DISABLED` when the guild has paused invites |
 | 403 | [error response](/http-api/#error-response) | `FEATURE_TEMPORARILY_DISABLED` when `INSTANT_INVITES` is set in the guild's [disabled operations](/http-api/guilds/#disabled-guild-operations) |
-| 403 | [error response](/http-api/#error-response) | `USER_BANNED_FROM_GUILD` or `USER_IP_BANNED_FROM_GUILD` when the caller is banned |
+| 403 | [error response](/http-api/#error-response) | `USER_BANNED_FROM_GUILD` when the caller is banned |
 | 403 | [error response](/http-api/#error-response) | `ACCOUNT_LIMITED` when the account is [limited](/http-api/users/#account-limitation) |
 | 404 | [error response](/http-api/#error-response) | `UNKNOWN_INVITE` or `UNKNOWN_GUILD` when the invite or guild is unavailable |
 

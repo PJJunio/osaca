@@ -27,14 +27,12 @@ Some codes add more top-level fields, and a request that fails a field check als
 | --- | --- | --- |
 | 400 | The request is invalid or failed a check | Fix the request before you send it again. On `SLOWMODE_RATE_LIMITED`, wait the seconds in `retry_after` |
 | 401 | The token is missing, invalid or expired, or a passkey sign-in failed | Get a new token and stop using the rejected one, unless `code` is `PASSKEY_AUTHENTICATION_FAILED` |
-| 403 | The account, token or network isn't allowed to make this request | Check `code` and your permissions, and don't send the same request again |
+| 403 | The account or token isn't allowed to make this request | Check `code` and your permissions, and don't send the same request again |
 | 404 | The resource or route doesn't exist, or you can't see it | Check the ID and the route |
 | 409 | The request conflicts with the current state | Fetch the current state and change the request to match it |
 | 423 | Another request holds a lock on the resource | Wait the number of seconds in the `Retry-After` header and try again |
 | 429 | You're rate limited, or another request is changing the same resource (`RESOURCE_LOCKED`) | Wait the number of seconds in `retry_after`, which can be a fraction, and try again. See [Rate limits](/topics/rate-limits/) |
 | 500, 502, 503, 504 | Something failed on the instance | Wait the number of seconds in `Retry-After` if it's sent, or use exponential backoff. Give up after a few tries |
-
-If your IP address is blocked for a while because of abusive traffic, requests return 403 `GLOBAL_IP_TEMPORARILY_BANNED`, and `expires_at` says when the block ends.
 
 ## Validation errors
 
@@ -70,7 +68,6 @@ This table has the most common extra fields. Any other extra fields are listed o
 | `captcha_provider`, `altcha_challenge` | On `CAPTCHA_REQUIRED` and `INVALID_CAPTCHA`, the challenge to solve, as described in [CAPTCHA handling](/topics/captcha/) |
 | `step_index` | On `INVALID_REPORT_FLOW_ANSWERS`, the index of the first [report flow step](/http-api/reports/#report-flow-step-object) whose answer isn't valid |
 | `action`, `tier`, `need` | On `ACCOUNT_VERIFICATION_REQUIRED`, what was refused and which step is missing, as described in [account tiers](/http-api/users/#account-tiers) |
-| `ban_kind`, `expires_at`, `reason` | On `GLOBAL_IP_BANNED` and `GLOBAL_IP_TEMPORARILY_BANNED`, details of the block, listed in full under [network block response](/http-api/authentication/#network-block-response) |
 | `notice` | On `ACCOUNT_SUSPENDED_TEMPORARILY` and `ACCOUNT_SUSPENDED_PERMANENTLY`, the [enforcement notice](/http-api/authentication/#enforcement-notice-object) for the account |
 
 ## API error codes
@@ -158,8 +155,6 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `FRIEND_REQUEST_BLOCKED` | User does not accept friend requests at this time |
 | `GATEWAY_TIMEOUT` | Gateway timeout |
 | `GENERAL_ERROR` | Something went wrong |
-| `GLOBAL_IP_BANNED` | {product_name} blocked access from this network |
-| `GLOBAL_IP_TEMPORARILY_BANNED` | {product_name} blocked access from this network |
 | `GONE` | Gone |
 | `GROUP_DM_MATURE_CONTENT_INELIGIBLE` | Not everyone in this group is eligible for mature content |
 | `GROUP_DM_RECIPIENTS_NOT_ADDABLE` | One or more selected users can't be added to this group DM |
@@ -206,8 +201,6 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `INVALID_WEBAUTHN_CREDENTIAL_COUNTER` | Invalid WebAuthn credential counter |
 | `INVALID_WEBAUTHN_PUBLIC_KEY_FORMAT` | Invalid WebAuthn public key format |
 | `INVITES_DISABLED` | Invites are disabled |
-| `IP_BAN_DECLINED` | This IP address cannot be added to the blocklist |
-| `IP_BAN_LINKED_TO_DECISION` | This network block belongs to an enforcement decision |
 | `MAX_ACTIVE_THREADS` | This community is at its active thread limit of {count} |
 | `MAX_APPLICATIONS` | You can't have more than {limit} applications |
 | `MAX_BADGES` | The limit is {count} badges |
@@ -319,7 +312,6 @@ These are the values of the top-level `code`, and the [OpenAPI document](/http-a
 | `UPDATE_FAILED` | We couldn't update the resource |
 | `USERNAME_NOT_AVAILABLE` | This username is not available |
 | `USER_BANNED_FROM_GUILD` | This user is banned from this community |
-| `USER_IP_BANNED_FROM_GUILD` | This user's IP is banned from this community |
 | `USER_NOT_IN_VOICE` | This user isn't in voice |
 | `USER_OWNS_GUILDS` | This user owns communities |
 | `VALIDATION_ERROR` | Validation failed |

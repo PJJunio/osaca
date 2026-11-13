@@ -4,13 +4,13 @@ import {isOperatorRequest, OPERATOR_PEER_ADDRESS} from '@app/api/admin/operator/
 import {Config} from '@app/api/Config';
 import type {APIConfig} from '@app/api/config/APIConfig';
 import type {HonoEnv} from '@app/api/types/HonoEnv';
+import type {HttpBindings} from '@hono/node-server';
 import {
 	extractClientIp,
 	MissingClientIpError,
 	requireClientIp,
 	resolveClientIpHeaderName,
 } from '@osaca/ip_utils/src/ClientIp';
-import type {HttpBindings} from '@hono/node-server';
 import type {Context} from 'hono';
 import {createMiddleware} from 'hono/factory';
 
@@ -73,6 +73,13 @@ export function requireConfiguredClientIp(request: Request, proxy: APIConfig['pr
 export function getRequestClientIp(ctx: Context<HonoEnv>): string | null {
 	return resolveClientIpWithOptions(ctx, proxyClientIpOptions(Config.proxy));
 }
+
+// Resolves the client address once, early, so every later middleware shares it. The address is used for rate limits
+// and never stored (ADR-0009).
+export const ClientIpResolutionMiddleware = createMiddleware<HonoEnv>(async (ctx, next) => {
+	getRequestClientIp(ctx);
+	await next();
+});
 
 export function requireRequestClientIp(ctx: Context<HonoEnv>): string {
 	const ip = getRequestClientIp(ctx);

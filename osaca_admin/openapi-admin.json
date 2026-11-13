@@ -1754,7 +1754,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Add a value to a blocklist. The request body is the shape the blocklist named by list_type accepts, and the value is validated and canonicalized for that blocklist. Adding an IP address that is on the instance exemption list is refused with 400 IP_BAN_DECLINED and recorded in the audit log. An IP address blocked by an enforcement decision returns 409 IP_BAN_LINKED_TO_DECISION with the decision ID, because only an account decision creates or changes such a block.",
+				"description": "Add a value to a blocklist. The request body is the shape the blocklist named by list_type accepts, and the value is validated and canonicalized for that blocklist.",
 				"security": [{"adminApiKey": []}],
 				"parameters": [
 					{
@@ -1954,7 +1954,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Report whether a value is currently blocked by a blocklist. The value is percent-encoded in the path. An IP address can still match a broader stored CIDR entry, and a url-domain value can be a hostname or an http(s) URL that a stored domain or pattern covers. The profile-substring blocklist requires a scope.",
+				"description": "Report whether a value is currently blocked by a blocklist. The value is percent-encoded in the path. A url-domain value can be a hostname or an http(s) URL that a stored domain or pattern covers. The profile-substring blocklist requires a scope.",
 				"security": [{"adminApiKey": []}],
 				"parameters": [
 					{
@@ -2103,7 +2103,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Remove an entry from a blocklist. The value is percent-encoded in the path and is canonicalized the same way it was on add, so an IP covered only by a broader CIDR entry cannot be removed through the narrower address. An IP block that belongs to an enforcement decision returns 409 IP_BAN_LINKED_TO_DECISION with the decision ID, and is removed by ending that decision. The profile-substring blocklist requires a scope.",
+				"description": "Remove an entry from a blocklist. The value is percent-encoded in the path and is canonicalized the same way it was on add. The profile-substring blocklist requires a scope.",
 				"security": [{"adminApiKey": []}],
 				"parameters": [
 					{
@@ -10448,7 +10448,7 @@
 				"type": "object",
 				"properties": {
 					"acls": {
-						"maxItems": 99,
+						"maxItems": 96,
 						"type": "array",
 						"items": {"$ref": "#/components/schemas/AdminAclType"},
 						"description": "List of access control permissions to assign"
@@ -10519,9 +10519,6 @@
 					"ban:phrase:add",
 					"ban:phrase:check",
 					"ban:phrase:remove",
-					"ban:ip:add",
-					"ban:ip:check",
-					"ban:ip:remove",
 					"ban:url:add",
 					"ban:url:check",
 					"ban:url:remove",
@@ -13645,7 +13642,7 @@
 			},
 			"AdminBlocklistListType": {
 				"type": "string",
-				"enum": ["ip", "phrase", "url", "url-domain", "file-sha", "avatar-hash", "profile-substring"],
+				"enum": ["phrase", "url", "url-domain", "file-sha", "avatar-hash", "profile-substring"],
 				"description": "The blocklist an entry belongs to"
 			},
 			"AdminBlocklistEntryUpdateRequest": {
@@ -13660,20 +13657,8 @@
 			},
 			"BanCheckResponseSchema": {
 				"type": "object",
-				"properties": {
-					"banned": {"type": "boolean"},
-					"expires_at": {
-						"nullable": true,
-						"description": "ISO 8601 timestamp when the matching ban expires. Null when the ban is permanent, when nothing matches, and on every blocklist other than ip.",
-						"type": "string"
-					},
-					"decision_id": {
-						"nullable": true,
-						"description": "Enforcement decision the matching ip block belongs to. Null for a block added through the blocklist, when nothing matches, and on every blocklist other than ip.",
-						"allOf": [{"$ref": "#/components/schemas/SnowflakeStringType"}]
-					}
-				},
-				"required": ["banned", "expires_at", "decision_id"],
+				"properties": {"banned": {"type": "boolean"}},
+				"required": ["banned"],
 				"additionalProperties": false
 			},
 			"AdminBlocklistBulkDeleteRequest": {
@@ -13698,7 +13683,6 @@
 			},
 			"AdminBlocklistEntryCreateRequest": {
 				"anyOf": [
-					{"$ref": "#/components/schemas/BanIpRequest"},
 					{"$ref": "#/components/schemas/BanPhraseRequest"},
 					{"$ref": "#/components/schemas/BanUrlRequest"},
 					{"$ref": "#/components/schemas/BanUrlDomainRequest"},
@@ -13759,16 +13743,6 @@
 									"description": "Whether subdomains are covered by the entry, or null when the blocklist has no such flag",
 									"type": "boolean"
 								},
-								"reason": {
-									"nullable": true,
-									"description": "The stored reason for the entry, or null",
-									"type": "string"
-								},
-								"expires_at": {
-									"nullable": true,
-									"description": "ISO 8601 timestamp when the entry expires, or null",
-									"type": "string"
-								},
 								"created_at": {
 									"nullable": true,
 									"description": "ISO 8601 timestamp when the entry was added, or null",
@@ -13790,8 +13764,6 @@
 								"notes",
 								"content_type",
 								"match_subdomains",
-								"reason",
-								"expires_at",
 								"created_at",
 								"created_by_user_id"
 							],
@@ -14290,7 +14262,7 @@
 					},
 					"acls": {
 						"description": "Replacement list of access control permissions for the key",
-						"maxItems": 99,
+						"maxItems": 96,
 						"type": "array",
 						"items": {"$ref": "#/components/schemas/AdminAclType"}
 					}
@@ -14308,7 +14280,7 @@
 						"type": "string"
 					},
 					"acls": {
-						"maxItems": 99,
+						"maxItems": 96,
 						"type": "array",
 						"items": {"type": "string"},
 						"description": "List of access control permissions for the key"
@@ -14338,7 +14310,7 @@
 						"maximum": 365
 					},
 					"acls": {
-						"maxItems": 99,
+						"maxItems": 96,
 						"type": "array",
 						"items": {"$ref": "#/components/schemas/AdminAclType"},
 						"description": "List of access control permissions for the key"
@@ -14359,7 +14331,7 @@
 						"type": "string"
 					},
 					"acls": {
-						"maxItems": 99,
+						"maxItems": 96,
 						"type": "array",
 						"items": {"type": "string"},
 						"description": "List of access control permissions for the key"
@@ -14372,7 +14344,7 @@
 				"type": "object",
 				"properties": {
 					"acls": {
-						"maxItems": 99,
+						"maxItems": 96,
 						"type": "array",
 						"items": {"type": "string", "minLength": 1, "maxLength": 64},
 						"description": "Every admin access control permission the admin API recognises"
@@ -14663,19 +14635,6 @@
 					}
 				},
 				"required": ["phrase"]
-			},
-			"BanIpRequest": {
-				"type": "object",
-				"properties": {
-					"ip": {"description": "IPv4/IPv6 address or CIDR range to ban", "type": "string"},
-					"duration_hours": {
-						"description": "Hours until the ban expires and its entry is removed. Omit it or use 0 for a permanent ban.",
-						"type": "integer",
-						"minimum": 0,
-						"maximum": 8760
-					}
-				},
-				"required": ["ip"]
 			},
 			"CheckAvatarHashRequest": {
 				"type": "object",
@@ -17834,7 +17793,7 @@
 						"description": "The enforcement decision behind the current suspension or closure, null when none owns it",
 						"allOf": [{"$ref": "#/components/schemas/SnowflakeStringType"}]
 					},
-					"acls": {"maxItems": 99, "type": "array", "items": {"type": "string"}},
+					"acls": {"maxItems": 96, "type": "array", "items": {"type": "string"}},
 					"traits": {"maxItems": 100, "type": "array", "items": {"type": "string"}},
 					"badge_ids": {"allOf": [{"$ref": "#/components/schemas/CustomBadgeIdListResponse"}]},
 					"has_totp": {"type": "boolean"},
@@ -18430,10 +18389,6 @@
 					"INVALID_WEBAUTHN_CREDENTIAL",
 					"INVALID_WEBAUTHN_PUBLIC_KEY_FORMAT",
 					"INVITES_DISABLED",
-					"GLOBAL_IP_BANNED",
-					"GLOBAL_IP_TEMPORARILY_BANNED",
-					"IP_BAN_DECLINED",
-					"IP_BAN_LINKED_TO_DECISION",
 					"MAX_APPLICATIONS",
 					"MAX_BADGES",
 					"MAX_BOOKMARKS",
@@ -18550,7 +18505,6 @@
 					"USERNAME_NOT_AVAILABLE",
 					"UPDATE_FAILED",
 					"USER_BANNED_FROM_GUILD",
-					"USER_IP_BANNED_FROM_GUILD",
 					"USER_NOT_IN_VOICE",
 					"USER_OWNS_GUILDS",
 					"VALIDATION_ERROR",
@@ -18700,10 +18654,6 @@
 					"Failed to verify WebAuthn credential.",
 					"Invalid WebAuthn public key format.",
 					"Invites are disabled.",
-					"{reason, select, shown {{product_name} blocked access from this network because of activity that broke its rules.} other {{product_name} blocked access from this network.}} If you share this network, for example at school, at work, on public Wi-Fi, through your mobile carrier or a VPN, this block may have nothing to do with you. The quickest fix is to switch networks, for example to mobile data instead of Wi-Fi, or to turn your VPN on or off.{appealEmail, select, null {} other { If you think this block is a mistake, email {appealEmail} and include your IP address, {ipAddress}.}}",
-					"{reason, select, shown {{product_name} blocked access from this network because of activity that broke its rules.} other {{product_name} blocked access from this network.}} The block ends on {expiresAt}. If you share this network, for example at school, at work, on public Wi-Fi, through your mobile carrier or a VPN, this block may have nothing to do with you. The quickest fix is to switch networks, for example to mobile data instead of Wi-Fi, or to turn your VPN on or off.{appealEmail, select, null {} other { If you think this block is a mistake, email {appealEmail} and include your IP address, {ipAddress}.}}",
-					"This IP address cannot be added to the blocklist.",
-					"This network block belongs to an enforcement decision. End the decision to remove it.",
 					"You can't have more than {limit, plural, one {# application} other {# applications}}.",
 					"The limit is {count, plural, one {# badge} other {# badges}}.",
 					"You can't have more than {count, plural, one {# bookmark} other {# bookmarks}}.",
@@ -18820,7 +18770,6 @@
 					"This username is not available.",
 					"We couldn't update the resource. Please try again.",
 					"This user is banned from this community.",
-					"This user's IP is banned from this community.",
 					"This user isn't in voice.",
 					"This user owns communities.",
 					"Validation failed.",

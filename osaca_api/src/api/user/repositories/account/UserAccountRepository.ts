@@ -218,25 +218,14 @@ export class UserAccountRepository {
 	async deleteUserSecondaryIndices(userId: UserID): Promise<void> {
 		const user = await this.findUnique(userId);
 		if (!user) return;
-		await this.indexRepo.deleteIndices(userId, user.username, user.discriminator, user.lastActiveIp, user.acls);
+		await this.indexRepo.deleteIndices(userId, user.username, user.discriminator, user.acls);
 	}
 
-	async updateLastActiveAt(params: {userId: UserID; lastActiveAt: Date; lastActiveIp?: string}): Promise<void> {
-		const activityUpdate = await this.dataRepo.updateLastActiveAt(params);
-		if (params.lastActiveIp !== undefined) {
-			await this.indexRepo.updateLastActiveIpIndex(
-				params.userId,
-				activityUpdate.updatedData.last_active_ip ?? params.lastActiveIp,
-				activityUpdate.updatedData.last_active_at ?? params.lastActiveAt,
-				activityUpdate.previousData.last_active_ip,
-			);
-		}
+	async updateLastActiveAt(params: {userId: UserID; lastActiveAt: Date}): Promise<void> {
+		await this.dataRepo.updateLastActiveAt(params);
 	}
 
-	async getActivityTracking(userId: UserID): Promise<{
-		last_active_at: Date | null;
-		last_active_ip: string | null;
-	} | null> {
+	async getActivityTracking(userId: UserID): Promise<{last_active_at: Date | null} | null> {
 		return this.dataRepo.getActivityTracking(userId);
 	}
 

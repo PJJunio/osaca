@@ -1981,16 +1981,6 @@ msgstr "Pictograma aplicației {productName}"
 msgid "{productName} avoids sending push notifications to your mobile devices when you are at your computer. Choose how long you need to be inactive on desktop before you receive push notifications."
 msgstr "{productName} evită trimiterea de notificări push către dispozitivele tale mobile când ești la calculator. Alege cât timp trebuie să fii inactiv pe desktop înainte de a primi notificări push."
 
-#. First sentence of the network blocked screen when a rule is shown. productName is the app name. Must read the same as the error message for this block.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "{productName} blocked access from this network because of activity that broke its rules."
-msgstr "{productName} a blocat accesul din această rețea din cauza unei activități care i-a încălcat regulile."
-
-#. First sentence of the network blocked screen when no rule is shown. productName is the app name. Must read the same as the error message for this block.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "{productName} blocked access from this network."
-msgstr "{productName} a blocat accesul din această rețea."
-
 #. Linux settings text before system-wide shortcuts are set up. The desktop environment owns the keys. {productName} is the app name.
 #: src/features/user/components/modals/tabs/components/SystemShortcutsSection.tsx
 msgid "{productName} can ask your desktop to run its keybinds while {productName} is not focused. Your desktop asks you to confirm and lets you pick the keys."
@@ -19242,16 +19232,6 @@ msgstr "Dacă salvezi acest nume de utilizator, tagul tău va fi reinițializat 
 msgid "If you save this username, your tag will reroll randomly when your {PREMIUM_PRODUCT_NAME} expires, unless it renews."
 msgstr "Dacă salvezi acest nume de utilizator, tagul tău va fi reinițializat aleatoriu când {PREMIUM_PRODUCT_NAME} expiră, cu excepția cazului în care se reînnoiește."
 
-#. Paragraph on the network blocked screen for people who share a network with others. Must read the same as the error message for this block.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "If you share this network, for example at school, at work, on public Wi-Fi, through your mobile carrier or a VPN, this block may have nothing to do with you. The quickest fix is to switch networks, for example to mobile data instead of Wi-Fi, or to turn your VPN on or off."
-msgstr "Dacă folosești această rețea împreună cu alte persoane, de exemplu la școală, la serviciu, pe o rețea Wi-Fi publică, prin operatorul de telefonie mobilă sau printr-un VPN, este posibil ca acest blocaj să nu aibă nicio legătură cu tine. Cea mai rapidă soluție este să schimbi rețeaua, de exemplu să folosești datele mobile în loc de Wi-Fi sau să pornești ori să oprești VPN-ul."
-
-#. Line on the network blocked screen. The link is the contact email address and ip is the blocked IP address.
-#: src/features/auth/flow/AccountRestrictionScreen.tsx
-msgid "If you think this block is a mistake, email <0>{email}</0> and include your IP address, {ip}."
-msgstr "Dacă crezi că acest blocaj este o greșeală, scrie la <0>{email}</0> și include adresa ta IP, {ip}."
-
 #. Appeal line for a restriction from before the team recorded decisions, with no appeal deadline. The link is the appeals email address.
 #: src/features/auth/flow/AccountRestrictionScreen.tsx
 msgid "If you think we got this wrong, email <0>{email}</0> and include your username."
@@ -24003,11 +23983,6 @@ msgstr "Țările de Jos"
 #: src/features/voice/components/voice_connection_status/shared.ts
 msgid "Network"
 msgstr "Rețea"
-
-#. Title of the screen and dialog shown when the instance blocks the network a request came from.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "Network blocked"
-msgstr "Rețea blocată"
 
 #. Error message in the devices tab.
 #: src/features/user/components/modals/tabs/DevicesTab.tsx
@@ -36431,11 +36406,6 @@ msgstr "Interdicția expirase deja pe {date}"
 msgid "The ban was scheduled to expire on {date}"
 msgstr "Interdicția ar fi expirat pe {date}"
 
-#. Line on the network blocked screen for a block with an end. date is a date and time.
-#: src/features/auth/flow/AccountRestrictionScreen.tsx
-msgid "The block ends on {date}."
-msgstr "Blocajul se încheie pe {date}."
-
 #: src/features/auth/components/pages/oauth_authorize_page/OAuthSuccessState.tsx
 msgid "The bot has been added to <0>{destinationName}</0>."
 msgstr "Botul a fost adăugat la <0>{destinationName}</0>."
@@ -44386,16 +44356,6 @@ msgstr "Invitația ta expiră în 24 de ore"
 #: src/features/auth/components/pages/AuthorizeIPPage.tsx
 msgid "Your IP address has been successfully authorized. You can close this page or sign in again."
 msgstr "Adresa ta IP a fost autorizată cu succes. Poți închide această pagină sau te poți autentifica din nou."
-
-#. Error message in the user ip banned from guild modal. Keep the tone plain and specific.
-#: src/features/invite/commands/InviteCommands.tsx
-msgid "Your IP address is banned from this community and you cannot join."
-msgstr "Adresa ta IP are interdicție în această comunitate și nu te poți alătura."
-
-#. Label in the user ip banned from guild modal. Keep the tone plain and specific.
-#: src/features/invite/commands/InviteCommands.tsx
-msgid "Your IP is banned"
-msgstr "IP-ul tău are interdicție"
 
 #: src/features/app/components/dialogs/components/plutonium/RefundsSection.tsx
 msgid "Your last purchase is outside the refund window. Contact support for billing issues."

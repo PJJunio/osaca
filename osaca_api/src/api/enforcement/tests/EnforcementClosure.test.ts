@@ -149,7 +149,7 @@ describe('Enforcement closures', () => {
 			expect(decision.notice_text).toContain('You may not create or use other accounts.');
 			const [action] = publisher.adminActions(target.userId);
 			expect(action).toMatchObject({action: 'schedule_deletion', reason_code: DeletionReasons.SPAM});
-			expect(action?.ips.length).toBeGreaterThan(0);
+			expect(action?.ips).toEqual([]);
 		});
 
 		test('a self-hosted instance has no appeal route, so a closure lasts at least 14 days', async () => {

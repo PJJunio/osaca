@@ -11,7 +11,6 @@ import {
 	startActivityEvents,
 } from '@app/api/infrastructure/activity/ActivityEvents';
 import {setActivityProcessChannel} from '@app/api/infrastructure/activity/ActivityMeta';
-import {startSharedListWatch, stopSharedListWatch} from '@app/api/infrastructure/activity/SharedLists';
 import {sizeProcessForHost} from '@app/api/infrastructure/HostResources';
 import type {ISnowflakeService} from '@app/api/infrastructure/ISnowflakeService';
 import {shutdownStorageChangeFeed} from '@app/api/infrastructure/StorageServiceFactory';
@@ -29,7 +28,6 @@ import {
 } from '@app/api/middleware/ServiceRegistry';
 import {
 	getAdminArchiveService,
-	getAdminRepository,
 	getInstanceConfigRepository,
 	getLimitConfigService,
 } from '@app/api/middleware/ServiceSingletons';
@@ -224,7 +222,6 @@ export async function startWorkerRuntime(options: WorkerRuntimeOptions): Promise
 				js: jsConnectionManager.getJetStreamClient(),
 				state: accountStateDepsFromContext(
 					apiContext,
-					getAdminRepository(),
 					{
 						userCacheService: dependencies.userCacheService,
 						guildRepository: dependencies.guildRepository,
@@ -315,7 +312,6 @@ export async function startWorkerMain(): Promise<void> {
 		await cleanupStep('worker runtime', () => runtime?.stop());
 		await voiceShutdown;
 		await cleanupStep('storage change feed', shutdownStorageChangeFeed);
-		await cleanupStep('shared lists', stopSharedListWatch);
 		await cleanupStep('activity events', () => shutdownActivityEvents());
 		await cleanupStep('jetstream', async () => {
 			await jsConnectionManager?.drain();
@@ -415,7 +411,6 @@ export async function startWorkerMain(): Promise<void> {
 			jsm: await jsConnectionManager.getJetStreamManager(),
 			spoolWhileMissing: !Config.instance.selfHosted,
 		});
-		startSharedListWatch(jsConnectionManager.getJetStreamClient(), {selfHosted: Config.instance.selfHosted});
 		runtime = await startWorkerRuntime({
 			jsConnectionManager,
 			queue,

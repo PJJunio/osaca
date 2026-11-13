@@ -18,9 +18,6 @@ pub const BADGE_UPDATE: &str = "badge:update";
 pub const BAN_PHRASE_ADD: &str = "ban:phrase:add";
 pub const BAN_PHRASE_CHECK: &str = "ban:phrase:check";
 pub const BAN_PHRASE_REMOVE: &str = "ban:phrase:remove";
-pub const BAN_IP_ADD: &str = "ban:ip:add";
-pub const BAN_IP_CHECK: &str = "ban:ip:check";
-pub const BAN_IP_REMOVE: &str = "ban:ip:remove";
 pub const BAN_URL_ADD: &str = "ban:url:add";
 pub const BAN_URL_CHECK: &str = "ban:url:check";
 pub const BAN_URL_REMOVE: &str = "ban:url:remove";
@@ -118,9 +115,6 @@ pub const ALL_ACLS: &[&str] = &[
     BAN_PHRASE_ADD,
     BAN_PHRASE_CHECK,
     BAN_PHRASE_REMOVE,
-    BAN_IP_ADD,
-    BAN_IP_CHECK,
-    BAN_IP_REMOVE,
     BAN_URL_ADD,
     BAN_URL_CHECK,
     BAN_URL_REMOVE,

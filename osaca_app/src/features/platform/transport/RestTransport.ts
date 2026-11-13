@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {accountRestrictionFromBody} from '@app/features/auth/state/AccountRestriction';
 import {isDesktopLocalAppDocument, isDesktopLocalAppOrigin} from '@app/features/platform/DesktopLocalAppRuntime';
 import {
 	AccountScopedWork,
@@ -24,6 +23,8 @@ import type {
 import {resolveDocumentURLFromRoot} from '@app/features/platform/URLOriginUtils';
 import {Logger} from '@app/features/platform/utils/AppLogger';
 import {getElectronAPI} from '@app/features/ui/utils/NativeUtils';
+import {i18n} from '@lingui/core';
+import {msg} from '@lingui/core/macro';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {Headers} from '@osaca/constants/src/Headers';
 import {HttpStatus} from '@osaca/constants/src/HttpConstants';
@@ -35,8 +36,6 @@ import {
 	LOCAL_APP_UPLOAD_ID_HEADER,
 } from '@osaca/desktop_ipc/src/LocalAppRouteContract';
 import {isObjectLike as isRecord} from '@osaca/record_utils/src/RecordGuards';
-import {i18n} from '@lingui/core';
-import {msg} from '@lingui/core/macro';
 
 const TOO_MANY_REQUESTS_DESCRIPTOR = msg({message: 'Too many requests. Try again later.'});
 const log = new Logger('RestClient');
@@ -862,15 +861,6 @@ async function reactToOutcome(
 	}
 	if (reply.status === 403 && hasContentBlockedCode(reply.body) && !plan.suppressContentBlockedModal) {
 		void import('@app/features/auth/components/ContentBlockedHandler').then((m) => m.showContentBlockedModal());
-	}
-	const restriction =
-		reply.status === 403 && plan.headers[Headers.AUTHORIZATION] !== undefined
-			? accountRestrictionFromBody(reply.body)
-			: null;
-	if (restriction?.type === 'network_blocked') {
-		void import('@app/features/auth/components/NetworkBlockedHandler').then((m) =>
-			m.showNetworkBlockedModal(restriction.block),
-		);
 	}
 	if (plan.mode === 'silent') {
 		propagateSudoToken(state, receivedSudoToken);

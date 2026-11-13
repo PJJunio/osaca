@@ -44,22 +44,6 @@ Registration returns this object when an admin has to approve the account first.
 | registration_pending_approval | boolean | Always `true` |
 | user_id | snowflake | The ID of the account waiting for approval |
 
-## Network block response
-
-A request from a blocked network returns 403 `GLOBAL_IP_BANNED` or `GLOBAL_IP_TEMPORARILY_BANNED`, and the [error response](/http-api/#error-response) has these extra fields.
-
-| Field | Description |
-| --- | --- |
-| `ip_address` | The client IP address |
-| `appeal_email` | Always `null` on a self-hosted instance |
-| `appeals_supported` | Always `false` on a self-hosted instance |
-| `ban_kind` | `permanent`, or `temporary_24h` for any ban with an expiry |
-| `expires_at` | When the ban ends as an ISO 8601 timestamp, or `null` |
-| `reason` | The rule behind the block as `title` and `url`, or `null` |
-| `product_name` | The instance name used in `message` |
-
-A blocked network can still load `GET /.well-known/osaca`, which the app uses to show the block message. Password, passkey and MFA sign-in still respond from a blocked network, and a suspended or closed account sees its [enforcement notice](#enforcement-notice-object). Every other result is the same network block error.
-
 ## Enforcement notice object
 
 `ACCOUNT_SUSPENDED_TEMPORARILY` and `ACCOUNT_SUSPENDED_PERMANENTLY` errors have a `notice` field with the enforcement notice for the account, in the request locale.

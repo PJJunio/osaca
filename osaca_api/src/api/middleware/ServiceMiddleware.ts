@@ -819,7 +819,6 @@ export const ServiceMiddleware = createMiddleware<HonoEnv>(async (ctx, next) => 
 		clientIp: getRequestClientIp(ctx),
 		userAgent: ctx.req.header('user-agent') ?? null,
 		locale: parseAcceptLanguage(ctx.req.header('accept-language')),
-		blockedNetworkSignIn: ctx.get('blockedNetworkSignIn') ?? null,
 	});
 	ctx.set('apiContext', apiContext);
 	ctx.set('sudoModeValid', false);

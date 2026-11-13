@@ -8,9 +8,7 @@ import {
 	setCassandraQueryExecutorForTesting,
 } from '@app/api/database/CassandraQueryExecution';
 import {resetGuildVisitorCachesForTesting} from '@app/api/guild/visits/GuildVisitorAccess';
-import {resetSharedListsForTests} from '@app/api/infrastructure/activity/SharedLists';
 import {SearchProvider} from '@app/api/infrastructure/SearchProvider';
-import {ipBanCache} from '@app/api/middleware/IpBanMiddleware';
 import {
 	setInjectedBlueskyOAuthService,
 	setInjectedGatewayService,
@@ -62,7 +60,6 @@ interface CreateApiTestHarnessOptions {
 
 export async function createApiTestHarness(options: CreateApiTestHarnessOptions = {}): Promise<ApiTestHarness> {
 	resetApiServicesForTesting();
-	await clearBannedIpsState();
 	setCassandraQueryExecutorForTesting(new InMemoryCassandraQueryExecutor());
 	const kvProvider = new MockKVProvider();
 	setInjectedKVProvider(kvProvider);
@@ -107,7 +104,6 @@ export async function createApiTestHarness(options: CreateApiTestHarnessOptions 
 		getInstanceConfigRepository().clearCacheForTesting();
 		kvProvider.reset();
 		setInjectedUnfurlerService(undefined);
-		resetSharedListsForTests();
 	}
 	async function resetData(): Promise<void> {
 		resetGuildVisitorCachesForTesting();
@@ -135,7 +131,6 @@ export async function createApiTestHarness(options: CreateApiTestHarnessOptions 
 		setInjectedGatewayService(new NoopGatewayService());
 		setInjectedKVProvider(new MockKVProvider());
 		setInjectedUnfurlerService(undefined);
-		resetSharedListsForTests();
 		const fallbackStorageService = new MockStorageService();
 		setInjectedStorageService(fallbackStorageService);
 		setInjectedMediaService(new TestMediaService(fallbackStorageService));
@@ -177,9 +172,4 @@ export async function createApiTestHarness(options: CreateApiTestHarnessOptions 
 		shutdown,
 		requestJson,
 	};
-}
-
-async function clearBannedIpsState(): Promise<void> {
-	ipBanCache.resetCaches();
-	resetSharedListsForTests();
 }

@@ -21,7 +21,6 @@ import {
 	applyHideRecentMessages,
 	applyLimitNewConversations,
 	applySetAccountLimit,
-	applyTempBanIp,
 	outcomeOf,
 } from '@app/api/user/services/AccountStateApplier';
 import {
@@ -83,7 +82,8 @@ export function applyAction(deps: AccountActionDeps, env: ActionEnvelope): Promi
 		case 'set_account_limit':
 			return applySetAccountLimit(deps.state, env);
 		case 'temp_ban_ip':
-			return applyTempBanIp(deps.state, env);
+			// The generated contract keeps the action; OSACA keeps no IP bans (ADR-0009).
+			return Promise.resolve(outcomeOf(env, 'unsupported'));
 		case 'limit_new_conversations':
 			return applyLimitNewConversations(deps.state, env);
 		case 'hide_profile':

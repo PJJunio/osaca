@@ -9,7 +9,6 @@ import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
 import {RateLimitConfigs} from '@app/api/RateLimitConfig';
 import type {HonoApp, HonoEnv} from '@app/api/types/HonoEnv';
 import {getAccountTier, tierContextFrom} from '@app/api/user/AccountTier';
-import {getRequestClientIp} from '@app/api/utils/RequestClientIp';
 import {Validator} from '@app/api/Validator';
 import {DiscoveryDisabledError} from '@osaca/errors/src/domains/discovery/DiscoveryDisabledError';
 import {GuildIdParam, InviteCodeParam} from '@osaca/schema/src/domains/common/CommonParamSchemas';
@@ -50,7 +49,6 @@ export function GuildVisitController(app: HonoApp) {
 				await ctx.get('guildVisitService').startFromInvite({
 					user: ctx.get('user'),
 					code: ctx.req.valid('param').invite_code,
-					ip: getRequestClientIp(ctx),
 				}),
 			);
 		},
@@ -78,7 +76,6 @@ export function GuildVisitController(app: HonoApp) {
 				await ctx.get('guildVisitService').startFromDiscovery({
 					user: ctx.get('user'),
 					guildId: createGuildID(ctx.req.valid('param').guild_id),
-					ip: getRequestClientIp(ctx),
 				}),
 			);
 		},

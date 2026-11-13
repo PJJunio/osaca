@@ -2,12 +2,6 @@
 
 import {Routes} from '@app/app/Routes';
 import {ExternalLink} from '@app/features/app/components/shared/ExternalLink';
-import {
-	NETWORK_BLOCK_LEAD_DESCRIPTOR,
-	NETWORK_BLOCK_LEAD_WITH_REASON_DESCRIPTOR,
-	NETWORK_BLOCKED_DESCRIPTOR,
-	SHARED_NETWORK_DESCRIPTOR,
-} from '@app/features/auth/AuthMessageDescriptors';
 import * as AuthenticationCommands from '@app/features/auth/commands/AuthenticationCommands';
 import styles from '@app/features/auth/flow/AccountRestrictionScreen.module.css';
 import {useAuthPresentation} from '@app/features/auth/flow/useAuthPresentation';
@@ -15,7 +9,7 @@ import {type StepTitleChangeHandler, useReportStepTitle} from '@app/features/aut
 import type {AccountRestriction} from '@app/features/auth/state/AccountRestriction';
 import Authentication from '@app/features/auth/state/Authentication';
 import {AuthCardVariant} from '@app/features/auth/state/AuthLayoutContext';
-import {BACK_TO_SIGN_IN_DESCRIPTOR, TRY_AGAIN_DESCRIPTOR} from '@app/features/i18n/utils/CommonMessageDescriptors';
+import {BACK_TO_SIGN_IN_DESCRIPTOR} from '@app/features/i18n/utils/CommonMessageDescriptors';
 import {getLocaleDirection} from '@app/features/i18n/utils/LocaleDirection';
 import * as RouterUtils from '@app/features/navigation/utils/RouterUtils';
 import {useLocation} from '@app/features/platform/components/router/RouterReact';
@@ -23,8 +17,7 @@ import {Button} from '@app/features/ui/button/Button';
 import {isMobileExperienceEnabled} from '@app/features/ui/utils/MobileExperience';
 import {msg} from '@lingui/core/macro';
 import {Trans, useLingui} from '@lingui/react/macro';
-import {getDateFormatter} from '@osaca/date_utils/src/DateFormatterCache';
-import type {EnforcementNotice, NetworkBlock} from '@osaca/schema/src/domains/auth/EnforcementNoticeSchemas';
+import type {EnforcementNotice} from '@osaca/schema/src/domains/auth/EnforcementNoticeSchemas';
 import {clsx} from 'clsx';
 import {observer} from 'mobx-react-lite';
 import {type ReactNode, useEffect} from 'react';
@@ -68,10 +61,6 @@ const DECISION_ID_DESCRIPTOR = msg({
 const RULE_DESCRIPTOR = msg({
 	message: 'Rule: {title}',
 	comment: 'Names the rule behind a restriction when the instance publishes no link for it. title is the rule title.',
-});
-const NETWORK_BLOCK_ENDS_DESCRIPTOR = msg({
-	message: 'The block ends on {date}.',
-	comment: 'Line on the network blocked screen for a block with an end. date is a date and time.',
 });
 const MARKDOWN_LINK = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
 
@@ -274,100 +263,28 @@ function NoticeView({
 	);
 }
 
-export function NetworkBlockDetails({block}: {block: NetworkBlock}) {
-	const {i18n} = useLingui();
-	const {appeal_email: email, ip_address: ip, reason, expires_at: expiresAt, product_name: productName} = block;
-	return (
-		<>
-			<p className={styles.text} data-flx="auth.flow.account-restriction-screen.network-block-details.lead">
-				{i18n._(reason == null ? NETWORK_BLOCK_LEAD_DESCRIPTOR : NETWORK_BLOCK_LEAD_WITH_REASON_DESCRIPTOR, {
-					productName,
-				})}
-			</p>
-			{reason == null ? null : (
-				<RuleLine rule={reason} data-flx="auth.flow.account-restriction-screen.network-block-details.rule-line" />
-			)}
-			{expiresAt == null ? null : (
-				<p className={styles.text} data-flx="auth.flow.account-restriction-screen.network-block-details.ends">
-					{i18n._(NETWORK_BLOCK_ENDS_DESCRIPTOR, {
-						date: `${getDateFormatter(i18n.locale, {dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC'}).format(new Date(expiresAt))} UTC`,
-					})}
-				</p>
-			)}
-			<p className={styles.text} data-flx="auth.flow.account-restriction-screen.network-block-details.shared">
-				{i18n._(SHARED_NETWORK_DESCRIPTOR)}
-			</p>
-			{email == null ? null : (
-				<p className={styles.text} data-flx="auth.flow.account-restriction-screen.network-block-details.appeal">
-					<Trans comment="Line on the network blocked screen. The link is the contact email address and ip is the blocked IP address.">
-						If you think this block is a mistake, email{' '}
-						<ExternalLink
-							href={mailtoHref(email)}
-							data-flx="auth.flow.account-restriction-screen.network-block-details.external-link"
-						>
-							{email}
-						</ExternalLink>{' '}
-						and include your IP address, {ip}.
-					</Trans>
-				</p>
-			)}
-		</>
-	);
-}
-
 interface AccountRestrictionScreenProps {
 	restriction: AccountRestriction;
 	onBackToSignIn: () => void;
-	onTryAgain: () => void;
 	onStepTitleChange?: StepTitleChangeHandler | null;
 }
 
 export function AccountRestrictionScreen({
 	restriction,
 	onBackToSignIn,
-	onTryAgain,
 	onStepTitleChange = null,
 }: AccountRestrictionScreenProps) {
 	const {i18n} = useLingui();
 	useAuthPresentation({variant: AuthCardVariant.STANDARD});
-	useReportStepTitle(
-		onStepTitleChange,
-		i18n._(restriction.type === 'notice' ? resolveNoticeTitle(restriction.notice) : NETWORK_BLOCKED_DESCRIPTOR),
-	);
+	useReportStepTitle(onStepTitleChange, i18n._(resolveNoticeTitle(restriction.notice)));
 	const showTitle = onStepTitleChange == null;
-	if (restriction.type === 'notice') {
-		return (
-			<NoticeView
-				notice={restriction.notice}
-				showTitle={showTitle}
-				onBackToSignIn={onBackToSignIn}
-				data-flx="auth.flow.account-restriction-screen.notice-view"
-			/>
-		);
-	}
 	return (
-		<ScreenRoot
-			footer={
-				<Button
-					fitContainer
-					onClick={onTryAgain}
-					data-flx="auth.flow.account-restriction-screen.network-blocked.button"
-				>
-					{i18n._(TRY_AGAIN_DESCRIPTOR)}
-				</Button>
-			}
-			data-flx="auth.flow.account-restriction-screen.network-blocked"
-		>
-			{showTitle ? (
-				<h1 className={styles.title} data-flx="auth.flow.account-restriction-screen.network-blocked.title">
-					{i18n._(NETWORK_BLOCKED_DESCRIPTOR)}
-				</h1>
-			) : null}
-			<NetworkBlockDetails
-				block={restriction.block}
-				data-flx="auth.flow.account-restriction-screen.network-block-details"
-			/>
-		</ScreenRoot>
+		<NoticeView
+			notice={restriction.notice}
+			showTitle={showTitle}
+			onBackToSignIn={onBackToSignIn}
+			data-flx="auth.flow.account-restriction-screen.notice-view"
+		/>
 	);
 }
 
@@ -388,7 +305,6 @@ export const AccountRestrictionGate = observer(function AccountRestrictionGate({
 		<AccountRestrictionScreen
 			restriction={restriction}
 			onBackToSignIn={handleBackToSignIn}
-			onTryAgain={AuthenticationCommands.clearAccountRestriction}
 			data-flx="auth.flow.account-restriction-screen.account-restriction-gate.account-restriction-screen"
 		/>
 	);

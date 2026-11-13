@@ -1,14 +1,11 @@
 import {ActivityContextMiddleware} from '@app/api/infrastructure/activity/ActivityMeta';
-import {resetSharedListsForTests} from '@app/api/infrastructure/activity/SharedLists';
-import {IpBanMiddleware, ipBanCache} from '@app/api/middleware/IpBanMiddleware';
 import {TrustedClientIpHeaderMiddleware} from '@app/api/middleware/TrustedClientIpHeaderMiddleware';
 import {NoopLogger} from '@app/api/test/mocks/NoopLogger';
 import type {HonoEnv} from '@app/api/types/HonoEnv';
-import type {ClientIpResolution} from '@app/api/utils/RequestClientIp';
+import {type ClientIpResolution, ClientIpResolutionMiddleware} from '@app/api/utils/RequestClientIp';
 import {ForbiddenError} from '@osaca/errors/src/domains/core/ForbiddenError';
-import {IpBannedError} from '@osaca/errors/src/domains/moderation/IpBannedError';
 import {Hono} from 'hono';
-import {beforeEach, describe, expect, it} from 'vitest';
+import {describe, expect, it} from 'vitest';
 
 interface Pipeline {
 	request: (headers: Record<string, string>) => Promise<Response>;
@@ -20,7 +17,7 @@ function createPipeline(clientIpHeaderName = 'x-forwarded-for'): Pipeline {
 	const resolutions: Array<ClientIpResolution | undefined> = [];
 	const errors: Array<unknown> = [];
 	const app = new Hono<HonoEnv>();
-	app.use(IpBanMiddleware);
+	app.use(ClientIpResolutionMiddleware);
 	app.use(async (ctx, next) => {
 		resolutions.push(ctx.get('clientIpResolution'));
 		await next();
@@ -49,11 +46,6 @@ function createPipeline(clientIpHeaderName = 'x-forwarded-for'): Pipeline {
 	};
 }
 
-beforeEach(() => {
-	ipBanCache.resetCaches();
-	resetSharedListsForTests();
-});
-
 describe('client ip resolution across the request pipeline', () => {
 	it('resolves once and shares that resolution with every later middleware', async () => {
 		const pipeline = createPipeline();
@@ -63,13 +55,12 @@ describe('client ip resolution across the request pipeline', () => {
 		expect(pipeline.resolutions[0]?.ip).toBe('203.0.113.10');
 		expect(pipeline.resolutions[1]).toBe(pipeline.resolutions[0]);
 	});
-	it('rejects a malformed client ip header after the ban check saw no address', async () => {
+	it('rejects a malformed client ip header after the early resolution saw no address', async () => {
 		const pipeline = createPipeline();
 		const response = await pipeline.request({'x-forwarded-for': 'not-an-ip'});
 		expect(response.status).toBe(403);
 		expect(pipeline.resolutions[0]?.ip).toBe(null);
 		expect(pipeline.errors[0]).toBeInstanceOf(ForbiddenError);
-		expect(pipeline.errors[0]).not.toBeInstanceOf(IpBannedError);
 	});
 	it('rejects x-forwarded-for with an empty first hop', async () => {
 		const pipeline = createPipeline();

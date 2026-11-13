@@ -42,7 +42,6 @@ const FIELDS_CLEARED_ON_DELETION = [
 	'terms_agreed_at',
 	'privacy_agreed_at',
 	'last_active_at',
-	'last_active_ip',
 	'acls',
 	'traits',
 	'mention_flags',

@@ -1,17 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use crate::api::client::{AdminApiClient, ApiError, ApiResult};
+use crate::api::client::{AdminApiClient, ApiResult};
 use crate::api::types::{FlashLevel, FlashMessage};
 use crate::middleware::auth::AuthContext;
 use crate::templates;
-use crate::utils::timestamps::format_admin_timestamp;
 use axum::response::{Html, IntoResponse, Response};
 use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct BanFormData {
-    #[serde(default)]
-    pub ip: Option<String>,
     #[serde(default)]
     pub domain: Option<String>,
     #[serde(default)]
@@ -33,8 +30,6 @@ pub struct BanFormData {
     #[serde(default)]
     pub substring: Option<String>,
     #[serde(default)]
-    pub duration_hours: Option<String>,
-    #[serde(default)]
     pub audit_log_reason: Option<String>,
     #[serde(default)]
     pub _csrf: Option<String>,
@@ -42,7 +37,6 @@ pub struct BanFormData {
 
 pub fn extract_value(form: &BanFormData, field: &str) -> String {
     let v = match field {
-        "ip" => form.ip.as_deref(),
         "phrase" => form.phrase.as_deref(),
         "url" => form.url.as_deref(),
         "sha256_hex" => form.sha256_hex.as_deref(),
@@ -61,7 +55,6 @@ pub async fn execute_ban(
 ) -> (&'static str, String) {
     let bulk_hashes = form.hashes.as_deref();
     let bulk_sha256_list = form.sha256_list.as_deref();
-    let duration_hours = form.duration_hours.as_deref();
     let audit_log_reason = form.audit_log_reason.as_deref();
     if (action == "bulk-ban" || action == "bulk-ban-files") && ban_type == "file-sha-bans" {
         let raw_hashes = if action == "bulk-ban-files" {
@@ -75,9 +68,6 @@ pub async fn execute_ban(
         return ("error", "Value is required".into());
     }
     match action {
-        "ban" if ban_type == "ip-bans" => {
-            execute_ip_ban(client, value, duration_hours, audit_log_reason).await
-        }
         "ban" => execute_single_ban(client, ban_type, value, audit_log_reason).await,
         "unban" => execute_single_unban(client, ban_type, value, audit_log_reason).await,
         "check" => execute_check(client, ban_type, value).await,
@@ -111,34 +101,6 @@ async fn execute_bulk_ban(
     }
 }
 
-async fn execute_ip_ban(
-    client: &AdminApiClient,
-    value: &str,
-    duration_hours: Option<&str>,
-    audit_log_reason: Option<&str>,
-) -> (&'static str, String) {
-    let duration_hours = match duration_hours.map(str::trim).filter(|v| !v.is_empty()) {
-        None => 0,
-        Some(raw) => match raw.parse::<u32>() {
-            Ok(hours) => hours,
-            Err(_) => return ("error", "Invalid ban duration".into()),
-        },
-    };
-    let success_message = if duration_hours == 0 {
-        format!("{value} banned permanently")
-    } else {
-        format!(
-            "{value} banned for {}",
-            crate::templates::pages::bans::ip_ban_duration_label(duration_hours)
-        )
-    };
-    ban_action_result(
-        client.ban_ip(value, duration_hours, audit_log_reason).await,
-        success_message,
-        format!("Failed to ban {value}"),
-    )
-}
-
 async fn execute_single_ban(
     client: &AdminApiClient,
     ban_type: &str,
@@ -161,7 +123,6 @@ async fn execute_single_ban(
 
 fn blocklist_type(ban_type: &str) -> Option<&'static str> {
     match ban_type {
-        "ip-bans" => Some("ip"),
         "phrase-bans" => Some("phrase"),
         "url-bans" => Some("url"),
         "file-sha-bans" => Some("file-sha"),
@@ -199,26 +160,7 @@ async fn execute_check(
     };
     let result = client.check_blocklist_entry(list_type, value, None).await;
     match result {
-        Ok(r) if r.banned && r.decision_id.is_some() => (
-            "info",
-            format!(
-                "{value} is blocked by decision {}{}. End that decision to remove the block.",
-                r.decision_id.unwrap_or_default(),
-                r.expires_at
-                    .map(|expires_at| format!(" until {}", format_admin_timestamp(&expires_at)))
-                    .unwrap_or_default()
-            ),
-        ),
-        Ok(r) if r.banned => match r.expires_at {
-            Some(expires_at) => (
-                "info",
-                format!(
-                    "{value} is banned until {}",
-                    format_admin_timestamp(&expires_at)
-                ),
-            ),
-            None => ("info", format!("{value} is banned")),
-        },
+        Ok(r) if r.banned => ("info", format!("{value} is banned")),
         Ok(_) => ("info", format!("{value} is NOT banned")),
         Err(error) => {
             tracing::warn!(%error, ban_type, value, "admin API request failed: check ban status");
@@ -234,12 +176,6 @@ fn ban_action_result(
 ) -> (&'static str, String) {
     match result {
         Ok(()) => ("success", success_message),
-        Err(ApiError::Http { status: 409, .. }) => (
-            "error",
-            format!(
-                "{error_message}. It belongs to an enforcement decision, so end that decision instead."
-            ),
-        ),
         Err(error) => {
             tracing::warn!(%error, "admin API request failed: ban action");
             ("error", error_message)

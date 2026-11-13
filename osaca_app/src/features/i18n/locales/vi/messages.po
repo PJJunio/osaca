@@ -1981,16 +1981,6 @@ msgstr "Biểu tượng ứng dụng {productName}"
 msgid "{productName} avoids sending push notifications to your mobile devices when you are at your computer. Choose how long you need to be inactive on desktop before you receive push notifications."
 msgstr "{productName} sẽ không gửi thông báo đẩy đến thiết bị di động của bạn khi bạn đang sử dụng máy tính. Chọn khoảng thời gian bạn cần không hoạt động trên máy tính trước khi nhận được thông báo đẩy."
 
-#. First sentence of the network blocked screen when a rule is shown. productName is the app name. Must read the same as the error message for this block.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "{productName} blocked access from this network because of activity that broke its rules."
-msgstr "{productName} đã chặn quyền truy cập từ mạng này do có hoạt động vi phạm quy tắc."
-
-#. First sentence of the network blocked screen when no rule is shown. productName is the app name. Must read the same as the error message for this block.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "{productName} blocked access from this network."
-msgstr "{productName} đã chặn quyền truy cập từ mạng này."
-
 #. Linux settings text before system-wide shortcuts are set up. The desktop environment owns the keys. {productName} is the app name.
 #: src/features/user/components/modals/tabs/components/SystemShortcutsSection.tsx
 msgid "{productName} can ask your desktop to run its keybinds while {productName} is not focused. Your desktop asks you to confirm and lets you pick the keys."
@@ -19242,16 +19232,6 @@ msgstr "Nếu bạn lưu tên người dùng này, thẻ của bạn sẽ đư�
 msgid "If you save this username, your tag will reroll randomly when your {PREMIUM_PRODUCT_NAME} expires, unless it renews."
 msgstr "Nếu bạn lưu tên người dùng này, thẻ của bạn sẽ được tạo ngẫu nhiên lại khi gói {PREMIUM_PRODUCT_NAME} của bạn hết hạn, trừ khi gói được gia hạn."
 
-#. Paragraph on the network blocked screen for people who share a network with others. Must read the same as the error message for this block.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "If you share this network, for example at school, at work, on public Wi-Fi, through your mobile carrier or a VPN, this block may have nothing to do with you. The quickest fix is to switch networks, for example to mobile data instead of Wi-Fi, or to turn your VPN on or off."
-msgstr "Nếu bạn dùng chung mạng này với người khác, ví dụ ở trường học, nơi làm việc, Wi-Fi công cộng, qua nhà mạng di động hoặc VPN, việc chặn này có thể không liên quan gì đến bạn. Cách khắc phục nhanh nhất là chuyển sang mạng khác, ví dụ dùng dữ liệu di động thay cho Wi-Fi, hoặc bật hay tắt VPN."
-
-#. Line on the network blocked screen. The link is the contact email address and ip is the blocked IP address.
-#: src/features/auth/flow/AccountRestrictionScreen.tsx
-msgid "If you think this block is a mistake, email <0>{email}</0> and include your IP address, {ip}."
-msgstr "Nếu bạn cho rằng việc chặn này là nhầm lẫn, hãy gửi email đến <0>{email}</0> và ghi kèm địa chỉ IP của bạn, {ip}."
-
 #. Appeal line for a restriction from before the team recorded decisions, with no appeal deadline. The link is the appeals email address.
 #: src/features/auth/flow/AccountRestrictionScreen.tsx
 msgid "If you think we got this wrong, email <0>{email}</0> and include your username."
@@ -24003,11 +23983,6 @@ msgstr "Hà Lan"
 #: src/features/voice/components/voice_connection_status/shared.ts
 msgid "Network"
 msgstr "Mạng"
-
-#. Title of the screen and dialog shown when the instance blocks the network a request came from.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "Network blocked"
-msgstr "Mạng bị chặn"
 
 #. Error message in the devices tab.
 #: src/features/user/components/modals/tabs/DevicesTab.tsx
@@ -36431,11 +36406,6 @@ msgstr "Lệnh cấm đã hết hạn vào {date}"
 msgid "The ban was scheduled to expire on {date}"
 msgstr "Lệnh cấm dự kiến sẽ hết hạn vào {date}"
 
-#. Line on the network blocked screen for a block with an end. date is a date and time.
-#: src/features/auth/flow/AccountRestrictionScreen.tsx
-msgid "The block ends on {date}."
-msgstr "Việc chặn sẽ kết thúc vào {date}."
-
 #: src/features/auth/components/pages/oauth_authorize_page/OAuthSuccessState.tsx
 msgid "The bot has been added to <0>{destinationName}</0>."
 msgstr "Bot đã được thêm vào <0>{destinationName}</0>."
@@ -44386,16 +44356,6 @@ msgstr "Lời mời của bạn sẽ hết hạn sau 24 giờ"
 #: src/features/auth/components/pages/AuthorizeIPPage.tsx
 msgid "Your IP address has been successfully authorized. You can close this page or sign in again."
 msgstr "Địa chỉ IP của bạn đã được ủy quyền thành công. Bạn có thể đóng trang này hoặc đăng nhập lại."
-
-#. Error message in the user ip banned from guild modal. Keep the tone plain and specific.
-#: src/features/invite/commands/InviteCommands.tsx
-msgid "Your IP address is banned from this community and you cannot join."
-msgstr "Địa chỉ IP của bạn đã bị cấm khỏi cộng đồng này và bạn không thể tham gia."
-
-#. Label in the user ip banned from guild modal. Keep the tone plain and specific.
-#: src/features/invite/commands/InviteCommands.tsx
-msgid "Your IP is banned"
-msgstr "IP của bạn đã bị cấm"
 
 #: src/features/app/components/dialogs/components/plutonium/RefundsSection.tsx
 msgid "Your last purchase is outside the refund window. Contact support for billing issues."

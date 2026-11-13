@@ -16,7 +16,6 @@ import type {ActivityPublisher} from '@app/api/infrastructure/activity/ActivityS
 import type {Event} from '@app/api/infrastructure/activity/Contract.generated';
 import {setInjectedGatewayService} from '@app/api/middleware/ServiceRegistry';
 import {getGuildRepository} from '@app/api/middleware/ServiceSingletons';
-import {banUser} from '@app/api/moderation/tests/ModerationTestUtils';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {NoopGatewayService} from '@app/api/test/NoopGatewayService';
 import {createTestWorkerHelpers} from '@app/api/test/SyncTaskWorkerService';
@@ -174,34 +173,6 @@ describe('Discovery Search and Join', () => {
 		});
 	});
 	describe('join', () => {
-		test('should block discovery join for same /64 IPv6 guild ban', async () => {
-			const owner = await createTestAccount(harness);
-			const guild = await createGuild(harness, owner.token, 'IPv6 Discovery Ban');
-			await setGuildMemberCount(harness, guild.id, 10);
-			const admin = await createTestAccount(harness);
-			await setUserACLs(harness, admin, ['admin:authenticate', 'discovery:review']);
-			await applyAndApprove(
-				harness,
-				owner.token,
-				admin.token,
-				guild.id,
-				'Join this community',
-				DiscoveryCategories.GAMING,
-			);
-			const bannedUser = await createTestAccount(harness, {ipAddress: '2a01:e0a:d10:95b0:9231:a3e4:939:e8e3'});
-			await createBuilder(harness, bannedUser.token)
-				.post(`/discovery/guilds/${guild.id}/join`)
-				.header('x-forwarded-for', bannedUser.ipAddress!)
-				.expect(HTTP_STATUS.NO_CONTENT)
-				.execute();
-			await banUser(harness, owner.token, guild.id, bannedUser.userId, 0);
-			const altUser = await createTestAccount(harness, {ipAddress: '2a01:e0a:d10:95b0:2415:acac:7521:2b4b'});
-			await createBuilder(harness, altUser.token)
-				.post(`/discovery/guilds/${guild.id}/join`)
-				.header('x-forwarded-for', altUser.ipAddress!)
-				.expect(HTTP_STATUS.FORBIDDEN, APIErrorCodes.USER_IP_BANNED_FROM_GUILD)
-				.execute();
-		});
 		test('should not allow joining non-discoverable guild', async () => {
 			const owner = await createTestAccount(harness);
 			const guild = await createGuild(harness, owner.token, 'Not Discoverable');

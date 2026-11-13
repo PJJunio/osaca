@@ -1981,16 +1981,6 @@ msgstr "A(z) {productName} alkalmazás ikonja"
 msgid "{productName} avoids sending push notifications to your mobile devices when you are at your computer. Choose how long you need to be inactive on desktop before you receive push notifications."
 msgstr "A(z) {productName} nem küld pushértesítéseket a mobileszközeidre, amikor a számítógépednél vagy. Válaszd ki, mennyi ideig kell inaktívnak lenned a számítógépen ahhoz, hogy pushértesítéseket kapj."
 
-#. First sentence of the network blocked screen when a rule is shown. productName is the app name. Must read the same as the error message for this block.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "{productName} blocked access from this network because of activity that broke its rules."
-msgstr "A(z) {productName} letiltotta a hozzáférést erről a hálózatról a szabályait sértő tevékenység miatt."
-
-#. First sentence of the network blocked screen when no rule is shown. productName is the app name. Must read the same as the error message for this block.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "{productName} blocked access from this network."
-msgstr "A(z) {productName} letiltotta a hozzáférést erről a hálózatról."
-
 #. Linux settings text before system-wide shortcuts are set up. The desktop environment owns the keys. {productName} is the app name.
 #: src/features/user/components/modals/tabs/components/SystemShortcutsSection.tsx
 msgid "{productName} can ask your desktop to run its keybinds while {productName} is not focused. Your desktop asks you to confirm and lets you pick the keys."
@@ -19242,16 +19232,6 @@ msgstr "Ha elmented ezt a felhasználónevet, a címkéd véletlenszerűen újra
 msgid "If you save this username, your tag will reroll randomly when your {PREMIUM_PRODUCT_NAME} expires, unless it renews."
 msgstr "Ha elmented ezt a felhasználónevet, a címkéd véletlenszerűen újra fog generálódni, amikor a(z) {PREMIUM_PRODUCT_NAME} lejár, hacsak nem újul meg."
 
-#. Paragraph on the network blocked screen for people who share a network with others. Must read the same as the error message for this block.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "If you share this network, for example at school, at work, on public Wi-Fi, through your mobile carrier or a VPN, this block may have nothing to do with you. The quickest fix is to switch networks, for example to mobile data instead of Wi-Fi, or to turn your VPN on or off."
-msgstr "Ha ezt a hálózatot másokkal közösen használod, például az iskolában, a munkahelyeden, nyilvános Wi-Fi-n, a mobilszolgáltatódon vagy egy VPN-en keresztül, előfordulhat, hogy a letiltásnak semmi köze hozzád. A leggyorsabb megoldás, ha hálózatot váltasz, például Wi-Fi helyett mobilinternetre, vagy ki- vagy bekapcsolod a VPN-t."
-
-#. Line on the network blocked screen. The link is the contact email address and ip is the blocked IP address.
-#: src/features/auth/flow/AccountRestrictionScreen.tsx
-msgid "If you think this block is a mistake, email <0>{email}</0> and include your IP address, {ip}."
-msgstr "Ha úgy gondolod, hogy a letiltás tévedés, írj a(z) <0>{email}</0> címre, és add meg az IP-címedet: {ip}."
-
 #. Appeal line for a restriction from before the team recorded decisions, with no appeal deadline. The link is the appeals email address.
 #: src/features/auth/flow/AccountRestrictionScreen.tsx
 msgid "If you think we got this wrong, email <0>{email}</0> and include your username."
@@ -24003,11 +23983,6 @@ msgstr "Hollandia"
 #: src/features/voice/components/voice_connection_status/shared.ts
 msgid "Network"
 msgstr "Hálózat"
-
-#. Title of the screen and dialog shown when the instance blocks the network a request came from.
-#: src/features/auth/AuthMessageDescriptors.ts
-msgid "Network blocked"
-msgstr "Hálózat letiltva"
 
 #. Error message in the devices tab.
 #: src/features/user/components/modals/tabs/DevicesTab.tsx
@@ -36431,11 +36406,6 @@ msgstr "A kitiltás már lejárt ekkor: {date}"
 msgid "The ban was scheduled to expire on {date}"
 msgstr "A kitiltásnak ekkor kellett volna lejárnia: {date}"
 
-#. Line on the network blocked screen for a block with an end. date is a date and time.
-#: src/features/auth/flow/AccountRestrictionScreen.tsx
-msgid "The block ends on {date}."
-msgstr "A letiltás vége: {date}."
-
 #: src/features/auth/components/pages/oauth_authorize_page/OAuthSuccessState.tsx
 msgid "The bot has been added to <0>{destinationName}</0>."
 msgstr "A bot hozzáadva ide: <0>{destinationName}</0>."
@@ -44386,16 +44356,6 @@ msgstr "A meghívód 24 óra múlva lejár"
 #: src/features/auth/components/pages/AuthorizeIPPage.tsx
 msgid "Your IP address has been successfully authorized. You can close this page or sign in again."
 msgstr "IP-címed sikeresen engedélyezve lett. Bezárhatod ezt az oldalt, vagy újra bejelentkezhetsz."
-
-#. Error message in the user ip banned from guild modal. Keep the tone plain and specific.
-#: src/features/invite/commands/InviteCommands.tsx
-msgid "Your IP address is banned from this community and you cannot join."
-msgstr "Az IP-címed ki van tiltva ebből a közösségből, ezért nem csatlakozhatsz."
-
-#. Label in the user ip banned from guild modal. Keep the tone plain and specific.
-#: src/features/invite/commands/InviteCommands.tsx
-msgid "Your IP is banned"
-msgstr "Az IP-címed ki van tiltva"
 
 #: src/features/app/components/dialogs/components/plutonium/RefundsSection.tsx
 msgid "Your last purchase is outside the refund window. Contact support for billing issues."

@@ -20,6 +20,8 @@ export interface RouteRateLimitConfig {
 	config: BucketConfig;
 	scope?: RateLimitScope;
 	trustForwardedClientIp?: boolean;
+	// Requests without a session share one bucket instead of one per client.
+	sharedWithoutSession?: boolean;
 }
 
 const TEST_ENABLE_RATE_LIMITS_HEADER = 'x-osaca-test-enable-rate-limits';
@@ -86,6 +88,7 @@ function getClientIdentifier(ctx: Context<HonoEnv>, routeConfig: RouteRateLimitC
 		}
 		return `user:${user.id}:${tokenType}`;
 	}
+	if (routeConfig.sharedWithoutSession) return 'anonymous';
 	if (routeConfig.trustForwardedClientIp) {
 		const forwardedIdentifier = getForwardedClientIdentifier(ctx, routeConfig.bucket);
 		if (forwardedIdentifier) return forwardedIdentifier;

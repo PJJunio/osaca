@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import {sha256Hex} from '@app/api/auth/AccountCodes';
 import {Config} from '@app/api/Config';
+import {parseInviteCodeList} from '@app/api/instance/AutoJoinInviteCodes';
 import {createRateLimitError} from '@app/api/utils/RateLimitUtils';
 import {getSameIpDecisionKey, getSubnet} from '@osaca/ip_utils/src/IpAddress';
 import type {IKVProvider} from '@pkgs/kv_client/src/IKVProvider';
@@ -14,7 +16,7 @@ export interface BudgetEnv {
 	enforce: boolean;
 }
 
-function shouldEnforceAccountBudgets(request: Request | null): boolean {
+export function shouldEnforceAccountBudgets(request: Request | null): boolean {
 	if (!Config.dev.testModeEnabled) return !Config.dev.disableRateLimits;
 	return request?.headers.get(TEST_ENABLE_RATE_LIMITS_HEADER) === 'true';
 }
@@ -103,4 +105,44 @@ export async function instantAccountCaptchaSteps(env: BudgetEnv, params: {escala
 
 export async function recordInstantAccountCreated(env: BudgetEnv): Promise<void> {
 	await bumpWindow(env.kv, INSTANT_GLOBAL_RULE);
+}
+
+// Accounts one invite or registration URL code may create in an hour, Instance-wide (ADR-0017). A leaked code then
+// cannot mint accounts faster than this, whoever uses it. A registration URL counts as its own code, not as the invite
+// it carries. Codes are hashed in the key.
+export const SIGN_UPS_PER_CODE_PER_HOUR = 30;
+
+export interface SignUpCodes {
+	registrationUrlCode: string | null;
+	inviteCode: string | null;
+}
+
+function signUpCodeCounters(codes: SignUpCodes): Array<WindowCounter> {
+	const counters: Array<WindowCounter> = [];
+	const registrationUrlCode = codes.registrationUrlCode?.trim();
+	if (registrationUrlCode) {
+		counters.push({key: `registration:code:registration_url:${sha256Hex(registrationUrlCode)}`, windowSeconds: HOUR});
+	}
+	for (const inviteCode of parseInviteCodeList(codes.inviteCode)) {
+		counters.push({key: `registration:code:invite:${sha256Hex(inviteCode)}`, windowSeconds: HOUR});
+	}
+	return counters;
+}
+
+export async function assertSignUpCodeBudget(env: BudgetEnv, codes: SignUpCodes): Promise<void> {
+	if (!env.enforce) return;
+	for (const counter of signUpCodeCounters(codes)) {
+		if ((await readSlidingWindow(env.kv, counter)) < SIGN_UPS_PER_CODE_PER_HOUR) continue;
+		throw createRateLimitError({
+			allowed: false,
+			limit: SIGN_UPS_PER_CODE_PER_HOUR,
+			remaining: 0,
+			resetTime: new Date(Date.now() + (HOUR * 1000) / SIGN_UPS_PER_CODE_PER_HOUR),
+			resetAfterDecimal: HOUR / SIGN_UPS_PER_CODE_PER_HOUR,
+		});
+	}
+}
+
+export async function recordSignUpThroughCodes(env: BudgetEnv, codes: SignUpCodes): Promise<void> {
+	for (const counter of signUpCodeCounters(codes)) await bumpWindow(env.kv, counter);
 }

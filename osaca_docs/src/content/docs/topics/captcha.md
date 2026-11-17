@@ -26,7 +26,7 @@ The error response has these fields next to `code` and `message`.
 
 A challenge works once and expires after 10 minutes. A rejected token returns 400 `INVALID_CAPTCHA` with a new challenge in the same fields.
 
-Logging in, recovering an account and creating an account make their challenge harder while the whole instance is busy. The cost doubles for every 120 solved challenges per minute for logging in, and for every 30 for recovering or creating an account, counted over the last minute across all clients. Instant accounts also double the cost for every [`pow_escalation_per_hour`](/admin-api/instance/#auth-configuration-object) accounts created in the past hour. The cost stops rising at 64 times the configured cost, and it never depends on where a request comes from.
+Logging in, recovering an account and creating an account make their challenge harder while the whole instance is busy. The cost doubles for every 120 solved challenges per minute for logging in, and for every 30 for recovering or creating an account, counted over the last minute across all clients. Every 10 failed logins to one username in the past hour also double the cost of logging in to it. Instant accounts also double the cost for every [`pow_escalation_per_hour`](/admin-api/instance/#auth-configuration-object) accounts created in the past hour. The cost stops rising at 64 times the configured cost, and it never depends on where a request comes from.
 
 A token solved just before the cost rose returns 400 `INVALID_CAPTCHA` with a new, harder challenge. Solve the challenge from the latest error response.
 

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import {loginFailureCaptchaSteps} from '@app/api/auth/AuthLogin';
 import * as AuthMfa from '@app/api/auth/AuthMfa';
 import {
 	assertAccountCreationPastSetup,
@@ -13,6 +14,7 @@ import {DefaultUserOnly, LoginRequired} from '@app/api/middleware/AuthMiddleware
 import {PressuredCaptchaMiddleware} from '@app/api/middleware/CaptchaMiddleware';
 import {RateLimitMiddleware} from '@app/api/middleware/RateLimitMiddleware';
 import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
+import {getKVClient} from '@app/api/middleware/ServiceRegistry';
 import {SudoModeMiddleware} from '@app/api/middleware/SudoModeMiddleware';
 import {RateLimitConfigs} from '@app/api/RateLimitConfig';
 import type {HonoApp, HonoEnv} from '@app/api/types/HonoEnv';
@@ -60,6 +62,12 @@ function optionalString(value: unknown): string | null {
 	return typeof value === 'string' && value.length > 0 ? value : null;
 }
 
+async function loginExtraCaptchaSteps(ctx: Context<HonoEnv>): Promise<number> {
+	const body: unknown = await ctx.req.json();
+	const login = isJsonRecord(body) ? optionalString(body.login) : null;
+	return login === null ? 0 : await loginFailureCaptchaSteps(getKVClient(), login);
+}
+
 async function registrationExtraCaptchaSteps(ctx: Context<HonoEnv>): Promise<number> {
 	const body: unknown = await ctx.req.json();
 	const fields = isJsonRecord(body) ? body : {};
@@ -105,7 +113,7 @@ export function AuthController(app: HonoApp) {
 	app.post(
 		'/auth/login',
 		RateLimitMiddleware(RateLimitConfigs.AUTH_LOGIN),
-		PressuredCaptchaMiddleware('login'),
+		PressuredCaptchaMiddleware('login', loginExtraCaptchaSteps),
 		Validator('json', LoginRequest),
 		OpenAPI({
 			operationId: 'login_user',
@@ -115,7 +123,7 @@ export function AuthController(app: HonoApp) {
 			security: [],
 			tags: ['Auth'],
 			description:
-				'Authenticate with a username (login) and password. Returns authentication token if credentials are valid and MFA is not required. If MFA is enabled, returns a ticket for MFA verification. Requires a solved captcha challenge (X-Captcha-Token), whose cost doubles while the instance sees many sign-ins.',
+				'Authenticate with a username (login) and password. Returns authentication token if credentials are valid and MFA is not required. If MFA is enabled, returns a ticket for MFA verification. Requires a solved captcha challenge (X-Captcha-Token), whose cost doubles while the instance sees many sign-ins and for every 10 failed sign-ins to that username in the past hour.',
 		}),
 		async (ctx) => {
 			const result = await ctx.get('authRequestService').login({

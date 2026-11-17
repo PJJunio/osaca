@@ -1,7 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type {ApiContext} from '@app/api/ApiContext';
-import {budgetEnvFor, enforceInstantAccountLimits, recordInstantAccountCreated} from '@app/api/auth/AccountBudgets';
+import {
+	assertSignUpCodeBudget,
+	budgetEnvFor,
+	enforceInstantAccountLimits,
+	recordInstantAccountCreated,
+	recordSignUpThroughCodes,
+} from '@app/api/auth/AccountBudgets';
 import * as AuthPassword from '@app/api/auth/AuthPassword';
 import * as AuthSession from '@app/api/auth/AuthSession';
 import {createInviteCode, createUserID, type UserID} from '@app/api/BrandedTypes';
@@ -265,6 +271,8 @@ async function createAccountAfterSetupCheck(
 	} else {
 		await enforceRegistrationRateLimits(ctx, {enforceRateLimits, clientIp});
 	}
+	const signUpCodes = {registrationUrlCode: input.registrationUrlCode ?? null, inviteCode: input.inviteCode ?? null};
+	await assertSignUpCodeBudget({...budgetEnv, enforce: enforceRateLimits}, signUpCodes);
 	const {username, discriminator} = await resolveRegistrationUsername({
 		users,
 		discriminatorService,
@@ -387,6 +395,7 @@ async function createAccountAfterSetupCheck(
 	);
 	await users.createAuthorizedIp(userId, clientIp);
 	if (instant) await recordInstantAccountCreated(budgetEnv);
+	await recordSignUpThroughCodes(budgetEnv, signUpCodes);
 	if (registrationAccess.pendingApproval) {
 		return {pendingApproval: true, user};
 	}

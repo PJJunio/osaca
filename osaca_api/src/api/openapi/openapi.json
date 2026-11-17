@@ -571,7 +571,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Authenticate with a username (login) and password. Returns authentication token if credentials are valid and MFA is not required. If MFA is enabled, returns a ticket for MFA verification. Requires a solved captcha challenge (X-Captcha-Token).",
+				"description": "Authenticate with a username (login) and password. Returns authentication token if credentials are valid and MFA is not required. If MFA is enabled, returns a ticket for MFA verification. Requires a solved captcha challenge (X-Captcha-Token), whose cost doubles while the instance sees many sign-ins.",
 				"requestBody": {
 					"required": true,
 					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/LoginRequest"}}}
@@ -1254,7 +1254,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Create a new user account from a username and password. A body without a password creates an instant account from global_name: the username is derived from the display name, and the account signs in on this device only until it is claimed with a password. Requires a solved captcha challenge (X-Captcha-Token), which costs more after recent instant accounts from the same network.",
+				"description": "Create a new user account from a username and password. A body without a password creates an instant account from global_name: the username is derived from the display name, and the account signs in on this device only until it is claimed with a password. Requires a solved captcha challenge (X-Captcha-Token), whose cost doubles while the instance sees many sign-ups or instant accounts.",
 				"requestBody": {
 					"required": false,
 					"content": {"application/json": {"schema": {"$ref": "#/components/schemas/RegisterRequest"}}}
@@ -1350,7 +1350,7 @@
 						"content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
 					}
 				},
-				"description": "Returns the captcha challenge that creating an instant account from the website needs right now for this visitor. Only the website server may call it."
+				"description": "Returns the captcha challenge that creating an instant account from the website needs right now. Its cost follows how many accounts the whole instance is creating, not the visitor. Only the website server may call it."
 			}
 		},
 		"/auth/register/handoff/redeem": {

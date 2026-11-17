@@ -211,7 +211,7 @@ These branches were not covered in the design session and need their own decisio
 - [ ] **Threads and forums (F2).** Each thread is either a separate MLS group or shares the parent channel's group.
 - [ ] **Member list and search in large Communities (F2).** What may the server know about who is in a Community?
 - [ ] **Presence and typing indicators (F1).** These are metadata. Encrypt them, minimise them, or make them opt-in?
-- [ ] **Rate limiting without IPs (F0).** The concrete token / proof-of-work design ([[0009-metadata-minimisation-and-anonymous-accounts]]).
+- [x] **Rate limiting without IPs (F0).** Decided in [[0017-abuse-prevention-without-ips]].
 - [ ] **Data export (F1).** Today the server builds a user's data archive. Under E2EE the export has to be built by the client.
 - [ ] **Artwork (F0).** Logos, wordmarks and tray icons were renamed to `osaca-*` but still show Fluxer's art, whose marks are not licensed to OSACA. Replace them before any public release.
 - [ ] **Placeholder domains (F0).** Fluxer domains became `*.osaca.example`. Every hard-coded default has to become operator configuration or be removed.

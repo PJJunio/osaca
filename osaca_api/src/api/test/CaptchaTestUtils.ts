@@ -17,8 +17,10 @@ export interface CaptchaErrorBody {
 	altcha_challenge?: Challenge;
 }
 
+export const CHEAP_CAPTCHA_COST = 1000;
+
 export async function useCheapCaptcha(): Promise<void> {
-	await getInstanceConfigRepository().updateCaptchaConfig({enabled: true, cost: 1000, max_counter: 100});
+	await getInstanceConfigRepository().updateCaptchaConfig({enabled: true, cost: CHEAP_CAPTCHA_COST, max_counter: 100});
 }
 
 export async function solveCaptchaChallenge(body: CaptchaErrorBody): Promise<string> {

@@ -41,16 +41,29 @@ function windowKey(rule: Pick<WindowRule, 'key' | 'windowSeconds'>, nowMs = Date
 	return `${rule.key}:${Math.floor(nowMs / 1000 / rule.windowSeconds)}`;
 }
 
-async function readWindow(kv: IKVProvider, rule: Pick<WindowRule, 'key' | 'windowSeconds'>): Promise<number> {
-	const raw = await kv.get(windowKey(rule));
+export type WindowCounter = Pick<WindowRule, 'key' | 'windowSeconds'>;
+
+// The count over the last full window, weighting the previous bucket by how much of it still falls inside, so the
+// count fades instead of dropping to zero at a bucket edge.
+export async function readSlidingWindow(kv: IKVProvider, rule: WindowCounter, nowMs = Date.now()): Promise<number> {
+	const windowMs = rule.windowSeconds * 1000;
+	const elapsed = (nowMs % windowMs) / windowMs;
+	const current = await readWindowAt(kv, rule, nowMs);
+	const previous = await readWindowAt(kv, rule, nowMs - windowMs);
+	return current + previous * (1 - elapsed);
+}
+
+async function readWindowAt(kv: IKVProvider, rule: WindowCounter, nowMs: number): Promise<number> {
+	const raw = await kv.get(windowKey(rule, nowMs));
 	const value = raw === null ? 0 : Number.parseInt(raw, 10);
 	return Number.isFinite(value) ? value : 0;
 }
 
-async function bumpWindow(kv: IKVProvider, rule: Pick<WindowRule, 'key' | 'windowSeconds'>): Promise<number> {
+export async function bumpWindow(kv: IKVProvider, rule: WindowCounter): Promise<number> {
 	const key = windowKey(rule);
 	const count = await kv.incr(key);
-	if (count === 1) await kv.expire(key, rule.windowSeconds + 60);
+	// Kept through the next window too, which readSlidingWindow still reads.
+	if (count === 1) await kv.expire(key, rule.windowSeconds * 2 + 60);
 	return count;
 }
 
@@ -81,22 +94,13 @@ export async function enforceInstantAccountLimits(env: BudgetEnv, clientIp: stri
 	if (subnet) await enforceHardLimit(env, `registration:instant:subnet:${subnet}`, 40, HOUR);
 }
 
-function instantIpRule(clientIp: string): WindowRule {
-	return {key: `registration:instant:created:${ipKey(clientIp)}`, windowSeconds: HOUR, free: 0, doubling: true};
+const INSTANT_GLOBAL_RULE: WindowCounter = {key: 'registration:instant:global', windowSeconds: HOUR};
+
+export async function instantAccountCaptchaSteps(env: BudgetEnv, params: {escalationPerHour: number}): Promise<number> {
+	const createdGlobally = await readSlidingWindow(env.kv, INSTANT_GLOBAL_RULE);
+	return Math.floor(createdGlobally / params.escalationPerHour);
 }
 
-const INSTANT_GLOBAL_RULE = {key: 'registration:instant:global', windowSeconds: HOUR};
-
-export async function instantAccountCaptchaSteps(
-	env: BudgetEnv,
-	params: {clientIp: string; escalationPerHour: number},
-): Promise<number> {
-	const createdFromIp = await readWindow(env.kv, instantIpRule(params.clientIp));
-	const createdGlobally = await readWindow(env.kv, INSTANT_GLOBAL_RULE);
-	return createdFromIp + Math.floor(createdGlobally / params.escalationPerHour);
-}
-
-export async function recordInstantAccountCreated(env: BudgetEnv, clientIp: string): Promise<void> {
-	await bumpWindow(env.kv, instantIpRule(clientIp));
+export async function recordInstantAccountCreated(env: BudgetEnv): Promise<void> {
 	await bumpWindow(env.kv, INSTANT_GLOBAL_RULE);
 }

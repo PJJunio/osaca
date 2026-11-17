@@ -76,14 +76,12 @@ async function restoreHandoff(ctx: ApiContext, handoffCode: string, record: Acco
 export async function instantAccountChallengeSteps(
 	ctx: ApiContext,
 	request: Request,
-	clientIp: string,
 	registrationUrlCode: string | null = null,
 ) {
 	const repository = getInstanceConfigRepository();
 	assertInstantAccountAvailable(await resolveInstantAccountAvailabilityFor(repository, registrationUrlCode));
 	const auth = await repository.getAuthConfig();
 	return await instantAccountCaptchaSteps(budgetEnvFor(ctx.services, request), {
-		clientIp,
 		escalationPerHour: auth.instant_accounts.pow_escalation_per_hour,
 	});
 }

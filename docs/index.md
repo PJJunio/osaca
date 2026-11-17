@@ -41,6 +41,7 @@ The entry point for OSACA's project documentation. Open the repository root as a
 | [[0014-voice-e2ee-from-mls]] | Voice E2EE | F2 |
 | [[0015-postgres-only-and-fresh-install]] | Postgres only, fresh install | F0 |
 | [[0016-phased-delivery-and-security-validation]] | Phases and security validation | F0 |
+| [[0017-abuse-prevention-without-ips]] | Abuse prevention without IP addresses | F0 |
 
 ## Writing ADRs
 - Copy an existing ADR and number it sequentially (`NNNN-kebab-title.md`).

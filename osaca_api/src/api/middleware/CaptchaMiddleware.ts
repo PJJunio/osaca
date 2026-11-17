@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {createHmac} from 'node:crypto';
+import {type CaptchaPressureAction, captchaPressureSteps, recordCaptchaSolve} from '@app/api/auth/CaptchaPressure';
 import {Config} from '@app/api/Config';
 import {Logger} from '@app/api/Logger';
 import {getKVClient} from '@app/api/middleware/ServiceRegistry';
@@ -98,9 +99,24 @@ export const CaptchaMiddleware = createMiddleware<HonoEnv>(async (ctx, next) => 
 	await next();
 });
 
-export function EscalatingCaptchaMiddleware(resolveSteps: (ctx: Context<HonoEnv>) => Promise<number>) {
+type ExtraCaptchaSteps = (ctx: Context<HonoEnv>) => Promise<number>;
+
+// The escalation for a route without a session: the Instance-wide pressure on the action plus any steps the route adds
+// itself (ADR-0017). A route that hands out its challenge ahead of time must use the same sum, or the challenge it
+// hands out would not verify.
+export async function pressuredCaptchaSteps(
+	ctx: Context<HonoEnv>,
+	action: CaptchaPressureAction,
+	extraSteps: ExtraCaptchaSteps = () => Promise.resolve(0),
+): Promise<number> {
+	return (await captchaPressureSteps(getKVClient(), action)) + (await extraSteps(ctx));
+}
+
+export function PressuredCaptchaMiddleware(action: CaptchaPressureAction, extraSteps?: ExtraCaptchaSteps) {
 	return createMiddleware<HonoEnv>(async (ctx, next) => {
-		ctx.set('captchaVerified', await verifyCaptchaToken(ctx, await resolveSteps(ctx)));
+		const verified = await verifyCaptchaToken(ctx, await pressuredCaptchaSteps(ctx, action, extraSteps));
+		if (verified) await recordCaptchaSolve(getKVClient(), action);
+		ctx.set('captchaVerified', verified);
 		await next();
 	});
 }

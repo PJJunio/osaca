@@ -12,12 +12,7 @@ import {
 } from '@app/api/middleware/ServiceSingletons';
 import {RateLimitConfigs} from '@app/api/RateLimitConfig';
 import {type ApiTestHarness, createApiTestHarness} from '@app/api/test/ApiTestHarness';
-import {
-	CAPTCHA_TEST_HEADER,
-	type CaptchaErrorBody,
-	solveCaptchaChallenge,
-	useCheapCaptcha,
-} from '@app/api/test/CaptchaTestUtils';
+import {CAPTCHA_TEST_HEADER, useCheapCaptcha} from '@app/api/test/CaptchaTestUtils';
 import {HTTP_STATUS} from '@app/api/test/TestConstants';
 import {createBuilder, createBuilderWithoutAuth} from '@app/api/test/TestRequestBuilder';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
@@ -154,42 +149,6 @@ describe('Username-only accounts', () => {
 			.expect(429)
 			.execute();
 		await registerInstant('192.0.2.99');
-	});
-
-	it('raises the captcha cost with every account from the same network', async () => {
-		await useCheapCaptcha();
-		const askChallenge = async () =>
-			(
-				await createBuilderWithoutAuth<CaptchaErrorBody>(harness)
-					.post('/auth/register')
-					.header('x-forwarded-for', VISITOR_IP)
-					.header(CAPTCHA_TEST_HEADER, 'true')
-					.body({global_name: 'Newcomer', consent: true})
-					.expect(HTTP_STATUS.BAD_REQUEST, APIErrorCodes.CAPTCHA_REQUIRED)
-					.executeWithResponse()
-			).json;
-		const first = await askChallenge();
-		const firstCost = (first.altcha_challenge!.parameters as {cost: number}).cost;
-		const token = await solveCaptchaChallenge(first);
-		await createBuilderWithoutAuth(harness)
-			.post('/auth/register')
-			.header('x-forwarded-for', VISITOR_IP)
-			.header(CAPTCHA_TEST_HEADER, 'true')
-			.header('x-captcha-token', token)
-			.body({global_name: 'Newcomer', consent: true})
-			.expect(HTTP_STATUS.OK)
-			.execute();
-		const second = await askChallenge();
-		expect((second.altcha_challenge!.parameters as {cost: number}).cost).toBe(firstCost * 2);
-		const cheapToken = await solveCaptchaChallenge(first);
-		await createBuilderWithoutAuth(harness)
-			.post('/auth/register')
-			.header('x-forwarded-for', VISITOR_IP)
-			.header(CAPTCHA_TEST_HEADER, 'true')
-			.header('x-captcha-token', cheapToken)
-			.body({global_name: 'Newcomer', consent: true})
-			.expect(HTTP_STATUS.BAD_REQUEST, APIErrorCodes.INVALID_CAPTCHA)
-			.execute();
 	});
 
 	it('creates the website account only when the browser redeems it with the terms accepted', async () => {

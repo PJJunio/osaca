@@ -386,7 +386,7 @@ async function createAccountAfterSetupCheck(
 		user.id.toString(),
 	);
 	await users.createAuthorizedIp(userId, clientIp);
-	if (instant) await recordInstantAccountCreated(budgetEnv, clientIp);
+	if (instant) await recordInstantAccountCreated(budgetEnv);
 	if (registrationAccess.pendingApproval) {
 		return {pendingApproval: true, user};
 	}

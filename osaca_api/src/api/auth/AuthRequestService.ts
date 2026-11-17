@@ -204,12 +204,8 @@ export class AuthRequestService {
 		return {available: !(await isUsernameTaken(this.apiContext.services.users, username))};
 	}
 
-	instantAccountChallengeSteps(
-		request: Request,
-		clientIp: string,
-		registrationUrlCode: string | null = null,
-	): Promise<number> {
-		return AuthInstantAccounts.instantAccountChallengeSteps(this.apiContext, request, clientIp, registrationUrlCode);
+	instantAccountChallengeSteps(request: Request, registrationUrlCode: string | null = null): Promise<number> {
+		return AuthInstantAccounts.instantAccountChallengeSteps(this.apiContext, request, registrationUrlCode);
 	}
 
 	createAccountHandoff(params: {data: AccountHandoffRequest; clientIp: string}): Promise<AccountHandoffResponse> {

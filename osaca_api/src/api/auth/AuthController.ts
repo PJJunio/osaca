@@ -10,7 +10,7 @@ import * as AuthSession from '@app/api/auth/AuthSession';
 import {redeemSignInLink} from '@app/api/auth/SignInLinks';
 import {requireSudoMode} from '@app/api/auth/services/SudoVerificationService';
 import {DefaultUserOnly, LoginRequired} from '@app/api/middleware/AuthMiddleware';
-import {CaptchaMiddleware, EscalatingCaptchaMiddleware} from '@app/api/middleware/CaptchaMiddleware';
+import {PressuredCaptchaMiddleware} from '@app/api/middleware/CaptchaMiddleware';
 import {RateLimitMiddleware} from '@app/api/middleware/RateLimitMiddleware';
 import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
 import {SudoModeMiddleware} from '@app/api/middleware/SudoModeMiddleware';
@@ -60,7 +60,7 @@ function optionalString(value: unknown): string | null {
 	return typeof value === 'string' && value.length > 0 ? value : null;
 }
 
-async function registrationCaptchaSteps(ctx: Context<HonoEnv>): Promise<number> {
+async function registrationExtraCaptchaSteps(ctx: Context<HonoEnv>): Promise<number> {
 	const body: unknown = await ctx.req.json();
 	const fields = isJsonRecord(body) ? body : {};
 	const data = {password: optionalString(fields.password)};
@@ -71,7 +71,7 @@ async function registrationCaptchaSteps(ctx: Context<HonoEnv>): Promise<number> 
 		if (optionalString(fields.setup_token) === null) {
 			await assertAccountCreationPastSetup(ctx.get('apiContext'), ctx.get('instanceConfigRepository'), clientIp);
 		}
-		return await ctx.get('authRequestService').instantAccountChallengeSteps(ctx.req.raw, clientIp, registrationUrlCode);
+		return await ctx.get('authRequestService').instantAccountChallengeSteps(ctx.req.raw, registrationUrlCode);
 	}
 	return 0;
 }
@@ -81,7 +81,7 @@ export function AuthController(app: HonoApp) {
 		'/auth/register',
 		RateLimitMiddleware(RateLimitConfigs.AUTH_REGISTER),
 		Validator('json', RegisterRequest),
-		EscalatingCaptchaMiddleware(registrationCaptchaSteps),
+		PressuredCaptchaMiddleware('register', registrationExtraCaptchaSteps),
 		OpenAPI({
 			operationId: 'register_account',
 			summary: 'Register account',
@@ -90,7 +90,7 @@ export function AuthController(app: HonoApp) {
 			security: [],
 			tags: ['Auth'],
 			description:
-				'Create a new user account from a username and password. A body without a password creates an instant account from global_name: the username is derived from the display name, and the account signs in on this device only until it is claimed with a password. Requires a solved captcha challenge (X-Captcha-Token), which costs more after recent instant accounts from the same network.',
+				'Create a new user account from a username and password. A body without a password creates an instant account from global_name: the username is derived from the display name, and the account signs in on this device only until it is claimed with a password. Requires a solved captcha challenge (X-Captcha-Token), whose cost doubles while the instance sees many sign-ups or instant accounts.',
 		}),
 		async (ctx) => {
 			const result = await ctx.get('authRequestService').register({
@@ -105,7 +105,7 @@ export function AuthController(app: HonoApp) {
 	app.post(
 		'/auth/login',
 		RateLimitMiddleware(RateLimitConfigs.AUTH_LOGIN),
-		CaptchaMiddleware,
+		PressuredCaptchaMiddleware('login'),
 		Validator('json', LoginRequest),
 		OpenAPI({
 			operationId: 'login_user',
@@ -115,7 +115,7 @@ export function AuthController(app: HonoApp) {
 			security: [],
 			tags: ['Auth'],
 			description:
-				'Authenticate with a username (login) and password. Returns authentication token if credentials are valid and MFA is not required. If MFA is enabled, returns a ticket for MFA verification. Requires a solved captcha challenge (X-Captcha-Token).',
+				'Authenticate with a username (login) and password. Returns authentication token if credentials are valid and MFA is not required. If MFA is enabled, returns a ticket for MFA verification. Requires a solved captcha challenge (X-Captcha-Token), whose cost doubles while the instance sees many sign-ins.',
 		}),
 		async (ctx) => {
 			const result = await ctx.get('authRequestService').login({
@@ -214,7 +214,7 @@ export function AuthController(app: HonoApp) {
 	app.post(
 		'/auth/recover',
 		RateLimitMiddleware(RateLimitConfigs.AUTH_RECOVER_ACCOUNT),
-		CaptchaMiddleware,
+		PressuredCaptchaMiddleware('recover'),
 		Validator('json', RecoverAccountRequest),
 		OpenAPI({
 			operationId: 'recover_account',

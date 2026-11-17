@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {createCaptchaChallenge, EscalatingCaptchaMiddleware} from '@app/api/middleware/CaptchaMiddleware';
+import {
+	createCaptchaChallenge,
+	PressuredCaptchaMiddleware,
+	pressuredCaptchaSteps,
+} from '@app/api/middleware/CaptchaMiddleware';
 import {getTrustedForwardedClientIp, RateLimitMiddleware} from '@app/api/middleware/RateLimitMiddleware';
 import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
 import {RateLimitConfigs} from '@app/api/RateLimitConfig';
@@ -24,11 +28,16 @@ function requireTrustedClientIp(ctx: Context<HonoEnv>, bucket: string): string {
 	return clientIp;
 }
 
-async function handoffCaptchaSteps(ctx: Context<HonoEnv>): Promise<number> {
-	const clientIp = requireTrustedClientIp(ctx, RateLimitConfigs.AUTH_REGISTER_HANDOFF.bucket);
+// Refuses callers that are not the website server. The address it returns is not used for the challenge cost.
+function assertTrustedCaller(ctx: Context<HonoEnv>, bucket: string): void {
+	requireTrustedClientIp(ctx, bucket);
+}
+
+async function handoffExtraCaptchaSteps(ctx: Context<HonoEnv>): Promise<number> {
+	assertTrustedCaller(ctx, RateLimitConfigs.AUTH_REGISTER_HANDOFF.bucket);
 	const body: unknown = await ctx.req.json();
 	const code = isJsonRecord(body) && typeof body.registration_url_code === 'string' ? body.registration_url_code : null;
-	return await ctx.get('authRequestService').instantAccountChallengeSteps(ctx.req.raw, clientIp, code);
+	return await ctx.get('authRequestService').instantAccountChallengeSteps(ctx.req.raw, code);
 }
 
 export function AccountEntryController(app: HonoApp) {
@@ -43,12 +52,13 @@ export function AccountEntryController(app: HonoApp) {
 			security: [],
 			tags: ['Auth'],
 			description:
-				'Returns the captcha challenge that creating an instant account from the website needs right now for this visitor. Only the website server may call it.',
+				'Returns the captcha challenge that creating an instant account from the website needs right now. Its cost follows how many accounts the whole instance is creating, not the visitor. Only the website server may call it.',
 		}),
 		async (ctx) => {
-			const bucket = RateLimitConfigs.AUTH_REGISTER_HANDOFF_CHALLENGE.bucket;
-			const clientIp = requireTrustedClientIp(ctx, bucket);
-			const steps = await ctx.get('authRequestService').instantAccountChallengeSteps(ctx.req.raw, clientIp);
+			assertTrustedCaller(ctx, RateLimitConfigs.AUTH_REGISTER_HANDOFF_CHALLENGE.bucket);
+			const steps = await pressuredCaptchaSteps(ctx, 'register', (current) =>
+				current.get('authRequestService').instantAccountChallengeSteps(current.req.raw),
+			);
 			ctx.header('Cache-Control', 'no-store');
 			return ctx.json(await createCaptchaChallenge(ctx, steps));
 		},
@@ -57,7 +67,7 @@ export function AccountEntryController(app: HonoApp) {
 		'/auth/register/handoff',
 		RateLimitMiddleware(RateLimitConfigs.AUTH_REGISTER_HANDOFF),
 		Validator('json', AccountHandoffRequest),
-		EscalatingCaptchaMiddleware(handoffCaptchaSteps),
+		PressuredCaptchaMiddleware('register', handoffExtraCaptchaSteps),
 		OpenAPI({
 			operationId: 'create_account_handoff',
 			summary: 'Start an account from the website',

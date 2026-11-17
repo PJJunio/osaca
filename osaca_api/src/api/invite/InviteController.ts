@@ -21,6 +21,7 @@ export function InviteController(app: HonoApp) {
 	app.get(
 		'/invites/:invite_code',
 		RateLimitMiddleware(RateLimitConfigs.INVITE_GET),
+		RateLimitMiddleware(RateLimitConfigs.INVITE_GET_PER_CODE),
 		Validator('param', InviteCodeParam),
 		OpenAPI({
 			operationId: 'get_invite',

@@ -85,8 +85,8 @@ These return 429 with the [rate limit response object](#rate-limit-response-obje
 
 | Operation | Limit |
 | --- | --- |
-| [Log in with a password](/http-api/authentication/#log-in-with-a-password) | 5 per 15 minutes for one username from one IP address, 100 failed logins per hour for one username, and 10 failed logins per 30 minutes from one IP address |
-| [Register an account](/http-api/authentication/#register-an-account) | 3 per hour for one IP address and 15 per hour for one subnet |
+| [Log in with a password](/http-api/authentication/#log-in-with-a-password) | 5 per 15 minutes for one username from one IP address, and 10 failed logins per 30 minutes from one IP address. While the [CAPTCHA](/topics/captcha/) is off, one username also allows 100 failed logins per hour |
+| [Register an account](/http-api/authentication/#register-an-account) | 3 per hour for one IP address, 15 per hour for one subnet, and 30 per hour through one invite or registration URL code |
 | [Submit message report flow](/http-api/reports/#submit-message-report-flow) | 5 reports per hour for one reporter, 3 in one channel, 4 in one community and 20 for one message from all reporters |
 
 Registering an [instant account](/admin-api/instance/#auth-configuration-object) allows 5 per hour and 20 per day from one IP address and 40 per hour from one subnet instead.

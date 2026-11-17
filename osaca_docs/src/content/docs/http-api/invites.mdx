@@ -114,7 +114,7 @@ Returns an [invite object](#invite-object) without using up the invite. Codes fr
 | 200 | [invite](#invite-object) object | The invite was returned |
 | 404 | [error response](/http-api/#error-response) | `UNKNOWN_INVITE`, `UNKNOWN_CHANNEL` or `UNKNOWN_GUILD` when the invite or its target is gone |
 
-The rate limit is 100 requests per 10 seconds, on the `invite:read::invite_code` bucket.
+The rate limit is 100 requests per 10 seconds, on the `invite:read::invite_code` bucket. Requests without a session also share 300 requests per minute for one code, on the `invite:read:code::invite_code` bucket.
 
 ## Accept invite
 

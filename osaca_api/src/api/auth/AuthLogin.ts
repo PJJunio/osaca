@@ -1,6 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type {ApiContext} from '@app/api/ApiContext';
+import {
+	bumpWindow,
+	readSlidingWindow,
+	shouldEnforceAccountBudgets,
+	type WindowCounter,
+} from '@app/api/auth/AccountBudgets';
 import * as AuthMfa from '@app/api/auth/AuthMfa';
 import {applyPendingRecovery} from '@app/api/auth/AuthRecoveryKit';
 import * as AuthSession from '@app/api/auth/AuthSession';
@@ -32,8 +38,42 @@ import {RegistrationRejectedError} from '@osaca/errors/src/domains/auth/Registra
 import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
 import {getSameIpDecisionKey} from '@osaca/ip_utils/src/IpAddress';
 import type {LoginRequest} from '@osaca/schema/src/domains/auth/AuthSchemas';
+import type {IKVProvider} from '@pkgs/kv_client/src/IKVProvider';
 import type {AuthenticationResponseJSON} from '@simplewebauthn/server';
 import {ms, seconds} from 'itty-time';
+
+// Failed sign-ins to one username within the past hour that each double its captcha cost (ADR-0017). Counted whether
+// or not an Account has that username, so the count tells nothing about which usernames are taken.
+export const LOGIN_FAILURES_PER_CAPTCHA_STEP = 10;
+const LOGIN_FAILURES_BEFORE_LOCKOUT = 100;
+
+function loginUsernameKey(login: string): string | null {
+	const handle = parseLoginHandle(login);
+	return handle ? handle.username.toLowerCase() : null;
+}
+
+// The hard lockout, a leaky bucket that only applies while the captcha is off.
+export function loginFailureLimit(login: string): LoginIdentifierRateLimit | null {
+	const username = loginUsernameKey(login);
+	if (username === null) return null;
+	return {identifier: `login:id:${username}`, maxAttempts: LOGIN_FAILURES_BEFORE_LOCKOUT, windowMs: ms('1 hour')};
+}
+
+function loginFailureCounter(username: string): WindowCounter {
+	return {key: `login:failures:${username}`, windowSeconds: 3600};
+}
+
+export async function loginFailureCaptchaSteps(kv: IKVProvider, login: string): Promise<number> {
+	const username = loginUsernameKey(login);
+	if (username === null) return 0;
+	const failures = await readSlidingWindow(kv, loginFailureCounter(username));
+	return Math.floor(failures / LOGIN_FAILURES_PER_CAPTCHA_STEP);
+}
+
+async function recordLoginFailure(kv: IKVProvider, login: string): Promise<void> {
+	const username = loginUsernameKey(login);
+	if (username !== null) await bumpWindow(kv, loginFailureCounter(username));
+}
 
 const DUMMY_ARGON2_HASH =
 	'$argon2id$v=19$m=65536,t=3,p=4$fT6tGpAyxFiz+n1RbkRqWQ$v05UT17QGeqhsgRjcVjIWcGw6gUDYeCcAA8FiZ63MtA';
@@ -111,7 +151,7 @@ export async function login(
 ): Promise<LoginResult> {
 	const {users, rateLimit, config} = ctx.services;
 	const {inviteService} = deps;
-	const skipRateLimits = config.dev.testModeEnabled || config.dev.disableRateLimits;
+	const skipRateLimits = !shouldEnforceAccountBudgets(request);
 	const identifier = resolveLoginIdentifier(ctx, data);
 	const invalidCredentials = () =>
 		InputValidationError.fromCodes([
@@ -136,8 +176,10 @@ export async function login(
 	}
 	const failureLimit = identifier.failureRateLimit;
 	const failureState = failureLimit ? await rateLimit.peekLimit(failureLimit) : null;
+	// A solved captcha already pays a cost that grows with the failures, so the hard lockout is only for an Instance
+	// that turned the captcha off. It would otherwise lock the owner out too.
 	const failureLockout =
-		failureLimit && failureState !== null && failureState.remaining === 0 && !skipRateLimits
+		failureLimit && failureState !== null && failureState.remaining === 0 && !skipRateLimits && !captchaVerified
 			? {
 					...failureState,
 					allowed: false,
@@ -145,6 +187,7 @@ export async function login(
 				}
 			: null;
 	const rejectCredentials = async (): Promise<never> => {
+		await recordLoginFailure(ctx.services.kv, data.login);
 		await rateLimit.checkLimit(ipFailureLimit);
 		if (failureLimit) {
 			await rateLimit.checkLimit(failureLimit);
@@ -173,7 +216,7 @@ export async function login(
 		emitLogin(user, false, {failure: 'bad_password'});
 		return await rejectCredentials();
 	}
-	if (failureLockout && !captchaVerified && !(await users.checkIpAuthorized(user.id, clientIp))) {
+	if (failureLockout) {
 		throw createRateLimitError(failureLockout);
 	}
 	const hasMfa =
@@ -233,9 +276,7 @@ function resolveLoginIdentifier(ctx: ApiContext, data: LoginRequest): LoginIdent
 			const lowered = handle.username.toLowerCase();
 			return [{identifier: `login:id:${lowered}:${sourceKey}`, maxAttempts: 5, windowMs: ms('15 minutes')}];
 		},
-		failureRateLimit: handle
-			? {identifier: `login:id:${handle.username.toLowerCase()}`, maxAttempts: 100, windowMs: ms('1 hour')}
-			: null,
+		failureRateLimit: loginFailureLimit(data.login),
 		lookup: async () => (handle ? await findPersonByLoginHandle(users, handle) : null),
 	};
 }

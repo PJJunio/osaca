@@ -225,7 +225,7 @@ export class VoiceNodeService {
 		return response;
 	}
 
-	async join(row: VoiceJoinTokenRow, body: VoiceJoinRequest, clientIp: string | null): Promise<VoiceJoinResponse> {
+	async join(row: VoiceJoinTokenRow, body: VoiceJoinRequest): Promise<VoiceJoinResponse> {
 		const {joinTokenRepository, voiceRepository} = this.deps;
 		const now = new Date();
 		if (row.claim_id && row.claimed_at && now.getTime() - row.claimed_at.getTime() < CLAIM_STALE_MS) {
@@ -292,7 +292,7 @@ export class VoiceNodeService {
 				},
 			});
 			if (!created) throw new VoiceServerIdInUseError();
-			await joinTokenRepository.markUsed(row, claimId, {at: new Date(), ip: clientIp, serverId});
+			await joinTokenRepository.markUsed(row, claimId, {at: new Date(), serverId});
 			await this.deps.publish(JSON.stringify({type: 'server_created', regionId: region.id, serverId}));
 			await this.deps.auditService.createAuditLog({
 				targetId: 0n,
@@ -305,7 +305,6 @@ export class VoiceNodeService {
 					['server_id', serverId],
 					['endpoint', endpoint],
 					['via', `voice_join:${row.token_id}`],
-					['node_ip', clientIp ?? ''],
 				]),
 			});
 			return {

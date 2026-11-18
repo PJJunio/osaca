@@ -108,9 +108,10 @@ One active session of the account.
 | --- | --- | --- |
 | id_hash | string | The ID of the session, used by [terminate authentication sessions](#terminate-authentication-sessions) |
 | client_info? | ?[client info](#client-info-object) object | The device that created the session |
-| masked_ip | ?string | The partly hidden IP address of the session |
 | approx_last_used_at? | ?ISO8601 timestamp | About when the session was last used |
 | current | boolean | Whether this session made the current request |
+
+A session keeps no IP address, location or country.
 
 ## Client info object
 
@@ -124,19 +125,6 @@ The device behind a session or a pending handoff, taken from its request headers
 | os? | ?string | The operating system |
 | browser? | ?string | The browser, or null for the desktop and mobile apps |
 | device | string | `mobile` or `desktop` |
-| location? | ?[client location](#client-location-object) object | The approximate location of the IP address |
-
-## Client location object
-
-The approximate location of a session or handoff IP address.
-
-### Structure
-
-| Field | Type | Description |
-| --- | --- | --- |
-| city? | ?string | The approximate city |
-| region? | ?string | The approximate region |
-| country? | ?string | The approximate country |
 
 ## Password reset validity object
 

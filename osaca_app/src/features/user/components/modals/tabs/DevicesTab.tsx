@@ -133,26 +133,6 @@ const DeviceDetailsModal = observer(({authSession, isCurrent}: {authSession: Aut
 						>
 							{platformLabel}
 						</DeviceDetailRow>
-						{authSession.clientLocation && (
-							<DeviceDetailRow
-								label={<Trans>Location</Trans>}
-								dataFlx="user.devices-tab.device-details-modal.location"
-								data-flx="user.devices-tab.device-details-modal.device-detail-row--3"
-							>
-								{authSession.clientLocation}
-							</DeviceDetailRow>
-						)}
-						{authSession.maskedIp && (
-							<DeviceDetailRow
-								label={<Trans>IP address</Trans>}
-								dataFlx="user.devices-tab.device-details-modal.ip"
-								data-flx="user.devices-tab.device-details-modal.device-detail-row--4"
-							>
-								<span className={styles.deviceDetailMono} data-flx="user.devices-tab.device-details-modal.ip-text">
-									{authSession.maskedIp}
-								</span>
-							</DeviceDetailRow>
-						)}
 						<DeviceDetailRow
 							label={<Trans>Last used</Trans>}
 							dataFlx="user.devices-tab.device-details-modal.last-used"
@@ -220,9 +200,7 @@ const AuthSessionItem: React.FC<AuthSessionProps> = observer(
 			selected: isSelected,
 			onSelect,
 		});
-		const metadataLine = [authSession.clientLocation, isCurrent ? null : formatAuthSessionLastUsed(authSession, i18n)]
-			.filter((value): value is string => Boolean(value))
-			.join(' · ');
+		const metadataLine = isCurrent ? '' : formatAuthSessionLastUsed(authSession, i18n);
 		return (
 			<div
 				className={clsx(styles.authSession, isSelectionInteractive && styles.authSessionSelectable)}

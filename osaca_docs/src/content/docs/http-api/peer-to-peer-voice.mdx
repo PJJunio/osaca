@@ -48,7 +48,7 @@ The outcome of one peer connection, as the reporting client saw it.
 
 <RouteHeader method="POST" path="/v1/voice/p2p/connection-reports" />
 
-Records [connection reports](#connection-report-object). OSACA keeps each report for 180 days, together with your user ID, your IP address and its country, and your session's platform and operating system. When peer-to-peer voice is off on the instance, the request returns 204 and stores nothing.
+Records [connection reports](#connection-report-object). OSACA keeps each report for 180 days, together with your user ID. It keeps no IP address, country, platform or operating system. When peer-to-peer voice is off on the instance, the request returns 204 and stores nothing.
 
 ### JSON body
 

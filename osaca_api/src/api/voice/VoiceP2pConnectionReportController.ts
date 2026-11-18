@@ -52,8 +52,6 @@ export function VoiceP2pConnectionReportController(app: HonoApp) {
 					protocol: report.protocol,
 					setup_ms: report.setup_ms,
 					ice_restarted: report.ice_restarted,
-					country: null,
-					ip: null,
 					client_platform: null,
 					client_os: null,
 				})),

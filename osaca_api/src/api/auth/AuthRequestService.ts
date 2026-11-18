@@ -270,7 +270,6 @@ export class AuthRequestService {
 				platform: resolved.platform,
 				os: resolved.os,
 				device: resolved.device,
-				location: {city: null, region: null, country: null},
 			},
 			return_method: info.returnMethod,
 		};

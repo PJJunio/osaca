@@ -24,10 +24,8 @@ interface CachedAuthSession {
 	session_id_hash: string;
 	created_at: number;
 	approx_last_used_at: number;
-	client_ip: string;
 	client_user_agent: string | null;
 	client_os: string | null;
-	client_country: string | null;
 	app_platform?: string | null;
 	app_version?: string | null;
 	app_release_channel?: string | null;
@@ -44,10 +42,8 @@ const CachedAuthSessionSchema = z.object({
 	session_id_hash: z.string(),
 	created_at: z.custom<number>(isValidTimestamp),
 	approx_last_used_at: z.custom<number>(isValidTimestamp),
-	client_ip: z.string(),
 	client_user_agent: z.string().nullable(),
 	client_os: z.string().nullable(),
-	client_country: z.string().nullable(),
 	app_platform: z.string().nullish(),
 	app_version: z.string().nullish(),
 	app_release_channel: z.string().nullish(),
@@ -67,10 +63,8 @@ function encodeCachedAuthSession(row: AuthSessionRow): CachedAuthSession {
 		session_id_hash: row.session_id_hash.toString('base64url'),
 		created_at: row.created_at.getTime(),
 		approx_last_used_at: row.approx_last_used_at.getTime(),
-		client_ip: row.client_ip,
 		client_user_agent: row.client_user_agent,
 		client_os: row.client_os,
-		client_country: row.client_country,
 		app_platform: row.app_platform,
 		app_version: row.app_version,
 		app_release_channel: row.app_release_channel,
@@ -95,10 +89,8 @@ function decodeCachedAuthSession(value: unknown, sessionIdHash: Buffer): AuthSes
 		session_id_hash: Buffer.from(sessionIdHash),
 		created_at: new Date(cached.created_at),
 		approx_last_used_at: new Date(cached.approx_last_used_at),
-		client_ip: cached.client_ip,
 		client_user_agent: cached.client_user_agent,
 		client_os: cached.client_os,
-		client_country: cached.client_country,
 		app_platform: cached.app_platform ?? null,
 		app_version: cached.app_version ?? null,
 		app_release_channel: cached.app_release_channel ?? null,
@@ -155,10 +147,8 @@ export class AuthSessionRepository {
 	async createAuthSession(rawSessionData: AuthSessionRow): Promise<AuthSession> {
 		const sessionData: AuthSessionRow = {
 			...rawSessionData,
-			client_ip: '',
 			client_user_agent: null,
 			client_os: null,
-			client_country: null,
 		};
 		const batch = new BatchBuilder();
 		batch.addPrepared(AuthSessions.insert(sessionData));
@@ -364,10 +354,8 @@ function toTombstoneRow(row: AuthSessionRow, deletedAt: Date): AuthSessionTombst
 		session_id_hash: row.session_id_hash,
 		created_at: row.created_at,
 		approx_last_used_at: row.approx_last_used_at,
-		client_ip: '',
 		client_user_agent: null,
 		client_os: null,
-		client_country: null,
 		deleted_at: deletedAt,
 		version: row.version,
 	};

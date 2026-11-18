@@ -8,7 +8,6 @@ import {hashRequestToken, recordAuthFailure} from '@app/api/middleware/RequestEr
 import type {User} from '@app/api/models/User';
 import type {HonoEnv} from '@app/api/types/HonoEnv';
 import {isSignInRefused} from '@app/api/user/UserHelpers';
-import {getRequestClientIp} from '@app/api/utils/RequestClientIp';
 import {stripApiPrefix} from '@app/api/utils/RequestPathUtils';
 import type {Context} from 'hono';
 import {createMiddleware} from 'hono/factory';
@@ -71,10 +70,9 @@ function setUserInContext(ctx: Context<HonoEnv>, user: User, trackActivity: bool
 	ctx.set('user', user);
 	if (trackActivity) {
 		const now = new Date();
-		const ip = getRequestClientIp(ctx);
 		const kvActivityTracker = ctx.get('kvActivityTracker');
 		const userActivityBuffer = ctx.get('userActivityBuffer');
-		userActivityBuffer.recordActivity(user.id, now, ip);
+		userActivityBuffer.recordActivity(user.id, now);
 		void kvActivityTracker.updateActivity(user.id, now).catch((error: unknown) => {
 			Logger.warn({error, userId: user.id}, 'Failed to update real-time user activity');
 		});
@@ -88,7 +86,6 @@ export const UserMiddleware = createMiddleware<HonoEnv>(async (ctx, next) => {
 	}
 	const rawAuthHeader = ctx.req.header('Authorization');
 	const parsed = parseAuthHeader(rawAuthHeader);
-	const resolvedClientIp = getRequestClientIp(ctx);
 	ctx.set('oauthBearerApplicationId', undefined);
 	ctx.set('oauthBearerAllowed', false);
 	ctx.set('oauthBearerScopes', undefined);
@@ -107,7 +104,7 @@ export const UserMiddleware = createMiddleware<HonoEnv>(async (ctx, next) => {
 	}
 	if (!parsed) {
 		if (rawAuthHeader) {
-			recordAuthFailure(resolvedClientIp, hashRequestToken(rawAuthHeader));
+			recordAuthFailure(hashRequestToken(rawAuthHeader));
 		}
 		return next();
 	}
@@ -125,7 +122,7 @@ export const UserMiddleware = createMiddleware<HonoEnv>(async (ctx, next) => {
 				ctx.set('authTokenType', 'session');
 				setUserInContext(ctx, user, true);
 			} else {
-				recordAuthFailure(resolvedClientIp, tokenHash);
+				recordAuthFailure(tokenHash);
 				if (user) {
 					void AuthSession.revokeToken(apiContext, token).catch((error: unknown) => {
 						Logger.warn({error, userId: user.id}, 'Failed to revoke a refused session');
@@ -133,7 +130,7 @@ export const UserMiddleware = createMiddleware<HonoEnv>(async (ctx, next) => {
 				}
 			}
 		} else {
-			recordAuthFailure(resolvedClientIp, tokenHash);
+			recordAuthFailure(tokenHash);
 		}
 		await next();
 		return;
@@ -152,7 +149,7 @@ export const UserMiddleware = createMiddleware<HonoEnv>(async (ctx, next) => {
 			await next();
 			return;
 		}
-		recordAuthFailure(resolvedClientIp, tokenHash);
+		recordAuthFailure(tokenHash);
 		await next();
 		return;
 	}
@@ -166,7 +163,7 @@ export const UserMiddleware = createMiddleware<HonoEnv>(async (ctx, next) => {
 				setUserInContext(ctx, botUser, false);
 			}
 		} else {
-			recordAuthFailure(resolvedClientIp, tokenHash);
+			recordAuthFailure(tokenHash);
 		}
 		await next();
 		return;
@@ -188,7 +185,7 @@ export const UserMiddleware = createMiddleware<HonoEnv>(async (ctx, next) => {
 				setUserInContext(ctx, user, false);
 			}
 		} else {
-			recordAuthFailure(resolvedClientIp, tokenHash);
+			recordAuthFailure(tokenHash);
 		}
 		await next();
 		return;

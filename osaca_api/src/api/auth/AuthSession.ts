@@ -12,7 +12,6 @@ import {
 import {getKVAccountDeletionQueue} from '@app/api/middleware/ServiceSingletons';
 import type {AuthSession} from '@app/api/models/AuthSession';
 import type {User} from '@app/api/models/User';
-import {requireConfiguredClientIp} from '@app/api/utils/RequestClientIp';
 import {isOsacaNativeUserAgent, parseReportedClientApp} from '@app/api/utils/SessionClientIdentity';
 import {BotUserAuthSessionCreationDeniedError} from '@osaca/errors/src/domains/auth/BotUserAuthSessionCreationDeniedError';
 import {RegistrationPendingApprovalError} from '@osaca/errors/src/domains/auth/RegistrationPendingApprovalError';
@@ -22,7 +21,6 @@ import {InvalidTokenError} from '@osaca/errors/src/domains/core/InvalidTokenErro
 import type {AuthSessionResponse} from '@osaca/schema/src/domains/auth/AuthSchemas';
 
 export interface SessionOrigin {
-	ip: string;
 	userAgent: string | null;
 	clientOs: string | null;
 }
@@ -60,10 +58,9 @@ interface CreateAdditionalAuthSessionFromTokenParams {
 	origin: SessionOrigin;
 }
 
-export function resolveSessionOrigin(ctx: ApiContext, request: Request): SessionOrigin {
-	const {config} = ctx.services;
-	requireConfiguredClientIp(request, config.proxy);
-	return {ip: '', userAgent: null, clientOs: null};
+// A session keeps no client address, user agent or country (ADR-0009).
+export function resolveSessionOrigin(_ctx: ApiContext, _request: Request): SessionOrigin {
+	return {userAgent: null, clientOs: null};
 }
 
 export async function createAuthSession(
@@ -83,10 +80,8 @@ export async function createAuthSession(
 		session_id_hash: Buffer.from(AuthUtility.getTokenIdHash(ctx, token)),
 		created_at: now,
 		approx_last_used_at: now,
-		client_ip: origin.ip,
 		client_user_agent: origin.userAgent,
 		client_os: origin.clientOs,
-		client_country: null,
 		app_platform: null,
 		app_version: null,
 		app_release_channel: null,

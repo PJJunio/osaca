@@ -8,10 +8,8 @@ export class AuthSession {
 	readonly sessionIdHash: Buffer;
 	readonly createdAt: Date;
 	readonly approximateLastUsedAt: Date;
-	readonly clientIp: string;
 	readonly clientUserAgent: string | null;
 	readonly clientOs: string | null;
-	readonly clientCountry: string | null;
 	readonly appPlatform: string | null;
 	readonly appVersion: string | null;
 	readonly appReleaseChannel: string | null;
@@ -25,10 +23,8 @@ export class AuthSession {
 		this.sessionIdHash = row.session_id_hash;
 		this.createdAt = row.created_at;
 		this.approximateLastUsedAt = row.approx_last_used_at;
-		this.clientIp = row.client_ip;
 		this.clientUserAgent = row.client_user_agent ?? null;
 		this.clientOs = row.client_os ?? null;
-		this.clientCountry = row.client_country ?? null;
 		this.appPlatform = row.app_platform ?? null;
 		this.appVersion = row.app_version ?? null;
 		this.appReleaseChannel = row.app_release_channel ?? null;
@@ -44,10 +40,8 @@ export class AuthSession {
 			session_id_hash: this.sessionIdHash,
 			created_at: this.createdAt,
 			approx_last_used_at: this.approximateLastUsedAt,
-			client_ip: this.clientIp,
 			client_user_agent: this.clientUserAgent,
 			client_os: this.clientOs,
-			client_country: this.clientCountry,
 			app_platform: this.appPlatform,
 			app_version: this.appVersion,
 			app_release_channel: this.appReleaseChannel,
@@ -64,10 +58,8 @@ export class AuthSessionTombstone {
 	readonly sessionIdHash: Buffer;
 	readonly createdAt: Date;
 	readonly approximateLastUsedAt: Date;
-	readonly clientIp: string;
 	readonly clientUserAgent: string | null;
 	readonly clientOs: string | null;
-	readonly clientCountry: string | null;
 	readonly deletedAt: Date;
 	readonly version: number;
 
@@ -76,10 +68,8 @@ export class AuthSessionTombstone {
 		this.sessionIdHash = row.session_id_hash;
 		this.createdAt = row.created_at;
 		this.approximateLastUsedAt = row.approx_last_used_at;
-		this.clientIp = row.client_ip;
 		this.clientUserAgent = row.client_user_agent ?? null;
 		this.clientOs = row.client_os ?? null;
-		this.clientCountry = row.client_country ?? null;
 		this.deletedAt = row.deleted_at;
 		this.version = row.version;
 	}

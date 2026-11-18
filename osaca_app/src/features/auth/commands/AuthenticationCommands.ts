@@ -110,11 +110,6 @@ interface DesktopHandoffInfoClientInfo {
 	platform?: string | null;
 	os?: string | null;
 	device?: 'mobile' | 'desktop';
-	location?: {
-		city?: string | null;
-		region?: string | null;
-		country?: string | null;
-	} | null;
 }
 
 export interface DesktopHandoffInfoResponse {

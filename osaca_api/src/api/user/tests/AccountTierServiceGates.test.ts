@@ -62,7 +62,7 @@ async function authenticate(fixture: User): Promise<{user: User; token: string}>
 	});
 	const [token] = await createAuthSession(createApiContext(), {
 		user,
-		origin: {ip: '127.0.0.1', userAgent: 'AccountTierServiceGates', clientOs: null},
+		origin: {userAgent: 'AccountTierServiceGates', clientOs: null},
 	});
 	return {user, token};
 }

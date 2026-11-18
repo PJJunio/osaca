@@ -10,7 +10,7 @@ export function hashRequestToken(token: string): string {
 
 export function recordRequestStatus(_request: Request, _status: number): void {}
 
-export function recordAuthFailure(_ip: string | null, _tokenHash: string | null): void {}
+export function recordAuthFailure(_tokenHash: string | null): void {}
 
 export const RequestErrorTelemetry = createMiddleware<HonoEnv>(async (_ctx, next) => {
 	await next();

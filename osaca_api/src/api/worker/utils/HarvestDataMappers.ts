@@ -188,7 +188,6 @@ export function buildUserDataJson(params: UserDataJsonParams) {
 			return {
 				created_at: session.createdAt.toISOString(),
 				approx_last_used_at: session.approximateLastUsedAt?.toISOString() ?? null,
-				client_ip: session.clientIp,
 				client_os: clientInfo.os,
 				client_user_agent: session.clientUserAgent,
 				client_platform: clientInfo.platform,

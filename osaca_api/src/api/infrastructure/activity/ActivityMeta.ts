@@ -11,7 +11,6 @@ import {createMiddleware} from 'hono/factory';
 const CANARY_ORIGINS = new Set(['https://canary.osaca.example', 'https://web.canary.osaca.example']);
 
 export interface ActivityRequestContext {
-	ip: string | null;
 	ua: string | null;
 	locale: string | null;
 	requestId: string | null;
@@ -31,7 +30,6 @@ function activityMetaFromContext(ctx: Context<HonoEnv>): ActivityRequestContext 
 	const origin = ctx.req.header('origin');
 	const acceptLanguage = ctx.req.header('accept-language');
 	return {
-		ip: null,
 		ua: null,
 		locale: acceptLanguage ? parseAcceptLanguage(acceptLanguage) : null,
 		requestId: ctx.get('requestId') ?? null,
@@ -71,7 +69,8 @@ export async function currentActivityMeta(): Promise<Meta> {
 		return {...workerMeta(), channel: processChannel};
 	}
 	return {
-		ip: context.ip,
+		// The generated contract keeps ip and country; OSACA stores no client address or country (ADR-0009).
+		ip: null,
 		country: null,
 		ua: context.ua,
 		locale: context.locale,

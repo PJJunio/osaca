@@ -223,7 +223,6 @@ export class StreamService {
 		streamKey: string;
 		channelId: ChannelID;
 		contentType?: string;
-		clientIp?: string | null;
 	}): Promise<StreamPreviewUploadUrlResponseSchema> {
 		const parsedKey = this.getParsedStreamKeyOrThrow(params.streamKey);
 		await this.assertStreamMutationAccess({
@@ -237,7 +236,6 @@ export class StreamService {
 			channelId: params.channelId,
 			userId: params.userId,
 			contentType: params.contentType,
-			clientIp: params.clientIp,
 		});
 	}
 

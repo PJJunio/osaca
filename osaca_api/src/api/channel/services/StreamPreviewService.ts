@@ -164,7 +164,6 @@ export class StreamPreviewService {
 		channelId: ChannelID;
 		userId: UserID;
 		contentType?: string;
-		clientIp?: string | null;
 	}): Promise<StreamPreviewUploadUrlResponseSchema> {
 		const bucket = Config.s3.buckets.uploads;
 		const key = this.getObjectKey(params.streamKey);
@@ -175,7 +174,7 @@ export class StreamPreviewService {
 			contentType,
 			expiresIn: PREVIEW_UPLOAD_URL_TTL_SECONDS,
 		});
-		const relayDecision = await resolveUploadRelayDecision(params.clientIp);
+		const relayDecision = await resolveUploadRelayDecision();
 		const uploadUrl = applyUploadRelayDecision({
 			presignedUrl,
 			bucket,

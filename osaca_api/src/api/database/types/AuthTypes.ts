@@ -7,10 +7,8 @@ export interface AuthSessionRow {
 	session_id_hash: Buffer;
 	created_at: Date;
 	approx_last_used_at: Date;
-	client_ip: string;
 	client_user_agent: string | null;
 	client_os: string | null;
-	client_country: string | null;
 	app_platform: string | null;
 	app_version: string | null;
 	app_release_channel: string | null;
@@ -32,10 +30,8 @@ export interface AuthSessionTombstoneRow {
 	session_id_hash: Buffer;
 	created_at: Date;
 	approx_last_used_at: Date;
-	client_ip: string;
 	client_user_agent: string | null;
 	client_os: string | null;
-	client_country: string | null;
 	deleted_at: Date;
 	version: number;
 }
@@ -76,10 +72,8 @@ export const AUTH_SESSION_COLUMNS = [
 	'session_id_hash',
 	'created_at',
 	'approx_last_used_at',
-	'client_ip',
 	'client_user_agent',
 	'client_os',
-	'client_country',
 	'app_platform',
 	'app_version',
 	'app_release_channel',
@@ -99,10 +93,8 @@ export const AUTH_SESSION_TOMBSTONE_COLUMNS = [
 	'session_id_hash',
 	'created_at',
 	'approx_last_used_at',
-	'client_ip',
 	'client_user_agent',
 	'client_os',
-	'client_country',
 	'deleted_at',
 	'version',
 ] as const satisfies ReadonlyArray<keyof AuthSessionTombstoneRow>;

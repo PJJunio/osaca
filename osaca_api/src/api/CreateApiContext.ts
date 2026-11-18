@@ -51,7 +51,6 @@ export function resetApiServicesForTesting(): void {
 
 const ANONYMOUS_REQUEST_SCOPE: RequestScope = {
 	requestId: 'anonymous',
-	clientIp: null,
 	userAgent: null,
 	locale: Locales.EN_US,
 };

@@ -177,10 +177,6 @@
 	overflow-wrap: anywhere;
 }
 
-.deviceDetailMono {
-	font-family: var(--font-mono);
-}
-
 .loadingContainer {
 	display: flex;
 	justify-content: center;

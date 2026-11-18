@@ -35,15 +35,6 @@ const SIGN_IN_DESCRIPTOR = msg({
 	comment: 'Button in the browser that approves signing in to the desktop or mobile app that asked for it.',
 });
 
-function formatLocation(location: {
-	city?: string | null;
-	region?: string | null;
-	country?: string | null;
-}): string | null {
-	const parts = [location.city, location.region, location.country].filter(Boolean);
-	return parts.length > 0 ? parts.join(', ') : null;
-}
-
 function HandoffCode({code}: {code: string}) {
 	return (
 		<span className={styles.code} data-flx="auth.flow.handoff-approval-flow.code">
@@ -77,8 +68,7 @@ function ApprovalTitle({handoff}: {handoff: DesktopHandoffFlow}) {
 function DeviceCard({clientInfo}: {clientInfo: DesktopHandoffFlow['clientInfo']}) {
 	const platform = clientInfo?.platform ?? null;
 	const os = clientInfo?.os ?? null;
-	const location = clientInfo?.location ? formatLocation(clientInfo.location) : null;
-	if (!platform && !os && !location) {
+	if (!platform && !os) {
 		return null;
 	}
 	return (
@@ -100,16 +90,6 @@ function DeviceCard({clientInfo}: {clientInfo: DesktopHandoffFlow['clientInfo']}
 					</span>
 					<span className={styles.deviceValue} data-flx="auth.flow.handoff-approval-flow.device-value--2">
 						{os}
-					</span>
-				</div>
-			) : null}
-			{location ? (
-				<div className={styles.deviceRow} data-flx="auth.flow.handoff-approval-flow.device-row--3">
-					<span className={styles.deviceLabel} data-flx="auth.flow.handoff-approval-flow.device-label--3">
-						<Trans>Location</Trans>
-					</span>
-					<span className={styles.deviceValue} data-flx="auth.flow.handoff-approval-flow.device-value--3">
-						{location}
 					</span>
 				</div>
 			) : null}

@@ -174,26 +174,16 @@ export const AuthRegisterResponse = z.union([AuthRegisterSuccessResponse, AuthRe
 
 export type AuthRegisterResponse = z.infer<typeof AuthRegisterResponse>;
 
-export const AuthSessionLocation = z.object({
-	city: z.string().nullish().describe('The city name reported by the client'),
-	region: z.string().nullish().describe('The region reported by the client'),
-	country: z.string().nullish().describe('The country reported by the client'),
-});
-
-export type AuthSessionLocation = z.infer<typeof AuthSessionLocation>;
-
 const AuthSessionClientInfo = z.object({
 	platform: z.string().nullish().describe('The platform reported by the client'),
 	os: z.string().nullish().describe('The operating system reported by the client'),
 	browser: z.string().nullish().describe('The browser reported by the client'),
 	device: z.enum(['mobile', 'desktop']).describe('Device class of the session, decided by the server'),
-	location: AuthSessionLocation.nullish().describe('The geolocation data sent by the client'),
 });
 
 export const AuthSessionResponse = z.object({
 	id_hash: z.string().describe('The base64url-encoded session id hash'),
 	client_info: AuthSessionClientInfo.nullish().describe('Client metadata recorded for this session'),
-	masked_ip: z.string().nullable().describe('Semi-redacted IP address recorded for this session'),
 	approx_last_used_at: z.iso.datetime().nullish().describe('Approximate timestamp of the last session activity'),
 	current: z.boolean().describe('Whether this is the current session making the request'),
 });
@@ -255,7 +245,6 @@ const HandoffInfoClientInfo = z.object({
 	platform: z.string().nullish().describe('The platform of the requesting device'),
 	os: z.string().nullish().describe('The operating system of the requesting device'),
 	device: z.enum(['mobile', 'desktop']).describe('Device class of the requesting device, decided by the server'),
-	location: AuthSessionLocation.nullish().describe('The approximate location of the requesting device'),
 });
 
 export const HandoffInfoResponse = z.object({

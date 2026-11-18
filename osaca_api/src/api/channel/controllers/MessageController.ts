@@ -15,7 +15,6 @@ import {readStateCapable} from '@app/api/read_state/ReadStateChannelMeta';
 import type {HonoApp} from '@app/api/types/HonoEnv';
 import {assertAccountNotLimited} from '@app/api/user/AccountLimit';
 import {assertTierAllows, NO_TIER_CONTEXT} from '@app/api/user/AccountTier';
-import {requireRequestClientIp} from '@app/api/utils/RequestClientIp';
 import {Validator} from '@app/api/Validator';
 import {TierGatedActions} from '@osaca/constants/src/AccountTierConstants';
 import {SudoVerificationSchema} from '@osaca/schema/src/domains/auth/AuthSchemas';
@@ -209,7 +208,6 @@ export function MessageController(app: HonoApp) {
 				'Returns presigned upload URLs for message attachments in the target channel. Small files (<=10MB) return a singlepart PUT URL; larger files return a multipart plan (upload_id + per-part URLs) that the client should complete via the matching /attachments/complete endpoint. Requires message send and attachment permissions in guild channels.',
 		}),
 		async (ctx) => {
-			const clientIp = requireRequestClientIp(ctx);
 			const channelId = createChannelID(ctx.req.valid('param').channel_id);
 			const {attachments} = ctx.req.valid('json');
 			return ctx.json({
@@ -217,7 +215,6 @@ export function MessageController(app: HonoApp) {
 					viewer: viewerFromCtx(ctx),
 					userId: ctx.get('user').id,
 					channelId,
-					clientIp,
 					attachments,
 				}),
 			});
@@ -240,7 +237,6 @@ export function MessageController(app: HonoApp) {
 				'Finalizes one or more multipart attachment uploads. Called after all chunks have been PUT to their presigned URLs. The server lists the uploaded parts and issues S3 CompleteMultipartUpload. Returns the finalized upload keys, which can be referenced in a subsequent message create request.',
 		}),
 		async (ctx) => {
-			const clientIp = requireRequestClientIp(ctx);
 			const channelId = createChannelID(ctx.req.valid('param').channel_id);
 			const {uploads} = ctx.req.valid('json');
 			return ctx.json({
@@ -248,7 +244,6 @@ export function MessageController(app: HonoApp) {
 					viewer: viewerFromCtx(ctx),
 					userId: ctx.get('user').id,
 					channelId,
-					clientIp,
 					uploads,
 				}),
 			});

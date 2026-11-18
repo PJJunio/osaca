@@ -20276,10 +20276,6 @@ msgctxt "us-state"
 msgid "Iowa"
 msgstr "艾奥瓦州"
 
-#: src/features/user/components/modals/tabs/DevicesTab.tsx
-msgid "IP address"
-msgstr "IP 地址"
-
 #: src/features/auth/components/pages/AuthorizeIPPage.tsx
 msgid "IP address authorized"
 msgstr "IP 地址已授权"
@@ -21591,11 +21587,6 @@ msgstr "区域时间格式"
 #: src/features/user/components/settings_utils/search_index/LanguageIndex.ts
 msgid "Localization"
 msgstr "本地化"
-
-#: src/features/auth/flow/HandoffApprovalFlow.tsx
-#: src/features/user/components/modals/tabs/DevicesTab.tsx
-msgid "Location"
-msgstr "位置"
 
 #. Moderator action that stops non-moderators from sending messages in a thread.
 #: src/features/threads/utils/ThreadMessageDescriptors.ts

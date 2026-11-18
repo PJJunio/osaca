@@ -35,7 +35,7 @@ import {afterAll, afterEach, assert, beforeAll, beforeEach, describe, expect, it
 const REGISTRATION_PENDING_APPROVALS_KEY = 'registration_pending_approvals';
 
 interface WriteFailure {
-	table: 'users' | 'instance_configuration' | 'authorized_ips_v2' | 'user_settings';
+	table: 'users' | 'instance_configuration' | 'user_settings';
 	timing: 'before' | 'after';
 }
 
@@ -309,7 +309,7 @@ describe('signups racing on registration URLs and pending approvals', () => {
 
 	it('lists an approval-mode account whose signup failed after the account was created', async () => {
 		await getInstanceConfigRepository().setRegistrationConfig({mode: 'approval'});
-		failWrite({table: 'authorized_ips_v2', timing: 'before'});
+		failWrite({table: 'user_settings', timing: 'before'});
 
 		const failed = await register('pendingstranded');
 

@@ -368,7 +368,6 @@ export async function processUserDeletion(
 		deleteRecoveryKit(userId),
 		userRepository.deleteAllPushSubscriptions(userId),
 		userRepository.deleteAllRecentMentions(userId),
-		userRepository.deleteAllAuthorizedIps(userId),
 		userRepository.deletePinnedDmsByUserId(userId),
 	]);
 	await userRepository.deleteUserSecondaryIndices(userId);

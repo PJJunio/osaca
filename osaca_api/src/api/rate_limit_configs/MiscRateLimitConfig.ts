@@ -7,6 +7,8 @@ export const MiscRateLimitConfigs = {
 	INSTANCE_INFO: {
 		bucket: 'instance:info',
 		config: {limit: 60, windowMs: ms('1 minute')},
+		// Every client asks on start, so the shared allowance has to cover all of them at once.
+		anonymous: {limit: 6000, windowMs: ms('1 minute')},
 	} as RouteRateLimitConfig,
 	INSTANCE_BADGES: {
 		bucket: 'instance:badges',

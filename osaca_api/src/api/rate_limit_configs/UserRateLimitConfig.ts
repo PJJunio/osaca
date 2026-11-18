@@ -128,10 +128,6 @@ export const UserRateLimitConfigs = {
 		bucket: 'user:mfa:totp:disable',
 		config: {limit: 10, windowMs: ms('1 minute')},
 	} as RouteRateLimitConfig,
-	USER_AUTHORIZED_IPS_FORGET: {
-		bucket: 'user:authorized_ips:forget',
-		config: {limit: 10, windowMs: ms('1 minute')},
-	} as RouteRateLimitConfig,
 	USER_MFA_BACKUP_CODES: {
 		bucket: 'user:mfa:backup_codes',
 		config: {limit: 6, windowMs: ms('1 minute')},

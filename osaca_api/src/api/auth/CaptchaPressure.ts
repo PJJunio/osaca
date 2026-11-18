@@ -10,6 +10,7 @@ export const CaptchaPressure = {
 	login: {solvesPerMinute: 120},
 	recover: {solvesPerMinute: 30},
 	register: {solvesPerMinute: 30},
+	handoff: {solvesPerMinute: 30},
 } as const;
 
 export type CaptchaPressureAction = keyof typeof CaptchaPressure;

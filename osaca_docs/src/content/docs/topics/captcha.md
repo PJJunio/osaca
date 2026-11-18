@@ -26,7 +26,7 @@ The error response has these fields next to `code` and `message`.
 
 A challenge works once and expires after 10 minutes. A rejected token returns 400 `INVALID_CAPTCHA` with a new challenge in the same fields.
 
-Logging in, recovering an account and creating an account make their challenge harder while the whole instance is busy. The cost doubles for every 120 solved challenges per minute for logging in, and for every 30 for recovering or creating an account, counted over the last minute across all clients. Every 10 failed logins to one username in the past hour also double the cost of logging in to it. Instant accounts also double the cost for every [`pow_escalation_per_hour`](/admin-api/instance/#auth-configuration-object) accounts created in the past hour. The cost stops rising at 64 times the configured cost, and it never depends on where a request comes from.
+Logging in, recovering an account, creating an account and the desktop handoff steps make their challenge harder while the whole instance is busy. The cost doubles for every 120 solved challenges per minute for logging in, and for every 30 for each of the others, counted over the last minute across all clients. Every 10 failed logins to one username in the past hour also double the cost of logging in to it, and every 5 wrong recovery keys the cost of recovering it. Instant accounts also double the cost for every [`pow_escalation_per_hour`](/admin-api/instance/#auth-configuration-object) accounts created in the past hour. The cost stops rising at 64 times the configured cost, and it never depends on where a request comes from.
 
 A token solved just before the cost rose returns 400 `INVALID_CAPTCHA` with a new, harder challenge. Solve the challenge from the latest error response.
 
@@ -53,6 +53,9 @@ These operations need a solved challenge while the check is on.
 | POST | /v1/auth/register/handoff | [Start an account for the website](/http-api/authentication/#start-an-account-for-the-website) |
 | POST | /v1/auth/login | [Log in with a password](/http-api/authentication/#log-in-with-a-password) |
 | POST | /v1/auth/recover | [Recover an account](/http-api/authentication/#recover-an-account) |
+| GET | /v1/auth/handoff/{code}/info | [Get desktop handoff information](/http-api/authentication/#get-desktop-handoff-information) |
+| POST | /v1/auth/handoff/complete | [Complete desktop handoff](/http-api/authentication/#complete-desktop-handoff) |
+| POST | /v1/auth/handoff/{code}/deny | [Deny a desktop handoff](/http-api/authentication/#deny-a-desktop-handoff) |
 | POST | /v1/oauth2/applications | [Create application](/http-api/applications/#create-application) |
 | POST | /v1/users/@me/channels | [Create private channel](/http-api/users/private-channels/#create-private-channel) |
 | PUT | /v1/channels/{channel_id}/recipients/{user_id} | [Add group direct message recipient](/http-api/channels/#add-group-direct-message-recipient) |

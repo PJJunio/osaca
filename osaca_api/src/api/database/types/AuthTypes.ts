@@ -57,16 +57,6 @@ export interface PasswordResetTokenRow {
 	user_id: UserID;
 }
 
-export interface AuthorizedIpRow {
-	user_id: UserID;
-	ip: string;
-}
-
-export interface AuthorizedIpTrustKeyRow {
-	user_id: UserID;
-	trust_key: string;
-}
-
 export interface WebAuthnCredentialRow {
 	user_id: UserID;
 	credential_id: string;
@@ -124,10 +114,6 @@ export const USER_RECOVERY_KIT_COLUMNS = ['user_id', 'secret_hash', 'created_at'
 >;
 export const PASSWORD_RESET_TOKEN_COLUMNS = ['token_', 'user_id'] as const satisfies ReadonlyArray<
 	keyof PasswordResetTokenRow
->;
-export const AUTHORIZED_IP_COLUMNS = ['user_id', 'ip'] as const satisfies ReadonlyArray<keyof AuthorizedIpRow>;
-export const AUTHORIZED_IP_TRUST_KEY_COLUMNS = ['user_id', 'trust_key'] as const satisfies ReadonlyArray<
-	keyof AuthorizedIpTrustKeyRow
 >;
 export const WEBAUTHN_CREDENTIAL_COLUMNS = [
 	'user_id',

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {createHash, randomBytes} from 'node:crypto';
-import {enforceInstantAccountLimits} from '@app/api/auth/AccountBudgets';
+import {recordSignUpThroughCodes, SIGN_UPS_PER_CODE_PER_HOUR} from '@app/api/auth/AccountBudgets';
 import {createUserID} from '@app/api/BrandedTypes';
 import {Config} from '@app/api/Config';
 import {getKVClient} from '@app/api/middleware/ServiceRegistry';
@@ -137,18 +137,11 @@ describe('Username-only accounts', () => {
 			.execute();
 	});
 
-	it('limits username-only accounts per network without the older three per hour rule', async () => {
+	it('does not limit username-only accounts per address', async () => {
 		Config.dev.relaxRegistrationRateLimits = false;
-		for (let index = 0; index < 5; index++) {
+		for (let index = 0; index < 6; index++) {
 			await registerInstant();
 		}
-		await createBuilderWithoutAuth(harness)
-			.post('/auth/register')
-			.header('x-forwarded-for', VISITOR_IP)
-			.body({global_name: 'Newcomer', consent: true})
-			.expect(429)
-			.execute();
-		await registerInstant('192.0.2.99');
 	});
 
 	it('creates the website account only when the browser redeems it with the terms accepted', async () => {
@@ -177,10 +170,13 @@ describe('Username-only accounts', () => {
 
 	it('keeps the code when the account cannot be made yet, and uses it up once it is', async () => {
 		const {nonce, hash} = nonceWithHash();
-		const {handoff_code} = await handoff('Web Visitor', hash).execute();
+		const registrationUrlCode = await createRegistrationUrlCode(false);
+		const {handoff_code} = await handoff('Web Visitor', hash, {registration_url_code: registrationUrlCode}).execute();
 		Config.dev.relaxRegistrationRateLimits = false;
 		const env = {kv: getKVClient(), rateLimit: getRateLimitService(), enforce: true};
-		for (let attempt = 0; attempt < 5; attempt++) await enforceInstantAccountLimits(env, VISITOR_IP);
+		for (let signUp = 0; signUp < SIGN_UPS_PER_CODE_PER_HOUR; signUp++) {
+			await recordSignUpThroughCodes(env, {registrationUrlCode, inviteCode: null});
+		}
 		await redeem(handoff_code, nonce).expect(429).execute();
 		Config.dev.relaxRegistrationRateLimits = true;
 		const redeemed = await redeem(handoff_code, nonce).execute();

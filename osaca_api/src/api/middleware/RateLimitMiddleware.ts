@@ -4,11 +4,9 @@ import {createHash} from 'node:crypto';
 import * as AuthSession from '@app/api/auth/AuthSession';
 import {Config} from '@app/api/Config';
 import type {HonoEnv} from '@app/api/types/HonoEnv';
-import {getRequestClientIp} from '@app/api/utils/RequestClientIp';
 import {constantTimeEquals} from '@app/api/utils/SecretHash';
 import {UserFlags} from '@osaca/constants/src/UserConstants';
 import {RateLimitError} from '@osaca/errors/src/domains/core/RateLimitError';
-import {getSameIpDecisionKey, parseIpAddress} from '@osaca/ip_utils/src/IpAddress';
 import type {BucketConfig, RateLimitResult, RateLimitScope} from '@pkgs/rate_limit/src/IRateLimitService';
 import type {Context, MiddlewareHandler} from 'hono';
 import {createMiddleware} from 'hono/factory';
@@ -19,14 +17,18 @@ export interface RouteRateLimitConfig {
 	bucket: string;
 	config: BucketConfig;
 	scope?: RateLimitScope;
-	trustForwardedClientIp?: boolean;
-	// Requests without a session share one bucket instead of one per client.
-	sharedWithoutSession?: boolean;
+	// The shared bucket for requests without a session, when the default below does not fit the route.
+	anonymous?: BucketConfig;
 }
+
+// Nothing identifies a request without a session once IP addresses are gone (ADR-0017), so all of them share one
+// bucket per route. It allows this many times the per-client limit unless the route sets its own, and it skips the
+// global limit, which would otherwise be one budget for every visitor of the Instance.
+export const ANONYMOUS_LIMIT_FACTOR = 20;
+const ANONYMOUS_CLIENT_ID = 'anonymous';
 
 const TEST_ENABLE_RATE_LIMITS_HEADER = 'x-osaca-test-enable-rate-limits';
 const INTERNAL_KEY_HEADER = 'x-osaca-internal-key';
-const FORWARDED_CLIENT_IP_HEADER = 'x-osaca-client-ip';
 
 export function shouldEnforceRateLimits(ctx: Context<HonoEnv>): boolean {
 	if (!Config.dev.testModeEnabled) {
@@ -54,7 +56,7 @@ function shouldShowHeadersOnSuccess(accountType: AccountType): boolean {
 	return accountType === 'bot' || accountType === 'webhook';
 }
 
-function isTrustedCallerForBucket(ctx: Context<HonoEnv>, bucket: string): boolean {
+export function isTrustedCallerForBucket(ctx: Context<HonoEnv>, bucket: string): boolean {
 	const providedKey = ctx.req.header(INTERNAL_KEY_HEADER);
 	if (!providedKey) return false;
 	let trusted = false;
@@ -65,21 +67,7 @@ function isTrustedCallerForBucket(ctx: Context<HonoEnv>, bucket: string): boolea
 	return trusted;
 }
 
-export function getTrustedForwardedClientIp(ctx: Context<HonoEnv>, bucket: string): string | null {
-	if (!isTrustedCallerForBucket(ctx, bucket)) return null;
-	const rawHeader = ctx.req.header(FORWARDED_CLIENT_IP_HEADER);
-	const headerValue = rawHeader?.split(',', 1)[0].trim();
-	if (!headerValue) return null;
-	return parseIpAddress(headerValue)?.normalized ?? null;
-}
-
-function getForwardedClientIdentifier(ctx: Context<HonoEnv>, bucket: string): string | null {
-	const clientIp = getTrustedForwardedClientIp(ctx, bucket);
-	if (!clientIp) return null;
-	return `ip:${getSameIpDecisionKey(clientIp) ?? clientIp}`;
-}
-
-function getClientIdentifier(ctx: Context<HonoEnv>, routeConfig: RouteRateLimitConfig): string {
+function getClientIdentifier(ctx: Context<HonoEnv>): string {
 	const user = ctx.get('user');
 	if (user?.id) {
 		const tokenType = ctx.get('authTokenType') ?? 'session';
@@ -88,14 +76,17 @@ function getClientIdentifier(ctx: Context<HonoEnv>, routeConfig: RouteRateLimitC
 		}
 		return `user:${user.id}:${tokenType}`;
 	}
-	if (routeConfig.sharedWithoutSession) return 'anonymous';
-	if (routeConfig.trustForwardedClientIp) {
-		const forwardedIdentifier = getForwardedClientIdentifier(ctx, routeConfig.bucket);
-		if (forwardedIdentifier) return forwardedIdentifier;
-	}
-	const ip = getRequestClientIp(ctx);
-	if (!ip) return 'internal';
-	return `ip:${getSameIpDecisionKey(ip) ?? ip}`;
+	return ANONYMOUS_CLIENT_ID;
+}
+
+function bucketConfigFor(routeConfig: RouteRateLimitConfig, clientId: string): BucketConfig {
+	if (clientId !== ANONYMOUS_CLIENT_ID) return routeConfig.config;
+	return (
+		routeConfig.anonymous ?? {
+			...routeConfig.config,
+			limit: routeConfig.config.limit * ANONYMOUS_LIMIT_FACTOR,
+		}
+	);
 }
 
 function getGlobalRateLimit(ctx: Context<HonoEnv>): number {
@@ -174,8 +165,9 @@ export function RateLimitMiddleware(routeConfig: RouteRateLimitConfig): Middlewa
 		}
 		const accountType = getAccountType(ctx);
 		const showHeaders = shouldShowHeadersOnSuccess(accountType);
-		const clientId = getClientIdentifier(ctx, routeConfig);
-		if (!routeConfig.config.exemptFromGlobal) {
+		const clientId = getClientIdentifier(ctx);
+		const bucketConfig = bucketConfigFor(routeConfig, clientId);
+		if (!bucketConfig.exemptFromGlobal && clientId !== ANONYMOUS_CLIENT_ID) {
 			const globalLimit = getGlobalRateLimit(ctx);
 			const globalResult = await rateLimitService.checkGlobalLimit(clientId, globalLimit);
 			if (!globalResult.allowed) {
@@ -192,7 +184,7 @@ export function RateLimitMiddleware(routeConfig: RouteRateLimitConfig): Middlewa
 			}
 		}
 		const bucket = resolveBucket(routeConfig.bucket, clientId, ctx);
-		const bucketResult = await rateLimitService.checkBucketLimit(bucket, routeConfig.config);
+		const bucketResult = await rateLimitService.checkBucketLimit(bucket, bucketConfig);
 		if (!bucketResult.allowed) {
 			throw new RateLimitError({
 				retryAfter: getRetryAfterSeconds(bucketResult),

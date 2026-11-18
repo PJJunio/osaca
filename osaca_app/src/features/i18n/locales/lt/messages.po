@@ -5727,11 +5727,6 @@ msgstr "Įgaliotosios programos"
 msgid "Authorized apps"
 msgstr "Įgaliotosios programos"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Authorized IPs cleared. New logins will require email verification."
-msgstr "Įgaliotieji IP išvalyti. Naujiems prisijungimams reikės el. pašto patvirtinimo."
-
 #: src/features/user/components/modals/tabs/AuthorizedAppsTab.tsx
 msgid "Authorized on {authorizedOn}"
 msgstr "Įgaliota {authorizedOn}"
@@ -16154,11 +16149,6 @@ msgstr "Nepavyko ištrinti kanalo"
 msgid "Failed to enable camera."
 msgstr "Nepavyko įjungti kameros."
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Failed to forget authorized IPs. Try again."
-msgstr "Nepavyko pamiršti įgaliotųjų IP adresų. Bandykite dar kartą."
-
 #. Error message in the message forward failed modal.
 #: src/features/messaging/components/modals/ForwardModal.tsx
 msgid "Failed to forward message"
@@ -17184,20 +17174,10 @@ msgstr "Priverstinai nustatyti nežinomą žinutės tipą"
 msgid "Forced off"
 msgstr "Išjungta priverstinai"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Forget authorized IPs"
-msgstr "Pamiršti įgaliotuosius IP adresus"
-
 #. Short label in the notifications. Keep it concise.
 #: src/features/user/components/modals/tabs/notifications_tab/Notifications.tsx
 msgid "Forget subscriptions"
 msgstr "Pamiršti prenumeratas"
-
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Forgetting authorized IPs..."
-msgstr "Pamirštami įgaliotieji IP adresai..."
 
 #. Short label in the authentication forgot password page. Keep the tone plain and specific.
 #: src/features/auth/components/pages/ForgotPasswordPage.tsx
@@ -37898,11 +37878,6 @@ msgstr "Tai pašalins „{themeName}“ iš šio įrenginio."
 #: src/features/theme_settings/components/QuickCssFiles.tsx
 msgid "This removes all of your quick CSS, including color and font changes. Saved themes are not affected."
 msgstr "Tai pašalins visą jūsų greitąjį CSS, įskaitant spalvų ir šriftų pakeitimus. Išsaugotos temos nepaveiktos."
-
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "This removes all previously authorized IP addresses on your account. The next login from any IP will require email verification."
-msgstr "Tai pašalina visus anksčiau autorizuotus IP adresus jūsų paskyroje. Kitas prisijungimas iš bet kurio IP reikalaus el. pašto patvirtinimo."
 
 #. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
 #: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx

@@ -308,7 +308,7 @@ The rate limit is 10 requests per 10 seconds, on the `auth:register` bucket.
 
 <RouteHeader method="GET" path="/v1/auth/register/handoff/challenge" unauthenticated />
 
-Returns the [CAPTCHA challenge](#captcha-challenge-object) for [start an account for the website](#start-an-account-for-the-website). Only a trusted caller can use it, with its key in `X-OSACA-Internal-Key` and the visitor IP address in `X-OSACA-Client-IP`.
+Returns the [CAPTCHA challenge](#captcha-challenge-object) for [start an account for the website](#start-an-account-for-the-website). Only a trusted caller can use it, with its key in `X-OSACA-Internal-Key`.
 
 ### Response
 
@@ -661,7 +661,7 @@ Signs in with the token from a sign-in link made by [create admin sign-in link](
 | 200 | [authentication token response](#authentication-token-response) | The account was signed in |
 | 400 | [error response](/http-api/#error-response) | The field code `INVALID_OR_EXPIRED_AUTHORIZATION_TOKEN` |
 
-The rate limit is 5 requests per minute, on the shared `auth:authorize_ip` bucket.
+The rate limit is 5 requests per minute, on the `auth:sign_in_link` bucket.
 
 ## Get username suggestions
 
@@ -727,7 +727,7 @@ The rate limit is 10 requests per minute, on the `auth:handoff:initiate` bucket.
 
 <RouteHeader method="GET" path="/v1/auth/handoff/{code}/info" unauthenticated />
 
-Returns [handoff information](#handoff-information-object) so the signed-in device can show which device is asking. You have to call this before [complete desktop handoff](#complete-desktop-handoff) or [deny a desktop handoff](#deny-a-desktop-handoff). Hyphens, spaces and letter case in the code are ignored.
+Returns [handoff information](#handoff-information-object) so the signed-in device can show which device is asking. You have to call this before [complete desktop handoff](#complete-desktop-handoff) or [deny a desktop handoff](#deny-a-desktop-handoff). Hyphens, spaces and letter case in the code are ignored. Looking up, completing and denying a handoff each need a [CAPTCHA](/topics/captcha/).
 
 ### Response
 
@@ -735,8 +735,7 @@ Returns [handoff information](#handoff-information-object) so the signed-in devi
 | --- | --- | --- |
 | 200 | [handoff information](#handoff-information-object) object | The handoff was found or has expired |
 | 400 | [error response](/http-api/#error-response) | `INVALID_HANDOFF_CODE` when the code is malformed or was looked up 3 times |
-| 400 | [error response](/http-api/#error-response) | `HANDOFF_CODE_ALREADY_USED` when the same network already approved this code |
-| 429 | [error response](/http-api/#error-response) | `HANDOFF_ATTEMPTS_EXCEEDED` when this IP address has 5 failed handoff attempts in 15 minutes, with `retry_after` |
+| 400 | [error response](/http-api/#error-response) | `HANDOFF_CODE_ALREADY_USED` when the code was already approved |
 
 The rate limit is 10 requests per minute, on the `auth:handoff:info` bucket.
 
@@ -762,9 +761,8 @@ Approves a handoff and creates a session for the other device. Send the approvin
 | 200 | [handoff completion](#handoff-completion-object) object | The handoff was approved with `deep_link` |
 | 204 | empty | The handoff was approved with `code` |
 | 400 | [error response](/http-api/#error-response) | `INVALID_HANDOFF_CODE` or `HANDOFF_CODE_EXPIRED` when the code is unknown or expired |
-| 400 | [error response](/http-api/#error-response) | `HANDOFF_CODE_ALREADY_USED` when the same network already approved this code |
+| 400 | [error response](/http-api/#error-response) | `HANDOFF_CODE_ALREADY_USED` when the code was already approved |
 | 401 | [error response](/http-api/#error-response) | `INVALID_TOKEN` when the approving session is not active |
-| 429 | [error response](/http-api/#error-response) | `HANDOFF_ATTEMPTS_EXCEEDED` when this IP address has 5 failed handoff attempts in 15 minutes, with `retry_after` |
 
 The rate limit is 10 requests per minute, on the `auth:handoff:complete` bucket.
 
@@ -780,7 +778,6 @@ Declines a handoff and returns 204, and the other device sees `denied`.
 | --- | --- | --- |
 | 204 | empty | The handoff was denied |
 | 400 | [error response](/http-api/#error-response) | `INVALID_HANDOFF_CODE` when the code is unknown, expired or not looked up first |
-| 429 | [error response](/http-api/#error-response) | `HANDOFF_ATTEMPTS_EXCEEDED` when this IP address has 5 failed handoff attempts in 15 minutes, with `retry_after` |
 
 The rate limit is 10 requests per minute, on the `auth:handoff:deny` bucket.
 
@@ -796,7 +793,6 @@ Returns the [handoff status](#handoff-status-object) without the token, and repo
 | --- | --- | --- |
 | 200 | [handoff status](#handoff-status-object) object | The status was returned |
 | 400 | [error response](/http-api/#error-response) | `INVALID_HANDOFF_CODE` when the code is malformed |
-| 429 | [error response](/http-api/#error-response) | `HANDOFF_ATTEMPTS_EXCEEDED` when this IP address has 5 failed handoff attempts in 15 minutes, with `retry_after` |
 
 The rate limit is 60 requests per minute, on the `auth:handoff:status` bucket.
 
@@ -819,7 +815,6 @@ Returns the [handoff status](#handoff-status-object) and, once, the new session 
 | --- | --- | --- |
 | 200 | [handoff status](#handoff-status-object) object | The status was returned |
 | 400 | [error response](/http-api/#error-response) | `INVALID_HANDOFF_CODE` when the code is malformed |
-| 429 | [error response](/http-api/#error-response) | `HANDOFF_ATTEMPTS_EXCEEDED` with `retry_after` for a wrong poll secret once this IP address has 5 failures in 15 minutes |
 
 The rate limit is 60 requests per minute, on the shared `auth:handoff:status` bucket.
 

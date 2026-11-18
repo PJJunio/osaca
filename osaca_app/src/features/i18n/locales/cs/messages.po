@@ -5727,11 +5727,6 @@ msgstr "Autorizované aplikace"
 msgid "Authorized apps"
 msgstr "Autorizované aplikace"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Authorized IPs cleared. New logins will require email verification."
-msgstr "Autorizované IP adresy vymazány. Nová přihlášení budou vyžadovat ověření e-mailem."
-
 #: src/features/user/components/modals/tabs/AuthorizedAppsTab.tsx
 msgid "Authorized on {authorizedOn}"
 msgstr "Autorizováno dne {authorizedOn}"
@@ -16154,11 +16149,6 @@ msgstr "Nepodařilo se smazat kanál"
 msgid "Failed to enable camera."
 msgstr "Nepodařilo se zapnout kameru."
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Failed to forget authorized IPs. Try again."
-msgstr "Nepodařilo se vymazat autorizované IP adresy. Zkuste to znovu."
-
 #. Error message in the message forward failed modal.
 #: src/features/messaging/components/modals/ForwardModal.tsx
 msgid "Failed to forward message"
@@ -17184,20 +17174,10 @@ msgstr "Vynutit neznámý typ zprávy"
 msgid "Forced off"
 msgstr "Vynuceně vypnuto"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Forget authorized IPs"
-msgstr "Vymazat autorizované IP adresy"
-
 #. Short label in the notifications. Keep it concise.
 #: src/features/user/components/modals/tabs/notifications_tab/Notifications.tsx
 msgid "Forget subscriptions"
 msgstr "Zrušit odběry oznámení"
-
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Forgetting authorized IPs..."
-msgstr "Mazání autorizovaných IP adres..."
 
 #. Short label in the authentication forgot password page. Keep the tone plain and specific.
 #: src/features/auth/components/pages/ForgotPasswordPage.tsx
@@ -37897,11 +37877,6 @@ msgstr "Tímto se \"{themeName}\" odstraní z tohoto zařízení."
 #: src/features/theme_settings/components/QuickCssFiles.tsx
 msgid "This removes all of your quick CSS, including color and font changes. Saved themes are not affected."
 msgstr "Tímto odstraníte veškeré své rychlé CSS, včetně změn barev a písem. Uložená témata nejsou ovlivněna."
-
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "This removes all previously authorized IP addresses on your account. The next login from any IP will require email verification."
-msgstr "Tímto odeberete všechny dříve autorizované IP adresy z vašeho účtu. Příští přihlášení z jakékoli IP adresy bude vyžadovat ověření e-mailem."
 
 #. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
 #: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx

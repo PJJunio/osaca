@@ -19,7 +19,6 @@ import {getInstanceConfigRepository} from '@app/api/middleware/ServiceSingletons
 import type {User} from '@app/api/models/User';
 import type {TierContext} from '@app/api/user/AccountTier';
 import {isJsonRecord, parseJsonWithGuard} from '@app/api/utils/JsonBoundaryUtils';
-import {requireConfiguredClientIp} from '@app/api/utils/RequestClientIp';
 import {InvalidAccountHandoffNonceError} from '@osaca/errors/src/domains/auth/InvalidAccountHandoffNonceError';
 import {RegistrationClosedError} from '@osaca/errors/src/domains/auth/RegistrationClosedError';
 import {UnknownAccountHandoffError} from '@osaca/errors/src/domains/auth/UnknownAccountHandoffError';
@@ -34,7 +33,6 @@ const HANDOFF_TTL_SECONDS = seconds('15 minutes');
 interface AccountHandoffRecord {
 	global_name: string;
 	nonce_hash: string;
-	client_ip: string;
 	locale: string | null;
 	registration_url_code?: string | null;
 	created_at: number;
@@ -45,7 +43,6 @@ function isHandoffRecord(value: unknown): value is AccountHandoffRecord {
 		isJsonRecord(value) &&
 		typeof value.global_name === 'string' &&
 		typeof value.nonce_hash === 'string' &&
-		typeof value.client_ip === 'string' &&
 		(value.locale === null || typeof value.locale === 'string') &&
 		(value.registration_url_code == null || typeof value.registration_url_code === 'string') &&
 		typeof value.created_at === 'number'
@@ -93,18 +90,16 @@ export async function createAccountHandoff(
 		nonceHash: string;
 		locale: string | undefined;
 		registrationUrlCode: string | null | undefined;
-		clientIp: string;
 	},
 ): Promise<{handoff_code: string}> {
 	const repository = getInstanceConfigRepository();
-	await assertAccountCreationPastSetup(ctx, repository, params.clientIp);
+	await assertAccountCreationPastSetup(ctx, repository);
 	assertInstantAccountAvailable(await resolveInstantAccountAvailabilityFor(repository, params.registrationUrlCode));
 	assertDisplayNameAllowed(params.globalName);
 	const handoffCode = generateOpaqueToken();
 	const record: AccountHandoffRecord = {
 		global_name: params.globalName,
 		nonce_hash: params.nonceHash,
-		client_ip: '',
 		locale: params.locale ?? null,
 		registration_url_code: params.registrationUrlCode?.trim() || null,
 		created_at: Date.now(),
@@ -126,11 +121,7 @@ export async function redeemHandoff(
 		tierContext: TierContext;
 	},
 ): Promise<{user: User; token: string; entry: GuildEntryResult | null}> {
-	await assertAccountCreationPastSetup(
-		ctx,
-		deps.instanceConfigRepository,
-		requireConfiguredClientIp(params.request, ctx.services.config.proxy),
-	);
+	await assertAccountCreationPastSetup(ctx, deps.instanceConfigRepository);
 	assertRegistrationConsent(
 		ctx.services.config,
 		await deps.instanceConfigRepository.getAppPublicConfig(),
@@ -155,7 +146,6 @@ export async function redeemHandoff(
 				registrationUrlCode: record.registration_url_code ?? null,
 			},
 			request: params.request,
-			clientIp: record.client_ip,
 			requestCache: params.requestCache,
 			source: 'marketing',
 			tierContext: params.tierContext,

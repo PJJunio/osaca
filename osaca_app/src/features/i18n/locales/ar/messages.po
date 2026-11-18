@@ -5727,11 +5727,6 @@ msgstr "التطبيقات المصرّح بها"
 msgid "Authorized apps"
 msgstr "التطبيقات المصرّح بها"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Authorized IPs cleared. New logins will require email verification."
-msgstr "تم مسح عناوين IP المصرح بها. ستتطلب عمليات تسجيل الدخول الجديدة التحقق عبر البريد الإلكتروني."
-
 #: src/features/user/components/modals/tabs/AuthorizedAppsTab.tsx
 msgid "Authorized on {authorizedOn}"
 msgstr "تم التصريح في {authorizedOn}"
@@ -16154,11 +16149,6 @@ msgstr "تعذّر حذف القناة"
 msgid "Failed to enable camera."
 msgstr "تعذّر تشغيل الكاميرا."
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Failed to forget authorized IPs. Try again."
-msgstr "تعذّر نسيان عناوين IP المصرّح بها. حاول مرة أخرى."
-
 #. Error message in the message forward failed modal.
 #: src/features/messaging/components/modals/ForwardModal.tsx
 msgid "Failed to forward message"
@@ -17184,20 +17174,10 @@ msgstr "فرض نوع رسالة غير معروف"
 msgid "Forced off"
 msgstr "مُعطّل قسريًا"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Forget authorized IPs"
-msgstr "نسيان عناوين IP المصرّح بها"
-
 #. Short label in the notifications. Keep it concise.
 #: src/features/user/components/modals/tabs/notifications_tab/Notifications.tsx
 msgid "Forget subscriptions"
 msgstr "إزالة اشتراكات الإشعارات"
-
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Forgetting authorized IPs..."
-msgstr "جارٍ نسيان عناوين IP المصرّح بها..."
 
 #. Short label in the authentication forgot password page. Keep the tone plain and specific.
 #: src/features/auth/components/pages/ForgotPasswordPage.tsx
@@ -37897,11 +37877,6 @@ msgstr "سيؤدي هذا إلى إزالة \"{themeName}\" من هذا الجه
 #: src/features/theme_settings/components/QuickCssFiles.tsx
 msgid "This removes all of your quick CSS, including color and font changes. Saved themes are not affected."
 msgstr "سيؤدي هذا إلى إزالة كل CSS السريع الخاص بك، بما في ذلك تغييرات الألوان والخطوط. السمات المحفوظة لن تتأثر."
-
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "This removes all previously authorized IP addresses on your account. The next login from any IP will require email verification."
-msgstr "سيؤدي هذا إلى إزالة جميع عناوين IP المصرح بها مسبقًا في حسابك. سيتطلب تسجيل الدخول التالي من أي عنوان IP التحقق عبر البريد الإلكتروني."
 
 #. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
 #: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx

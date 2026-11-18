@@ -5727,11 +5727,6 @@ msgstr "अधिकृत ऐप्लिकेशन"
 msgid "Authorized apps"
 msgstr "अधिकृत ऐप"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Authorized IPs cleared. New logins will require email verification."
-msgstr "अधिकृत आईपी हटा दिए गए हैं। नए लॉगिन के लिए ईमेल वेरिफ़िकेशन ज़रूरी होगा।"
-
 #: src/features/user/components/modals/tabs/AuthorizedAppsTab.tsx
 msgid "Authorized on {authorizedOn}"
 msgstr "{authorizedOn} को अधिकृत किया गया"
@@ -16154,11 +16149,6 @@ msgstr "चैनल नहीं मिटाया जा सका"
 msgid "Failed to enable camera."
 msgstr "कैमरा चालू नहीं हो पाया।"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Failed to forget authorized IPs. Try again."
-msgstr "अधिकृत आईपी भुलाए नहीं जा सके। फिर से कोशिश करें।"
-
 #. Error message in the message forward failed modal.
 #: src/features/messaging/components/modals/ForwardModal.tsx
 msgid "Failed to forward message"
@@ -17184,20 +17174,10 @@ msgstr "अज्ञात मैसेज टाइप फ़ोर्स क�
 msgid "Forced off"
 msgstr "ज़बरदस्ती बंद किया गया"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Forget authorized IPs"
-msgstr "अधिकृत आईपी भूल जाएं"
-
 #. Short label in the notifications. Keep it concise.
 #: src/features/user/components/modals/tabs/notifications_tab/Notifications.tsx
 msgid "Forget subscriptions"
 msgstr "सदस्यताएँ भूल जाएँ"
-
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Forgetting authorized IPs..."
-msgstr "अधिकृत आईपी भूल रहे हैं..."
 
 #. Short label in the authentication forgot password page. Keep the tone plain and specific.
 #: src/features/auth/components/pages/ForgotPasswordPage.tsx
@@ -37897,11 +37877,6 @@ msgstr "यह \"{themeName}\" को इस डिवाइस से हटा
 #: src/features/theme_settings/components/QuickCssFiles.tsx
 msgid "This removes all of your quick CSS, including color and font changes. Saved themes are not affected."
 msgstr "यह आपके सभी क्विक CSS को हटा देगा, जिसमें रंग और फ़ॉन्ट परिवर्तन शामिल हैं। सहेजे गए थीम प्रभावित नहीं होंगे।"
-
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "This removes all previously authorized IP addresses on your account. The next login from any IP will require email verification."
-msgstr "यह आपके अकाउंट से पहले से अधिकृत सभी आईपी पते हटा देता है। किसी भी आईपी से अगले लॉगिन पर ईमेल वेरिफ़िकेशन ज़रूरी होगा।"
 
 #. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
 #: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx

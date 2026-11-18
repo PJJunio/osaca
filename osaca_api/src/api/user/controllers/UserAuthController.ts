@@ -163,31 +163,6 @@ export function UserAuthController(app: HonoApp) {
 			return ctx.json(await createRecoveryKit(user.id));
 		},
 	);
-	app.delete(
-		'/users/@me/authorized-ips',
-		RateLimitMiddleware(RateLimitConfigs.USER_AUTHORIZED_IPS_FORGET),
-		LoginRequired,
-		DefaultUserOnly,
-		SudoModeMiddleware,
-		Validator('json', SudoVerificationSchema),
-		OpenAPI({
-			operationId: 'forget_authorized_ips',
-			summary: 'Forget authorized IPs for current user',
-			responseSchema: null,
-			statusCode: 204,
-			security: ['bearerToken', 'sessionToken'],
-			tags: ['Users'],
-			description:
-				'Clears all authorized IP addresses for the current user. After calling this endpoint, the user will be required to re-authorize any new IP addresses they log in from. Requires sudo mode verification.',
-		}),
-		async (ctx) => {
-			const user = ctx.get('user');
-			const body = ctx.req.valid('json');
-			await requireSudoMode(ctx, user, body);
-			await ctx.get('userAuthRequestService').forgetAuthorizedIps(user);
-			return ctx.body(null, 204);
-		},
-	);
 	app.get(
 		'/users/@me/mfa/webauthn/credentials',
 		RateLimitMiddleware(RateLimitConfigs.MFA_WEBAUTHN_LIST),

@@ -10,7 +10,7 @@ When you send too many requests, the HTTP API returns 429 with `code` set to `RA
 
 Every HTTP API and Admin API operation declares a bucket, and its reference section says how many requests the bucket allows. A bucket name with a path parameter, such as `guild:emojis:list::guild_id`, has a separate allowance for each value of that parameter.
 
-Each caller has its own allowance, and a user session, a bot token, an Admin API key and an OAuth2 application count as separate callers even on the same account. A request with no token counts against the client IP address, or its `/64` for IPv6.
+Each caller has its own allowance, and a user session, a bot token, an Admin API key and an OAuth2 application count as separate callers even on the same account. Requests with no token aren't told apart: OSACA uses no IP addresses for limits, so they share one allowance per bucket, 20 times the per-caller allowance unless the operation says otherwise. They don't count against the global bucket.
 
 Each request also counts against a global bucket of 50 requests per second for each caller. An account with the [`HIGH_GLOBAL_RATE_LIMIT`](/admin-api/users/#account-flags) flag gets 1,200 requests per second, and an account with [`RATE_LIMIT_BYPASS`](/admin-api/users/#account-flags) skips the global bucket and every route bucket. Executing a webhook, and getting, editing or deleting its messages through the webhook's token URL, don't count against the global bucket.
 
@@ -85,11 +85,10 @@ These return 429 with the [rate limit response object](#rate-limit-response-obje
 
 | Operation | Limit |
 | --- | --- |
-| [Log in with a password](/http-api/authentication/#log-in-with-a-password) | 5 per 15 minutes for one username from one IP address, and 10 failed logins per 30 minutes from one IP address. While the [CAPTCHA](/topics/captcha/) is off, one username also allows 100 failed logins per hour |
-| [Register an account](/http-api/authentication/#register-an-account) | 3 per hour for one IP address, 15 per hour for one subnet, and 30 per hour through one invite or registration URL code |
+| [Log in with a password](/http-api/authentication/#log-in-with-a-password) | While the [CAPTCHA](/topics/captcha/) is off, 100 failed logins per hour for one username |
+| [Register an account](/http-api/authentication/#register-an-account) | 30 per hour through one invite or registration URL code |
 | [Submit message report flow](/http-api/reports/#submit-message-report-flow) | 5 reports per hour for one reporter, 3 in one channel, 4 in one community and 20 for one message from all reporters |
 
-Registering an [instant account](/admin-api/instance/#auth-configuration-object) allows 5 per hour and 20 per day from one IP address and 40 per hour from one subnet instead.
 
 ### Announcement channel limits
 

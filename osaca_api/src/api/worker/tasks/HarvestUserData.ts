@@ -106,9 +106,6 @@ interface ArchiveParams {
 	user: User;
 	channelMessagesMap: Map<string, Array<HarvestedMessage>>;
 	oauthClients: Array<Application>;
-	authorizedIps: Array<{
-		ip: string;
-	}>;
 	activityData: {
 		last_active_at: Date | null;
 	};
@@ -334,7 +331,6 @@ async function createAndUploadArchive(params: ArchiveParams): Promise<ArchiveRes
 		user,
 		channelMessagesMap,
 		oauthClients,
-		authorizedIps,
 		activityData,
 		storageService,
 	} = params;
@@ -396,7 +392,7 @@ async function createAndUploadArchive(params: ArchiveParams): Promise<ArchiveRes
 		await archive.append(createArchiveJsonBuffer({applications: oauthClients.map(mapOAuthApplication)}), {
 			name: 'integrations/oauth.json',
 		});
-		await archive.append(createArchiveJsonBuffer(mapSecurityData({authorizedIps, activityData})), {
+		await archive.append(createArchiveJsonBuffer(mapSecurityData({activityData})), {
 			name: 'account/security.json',
 		});
 	});
@@ -505,7 +501,6 @@ const harvestUserData: ArchiveTaskHandler = async (payload, helpers, attempt) =>
 			oauthClients,
 			connections,
 			pinnedDms,
-			authorizedIps,
 			activityData,
 		] = await Promise.all([
 			userRepository.listAuthSessions(userId),
@@ -523,7 +518,6 @@ const harvestUserData: ArchiveTaskHandler = async (payload, helpers, attempt) =>
 			applicationRepository.listApplicationsByOwner(userId),
 			connectionRepository.findByUserId(userId),
 			userRepository.getPinnedDmsWithDetails(userId),
-			userRepository.getAuthorizedIps(userId),
 			userRepository.getActivityTracking(userId),
 		]);
 		const guilds = await guildRepository.listGuilds(guildIds);
@@ -559,7 +553,6 @@ const harvestUserData: ArchiveTaskHandler = async (payload, helpers, attempt) =>
 			oauthClients,
 			connections,
 			pinnedDms,
-			authorizedIps,
 			activityData,
 		});
 		const userDataJsonBuffer = createArchiveJsonBuffer(userData);
@@ -578,7 +571,6 @@ const harvestUserData: ArchiveTaskHandler = async (payload, helpers, attempt) =>
 			user,
 			channelMessagesMap,
 			oauthClients,
-			authorizedIps,
 			activityData,
 			storageService,
 		});

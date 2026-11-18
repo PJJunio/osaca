@@ -3,11 +3,7 @@
 import {createAuthHarness, createUniqueUsername, registerUser} from '@app/api/auth/tests/AuthTestUtils';
 import {createUserID} from '@app/api/BrandedTypes';
 import {getConfig} from '@app/api/Config';
-import {
-	getInstanceConfigRepository,
-	getRateLimitService,
-	getUserRepository,
-} from '@app/api/middleware/ServiceSingletons';
+import {getInstanceConfigRepository, getUserRepository} from '@app/api/middleware/ServiceSingletons';
 import type {ApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {HTTP_STATUS} from '@app/api/test/TestConstants';
 import {createBuilder, createBuilderWithoutAuth} from '@app/api/test/TestRequestBuilder';
@@ -15,8 +11,6 @@ import {AdminACLs} from '@osaca/constants/src/AdminACLs';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
 import {UserFlags} from '@osaca/constants/src/UserConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
-import {getSameIpDecisionKey} from '@osaca/ip_utils/src/IpAddress';
-import {ms} from 'itty-time';
 import {afterAll, beforeAll, beforeEach, describe, expect, it} from 'vitest';
 
 function bootstrapRegistrationBody(prefix: string): Record<string, unknown> {
@@ -344,7 +338,7 @@ describe('Setup token registration', () => {
 		});
 	});
 
-	it('locks an address out after ten wrong setup tokens', async () => {
+	it('locks setup token guesses out after ten wrong tokens, from any address', async () => {
 		await withSetupTokenInstance(async () => {
 			getConfig().dev.relaxRegistrationRateLimits = false;
 			const attacker = '203.0.113.10';
@@ -375,29 +369,12 @@ describe('Setup token registration', () => {
 				attacker,
 			);
 			expect(lockedOut.status).toBe(TOO_MANY_REQUESTS);
+			const fromOperator = await register(
+				{...bootstrapRegistrationBody('limitoperator'), setup_token: SETUP_TOKEN},
+				operator,
+			);
+			expect(fromOperator.status).toBe(TOO_MANY_REQUESTS);
 			await expect(getInstanceConfigRepository().isAdminBootstrapped()).resolves.toBe(false);
-			const userId = await registerAdmin('limitoperator', operator);
-			await expectUserACLs(userId, [AdminACLs.WILDCARD]);
-		});
-	});
-
-	it('lets the setup token holder past the registration limiter of their address', async () => {
-		await withSetupTokenInstance(async () => {
-			getConfig().dev.relaxRegistrationRateLimits = false;
-			const operator = '203.0.113.30';
-			const registrationLimit = {
-				identifier: `registration:ip:${getSameIpDecisionKey(operator) ?? operator}`,
-				maxAttempts: 3,
-				windowMs: ms('1 hour'),
-			};
-			for (let attempt = 0; attempt < 3; attempt++) {
-				await getRateLimitService().checkLimit(registrationLimit);
-			}
-			const userId = await registerAdmin('limitedoperator', operator);
-			await expectUserACLs(userId, [AdminACLs.WILDCARD]);
-			await getInstanceConfigRepository().setAppPublicConfig({setup: {configured: true}});
-			const next = await register(bootstrapRegistrationBody('limitedmember'), operator);
-			expect(next.status).toBe(TOO_MANY_REQUESTS);
 		});
 	});
 

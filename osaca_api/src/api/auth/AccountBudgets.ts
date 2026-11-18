@@ -4,7 +4,6 @@ import {sha256Hex} from '@app/api/auth/AccountCodes';
 import {Config} from '@app/api/Config';
 import {parseInviteCodeList} from '@app/api/instance/AutoJoinInviteCodes';
 import {createRateLimitError} from '@app/api/utils/RateLimitUtils';
-import {getSameIpDecisionKey, getSubnet} from '@osaca/ip_utils/src/IpAddress';
 import type {IKVProvider} from '@pkgs/kv_client/src/IKVProvider';
 import type {IRateLimitService} from '@pkgs/rate_limit/src/IRateLimitService';
 
@@ -26,10 +25,6 @@ export function budgetEnvFor(
 	request: Request | null,
 ): BudgetEnv {
 	return {kv: services.kv, rateLimit: services.rateLimit, enforce: shouldEnforceAccountBudgets(request)};
-}
-
-export function ipKey(clientIp: string): string {
-	return getSameIpDecisionKey(clientIp) ?? clientIp;
 }
 
 interface WindowRule {
@@ -69,32 +64,7 @@ export async function bumpWindow(kv: IKVProvider, rule: WindowCounter): Promise<
 	return count;
 }
 
-async function enforceHardLimit(
-	env: BudgetEnv,
-	identifier: string,
-	maxAttempts: number,
-	windowSeconds: number,
-): Promise<void> {
-	const result = await env.rateLimit.checkLimit({identifier, maxAttempts, windowMs: windowSeconds * 1000});
-	if (!result.allowed && env.enforce) throw createRateLimitError(result);
-}
-
-export type RequesterClass = 'known' | 'unknown';
-
-export function requesterNetworkKey(clientIp: string): string {
-	return getSubnet(clientIp) ?? ipKey(clientIp);
-}
-
 const HOUR = 3600;
-const DAY = 86400;
-
-export async function enforceInstantAccountLimits(env: BudgetEnv, clientIp: string): Promise<void> {
-	const key = ipKey(clientIp);
-	await enforceHardLimit(env, `registration:instant:ip:${key}:hour`, 5, HOUR);
-	await enforceHardLimit(env, `registration:instant:ip:${key}:day`, 20, DAY);
-	const subnet = getSubnet(clientIp);
-	if (subnet) await enforceHardLimit(env, `registration:instant:subnet:${subnet}`, 40, HOUR);
-}
 
 const INSTANT_GLOBAL_RULE: WindowCounter = {key: 'registration:instant:global', windowSeconds: HOUR};
 

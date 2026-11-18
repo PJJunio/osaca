@@ -2,7 +2,11 @@
 
 import {Config} from '@app/api/Config';
 import type {TrustedCallerConfig} from '@app/api/config/APIConfig';
-import {RateLimitMiddleware, type RouteRateLimitConfig} from '@app/api/middleware/RateLimitMiddleware';
+import {
+	ANONYMOUS_LIMIT_FACTOR,
+	RateLimitMiddleware,
+	type RouteRateLimitConfig,
+} from '@app/api/middleware/RateLimitMiddleware';
 import {OAuthRateLimitConfigs} from '@app/api/rate_limit_configs/OAuthRateLimitConfig';
 import type {HonoEnv} from '@app/api/types/HonoEnv';
 import type {
@@ -27,6 +31,7 @@ function createAllowedResult(limit: number): RateLimitResult {
 class RecordingRateLimitService implements IRateLimitService {
 	readonly globalIdentifiers: Array<string> = [];
 	readonly buckets: Array<string> = [];
+	readonly limits: Array<number> = [];
 
 	async checkLimit(config: RateLimitConfig): Promise<RateLimitResult> {
 		return createAllowedResult(config.maxAttempts);
@@ -38,6 +43,7 @@ class RecordingRateLimitService implements IRateLimitService {
 
 	async checkBucketLimit(bucket: string, config: BucketConfig): Promise<RateLimitResult> {
 		this.buckets.push(bucket);
+		this.limits.push(config.limit);
 		return createAllowedResult(config.limit);
 	}
 
@@ -58,16 +64,9 @@ interface Harness {
 	service: RecordingRateLimitService;
 }
 
-const CALLER_IP = '192.0.2.50';
-const FORWARDED_IP = '203.0.113.77';
-const OTHER_FORWARDED_IP = '203.0.113.78';
 const BUGS_KEY = 'bugs-key-0123456789abcdefghijklmnopqrstuv';
 
-const TRUSTED_CALLERS: Array<TrustedCallerConfig> = [
-	{name: 'bugs', key: BUGS_KEY, buckets: ['oauth:token', 'oauth:revoke']},
-];
-
-function buildTrustedHarness(routeConfig: RouteRateLimitConfig): Harness {
+function buildHarness(routeConfig: RouteRateLimitConfig): Harness {
 	const service = new RecordingRateLimitService();
 	const app = new Hono<HonoEnv>({strict: true});
 	app.use('*', async (ctx, next) => {
@@ -78,84 +77,52 @@ function buildTrustedHarness(routeConfig: RouteRateLimitConfig): Harness {
 	return {app, service};
 }
 
-async function callTrustedRoute(harness: Harness, headers: Record<string, string>): Promise<Response> {
+async function callRoute(harness: Harness, headers: Record<string, string>): Promise<Response> {
 	return await harness.app.request('http://localhost/route', {
 		method: 'POST',
-		headers: {
-			'x-forwarded-for': CALLER_IP,
-			'x-osaca-test-enable-rate-limits': 'true',
-			...headers,
-		},
+		headers: {'x-osaca-test-enable-rate-limits': 'true', ...headers},
 	});
 }
 
-describe('RateLimitMiddleware trusted callers', () => {
+// ADR-0017: requests without a session are not told apart by address.
+describe('RateLimitMiddleware without a session', () => {
 	let previousTrustedCallers: Array<TrustedCallerConfig>;
 
 	beforeEach(() => {
 		previousTrustedCallers = Config.internal.trustedCallers;
-		Config.internal.trustedCallers = TRUSTED_CALLERS;
+		Config.internal.trustedCallers = [{name: 'bugs', key: BUGS_KEY, buckets: ['oauth:token']}];
 	});
 
 	afterEach(() => {
 		Config.internal.trustedCallers = previousTrustedCallers;
 	});
 
-	test('keys oauth:token on the address the bugs caller forwards, one bucket per address', async () => {
-		const harness = buildTrustedHarness(OAuthRateLimitConfigs.OAUTH_TOKEN);
+	test('puts every address, forwarded or not, in one shared bucket and skips the global limit', async () => {
+		const harness = buildHarness(OAuthRateLimitConfigs.OAUTH_TOKEN);
 
-		const first = await callTrustedRoute(harness, {
-			'x-osaca-internal-key': BUGS_KEY,
-			'x-osaca-client-ip': FORWARDED_IP,
-		});
-		const second = await callTrustedRoute(harness, {
-			'x-osaca-internal-key': BUGS_KEY,
-			'x-osaca-client-ip': OTHER_FORWARDED_IP,
-		});
-
-		expect(first.status).toBe(200);
-		expect(second.status).toBe(200);
-		expect(harness.service.globalIdentifiers).toEqual([`ip:${FORWARDED_IP}`, `ip:${OTHER_FORWARDED_IP}`]);
-		expect(harness.service.buckets).toEqual([`ip:${FORWARDED_IP}:oauth:token`, `ip:${OTHER_FORWARDED_IP}:oauth:token`]);
-	});
-
-	test('keys oauth:revoke on the address the bugs caller forwards', async () => {
-		const harness = buildTrustedHarness(OAuthRateLimitConfigs.OAUTH_REVOKE);
-
-		await callTrustedRoute(harness, {'x-osaca-internal-key': BUGS_KEY, 'x-osaca-client-ip': FORWARDED_IP});
-
-		expect(harness.service.buckets).toEqual([`ip:${FORWARDED_IP}:oauth:revoke`]);
-	});
-
-	test('ignores a wrong key of the same or a different length, and a missing key', async () => {
-		const harness = buildTrustedHarness(OAuthRateLimitConfigs.OAUTH_TOKEN);
-		const sameLengthWrongKey = `${BUGS_KEY.slice(0, -1)}${BUGS_KEY.endsWith('v') ? 'w' : 'v'}`;
-
-		await callTrustedRoute(harness, {'x-osaca-internal-key': sameLengthWrongKey, 'x-osaca-client-ip': FORWARDED_IP});
-		await callTrustedRoute(harness, {'x-osaca-internal-key': `${BUGS_KEY}x`, 'x-osaca-client-ip': FORWARDED_IP});
-		await callTrustedRoute(harness, {'x-osaca-client-ip': FORWARDED_IP});
+		await callRoute(harness, {'x-forwarded-for': '192.0.2.50'});
+		await callRoute(harness, {'x-forwarded-for': '198.51.100.7'});
+		await callRoute(harness, {'x-osaca-internal-key': BUGS_KEY, 'x-osaca-client-ip': '203.0.113.77'});
 
 		expect(harness.service.buckets).toEqual([
-			`ip:${CALLER_IP}:oauth:token`,
-			`ip:${CALLER_IP}:oauth:token`,
-			`ip:${CALLER_IP}:oauth:token`,
+			'anonymous:oauth:token',
+			'anonymous:oauth:token',
+			'anonymous:oauth:token',
 		]);
+		expect(harness.service.globalIdentifiers).toEqual([]);
 	});
 
-	test('falls back to the caller when a trusted key sends an unparsable address', async () => {
-		const harness = buildTrustedHarness(OAuthRateLimitConfigs.OAUTH_TOKEN);
+	test(`allows ${ANONYMOUS_LIMIT_FACTOR} times the per-client limit, or the route's own shared limit`, async () => {
+		const harness = buildHarness({bucket: 'plain', config: {limit: 5, windowMs: 1000}});
+		await callRoute(harness, {});
+		expect(harness.service.limits).toEqual([5 * ANONYMOUS_LIMIT_FACTOR]);
 
-		await callTrustedRoute(harness, {'x-osaca-internal-key': BUGS_KEY, 'x-osaca-client-ip': 'not-an-ip'});
-
-		expect(harness.service.buckets).toEqual([`ip:${CALLER_IP}:oauth:token`]);
-	});
-
-	test('ignores a trusted key on a route that does not opt in, even when the bucket is listed', async () => {
-		Config.internal.trustedCallers = [{name: 'wide', key: BUGS_KEY, buckets: ['oauth:introspect']}];
-		const harness = buildTrustedHarness(OAuthRateLimitConfigs.OAUTH_INTROSPECT);
-
-		await callTrustedRoute(harness, {'x-osaca-internal-key': BUGS_KEY, 'x-osaca-client-ip': FORWARDED_IP});
-
-		expect(harness.service.buckets).toEqual([`ip:${CALLER_IP}:oauth:introspect`]);
+		const own = buildHarness({
+			bucket: 'own',
+			config: {limit: 5, windowMs: 1000},
+			anonymous: {limit: 7, windowMs: 1000},
+		});
+		await callRoute(own, {});
+		expect(own.service.limits).toEqual([7]);
 	});
 });

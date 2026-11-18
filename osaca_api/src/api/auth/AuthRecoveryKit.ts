@@ -2,11 +2,13 @@
 
 import crypto from 'node:crypto';
 import type {ApiContext} from '@app/api/ApiContext';
+import {shouldEnforceAccountBudgets} from '@app/api/auth/AccountBudgets';
 import {createMfaTicketResponse} from '@app/api/auth/AuthLogin';
 import * as AuthPassword from '@app/api/auth/AuthPassword';
 import * as AuthUtility from '@app/api/auth/AuthUtility';
 import {RecoveryKitRepository} from '@app/api/auth/services/RecoveryKitRepository';
 import {resolveWebAuthnSecondFactor} from '@app/api/auth/services/WebAuthnSecondFactor';
+import {recordUsernameFailure, usernameKey} from '@app/api/auth/UsernameFailures';
 import {createUserID, type UserID} from '@app/api/BrandedTypes';
 import type {UserRecoveryKitRow} from '@app/api/database/types/AuthTypes';
 import {
@@ -18,7 +20,6 @@ import type {User} from '@app/api/models/User';
 import {findPersonByLoginHandle, parseLoginHandle} from '@app/api/user/UniqueUsernames';
 import {hashPassword} from '@app/api/utils/PasswordUtils';
 import {createRateLimitError} from '@app/api/utils/RateLimitUtils';
-import {requireConfiguredClientIp} from '@app/api/utils/RequestClientIp';
 import {secretMatchesHash, sha256Hex} from '@app/api/utils/SecretHash';
 import {
 	generateRecoveryKey,
@@ -30,7 +31,6 @@ import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {RegistrationPendingApprovalError} from '@osaca/errors/src/domains/auth/RegistrationPendingApprovalError';
 import {RegistrationRejectedError} from '@osaca/errors/src/domains/auth/RegistrationRejectedError';
 import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
-import {getSameIpDecisionKey} from '@osaca/ip_utils/src/IpAddress';
 import type {RecoverAccountRequest} from '@osaca/schema/src/domains/auth/AuthSchemas';
 import type {
 	RecoveryKitCreateResponse,
@@ -46,6 +46,7 @@ const DUMMY_KIT_USER_ID = createUserID(0n);
 interface RecoverAccountParams {
 	data: RecoverAccountRequest;
 	request: Request;
+	captchaVerified?: boolean;
 }
 
 interface PendingRecovery {
@@ -88,27 +89,25 @@ function invalidRecoveryKeyError(): InputValidationError {
 	return InputValidationError.fromCode('recovery_key', ValidationErrorCodes.INVALID_RECOVERY_KEY);
 }
 
-async function checkRecoverRateLimits(ctx: ApiContext, username: string | null, request: Request): Promise<void> {
-	const {rateLimit, config} = ctx.services;
-	const clientIp = requireConfiguredClientIp(request, config.proxy);
-	const sourceKey = getSameIpDecisionKey(clientIp) ?? clientIp;
-	const ipRateLimit = await rateLimit.checkLimit({
-		identifier: `recover:ip:${sourceKey}`,
-		maxAttempts: 10,
-		windowMs: ms('30 minutes'),
-	});
-	if (!ipRateLimit.allowed) {
-		throw createRateLimitError(ipRateLimit);
-	}
-	const identifierRateLimit = await rateLimit.checkLimit({
-		identifier:
-			username === null ? `recover:id-unparsed:${sourceKey}` : `recover:id:${username.toLowerCase()}:${sourceKey}`,
-		maxAttempts: 5,
-		windowMs: ms('30 minutes'),
-	});
-	if (!identifierRateLimit.allowed) {
-		throw createRateLimitError(identifierRateLimit);
-	}
+// Wrong recovery keys for one username, never per address (ADR-0017). With a solved captcha the cost of trying again
+// grows with them instead, so the lockout only applies while the captcha is off: it would also lock the owner out.
+function recoverLockout(login: string) {
+	const username = usernameKey(login);
+	return username === null ? null : {identifier: `recover:id:${username}`, maxAttempts: 5, windowMs: ms('30 minutes')};
+}
+
+async function assertRecoverNotLockedOut(ctx: ApiContext, params: RecoverAccountParams): Promise<void> {
+	const lockout = recoverLockout(params.data.login);
+	if (lockout === null || params.captchaVerified || !shouldEnforceAccountBudgets(params.request)) return;
+	const state = await ctx.services.rateLimit.peekLimit(lockout);
+	if (!state.allowed) throw createRateLimitError(state);
+}
+
+async function recordWrongRecoveryKey(ctx: ApiContext, login: string): Promise<never> {
+	const lockout = recoverLockout(login);
+	if (lockout !== null) await ctx.services.rateLimit.checkLimit(lockout);
+	await recordUsernameFailure(ctx.services.kv, 'recover', login);
+	throw invalidRecoveryKeyError();
 }
 
 export async function getRecoveryKitStatus(userId: UserID): Promise<RecoveryKitStatusResponse> {
@@ -133,18 +132,16 @@ export async function findRecoveryKitCreatedAt(userId: UserID): Promise<Date | n
 	return (await recoveryKits.find(userId))?.created_at ?? null;
 }
 
-export async function recoverAccount(
-	ctx: ApiContext,
-	{data, request}: RecoverAccountParams,
-): Promise<RecoverAccountResult> {
+export async function recoverAccount(ctx: ApiContext, params: RecoverAccountParams): Promise<RecoverAccountResult> {
+	const {data, request} = params;
 	const handle = parseLoginHandle(data.login);
-	await checkRecoverRateLimits(ctx, handle?.username ?? null, request);
+	await assertRecoverNotLockedOut(ctx, params);
 	const normalizedKey = normalizeRecoveryKey(data.recovery_key);
 	const user = handle ? await findPersonByLoginHandle(ctx.services.users, handle) : null;
 	const kit = await recoveryKits.find(user ? user.id : DUMMY_KIT_USER_ID);
 	const keyMatches = secretMatchesHash(normalizedKey ?? data.recovery_key, kit?.secret_hash ?? DUMMY_SECRET_HASH);
 	if (!user || !kit || normalizedKey === null || !keyMatches) {
-		throw invalidRecoveryKeyError();
+		return await recordWrongRecoveryKey(ctx, data.login);
 	}
 	const currentUser = await AuthUtility.assertSignInAllowed(ctx, user);
 	if (currentUser.traits.has(REGISTRATION_PENDING_APPROVAL_TRAIT)) {

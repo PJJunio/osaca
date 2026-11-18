@@ -61,4 +61,4 @@ Returns a [Gateway information object](#gateway-information-object). The `Author
 | 200 | [Gateway information](#gateway-information-object) object | The token looks like a bot token |
 | 401 | [error response](/http-api/#error-response) | `MISSING_AUTHORIZATION` with no token, `INVALID_AUTH_TOKEN` when the token doesn't look like a bot token |
 
-The rate limit is 60 requests per minute for each bot, or for each client IP address when the request has no working `Bot ` token, on the `gateway:bot_info` bucket.
+The rate limit is 60 requests per minute for each bot, on the `gateway:bot_info` bucket. Requests with no working `Bot ` token share one allowance.

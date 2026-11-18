@@ -5727,11 +5727,6 @@ msgstr "연결된 앱"
 msgid "Authorized apps"
 msgstr "승인된 앱"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Authorized IPs cleared. New logins will require email verification."
-msgstr "승인된 IP가 삭제되었습니다. 새로 로그인하려면 이메일 인증이 필요합니다."
-
 #: src/features/user/components/modals/tabs/AuthorizedAppsTab.tsx
 msgid "Authorized on {authorizedOn}"
 msgstr "{authorizedOn}에 승인됨"
@@ -16154,11 +16149,6 @@ msgstr "채널 삭제 실패"
 msgid "Failed to enable camera."
 msgstr "카메라를 켤 수 없습니다."
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Failed to forget authorized IPs. Try again."
-msgstr "승인된 IP를 지우지 못했습니다. 다시 시도해 주세요."
-
 #. Error message in the message forward failed modal.
 #: src/features/messaging/components/modals/ForwardModal.tsx
 msgid "Failed to forward message"
@@ -17184,20 +17174,10 @@ msgstr "알 수 없는 메시지 유형 강제 적용"
 msgid "Forced off"
 msgstr "강제 꺼짐"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Forget authorized IPs"
-msgstr "승인된 IP 지우기"
-
 #. Short label in the notifications. Keep it concise.
 #: src/features/user/components/modals/tabs/notifications_tab/Notifications.tsx
 msgid "Forget subscriptions"
 msgstr "푸시 구독 삭제"
-
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Forgetting authorized IPs..."
-msgstr "승인된 IP 지우는 중..."
 
 #. Short label in the authentication forgot password page. Keep the tone plain and specific.
 #: src/features/auth/components/pages/ForgotPasswordPage.tsx
@@ -37897,11 +37877,6 @@ msgstr "이 기기에서 \"{themeName}\" 테마를 삭제합니다."
 #: src/features/theme_settings/components/QuickCssFiles.tsx
 msgid "This removes all of your quick CSS, including color and font changes. Saved themes are not affected."
 msgstr "이것은 색상 및 글꼴 변경을 포함한 모든 빠른 CSS를 제거합니다. 저장된 테마는 영향을 받지 않습니다."
-
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "This removes all previously authorized IP addresses on your account. The next login from any IP will require email verification."
-msgstr "이 작업은 이전에 승인된 모든 IP 주소를 계정에서 제거합니다. 다음 로그인 시에는 어떤 IP에서든 이메일 인증이 필요합니다."
 
 #. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
 #: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx

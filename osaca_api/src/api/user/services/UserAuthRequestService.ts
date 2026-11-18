@@ -94,10 +94,6 @@ export class UserAuthRequestService {
 		return this.toBackupCodesResponse(backupCodes);
 	}
 
-	async forgetAuthorizedIps(user: User): Promise<void> {
-		await this.userRepository.deleteAllAuthorizedIps(user.id);
-	}
-
 	async listWebAuthnCredentials(user: User): Promise<WebAuthnCredentialListResponse> {
 		const credentials = await this.userRepository.listWebAuthnCredentials(user.id);
 		const legacyRpId = this.apiContext.services.config.auth.passkeys.rpId;

@@ -1,17 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type {ApiContext} from '@app/api/ApiContext';
-import {
-	bumpWindow,
-	readSlidingWindow,
-	shouldEnforceAccountBudgets,
-	type WindowCounter,
-} from '@app/api/auth/AccountBudgets';
+import {shouldEnforceAccountBudgets} from '@app/api/auth/AccountBudgets';
 import * as AuthMfa from '@app/api/auth/AuthMfa';
 import {applyPendingRecovery} from '@app/api/auth/AuthRecoveryKit';
 import * as AuthSession from '@app/api/auth/AuthSession';
 import * as AuthUtility from '@app/api/auth/AuthUtility';
 import {resolveWebAuthnSecondFactor} from '@app/api/auth/services/WebAuthnSecondFactor';
+import {recordUsernameFailure, usernameKey} from '@app/api/auth/UsernameFailures';
 import {createInviteCode, createMfaTicket, createUserID} from '@app/api/BrandedTypes';
 import {emitActivity} from '@app/api/infrastructure/activity/ActivityEvents';
 import type {LoginMethod} from '@app/api/infrastructure/activity/Contract.generated';
@@ -29,50 +25,23 @@ import {findPersonByLoginHandle, parseLoginHandle} from '@app/api/user/UniqueUse
 import {verifyPassword} from '@app/api/utils/PasswordUtils';
 import * as RandomUtils from '@app/api/utils/RandomUtils';
 import {createRateLimitError} from '@app/api/utils/RateLimitUtils';
-import {requireConfiguredClientIp} from '@app/api/utils/RequestClientIp';
-import {UserAuthenticatorTypes, UserFlags} from '@osaca/constants/src/UserConstants';
+import {UserAuthenticatorTypes} from '@osaca/constants/src/UserConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {MfaNotEnabledError} from '@osaca/errors/src/domains/auth/MfaNotEnabledError';
 import {RegistrationPendingApprovalError} from '@osaca/errors/src/domains/auth/RegistrationPendingApprovalError';
 import {RegistrationRejectedError} from '@osaca/errors/src/domains/auth/RegistrationRejectedError';
 import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
-import {getSameIpDecisionKey} from '@osaca/ip_utils/src/IpAddress';
 import type {LoginRequest} from '@osaca/schema/src/domains/auth/AuthSchemas';
-import type {IKVProvider} from '@pkgs/kv_client/src/IKVProvider';
 import type {AuthenticationResponseJSON} from '@simplewebauthn/server';
 import {ms, seconds} from 'itty-time';
 
-// Failed sign-ins to one username within the past hour that each double its captcha cost (ADR-0017). Counted whether
-// or not an Account has that username, so the count tells nothing about which usernames are taken.
-export const LOGIN_FAILURES_PER_CAPTCHA_STEP = 10;
 const LOGIN_FAILURES_BEFORE_LOCKOUT = 100;
-
-function loginUsernameKey(login: string): string | null {
-	const handle = parseLoginHandle(login);
-	return handle ? handle.username.toLowerCase() : null;
-}
 
 // The hard lockout, a leaky bucket that only applies while the captcha is off.
 export function loginFailureLimit(login: string): LoginIdentifierRateLimit | null {
-	const username = loginUsernameKey(login);
+	const username = usernameKey(login);
 	if (username === null) return null;
 	return {identifier: `login:id:${username}`, maxAttempts: LOGIN_FAILURES_BEFORE_LOCKOUT, windowMs: ms('1 hour')};
-}
-
-function loginFailureCounter(username: string): WindowCounter {
-	return {key: `login:failures:${username}`, windowSeconds: 3600};
-}
-
-export async function loginFailureCaptchaSteps(kv: IKVProvider, login: string): Promise<number> {
-	const username = loginUsernameKey(login);
-	if (username === null) return 0;
-	const failures = await readSlidingWindow(kv, loginFailureCounter(username));
-	return Math.floor(failures / LOGIN_FAILURES_PER_CAPTCHA_STEP);
-}
-
-async function recordLoginFailure(kv: IKVProvider, login: string): Promise<void> {
-	const username = loginUsernameKey(login);
-	if (username !== null) await bumpWindow(kv, loginFailureCounter(username));
 }
 
 const DUMMY_ARGON2_HASH =
@@ -124,7 +93,6 @@ interface LoginIdentifierRateLimit {
 }
 
 interface LoginIdentifier {
-	sourceRateLimits: (sourceKey: string) => Array<LoginIdentifierRateLimit>;
 	failureRateLimit: LoginIdentifierRateLimit | null;
 	lookup: () => Promise<User | null>;
 }
@@ -132,7 +100,7 @@ interface LoginIdentifier {
 export function emitLogin(
 	user: User,
 	ok: boolean,
-	details: {failure?: string; mfa?: boolean; newIp?: boolean; method?: LoginMethod} = {},
+	details: {failure?: string; mfa?: boolean; method?: LoginMethod} = {},
 ): void {
 	void emitActivity('login', user.id.toString(), {
 		user_id: user.id.toString(),
@@ -140,7 +108,8 @@ export function emitLogin(
 		method: details.method ?? 'password',
 		failure: details.failure ?? null,
 		mfa: details.mfa ?? false,
-		new_ip: details.newIp ?? false,
+		// The contract keeps the field; OSACA tracks no client addresses to compare (ADR-0009).
+		new_ip: false,
 	});
 }
 
@@ -149,7 +118,7 @@ export async function login(
 	deps: LoginDependencies,
 	{data, request, captchaVerified = false}: LoginParams,
 ): Promise<LoginResult> {
-	const {users, rateLimit, config} = ctx.services;
+	const {rateLimit} = ctx.services;
 	const {inviteService} = deps;
 	const skipRateLimits = !shouldEnforceAccountBudgets(request);
 	const identifier = resolveLoginIdentifier(ctx, data);
@@ -158,22 +127,6 @@ export async function login(
 			{path: 'login', code: ValidationErrorCodes.INVALID_LOGIN_OR_PASSWORD},
 			{path: 'password', code: ValidationErrorCodes.INVALID_LOGIN_OR_PASSWORD},
 		]);
-	const enforceRateLimits = async (limits: Array<LoginIdentifierRateLimit>) => {
-		for (const limit of limits) {
-			const result = await rateLimit.checkLimit(limit);
-			if (!result.allowed && !skipRateLimits) {
-				throw createRateLimitError(result);
-			}
-		}
-	};
-	const clientIp = requireConfiguredClientIp(request, config.proxy);
-	const sourceKey = getSameIpDecisionKey(clientIp) ?? clientIp;
-	await enforceRateLimits(identifier.sourceRateLimits(sourceKey));
-	const ipFailureLimit = {identifier: `login:ip:${sourceKey}`, maxAttempts: 10, windowMs: ms('30 minutes')};
-	const ipFailureState = await rateLimit.peekLimit(ipFailureLimit);
-	if (!ipFailureState.allowed && !skipRateLimits) {
-		throw createRateLimitError(ipFailureState);
-	}
 	const failureLimit = identifier.failureRateLimit;
 	const failureState = failureLimit ? await rateLimit.peekLimit(failureLimit) : null;
 	// A solved captcha already pays a cost that grows with the failures, so the hard lockout is only for an Instance
@@ -187,8 +140,7 @@ export async function login(
 				}
 			: null;
 	const rejectCredentials = async (): Promise<never> => {
-		await recordLoginFailure(ctx.services.kv, data.login);
-		await rateLimit.checkLimit(ipFailureLimit);
+		await recordUsernameFailure(ctx.services.kv, 'login', data.login);
 		if (failureLimit) {
 			await rateLimit.checkLimit(failureLimit);
 		}
@@ -229,15 +181,6 @@ export async function login(
 	if (currentUser.traits.has(REGISTRATION_REJECTED_TRAIT)) {
 		throw new RegistrationRejectedError();
 	}
-	const isAppStoreReviewer = (currentUser.flags & UserFlags.APP_STORE_REVIEWER) !== 0n;
-	let newIp = false;
-	if (!hasMfa && !isAppStoreReviewer) {
-		const isIpAuthorized = await users.checkIpAuthorized(currentUser.id, clientIp);
-		newIp = !isIpAuthorized;
-		if (!isIpAuthorized) {
-			await users.createAuthorizedIp(currentUser.id, clientIp);
-		}
-	}
 	if (hasMfa) {
 		const webauthnIsSecondFactor = await resolveWebAuthnSecondFactor(ctx, currentUser);
 		return await createMfaTicketResponse(ctx, currentUser, webauthnIsSecondFactor);
@@ -258,7 +201,7 @@ export async function login(
 		user: currentUser,
 		origin: AuthSession.resolveSessionOrigin(ctx, request),
 	});
-	emitLogin(currentUser, true, {newIp});
+	emitLogin(currentUser, true);
 	return {
 		user_id: currentUser.id.toString(),
 		token,
@@ -269,13 +212,6 @@ function resolveLoginIdentifier(ctx: ApiContext, data: LoginRequest): LoginIdent
 	const {users} = ctx.services;
 	const handle = parseLoginHandle(data.login);
 	return {
-		sourceRateLimits: (sourceKey) => {
-			if (!handle) {
-				return [{identifier: `login:id-unparsed:${sourceKey}`, maxAttempts: 5, windowMs: ms('15 minutes')}];
-			}
-			const lowered = handle.username.toLowerCase();
-			return [{identifier: `login:id:${lowered}:${sourceKey}`, maxAttempts: 5, windowMs: ms('15 minutes')}];
-		},
 		failureRateLimit: loginFailureLimit(data.login),
 		lookup: async () => (handle ? await findPersonByLoginHandle(users, handle) : null),
 	};
@@ -347,13 +283,6 @@ export async function completeMfaLogin(
 ): Promise<[token: string, AuthSessionModel]> {
 	const {cache, rateLimit} = ctx.services;
 	const sessionUser = await applyPendingRecovery(ctx, user, ticket);
-	if (await cache.get<boolean>(mfaTicketNetworkKey(ticket))) {
-		await cache.delete(mfaTicketNetworkKey(ticket));
-		await ctx.services.users.createAuthorizedIp(
-			sessionUser.id,
-			requireConfiguredClientIp(request, ctx.services.config.proxy),
-		);
-	}
 	await cache.delete(`mfa-ticket:${ticket}`);
 	await rateLimit.resetLimit(`mfa:ticket:${ticket}`);
 	await rateLimit.resetLimit(`mfa:user:${user.id}`);
@@ -376,22 +305,14 @@ export async function loginMfaWebAuthn(
 	return {user_id: user.id.toString(), token};
 }
 
-function mfaTicketNetworkKey(ticket: string): string {
-	return `mfa-ticket-network:${ticket}`;
-}
-
 export async function createMfaTicketResponse(
 	ctx: ApiContext,
 	user: User,
 	webauthnIsSecondFactor: boolean,
-	options: {authorizeNetwork?: boolean} = {},
 ): Promise<LoginMfaResult> {
 	const {cache} = ctx.services;
 	const ticket = createMfaTicket(await RandomUtils.randomString(64));
 	await cache.set(`mfa-ticket:${ticket}`, user.id.toString(), seconds('5 minutes'));
-	if (options.authorizeNetwork) {
-		await cache.set(mfaTicketNetworkKey(ticket), true, seconds('5 minutes'));
-	}
 	const hasTotp = user.authenticatorTypes.has(UserAuthenticatorTypes.TOTP);
 	const hasBackupCodes = await AuthMfa.hasUnconsumedBackupCodes(ctx, user.id);
 	const allowedMethods: Array<string> = [];

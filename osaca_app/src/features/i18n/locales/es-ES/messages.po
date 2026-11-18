@@ -5727,11 +5727,6 @@ msgstr "Aplicaciones autorizadas"
 msgid "Authorized apps"
 msgstr "Aplicaciones autorizadas"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Authorized IPs cleared. New logins will require email verification."
-msgstr "IP autorizadas eliminadas. Los nuevos inicios de sesión requerirán verificación por correo electrónico."
-
 #: src/features/user/components/modals/tabs/AuthorizedAppsTab.tsx
 msgid "Authorized on {authorizedOn}"
 msgstr "Autorizada el {authorizedOn}"
@@ -16154,11 +16149,6 @@ msgstr "No se pudo eliminar el canal"
 msgid "Failed to enable camera."
 msgstr "No se pudo activar la cámara."
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Failed to forget authorized IPs. Try again."
-msgstr "No se pudieron olvidar las IP autorizadas. Inténtalo de nuevo."
-
 #. Error message in the message forward failed modal.
 #: src/features/messaging/components/modals/ForwardModal.tsx
 msgid "Failed to forward message"
@@ -17184,20 +17174,10 @@ msgstr "Forzar tipo de mensaje desconocido"
 msgid "Forced off"
 msgstr "Desactivado forzosamente"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Forget authorized IPs"
-msgstr "Olvidar IP autorizadas"
-
 #. Short label in the notifications. Keep it concise.
 #: src/features/user/components/modals/tabs/notifications_tab/Notifications.tsx
 msgid "Forget subscriptions"
 msgstr "Olvidar suscripciones"
-
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Forgetting authorized IPs..."
-msgstr "Olvidando las IP autorizadas..."
 
 #. Short label in the authentication forgot password page. Keep the tone plain and specific.
 #: src/features/auth/components/pages/ForgotPasswordPage.tsx
@@ -37897,11 +37877,6 @@ msgstr "Esto eliminará \"{themeName}\" de este dispositivo."
 #: src/features/theme_settings/components/QuickCssFiles.tsx
 msgid "This removes all of your quick CSS, including color and font changes. Saved themes are not affected."
 msgstr "Esto eliminará todo tu CSS rápido, incluidos los cambios de color y fuente. Los temas guardados no se verán afectados."
-
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "This removes all previously authorized IP addresses on your account. The next login from any IP will require email verification."
-msgstr "Esto elimina todas las direcciones IP autorizadas previamente en tu cuenta. El próximo inicio de sesión desde cualquier IP requerirá verificación por correo electrónico."
 
 #. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
 #: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx

@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import {loginFailureCaptchaSteps} from '@app/api/auth/AuthLogin';
 import * as AuthMfa from '@app/api/auth/AuthMfa';
 import {
 	assertAccountCreationPastSetup,
@@ -10,6 +9,7 @@ import {
 import * as AuthSession from '@app/api/auth/AuthSession';
 import {redeemSignInLink} from '@app/api/auth/SignInLinks';
 import {requireSudoMode} from '@app/api/auth/services/SudoVerificationService';
+import {usernameFailureCaptchaSteps} from '@app/api/auth/UsernameFailures';
 import {DefaultUserOnly, LoginRequired} from '@app/api/middleware/AuthMiddleware';
 import {PressuredCaptchaMiddleware} from '@app/api/middleware/CaptchaMiddleware';
 import {RateLimitMiddleware} from '@app/api/middleware/RateLimitMiddleware';
@@ -21,7 +21,6 @@ import type {HonoApp, HonoEnv} from '@app/api/types/HonoEnv';
 import {scheduleAbandonedOnLastLogout} from '@app/api/user/AccountCleanup';
 import {tierContextFrom} from '@app/api/user/AccountTier';
 import {isJsonRecord} from '@app/api/utils/JsonBoundaryUtils';
-import {requireRequestClientIp} from '@app/api/utils/RequestClientIp';
 import {Validator} from '@app/api/Validator';
 import {
 	AuthLoginResponse,
@@ -62,22 +61,30 @@ function optionalString(value: unknown): string | null {
 	return typeof value === 'string' && value.length > 0 ? value : null;
 }
 
+// The captcha runs before validation, so these read the body defensively; validation answers a bad body afterwards.
+async function jsonBody(ctx: Context<HonoEnv>): Promise<Record<string, unknown>> {
+	const body: unknown = await ctx.req.json().catch(() => null);
+	return isJsonRecord(body) ? body : {};
+}
+
 async function loginExtraCaptchaSteps(ctx: Context<HonoEnv>): Promise<number> {
-	const body: unknown = await ctx.req.json();
-	const login = isJsonRecord(body) ? optionalString(body.login) : null;
-	return login === null ? 0 : await loginFailureCaptchaSteps(getKVClient(), login);
+	const login = optionalString((await jsonBody(ctx)).login);
+	return login === null ? 0 : await usernameFailureCaptchaSteps(getKVClient(), 'login', login);
+}
+
+async function recoverExtraCaptchaSteps(ctx: Context<HonoEnv>): Promise<number> {
+	const login = optionalString((await jsonBody(ctx)).login);
+	return login === null ? 0 : await usernameFailureCaptchaSteps(getKVClient(), 'recover', login);
 }
 
 async function registrationExtraCaptchaSteps(ctx: Context<HonoEnv>): Promise<number> {
-	const body: unknown = await ctx.req.json();
-	const fields = isJsonRecord(body) ? body : {};
+	const fields = await jsonBody(ctx);
 	const data = {password: optionalString(fields.password)};
-	const clientIp = requireRequestClientIp(ctx);
 	if (isInstantAccountRequest(data)) {
 		const registrationUrlCode = optionalString(fields.registration_url_code);
 		if (!(await instantAccountsAvailable(ctx.get('instanceConfigRepository'), registrationUrlCode))) return 0;
 		if (optionalString(fields.setup_token) === null) {
-			await assertAccountCreationPastSetup(ctx.get('apiContext'), ctx.get('instanceConfigRepository'), clientIp);
+			await assertAccountCreationPastSetup(ctx.get('apiContext'), ctx.get('instanceConfigRepository'));
 		}
 		return await ctx.get('authRequestService').instantAccountChallengeSteps(ctx.req.raw, registrationUrlCode);
 	}
@@ -87,9 +94,9 @@ async function registrationExtraCaptchaSteps(ctx: Context<HonoEnv>): Promise<num
 export function AuthController(app: HonoApp) {
 	app.post(
 		'/auth/register',
+		PressuredCaptchaMiddleware('register', registrationExtraCaptchaSteps),
 		RateLimitMiddleware(RateLimitConfigs.AUTH_REGISTER),
 		Validator('json', RegisterRequest),
-		PressuredCaptchaMiddleware('register', registrationExtraCaptchaSteps),
 		OpenAPI({
 			operationId: 'register_account',
 			summary: 'Register account',
@@ -106,14 +113,15 @@ export function AuthController(app: HonoApp) {
 				request: ctx.req.raw,
 				requestCache: ctx.get('requestCache'),
 				tierContext: tierContextFrom(ctx),
+				captchaVerified: ctx.get('captchaVerified') === true,
 			});
 			return ctx.json(result);
 		},
 	);
 	app.post(
 		'/auth/login',
-		RateLimitMiddleware(RateLimitConfigs.AUTH_LOGIN),
 		PressuredCaptchaMiddleware('login', loginExtraCaptchaSteps),
+		RateLimitMiddleware(RateLimitConfigs.AUTH_LOGIN),
 		Validator('json', LoginRequest),
 		OpenAPI({
 			operationId: 'login_user',
@@ -221,8 +229,8 @@ export function AuthController(app: HonoApp) {
 	);
 	app.post(
 		'/auth/recover',
+		PressuredCaptchaMiddleware('recover', recoverExtraCaptchaSteps),
 		RateLimitMiddleware(RateLimitConfigs.AUTH_RECOVER_ACCOUNT),
-		PressuredCaptchaMiddleware('recover'),
 		Validator('json', RecoverAccountRequest),
 		OpenAPI({
 			operationId: 'recover_account',
@@ -238,6 +246,7 @@ export function AuthController(app: HonoApp) {
 			const result = await ctx.get('authRequestService').recoverAccount({
 				data: ctx.req.valid('json'),
 				request: ctx.req.raw,
+				captchaVerified: ctx.get('captchaVerified') === true,
 			});
 			return ctx.json(result);
 		},
@@ -291,7 +300,7 @@ export function AuthController(app: HonoApp) {
 
 	app.post(
 		'/auth/sign-in-link',
-		RateLimitMiddleware(RateLimitConfigs.AUTH_AUTHORIZE_IP),
+		RateLimitMiddleware(RateLimitConfigs.AUTH_SIGN_IN_LINK),
 		Validator('json', SignInLinkRequest),
 		OpenAPI({
 			operationId: 'redeem_sign_in_link',
@@ -301,7 +310,7 @@ export function AuthController(app: HonoApp) {
 			security: [],
 			tags: ['Auth'],
 			description:
-				'Sign in with the token from a one-time sign-in link that the instance operator created for an admin account. Authorizes the IP address of the request and returns an authentication token. The token works once and expires after 15 minutes.',
+				'Sign in with the token from a one-time sign-in link that the instance operator created for an admin account. Returns an authentication token. The token works once and expires after 15 minutes.',
 		}),
 		async (ctx) => {
 			const result = await redeemSignInLink(ctx.get('apiContext'), ctx.get('adminService').auditService, {
@@ -467,6 +476,7 @@ export function AuthController(app: HonoApp) {
 	);
 	app.get(
 		'/auth/handoff/:code/info',
+		PressuredCaptchaMiddleware('handoff'),
 		RateLimitMiddleware(RateLimitConfigs.AUTH_HANDOFF_INFO),
 		Validator('param', HandoffCodeParam),
 		OpenAPI({
@@ -477,19 +487,16 @@ export function AuthController(app: HonoApp) {
 			security: [],
 			tags: ['Auth'],
 			description:
-				'Retrieve device and location information about a pending handoff request. Non-destructive – the code remains valid after this call.',
+				'Retrieve device information about a pending handoff request. Non-destructive – the code remains valid after this call. Requires a solved captcha challenge (X-Captcha-Token), whose cost doubles while the instance sees many handoff lookups.',
 		}),
 		async (ctx) => {
-			const clientIp = requireRequestClientIp(ctx);
-			const response = await ctx.get('authRequestService').getHandoffInfo({
-				code: ctx.req.valid('param').code,
-				clientIp,
-			});
+			const response = await ctx.get('authRequestService').getHandoffInfo({code: ctx.req.valid('param').code});
 			return ctx.json(response);
 		},
 	);
 	app.post(
 		'/auth/handoff/complete',
+		PressuredCaptchaMiddleware('handoff'),
 		RateLimitMiddleware(RateLimitConfigs.AUTH_HANDOFF_COMPLETE),
 		Validator('json', HandoffCompleteRequest),
 		OpenAPI({
@@ -500,13 +507,11 @@ export function AuthController(app: HonoApp) {
 			security: [],
 			tags: ['Auth'],
 			description:
-				'Complete the handoff process and authenticate on the target device using the handoff code. With the deep_link return method, responds with the deep link that hands the one-time grant back to the initiating app. Otherwise responds with no content.',
+				'Complete the handoff process and authenticate on the target device using the handoff code. With the deep_link return method, responds with the deep link that hands the one-time grant back to the initiating app. Otherwise responds with no content. Requires a solved captcha challenge (X-Captcha-Token).',
 		}),
 		async (ctx) => {
-			const clientIp = requireRequestClientIp(ctx);
 			const response = await ctx.get('authRequestService').completeHandoff({
 				data: ctx.req.valid('json'),
-				clientIp,
 				authToken: ctx.get('authToken') ?? undefined,
 				approverOrigin: ctx.req.header('origin'),
 			});
@@ -515,6 +520,7 @@ export function AuthController(app: HonoApp) {
 	);
 	app.post(
 		'/auth/handoff/:code/deny',
+		PressuredCaptchaMiddleware('handoff'),
 		RateLimitMiddleware(RateLimitConfigs.AUTH_HANDOFF_DENY),
 		Validator('param', HandoffCodeParam),
 		OpenAPI({
@@ -525,11 +531,10 @@ export function AuthController(app: HonoApp) {
 			security: [],
 			tags: ['Auth'],
 			description:
-				'Decline a handoff request after looking it up. The initiating device sees the denied status and the code can no longer be approved.',
+				'Decline a handoff request after looking it up. The initiating device sees the denied status and the code can no longer be approved. Requires a solved captcha challenge (X-Captcha-Token).',
 		}),
 		async (ctx) => {
-			const clientIp = requireRequestClientIp(ctx);
-			await ctx.get('desktopHandoffService').denyHandoff(ctx.req.valid('param').code, clientIp);
+			await ctx.get('desktopHandoffService').denyHandoff(ctx.req.valid('param').code);
 			return ctx.body(null, 204);
 		},
 	);
@@ -548,11 +553,7 @@ export function AuthController(app: HonoApp) {
 				'Check the status of a handoff session. Returns whether the handoff has been completed or is still pending.',
 		}),
 		async (ctx) => {
-			const clientIp = requireRequestClientIp(ctx);
-			const response = await ctx.get('authRequestService').getHandoffStatus({
-				code: ctx.req.valid('param').code,
-				clientIp,
-			});
+			const response = await ctx.get('authRequestService').getHandoffStatus({code: ctx.req.valid('param').code});
 			return ctx.json(response);
 		},
 	);
@@ -572,10 +573,8 @@ export function AuthController(app: HonoApp) {
 				'Check the status of a handoff session using the poll secret from initiation. Returns the authentication token once the handoff is complete and the presented secret matches.',
 		}),
 		async (ctx) => {
-			const clientIp = requireRequestClientIp(ctx);
 			const response = await ctx.get('authRequestService').getHandoffStatus({
 				code: ctx.req.valid('param').code,
-				clientIp,
 				pollSecret: ctx.req.valid('json').poll_secret,
 				grant: ctx.req.valid('json').grant,
 			});

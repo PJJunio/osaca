@@ -2,29 +2,17 @@
 
 import {createGuildID} from '@app/api/BrandedTypes';
 import {Config} from '@app/api/Config';
-import {chargeGuildVisitorBuckets, GUILD_VISIT_START_IP_BUCKETS} from '@app/api/guild/visits/GuildVisitorAccess';
 import {DefaultUserOnly, LoginRequired} from '@app/api/middleware/AuthMiddleware';
 import {RateLimitMiddleware} from '@app/api/middleware/RateLimitMiddleware';
 import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
 import {RateLimitConfigs} from '@app/api/RateLimitConfig';
-import type {HonoApp, HonoEnv} from '@app/api/types/HonoEnv';
-import {getAccountTier, tierContextFrom} from '@app/api/user/AccountTier';
+import type {HonoApp} from '@app/api/types/HonoEnv';
+import {tierContextFrom} from '@app/api/user/AccountTier';
 import {Validator} from '@app/api/Validator';
 import {DiscoveryDisabledError} from '@osaca/errors/src/domains/discovery/DiscoveryDisabledError';
 import {GuildIdParam, InviteCodeParam} from '@osaca/schema/src/domains/common/CommonParamSchemas';
 import {GuildResponse} from '@osaca/schema/src/domains/guild/GuildResponseSchemas';
 import {GuildVisitListResponse, GuildVisitStartResponse} from '@osaca/schema/src/domains/guild/GuildVisitSchemas';
-import type {Context} from 'hono';
-
-async function chargeVisitStart(ctx: Context<HonoEnv>): Promise<void> {
-	const user = ctx.get('user');
-	await chargeGuildVisitorBuckets({
-		buckets: GUILD_VISIT_START_IP_BUCKETS,
-		userId: user.id,
-		guildId: null,
-		tier: getAccountTier(user),
-	});
-}
 
 export function GuildVisitController(app: HonoApp) {
 	app.post(
@@ -44,7 +32,6 @@ export function GuildVisitController(app: HonoApp) {
 			tags: ['Invites'],
 		}),
 		async (ctx) => {
-			await chargeVisitStart(ctx);
 			return ctx.json(
 				await ctx.get('guildVisitService').startFromInvite({
 					user: ctx.get('user'),
@@ -71,7 +58,6 @@ export function GuildVisitController(app: HonoApp) {
 		}),
 		async (ctx) => {
 			if (!Config.discovery.enabled) throw new DiscoveryDisabledError();
-			await chargeVisitStart(ctx);
 			return ctx.json(
 				await ctx.get('guildVisitService').startFromDiscovery({
 					user: ctx.get('user'),

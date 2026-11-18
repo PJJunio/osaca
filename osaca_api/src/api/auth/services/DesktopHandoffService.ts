@@ -4,11 +4,9 @@ import {randomBytes} from 'node:crypto';
 import type {ApiContext} from '@app/api/ApiContext';
 import type {SessionOrigin} from '@app/api/auth/AuthSession';
 import {randomBase64Url, secretMatchesHash, sha256Hex} from '@app/api/utils/SecretHash';
-import {HandoffAttemptsExceededError} from '@osaca/errors/src/domains/auth/HandoffAttemptsExceededError';
 import {HandoffCodeAlreadyUsedError} from '@osaca/errors/src/domains/auth/HandoffCodeAlreadyUsedError';
 import {HandoffCodeExpiredError} from '@osaca/errors/src/domains/auth/HandoffCodeExpiredError';
 import {InvalidHandoffCodeError} from '@osaca/errors/src/domains/auth/InvalidHandoffCodeError';
-import {getSameIpDecisionKey} from '@osaca/ip_utils/src/IpAddress';
 import {
 	DESKTOP_HANDOFF_CODE_ALPHABET,
 	DESKTOP_HANDOFF_CODE_LENGTH,
@@ -19,11 +17,9 @@ import {ms, seconds} from 'itty-time';
 
 const HANDOFF_CODE_PREFIX = 'desktop-handoff-v2:';
 const HANDOFF_TOKEN_PREFIX = 'desktop-handoff-token:';
-const HANDOFF_ATTEMPT_PREFIX = 'desktop-handoff-attempts:';
 const HANDOFF_APPROVER_PREFIX = 'desktop-handoff-approver:';
 const HANDOFF_USED_PREFIX = 'desktop-handoff-used:';
-const MAX_FAILED_ATTEMPTS = 5;
-const ATTEMPT_TTL_SECONDS = 900;
+const USED_MARKER_TTL_SECONDS = 900;
 const MAX_INFO_LOOKUPS = 3;
 const POLL_SECRET_BYTES = 32;
 const GRANT_BYTES = 32;
@@ -51,8 +47,10 @@ interface HandoffApproverData {
 	approvedAt: number;
 }
 
+// Marks a code that was approved, so a second approval says so instead of reporting an unknown code. Anyone holding
+// the code may learn this: only the two devices of the handoff ever see it, and nothing ties it to a network any more.
 interface HandoffUsedData {
-	approverIpHash: string;
+	usedAt: number;
 }
 
 function generateNormalizedHandoffCode(): string {
@@ -119,19 +117,16 @@ export class DesktopHandoffService {
 	async completeHandoff(
 		code: string,
 		createTokenData: (origin: SessionOrigin) => Promise<{token: string; userId: string}>,
-		approverIp: string,
 		returnMethod: DesktopHandoffReturnMethod = 'code',
 	): Promise<{initiatorOrigin: string | null; returnUrl: string | null}> {
 		const {cache} = this.apiContext.services;
 		const normalizedCode = requireNormalizedHandoffCode(code);
-		await this.checkAttemptLimit(approverIp);
 		const storedApprover = await cache.get<HandoffApproverData>(`${HANDOFF_APPROVER_PREFIX}${normalizedCode}`);
 		if (!storedApprover) {
-			await this.rejectUnknownCode(normalizedCode, approverIp);
+			await this.rejectUnknownCode(normalizedCode);
 		}
 		const handoffData = await cache.get<HandoffData>(`${HANDOFF_CODE_PREFIX}${normalizedCode}`);
 		if (!handoffData || handoffData.denied) {
-			await this.recordFailedAttempt(approverIp);
 			throw new InvalidHandoffCodeError();
 		}
 		if (returnMethod === 'deep_link' && !handoffData.returnUri) {
@@ -157,8 +152,8 @@ export class DesktopHandoffService {
 		await cache.delete(`${HANDOFF_APPROVER_PREFIX}${normalizedCode}`);
 		await cache.set<HandoffUsedData>(
 			`${HANDOFF_USED_PREFIX}${normalizedCode}`,
-			{approverIpHash: sha256Hex(getSameIpDecisionKey(approverIp) ?? approverIp)},
-			ATTEMPT_TTL_SECONDS,
+			{usedAt: Date.now()},
+			USED_MARKER_TTL_SECONDS,
 		);
 		let returnUrl: string | null = null;
 		if (grant && handoffData.returnUri) {
@@ -168,24 +163,19 @@ export class DesktopHandoffService {
 		return {initiatorOrigin: handoffData.initiatorOrigin ?? null, returnUrl};
 	}
 
-	async getHandoffInfo(
-		code: string,
-		approverIp: string,
-	): Promise<{
+	async getHandoffInfo(code: string): Promise<{
 		status: 'pending' | 'expired';
 		origin?: SessionOrigin;
 		returnMethod?: DesktopHandoffReturnMethod;
 	}> {
 		const {cache} = this.apiContext.services;
 		const normalizedCode = requireNormalizedHandoffCode(code);
-		await this.checkAttemptLimit(approverIp);
 		const codeKey = `${HANDOFF_CODE_PREFIX}${normalizedCode}`;
 		const handoffData = await cache.get<HandoffData>(codeKey);
 		if (!handoffData || handoffData.denied) {
-			if (!handoffData && (await this.wasUsedBy(normalizedCode, approverIp))) {
+			if (!handoffData && (await this.wasUsed(normalizedCode))) {
 				throw new HandoffCodeAlreadyUsedError();
 			}
-			await this.recordFailedAttempt(approverIp);
 			return {status: 'expired'};
 		}
 		if (handoffData.infoLookupCount >= MAX_INFO_LOOKUPS) {
@@ -204,16 +194,14 @@ export class DesktopHandoffService {
 		return {status: 'pending', origin: handoffData.origin, returnMethod: resolveReturnMethod(handoffData)};
 	}
 
-	async denyHandoff(code: string, approverIp: string): Promise<void> {
+	async denyHandoff(code: string): Promise<void> {
 		const {cache} = this.apiContext.services;
 		const normalizedCode = requireNormalizedHandoffCode(code);
-		await this.checkAttemptLimit(approverIp);
 		const approverKey = `${HANDOFF_APPROVER_PREFIX}${normalizedCode}`;
 		const codeKey = `${HANDOFF_CODE_PREFIX}${normalizedCode}`;
 		const storedApprover = await cache.get<HandoffApproverData>(approverKey);
 		const handoffData = await cache.get<HandoffData>(codeKey);
 		if (!storedApprover || !handoffData) {
-			await this.recordFailedAttempt(approverIp);
 			throw new InvalidHandoffCodeError();
 		}
 		const remainingTtl = await cache.ttl(codeKey);
@@ -225,7 +213,6 @@ export class DesktopHandoffService {
 
 	async getHandoffStatus(
 		code: string,
-		pollerIp: string,
 		pollSecret: string | undefined,
 		grant?: string,
 	): Promise<{
@@ -238,12 +225,8 @@ export class DesktopHandoffService {
 		const tokenKey = `${HANDOFF_TOKEN_PREFIX}${normalizedCode}`;
 		const tokenData = await cache.get<HandoffTokenData>(tokenKey);
 		const handoffData = await cache.get<HandoffData>(`${HANDOFF_CODE_PREFIX}${normalizedCode}`);
-		if (!secretMatchesHash(pollSecret, tokenData?.pollSecretHash ?? handoffData?.pollSecretHash)) {
-			await this.checkAttemptLimit(pollerIp);
-		}
 		if (tokenData) {
 			if (!secretMatchesHash(pollSecret, tokenData.pollSecretHash)) {
-				await this.recordFailedAttempt(pollerIp);
 				return {status: 'pending'};
 			}
 			if (tokenData.grantHash) {
@@ -251,7 +234,6 @@ export class DesktopHandoffService {
 					return {status: 'pending'};
 				}
 				if (!secretMatchesHash(grant, tokenData.grantHash)) {
-					await this.recordFailedAttempt(pollerIp);
 					return {status: 'pending'};
 				}
 			}
@@ -284,34 +266,15 @@ export class DesktopHandoffService {
 		await cache.delete(`${HANDOFF_APPROVER_PREFIX}${normalizedCode}`);
 	}
 
-	private async checkAttemptLimit(clientIp: string): Promise<void> {
+	private async wasUsed(normalizedCode: string): Promise<boolean> {
 		const {cache} = this.apiContext.services;
-		const key = `${HANDOFF_ATTEMPT_PREFIX}${clientIp}`;
-		const count = await cache.get<number>(key);
-		if (count != null && count >= MAX_FAILED_ATTEMPTS) {
-			const remaining = await cache.ttl(key);
-			throw new HandoffAttemptsExceededError(remaining > 0 ? remaining : ATTEMPT_TTL_SECONDS);
-		}
+		return (await cache.get<HandoffUsedData>(`${HANDOFF_USED_PREFIX}${normalizedCode}`)) != null;
 	}
 
-	private async wasUsedBy(normalizedCode: string, clientIp: string): Promise<boolean> {
-		const {cache} = this.apiContext.services;
-		const used = await cache.get<HandoffUsedData>(`${HANDOFF_USED_PREFIX}${normalizedCode}`);
-		return used != null && secretMatchesHash(getSameIpDecisionKey(clientIp) ?? clientIp, used.approverIpHash);
-	}
-
-	private async rejectUnknownCode(normalizedCode: string, clientIp: string): Promise<never> {
-		if (await this.wasUsedBy(normalizedCode, clientIp)) {
+	private async rejectUnknownCode(normalizedCode: string): Promise<never> {
+		if (await this.wasUsed(normalizedCode)) {
 			throw new HandoffCodeAlreadyUsedError();
 		}
-		await this.recordFailedAttempt(clientIp);
 		throw new InvalidHandoffCodeError();
-	}
-
-	private async recordFailedAttempt(clientIp: string): Promise<void> {
-		const {cache} = this.apiContext.services;
-		const key = `${HANDOFF_ATTEMPT_PREFIX}${clientIp}`;
-		const current = await cache.get<number>(key);
-		await cache.set(key, (current ?? 0) + 1, ATTEMPT_TTL_SECONDS);
 	}
 }

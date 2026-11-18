@@ -7,7 +7,6 @@ import * as AuthSession from '@app/api/auth/AuthSession';
 import * as AuthUtility from '@app/api/auth/AuthUtility';
 import {createUserID, type UserID} from '@app/api/BrandedTypes';
 import {Config} from '@app/api/Config';
-import {requireConfiguredClientIp} from '@app/api/utils/RequestClientIp';
 import {randomBase64Url, sha256Hex} from '@app/api/utils/SecretHash';
 import {AdminACLs} from '@osaca/constants/src/AdminACLs';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
@@ -83,8 +82,6 @@ export async function redeemSignInLink(
 	}
 	AuthUtility.assertNonBotUser(ctx, found);
 	const user = await AuthUtility.assertSignInAllowed(ctx, found);
-	const clientIp = requireConfiguredClientIp(args.request, ctx.services.config.proxy);
-	await ctx.services.users.createAuthorizedIp(user.id, clientIp);
 	const [token] = await AuthSession.createAuthSession(ctx, {
 		user,
 		origin: AuthSession.resolveSessionOrigin(ctx, args.request),
@@ -97,6 +94,6 @@ export async function redeemSignInLink(
 		auditLogReason: null,
 		metadata: new Map([['via', 'rexctl']]),
 	});
-	emitLogin(user, true, {newIp: true, method: 'other'});
+	emitLogin(user, true, {method: 'other'});
 	return {user_id: user.id.toString(), token};
 }

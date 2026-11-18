@@ -25,7 +25,6 @@ import type {Guild} from '@app/api/models/Guild';
 import type {User} from '@app/api/models/User';
 import type {HonoEnv} from '@app/api/types/HonoEnv';
 import {type AccountTier, getAccountTier} from '@app/api/user/AccountTier';
-import {getRequestClientIp} from '@app/api/utils/RequestClientIp';
 import {ChannelOverwriteTypes} from '@osaca/constants/src/ChannelConstants';
 import {DiscoveryApplicationStatus} from '@osaca/constants/src/DiscoveryConstants';
 import {GuildFeatures} from '@osaca/constants/src/GuildConstants';
@@ -39,7 +38,6 @@ import {
 import {MS_PER_DAY, MS_PER_HOUR} from '@osaca/date_utils/src/DateConstants';
 import {RateLimitError} from '@osaca/errors/src/domains/core/RateLimitError';
 import {BannedFromGuildError} from '@osaca/errors/src/domains/guild/BannedFromGuildError';
-import {getSameIpDecisionKey} from '@osaca/ip_utils/src/IpAddress';
 import {DEFAULT_LIMITS} from '@osaca/limits/src/LimitDefaults';
 import type {IRateLimitService} from '@pkgs/rate_limit/src/IRateLimitService';
 import type {Context} from 'hono';
@@ -315,8 +313,6 @@ export function computeVisitorChannelPermissionsFor(params: {
 }
 
 interface VisitorRequestContext {
-	ip: string | null;
-	ipKey: string | null;
 	rateLimitService: IRateLimitService | null;
 	enforce: boolean;
 }
@@ -325,10 +321,8 @@ const visitorRequestContext = new AsyncLocalStorage<VisitorRequestContext>();
 
 export function createVisitorRequestContextMiddleware(shouldEnforce: (ctx: Context<HonoEnv>) => boolean) {
 	return createMiddleware<HonoEnv>(async (ctx, next) => {
-		const ip = getRequestClientIp(ctx);
-		const ipKey = ip ? (getSameIpDecisionKey(ip) ?? ip) : null;
 		await visitorRequestContext.run(
-			{ip, ipKey, rateLimitService: ctx.get('rateLimitService') ?? null, enforce: shouldEnforce(ctx)},
+			{rateLimitService: ctx.get('rateLimitService') ?? null, enforce: shouldEnforce(ctx)},
 			next,
 		);
 	});
@@ -338,13 +332,12 @@ interface VisitorBucket {
 	bucket: string;
 	limit: number;
 	windowMs: number;
-	key: 'user' | 'ip' | 'guild';
+	key: 'user' | 'guild';
 	unverifiedOnly?: boolean;
 }
 
 export const GUILD_VISITOR_READ_BUCKETS: ReadonlyArray<VisitorBucket> = [
 	{bucket: 'channel:messages:visitor', limit: 10, windowMs: ms('10 seconds'), key: 'user'},
-	{bucket: 'channel:messages:visitor:ip', limit: 30, windowMs: ms('10 seconds'), key: 'ip'},
 	{
 		bucket: 'channel:messages:visitor:guild',
 		limit: 600,
@@ -356,11 +349,6 @@ export const GUILD_VISITOR_READ_BUCKETS: ReadonlyArray<VisitorBucket> = [
 
 export const GUILD_VISITOR_SEARCH_BUCKETS: ReadonlyArray<VisitorBucket> = [
 	{bucket: 'channel:search:visitor', limit: 5, windowMs: ms('60 seconds'), key: 'user'},
-	{bucket: 'channel:search:visitor:ip', limit: 15, windowMs: ms('60 seconds'), key: 'ip'},
-];
-
-export const GUILD_VISIT_START_IP_BUCKETS: ReadonlyArray<VisitorBucket> = [
-	{bucket: 'guild:visit:start:ip', limit: 30, windowMs: ms('60 seconds'), key: 'ip'},
 ];
 
 export async function chargeGuildVisitorBuckets(params: {
@@ -380,8 +368,6 @@ export async function chargeGuildVisitorBuckets(params: {
 		let subject: string | null;
 		if (bucket.key === 'user') {
 			subject = `user:${params.userId}`;
-		} else if (bucket.key === 'ip') {
-			subject = context.ipKey;
 		} else {
 			subject = params.guildId === null ? null : `guild:${params.guildId}`;
 		}

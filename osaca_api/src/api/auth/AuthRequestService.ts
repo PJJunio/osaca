@@ -57,6 +57,7 @@ interface AuthRegisterRequest {
 	request: Request;
 	requestCache: RequestCache;
 	tierContext: TierContext;
+	captchaVerified: boolean;
 }
 
 interface AuthLoginRequest {
@@ -73,6 +74,7 @@ interface AuthResetPasswordRequest {
 interface AuthRecoverAccountRequest {
 	data: RecoverAccountRequest;
 	request: Request;
+	captchaVerified: boolean;
 }
 
 interface AuthLoginMfaRequest {
@@ -83,7 +85,6 @@ interface AuthLoginMfaRequest {
 
 interface AuthHandoffCompleteRequest {
 	data: HandoffCompleteRequest;
-	clientIp: string;
 	authToken?: string;
 	approverOrigin?: string | null;
 }
@@ -114,12 +115,10 @@ interface AuthHandoffInitiateRequest {
 
 interface AuthHandoffInfoRequest {
 	code: string;
-	clientIp: string;
 }
 
 interface AuthHandoffStatusRequest {
 	code: string;
-	clientIp: string;
 	pollSecret?: string;
 	grant?: string;
 }
@@ -132,13 +131,8 @@ export class AuthRequestService {
 		private loginDependencies: AuthLogin.LoginDependencies,
 	) {}
 
-	async register({data, request, requestCache, tierContext}: AuthRegisterRequest): Promise<AuthRegisterResponse> {
-		const result = await AuthRegistration.register(this.apiContext, this.registrationDependencies, {
-			data,
-			request,
-			requestCache,
-			tierContext,
-		});
+	async register(params: AuthRegisterRequest): Promise<AuthRegisterResponse> {
+		const result = await AuthRegistration.register(this.apiContext, this.registrationDependencies, params);
 		return toAuthRegisterResponse(result);
 	}
 
@@ -164,8 +158,8 @@ export class AuthRequestService {
 		return await this.toAuthLoginResponse(result);
 	}
 
-	async recoverAccount({data, request}: AuthRecoverAccountRequest): Promise<RecoverAccountResponse> {
-		const {result, recoveryKey, createdAt} = await AuthRecoveryKit.recoverAccount(this.apiContext, {data, request});
+	async recoverAccount(params: AuthRecoverAccountRequest): Promise<RecoverAccountResponse> {
+		const {result, recoveryKey, createdAt} = await AuthRecoveryKit.recoverAccount(this.apiContext, params);
 		return {
 			...(await this.toAuthLoginResponse(result)),
 			recovery_key: recoveryKey,
@@ -208,13 +202,12 @@ export class AuthRequestService {
 		return AuthInstantAccounts.instantAccountChallengeSteps(this.apiContext, request, registrationUrlCode);
 	}
 
-	createAccountHandoff(params: {data: AccountHandoffRequest; clientIp: string}): Promise<AccountHandoffResponse> {
+	createAccountHandoff(params: {data: AccountHandoffRequest}): Promise<AccountHandoffResponse> {
 		return AuthInstantAccounts.createAccountHandoff(this.apiContext, {
 			globalName: params.data.global_name,
 			nonceHash: params.data.nonce_hash,
 			locale: params.data.locale,
 			registrationUrlCode: params.data.registration_url_code,
-			clientIp: params.clientIp,
 		});
 	}
 
@@ -260,8 +253,8 @@ export class AuthRequestService {
 		};
 	}
 
-	async getHandoffInfo({code, clientIp}: AuthHandoffInfoRequest): Promise<HandoffInfoResponse> {
-		const info = await this.desktopHandoffService.getHandoffInfo(code, clientIp);
+	async getHandoffInfo({code}: AuthHandoffInfoRequest): Promise<HandoffInfoResponse> {
+		const info = await this.desktopHandoffService.getHandoffInfo(code);
 		if (info.status === 'expired' || !info.origin) {
 			return {status: info.status, client_info: null};
 		}
@@ -285,7 +278,6 @@ export class AuthRequestService {
 
 	async completeHandoff({
 		data,
-		clientIp,
 		authToken,
 		approverOrigin,
 	}: AuthHandoffCompleteRequest): Promise<HandoffCompleteResponse | null> {
@@ -305,7 +297,6 @@ export class AuthRequestService {
 				createdToken = created.token;
 				return created;
 			},
-			clientIp,
 			data.return_method,
 		);
 		if (createdToken !== null) {
@@ -339,13 +330,8 @@ export class AuthRequestService {
 		}
 	}
 
-	async getHandoffStatus({
-		code,
-		clientIp,
-		pollSecret,
-		grant,
-	}: AuthHandoffStatusRequest): Promise<HandoffStatusResponse> {
-		const result = await this.desktopHandoffService.getHandoffStatus(code, clientIp, pollSecret, grant);
+	async getHandoffStatus({code, pollSecret, grant}: AuthHandoffStatusRequest): Promise<HandoffStatusResponse> {
+		const result = await this.desktopHandoffService.getHandoffStatus(code, pollSecret, grant);
 		return {
 			status: result.status,
 			token: result.token,

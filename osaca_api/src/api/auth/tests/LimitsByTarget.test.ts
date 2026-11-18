@@ -4,8 +4,9 @@
 // request comes from.
 
 import {recordSignUpThroughCodes, SIGN_UPS_PER_CODE_PER_HOUR} from '@app/api/auth/AccountBudgets';
-import {LOGIN_FAILURES_PER_CAPTCHA_STEP, loginFailureLimit} from '@app/api/auth/AuthLogin';
+import {loginFailureLimit} from '@app/api/auth/AuthLogin';
 import {createTestAccount} from '@app/api/auth/tests/AuthTestUtils';
+import {UsernameFailureSteps} from '@app/api/auth/UsernameFailures';
 import {Config} from '@app/api/Config';
 import {getKVClient} from '@app/api/middleware/ServiceRegistry';
 import {getInstanceConfigRepository, getRateLimitService} from '@app/api/middleware/ServiceSingletons';
@@ -63,7 +64,7 @@ describe('Limits by target (ADR-0017)', () => {
 
 	describe('sign-in failures', () => {
 		it('raise the captcha cost for that Account only, whatever address they came from', async () => {
-			for (let failure = 0; failure < LOGIN_FAILURES_PER_CAPTCHA_STEP; failure++) {
+			for (let failure = 0; failure < UsernameFailureSteps.login.failuresPerStep; failure++) {
 				await createBuilderWithoutAuth(harness)
 					.post('/auth/login')
 					.header('x-forwarded-for', `192.0.2.${failure + 1}`)
@@ -101,6 +102,29 @@ describe('Limits by target (ADR-0017)', () => {
 				.body({login: account.username, password: account.password})
 				.expect(429)
 				.execute();
+		});
+	});
+
+	describe('wrong recovery keys', () => {
+		it('raise the captcha cost of recovering that username only', async () => {
+			const recover = (login: string) =>
+				createBuilderWithoutAuth<CaptchaErrorBody>(harness)
+					.post('/auth/recover')
+					.body({login, recovery_key: 'AAAA-BBBB-CCCC-DDDD', password: 'recover-target-password-1'});
+			for (let failure = 0; failure < UsernameFailureSteps.recover.failuresPerStep; failure++) {
+				await recover('recover_target').expect(HTTP_STATUS.BAD_REQUEST, 'INVALID_FORM_BODY').execute();
+			}
+			const challengeCost = async (login: string) =>
+				costOf(
+					(
+						await recover(login)
+							.header(CAPTCHA_TEST_HEADER, 'true')
+							.expect(HTTP_STATUS.BAD_REQUEST, APIErrorCodes.CAPTCHA_REQUIRED)
+							.executeWithResponse()
+					).json,
+				);
+			expect(await challengeCost('recover_target')).toBe(CHEAP_CAPTCHA_COST * 2);
+			expect(await challengeCost('someone_else')).toBe(CHEAP_CAPTCHA_COST);
 		});
 	});
 
@@ -150,7 +174,7 @@ describe('Limits by target (ADR-0017)', () => {
 
 	describe('public invite reads', () => {
 		it('share one budget per code among visitors without a session', async () => {
-			const {limit} = RateLimitConfigs.INVITE_GET_PER_CODE.config;
+			const {limit} = RateLimitConfigs.INVITE_GET.anonymous!;
 			const read = (code: string, ip: string) =>
 				createBuilderWithoutAuth(harness)
 					.get(`/invites/${code}`)

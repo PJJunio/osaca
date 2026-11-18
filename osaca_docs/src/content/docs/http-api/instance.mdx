@@ -453,7 +453,7 @@ The response has an `ETag` header, and a request with a matching `If-None-Match`
 | 304 | None | The badges haven't changed |
 | 400 | [error response](/http-api/#error-response) | `INVALID_FORM_BODY` for a bad parameter, a cursor from another list, or `ids` sent with `after` |
 
-The rate limit is 60 requests per minute, on the `instance:badges` bucket. A request with a valid token counts against the account, and a request without one counts against the IP address.
+The rate limit is 60 requests per minute, on the `instance:badges` bucket. A request with a valid token counts against the account, and requests without one share one allowance.
 
 ## Check the setup token
 
@@ -473,7 +473,7 @@ Checks a setup token without using it up.
 | --- | --- | --- |
 | 204 | None | The token is correct, or the instance needs no setup token |
 | 400 | [error response](/http-api/#error-response) | The setup token is missing or wrong |
-| 429 | [rate limit response](/topics/rate-limits/#rate-limit-response-object) | Too many requests, or too many wrong tokens from your IP address |
+| 429 | [rate limit response](/topics/rate-limits/#rate-limit-response-object) | Too many requests, or 10 wrong tokens in 30 minutes on this instance |
 
 The rate limit is 10 requests per minute, on the `instance:setup:token_check` bucket.
 

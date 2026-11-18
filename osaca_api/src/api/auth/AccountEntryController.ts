@@ -5,7 +5,7 @@ import {
 	PressuredCaptchaMiddleware,
 	pressuredCaptchaSteps,
 } from '@app/api/middleware/CaptchaMiddleware';
-import {getTrustedForwardedClientIp, RateLimitMiddleware} from '@app/api/middleware/RateLimitMiddleware';
+import {isTrustedCallerForBucket, RateLimitMiddleware} from '@app/api/middleware/RateLimitMiddleware';
 import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
 import {RateLimitConfigs} from '@app/api/RateLimitConfig';
 import type {HonoApp, HonoEnv} from '@app/api/types/HonoEnv';
@@ -22,20 +22,14 @@ import {
 } from '@osaca/schema/src/domains/auth/AuthSchemas';
 import type {Context} from 'hono';
 
-function requireTrustedClientIp(ctx: Context<HonoEnv>, bucket: string): string {
-	const clientIp = getTrustedForwardedClientIp(ctx, bucket);
-	if (!clientIp) throw new MissingAccessError();
-	return clientIp;
-}
-
-// Refuses callers that are not the website server. The address it returns is not used for the challenge cost.
+// Only the website server may start an account for a visitor.
 function assertTrustedCaller(ctx: Context<HonoEnv>, bucket: string): void {
-	requireTrustedClientIp(ctx, bucket);
+	if (!isTrustedCallerForBucket(ctx, bucket)) throw new MissingAccessError();
 }
 
 async function handoffExtraCaptchaSteps(ctx: Context<HonoEnv>): Promise<number> {
 	assertTrustedCaller(ctx, RateLimitConfigs.AUTH_REGISTER_HANDOFF.bucket);
-	const body: unknown = await ctx.req.json();
+	const body: unknown = await ctx.req.json().catch(() => null);
 	const code = isJsonRecord(body) && typeof body.registration_url_code === 'string' ? body.registration_url_code : null;
 	return await ctx.get('authRequestService').instantAccountChallengeSteps(ctx.req.raw, code);
 }
@@ -76,13 +70,11 @@ export function AccountEntryController(app: HonoApp) {
 			security: [],
 			tags: ['Auth'],
 			description:
-				'Checks the display name and returns a single-use code that the web app redeems within 15 minutes. No account exists yet: the web app creates it on redeem, when the person submits the step whose notice says that creating the account accepts the terms of service. Only the website server may call it, and it passes the visitor IP. Requires a solved captcha challenge (X-Captcha-Token) whose cost grows with recent sign-ups. On a new self-hosted instance it fails with SETUP_TOKEN_REQUIRED until the first admin account exists.',
+				'Checks the display name and returns a single-use code that the web app redeems within 15 minutes. No account exists yet: the web app creates it on redeem, when the person submits the step whose notice says that creating the account accepts the terms of service. Only the website server may call it. Requires a solved captcha challenge (X-Captcha-Token) whose cost grows with recent sign-ups. On a new self-hosted instance it fails with SETUP_TOKEN_REQUIRED until the first admin account exists.',
 		}),
 		async (ctx) => {
-			const clientIp = requireTrustedClientIp(ctx, RateLimitConfigs.AUTH_REGISTER_HANDOFF.bucket);
-			return ctx.json(
-				await ctx.get('authRequestService').createAccountHandoff({data: ctx.req.valid('json'), clientIp}),
-			);
+			assertTrustedCaller(ctx, RateLimitConfigs.AUTH_REGISTER_HANDOFF.bucket);
+			return ctx.json(await ctx.get('authRequestService').createAccountHandoff({data: ctx.req.valid('json')}));
 		},
 	);
 	app.post(

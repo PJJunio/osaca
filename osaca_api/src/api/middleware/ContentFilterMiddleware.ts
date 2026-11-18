@@ -69,7 +69,6 @@ const SKIP_CONTENT_FILTER_PATH_PARTS = [
 	'/admin/blocklists/url/',
 	'/auth/',
 	'/oauth2/',
-	'/users/@me/authorized-ips',
 	'/users/@me/mfa/',
 	'/users/@me/sudo/',
 	'/webhooks/',

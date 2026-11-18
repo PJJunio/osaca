@@ -8,7 +8,6 @@ import {Logger} from '@app/api/Logger';
 import {createRateLimitError} from '@app/api/utils/RateLimitUtils';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
 import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
-import {getSameIpDecisionKey} from '@osaca/ip_utils/src/IpAddress';
 import type {IRateLimitService} from '@pkgs/rate_limit/src/IRateLimitService';
 import {ms} from 'itty-time';
 
@@ -69,9 +68,9 @@ export async function assertSetupToken(params: {
 	config: APIConfig;
 	repository: InstanceConfigRepository;
 	presented: string | null | undefined;
-	clientIp: string;
+	captchaVerified: boolean;
 }): Promise<boolean> {
-	const {rateLimit, config, repository, clientIp} = params;
+	const {rateLimit, config, repository} = params;
 	if (!isSetupTokenEnforced(config)) return false;
 	const setupConfigured = (await repository.getAppPublicConfig()).setup.configured;
 	const adminBootstrapped = setupConfigured
@@ -85,13 +84,16 @@ export async function assertSetupToken(params: {
 		}
 		return false;
 	}
-	const failureLimit = config.dev.relaxRegistrationRateLimits
-		? null
-		: {
-				identifier: `setup-token:ip:${getSameIpDecisionKey(clientIp) ?? clientIp}`,
-				maxAttempts: SETUP_TOKEN_FAILURE_MAX_ATTEMPTS,
-				windowMs: SETUP_TOKEN_FAILURE_WINDOW_MS,
-			};
+	// A solved captcha already makes each guess cost proof-of-work. Without one, wrong guesses are limited across the
+	// whole Instance (ADR-0017), which a stranger could also use to hold the Operator up.
+	const failureLimit =
+		config.dev.relaxRegistrationRateLimits || params.captchaVerified
+			? null
+			: {
+					identifier: 'setup-token:failures',
+					maxAttempts: SETUP_TOKEN_FAILURE_MAX_ATTEMPTS,
+					windowMs: SETUP_TOKEN_FAILURE_WINDOW_MS,
+				};
 	if (failureLimit) {
 		const failureState = await rateLimit.peekLimit(failureLimit);
 		if (failureState.remaining === 0) {

@@ -5727,11 +5727,6 @@ msgstr "Autoriserte apper"
 msgid "Authorized apps"
 msgstr "Autoriserte apper"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Authorized IPs cleared. New logins will require email verification."
-msgstr "Listen over autoriserte IP-adresser er tømt. Nye pålogginger krever e-postbekreftelse."
-
 #: src/features/user/components/modals/tabs/AuthorizedAppsTab.tsx
 msgid "Authorized on {authorizedOn}"
 msgstr "Autorisert den {authorizedOn}"
@@ -16154,11 +16149,6 @@ msgstr "Kunne ikke slette kanal"
 msgid "Failed to enable camera."
 msgstr "Klarte ikke å aktivere kameraet."
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Failed to forget authorized IPs. Try again."
-msgstr "Kunne ikke fjerne autoriserte IP-adresser. Prøv igjen."
-
 #. Error message in the message forward failed modal.
 #: src/features/messaging/components/modals/ForwardModal.tsx
 msgid "Failed to forward message"
@@ -17184,20 +17174,10 @@ msgstr "Tving ukjent meldingstype"
 msgid "Forced off"
 msgstr "Tvunget av"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Forget authorized IPs"
-msgstr "Fjern autoriserte IP-adresser"
-
 #. Short label in the notifications. Keep it concise.
 #: src/features/user/components/modals/tabs/notifications_tab/Notifications.tsx
 msgid "Forget subscriptions"
 msgstr "Fjern abonnementer på push-varsler"
-
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Forgetting authorized IPs..."
-msgstr "Fjerner autoriserte IP-adresser …"
 
 #. Short label in the authentication forgot password page. Keep the tone plain and specific.
 #: src/features/auth/components/pages/ForgotPasswordPage.tsx
@@ -37897,11 +37877,6 @@ msgstr "Dette fjerner «{themeName}» fra denne enheten."
 #: src/features/theme_settings/components/QuickCssFiles.tsx
 msgid "This removes all of your quick CSS, including color and font changes. Saved themes are not affected."
 msgstr "Dette fjerner all din hurtig-CSS, inkludert farge- og skriftendringer. Lagrede temaer påvirkes ikke."
-
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "This removes all previously authorized IP addresses on your account. The next login from any IP will require email verification."
-msgstr "Dette fjerner alle tidligere godkjente IP-adresser på kontoen din. Neste pålogging fra en hvilken som helst IP vil kreve e-postverifisering."
 
 #. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
 #: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx

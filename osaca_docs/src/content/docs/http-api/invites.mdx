@@ -114,7 +114,7 @@ Returns an [invite object](#invite-object) without using up the invite. Codes fr
 | 200 | [invite](#invite-object) object | The invite was returned |
 | 404 | [error response](/http-api/#error-response) | `UNKNOWN_INVITE`, `UNKNOWN_CHANNEL` or `UNKNOWN_GUILD` when the invite or its target is gone |
 
-The rate limit is 100 requests per 10 seconds, on the `invite:read::invite_code` bucket. Requests without a session also share 300 requests per minute for one code, on the `invite:read:code::invite_code` bucket.
+The rate limit is 100 requests per 10 seconds, on the `invite:read::invite_code` bucket. Requests without a session share 300 requests per minute for one code.
 
 ## Accept invite
 
@@ -161,7 +161,7 @@ Starts a [visit](/http-api/guilds/#visiting-guilds) to the guild of a guild invi
 | 403 | [error response](/http-api/#error-response) | `ACCOUNT_LIMITED` when the account is [limited](/http-api/users/#account-limitation) |
 | 404 | [error response](/http-api/#error-response) | `UNKNOWN_INVITE` or `UNKNOWN_GUILD` when the invite or guild is unavailable |
 
-The rate limit is 10 requests per 60 seconds, on the `guild:visit:start` bucket. Each IP address can also start 30 visits per 60 seconds.
+The rate limit is 10 requests per 60 seconds, on the `guild:visit:start` bucket.
 
 ## Delete invite
 

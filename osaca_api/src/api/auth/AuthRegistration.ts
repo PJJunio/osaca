@@ -4,7 +4,6 @@ import type {ApiContext} from '@app/api/ApiContext';
 import {
 	assertSignUpCodeBudget,
 	budgetEnvFor,
-	enforceInstantAccountLimits,
 	recordInstantAccountCreated,
 	recordSignUpThroughCodes,
 } from '@app/api/auth/AccountBudgets';
@@ -42,8 +41,6 @@ import {
 } from '@app/api/user/UniqueUsernames';
 import {USERNAME_MODE_DISCRIMINATOR} from '@app/api/user/UserTag';
 import {hashPassword} from '@app/api/utils/PasswordUtils';
-import {createRateLimitError} from '@app/api/utils/RateLimitUtils';
-import {requireConfiguredClientIp} from '@app/api/utils/RequestClientIp';
 import {generateRandomUsername} from '@app/api/utils/UsernameGenerator';
 import {randomUsernameVariant, usernameBaseFromDisplayName} from '@app/api/utils/UsernameSuggestionUtils';
 import {InstantAccountAvailability, RegistrationModes} from '@osaca/constants/src/AccountConfigConstants';
@@ -57,10 +54,8 @@ import {RegistrationUrlInvalidError} from '@osaca/errors/src/domains/auth/Regist
 import {ContentBlockedError} from '@osaca/errors/src/domains/content/ContentBlockedError';
 import {InputValidationError} from '@osaca/errors/src/domains/core/InputValidationError';
 import {parseAcceptLanguage} from '@osaca/i18n/src/locale/resolution/AcceptLanguageNegotiation';
-import {getSameIpDecisionKey, getSubnet} from '@osaca/ip_utils/src/IpAddress';
 import type {RegisterRequest} from '@osaca/schema/src/domains/auth/AuthSchemas';
 import type {GuildEntryResult} from '@osaca/schema/src/domains/user/AccountSchemas';
-import {ms} from 'itty-time';
 
 const DERIVED_USERNAME_ATTEMPTS = 5;
 
@@ -69,6 +64,7 @@ interface RegisterParams {
 	request: Request;
 	requestCache: RequestCache;
 	tierContext: TierContext;
+	captchaVerified: boolean;
 }
 
 export interface RegistrationDependencies extends GuildEntryDeps {
@@ -99,8 +95,8 @@ interface AccountCreationInput {
 interface AccountCreationParams {
 	input: AccountCreationInput;
 	request: Request;
-	clientIp: string;
 	requestCache: RequestCache;
+	captchaVerified?: boolean;
 	source: RegistrationSource;
 	tierContext: TierContext;
 }
@@ -165,10 +161,8 @@ export function isInstantAccountRequest(data: {password?: string | null}): boole
 export async function register(
 	ctx: ApiContext,
 	deps: RegistrationDependencies,
-	{data, request, requestCache, tierContext}: RegisterParams,
+	{data, request, requestCache, tierContext, captchaVerified}: RegisterParams,
 ): Promise<AccountCreationResult> {
-	const {config} = ctx.services;
-	const clientIp = requireConfiguredClientIp(request, config.proxy);
 	return await createAccount(ctx, deps, {
 		input: {
 			username: data.username,
@@ -181,8 +175,8 @@ export async function register(
 			setupToken: data.setup_token,
 		},
 		request,
-		clientIp,
 		requestCache,
+		captchaVerified,
 		source: 'app',
 		tierContext,
 	});
@@ -191,10 +185,9 @@ export async function register(
 export async function assertAccountCreationPastSetup(
 	ctx: ApiContext,
 	repository: InstanceConfigRepository,
-	clientIp: string,
 ): Promise<void> {
 	const {config, rateLimit} = ctx.services;
-	await assertSetupToken({rateLimit, config, repository, presented: null, clientIp});
+	await assertSetupToken({rateLimit, config, repository, presented: null, captchaVerified: false});
 	await assertSignUpsOpenAfterSetup(config, repository);
 }
 
@@ -215,7 +208,7 @@ export async function createAccount(
 		config,
 		repository: deps.instanceConfigRepository,
 		presented: params.input.setupToken,
-		clientIp: params.clientIp,
+		captchaVerified: params.captchaVerified ?? false,
 	});
 	if (!config.instance.selfHosted || (await deps.instanceConfigRepository.isAdminBootstrapped())) {
 		return await createAccountAfterSetupCheck(ctx, deps, params, {setupTokenPassed});
@@ -226,7 +219,7 @@ export async function createAccount(
 async function createAccountAfterSetupCheck(
 	ctx: ApiContext,
 	deps: RegistrationDependencies,
-	{input, request, clientIp, requestCache, source, tierContext}: AccountCreationParams,
+	{input, request, requestCache, source, tierContext}: AccountCreationParams,
 	{setupTokenPassed}: {setupTokenPassed: boolean},
 ): Promise<AccountCreationResult> {
 	const {users, snowflake, config} = ctx.services;
@@ -266,11 +259,6 @@ async function createAccountAfterSetupCheck(
 	}
 	const enforceRateLimits = !config.dev.relaxRegistrationRateLimits && !setupTokenVerified;
 	const budgetEnv = budgetEnvFor(ctx.services, request);
-	if (instant) {
-		if (enforceRateLimits) await enforceInstantAccountLimits({...budgetEnv, enforce: true}, clientIp);
-	} else {
-		await enforceRegistrationRateLimits(ctx, {enforceRateLimits, clientIp});
-	}
 	const signUpCodes = {registrationUrlCode: input.registrationUrlCode ?? null, inviteCode: input.inviteCode ?? null};
 	await assertSignUpCodeBudget({...budgetEnv, enforce: enforceRateLimits}, signUpCodes);
 	const {username, discriminator} = await resolveRegistrationUsername({
@@ -393,7 +381,6 @@ async function createAccountAfterSetupCheck(
 		null,
 		user.id.toString(),
 	);
-	await users.createAuthorizedIp(userId, clientIp);
 	if (instant) await recordInstantAccountCreated(budgetEnv);
 	await recordSignUpThroughCodes(budgetEnv, signUpCodes);
 	if (registrationAccess.pendingApproval) {
@@ -598,33 +585,6 @@ export async function maybeAutoJoinInvite(
 		} catch (error) {
 			Logger.warn({inviteCode: code, error}, 'Failed to auto-join invite');
 		}
-	}
-}
-
-export async function enforceRegistrationRateLimits(
-	ctx: ApiContext,
-	params: {
-		enforceRateLimits: boolean;
-		clientIp: string;
-	},
-): Promise<void> {
-	const {rateLimit} = ctx.services;
-	const {enforceRateLimits, clientIp} = params;
-	if (!enforceRateLimits) return;
-	const ipRateLimit = await rateLimit.checkLimit({
-		identifier: `registration:ip:${getSameIpDecisionKey(clientIp) ?? clientIp}`,
-		maxAttempts: 3,
-		windowMs: ms('1 hour'),
-	});
-	if (!ipRateLimit.allowed) throw createRateLimitError(ipRateLimit);
-	const subnet = getSubnet(clientIp);
-	if (subnet) {
-		const subnetRateLimit = await rateLimit.checkLimit({
-			identifier: `registration:subnet:${subnet}`,
-			maxAttempts: 15,
-			windowMs: ms('1 hour'),
-		});
-		if (!subnetRateLimit.allowed) throw createRateLimitError(subnetRateLimit);
 	}
 }
 

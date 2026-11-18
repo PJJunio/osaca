@@ -5727,11 +5727,6 @@ msgstr "Aplikasi yang diotorisasi"
 msgid "Authorized apps"
 msgstr "Aplikasi yang diotorisasi"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Authorized IPs cleared. New logins will require email verification."
-msgstr "IP yang diotorisasi telah dihapus. Login baru akan memerlukan verifikasi email."
-
 #: src/features/user/components/modals/tabs/AuthorizedAppsTab.tsx
 msgid "Authorized on {authorizedOn}"
 msgstr "Diotorisasi pada {authorizedOn}"
@@ -16154,11 +16149,6 @@ msgstr "Gagal menghapus saluran"
 msgid "Failed to enable camera."
 msgstr "Gagal mengaktifkan kamera."
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Failed to forget authorized IPs. Try again."
-msgstr "Gagal melupakan IP yang diotorisasi. Coba lagi."
-
 #. Error message in the message forward failed modal.
 #: src/features/messaging/components/modals/ForwardModal.tsx
 msgid "Failed to forward message"
@@ -17184,20 +17174,10 @@ msgstr "Paksa jenis pesan tidak dikenal"
 msgid "Forced off"
 msgstr "Dipaksa nonaktif"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Forget authorized IPs"
-msgstr "Lupakan IP yang diotorisasi"
-
 #. Short label in the notifications. Keep it concise.
 #: src/features/user/components/modals/tabs/notifications_tab/Notifications.tsx
 msgid "Forget subscriptions"
 msgstr "Lupakan langganan"
-
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Forgetting authorized IPs..."
-msgstr "Melupakan IP yang diotorisasi..."
 
 #. Short label in the authentication forgot password page. Keep the tone plain and specific.
 #: src/features/auth/components/pages/ForgotPasswordPage.tsx
@@ -37897,11 +37877,6 @@ msgstr "Ini akan menghapus \"{themeName}\" dari perangkat ini."
 #: src/features/theme_settings/components/QuickCssFiles.tsx
 msgid "This removes all of your quick CSS, including color and font changes. Saved themes are not affected."
 msgstr "Ini akan menghapus semua CSS cepat Anda, termasuk perubahan warna dan font. Tema yang disimpan tidak terpengaruh."
-
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "This removes all previously authorized IP addresses on your account. The next login from any IP will require email verification."
-msgstr "Ini akan menghapus semua alamat IP yang sebelumnya diotorisasi di akunmu. Login berikutnya dari IP mana pun akan memerlukan verifikasi email."
 
 #. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
 #: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx

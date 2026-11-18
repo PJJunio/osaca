@@ -12,6 +12,7 @@ import {customBadgeImageUrl} from '@app/api/instance/InstanceAssetReferences';
 import type {BuiltInBadgeImages} from '@app/api/instance/InstanceConfigRepository';
 import {assertSetupToken} from '@app/api/instance/SetupToken';
 import {getStatusPageDetector} from '@app/api/instance/StatusPageDetector';
+import {PressuredCaptchaMiddleware} from '@app/api/middleware/CaptchaMiddleware';
 import {RateLimitMiddleware} from '@app/api/middleware/RateLimitMiddleware';
 import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
 import {getVoiceTopology} from '@app/api/middleware/ServiceRegistry';
@@ -19,7 +20,6 @@ import {getCustomBadgeCatalog} from '@app/api/middleware/ServiceSingletons';
 import {RateLimitConfigs} from '@app/api/RateLimitConfig';
 import type {HonoEnv} from '@app/api/types/HonoEnv';
 import {entityTagMatches} from '@app/api/utils/EntityTag';
-import {requireConfiguredClientIp} from '@app/api/utils/RequestClientIp';
 import {Validator} from '@app/api/Validator';
 import {endpointOrigin} from '@app/api/voice/VoiceServerEndpoints';
 import {InstantAccountAvailability} from '@osaca/constants/src/AccountConfigConstants';
@@ -332,6 +332,7 @@ export function InstanceController(app: Hono<HonoEnv>) {
 	);
 	app.post(
 		'/instance/setup/token-checks',
+		PressuredCaptchaMiddleware('register'),
 		RateLimitMiddleware(RateLimitConfigs.INSTANCE_SETUP_TOKEN_CHECK),
 		Validator('json', InstanceSetupTokenCheckRequest),
 		OpenAPI({
@@ -342,7 +343,7 @@ export function InstanceController(app: Hono<HonoEnv>) {
 			security: [],
 			tags: ['Instance'],
 			description:
-				'Checks a setup token before the setup wizard asks for anything else. It returns 204 when the token is correct, and also when the instance no longer needs one. A missing or wrong token fails with the same field codes as registration and counts toward the same allowance of wrong tokens. The check never uses up the token.',
+				'Checks a setup token before the setup wizard asks for anything else. It returns 204 when the token is correct, and also when the instance no longer needs one. A missing or wrong token fails with the same field codes as registration and counts toward the same allowance of wrong tokens. The check never uses up the token. Requires a solved captcha challenge (X-Captcha-Token) while the captcha is on.',
 		}),
 		async (ctx) => {
 			const {setup_token} = ctx.req.valid('json');
@@ -352,7 +353,7 @@ export function InstanceController(app: Hono<HonoEnv>) {
 				config,
 				repository: ctx.get('instanceConfigRepository'),
 				presented: setup_token,
-				clientIp: requireConfiguredClientIp(ctx.req.raw, config.proxy),
+				captchaVerified: ctx.get('captchaVerified') === true,
 			});
 			return ctx.body(null, 204);
 		},

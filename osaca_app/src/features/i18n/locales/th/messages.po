@@ -5727,11 +5727,6 @@ msgstr "แอปพลิเคชันที่ได้รับอนุญ
 msgid "Authorized apps"
 msgstr "แอปที่ได้รับอนุญาต"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Authorized IPs cleared. New logins will require email verification."
-msgstr "ล้าง IP ที่ได้รับอนุญาตแล้ว การเข้าสู่ระบบใหม่จะต้องยืนยันอีเมล"
-
 #: src/features/user/components/modals/tabs/AuthorizedAppsTab.tsx
 msgid "Authorized on {authorizedOn}"
 msgstr "อนุญาตเมื่อ {authorizedOn}"
@@ -16154,11 +16149,6 @@ msgstr "ลบช่องไม่สำเร็จ"
 msgid "Failed to enable camera."
 msgstr "ไม่สามารถเปิดกล้องได้"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Failed to forget authorized IPs. Try again."
-msgstr "ลบ IP ที่ได้รับอนุญาตไม่สำเร็จ ลองอีกครั้ง"
-
 #. Error message in the message forward failed modal.
 #: src/features/messaging/components/modals/ForwardModal.tsx
 msgid "Failed to forward message"
@@ -17184,20 +17174,10 @@ msgstr "บังคับให้เป็นประเภทข้อคว
 msgid "Forced off"
 msgstr "บังคับปิด"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Forget authorized IPs"
-msgstr "ลบ IP ที่ได้รับอนุญาต"
-
 #. Short label in the notifications. Keep it concise.
 #: src/features/user/components/modals/tabs/notifications_tab/Notifications.tsx
 msgid "Forget subscriptions"
 msgstr "ลบการสมัครรับการแจ้งเตือน"
-
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Forgetting authorized IPs..."
-msgstr "กำลังลบ IP ที่ได้รับอนุญาต..."
 
 #. Short label in the authentication forgot password page. Keep the tone plain and specific.
 #: src/features/auth/components/pages/ForgotPasswordPage.tsx
@@ -37897,11 +37877,6 @@ msgstr "การดำเนินการนี้จะลบ \"{themeName}\
 #: src/features/theme_settings/components/QuickCssFiles.tsx
 msgid "This removes all of your quick CSS, including color and font changes. Saved themes are not affected."
 msgstr "การดำเนินการนี้จะลบโค้ด CSS ด่วนทั้งหมดของคุณ รวมถึงการเปลี่ยนแปลงสีและฟอนต์ ธีมที่บันทึกไว้จะไม่ได้รับผลกระทบ"
-
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "This removes all previously authorized IP addresses on your account. The next login from any IP will require email verification."
-msgstr "การดำเนินการนี้จะลบที่อยู่ IP ที่เคยได้รับอนุญาตทั้งหมดในบัญชีของคุณ การเข้าสู่ระบบครั้งถัดไปจาก IP ใดๆ จะต้องมีการยืนยันทางอีเมล"
 
 #. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
 #: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx

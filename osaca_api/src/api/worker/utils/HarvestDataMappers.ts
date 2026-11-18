@@ -103,9 +103,6 @@ interface UserDataJsonParams {
 		channel_id: bigint;
 		sort_order: number;
 	}>;
-	authorizedIps: Array<{
-		ip: string;
-	}>;
 	activityData: {
 		last_active_at: Date | null;
 	};
@@ -120,15 +117,11 @@ export function mapOAuthApplication(app: Application) {
 }
 
 export function mapSecurityData(params: {
-	authorizedIps: Array<{
-		ip: string;
-	}>;
 	activityData: {
 		last_active_at: Date | null;
 	};
 }) {
 	return {
-		authorized_ips: params.authorizedIps,
 		activity_tracking: {
 			last_active_at: params.activityData.last_active_at?.toISOString() ?? null,
 		},
@@ -157,7 +150,6 @@ export function buildUserDataJson(params: UserDataJsonParams) {
 		oauthClients,
 		connections,
 		pinnedDms,
-		authorizedIps,
 		activityData,
 	} = params;
 	const responseFields = {
@@ -383,6 +375,6 @@ export function buildUserDataJson(params: UserDataJsonParams) {
 			channel_id: pin.channel_id.toString(),
 			sort_order: pin.sort_order,
 		})),
-		...mapSecurityData({authorizedIps, activityData}),
+		...mapSecurityData({activityData}),
 	};
 }

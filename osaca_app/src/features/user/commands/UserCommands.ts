@@ -154,12 +154,6 @@ export async function deleteAccount(): Promise<void> {
 	logger.info('Account scheduled for deletion');
 }
 
-export async function forgetAuthorizedIps(): Promise<void> {
-	logger.debug('Forgetting authorized IPs');
-	await http.delete(Endpoints.USER_AUTHORIZED_IPS, {body: {}});
-	logger.info('Authorised IPs cleared');
-}
-
 export async function bulkDeleteMyMessages(filter: BulkDeleteMyMessagesFilter): Promise<void> {
 	logger.debug('Requesting bulk deletion of my messages', filter);
 	await http.post(Endpoints.USER_BULK_DELETE_MY_MESSAGES, {

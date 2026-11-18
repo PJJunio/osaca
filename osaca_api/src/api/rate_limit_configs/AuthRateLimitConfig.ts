@@ -31,12 +31,10 @@ export const AuthRateLimitConfigs = {
 	AUTH_REGISTER_HANDOFF: {
 		bucket: 'auth:register:handoff',
 		config: {limit: 10, windowMs: ms('10 seconds')},
-		trustForwardedClientIp: true,
 	} as RouteRateLimitConfig,
 	AUTH_REGISTER_HANDOFF_CHALLENGE: {
 		bucket: 'auth:register:handoff:challenge',
 		config: {limit: 20, windowMs: ms('1 minute')},
-		trustForwardedClientIp: true,
 	} as RouteRateLimitConfig,
 	AUTH_ACCOUNT_HANDOFF_REDEEM: {
 		bucket: 'auth:register:handoff:redeem',
@@ -54,8 +52,8 @@ export const AuthRateLimitConfigs = {
 		bucket: 'auth:sessions:logout',
 		config: {limit: 20, windowMs: ms('10 seconds')},
 	} as RouteRateLimitConfig,
-	AUTH_AUTHORIZE_IP: {
-		bucket: 'auth:authorize_ip',
+	AUTH_SIGN_IN_LINK: {
+		bucket: 'auth:sign_in_link',
 		config: {limit: 5, windowMs: ms('1 minute')},
 	} as RouteRateLimitConfig,
 	AUTH_LOGOUT: {
@@ -113,6 +111,8 @@ export const AuthRateLimitConfigs = {
 	AUTH_HANDOFF_STATUS: {
 		bucket: 'auth:handoff:status',
 		config: {limit: 60, windowMs: ms('1 minute')},
+		// Every pending desktop polls; the poll secret protects the answer.
+		anonymous: {limit: 6000, windowMs: ms('1 minute')},
 	} as RouteRateLimitConfig,
 	AUTH_HANDOFF_DENY: {
 		bucket: 'auth:handoff:deny',

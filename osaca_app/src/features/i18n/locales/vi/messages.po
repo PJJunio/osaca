@@ -5727,11 +5727,6 @@ msgstr "Ứng dụng được cấp quyền"
 msgid "Authorized apps"
 msgstr "Ứng dụng được ủy quyền"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Authorized IPs cleared. New logins will require email verification."
-msgstr "Đã xóa IP được ủy quyền. Đăng nhập mới sẽ yêu cầu xác minh email."
-
 #: src/features/user/components/modals/tabs/AuthorizedAppsTab.tsx
 msgid "Authorized on {authorizedOn}"
 msgstr "Đã ủy quyền vào {authorizedOn}"
@@ -16154,11 +16149,6 @@ msgstr "Không thể xóa kênh"
 msgid "Failed to enable camera."
 msgstr "Không thể bật camera."
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Failed to forget authorized IPs. Try again."
-msgstr "Không thể quên các IP được ủy quyền. Thử lại."
-
 #. Error message in the message forward failed modal.
 #: src/features/messaging/components/modals/ForwardModal.tsx
 msgid "Failed to forward message"
@@ -17184,20 +17174,10 @@ msgstr "Buộc loại tin nhắn không xác định"
 msgid "Forced off"
 msgstr "Buộc tắt"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Forget authorized IPs"
-msgstr "Quên các IP được ủy quyền"
-
 #. Short label in the notifications. Keep it concise.
 #: src/features/user/components/modals/tabs/notifications_tab/Notifications.tsx
 msgid "Forget subscriptions"
 msgstr "Xóa đăng ký thông báo đẩy"
-
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Forgetting authorized IPs..."
-msgstr "Đang quên các IP được ủy quyền..."
 
 #. Short label in the authentication forgot password page. Keep the tone plain and specific.
 #: src/features/auth/components/pages/ForgotPasswordPage.tsx
@@ -37897,11 +37877,6 @@ msgstr "Thao tác này sẽ xóa \"{themeName}\" khỏi thiết bị này."
 #: src/features/theme_settings/components/QuickCssFiles.tsx
 msgid "This removes all of your quick CSS, including color and font changes. Saved themes are not affected."
 msgstr "Thao tác này sẽ xóa tất cả CSS nhanh của bạn, bao gồm cả các thay đổi về màu sắc và phông chữ. Các chủ đề đã lưu sẽ không bị ảnh hưởng."
-
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "This removes all previously authorized IP addresses on your account. The next login from any IP will require email verification."
-msgstr "Thao tác này sẽ xóa tất cả địa chỉ IP đã được ủy quyền trước đó trên tài khoản của bạn. Lần đăng nhập tiếp theo từ bất kỳ IP nào cũng sẽ yêu cầu xác minh email."
 
 #. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
 #: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx

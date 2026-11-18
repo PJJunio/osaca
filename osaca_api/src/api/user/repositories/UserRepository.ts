@@ -31,7 +31,6 @@ import {
 import {UserGuildRepository} from '@app/api/user/repositories/account/UserGuildRepository';
 import {UserLookupRepository} from '@app/api/user/repositories/account/UserLookupRepository';
 import {AuthSessionRepository} from '@app/api/user/repositories/auth/AuthSessionRepository';
-import {IpAuthorizationRepository} from '@app/api/user/repositories/auth/IpAuthorizationRepository';
 import {MfaBackupCodeRepository} from '@app/api/user/repositories/auth/MfaBackupCodeRepository';
 import {TokenRepository} from '@app/api/user/repositories/auth/TokenRepository';
 import {WebAuthnRepository} from '@app/api/user/repositories/auth/WebAuthnRepository';
@@ -56,7 +55,6 @@ export class UserRepository {
 	private settingsRepo = new UserSettingsRepository();
 	private authSessionRepository = new AuthSessionRepository();
 	private mfaBackupCodeRepository = new MfaBackupCodeRepository();
-	private ipAuthorizationRepository: IpAuthorizationRepository;
 	private webAuthnRepository = new WebAuthnRepository();
 	private relationshipRepo = new UserRelationshipRepository();
 	private channelRepo = new UserChannelRepository();
@@ -68,7 +66,6 @@ export class UserRepository {
 		this.accountRepo = new UserAccountRepository();
 		const findUnique = this.accountRepo.findUnique.bind(this.accountRepo);
 		this.lookupRepo = new UserLookupRepository(findUnique);
-		this.ipAuthorizationRepository = new IpAuthorizationRepository();
 	}
 
 	async create(data: UserRow): Promise<User> {
@@ -264,26 +261,6 @@ export class UserRepository {
 
 	async deleteAllPasswordResetTokens(userId: UserID): Promise<void> {
 		return this.tokenRepo.deleteAllPasswordResetTokens(userId);
-	}
-
-	async checkIpAuthorized(userId: UserID, ip: string): Promise<boolean> {
-		return this.ipAuthorizationRepository.checkIpAuthorized(userId, ip);
-	}
-
-	async createAuthorizedIp(userId: UserID, ip: string): Promise<void> {
-		return this.ipAuthorizationRepository.createAuthorizedIp(userId, ip);
-	}
-
-	async getAuthorizedIps(userId: UserID): Promise<
-		Array<{
-			ip: string;
-		}>
-	> {
-		return this.ipAuthorizationRepository.getAuthorizedIps(userId);
-	}
-
-	async deleteAllAuthorizedIps(userId: UserID): Promise<void> {
-		return this.ipAuthorizationRepository.deleteAllAuthorizedIps(userId);
 	}
 
 	async listWebAuthnCredentials(userId: UserID): Promise<Array<WebAuthnCredential>> {

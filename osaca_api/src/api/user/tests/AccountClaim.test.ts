@@ -146,18 +146,17 @@ describe('Account limits by tier', () => {
 		expect(report.report_id).toBeTruthy();
 	});
 
-	it('drops a second report on the same target from the same network', async () => {
+	it('drops a second report on the same target from the same account, whatever the address', async () => {
 		const target = await createTestAccount(harness);
-		const first = await createUnclaimed();
-		const second = await createUnclaimed();
-		const send = (token: string) =>
-			createBuilder<{report_id: string}>(harness, token)
+		const reporter = await createUnclaimed();
+		const send = (address: string) =>
+			createBuilder<{report_id: string}>(harness, reporter.token)
 				.post('/reports/user')
-				.header('x-forwarded-for', '203.0.113.20')
+				.header('x-forwarded-for', address)
 				.body({user_id: target.userId, category: 'harassment'})
 				.execute();
-		const kept = await send(first.token);
-		const dropped = await send(second.token);
+		const kept = await send('203.0.113.20');
+		const dropped = await send('198.51.100.20');
 		const {getReportRepository} = await import('@app/api/middleware/ServiceSingletons');
 		const {createReportID} = await import('@app/api/BrandedTypes');
 		expect(await getReportRepository().getReport(createReportID(BigInt(kept.report_id)))).not.toBeNull();

@@ -5727,11 +5727,6 @@ msgstr "Yetkili uygulamalar"
 msgid "Authorized apps"
 msgstr "Yetkili uygulamalar"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Authorized IPs cleared. New logins will require email verification."
-msgstr "Yetkili IP'ler temizlendi. Yeni girişler e-posta doğrulaması gerektirecek."
-
 #: src/features/user/components/modals/tabs/AuthorizedAppsTab.tsx
 msgid "Authorized on {authorizedOn}"
 msgstr "Şu tarihte yetkilendirildi: {authorizedOn}"
@@ -16154,11 +16149,6 @@ msgstr "Kanal silinemedi"
 msgid "Failed to enable camera."
 msgstr "Kamera etkinleştirilemedi."
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Failed to forget authorized IPs. Try again."
-msgstr "Yetkili IP'ler unutulamadı. Tekrar deneyin."
-
 #. Error message in the message forward failed modal.
 #: src/features/messaging/components/modals/ForwardModal.tsx
 msgid "Failed to forward message"
@@ -17184,20 +17174,10 @@ msgstr "Bilinmeyen mesaj türünü zorla"
 msgid "Forced off"
 msgstr "Zorla kapalı"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Forget authorized IPs"
-msgstr "Yetkili IP'leri unut"
-
 #. Short label in the notifications. Keep it concise.
 #: src/features/user/components/modals/tabs/notifications_tab/Notifications.tsx
 msgid "Forget subscriptions"
 msgstr "Abonelikleri unut"
-
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Forgetting authorized IPs..."
-msgstr "Yetkili IP'ler unutuluyor..."
 
 #. Short label in the authentication forgot password page. Keep the tone plain and specific.
 #: src/features/auth/components/pages/ForgotPasswordPage.tsx
@@ -37897,11 +37877,6 @@ msgstr "Bu işlem \"{themeName}\" temasını bu cihazdan kaldırır."
 #: src/features/theme_settings/components/QuickCssFiles.tsx
 msgid "This removes all of your quick CSS, including color and font changes. Saved themes are not affected."
 msgstr "Bu, renk ve yazı tipi değişiklikleri de dahil olmak üzere tüm hızlı CSS'nizi kaldırır. Kaydedilen temalar etkilenmez."
-
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "This removes all previously authorized IP addresses on your account. The next login from any IP will require email verification."
-msgstr "Bu işlem, hesabınızdaki önceden yetkilendirilmiş tüm IP adreslerini kaldırır. Herhangi bir IP'den yapılacak bir sonraki oturum açma işlemi e-posta doğrulaması gerektirecek."
 
 #. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
 #: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx

@@ -157,25 +157,6 @@ OSACA sends [User Update](/gateway/events/#user-update).
 
 The rate limit is 5 requests per hour, on the `user:claim` bucket.
 
-## Forget authorized IPs
-
-<RouteHeader method="DELETE" path="/v1/users/@me/authorized-ips" mfa />
-
-Deletes every authorized IP record. Needs [sudo verification](/http-api/users/mfa/#sudo-mode).
-
-### JSON body
-
-The [sudo verification object](/http-api/users/mfa/#sudo-verification-object), which can be empty when you send a sudo token.
-
-### Response
-
-| Status | Body | Condition |
-| --- | --- | --- |
-| 204 | empty | The records were deleted |
-| 403 | [error response](/http-api/#error-response) | `SUDO_MODE_REQUIRED` |
-
-The rate limit is 10 requests per minute, on the `user:authorized_ips:forget` bucket.
-
 ## Disable current account
 
 <RouteHeader method="POST" path="/v1/users/@me/disable" mfa />

@@ -2,7 +2,6 @@
 
 import {type BudgetEnv, budgetEnvFor} from '@app/api/auth/AccountBudgets';
 import {createChannelID, createGuildID, createInviteCode, createMessageID, createUserID} from '@app/api/BrandedTypes';
-import {Config} from '@app/api/Config';
 import type {ThreadViewer} from '@app/api/experiment/ChannelThreadsGate';
 import {Logger} from '@app/api/Logger';
 import type {User} from '@app/api/models/User';
@@ -16,7 +15,6 @@ import {ReportStatus, reportStatusToString} from '@app/api/report/ReportModels';
 import type {ReportFlowRecord, ReportService} from '@app/api/report/ReportService';
 import {assertTierAllows, getAccountTier, NO_TIER_CONTEXT} from '@app/api/user/AccountTier';
 import {TierGatedActions} from '@osaca/constants/src/AccountTierConstants';
-import {requireClientIp} from '@osaca/ip_utils/src/ClientIp';
 import type {
 	ReportFlowMessageSubmissionRequest,
 	ReportFlowResponse,
@@ -194,12 +192,8 @@ export class ReportRequestService {
 			assertTierAllows(user, TierGatedActions.REPORT, NO_TIER_CONTEXT);
 			return null;
 		}
-		const clientIp = requireClientIp(request, {
-			trustClientIpHeader: Config.proxy.trust_client_ip_header,
-			clientIpHeaderName: Config.proxy.client_ip_header,
-		});
 		const env = budgetEnvFor(this.budgetServices, request);
-		if ((await admitLimitedReport(env, {user, clientIp, target})) === 'store') return null;
+		if ((await admitLimitedReport(env, {user, target})) === 'store') return null;
 		const now = Date.now();
 		return {
 			report_id: createSnowflakeFromTimestamp(now).toString(),

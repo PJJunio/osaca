@@ -23,7 +23,6 @@ import {SubMenu as MenuItemSubmenu} from '@app/features/ui/action_menu/ContextMe
 import {MenuItem} from '@app/features/ui/action_menu/MenuItem';
 import * as ModalCommands from '@app/features/ui/commands/ModalCommands';
 import * as ToastCommands from '@app/features/ui/commands/ToastCommands';
-import * as UserCommands from '@app/features/user/commands/UserCommands';
 import MediaEngine from '@app/features/voice/engine/MediaEngineFacade';
 import {msg} from '@lingui/core/macro';
 import {Trans, useLingui} from '@lingui/react/macro';
@@ -34,22 +33,6 @@ import type React from 'react';
 import {useCallback, useState} from 'react';
 
 const logger = new Logger('DeveloperToolsContextMenu/ToolsMenu');
-const AUTHORIZED_IPS_CLEARED_DESCRIPTOR = msg({
-	message: 'Authorized IPs cleared.',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const FAILED_TO_FORGET_AUTHORIZED_IPS_PLEASE_TRY_AGAIN_DESCRIPTOR = msg({
-	message: 'Failed to forget authorized IPs. Try again.',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const FORGET_AUTHORIZED_IPS_DESCRIPTOR = msg({
-	message: 'Forget authorized IPs',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
-const THIS_REMOVES_ALL_PREVIOUSLY_AUTHORIZED_IP_ADDRESSES_ON_DESCRIPTOR = msg({
-	message: 'This removes all previously authorized IP addresses on your account.',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
 const TRUSTED_DOMAINS_CLEARED_DESCRIPTOR = msg({
 	message: 'Trusted domains cleared.',
 	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
@@ -82,49 +65,15 @@ const RUNTIME_UTILITIES_DESCRIPTOR = msg({
 	message: 'Runtime utilities',
 	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
 });
-const FORGETTING_AUTHORIZED_IPS_DESCRIPTOR = msg({
-	message: 'Forgetting authorized IPs...',
-	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
-});
 const CLEARING_TRUSTED_DOMAINS_DESCRIPTOR = msg({
 	message: 'Clearing trusted domains...',
 	comment: 'Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.',
 });
 export const ToolsMenu: React.FC<{onClose: () => void}> = observer(({onClose}) => {
 	const {i18n} = useLingui();
-	const [isForgettingAuthorizedIps, setIsForgettingAuthorizedIps] = useState(false);
 	const [isClearingTrustedDomains, setIsClearingTrustedDomains] = useState(false);
 	const socket = GatewaySessions.foregroundConnection.socket;
 	const trustedDomainsCount = TrustedDomain.getTrustedDomainsCount();
-	const handleForgetAuthorizedIps = useCallback(async () => {
-		setIsForgettingAuthorizedIps(true);
-		try {
-			await UserCommands.forgetAuthorizedIps();
-			ToastCommands.createToast({
-				type: 'success',
-				children: i18n._(AUTHORIZED_IPS_CLEARED_DESCRIPTOR),
-			});
-		} catch (error) {
-			logger.error('Failed to forget authorized IPs', error);
-			showChannelErrorModalAfterCurrentModal({
-				title: i18n._(FAILED_TO_FORGET_AUTHORIZED_IPS_PLEASE_TRY_AGAIN_DESCRIPTOR),
-				message: i18n._(TRY_AGAIN_IN_A_MOMENT_DESCRIPTOR),
-				dataFlx:
-					'channel.channel-header-components.developer-tools-context-menu.forget-authorized-ips-failed.generic-error-modal',
-			});
-		} finally {
-			setIsForgettingAuthorizedIps(false);
-		}
-	}, [i18n]);
-	const handleForgetAuthorizedIpsClick = useCallback(() => {
-		openDangerConfirmation({
-			onClose,
-			title: i18n._(FORGET_AUTHORIZED_IPS_DESCRIPTOR),
-			description: i18n._(THIS_REMOVES_ALL_PREVIOUSLY_AUTHORIZED_IP_ADDRESSES_ON_DESCRIPTOR),
-			primaryText: i18n._(FORGET_AUTHORIZED_IPS_DESCRIPTOR),
-			onPrimary: handleForgetAuthorizedIps,
-		});
-	}, [handleForgetAuthorizedIps, onClose, i18n]);
 	const handleClearTrustedDomains = useCallback(async () => {
 		setIsClearingTrustedDomains(true);
 		try {
@@ -269,14 +218,6 @@ export const ToolsMenu: React.FC<{onClose: () => void}> = observer(({onClose}) =
 					>
 						<Trans>Open system DM</Trans>
 					</MenuItem>
-					<PendingMenuItem
-						danger
-						isPending={isForgettingAuthorizedIps}
-						label={i18n._(FORGET_AUTHORIZED_IPS_DESCRIPTOR)}
-						pendingLabel={i18n._(FORGETTING_AUTHORIZED_IPS_DESCRIPTOR)}
-						onClick={handleForgetAuthorizedIpsClick}
-						data-flx="channel.channel-header-components.developer-tools-context-menu.tools-menu.pending-menu-item.forget-authorized-ips-click"
-					/>
 					<PendingMenuItem
 						danger
 						disabled={trustedDomainsCount === 0 && !TrustedDomain.trustAllDomains}

@@ -5727,11 +5727,6 @@ msgstr "Valtuutetut sovellukset"
 msgid "Authorized apps"
 msgstr "Valtuutetut sovellukset"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Authorized IPs cleared. New logins will require email verification."
-msgstr "Valtuutetut IP-osoitteet tyhjennetty. Uudet kirjautumiset vaativat sähköpostivahvistuksen."
-
 #: src/features/user/components/modals/tabs/AuthorizedAppsTab.tsx
 msgid "Authorized on {authorizedOn}"
 msgstr "Valtuutettu: {authorizedOn}"
@@ -16154,11 +16149,6 @@ msgstr "Kanavan poistaminen epäonnistui"
 msgid "Failed to enable camera."
 msgstr "Kameran käynnistys epäonnistui."
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Failed to forget authorized IPs. Try again."
-msgstr "Valtuutettujen IP-osoitteiden unohtaminen epäonnistui. Yritä uudelleen."
-
 #. Error message in the message forward failed modal.
 #: src/features/messaging/components/modals/ForwardModal.tsx
 msgid "Failed to forward message"
@@ -17184,20 +17174,10 @@ msgstr "Pakota tuntematon viestityyppi"
 msgid "Forced off"
 msgstr "Pakotettu pois päältä"
 
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Forget authorized IPs"
-msgstr "Unohda valtuutetut IP-osoitteet"
-
 #. Short label in the notifications. Keep it concise.
 #: src/features/user/components/modals/tabs/notifications_tab/Notifications.tsx
 msgid "Forget subscriptions"
 msgstr "Unohda tilaukset"
-
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "Forgetting authorized IPs..."
-msgstr "Valtuutettujen IP-osoitteiden unohtaminen..."
 
 #. Short label in the authentication forgot password page. Keep the tone plain and specific.
 #: src/features/auth/components/pages/ForgotPasswordPage.tsx
@@ -37897,11 +37877,6 @@ msgstr "Tämä poistaa teeman \"{themeName}\" tältä laitteelta."
 #: src/features/theme_settings/components/QuickCssFiles.tsx
 msgid "This removes all of your quick CSS, including color and font changes. Saved themes are not affected."
 msgstr "Tämä poistaa kaiken pikakoodisi, mukaan lukien väri- ja fonttimuutokset. Tallennetut teemat eivät vaikuta."
-
-#. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
-#: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx
-msgid "This removes all previously authorized IP addresses on your account. The next login from any IP will require email verification."
-msgstr "Tämä poistaa kaikki aiemmin valtuutetut IP-osoitteet tililtäsi. Seuraava kirjautuminen mistä tahansa IP-osoitteesta vaatii sähköpostivahvistuksen."
 
 #. Developer tools debug menu label. Internal-only surface for developers; translators may keep this terse.
 #: src/features/channel/components/channel_header_components/developer_tools/ToolsMenu.tsx

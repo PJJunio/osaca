@@ -147,7 +147,6 @@ export const Endpoints = {
 	USER_MFA_BACKUP_CODES: '/users/@me/mfa/backup-codes',
 	USER_MFA_TOTP_DISABLE: '/users/@me/mfa/totp/disable',
 	USER_MFA_TOTP_ENABLE: '/users/@me/mfa/totp/enable',
-	USER_AUTHORIZED_IPS: '/users/@me/authorized-ips',
 	USER_MFA_WEBAUTHN_CREDENTIALS: '/users/@me/mfa/webauthn/credentials',
 	USER_MFA_WEBAUTHN_REGISTRATION_OPTIONS: '/users/@me/mfa/webauthn/credentials/registration-options',
 	USER_MFA_WEBAUTHN_CREDENTIAL: (credentialId: string) => `/users/@me/mfa/webauthn/credentials/${credentialId}`,

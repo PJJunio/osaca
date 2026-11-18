@@ -346,7 +346,7 @@ Files a report about a message from the reporter's answers to the `in_app` messa
 | 409 | [error response](/http-api/#error-response) | `REPORT_FLOW_OUTDATED` when the answers came from an outdated flow |
 | 409 | [error response](/http-api/#error-response) | `CONFLICT` when the reporter reported this message in the last 365 days |
 
-The rate limit is 10 requests per hour, on the `report:create` bucket. One reporter can file at most 5 reports an hour across the report routes, and [Rate limits](/topics/rate-limits/#limits-that-return-429) lists the lower limits for one channel, guild or message. When [`interaction_tier`](/http-api/users/#account-tiers) is `enforced`, an account that isn't verified can still report, up to 5 reports a day for the account and 10 a day from one IP address.
+The rate limit is 10 requests per hour, on the `report:create` bucket. One reporter can file at most 5 reports an hour across the report routes, and [Rate limits](/topics/rate-limits/#limits-that-return-429) lists the lower limits for one channel, guild or message. When [`interaction_tier`](/http-api/users/#account-tiers) is `enforced`, an account that isn't verified can still report, up to 5 reports a day for the account. A second report from the same account on the same target is accepted but not kept.
 
 ## Submit user report flow
 
@@ -378,4 +378,4 @@ Files a report about a user's profile from the reporter's answers to the `in_app
 | 409 | [error response](/http-api/#error-response) | `REPORT_FLOW_OUTDATED` when the answers came from an outdated flow |
 | 409 | [error response](/http-api/#error-response) | `CONFLICT` when the reporter reported this user in the last 24 hours |
 
-The rate limit is 10 requests per hour, on the `report:create` bucket. One reporter can file at most 5 reports an hour across the report routes. When [`interaction_tier`](/http-api/users/#account-tiers) is `enforced`, an account that isn't verified can still report, up to 5 reports a day for the account and 10 a day from one IP address.
+The rate limit is 10 requests per hour, on the `report:create` bucket. One reporter can file at most 5 reports an hour across the report routes. When [`interaction_tier`](/http-api/users/#account-tiers) is `enforced`, an account that isn't verified can still report, up to 5 reports a day for the account. A second report from the same account on the same target is accepted but not kept.

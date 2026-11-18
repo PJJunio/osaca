@@ -20276,10 +20276,6 @@ msgctxt "us-state"
 msgid "Iowa"
 msgstr "आयोवा"
 
-#: src/features/user/components/modals/tabs/DevicesTab.tsx
-msgid "IP address"
-msgstr "आईपी पता"
-
 #: src/features/auth/components/pages/AuthorizeIPPage.tsx
 msgid "IP address authorized"
 msgstr "आईपी पता अधिकृत किया गया"
@@ -21591,11 +21587,6 @@ msgstr "स्थानीय समय फ़ॉर्मैट"
 #: src/features/user/components/settings_utils/search_index/LanguageIndex.ts
 msgid "Localization"
 msgstr "लोकलाइज़ेशन"
-
-#: src/features/auth/flow/HandoffApprovalFlow.tsx
-#: src/features/user/components/modals/tabs/DevicesTab.tsx
-msgid "Location"
-msgstr "जगह"
 
 #. Moderator action that stops non-moderators from sending messages in a thread.
 #: src/features/threads/utils/ThreadMessageDescriptors.ts

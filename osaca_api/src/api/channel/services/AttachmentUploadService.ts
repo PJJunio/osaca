@@ -39,8 +39,8 @@ import {assertGuildMemberCanCommunicate} from '@app/api/utils/GuildCommunication
 import {Permissions, TEXT_BASED_CHANNEL_TYPES} from '@osaca/constants/src/ChannelConstants';
 import {GuildOperations} from '@osaca/constants/src/GuildConstants';
 import {
-	ATTACHMENT_MAX_SIZE_BOT,
 	ATTACHMENT_MAX_SIZE,
+	ATTACHMENT_MAX_SIZE_BOT,
 	ATTACHMENT_UPLOAD_CHUNK_THRESHOLD,
 	ATTACHMENT_UPLOAD_MAX_CHUNKS,
 	resolveAttachmentUploadPartSize,
@@ -80,7 +80,6 @@ interface UploadFormDataAttachmentsParams {
 	userId: UserID;
 	viewer: ThreadViewer;
 	channelId: ChannelID;
-	clientIp: string;
 	files: Array<{
 		file: File;
 		index: number;
@@ -96,7 +95,6 @@ interface RequestPresignedAttachmentUploadUrlsParams {
 	userId: UserID;
 	viewer: ThreadViewer;
 	channelId: ChannelID;
-	clientIp: string;
 	attachments: Array<PresignedAttachmentUploadRequestItem>;
 }
 
@@ -104,7 +102,6 @@ interface CompleteMultipartAttachmentUploadsParams {
 	userId: UserID;
 	viewer: ThreadViewer;
 	channelId: ChannelID;
-	clientIp: string;
 	uploads: Array<CompleteMultipartAttachmentUploadItem>;
 }
 
@@ -127,7 +124,6 @@ export class AttachmentUploadService {
 		userId,
 		viewer,
 		channelId,
-		clientIp,
 		files,
 		attachmentMetadata,
 		actor = 'member',
@@ -164,7 +160,6 @@ export class AttachmentUploadService {
 				filename,
 				contentType,
 				uploadMode: 'form_data',
-				requestIp: clientIp,
 			});
 			const uploaded: UploadedAttachment = {
 				id: index,
@@ -182,7 +177,6 @@ export class AttachmentUploadService {
 		userId,
 		viewer,
 		channelId,
-		clientIp,
 		attachments,
 	}: RequestPresignedAttachmentUploadUrlsParams): Promise<Array<PresignedAttachmentUploadResponseItem>> {
 		if (!Config.presignedAttachmentUploadsEnabled) {
@@ -193,7 +187,7 @@ export class AttachmentUploadService {
 			attachments.map(({file_size}) => file_size),
 			maxFileSize,
 		);
-		const uploadRelayDecision = await resolveUploadRelayDecision(clientIp);
+		const uploadRelayDecision = await resolveUploadRelayDecision();
 		return Promise.all(
 			attachments.map(async (attachment) => {
 				const uploadKey = crypto.randomUUID();
@@ -208,7 +202,6 @@ export class AttachmentUploadService {
 					filename: attachment.filename,
 					contentType: derivedContentType,
 					uploadMode,
-					requestIp: clientIp,
 				});
 				if (attachment.file_size <= ATTACHMENT_UPLOAD_CHUNK_THRESHOLD) {
 					const presigned_upload_url = await this.storageService.getPresignedUploadURL({
@@ -290,7 +283,6 @@ export class AttachmentUploadService {
 		userId,
 		viewer,
 		channelId,
-		clientIp,
 		uploads,
 	}: CompleteMultipartAttachmentUploadsParams): Promise<Array<CompleteMultipartAttachmentUploadResult>> {
 		if (!Config.presignedAttachmentUploadsEnabled) {
@@ -344,7 +336,6 @@ export class AttachmentUploadService {
 					);
 					await this.attachmentUploadTraceRepository.markUploadCompleted({
 						uploadKey: upload_filename,
-						completionIp: clientIp,
 					});
 				} catch (error) {
 					await this.storageService

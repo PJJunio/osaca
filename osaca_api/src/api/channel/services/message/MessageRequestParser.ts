@@ -17,7 +17,6 @@ import {createLimitMatchContext} from '@app/api/limits/LimitMatchContextBuilder'
 import type {User} from '@app/api/models/User';
 import type {HonoEnv} from '@app/api/types/HonoEnv';
 import {parseJsonPreservingLargeIntegers} from '@app/api/utils/LosslessJsonParser';
-import {requireRequestClientIp} from '@app/api/utils/RequestClientIp';
 import {inputValidationErrorFromZodIssues} from '@app/api/Validator';
 import {MAX_ATTACHMENTS_PER_MESSAGE} from '@osaca/constants/src/LimitConstants';
 import {ValidationErrorCodes} from '@osaca/constants/src/ValidationErrorCodes';
@@ -144,7 +143,6 @@ export async function parseMultipartMessageData(
 		existingAttachments.push(metadata);
 	}
 	if (filesWithIndices.length > 0) {
-		const clientIp = requireRequestClientIp(ctx);
 		const inlineNewAttachments = filesWithIndices.map(({file, index}) =>
 			buildInlineAttachmentMetadata({
 				file,
@@ -158,7 +156,6 @@ export async function parseMultipartMessageData(
 				userId: user.id,
 				viewer: options?.actor === 'webhook' ? SYSTEM_THREAD_VIEWER : viewerFromCtx(ctx),
 				channelId,
-				clientIp,
 				files: filesWithIndices,
 				attachmentMetadata: inlineNewAttachments,
 				actor: options?.actor,

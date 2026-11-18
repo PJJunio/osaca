@@ -5,7 +5,6 @@ import type {ApiTestHarness} from '@app/api/test/ApiTestHarness';
 import {HTTP_STATUS} from '@app/api/test/TestConstants';
 import {createBuilder, createBuilderWithoutAuth} from '@app/api/test/TestRequestBuilder';
 import {APIErrorCodes} from '@osaca/constants/src/ApiErrorCodes';
-import {maskIpForDisplay} from '@osaca/ip_utils/src/IpAddress';
 import {afterAll, beforeAll, beforeEach, describe, expect, it} from 'vitest';
 
 interface HandoffInitiateResponse {
@@ -20,16 +19,10 @@ interface HandoffInfoResponse {
 		platform?: string | null;
 		os?: string | null;
 		device?: 'mobile' | 'desktop';
-		location?: {
-			city?: string | null;
-			region?: string | null;
-			country?: string | null;
-		} | null;
 	} | null;
 }
 
 interface AuthSessionsResponseItem {
-	masked_ip?: string | null;
 	client_info?: {
 		platform?: string | null;
 		os?: string | null;
@@ -94,7 +87,7 @@ describe('Auth desktop handoff flow', () => {
 		expect(handedOff[0]?.client_info?.browser).toBeNull();
 		expect(handedOff[0]?.client_info?.device).toBe('desktop');
 		expect(sessions.some((session) => session.client_info?.browser === 'Chrome')).toBe(false);
-		expect(handedOff[0]?.masked_ip).toBe(maskIpForDisplay(DESKTOP_IP));
+		expect(handedOff[0]).not.toHaveProperty('masked_ip');
 	});
 	it('rejects info lookup after 3 attempts on same code', async () => {
 		const initResp = await createBuilderWithoutAuth<HandoffInitiateResponse>(harness)

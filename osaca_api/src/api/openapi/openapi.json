@@ -29365,10 +29365,6 @@
 										"type": "string",
 										"enum": ["mobile", "desktop"],
 										"description": "Device class of the requesting device, decided by the server"
-									},
-									"location": {
-										"description": "The approximate location of the requesting device",
-										"anyOf": [{"$ref": "#/components/schemas/AuthSessionLocation"}, {"type": "null"}]
 									}
 								},
 								"required": ["device"],
@@ -30223,15 +30219,6 @@
 				"additionalProperties": false
 			},
 			"DesktopHandoffReturnMethod": {"type": "string", "enum": ["deep_link", "code"]},
-			"AuthSessionLocation": {
-				"type": "object",
-				"properties": {
-					"city": {"description": "The city name reported by the client", "type": ["string", "null"]},
-					"region": {"description": "The region reported by the client", "type": ["string", "null"]},
-					"country": {"description": "The country reported by the client", "type": ["string", "null"]}
-				},
-				"additionalProperties": false
-			},
 			"PasswordType": {"type": "string"},
 			"WebAuthnAuthenticationResponse": {
 				"type": "object",
@@ -30342,10 +30329,6 @@
 										"type": "string",
 										"enum": ["mobile", "desktop"],
 										"description": "Device class of the session, decided by the server"
-									},
-									"location": {
-										"description": "The geolocation data sent by the client",
-										"anyOf": [{"$ref": "#/components/schemas/AuthSessionLocation"}, {"type": "null"}]
 									}
 								},
 								"required": ["device"],
@@ -30353,10 +30336,6 @@
 							},
 							{"type": "null"}
 						]
-					},
-					"masked_ip": {
-						"description": "Semi-redacted IP address recorded for this session",
-						"type": ["string", "null"]
 					},
 					"approx_last_used_at": {
 						"description": "Approximate timestamp of the last session activity",
@@ -30371,7 +30350,7 @@
 					},
 					"current": {"type": "boolean", "description": "Whether this is the current session making the request"}
 				},
-				"required": ["id_hash", "masked_ip", "current"],
+				"required": ["id_hash", "current"],
 				"additionalProperties": false
 			},
 			"ChannelUpdateMediaRequestBody": {

@@ -1004,7 +1004,6 @@ const StoredPendingRegistrationSchema = PendingRegistrationResponse.extend({
 	global_name: StoredNullableStringSchema,
 	requested_at: StoredRegistrationTimestampSchema,
 	registration_url_id: StoredNullableStringSchema.pipe(StoredRegistrationUrlIdSchema.nullable()),
-	client_ip: StoredNullableStringSchema,
 	invite_code: StoredNullableStringSchema,
 }) satisfies z.ZodType<InstancePendingRegistration>;
 

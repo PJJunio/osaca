@@ -459,7 +459,6 @@ export class AdminVoiceService {
 			claim_id: null,
 			claimed_at: null,
 			used_at: null,
-			used_by_ip: null,
 			used_server_id: null,
 			revoked_at: null,
 			region_id: data.region_id,

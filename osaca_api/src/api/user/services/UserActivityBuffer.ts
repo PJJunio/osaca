@@ -34,7 +34,6 @@ interface UserActivityAccountWriter {
 
 interface PendingEntry {
 	ts: number;
-	ip: string | null;
 }
 
 interface PendingAuthSessionEntry {
@@ -61,7 +60,6 @@ function parsePendingEntry(json: string): PendingEntry | null {
 	}
 	return {
 		ts: decoded.ts,
-		ip: typeof decoded.ip === 'string' ? decoded.ip : null,
 	};
 }
 
@@ -165,8 +163,8 @@ export class UserActivityBuffer {
 		this.accounts = accounts;
 	}
 
-	recordActivity(userId: UserID, timestamp: Date, _ip: string | null): void {
-		const payload: PendingEntry = {ts: timestamp.getTime(), ip: null};
+	recordActivity(userId: UserID, timestamp: Date): void {
+		const payload: PendingEntry = {ts: timestamp.getTime()};
 		void this.kv.hset(PENDING_HASH_KEY, userId.toString(), JSON.stringify(payload)).catch((error) => {
 			Logger.debug({error, userId: userId.toString()}, 'Failed to enqueue user activity to buffer');
 		});

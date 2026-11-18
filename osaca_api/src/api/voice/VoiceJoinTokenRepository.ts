@@ -64,15 +64,11 @@ export class VoiceJoinTokenRepository {
 		);
 	}
 
-	async markUsed(
-		row: VoiceJoinTokenRow,
-		claimId: string,
-		used: {at: Date; ip: string | null; serverId: string},
-	): Promise<boolean> {
+	async markUsed(row: VoiceJoinTokenRow, claimId: string, used: {at: Date; serverId: string}): Promise<boolean> {
 		return executeConditional(
 			VoiceJoinTokens.conditionalPatchByPkWithTtl(
 				{token_id: row.token_id},
-				{used_at: Db.set(used.at), used_by_ip: Db.set(used.ip), used_server_id: Db.set(used.serverId)},
+				{used_at: Db.set(used.at), used_server_id: Db.set(used.serverId)},
 				{claim_id: claimId},
 				ttlFor(row),
 			),

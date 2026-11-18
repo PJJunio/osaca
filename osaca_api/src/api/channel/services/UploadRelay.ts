@@ -87,12 +87,8 @@ function buildRelayUrl({bucket, key, uploadId, partNumber, contentType, maxBytes
 	return `${relayEndpoint}${RELAY_PATH_PREFIX}/${encodeKeyPath(key)}?${params.toString()}`;
 }
 
-export async function resolveUploadRelayDecision(clientIp: string | undefined | null): Promise<UploadRelayDecision> {
-	const relayConfig = Config.mediaProxy.uploadRelay;
-	if (!clientIp) {
-		return relayConfig;
-	}
-	return relayConfig;
+export async function resolveUploadRelayDecision(): Promise<UploadRelayDecision> {
+	return Config.mediaProxy.uploadRelay;
 }
 
 export function applyUploadRelayDecision(params: {

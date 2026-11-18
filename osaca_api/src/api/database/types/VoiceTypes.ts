@@ -91,7 +91,6 @@ export interface VoiceJoinTokenRow {
 	claim_id: string | null;
 	claimed_at: Date | null;
 	used_at: Date | null;
-	used_by_ip: string | null;
 	used_server_id: string | null;
 	revoked_at: Date | null;
 	region_id: string | null;
@@ -119,7 +118,6 @@ export const VOICE_JOIN_TOKEN_COLUMNS = [
 	'claim_id',
 	'claimed_at',
 	'used_at',
-	'used_by_ip',
 	'used_server_id',
 	'revoked_at',
 	'region_id',
@@ -152,8 +150,6 @@ export interface VoiceP2pConnectionReportRow {
 	protocol: string | null;
 	setup_ms: number | null;
 	ice_restarted: boolean;
-	country: string | null;
-	ip: string | null;
 	client_platform: string | null;
 	client_os: string | null;
 }
@@ -172,8 +168,6 @@ export const VOICE_P2P_CONNECTION_REPORT_COLUMNS = [
 	'protocol',
 	'setup_ms',
 	'ice_restarted',
-	'country',
-	'ip',
 	'client_platform',
 	'client_os',
 ] as const satisfies ReadonlyArray<keyof VoiceP2pConnectionReportRow>;

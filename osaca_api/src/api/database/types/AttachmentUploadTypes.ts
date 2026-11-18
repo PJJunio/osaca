@@ -8,9 +8,7 @@ export interface AttachmentUploadTraceByKeyRow {
 	filename: string;
 	content_type: string;
 	upload_mode: string;
-	request_ip: string;
 	requested_at: Date;
-	completion_ip: string | null;
 	completed_at: Date | null;
 	created_at: Date;
 	updated_at: Date;
@@ -24,9 +22,7 @@ export const ATTACHMENT_UPLOAD_TRACE_BY_KEY_COLUMNS = [
 	'filename',
 	'content_type',
 	'upload_mode',
-	'request_ip',
 	'requested_at',
-	'completion_ip',
 	'completed_at',
 	'created_at',
 	'updated_at',
@@ -40,9 +36,7 @@ export interface AttachmentUploadTraceByAttachmentRow {
 	filename: string;
 	content_type: string;
 	upload_mode: string;
-	request_ip: string;
 	requested_at: Date;
-	completion_ip: string | null;
 	completed_at: Date | null;
 	created_at: Date;
 	updated_at: Date;
@@ -56,9 +50,7 @@ export const ATTACHMENT_UPLOAD_TRACE_BY_ATTACHMENT_COLUMNS = [
 	'filename',
 	'content_type',
 	'upload_mode',
-	'request_ip',
 	'requested_at',
-	'completion_ip',
 	'completed_at',
 	'created_at',
 	'updated_at',

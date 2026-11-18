@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import type {AuthSessionLocation, AuthSessionResponse} from '@osaca/schema/src/domains/auth/AuthSchemas';
+import type {AuthSessionResponse} from '@osaca/schema/src/domains/auth/AuthSchemas';
 
 export class AuthSession {
 	readonly id: string;
@@ -9,8 +9,6 @@ export class AuthSession {
 	readonly clientPlatform: string | null;
 	readonly clientBrowser: string | null;
 	readonly clientDevice: 'mobile' | 'desktop';
-	readonly clientLocation: string | null;
-	readonly maskedIp: string | null;
 	readonly isCurrent: boolean;
 	private readonly clientInfo: AuthSessionResponse['client_info'] | null;
 
@@ -22,8 +20,6 @@ export class AuthSession {
 		this.clientPlatform = this.clientInfo?.platform ?? null;
 		this.clientBrowser = this.clientInfo?.browser ?? null;
 		this.clientDevice = this.clientInfo?.device ?? 'desktop';
-		this.clientLocation = getLocationLabel(this.clientInfo?.location ?? null);
-		this.maskedIp = data.masked_ip ?? null;
 		this.isCurrent = data.current;
 	}
 
@@ -32,16 +28,7 @@ export class AuthSession {
 			id_hash: this.id,
 			approx_last_used_at: this.approxLastUsedAt?.toISOString() ?? null,
 			client_info: this.clientInfo,
-			masked_ip: this.maskedIp,
 			current: this.isCurrent,
 		};
 	}
-}
-
-function getLocationLabel(location: AuthSessionLocation | null): string | null {
-	if (!location) {
-		return null;
-	}
-	const parts = [location.city, location.region, location.country].filter(Boolean);
-	return parts.length ? parts.join(', ') : null;
 }

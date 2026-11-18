@@ -5,7 +5,6 @@ import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
 import {getVoiceServerHealth} from '@app/api/middleware/ServiceRegistry';
 import {RateLimitConfigs} from '@app/api/RateLimitConfig';
 import type {HonoApp, HonoEnv} from '@app/api/types/HonoEnv';
-import {getRequestClientIp} from '@app/api/utils/RequestClientIp';
 import {Validator} from '@app/api/Validator';
 import {VOICE_CONFIGURATION_CHANNEL} from '@app/api/voice/VoiceConstants';
 import {VoiceJoinTokenRepository} from '@app/api/voice/VoiceJoinTokenRepository';
@@ -92,7 +91,7 @@ export function VoiceNodeController(app: HonoApp) {
 		async (ctx) => {
 			const service = nodeService(ctx);
 			const row = await service.authenticateJoin(ctx.req.header('Authorization'));
-			return ctx.json(await service.join(row, ctx.req.valid('json'), getRequestClientIp(ctx)));
+			return ctx.json(await service.join(row, ctx.req.valid('json')));
 		},
 	);
 	app.get(

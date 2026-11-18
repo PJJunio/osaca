@@ -48,7 +48,7 @@ Threads, forum channels and media channels also need the [`channel_threads` clie
 | enabled | boolean | Whether the caller can start a peer-to-peer voice call |
 | max_participants | integer | The most participants a peer-to-peer call allows (2-4) |
 
-The instance admin sets the rollout in the [peer-to-peer voice configuration](/admin-api/instance/#peer-to-peer-voice-configuration-object). If it lists rollout countries, the sampled share of accounts only includes requests from those countries, based on the request's IP address, so the same account can get a different answer on another network. A join to a peer-to-peer call that already has `max_participants` people is [refused as full](/gateway/events/#peer-to-peer-voice).
+The instance admin sets the rollout in the [peer-to-peer voice configuration](/admin-api/instance/#peer-to-peer-voice-configuration-object). OSACA knows no request's country, so a rollout limited to some countries reaches no one. A join to a peer-to-peer call that already has `max_participants` people is [refused as full](/gateway/events/#peer-to-peer-voice).
 
 ## Guild visits assignment object
 

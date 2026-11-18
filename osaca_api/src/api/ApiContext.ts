@@ -31,7 +31,6 @@ export interface ApiServices {
 
 export interface RequestScope {
 	requestId: string;
-	clientIp: string | null;
 	userAgent: string | null;
 	locale: string;
 }

@@ -7,7 +7,6 @@ import {RateLimitMiddleware} from '@app/api/middleware/RateLimitMiddleware';
 import {OpenAPI} from '@app/api/middleware/ResponseTypeMiddleware';
 import {RateLimitConfigs} from '@app/api/RateLimitConfig';
 import type {HonoApp} from '@app/api/types/HonoEnv';
-import {requireRequestClientIp} from '@app/api/utils/RequestClientIp';
 import {Validator} from '@app/api/Validator';
 import {
 	StreamPreviewResponse,
@@ -101,14 +100,12 @@ export function StreamController(app: HonoApp) {
 			const user = ctx.get('user');
 			const {channel_id, content_type} = ctx.req.valid('json');
 			const streamKey = ctx.req.valid('param').stream_key;
-			const clientIp = requireRequestClientIp(ctx);
 			const response = await ctx.get('streamService').createPreviewUploadUrl({
 				viewer: viewerFromCtx(ctx),
 				streamKey,
 				channelId: createChannelID(channel_id),
 				userId: user.id,
 				contentType: content_type,
-				clientIp,
 			});
 			return ctx.json(response, 200);
 		},
